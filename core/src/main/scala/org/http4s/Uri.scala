@@ -1169,12 +1169,6 @@ object Uri {
             Ipv6Address(a, b, c, d, e, f, g, h)
         }
 
-      def repN[A](n: Int, p: cats.parse.Parser0[A], sep: cats.parse.Parser0[Unit] = P.unit): cats.parse.Parser0[List[A]] =
-        ((p ~ sep).replicateA(n - 1) ~ p)
-          .map { case (head, tail) => head.map(_._1) :+ tail }
-          .backtrack
-          .orElse(if (n == 1) p.map(List(_)).backtrack else repN(n - 1, p, sep).backtrack)
-
       val h16: P[Short] =
         (hexdig ~ hexdig.? ~ hexdig.? ~ hexdig.?).string.map { (s: String) =>
           java.lang.Integer.parseInt(s, 16).toShort
@@ -1192,39 +1186,45 @@ object Uri {
         option1.backtrack.orElse(option2)
       }
 
-      (repN(6, h16Colon).with1 ~ ls32)
-        .map { case (ls: collection.Seq[Short], rs) => toIpv6(ls, rs) }
-        .backtrack
-        .orElse((doubleColon *> repN(4, h16Colon, P.unit) ~ ls32)
-          .map { case (rs: List[Short], rs2) => toIpv6(Seq.empty, rs ++ rs2) })
-        .backtrack
-        .orElse(((h16.?.with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](3).backtrack ~ ls32)
-          .map { case ((ls: Option[Short], rs), rs2) => toIpv6(ls.toSeq, rs ++ rs2) })
+      (h16Colon.repExactlyAs[List[Short]](6) ~ ls32)
+        .map { case (ls: List[Short], rs) => toIpv6(ls.toList, rs) }
         .backtrack
         .orElse(
-          ((repN(2, h16, colon.void).?.with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](2).backtrack ~ ls32)
-            .map { case ((ls: Option[List[Short]], rs), rs2) =>
-              toIpv6(ls.getOrElse(Seq.empty), rs ++ rs2)
+          (doubleColon *> h16Colon.repExactlyAs[List[Short]](5) ~ ls32)
+          .map { case (rs: List[Short], rs2) => toIpv6(Seq.empty, rs ++ rs2) })
+        .backtrack
+        .orElse(((h16.?.with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](4).backtrack ~ ls32)
+          .map { case ((ls: Option[Short], rs), rs2) => toIpv6(ls.toSeq, rs ++ rs2) })
+        .backtrack
+        .orElse(((h16.repSep0(0, 2, colon).with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](3).backtrack ~ ls32)
+            .map { case ((ls: List[Short], rs), rs2) =>
+              toIpv6(ls, rs ++ rs2)
             })
         .backtrack
-        .orElse(((repN(3, h16, colon.void).?.with1 <* doubleColon) ~ h16Colon ~ ls32)
-          .map { case ((ls: Option[List[Short]], r0: Short), rs) =>
-            toIpv6(ls.getOrElse(Seq.empty), Seq(r0) ++ rs)
-          })
+        .orElse(((h16.repSep0(0, 3, colon).with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](2).backtrack ~ ls32)
+            .map { case ((ls: List[Short], rs), rs2) =>
+              toIpv6(ls, rs ++ rs2)
+            })
         .backtrack
-        .orElse(((repN(4, h16, colon.void).?.with1 <* doubleColon) ~ ls32)
-          .map { case (ls: Option[collection.Seq[Short]], rs) =>
-            toIpv6(ls.getOrElse(Seq.empty), rs)
-          })
+        .orElse(((h16.repSep0(0, 4, colon).with1 <* doubleColon) ~ h16 ~ (colon *> ls32))
+            .map { case ((ls: List[Short], rs), rs2) =>
+              toIpv6(ls, rs +: rs2)
+            })
         .backtrack
-        .orElse(((repN(5, h16, colon.void).?.with1 <* doubleColon) ~ h16)
-          .map { case (ls: Option[collection.Seq[Short]], rs: Short) =>
-            toIpv6(ls.getOrElse(Seq.empty), Seq(rs))
-          })
+        .orElse(((h16.repSep0(0, 5, colon).with1 <* doubleColon) ~ ls32)
+            .map { case (ls: List[Short], rs) =>
+              toIpv6(ls, rs)
+            })
         .backtrack
-        .orElse((repN(6, h16, colon.void).?.with1 <* doubleColon)
-          .map {(ls: Option[collection.Seq[Short]]) => toIpv6(ls.getOrElse(Seq.empty), Seq.empty)})
+        .orElse(((h16.repSep0(0, 6, colon).with1 <* doubleColon) ~ h16)
+            .map { case ((ls: List[Short], rs)) =>
+              toIpv6(ls, Seq(rs))
+            })
         .backtrack
+        .orElse(((h16.repSep0(0, 7, colon).with1 <* doubleColon))
+            .map { ls =>
+              toIpv6(ls, Nil)
+            })
     }
 
     implicit val http4sInstancesForIpv6Address: HttpCodec[Ipv6Address]
