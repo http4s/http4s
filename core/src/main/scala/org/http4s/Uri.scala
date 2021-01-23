@@ -301,7 +301,7 @@ object Uri extends UriPlatform {
     *
     * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
     */
-  final class Scheme private(val value: String) extends Ordered[Scheme] {
+  final class Scheme private (val value: String) extends Ordered[Scheme] {
     override def equals(o: Any) =
       o match {
         case that: Scheme => this.value.equalsIgnoreCase(that.value)
@@ -700,7 +700,7 @@ object Uri extends UriPlatform {
     *
     * @see https://www.ietf.org/rfc/rfc3986.txt#section-3.21.
     */
-  final case class UserInfo private(username: String, password: Option[String])
+  final case class UserInfo private (username: String, password: Option[String])
       extends Ordered[UserInfo] {
     override def compare(that: UserInfo): Int =
       username.compareTo(that.username) match {
