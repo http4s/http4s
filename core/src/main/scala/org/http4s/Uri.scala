@@ -1027,6 +1027,13 @@ object Uri extends UriPlatform {
 
   final case class RegName(host: CIString) extends Host {
     def value: String = host.toString
+
+    /** Converts this registered name to a Hostname. In the spec, for
+      * generic schemes, a registered name need not be a valid host
+      * name. In HTTP practice, this conversion should succeed.
+      */
+    def toHostname: Option[ip4s.Hostname] =
+      ip4s.Hostname(host.toString)
   }
 
   object RegName {
