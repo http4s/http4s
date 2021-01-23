@@ -116,7 +116,7 @@ private[syntax] object LiteralsSyntax {
   }
 
   object qvalue extends Validator[QValue] {
-    override def validate(literal: String): Option[ParseFailure] = QValue.parse(literal).swap.toOption
+    override def validate(literal: String): Option[ParseFailure] = QValue.fromString(literal).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[QValue] =
       '{_root_.org.http4s.QValue.unsafeFromString(${Expr(literal)})}
