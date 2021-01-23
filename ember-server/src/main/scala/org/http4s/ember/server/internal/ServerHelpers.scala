@@ -165,38 +165,40 @@ private[server] object ServerHelpers {
   }
 
   // Similar to parJoin with a few semantic differences:
-  // - Results are not returned to the new stream
+  // - Inner stream values are not emitted to the new stream
   // - The outer stream can terminate and finalize early
-
-  // - If the outer stream or any of the inner streams fail, all are interrupted
-  //   and the returned stream will fail with that failure.
   def forking[F[_], O](streams: Stream[F, Stream[F, O]])(implicit F: Concurrent[F]): Stream[F, INothing] = {
     val fstream = for {
-      interrupt <- Deferred[F, Either[Throwable, Unit]]
-      error <- Ref.of[F, Option[Throwable]](None)
+      done <- SignallingRef[F, Option[Option[Throwable]]](None)
       running <- SignallingRef[F, Long](1)
     } yield {
       val incrementRunning: F[Unit] = running.update(_ + 1)
       val decrementRunning: F[Unit] = running.update(_ - 1)
       val awaitWhileRunning: F[Unit] = running.discrete.dropWhile(_ > 0).take(1).compile.drain
 
-      val doInterrupt: F[Unit] =
-        interrupt.complete(Right()).attempt.void
+      val stop: F[Unit] =
+        done.update {
+          case None => Some(None)
+          case x => x
+        }
+
+      val stopSignal: Signal[F, Boolean] =
+        done.map(_.nonEmpty)
 
       def handleResult(result: Either[Throwable, Unit]): F[Unit] =
         result match {
           case Right(_) => F.unit
           case Left(err) => 
-            error.modify {
-              case None => Some(err) -> doInterrupt
+            done.update {
+              case None => Some(Some(err))
               case x => x -> F.unit
-            }.flatten
+            }
         }
 
       def runInner(inner: Stream[F, O]): F[Unit] =
         incrementRunning >> 
           inner
-            .interruptWhen(interrupt)
+            .interruptWhen(stopSignal)
             .compile
             .drain
             .attempt
@@ -205,7 +207,7 @@ private[server] object ServerHelpers {
       val runOuter: F[Unit] =
         streams
           .flatMap(inner => F.start(startInner(inner)))
-          .interruptWhen(interrupt)
+          .interruptWhen(stopSignal)
           .compile
           .drain
           .void
@@ -218,7 +220,7 @@ private[server] object ServerHelpers {
           case None => F.unit
         }
 
-      Stream.bracket(F.start(runOuter))(_ => doInterrupt >> awaitWhileRunning >> signalResult) >> 
+      Stream.bracket(F.start(runOuter))(_ => stop >> awaitWhileRunning >> signalResult) >> 
         Stream.eval(awaitWhileRunning).drain
     }
 
