@@ -16,11 +16,11 @@ import cats.kernel.Semigroup
 import cats.parse.{Parser0, Parser => P}
 import cats.syntax.all._
 import com.comcast.ip4s
-import java.net.{Inet4Address, Inet6Address, InetAddress}
+import java.net.{Inet4Address, Inet6Address}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.charset.StandardCharsets
-import org.http4s.internal.{UriCoding, bug, compareField, hashLower, reduceComparisons}
+import org.http4s.internal.{UriCoding, compareField, hashLower, reduceComparisons}
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
@@ -849,7 +849,7 @@ object Uri extends UriPlatform {
       address.toInetAddress
 
     def value: String =
-      address.toUriString
+      address.toString
   }
 
   object Ipv4Address {
@@ -899,95 +899,21 @@ object Uri extends UriPlatform {
       }
   }
 
-  @deprecated("Renamed to Ipv6Address, modeled as case class of bytes", "0.21.0-M2")
-  type IPv6 = Ipv6Address
-
-  @deprecated("Renamed to Ipv6Address, modeled as case class of bytes", "0.21.0-M2")
-  object IPv6 {
-    @deprecated("Use Ipv6Address.fromString(ciString.value)", "0.21.0-M2")
-    def apply(ciString: CIString): ParseResult[Ipv6Address] =
-      Ipv6Address.fromString(ciString.toString)
-  }
-
-  final case class Ipv6Address(
-      a: Short,
-      b: Short,
-      c: Short,
-      d: Short,
-      e: Short,
-      f: Short,
-      g: Short,
-      h: Short)
+  final case class Ipv6Address(address: ip4s.Ipv6Address)
       extends Host
       with Ordered[Ipv6Address]
       with Serializable {
-    override def toString: String = s"Ipv6Address($a,$b,$c,$d,$e,$f,$g,$h)"
+    override def compare(that: Ipv6Address): Int =
+      this.address.compare(that.address)
 
-    override def compare(that: Ipv6Address): Int = {
-      var cmp = a.compareTo(that.a)
-      if (cmp == 0) cmp = b.compareTo(that.b)
-      if (cmp == 0) cmp = c.compareTo(that.c)
-      if (cmp == 0) cmp = d.compareTo(that.d)
-      if (cmp == 0) cmp = e.compareTo(that.e)
-      if (cmp == 0) cmp = f.compareTo(that.f)
-      if (cmp == 0) cmp = g.compareTo(that.g)
-      if (cmp == 0) cmp = h.compareTo(that.h)
-      cmp
-    }
-
-    def toByteArray: Array[Byte] = {
-      val bb = ByteBuffer.allocate(16)
-      bb.putShort(a)
-      bb.putShort(b)
-      bb.putShort(c)
-      bb.putShort(d)
-      bb.putShort(e)
-      bb.putShort(f)
-      bb.putShort(g)
-      bb.putShort(h)
-      bb.array
-    }
+    def toByteArray: Array[Byte] =
+      address.toBytes
 
     def toInet6Address: Inet6Address =
-      InetAddress.getByAddress(toByteArray).asInstanceOf[Inet6Address]
+      address.toInetAddress
 
-    def value: String = {
-      val hextets = Array(a, b, c, d, e, f, g, h)
-      var zeroesStart = -1
-      var maxZeroesStart = -1
-      var maxZeroesLen = 0
-      var lastWasZero = false
-      for (i <- 0 until 8)
-        if (hextets(i) == 0) {
-          if (!lastWasZero) {
-            lastWasZero = true
-            zeroesStart = i
-          } else {
-            val zeroesLen = i - zeroesStart
-            if (zeroesLen > maxZeroesLen) {
-              maxZeroesStart = zeroesStart
-              maxZeroesLen = zeroesLen
-            }
-          }
-        } else {
-          lastWasZero = false
-        }
-      val sb = new StringBuilder
-      var i = 0
-      while (i < 8)
-        if (i == maxZeroesStart) {
-          sb.append("::")
-          i += maxZeroesLen
-          i += 1
-        } else {
-          sb.append(Integer.toString(hextets(i) & 0xffff, 16))
-          i += 1
-          if (i < 8 && i != maxZeroesStart) {
-            sb.append(":")
-          }
-        }
-      sb.toString
-    }
+    def value: String =
+      address.toString
   }
 
   object Ipv6Address {
@@ -999,39 +925,29 @@ object Uri extends UriPlatform {
       fromString(s).fold(throw _, identity)
 
     def fromByteArray(bytes: Array[Byte]): ParseResult[Ipv6Address] =
-      if (bytes.length == 16) {
-        val bb = ByteBuffer.wrap(bytes)
-        Right(
-          Ipv6Address(
-            bb.getShort(),
-            bb.getShort(),
-            bb.getShort(),
-            bb.getShort(),
-            bb.getShort(),
-            bb.getShort(),
-            bb.getShort(),
-            bb.getShort()))
-      } else {
-        Left(
-          ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}"))
+      ip4s.Ipv6Address.fromBytes(bytes) match {
+        case Some(address) => Right(Ipv6Address(address))
+        case None =>
+          Left(
+            ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}"))
       }
 
-    def fromInet6Address(address: Inet6Address): Ipv6Address = {
-      val bytes = address.getAddress
-      if (bytes.length == 16) {
-        val bb = ByteBuffer.wrap(bytes)
-        Ipv6Address(
-          bb.getShort(),
-          bb.getShort(),
-          bb.getShort(),
-          bb.getShort(),
-          bb.getShort(),
-          bb.getShort(),
-          bb.getShort(),
-          bb.getShort())
-      } else {
-        throw bug(s"Inet4Address.getAddress not exactly 16 bytes: ${bytes.toSeq}")
-      }
+    def fromInet6Address(address: Inet6Address): Ipv6Address =
+      // TODO After release, replace with https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L58
+      fromByteArray(address.getAddress).valueOr(throw _)
+
+    def fromShorts(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
+        : Ipv6Address = {
+      val bb = ByteBuffer.allocate(16)
+      bb.putShort(a)
+      bb.putShort(b)
+      bb.putShort(c)
+      bb.putShort(d)
+      bb.putShort(e)
+      bb.putShort(f)
+      bb.putShort(g)
+      bb.putShort(h)
+      fromByteArray(bb.array).valueOr(throw _)
     }
 
     private[http4s] val parser: P[Ipv6Address] = {
@@ -1042,7 +958,7 @@ object Uri extends UriPlatform {
       def toIpv6(lefts: collection.Seq[Short], rights: collection.Seq[Short]): Ipv6Address =
         lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(0.toShort) ++ rights match {
           case collection.Seq(a, b, c, d, e, f, g, h) =>
-            Ipv6Address(a, b, c, d, e, f, g, h)
+            Ipv6Address.fromShorts(a, b, c, d, e, f, g, h)
         }
 
       val h16: P[Short] =

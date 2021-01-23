@@ -57,7 +57,7 @@ object Forwarded
       // format: off
       def ofIpv6Address(
           a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short
-      ): Name = Ipv6(Uri.Ipv6Address(a, b, c, d, e, f, g, h))
+      ): Name = Ipv6(Uri.Ipv6Address.fromShorts(a, b, c, d, e, f, g, h))
       // format: on
     }
 

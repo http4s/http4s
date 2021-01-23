@@ -640,23 +640,11 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
     Cogen[Array[Byte]].contramap(_.address.toBytes)
 
-  // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] = Arbitrary {
-    for {
-      a <- getArbitrary[Short]
-      b <- getArbitrary[Short]
-      c <- getArbitrary[Short]
-      d <- getArbitrary[Short]
-      e <- getArbitrary[Short]
-      f <- getArbitrary[Short]
-      g <- getArbitrary[Short]
-      h <- getArbitrary[Short]
-    } yield Uri.Ipv6Address(a, b, c, d, e, f, g, h)
-  }
+  implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] =
+    Arbitrary(ip4s.Arbitraries.ipv6Generator.map(Uri.Ipv6Address.apply))
 
   implicit val http4sTestingCogenForIpv6Address: Cogen[Uri.Ipv6Address] =
-    Cogen[(Short, Short, Short, Short, Short, Short, Short, Short)]
-      .contramap(ipv6 => (ipv6.a, ipv6.b, ipv6.c, ipv6.d, ipv6.e, ipv6.f, ipv6.g, ipv6.h))
+    Cogen[Array[Byte]].contramap(_.address.toBytes)
 
   /* TODO Everything generated here resembles a plausible hostname,
    * whereas the spec allows weird corner cases of arbitrary,
