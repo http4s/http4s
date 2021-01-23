@@ -49,8 +49,9 @@ object StaticFile {
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
+    val acceptEncoding: Option[`Accept-Encoding`] = req.flatMap(_.headers.get(`Accept-Encoding`))
     val tryGzipped =
-      preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
+      preferGzipped && acceptEncoding.exists { (acceptEncoding) =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
           ContentCoding.`x-gzip`)
       }
@@ -85,7 +86,7 @@ object StaticFile {
       else {
         val urlConn = url.openConnection
         val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
-        val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
+        val ifModifiedSince: Option[`If-Modified-Since`] = req.flatMap(_.headers.get(`If-Modified-Since`))
         val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
         if (expired) {

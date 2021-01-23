@@ -99,7 +99,7 @@ object QValue extends QValuePlatform {
   private[http4s] val parser: Parser0[QValue] = {
     import cats.parse.Parser.{char => ch, _}
     import cats.parse.Rfc5234._
-    import org.http4s.parser.Rfc2616BasicRules.optWs
+    import org.http4s.internal.parsing.Rfc7230.ows
 
     val qValue = string(ch('0') *> (ch('.') *> digit.rep).rep0)
       .mapFilter(
@@ -111,7 +111,7 @@ object QValue extends QValuePlatform {
         ch('1') *> (ch('.') *> ch('0').rep0.void).?.as(One)
       )
 
-    ((ch(';') *> optWs *> ignoreCaseChar('q') *> ch('=')) *> qValue).backtrack
+    ((ch(';') *> ows *> ignoreCaseChar('q') *> ch('=')) *> qValue).backtrack
       .orElse(pure(QValue.One))
   }
 

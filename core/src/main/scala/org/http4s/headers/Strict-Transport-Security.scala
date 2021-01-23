@@ -18,8 +18,10 @@ package org.http4s
 package headers
 
 import cats.parse.{Parser, Parser0}
-import org.http4s.parser.{AdditionalRules, Rfc2616BasicRules}
+import org.http4s.internal.parsing.Rfc7230.ows
+import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
+
 import scala.concurrent.duration.FiniteDuration
 
 /** Defined by http://tools.ietf.org/html/rfc6797
@@ -75,7 +77,7 @@ object `Strict-Transport-Security`
       .as(IncludeSubDomains)
       .orElse(Parser.ignoreCase("preload").as(Preload))
 
-    (maxAge ~ (Parser.string(";") *> Rfc2616BasicRules.optWs *> stsAttributes).rep0).map {
+    (maxAge ~ (Parser.string(";") *> ows *> stsAttributes).rep0).map {
       case (sts, attributes) =>
         attributes.foldLeft(sts) {
           case (sts, IncludeSubDomains) => sts.withIncludeSubDomains(true)

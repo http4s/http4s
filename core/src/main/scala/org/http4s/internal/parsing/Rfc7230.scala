@@ -87,4 +87,6 @@ private[http4s] object Rfc7230 {
       NonEmptyList(h, t)
     }
   }
+
+  def listSep = Parser.char(',').surroundedBy(ows)
 }

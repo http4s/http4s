@@ -14,7 +14,6 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import cats.parse.Parser
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
-import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{StringWriter, Writer}
 
 import scala.util.hashing.MurmurHash3
@@ -90,13 +89,12 @@ object MediaRange {
 
   private[http4s] val mediaTypeExtensionParser: Parser[(String, String)] = {
     import Parser.char
-    import Rfc2616BasicRules.optWs
-    import org.http4s.internal.parsing.Rfc7230.{quotedString, token}
+    import org.http4s.internal.parsing.Rfc7230.{quotedString, token, ows}
 
     val escapedString = "\\\\"
     val unescapedString = "\\"
 
-    (char(';') *> optWs *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
+    (char(';') *> ows *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
       case (s: String, s2: Option[String]) =>
         (s, s2.map(_.replace(escapedString, unescapedString)).getOrElse(""))
     }

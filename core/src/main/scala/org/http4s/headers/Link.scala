@@ -19,8 +19,8 @@ package org.http4s.headers
 import cats.data.NonEmptyList
 import cats.parse.{Parser, Parser0}
 import org.http4s._
-import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
-import org.http4s.parser.Rfc2616BasicRules.optWs
+import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token}
+
 import java.nio.charset.StandardCharsets
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
@@ -69,7 +69,7 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
     }
 
     val linkValueWithAttr: Parser[LinkValue] =
-      ((char('<') *> linkValue <* char('>')) ~ (char(';') *> optWs *> linkParam).rep0).map {
+      ((char('<') *> linkValue <* char('>')) ~ (char(';') *> ows *> linkParam).rep0).map {
         case (linkValue, linkParams) =>
           linkParams.foldLeft(linkValue) { case (lv, lp) =>
             lp match {
