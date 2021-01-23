@@ -108,8 +108,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
       else Seq(
-        scalaReflect(scalaVersion.value) % Provided,
-        parboiled,
+        scalaReflect(scalaVersion.value) % Provided
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),

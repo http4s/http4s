@@ -314,7 +314,6 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.58.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.0"
-    val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.2"
     val prometheusClient = "0.9.0"
     val reactiveStreams = "1.0.3"
@@ -395,7 +394,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % V.prometheusClient
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % V.prometheusClient
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % V.prometheusClient
-  lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % V.parboiledHttp4s
   lazy val reactiveStreams                  = "org.reactivestreams"    %  "reactive-streams"          % V.reactiveStreams
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % V.quasiquotes
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % V.scalacheck
