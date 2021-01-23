@@ -75,48 +75,48 @@ private[syntax] object LiteralsSyntax {
     override def validate(literal: String): Option[ParseFailure] = Uri.fromString(literal).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[Uri] =
-      '{_root_.org.http4s.Uri.unsafeFromString(${Expr(literal)})}
+      '{Uri.unsafeFromString(${Expr(literal)})}
   }
 
   object urischeme extends Validator[Uri.Scheme] {
     override def validate(literal: String): Option[ParseFailure] = Uri.Scheme.fromString(literal).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[Uri.Scheme] =
-      '{_root_.org.http4s.Uri.Scheme.unsafeFromString(${Expr(literal)})}
+      '{Uri.Scheme.unsafeFromString(${Expr(literal)})}
   }
 
   object uripath extends Validator[Uri.Path] {
     override def validate(literal: String): Option[ParseFailure] = Uri.fromString(literal).map(_.path).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[Uri.Path] =
-      '{_root_.org.http4s.Uri.unsafeFromString(${Expr(literal)}).path}
+      '{Uri.unsafeFromString(${Expr(literal)}).path}
   }
 
   object ipv4 extends Validator[Uri.Ipv4Address] {
     override def validate(literal: String): Option[ParseFailure] = Uri.Ipv4Address.fromString(literal).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[Uri.Ipv4Address] =
-      '{_root_.org.http4s.Uri.Ipv4Address.unsafeFromString(${Expr(literal)})}
+      '{Uri.Ipv4Address.unsafeFromString(${Expr(literal)})}
   }
 
   object ipv6 extends Validator[Uri.Ipv6Address] {
     override def validate(literal: String): Option[ParseFailure] = Uri.Ipv6Address.fromString(literal).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[Uri.Ipv6Address] =
-      '{_root_.org.http4s.Uri.Ipv6Address.unsafeFromString(${Expr(literal)})}
+      '{Uri.Ipv6Address.unsafeFromString(${Expr(literal)})}
   }
 
   object mediatype extends Validator[MediaType] {
     override def validate(literal: String): Option[ParseFailure] = MediaType.parse(literal).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[MediaType] =
-      '{_root_.org.http4s.MediaType.unsafeParse(${Expr(literal)})}
+      '{MediaType.unsafeParse(${Expr(literal)})}
   }
 
   object qvalue extends Validator[QValue] {
     override def validate(literal: String): Option[ParseFailure] = QValue.fromString(literal).swap.toOption
 
     override def construct(literal: String)(using Quotes): Expr[QValue] =
-      '{_root_.org.http4s.QValue.unsafeFromString(${Expr(literal)})}
+      '{QValue.unsafeFromString(${Expr(literal)})}
   }
 }
