@@ -45,9 +45,9 @@ private[syntax] object LiteralsSyntax {
   def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(uripath, strCtxExpr, argsExpr)
   def validateIpv4(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-      validate(ipv4, strCtxExpr, argsExpr)
+    validate(ipv4, strCtxExpr, argsExpr)
   def validateIpv6(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-      validate(ipv6, strCtxExpr, argsExpr)
+    validate(ipv6, strCtxExpr, argsExpr)
   def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(mediatype, strCtxExpr, argsExpr)
   def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
