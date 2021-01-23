@@ -89,7 +89,7 @@ object MediaRange {
 
   private[http4s] val mediaTypeExtensionParser: Parser[(String, String)] = {
     import Parser.char
-    import org.http4s.internal.parsing.Rfc7230.{quotedString, token, ows}
+    import org.http4s.internal.parsing.Rfc7230.{ows, quotedString, token}
 
     val escapedString = "\\\\"
     val unescapedString = "\\"

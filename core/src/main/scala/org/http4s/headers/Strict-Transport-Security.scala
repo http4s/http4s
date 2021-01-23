@@ -77,12 +77,11 @@ object `Strict-Transport-Security`
       .as(IncludeSubDomains)
       .orElse(Parser.ignoreCase("preload").as(Preload))
 
-    (maxAge ~ (Parser.string(";") *> ows *> stsAttributes).rep0).map {
-      case (sts, attributes) =>
-        attributes.foldLeft(sts) {
-          case (sts, IncludeSubDomains) => sts.withIncludeSubDomains(true)
-          case (sts, Preload) => sts.withPreload(true)
-        }
+    (maxAge ~ (Parser.string(";") *> ows *> stsAttributes).rep0).map { case (sts, attributes) =>
+      attributes.foldLeft(sts) {
+        case (sts, IncludeSubDomains) => sts.withIncludeSubDomains(true)
+        case (sts, Preload) => sts.withPreload(true)
+      }
     }
   }
 }
