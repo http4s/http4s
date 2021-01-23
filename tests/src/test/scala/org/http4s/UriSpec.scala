@@ -14,7 +14,7 @@ import cats.kernel.laws.discipline._
 import cats.syntax.all._
 import java.nio.file.Paths
 
-import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.internal.CharPredicate
 import org.http4s.Uri._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._

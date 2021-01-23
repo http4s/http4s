@@ -19,7 +19,7 @@ package org.http4s
 import cats.syntax.all._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.Uri.Scheme
-import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.internal.CharPredicate
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer
 
