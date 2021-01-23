@@ -50,9 +50,7 @@ class UriParserSpec extends Http4sSpec {
       } yield f + "::" + b)
 
       foreach(v) { s =>
-        val value1 = Ipv6Address.parser.string.parseAll(s)
-        if (value1.isLeft) println(s)
-        value1 must beRight(s)
+        Ipv6Address.parser.string.parseAll(s) must beRight(s)
       }
     }
 
