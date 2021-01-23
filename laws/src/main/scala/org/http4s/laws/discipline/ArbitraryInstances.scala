@@ -26,6 +26,7 @@ import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
 import cats.syntax.all._
 import cats.instances.order._
+import com.comcast.ip4s
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -633,18 +634,11 @@ private[http4s] trait ArbitraryInstances {
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =
     oneOf(g, const(ev.empty))
 
-  // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] = Arbitrary {
-    for {
-      a <- getArbitrary[Byte]
-      b <- getArbitrary[Byte]
-      c <- getArbitrary[Byte]
-      d <- getArbitrary[Byte]
-    } yield Uri.Ipv4Address(a, b, c, d)
-  }
+  implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] =
+    Arbitrary(ip4s.Arbitraries.ipv4Generator.map(Uri.Ipv4Address.apply))
 
   implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
-    Cogen[(Byte, Byte, Byte, Byte)].contramap(ipv4 => (ipv4.a, ipv4.b, ipv4.c, ipv4.d))
+    Cogen[Array[Byte]].contramap(_.address.toBytes)
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
   implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] = Arbitrary {

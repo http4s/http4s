@@ -15,6 +15,7 @@ import cats.data.NonEmptyList
 import cats.kernel.Semigroup
 import cats.parse.{Parser0, Parser => P}
 import cats.syntax.all._
+import com.comcast.ip4s
 import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset}
@@ -832,46 +833,23 @@ object Uri extends UriPlatform {
       }
   }
 
-  @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
-  type IPv4 = Ipv4Address
-
-  @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
-  object IPv4 {
-    @deprecated("Use Ipv4Address.fromString(ciString.value)", "0.21.0-M2")
-    def apply(ciString: CIString): ParseResult[Ipv4Address] =
-      Ipv4Address.fromString(ciString.toString)
-  }
-
-  final case class Ipv4Address(a: Byte, b: Byte, c: Byte, d: Byte)
+  final case class Ipv4Address(address: ip4s.Ipv4Address)
       extends Host
       with Ordered[Ipv4Address]
       with Serializable {
     override def toString: String = s"Ipv4Address($value)"
 
-    override def compare(that: Ipv4Address): Int = {
-      var cmp = a.compareTo(that.a)
-      if (cmp == 0) cmp = b.compareTo(that.b)
-      if (cmp == 0) cmp = c.compareTo(that.c)
-      if (cmp == 0) cmp = d.compareTo(that.d)
-      cmp
-    }
+    override def compare(that: Ipv4Address): Int =
+      this.address.compare(that.address)
 
     def toByteArray: Array[Byte] =
-      Array(a, b, c, d)
+      address.toBytes
 
     def toInet4Address: Inet4Address =
-      InetAddress.getByAddress(toByteArray).asInstanceOf[Inet4Address]
+      address.toInetAddress
 
     def value: String =
-      new StringBuilder()
-        .append(a & 0xff)
-        .append(".")
-        .append(b & 0xff)
-        .append(".")
-        .append(c & 0xff)
-        .append(".")
-        .append(d & 0xff)
-        .toString
+      address.toUriString
   }
 
   object Ipv4Address {
@@ -885,21 +863,20 @@ object Uri extends UriPlatform {
     def fromByteArray(bytes: Array[Byte]): ParseResult[Ipv4Address] =
       bytes match {
         case Array(a, b, c, d) =>
-          Right(Ipv4Address(a, b, c, d))
+          Right(fromBytes(a, b, c, d))
         case _ =>
           Left(ParseFailure("Invalid Ipv4Address", s"Byte array not exactly four bytes: ${bytes}"))
       }
 
+    def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Ipv4Address =
+      apply(ip4s.Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
+
     def fromInet4Address(address: Inet4Address): Ipv4Address =
-      address.getAddress match {
-        case Array(a, b, c, d) =>
-          Ipv4Address(a, b, c, d)
-        case array =>
-          throw bug(s"Inet4Address.getAddress not exactly four bytes: ${array}")
-      }
+      // TODO Use this once released: https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L44
+      fromByteArray(address.getAddress).valueOr(throw _)
 
     private[http4s] val parser: P[Ipv4Address] =
-      Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Ipv4Address(a, b, c, d) }
+      Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Ipv4Address.fromBytes(a, b, c, d) }
 
     implicit val http4sInstancesForIpv4Address: HttpCodec[Ipv4Address]
       with Order[Ipv4Address]
