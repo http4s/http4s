@@ -1039,6 +1039,9 @@ object Uri extends UriPlatform {
   object RegName {
     def apply(name: String): RegName = new RegName(CIString(name))
 
+    def fromHostname(hostname: ip4s.Hostname): RegName =
+      RegName(CIString(hostname.toString))
+
     /* reg-name    = *( unreserved / pct-encoded / sub-delims) */
     val parser: Parser0[RegName] = {
       import Rfc3986.{pctEncoded, subDelims, unreserved}
