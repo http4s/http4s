@@ -33,16 +33,17 @@ class UriParserSpec extends Http4sSpec {
 
     // http://www.ietf.org/rfc/rfc2396.txt
 
-    "parse a IPv6 address" in pending {
+    "parse a IPv6 address" in {
       val v = "01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab" +: (for {
         h <- 0 to 7
         l <- 0 to 7 - h
         f = List.fill(h)("01ab").mkString(":")
         b = List.fill(l)("32ba").mkString(":")
+        if (f ++ b).size < 7 // a single shortened section is disallowed
       } yield f + "::" + b)
 
       foreach(v) { s =>
-        Ipv6Address.fromString(s).map(_.value) must beRight(s)
+        Ipv6Address.parser.string.parseAll(s) must beRight(s)
       }
     }
 
