@@ -191,7 +191,7 @@ private[server] object ServerHelpers {
           case Left(err) => 
             done.update {
               case None => Some(Some(err))
-              case x => x -> F.unit
+              case x => x
             }
         }
 
@@ -206,7 +206,7 @@ private[server] object ServerHelpers {
 
       val runOuter: F[Unit] =
         streams
-          .flatMap(inner => F.start(startInner(inner)))
+          .evalMap(inner => F.start(runInner(inner)))
           .interruptWhen(stopSignal)
           .compile
           .drain
@@ -215,9 +215,9 @@ private[server] object ServerHelpers {
           .flatMap(handleResult) >> decrementRunning
 
       val signalResult: F[Unit] =
-        error.get.flatMap {
-          case Some(err) => F.raiseError(err)
-          case None => F.unit
+        done.get.flatMap {
+          case Some(Some(err)) => F.raiseError(err)
+          case _ => F.unit
         }
 
       Stream.bracket(F.start(runOuter))(_ => stop >> awaitWhileRunning >> signalResult) >> 
