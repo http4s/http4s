@@ -49,9 +49,10 @@ object StaticFile {
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
-    val acceptEncoding: Option[`Accept-Encoding`] = req.flatMap(_.headers.get(`Accept-Encoding`))
+    val acceptEncodingHeader: Option[`Accept-Encoding`] =
+      req.flatMap(_.headers.get(`Accept-Encoding`))
     val tryGzipped =
-      preferGzipped && acceptEncoding.exists { acceptEncoding =>
+      preferGzipped && acceptEncodingHeader.exists { acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
           ContentCoding.`x-gzip`)
       }
