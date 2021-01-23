@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.testing
+package org.http4s
 
 object illTyped {
   inline def apply(code: String): Unit = {
