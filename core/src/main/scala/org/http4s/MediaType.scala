@@ -14,10 +14,8 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import cats.parse.Parser
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
-import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{StringWriter, Writer}
 
-import scala.reflect.macros.whitebox
 import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
@@ -91,13 +89,12 @@ object MediaRange {
 
   private[http4s] val mediaTypeExtensionParser: Parser[(String, String)] = {
     import Parser.char
-    import Rfc2616BasicRules.optWs
-    import org.http4s.internal.parsing.Rfc7230.{quotedString, token}
+    import org.http4s.internal.parsing.Rfc7230.{ows, quotedString, token}
 
     val escapedString = "\\\\"
     val unescapedString = "\\"
 
-    (char(';') *> optWs *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
+    (char(';') *> ows *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
       case (s: String, s2: Option[String]) =>
         (s, s2.map(_.replace(escapedString, unescapedString)).getOrElse(""))
     }
@@ -294,32 +291,4 @@ object MediaType extends MimeDB {
         writer
       }
     }
-
-  @deprecated("This location of the implementation complicates Dotty support", "0.21.16")
-  class Macros(val c: whitebox.Context) {
-    import c.universe._
-
-    def mediaTypeLiteral(s: c.Expr[String]): Tree =
-      s.tree match {
-        case Literal(Constant(s: String)) =>
-          MediaType
-            .parse(s)
-            .fold(
-              e => c.abort(c.enclosingPosition, e.details),
-              _ =>
-                q"_root_.org.http4s.MediaType.parse($s).fold(throw _, _root_.scala.Predef.identity)"
-            )
-        case _ =>
-          c.abort(
-            c.enclosingPosition,
-            s"This method uses a macro to verify that a String literal is a valid media type. Use MediaType.parse if you have a dynamic String that you want to parse as a MediaType."
-          )
-      }
-  }
-
-  /** Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
-    * at compile time.
-    */
-  @deprecated("""use mediaType"" string interpolation instead""", "0.20")
-  def mediaType(s: String): MediaType = macro MediaType.Macros.mediaTypeLiteral
 }

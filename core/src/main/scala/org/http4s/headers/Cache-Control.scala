@@ -23,7 +23,7 @@ import org.http4s.CacheDirective._
 import org.typelevel.ci.CIString
 import cats.parse._
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
-import org.http4s.parser.{AdditionalRules, Rfc2616BasicRules}
+import org.http4s.parser.{AdditionalRules}
 import scala.concurrent.duration._
 
 object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKey.Recurring {
@@ -31,7 +31,7 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
     ParseResult.fromParser(parser, "Invalid Cache-Control header")(s)
 
   private[http4s] val FieldNames: Parser[NonEmptyList[String]] =
-    Rfc7230.quotedString.repSep(Rfc2616BasicRules.listSep)
+    Rfc7230.quotedString.repSep(Rfc7230.listSep)
   private[http4s] val DeltaSeconds: Parser[Duration] =
     AdditionalRules.NonNegativeLong.map(Duration(_, TimeUnit.SECONDS))
 
@@ -63,7 +63,7 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
         }) :: Nil
     )
   private[http4s] val parser: Parser[`Cache-Control`] =
-    CacheDirective.repSep(Rfc2616BasicRules.listSep).map(`Cache-Control`(_))
+    CacheDirective.repSep(Rfc7230.listSep).map(`Cache-Control`(_))
 }
 
 final case class `Cache-Control`(values: NonEmptyList[CacheDirective])
