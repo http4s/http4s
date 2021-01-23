@@ -81,6 +81,25 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 * log4s-1.0.0-M4
 * okio-2.10.0
 * vault-2.1.0-M14 (now under `org.typelevel`)
+# v0.21.16 (unreleased)
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4152](https://github.com/http4s/http4s/pull/4152): Omit implicit `Content-Length: 0` header when rendering GET, DELETE, CONNECT, and TRACE requests.
+
+## http4s-circe
+
+### Enhancements
+
+* [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
 
 # v1.0.0-M10 (2020-12-31)
 
