@@ -8,6 +8,154 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M11 (unreleased)
+
+This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 development, please see the new 0.22.x series.
+
+## http4s-core
+
+### Breaking changes
+
+* [#3784](https://github.com/http4s/http4s/pull/3784), [#3865](https://github.com/http4s/http4s/pull/3784): Inexhaustively,
+  * Many `EntityDecoder` constraints relaxed from `Sync` to `Concurrent`.
+  * File-related operations require a `Files` constraint.
+  * `Blocker` arguments are no longer required.
+  * `ContextShift` constraints are no longer required.
+  * The deprecated, non-HTTP `AsyncSyntax` is removed.
+* [#3886](https://github.com/http4s/http4s/pull/3886): 
+  * Relax `Sync` to `Defer` in `HttpApp` constructor.
+  * Relax `Sync` to `Concurrent` in `Logger` constructors.
+  * Remove `Sync` constraint from `Part` constructors.
+  * Relax `Sync` to `Functor` in various Kleisli syntax.
+
+## http4s-laws
+
+### Breaking changes
+
+* [#3807](https://github.com/http4s/http4s/pull/3807): Several arbitraries and cogens now require a `Dispatcher` and a `TestContext`.
+
+## http4s-jawn
+
+### Breaking changes
+
+* [#3871](https://github.com/http4s/http4s/pull/3871): `Sync` constraints relaxed to `Concurrent`
+
+## http4s-argonaut
+
+### Breaking changes
+
+* [#3961](https://github.com/http4s/http4s/pull/3961): `Sync` constraints relaxed to `Concurrent`
+
+## http4s-circe
+
+### Breaking changes
+
+* [#3965](https://github.com/http4s/http4s/pull/3965): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-json4s
+
+### Breaking changes
+
+* [#3885](https://github.com/http4s/http4s/pull/3885): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-play-json
+
+### Breaking changes
+
+* [#3962](https://github.com/http4s/http4s/pull/3962): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-scala-xml
+
+### Breaking changes
+
+* [#4054](https://github.com/http4s/http4s/pull/4054): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-boopickle
+
+### Breaking changes
+
+* [#3871](https://github.com/http4s/http4s/pull/3852): `Sync` constraints relaxed to `Concurrent`
+
+## http4s-client 
+
+* [#3857](https://github.com/http4s/http4s/pull/3857): Inexhaustively,
+  * `Monad: Clock` constraints changed to `Temporal`
+  * `Client.translate` requires an `Async` and `MonadCancel`
+  * Removal of `Blocker` from `JavaNetClientBuilder`
+  * `PoolManager` changed from `Concurrent` to `Async`
+  * Many middlewares changed from `Sync` to `Async`
+* [#4081](https://github.com/http4s/http4s/pull/4081): Change `Metrics` constraints from `Temporal` to `Clock: Concurrent`
+
+## http4s-server
+
+* [#3857](https://github.com/http4s/http4s/pull/3857): Inexhaustively,
+  * `Monad: Clock` constraints changed to `Temporal`
+  * Many middlewares changed from `Sync` to `Async`
+* [#4081](https://github.com/http4s/http4s/pull/4081): Change `Metrics` constraints from `Temporal` to `Clock: Concurrent`
+
+## http4s-async-http-client
+
+### Breaking changes
+
+* [#4149](https://github.com/http4s/http4s/pull/4149): `ConcurrentEffect` constraint relaxed to `Async`. `apply` method changed to `fromClient` and returns a `Resource` to account for the `Dispatcher`.
+
+## http4s-blaze-core
+
+### Breaking changes
+
+* [#3894](https://github.com/http4s/http4s/pull/3894): Most `Effect` constraints relaxed to `Async`.
+
+## http4s-blaze-server
+
+### Breaking changes
+
+* [#4097](https://github.com/http4s/http4s/pull/4097), [#4137](https://github.com/http4s/http4s/pull/4137): `ConcurrentEffect` constraint relaxed to `Async`. Remove deprecated `BlazeBuilder`
+
+## http4s-blaze-client
+
+### Breaking changes
+
+* [#4097](https://github.com/http4s/http4s/pull/4097): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-okhttp-client
+
+### Breaking changes
+
+* [#4102](https://github.com/http4s/http4s/pull/4102), [#4136](https://github.com/http4s/http4s/pull/4136): 
+  * `OkHttpBuilder` takes a `Dispatcher`
+  * `ConcurrentEffect` and `ContextShift` constraints replaced by `Async`
+
+## http4s-servlet
+
+### Breaking changes
+
+* [#4175](https://github.com/http4s/http4s/pull/4175): Servlets naow take a `Dispatcher`. The blocker is removed from `BlockingIo`. `ConcurrentEffect` constraint relaxed to `Async`.
+
+## http4s-jetty-client
+
+### Breaking changes
+
+* [#4165](https://github.com/http4s/http4s/pull/4165): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-jetty
+
+### Breaking changes
+
+* [#4191](https://github.com/http4s/http4s/pull/4191): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-jetty
+
+### Breaking changes
+
+* [#4216](https://github.com/http4s/http4s/pull/4216): `ConcurrentEffect` constraint relaxed to `Async`
+
+## Dependency updates
+
+* cats-effect-3.0.0-M5
+* fs2-3.0.0-M7
+* jawn-1.0.3
+* jawn-fs2-2.0.0-M2
+
 # v0.22.0-M1 (unreleased)
 
 This is a new series based on v1.0.0-M10, forked off before Cats-Effect 3 support was merged.
