@@ -8,6 +8,26 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.16 (unreleased)
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4152](https://github.com/http4s/http4s/pull/4152): Omit implicit `Content-Length: 0` header when rendering GET, DELETE, CONNECT, and TRACE requests.
+
+## http4s-circe
+
+### Enhancements
+
+* [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
+
 # v0.21.15 (2020-12-31)
 
 ## http4s-core
