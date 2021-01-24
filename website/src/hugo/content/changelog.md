@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.16 (unreleased)
+# v0.21.16 (2021-01-24)
 
 ## http4s-blaze-core
 
@@ -33,6 +33,13 @@ it.
 ### Enhancements
 
 * [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
+
+## Dependency updates
+
+* dropwizard-metrics-4.1.17
+* netty-4.1.58.Final
+* play-json-29.9.2
+* scalatags-0.9.3
 
 # v0.21.15 (2020-12-31)
 
