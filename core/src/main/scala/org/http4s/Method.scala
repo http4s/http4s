@@ -24,8 +24,8 @@ import org.http4s.util.{Renderable, Writer}
 
 /** An HTTP method.
   *
-  * @see [http://tools.ietf.org/html/rfc7231#section-4 RFC7321, Section 4]
-  * @see [http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]
+  * @see [[http://tools.ietf.org/html/rfc7231#section-4 RFC 7321, Section 4, Request Methods]]
+  * @see [[http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]]
   */
 sealed abstract case class Method private (name: String) extends Renderable with Semantics {
   final override def render(writer: Writer): writer.type = writer << name
