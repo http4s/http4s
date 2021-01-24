@@ -16,7 +16,7 @@
 
 package org.http4s.ember.client
 
-import io.chrisdavenport.keypool._
+import org.typelevel.keypool._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import cats._
