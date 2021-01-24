@@ -16,11 +16,11 @@
 
 package org.http4s.internal
 
-import cats.effect.{Bracket, Resource}
+import cats.effect.{BracketThrow, Resource}
 import fs2.Stream
 
 private[http4s] trait BackendBuilder[F[_], A] {
-  protected implicit def F: Bracket[F, Throwable]
+  protected implicit def F: BracketThrow[F]
 
   /** Returns the backend as a resource.  Resource acquire waits
     * until the backend is ready to process requests.

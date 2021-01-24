@@ -20,8 +20,6 @@ import cats.kernel.laws.discipline.{HashTests, OrderTests}
 import org.http4s.Uri.Ipv4Address
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer.renderString
-import org.specs2.execute._, Typecheck._
-import org.specs2.matcher.TypecheckMatchers._
 
 class Ipv4AddressSpec extends Http4sSpec {
   checkAll("Order[Ipv4Address]", OrderTests[Ipv4Address].order)
@@ -42,7 +40,7 @@ class Ipv4AddressSpec extends Http4sSpec {
 
   "fromByteArray" should {
     "round trip with toByteArray" in prop { (ipv4: Ipv4Address) =>
-      Ipv4Address.fromByteArray(ipv4.toByteArray) must_== Right(ipv4)
+      Ipv4Address.fromByteArray(ipv4.toByteArray) must beRight(ipv4)
     }
   }
 
@@ -64,7 +62,8 @@ class Ipv4AddressSpec extends Http4sSpec {
     }
 
     "reject invalid values" in {
-      typecheck("""ipv4"256.0.0.0"""") must not succeed
+      illTyped("""ipv4"256.0.0.0"""")
+      true
     }
   }
 }
