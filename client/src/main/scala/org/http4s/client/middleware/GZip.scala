@@ -18,7 +18,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.Bracket
+import cats.effect.BracketThrow
 import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import scala.annotation.nowarn
@@ -31,7 +31,7 @@ object GZip {
     Seq(ContentCoding.gzip.coding, ContentCoding.deflate.coding).mkString(", ")
 
   def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit
-      F: Bracket[F, Throwable]): Client[F] =
+      F: BracketThrow[F]): Client[F] =
     Client[F] { req =>
       val reqWithEncoding = addHeaders(req)
       val responseResource = client.run(reqWithEncoding)
@@ -52,7 +52,7 @@ object GZip {
 
   @nowarn("cat=deprecation")
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: Bracket[F, Throwable]): Response[F] =
+      F: BracketThrow[F]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
@@ -69,7 +69,7 @@ object GZip {
     }
 
   private def decompressWith[F[_]](decompressor: Pipe[F, Byte, Byte])(implicit
-      F: Bracket[F, Throwable]): Pipe[F, Byte, Byte] =
+      F: BracketThrow[F]): Pipe[F, Byte, Byte] =
     _.pull.peek1
       .flatMap {
         case None => Pull.raiseError(EmptyBodyException)

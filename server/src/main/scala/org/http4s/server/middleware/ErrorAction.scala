@@ -23,7 +23,7 @@ import cats.syntax.all._
 import org.http4s._
 
 object ErrorAction {
-  def apply[F[_]: ApplicativeError[*[_], Throwable], G[_], B](
+  def apply[F[_]: ApplicativeThrow, G[_], B](
       k: Kleisli[F, Request[G], B],
       f: (Request[G], Throwable) => F[Unit]
   ): Kleisli[F, Request[G], B] =
@@ -31,7 +31,7 @@ object ErrorAction {
       k.run(req).onError { case e => f(req, e) }
     }
 
-  def log[F[_]: ApplicativeError[*[_], Throwable], G[_], B](
+  def log[F[_]: ApplicativeThrow, G[_], B](
       http: Kleisli[F, Request[G], B],
       messageFailureLogAction: (Throwable, => String) => F[Unit],
       serviceErrorLogAction: (Throwable, => String) => F[Unit]
@@ -55,12 +55,12 @@ object ErrorAction {
     )
 
   object httpApp {
-    def apply[F[_]: ApplicativeError[*[_], Throwable]](
+    def apply[F[_]: ApplicativeThrow](
         httpApp: HttpApp[F],
         f: (Request[F], Throwable) => F[Unit]): HttpApp[F] =
       ErrorAction(httpApp, f)
 
-    def log[F[_]: ApplicativeError[*[_], Throwable], G[_], B](
+    def log[F[_]: ApplicativeThrow, G[_], B](
         httpApp: HttpApp[F],
         messageFailureLogAction: (Throwable, => String) => F[Unit],
         serviceErrorLogAction: (Throwable, => String) => F[Unit]
@@ -69,12 +69,12 @@ object ErrorAction {
   }
 
   object httpRoutes {
-    def apply[F[_]: MonadError[*[_], Throwable]](
+    def apply[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
         f: (Request[F], Throwable) => F[Unit]): HttpRoutes[F] =
       ErrorAction(httpRoutes, liftFToOptionT(f))
 
-    def log[F[_]: MonadError[*[_], Throwable]](
+    def log[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
         messageFailureLogAction: (Throwable, => String) => F[Unit],
         serviceErrorLogAction: (Throwable, => String) => F[Unit]

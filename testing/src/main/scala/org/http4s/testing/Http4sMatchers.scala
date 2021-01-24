@@ -17,7 +17,7 @@
 package org.http4s
 package testing
 
-import cats.MonadError
+import cats.MonadThrow
 import cats.data.EitherT
 import cats.syntax.all._
 import org.http4s.headers._
@@ -38,15 +38,14 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       runAwait(r).aka("the returned")
     }
 
-  def haveBody[A](a: ValueCheck[A])(implicit
-      F: MonadError[F, Throwable],
-      ee: EntityDecoder[F, A]): Matcher[Message[F]] =
+  def haveBody[A](
+      a: ValueCheck[A])(implicit F: MonadThrow[F], ee: EntityDecoder[F, A]): Matcher[Message[F]] =
     returnValue(a) ^^ { (m: Message[F]) =>
       m.as[A].aka("the message body")
     }
 
   def returnBody[A](a: ValueCheck[A])(implicit
-      F: MonadError[F, Throwable],
+      F: MonadThrow[F],
       ee: EntityDecoder[F, A]): Matcher[F[Message[F]]] =
     returnValue(a) ^^ { (m: F[Message[F]]) =>
       m.flatMap(_.as[A]).aka("the returned message body")

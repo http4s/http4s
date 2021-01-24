@@ -23,10 +23,11 @@ import org.specs2.matcher.MustThrownMatchers
 class UriSpec extends Http4sSpec with MustThrownMatchers {
   sealed case class Ttl(seconds: Int)
   object Ttl {
-    implicit val queryParamInstance = new QueryParamEncoder[Ttl] with QueryParam[Ttl] {
-      def key: QueryParameterKey = QueryParameterKey("ttl")
-      def encode(value: Ttl): QueryParameterValue = QueryParameterValue(value.seconds.toString)
-    }
+    implicit val queryParamInstance: QueryParamEncoder[Ttl] with QueryParam[Ttl] =
+      new QueryParamEncoder[Ttl] with QueryParam[Ttl] {
+        def key: QueryParameterKey = QueryParameterKey("ttl")
+        def encode(value: Ttl): QueryParameterValue = QueryParameterValue(value.seconds.toString)
+      }
   }
 
   def getUri(uri: String): Uri =
