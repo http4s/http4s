@@ -18,10 +18,9 @@ package org.http4s
 
 object illTyped {
   inline def apply(code: String): Unit = {
-    if (!scala.compiletime.testing.typeChecks(code)) {
-      throw new IllegalArgumentException(s"${code} did not typecheck")
+    if (scala.compiletime.testing.typeChecks(code)) {
+      scala.compiletime.error("unexpectedly typechecked")
     }
-    ()
   }
   inline def apply(code: String, expected: String): Unit = apply(code)
 }
