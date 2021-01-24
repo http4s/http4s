@@ -161,7 +161,7 @@ private[server] object ServerHelpers {
             .flatMap(withUpgradedSocket(_))
       }
       
-    forking(handler)
+    forking(handler, maxConcurrency)
   }
 
   /** forking has similar semantics to parJoin, but there are two key differences.
@@ -173,9 +173,10 @@ private[server] object ServerHelpers {
     * safely utilize this because inner streams are created fresh from socket Resources 
     * that don't close over any resources from the outer stream.
     */
-  def forking[F[_], O](streams: Stream[F, Stream[F, O]])(implicit F: Concurrent[F]): Stream[F, INothing] = {
+  def forking[F[_], O](streams: Stream[F, Stream[F, O]], maxConcurrency: Int = Int.MaxValue)(implicit F: Concurrent[F]): Stream[F, INothing] = {
     val fstream = for {
       done <- SignallingRef[F, Option[Option[Throwable]]](None)
+      available <- Semaphore[F](maxConcurrency.toLong)
       running <- SignallingRef[F, Long](1)
     } yield {
       val incrementRunning: F[Unit] = running.update(_ + 1)
@@ -202,13 +203,13 @@ private[server] object ServerHelpers {
         }
 
       def runInner(inner: Stream[F, O]): F[Unit] =
-        incrementRunning >> 
+        incrementRunning >> available.acquire >> 
           inner
             .interruptWhen(stopSignal)
             .compile
             .drain
             .attempt
-            .flatMap(handleResult) >> decrementRunning
+            .flatMap(handleResult) >> available.release >> decrementRunning
 
       val runOuter: F[Unit] =
         streams
