@@ -164,9 +164,15 @@ private[server] object ServerHelpers {
     forking(handler)
   }
 
-  // Similar to parJoin with a few semantic differences:
-  // - Inner stream values are not emitted to the new stream
-  // - The outer stream can terminate and finalize early
+  /** forking has similar semantics to parJoin, but there are two key differences.
+    * The first is that inner stream outputs are not shuffled to the forked stream.
+    * The second is that the outer stream may terminate and finalize before inner
+    * streams complete. This is generally unsafe, because inner streams are lexically
+    * scoped within the outer stream and accordingly has resources bound to the outer
+    * stream available in scope. However, network servers built on top of fs2.io can 
+    * safely utilize this because inner streams are created fresh from socket Resources 
+    * that don't close over any resources from the outer stream.
+    */
   def forking[F[_], O](streams: Stream[F, Stream[F, O]])(implicit F: Concurrent[F]): Stream[F, INothing] = {
     val fstream = for {
       done <- SignallingRef[F, Option[Option[Throwable]]](None)
