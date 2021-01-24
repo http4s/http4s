@@ -773,6 +773,12 @@ object Uri extends UriPlatform {
         case a: Ipv6Address => writer << '[' << a << ']'
         case _ => writer
       }
+
+    def toIpAddress: Option[ip4s.IpAddress] = this match {
+      case Ipv4Address(a) => Some(a)
+      case Ipv6Address(a) => Some(a)
+      case RegName(_) => None
+    }
   }
 
   object Host {

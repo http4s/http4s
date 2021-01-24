@@ -64,7 +64,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
       case req @ GET -> Root / "ip" =>
         // It's possible to define an EntityEncoder anywhere so you're not limited to built in types
-        val json = Json.obj("origin" -> Json.fromString(req.remoteAddr.getOrElse("unknown")))
+        val json = Json.obj("origin" -> Json.fromString(req.remoteAddr.fold("unknown")(_.toString)))
         Ok(json)
 
       case GET -> Root / "redirect" =>

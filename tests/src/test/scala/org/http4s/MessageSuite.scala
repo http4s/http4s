@@ -18,17 +18,16 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import com.comcast.ip4s.{Port, SocketAddress}
 import fs2.Pure
-import java.net.{InetAddress, InetSocketAddress}
-
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.syntax.all._
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
-  val local = InetSocketAddress.createUnresolved("www.local.com", 8080)
-  val remote = InetSocketAddress.createUnresolved("www.remote.com", 45444)
+  val local = SocketAddress(ipv4"127.0.0.1".address, Port(8080).get)
+  val remote = SocketAddress(ipv4"192.168.0.1".address, Port(45444).get)
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()
@@ -46,21 +45,21 @@ class MessageSuite extends Http4sSuite {
   test("ConnectionInfo should be utilized to determine the address of server and remote") {
     val r = Request()
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
-    assertEquals(r.serverAddr, local.getHostString)
-    assertEquals(r.remoteAddr, Some(remote.getHostString))
+    assertEquals(r.serverAddr, Some(local.ip))
+    assertEquals(r.remoteAddr, Some(remote.ip))
   }
 
   test("ConnectionInfo should be utilized to determine the port of server and remote") {
     val r = Request()
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
-    assertEquals(r.serverPort, local.getPort)
-    assertEquals(r.remotePort, Some(remote.getPort))
+    assertEquals(r.serverPort, Some(local.port))
+    assertEquals(r.remotePort, Some(remote.port))
   }
 
   test(
     "ConnectionInfo should be utilized to determine the from value (first X-Forwarded-For if present)") {
     val forwardedValues =
-      NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
+      NonEmptyList.of(Some(ipv4"192.168.1.1".address), Some(ipv4"192.168.1.2".address))
     val r = Request()
       .withHeaders(Headers.of(`X-Forwarded-For`(forwardedValues)))
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
@@ -71,7 +70,7 @@ class MessageSuite extends Http4sSuite {
     "ConnectionInfo should be utilized to determine the from value (remote value if X-Forwarded-For is not present)") {
     val r = Request()
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
-    assertEquals(r.from, Option(remote.getAddress))
+    assertEquals(r.from, Option(remote.ip))
   }
 
   test("support cookies should contain a Cookie header when an explicit cookie is added") {
