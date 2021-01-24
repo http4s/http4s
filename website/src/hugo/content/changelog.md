@@ -16,6 +16,12 @@ it.
 
 * [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
 
+## http4s-laws
+
+### Bugfixes
+
+* [#4243](https://github.com/http4s/http4s/pull/4243): Don't generate ipv6 addresses with only one section shorted by `::`
+
 ## http4s-blaze-client
 
 ### Bugfixes
