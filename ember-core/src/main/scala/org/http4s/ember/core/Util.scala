@@ -17,7 +17,7 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.effect._
+import cats.effect.{ApplicativeThrow => _, _}
 import cats.syntax.all._
 import fs2._
 import fs2.io.tcp.Socket
@@ -45,7 +45,7 @@ private[ember] object Util {
       timeout: FiniteDuration,
       shallTimeout: F[Boolean],
       chunkSize: Int
-  )(implicit F: ApplicativeError[F, Throwable], C: Clock[F]): Stream[F, Byte] = {
+  )(implicit F: ApplicativeThrow[F], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
       socket.reads(chunkSize, None)
     def whenMayTimeout(remains: FiniteDuration): Stream[F, Byte] =

@@ -51,19 +51,17 @@ class QValueSpec extends Http4sSpec {
   }
 
   "literal syntax should reject invalid values" in {
-    import org.specs2.execute._, Typecheck._
-    import org.specs2.matcher.TypecheckMatchers._
-
-    typecheck {
+    illTyped {
       """
         qValue"2.0" // doesn't compile: out of range
       """
-    } should not succeed
+    }
 
-    typecheck {
+    illTyped {
       """
         qValue"invalid" // doesn't compile, not parsable as a double
       """
-    } should not succeed
+    }
+    true
   }
 }

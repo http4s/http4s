@@ -64,7 +64,7 @@ class FormDataDecoderSpec extends Http4sSpec {
   "mapN to decode case class" should {
     case class Foo(a: String, b: Boolean)
 
-    implicit val fooMapper =
+    implicit val fooMapper: FormDataDecoder[Foo] =
       (field[String]("a"), field[Boolean]("b")).mapN(Foo.apply)
 
     "map successfully for valid data" in {
@@ -84,7 +84,7 @@ class FormDataDecoderSpec extends Http4sSpec {
 
     case class FooStrings(a: List[String])
 
-    implicit val fooStringMapper =
+    implicit val fooStringMapper: FormDataDecoder[FooStrings] =
       listOf[String]("a").map(FooStrings.apply)
 
     "decode list successfully for valid data" in {
@@ -101,7 +101,7 @@ class FormDataDecoderSpec extends Http4sSpec {
 
     case class FooNested(f: Foo, c: String)
 
-    val fooNestedMapper = (
+    val fooNestedMapper: FormDataDecoder[FooNested] = (
       nested[Foo]("f"),
       field[String]("c")
     ).mapN(FooNested.apply)
@@ -142,7 +142,7 @@ class FormDataDecoderSpec extends Http4sSpec {
 
     case class FooList(fs: List[Foo], d: Boolean)
 
-    val fooListMapper = (
+    val fooListMapper: FormDataDecoder[FooList] = (
       list[Foo]("fs"),
       field[Boolean]("d")
     ).mapN(FooList.apply)
