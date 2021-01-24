@@ -197,6 +197,7 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 * [#4138](https://github.com/http4s/http4s/pull/4138): Replace boolean with `Weakness` sum type in `EntityTag` model
 * [#4148](https://github.com/http4s/http4s/pull/4148): Lift `ETag.EntityTag` out of header and into the `org.http4s` package
 * [#4164](https://github.com/http4s/http4s/pull/4164): Removal of several deprecated interfaces.  Most were non-public binary compatibility shims, or explicit cats instances that had been superseded by new implicits.  Some exceptions:
+* [#4145](https://github.com/http4s/http4s/pull/4145): Port macros in `org.http4s.syntax.literals` to Scala 3.  Deprecated macros that were on various companion objects will not be in the Scala 3 releases.
 
 ### Bugfixes
 
@@ -229,6 +230,11 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 * log4s-1.0.0-M4
 * okio-2.10.0
 * vault-2.1.0-M14 (now under `org.typelevel`)
+
+## Dependency removals
+
+* parboiled2
+
 # v0.21.16 (unreleased)
 
 ## http4s-blaze-core
@@ -236,6 +242,12 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 ### Bugfixes
 
 * [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
+
+## http4s-laws
+
+### Bugfixes
+
+* [#4243](https://github.com/http4s/http4s/pull/4243): Don't generate ipv6 addresses with only one section shorted by `::`
 
 ## http4s-blaze-client
 
@@ -260,6 +272,8 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 ## Dependency updates
 
 * argonaut-6.3.3
+=======
+>>>>>>> series/0.22
 
 # v0.21.15 (2020-12-31)
 

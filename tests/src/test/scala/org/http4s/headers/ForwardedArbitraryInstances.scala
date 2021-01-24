@@ -16,8 +16,6 @@
 
 package org.http4s.headers
 
-import java.nio.charset.StandardCharsets
-
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.internal.bug
@@ -67,20 +65,10 @@ private[http4s] trait ForwardedArbitraryInstances
 
   implicit val http4sTestingArbitraryForForwardedHost: Arbitrary[Host] = {
     val uriHostGen =
-      Arbitrary
-        .arbitrary[Uri.Host]
-        .map {
-          // Currently `Gen[Uri.Host]` generates pct-encoded `Uri.RegName`,
-          // while the latter is designed to keep not encoded strings (see `Rfc3986Parser#Host`).
-          // TODO: consider fixing `Gen[Uri.Host]`. See also #1651.
-          case Uri.RegName(n) => Uri.RegName(Uri.decode(n.toString, StandardCharsets.ISO_8859_1))
-          case other => other
-        }
-
+      Arbitrary.arbitrary[Uri.Host]
     Arbitrary({
       for {
         // Increase frequency of empty host reg-names since it's a border case.
-        // TODO: consider implementing it in `Gen[Uri.Host]` directly.
         uriHost <- Gen.oneOf(uriHostGen, Gen.const(Uri.RegName("")))
         portNum <- Gen.option(portNumGen)
       } yield Host.fromHostAndMaybePort(uriHost, portNum).yolo

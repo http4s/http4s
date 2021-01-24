@@ -288,7 +288,7 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.12.2"
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
-    val caseInsensitive = "0.3.0"
+    val caseInsensitive = "1.0.0-RC2"
     val cats = "2.3.1"
     val catsEffect = "3.0.0-M5"
     val catsEffectTesting = "1.0-23-f76ace5"
@@ -315,7 +315,6 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.58.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.0"
-    val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.2"
     val prometheusClient = "0.9.0"
     val reactiveStreams = "1.0.3"
@@ -323,7 +322,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheck = "1.15.2"
     val scalacheckEffect = "0.7.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    val scalatags = "0.9.2"
+    val scalatags = "0.9.3"
     val scalaXml = "1.3.0"
     val scodecBits = "1.1.23"
     val servlet = "3.1.0"
@@ -397,7 +396,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % V.prometheusClient
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % V.prometheusClient
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % V.prometheusClient
-  lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % V.parboiledHttp4s
   lazy val reactiveStreams                  = "org.reactivestreams"    %  "reactive-streams"          % V.reactiveStreams
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % V.quasiquotes
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % V.scalacheck

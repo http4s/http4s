@@ -109,8 +109,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
       else Seq(
-        scalaReflect(scalaVersion.value) % Provided,
-        parboiled,
+        scalaReflect(scalaVersion.value) % Provided
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
@@ -140,12 +139,14 @@ lazy val testing = libraryProject("testing")
     description := "Internal utilities for http4s tests",
     startYear := Some(2016),
     libraryDependencies ++= Seq(
-      specs2Common,
-      specs2Matcher,
+      catsEffectLaws,
       munitCatsEffect,
       munitDiscipline,
+      scalacheck,
       scalacheckEffect,
       scalacheckEffectMunit,
+      specs2Common.withDottyCompat(scalaVersion.value),
+      specs2Matcher.withDottyCompat(scalaVersion.value),
     ),
   )
   .dependsOn(laws)

@@ -14,6 +14,7 @@ import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import fs2._
 import fs2.text._
+
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import org.http4s.laws.discipline.ArbitraryInstances
@@ -25,7 +26,7 @@ import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.scalacheck.Parameters
 import org.specs2.specification.core.Fragments
-import org.specs2.specification.create.{DefaultFragmentFactory => ff}
+import org.specs2.specification.create.{DefaultFragmentFactory}
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
 
@@ -52,7 +53,7 @@ trait Http4sSpec
 
   protected val timeout: FiniteDuration = 10.seconds
 
-  implicit val params = Parameters(maxSize = 20)
+  implicit val params: Parameters = Parameters(maxSize = 20)
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -73,7 +74,7 @@ trait Http4sSpec
   def checkAll(name: String, props: Properties)(implicit
       p: Parameters,
       f: FreqMap[Set[Any]] => Pretty): Fragments = {
-    addFragment(ff.text(s"$name  ${props.name} must satisfy"))
+    addFragment(DefaultFragmentFactory.text(s"$name  ${props.name} must satisfy"))
     addBreak
     addFragments(Fragments.foreach(props.properties.toList) { case (name, prop) =>
       Fragments(name in check(prop, p, f))
@@ -82,20 +83,11 @@ trait Http4sSpec
 
   def checkAll(
       props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
-    addFragment(ff.text(s"${props.name} must satisfy"))
+    addFragment(DefaultFragmentFactory.text(s"${props.name} must satisfy"))
     addFragments(Fragments.foreach(props.properties.toList) { case (name, prop) =>
       Fragments(name in check(prop, p, f))
     })
   }
-
-  implicit def enrichProperties(props: Properties) =
-    new {
-      def withProp(propName: String, prop: Prop) =
-        new Properties(props.name) {
-          for { (name, p) <- props.properties } property(name) = p
-          property(propName) = prop
-        }
-    }
 
   def beStatus(status: Status): Matcher[Response[IO]] = { (resp: Response[IO]) =>
     (resp.status == status) -> s" doesn't have status $status"
