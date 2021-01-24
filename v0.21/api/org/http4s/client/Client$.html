@@ -320,7 +320,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.15/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.16/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -426,9 +426,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.Client#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](f:org.http4s.Request[F]=&gt;cats.effect.Resource[F,org.http4s.Response[F]])(implicitF:cats.effect.Bracket[F,Throwable]):org.http4s.client.Client[F]"></a><a id="apply[F[_]]((Request[F])⇒Resource[F,Response[F]])(Bracket[F,Throwable]):Client[F]"></a>
+      <a id="apply[F[_]](f:org.http4s.Request[F]=&gt;cats.effect.Resource[F,org.http4s.Response[F]])(implicitF:cats.effect.BracketThrow[F]):org.http4s.client.Client[F]"></a><a id="apply[F[_]]((Request[F])⇒Resource[F,Response[F]])(BracketThrow[F]):Client[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client$.html#apply[F[_]](f:org.http4s.Request[F]=&gt;cats.effect.Resource[F,org.http4s.Response[F]])(implicitF:cats.effect.Bracket[F,Throwable]):org.http4s.client.Client[F]" title="Permalink">
+      <a href="../../../org/http4s/client/Client$.html#apply[F[_]](f:org.http4s.Request[F]=&gt;cats.effect.Resource[F,org.http4s.Response[F]])(implicitF:cats.effect.BracketThrow[F]):org.http4s.client.Client[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -437,7 +437,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]) ⇒ <a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html#cats.effect.Resource" class="extype" name="cats.effect.Resource">Resource</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Bracket.html#cats.effect.Bracket" class="extype" name="cats.effect.Bracket">Bracket</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>, <a href="../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]) ⇒ <a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html#cats.effect.Resource" class="extype" name="cats.effect.Resource">Resource</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.BracketThrow">BracketThrow</span>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]</span>
       </span>
       
       
@@ -608,9 +608,9 @@ generating pre-determined responses for requests in testing.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.client.Client#liftKleisli" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="liftKleisli[F[_],A](client:org.http4s.client.Client[F])(implicitevidence$2:cats.effect.Bracket[F,Throwable],implicitevidence$3:cats.Defer[F]):org.http4s.client.Client[[γ$1$]cats.data.Kleisli[F,A,γ$1$]]"></a><a id="liftKleisli[F[_],A](Client[F])(Bracket[F,Throwable],Defer[F]):Client[[γ$1$]Kleisli[F,A,γ$1$]]"></a>
+      <a id="liftKleisli[F[_],A](client:org.http4s.client.Client[F])(implicitevidence$2:cats.effect.BracketThrow[F],implicitevidence$3:cats.Defer[F]):org.http4s.client.Client[[γ$0$]cats.data.Kleisli[F,A,γ$0$]]"></a><a id="liftKleisli[F[_],A](Client[F])(BracketThrow[F],Defer[F]):Client[[γ$0$]Kleisli[F,A,γ$0$]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client$.html#liftKleisli[F[_],A](client:org.http4s.client.Client[F])(implicitevidence$2:cats.effect.Bracket[F,Throwable],implicitevidence$3:cats.Defer[F]):org.http4s.client.Client[[γ$1$]cats.data.Kleisli[F,A,γ$1$]]" title="Permalink">
+      <a href="../../../org/http4s/client/Client$.html#liftKleisli[F[_],A](client:org.http4s.client.Client[F])(implicitevidence$2:cats.effect.BracketThrow[F],implicitevidence$3:cats.Defer[F]):org.http4s.client.Client[[γ$0$]cats.data.Kleisli[F,A,γ$0$]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -619,7 +619,7 @@ generating pre-determined responses for requests in testing.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">liftKleisli</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="client">client: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Bracket.html#cats.effect.Bracket" class="extype" name="cats.effect.Bracket">Bracket</a>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Defer.html#cats.Defer" class="extype" name="cats.Defer">Defer</a>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[[γ$1$]<a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>, <span class="extype" name="org.http4s.client.Client.liftKleisli.A">A</span>, <span class="extype" name="org.http4s.client.Client.&lt;refinement&gt;.Λ$.γ$1$">γ$1$</span>]]</span>
+        <span class="name">liftKleisli</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="client">client: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.BracketThrow">BracketThrow</span>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Defer.html#cats.Defer" class="extype" name="cats.Defer">Defer</a>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[[γ$0$]<a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.liftKleisli.F">F</span>, <span class="extype" name="org.http4s.client.Client.liftKleisli.A">A</span>, <span class="extype" name="org.http4s.client.Client.&lt;refinement&gt;.Λ$.γ$0$">γ$0$</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">This method introduces an important way for the effectful backends to allow tracing.</p><div class="fullcomment"><div class="comment cmt"><p>This method introduces an important way for the effectful backends to allow tracing. As Kleisli types

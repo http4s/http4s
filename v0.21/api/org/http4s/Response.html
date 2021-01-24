@@ -869,7 +869,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>EntityBody[F] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Vault.html" class="extype" name="io.chrisdavenport.vault.Vault">io.chrisdavenport.vault.Vault</a> containing additional
                   parameters which may be used by the http4s backend for
-                  additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.15/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+                  additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.16/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1063,9 +1063,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <p class="shortcomment cmt">Add a Set-Cookie header for the provided <a href="ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></p>
     </li><li name="org.http4s.Media#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="as[A](implicitF:cats.MonadError[F,Throwable],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadError[F,Throwable],EntityDecoder[F,A]):F[A]"></a>
+      <a id="as[A](implicitF:cats.MonadThrow[F],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadThrow[F],EntityDecoder[F,A]):F[A]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#as[A](implicitF:cats.MonadError[F,Throwable],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+      <a href="../../org/http4s/Response.html#as[A](implicitF:cats.MonadThrow[F],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1074,7 +1074,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">as</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.Response.F">F</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Response.F">F</span>, <span class="extype" name="org.http4s.Media.as.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Response.F">F</span>[<span class="extype" name="org.http4s.Media.as.A">A</span>]</span>
+        <span class="name">as</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Response.F">F</span>, <span class="extype" name="org.http4s.Media.as.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Response.F">F</span>[<span class="extype" name="org.http4s.Media.as.A">A</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Decode the <a href="Media.html" class="extype" name="org.http4s.Media">Media</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Media.html" class="extype" name="org.http4s.Media">Media</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok

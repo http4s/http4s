@@ -867,7 +867,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> URI
-</p></div><dl class="paramcmts block"><dt class="param">scheme</dt><dd class="cmt"><p>optional Uri Scheme. eg, http, https</p></dd><dt class="param">authority</dt><dd class="cmt"><p>optional Uri Authority. eg, localhost:8080, www.foo.bar</p></dd><dt class="param">path</dt><dd class="cmt"><p>url-encoded string representation of the path component of the Uri.</p></dd><dt class="param">query</dt><dd class="cmt"><p>optional Query. url-encoded.</p></dd><dt class="param">fragment</dt><dd class="cmt"><p>optional Uri Fragment. url-encoded.</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.15/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="paramcmts block"><dt class="param">scheme</dt><dd class="cmt"><p>optional Uri Scheme. eg, http, https</p></dd><dt class="param">authority</dt><dd class="cmt"><p>optional Uri Authority. eg, localhost:8080, www.foo.bar</p></dd><dt class="param">path</dt><dd class="cmt"><p>url-encoded string representation of the path component of the Uri.</p></dd><dt class="param">query</dt><dd class="cmt"><p>optional Query. url-encoded.</p></dd><dt class="param">fragment</dt><dd class="cmt"><p>optional Uri Fragment. url-encoded.</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.16/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1744,6 +1744,25 @@ returned.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.Uri#toOriginForm" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toOriginForm:org.http4s.Uri"></a><a id="toOriginForm:Uri"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri.html#toOriginForm:org.http4s.Uri" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toOriginForm</span><span class="result">: <a href="" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Converts this request to origin-form, which is the absolute path and optional
+query.</p><div class="fullcomment"><div class="comment cmt"><p>Converts this request to origin-form, which is the absolute path and optional
+query.  If the path is relative, it is assumed to be relative to the root.
+</p></div></div>
     </li><li name="org.http4s.util.Renderable#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">

@@ -168,7 +168,7 @@
           <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-RC2)</i> Discontinued. Inherits from vendored <code>RunTimedMatchers</code> that are now provided by specs-cats. The matchers that require them block threads and are disrecommended. What's left is insubstantial.</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.15/testing/src/main/scala/org/http4s/testing/Http4sMatchers.scala" target="_blank">Http4sMatchers.scala</a></dd></dl><div class="toggleContainer block">
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-RC2)</i> Discontinued. Inherits from vendored <code>RunTimedMatchers</code> that are now provided by specs-cats. The matchers that require them block threads and are disrecommended. What's left is insubstantial.</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.16/testing/src/main/scala/org/http4s/testing/Http4sMatchers.scala" target="_blank">Http4sMatchers.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -4732,9 +4732,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BeHaveMatchers</dd></dl></div>
     </li><li name="org.http4s.testing.Http4sMatchers#haveBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="haveBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadError[F,Throwable],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[org.http4s.Message[F]]"></a><a id="haveBody[A](ValueCheck[A])(MonadError[F,Throwable],EntityDecoder[F,A]):Matcher[Message[F]]"></a>
+      <a id="haveBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadThrow[F],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[org.http4s.Message[F]]"></a><a id="haveBody[A](ValueCheck[A])(MonadThrow[F],EntityDecoder[F,A]):Matcher[Message[F]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/Http4sMatchers.html#haveBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadError[F,Throwable],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[org.http4s.Message[F]]" title="Permalink">
+      <a href="../../../org/http4s/testing/Http4sMatchers.html#haveBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadThrow[F],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[org.http4s.Message[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -4743,7 +4743,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">haveBody</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.haveBody.A">A</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>, <a href="../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>]</span>, <span name="ee">ee: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>, <span class="extype" name="org.http4s.testing.Http4sMatchers.haveBody.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.specs2.matcher.Matcher">Matcher</span>[<a href="../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>]]</span>
+        <span class="name">haveBody</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.haveBody.A">A</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>]</span>, <span name="ee">ee: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>, <span class="extype" name="org.http4s.testing.Http4sMatchers.haveBody.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.specs2.matcher.Matcher">Matcher</span>[<a href="../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>]]</span>
       </span>
       
       
@@ -5842,9 +5842,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
     </li><li name="org.http4s.testing.Http4sMatchers#returnBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="returnBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadError[F,Throwable],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[F[org.http4s.Message[F]]]"></a><a id="returnBody[A](ValueCheck[A])(MonadError[F,Throwable],EntityDecoder[F,A]):Matcher[F[Message[F]]]"></a>
+      <a id="returnBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadThrow[F],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[F[org.http4s.Message[F]]]"></a><a id="returnBody[A](ValueCheck[A])(MonadThrow[F],EntityDecoder[F,A]):Matcher[F[Message[F]]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/Http4sMatchers.html#returnBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadError[F,Throwable],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[F[org.http4s.Message[F]]]" title="Permalink">
+      <a href="../../../org/http4s/testing/Http4sMatchers.html#returnBody[A](a:org.specs2.matcher.ValueCheck[A])(implicitF:cats.MonadThrow[F],implicitee:org.http4s.EntityDecoder[F,A]):org.specs2.matcher.Matcher[F[org.http4s.Message[F]]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -5853,7 +5853,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">returnBody</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.returnBody.A">A</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>, <a href="../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>]</span>, <span name="ee">ee: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>, <span class="extype" name="org.http4s.testing.Http4sMatchers.returnBody.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.specs2.matcher.Matcher">Matcher</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>[<a href="../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>]]]</span>
+        <span class="name">returnBody</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.returnBody.A">A</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>]</span>, <span name="ee">ee: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>, <span class="extype" name="org.http4s.testing.Http4sMatchers.returnBody.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.specs2.matcher.Matcher">Matcher</span>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>[<a href="../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>]]]</span>
       </span>
       
       
