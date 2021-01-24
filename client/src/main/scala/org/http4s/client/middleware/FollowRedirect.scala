@@ -96,10 +96,10 @@ object FollowRedirect {
     def prepareLoop(req: Request[F], redirects: Int): F[Resource[F, Response[F]]] =
       F.continual(client.run(req).allocated) {
         case Right((resp, dispose)) =>
-          (methodForRedirect(req, resp), resp.headers.get(Location)) match {
+          val location = req.headers.get(Location)
+          (methodForRedirect(req, resp), location) match {
             case (Some(method), Some(loc)) if redirects < maxRedirects =>
-              // Dotty needs the asInstanceOf help.
-              val nextReq = nextRequest(req, (loc.asInstanceOf[Location]).uri, method, resp.cookies)
+              val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
               dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>
                 // prepend because `prepareLoop` is recursive
                 response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
