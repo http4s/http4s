@@ -25,7 +25,6 @@ import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
 import org.typelevel.keypool.Reusable
-import scala.concurrent.duration._
 
 class ClientHelpersSpec extends Http4sSpec with CatsEffect {
   "Request Preprocessing" should {
