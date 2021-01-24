@@ -69,12 +69,12 @@ object ErrorAction {
   }
 
   object httpRoutes {
-    def apply[F[_]: MonadError[*[_], Throwable]](
+    def apply[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
         f: (Request[F], Throwable) => F[Unit]): HttpRoutes[F] =
       ErrorAction(httpRoutes, liftFToOptionT(f))
 
-    def log[F[_]: MonadError[*[_], Throwable]](
+    def log[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
         messageFailureLogAction: (Throwable, => String) => F[Unit],
         serviceErrorLogAction: (Throwable, => String) => F[Unit]
