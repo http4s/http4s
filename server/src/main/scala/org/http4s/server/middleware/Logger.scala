@@ -22,7 +22,7 @@ import cats.~>
 import cats.arrow.FunctionK
 import cats.syntax.all._
 import cats.data.OptionT
-import cats.effect.{Bracket, Concurrent, Sync}
+import cats.effect.{BracketThrow, Concurrent, Sync}
 import cats.effect.Sync._
 import fs2.Stream
 import org.http4s.util.CaseInsensitiveString
@@ -39,7 +39,7 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: Bracket[G, Throwable], F: Concurrent[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: BracketThrow[G], F: Concurrent[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       Sync[F].delay(logger.info(s))
     }
@@ -54,7 +54,7 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: Bracket[G, Throwable], F: Concurrent[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: BracketThrow[G], F: Concurrent[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       Sync[F].delay(logger.info(s))
     }
