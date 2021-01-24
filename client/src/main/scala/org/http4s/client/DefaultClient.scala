@@ -70,7 +70,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: BracketThrow[F]) 
     */
   def toHttpApp: HttpApp[F] =
     Kleisli { req =>
-      run(req).allocated.map { case (resp, release) =>
+      F.map(run(req).allocated) { case (resp, release) =>
         resp.withBodyStream(resp.body.onFinalizeWeak(release))
       }
     }

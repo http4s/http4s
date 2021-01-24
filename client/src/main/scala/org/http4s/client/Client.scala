@@ -231,7 +231,7 @@ object Client {
     * form the backend of tracing and these transformations are non-trivial.
     */
   def liftKleisli[F[_]: BracketThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
-    Client { req: Request[Kleisli[F, A, *]] =>
+    Client { (req: Request[Kleisli[F, A, *]]) =>
       Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>
         client
           .run(req.mapK(Kleisli.applyK(a)))

@@ -148,7 +148,7 @@ package object oauth1 {
         CIString("OAuth"),
         NonEmptyList(
           "oauth_signature" -> encode(sig),
-          realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)) toList)
+          realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
       )
 
       Authorization(creds)
