@@ -152,7 +152,8 @@ private[server] object ServerHelpers {
         }
         .drain
 
-    val handler = sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+    val handler = sg
+      .server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
         shutdown.trackConnection >>
@@ -160,7 +161,7 @@ private[server] object ServerHelpers {
             .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
             .flatMap(withUpgradedSocket(_))
       }
-      
+
     forking(handler, maxConcurrency)
   }
 
@@ -169,11 +170,12 @@ private[server] object ServerHelpers {
     * The second is that the outer stream may terminate and finalize before inner
     * streams complete. This is generally unsafe, because inner streams are lexically
     * scoped within the outer stream and accordingly has resources bound to the outer
-    * stream available in scope. However, network servers built on top of fs2.io can 
-    * safely utilize this because inner streams are created fresh from socket Resources 
+    * stream available in scope. However, network servers built on top of fs2.io can
+    * safely utilize this because inner streams are created fresh from socket Resources
     * that don't close over any resources from the outer stream.
     */
-  def forking[F[_], O](streams: Stream[F, Stream[F, O]], maxConcurrency: Int = Int.MaxValue)(implicit F: Concurrent[F]): Stream[F, INothing] = {
+  def forking[F[_], O](streams: Stream[F, Stream[F, O]], maxConcurrency: Int = Int.MaxValue)(
+      implicit F: Concurrent[F]): Stream[F, INothing] = {
     val fstream = for {
       done <- SignallingRef[F, Option[Option[Throwable]]](None)
       available <- Semaphore[F](maxConcurrency.toLong)
@@ -195,7 +197,7 @@ private[server] object ServerHelpers {
       def handleResult(result: Either[Throwable, Unit]): F[Unit] =
         result match {
           case Right(_) => F.unit
-          case Left(err) => 
+          case Left(err) =>
             done.update {
               case None => Some(Some(err))
               case x => x
@@ -203,7 +205,7 @@ private[server] object ServerHelpers {
         }
 
       def runInner(inner: Stream[F, O]): F[Unit] =
-        incrementRunning >> available.acquire >> 
+        incrementRunning >> available.acquire >>
           inner
             .interruptWhen(stopSignal)
             .compile
@@ -227,7 +229,7 @@ private[server] object ServerHelpers {
           case _ => F.unit
         }
 
-      Stream.bracket(F.start(runOuter))(_ => stop >> awaitWhileRunning >> signalResult) >> 
+      Stream.bracket(F.start(runOuter))(_ => stop >> awaitWhileRunning >> signalResult) >>
         Stream.eval(awaitWhileRunning).drain
     }
 

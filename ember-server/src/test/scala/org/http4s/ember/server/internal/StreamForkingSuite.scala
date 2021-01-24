@@ -29,29 +29,30 @@ class StreamForkingSuite extends CatsEffectSuite {
   import ServerHelpers.forking
 
   test("forking stream completes after outer and inner streams finalize") {
-    Ref.of[IO, Int](0).flatMap { counter => 
-      val finalizer = Stream.bracket(IO.unit)(_ => counter.update(_ + 1))
+    Ref
+      .of[IO, Int](0)
+      .flatMap { counter =>
+        val finalizer = Stream.bracket(IO.unit)(_ => counter.update(_ + 1))
 
-      val stream = finalizer >> Stream(
-        finalizer >> Stream.empty
-      )
+        val stream = finalizer >> Stream(
+          finalizer >> Stream.empty
+        )
 
-      forking(stream)
-        .compile
-        .drain >> counter.get
-    }.assertEquals(2)
+        forking(stream).compile.drain >> counter.get
+      }
+      .assertEquals(2)
   }
 
   test("outer stream can terminate and finalize before inner streams complete") {
-    Deferred[IO, Unit].flatMap { gate => 
-      val stream = Stream.bracket(IO.unit)(_ => gate.complete(())) >> Stream(
-        Stream.eval(gate.get)
-      )
+    Deferred[IO, Unit]
+      .flatMap { gate =>
+        val stream = Stream.bracket(IO.unit)(_ => gate.complete(())) >> Stream(
+          Stream.eval(gate.get)
+        )
 
-      forking(stream)
-        .compile
-        .drain
-    }.assertEquals(())
+        forking(stream).compile.drain
+      }
+      .assertEquals(())
   }
 
   test("outer stream fails forking stream") {
@@ -59,21 +60,17 @@ class StreamForkingSuite extends CatsEffectSuite {
       Stream.sleep_[IO](1.minute)
     ) ++ Stream.raiseError[IO](new RuntimeException)
 
-    forking(stream)
-      .compile
-      .drain
+    forking(stream).compile.drain
       .intercept[RuntimeException]
   }
 
   test("inner stream fails forking stream") {
     val stream = Stream(
-      Stream.sleep_[IO](1.minute), 
+      Stream.sleep_[IO](1.minute),
       Stream.raiseError[IO](new RuntimeException)
     )
 
-    forking(stream)
-      .compile
-      .drain
+    forking(stream).compile.drain
       .intercept[RuntimeException]
   }
 
