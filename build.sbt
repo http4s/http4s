@@ -206,8 +206,7 @@ lazy val client = libraryProject("client")
     core,
     testing % "test->test",
     server % "test->compile",
-    theDsl % "test->compile",
-    scalaXml % "test->compile")
+    theDsl % "test->compile")
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
