@@ -652,7 +652,7 @@ private[http4s] trait ArbitraryInstances {
    * percent-encoded UTF-8 strings.  This is a practical generator,
    * but dragons be here for full spec compliance.
    */
-  implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = {
+  implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] =
     Arbitrary(
       oneOf(
         getArbitrary[Uri.Ipv4Address],
@@ -660,7 +660,6 @@ private[http4s] trait ArbitraryInstances {
         getArbitrary[ip4s.Hostname].map(Uri.RegName.fromHostname)
       )
     )
-  }
 
   implicit val http4sTestingArbitraryForUserInfo: Arbitrary[Uri.UserInfo] =
     Arbitrary(

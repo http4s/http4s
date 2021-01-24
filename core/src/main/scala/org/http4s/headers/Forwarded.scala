@@ -16,16 +16,16 @@
 
 package org.http4s.headers
 
-import java.net.{Inet4Address, Inet6Address}
 import cats.data.NonEmptyList
+import cats.parse.{Numbers, Parser0, Rfc5234, Parser => P}
 import cats.syntax.either._
+import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
+import java.net.{Inet4Address, Inet6Address}
+import java.nio.ByteBuffer
+import java.util.Locale
 import org.http4s._
 import org.http4s.util.{Renderable, Writer}
-import cats.parse.{Numbers, Parser0, Rfc5234, Parser => P}
-import org.http4s.Uri.{Ipv4Address, Ipv6Address}
-import org.http4s.internal.parsing.Rfc7230
-
-import java.util.Locale
+import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import scala.util.Try
 
 object Forwarded
@@ -43,22 +43,40 @@ object Forwarded
     sealed trait Name { self: Product => }
 
     object Name {
-      case class Ipv4(address: Uri.Ipv4Address) extends Name
-      case class Ipv6(address: Uri.Ipv6Address) extends Name
+      case class Ipv4(address: Ipv4Address) extends Name
+      case class Ipv6(address: Ipv6Address) extends Name
       case object Unknown extends Name
 
-      def ofInet4Address(address: Inet4Address): Name = Ipv4(
-        Uri.Ipv4Address.fromInet4Address(address))
+      def ofInet4Address(address: Inet4Address): Name =
+        // TODO Use this once released: https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L44
+        Ipv4(Ipv4Address.fromBytes(address.getAddress).get)
       def ofIpv4Address(a: Byte, b: Byte, c: Byte, d: Byte): Name = Ipv4(
-        Uri.Ipv4Address.fromBytes(a, b, c, d))
+        Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
 
-      def ofInet6Address(address: Inet6Address): Name = Ipv6(
-        Uri.Ipv6Address.fromInet6Address(address))
-      // format: off
+      def ofInet6Address(address: Inet6Address): Name =
+        // TODO After release, replace with https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L58
+        Ipv6(Ipv6Address.fromBytes(address.getAddress).get)
+
       def ofIpv6Address(
-          a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short
-      ): Name = Ipv6(Uri.Ipv6Address.fromShorts(a, b, c, d, e, f, g, h))
-      // format: on
+          a: Short,
+          b: Short,
+          c: Short,
+          d: Short,
+          e: Short,
+          f: Short,
+          g: Short,
+          h: Short): Name = {
+        val bb = ByteBuffer.allocate(16)
+        bb.putShort(a)
+        bb.putShort(b)
+        bb.putShort(c)
+        bb.putShort(d)
+        bb.putShort(e)
+        bb.putShort(f)
+        bb.putShort(g)
+        bb.putShort(h)
+        Ipv6(Ipv6Address.fromBytes(bb.array).get)
+      }
     }
 
     sealed trait Port { self: Product => }
@@ -122,8 +140,8 @@ object Forwarded
       val nodeName: P[Node.Name] =
         P.oneOf[Node.Name](
           List(
-            Ipv4Address.parser.map(Node.Name.Ipv4),
-            Ipv6Address.parser
+            Rfc3986.ipv4Address.map(Node.Name.Ipv4),
+            Rfc3986.ipv6Address
               .between(P.char('['), P.char(']'))
               .map(Node.Name.Ipv6),
             P.string("unknown").as(Node.Name.Unknown),

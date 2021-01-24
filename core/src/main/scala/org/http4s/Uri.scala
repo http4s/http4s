@@ -876,7 +876,7 @@ object Uri extends UriPlatform {
       fromByteArray(address.getAddress).valueOr(throw _)
 
     private[http4s] val parser: P[Ipv4Address] =
-      Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Ipv4Address.fromBytes(a, b, c, d) }
+      Rfc3986.ipv4Address.map(Uri.Ipv4Address(_))
 
     implicit val http4sInstancesForIpv4Address: HttpCodec[Ipv4Address]
       with Order[Ipv4Address]
@@ -950,59 +950,8 @@ object Uri extends UriPlatform {
       fromByteArray(bb.array).valueOr(throw _)
     }
 
-    private[http4s] val parser: P[Ipv6Address] = {
-      import cats.parse.Parser.{char, string}
-      import cats.parse.Parser
-      import Rfc3986.{hexdig, ipv4Bytes}
-
-      def toIpv6(lefts: collection.Seq[Short], rights: collection.Seq[Short]): Ipv6Address =
-        lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(0.toShort) ++ rights match {
-          case collection.Seq(a, b, c, d, e, f, g, h) =>
-            Ipv6Address.fromShorts(a, b, c, d, e, f, g, h)
-        }
-
-      val h16: P[Short] =
-        (hexdig ~ hexdig.? ~ hexdig.? ~ hexdig.?).string.map { (s: String) =>
-          java.lang.Integer.parseInt(s, 16).toShort
-        }
-
-      val colon = char(':')
-      val doubleColon = string("::").void
-      val h16Colon = h16 <* colon
-
-      val parsedIpv4Bytes = ipv4Bytes.map { case (a: Byte, b: Byte, c: Byte, d: Byte) =>
-        List(((a << 8) | b).toShort, ((c << 8) | d).toShort)
-      }
-
-      def rightsWithIpv4(n: Int) = (1 to n)
-        .map { i =>
-          (h16Colon.repExactlyAs[List[Short]](i) ~ parsedIpv4Bytes).backtrack.map { case (l, r) =>
-            l ++ r
-          }
-        }
-        .foldLeft(parsedIpv4Bytes.backtrack)(_ | _)
-
-      val ls32: P[List[Short]] = {
-        val option1 = ((h16 <* colon.void) ~ h16).map(t => List(t._1, t._2))
-        option1.backtrack.orElse(parsedIpv4Bytes)
-      }
-
-      val fullIpv6WihtOptionalIpv4 = (h16Colon.repExactlyAs[List[Short]](6) ~ ls32)
-        .map { case (ls: List[Short], rs) => toIpv6(ls.toList, rs) }
-
-      val shortIpv6WithIpv4 = for {
-        lefts <- h16.repSep0(0, 5, colon).with1 <* doubleColon
-        rights <- rightsWithIpv4(4 - lefts.size)
-      } yield toIpv6(lefts, rights)
-
-      val shortIpv6 = for {
-        lefts <- h16.repSep0(0, 7, colon).with1 <* doubleColon
-        rights <-
-          if (6 - lefts.size > 0)(h16.repSep0(0, 6 - lefts.size, colon)) else Parser.pure(Nil)
-      } yield toIpv6(lefts, rights)
-
-      fullIpv6WihtOptionalIpv4.backtrack.orElse(shortIpv6WithIpv4.backtrack).orElse(shortIpv6)
-    }
+    private[http4s] val parser: P[Ipv6Address] =
+      Rfc3986.ipv6Address.map(Uri.Ipv6Address(_))
 
     implicit val http4sInstancesForIpv6Address: HttpCodec[Ipv6Address]
       with Order[Ipv6Address]
