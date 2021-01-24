@@ -201,8 +201,7 @@ trait Client[F[_]] {
 
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(implicit
-      b: Bracket[F, Throwable]): Client[G] = {
+  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(implicit b: BracketThrow[F]): Client[G] = {
     val _ = b // Unused as of cats-effect-2.1.3
     Client((req: Request[G]) =>
       run(
@@ -214,7 +213,7 @@ trait Client[F[_]] {
 
 object Client {
   def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
-      F: Bracket[F, Throwable]): Client[F] =
+      F: BracketThrow[F]): Client[F] =
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }
@@ -262,8 +261,7 @@ object Client {
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
-  def liftKleisli[F[_]: Bracket[*[_], Throwable]: cats.Defer, A](
-      client: Client[F]): Client[Kleisli[F, A, *]] =
+  def liftKleisli[F[_]: BracketThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { req: Request[Kleisli[F, A, *]] =>
       Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>
         client

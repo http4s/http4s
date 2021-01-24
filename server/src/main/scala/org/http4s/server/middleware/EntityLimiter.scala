@@ -18,7 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.ApplicativeError
+import cats.ApplicativeThrow
 import cats.data.Kleisli
 import fs2._
 
@@ -30,23 +30,22 @@ object EntityLimiter {
   val DefaultMaxEntitySize: Long = 2L * 1024L * 1024L // 2 MB default
 
   def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B], limit: Long = DefaultMaxEntitySize)(
-      implicit G: ApplicativeError[G, Throwable]): Kleisli[F, Request[G], B] =
+      implicit G: ApplicativeThrow[G]): Kleisli[F, Request[G], B] =
     Kleisli { req =>
       http(req.withBodyStream(req.body.through(takeLimited(limit))))
     }
 
-  def httpRoutes[F[_]: ApplicativeError[*[_], Throwable]](
+  def httpRoutes[F[_]: ApplicativeThrow](
       httpRoutes: HttpRoutes[F],
       limit: Long = DefaultMaxEntitySize): HttpRoutes[F] =
     apply(httpRoutes, limit)
 
-  def httpApp[F[_]: ApplicativeError[*[_], Throwable]](
+  def httpApp[F[_]: ApplicativeThrow](
       httpApp: HttpApp[F],
       limit: Long = DefaultMaxEntitySize): HttpApp[F] =
     apply(httpApp, limit)
 
-  private def takeLimited[F[_]](n: Long)(implicit
-      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] =
+  private def takeLimited[F[_]](n: Long)(implicit F: ApplicativeThrow[F]): Pipe[F, Byte, Byte] =
     _.pull
       .take(n)
       .flatMap {

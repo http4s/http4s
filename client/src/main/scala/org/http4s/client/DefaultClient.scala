@@ -19,14 +19,13 @@ package client
 
 import cats.Applicative
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{Bracket, Resource}
+import cats.effect.{BracketThrow, Resource}
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 
-private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
-    extends Client[F] {
+private[http4s] abstract class DefaultClient[F[_]](implicit F: BracketThrow[F]) extends Client[F] {
   def run(req: Request[F]): Resource[F, Response[F]]
 
   /** Submits a request, and provides a callback to process the response.
