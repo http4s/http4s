@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
-// import io.chrisdavenport.log4cats.testing.TestingLogger
+// import org.typelevel.log4cats.testing.TestingLogger
 import fs2._
 import cats.effect.unsafe.implicits.global
 import cats.effect._

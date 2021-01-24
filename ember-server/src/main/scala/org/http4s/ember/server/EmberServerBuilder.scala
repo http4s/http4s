@@ -27,15 +27,14 @@ import org.http4s.server.Server
 
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
-import _root_.io.chrisdavenport.log4cats.Logger
-import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import _root_.org.typelevel.log4cats.Logger
+import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
 
-final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
+final class EmberServerBuilder[F[_]: Async] private (
     val host: String,
     val port: Int,
     private val httpApp: HttpApp[F],
-    private val blockerOpt: Option[Blocker],
     private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
     private val sgOpt: Option[SocketGroup],
     private val onError: Throwable => Response[F],
@@ -54,7 +53,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       host: String = self.host,
       port: Int = self.port,
       httpApp: HttpApp[F] = self.httpApp,
-      blockerOpt: Option[Blocker] = self.blockerOpt,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
       onError: Throwable => Response[F] = self.onError,
@@ -72,7 +70,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       host = host,
       port = port,
       httpApp = httpApp,
-      blockerOpt = blockerOpt,
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
       onError = onError,
@@ -99,9 +96,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withoutTLS =
     copy(tlsInfoOpt = None)
 
-  def withBlocker(blocker: Blocker) =
-    copy(blockerOpt = blocker.pure[Option])
-
   def withIdleTimeout(idleTimeout: Duration) =
     copy(idleTimeout = idleTimeout)
 
@@ -120,11 +114,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Server] =
     for {
-      bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
-      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
+      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
       bindAddress <- Resource.eval(Sync[F].delay(new InetSocketAddress(host, port)))
-      shutdown <- Resource.liftF(Shutdown[F](shutdownTimeout))
+      shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(
@@ -154,12 +146,11 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 }
 
 object EmberServerBuilder {
-  def default[F[_]: Concurrent: Timer: ContextShift]: EmberServerBuilder[F] =
+  def default[F[_]: Async]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Defaults.host,
       port = Defaults.port,
       httpApp = Defaults.httpApp[F],
-      blockerOpt = None,
       tlsInfoOpt = None,
       sgOpt = None,
       onError = Defaults.onError[F],

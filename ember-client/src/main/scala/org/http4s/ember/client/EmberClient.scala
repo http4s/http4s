@@ -24,7 +24,7 @@ import org.typelevel.keypool._
 final class EmberClient[F[_]] private[client] (
     private val client: Client[F],
     private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])]
-)(implicit F: Bracket[F, Throwable])
+)(implicit F: MonadCancel[F, Throwable])
     extends DefaultClient[F] {
 
   /** The reason for this extra class. This allows you to see the present state

@@ -24,7 +24,7 @@ import org.specs2.ScalaCheck
 import cats.syntax.all._
 import cats.effect.IO
 import org.http4s._
-// import _root_.io.chrisdavenport.log4cats.testing.TestingLogger
+// import _root_.org.typelevel.log4cats.testing.TestingLogger
 import org.http4s.laws.discipline.ArbitraryInstances._
 import scala.concurrent.ExecutionContext
 
