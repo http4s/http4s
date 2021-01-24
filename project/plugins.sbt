@@ -8,7 +8,7 @@ addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.
 addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.2.1")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.10.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.3")
-addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.8")
+addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.9")
 addSbtPlugin("org.http4s"                 %  "sbt-http4s-org"            % "0.6.0")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.5.1")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
