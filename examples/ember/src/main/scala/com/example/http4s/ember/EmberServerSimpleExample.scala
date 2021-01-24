@@ -45,7 +45,7 @@ object EmberServerSimpleExample extends IOApp {
     IO.delay(println(s"Server Has Started at ${server.address}")) >>
       IO.never.as(ExitCode.Success))
 
-  def service[F[_]: Sync]: HttpApp[F] = {
+  def service[F[_]: Async]: HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 

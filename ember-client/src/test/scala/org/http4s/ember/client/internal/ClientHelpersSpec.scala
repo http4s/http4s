@@ -19,17 +19,14 @@ package org.http4s.ember.client.internal
 import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent._
 import org.http4s._
-import org.specs2.mutable.Specification
-import cats.effect.testing.specs2.CatsIO
+import cats.effect.testing.specs2.CatsEffect
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
 import org.typelevel.keypool.Reusable
-import scala.concurrent.duration._
 
-class ClientHelpersSpec extends Specification with CatsIO {
+class ClientHelpersSpec extends Http4sSpec with CatsEffect {
   "Request Preprocessing" should {
     "add a date header if not present" in {
       ClientHelpers
@@ -159,31 +156,31 @@ class ClientHelpersSpec extends Specification with CatsIO {
       } yield testResult
     }
 
-    "do not reuse when cancellation encountered running stream" in {
-      for {
-        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-        testResult <-
-          ClientHelpers
-            .postProcessResponse(
-              Request[IO](),
-              Response[IO](body = fs2
-                .Stream(1, 2, 3, 4, 5)
-                .map(_.toByte)
-                .zipLeft(
-                  fs2.Stream.awakeDelay[IO](1.second)
-                )
-                .interruptAfter(2.seconds)),
-              reuse
-            )
-            .use { resp =>
-              resp.body.compile.drain.attempt >>
-                reuse.get.map { case r =>
-                  r must beEqualTo(Reusable.DontReuse)
-                }
-            }
-      } yield testResult
-    }.pendingUntilFixed
+//    "do not reuse when cancellation encountered running stream" in {
+//      for {
+//        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+//
+//        testResult <-
+//          ClientHelpers
+//            .postProcessResponse(
+//              Request[IO](),
+//              Response[IO](body = fs2
+//                .Stream(1, 2, 3, 4, 5)
+//                .map(_.toByte)
+//                .zipLeft(
+//                  fs2.Stream.awakeDelay[IO](1.second)
+//                )
+//                .interruptAfter(2.seconds)),
+//              reuse
+//            )
+//            .use { resp =>
+//              resp.body.compile.drain.attempt >>
+//                reuse.get.map { case r =>
+//                  r must beEqualTo(Reusable.DontReuse)
+//                }
+//            }
+//      } yield testResult
+//    }.pendingUntilFixed
 
     "do not reuse when connection close is set on request" in {
       for {

@@ -19,10 +19,11 @@ package org.http4s.ember.client.internal
 import org.http4s.ember.client._
 import fs2.concurrent._
 import fs2.io.tcp._
+import fs2.io.Network
 import cats._
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent._
+import cats.effect.kernel.Clock
 import cats.syntax.all._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
@@ -33,12 +34,12 @@ import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
-import _root_.io.chrisdavenport.keypool.Reusable
+import _root_.org.typelevel.keypool.Reusable
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
+  def requestToSocketWithKey[F[_]: Sync: Network](
       request: Request[F],
       tlsContextOpt: Option[TLSContext],
       sg: SocketGroup,
@@ -53,7 +54,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
+  def requestKeyToSocketWithKey[F[_]: Sync: Network](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext],
       sg: SocketGroup,
@@ -79,7 +80,7 @@ private[client] object ClientHelpers {
       }
     } yield RequestKeySocket(socket, requestKey)
 
-  def request[F[_]: Concurrent: ContextShift: Timer](
+  def request[F[_]: Async](
       request: Request[F],
       requestKeySocket: RequestKeySocket[F],
       reuseable: Ref[F, Reusable],
@@ -88,7 +89,7 @@ private[client] object ClientHelpers {
       timeout: Duration,
       userAgent: Option[`User-Agent`]
   ): Resource[F, Response[F]] = {
-    val RT: Timer[Resource[F, *]] = Timer[F].mapK(Resource.liftK[F])
+    def realtime: Resource[F, FiniteDuration] = Resource.liftK[F](Sync[F].realTime)
 
     def writeRequestToSocket(
         req: Request[F],
@@ -112,13 +113,13 @@ private[client] object ClientHelpers {
         socket: Socket[F],
         fin: FiniteDuration): Resource[F, Response[F]] =
       for {
-        start <- RT.clock.realTime(MILLISECONDS)
+        start <- realtime
         _ <- writeRequestToSocket(req, socket, Option(fin))
         timeoutSignal <- Resource.eval(SignallingRef[F, Boolean](true))
-        sent <- RT.clock.realTime(MILLISECONDS)
-        remains = fin - (sent - start).millis
+        sent <- realtime
+        remains = fin - (sent - start)
         resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
-          readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
+          readWithTimeout(socket, start.toMillis, remains, timeoutSignal.get, chunkSize)
         )
         _ <- Resource.eval(timeoutSignal.set(false).void)
       } yield resp
@@ -156,14 +157,14 @@ private[client] object ClientHelpers {
       canBeReused: Ref[F, Reusable]): Resource[F, Response[F]] = {
     val out = resp.copy(
       body = resp.body.onFinalizeCaseWeak {
-        case ExitCase.Completed =>
+        case Resource.ExitCase.Succeeded =>
           val requestClose = req.headers.get(Connection).exists(_.hasClose)
           val responseClose = resp.headers.get(Connection).exists(_.hasClose)
 
           if (requestClose || responseClose) Applicative[F].unit
           else canBeReused.set(Reusable.Reuse)
-        case ExitCase.Canceled => Applicative[F].unit
-        case ExitCase.Error(_) => Applicative[F].unit
+        case Resource.ExitCase.Canceled => Applicative[F].unit
+        case Resource.ExitCase.Errored(_) => Applicative[F].unit
       }
     )
     Resource.pure[F, Response[F]](out)

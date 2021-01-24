@@ -304,8 +304,8 @@ object Http4sPlugin extends AutoPlugin {
     val jawnFs2 = "2.0.0-M2"
     val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
-    val log4cats = "1.1.1"
-    val keypool = "0.3.0-RC1"
+    val log4cats = "2.0.0-M1"
+    val keypool = "0.4.0-M1"
     val logback = "1.2.3"
     val log4s = "1.10.0-M4"
     val mockito = "3.5.15"
@@ -380,9 +380,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
   lazy val keypool                          = "org.typelevel"          %% "keypool"                   % V.keypool
-  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % V.log4cats
-  lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % V.log4cats
-  lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % V.log4cats
+  lazy val log4catsCore                     = "org.typelevel"          %% "log4cats-core"             % V.log4cats
+  lazy val log4catsSlf4j                    = "org.typelevel"          %% "log4cats-slf4j"            % V.log4cats
+  lazy val log4catsTesting                  = "org.typelevel"          %% "log4cats-testing"          % V.log4cats
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit

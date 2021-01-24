@@ -17,8 +17,8 @@
 package org.http4s.ember.client
 
 import org.typelevel.keypool._
-import io.chrisdavenport.log4cats.Logger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats._
 import cats.syntax.all._
 import cats.effect._
@@ -31,8 +31,7 @@ import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 import scala.concurrent.duration.Duration
 
-final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
-    private val blockerOpt: Option[Blocker],
+final class EmberClientBuilder[F[_]: Async] private (
     private val tlsContextOpt: Option[TLSContext],
     private val sgOpt: Option[SocketGroup],
     val maxTotal: Int,
@@ -47,7 +46,6 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 ) { self =>
 
   private def copy(
-      blockerOpt: Option[Blocker] = self.blockerOpt,
       tlsContextOpt: Option[TLSContext] = self.tlsContextOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
       maxTotal: Int = self.maxTotal,
@@ -61,7 +59,6 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       userAgent: Option[`User-Agent`] = self.userAgent
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
-      blockerOpt = blockerOpt,
       tlsContextOpt = tlsContextOpt,
       sgOpt = sgOpt,
       maxTotal = maxTotal,
@@ -78,9 +75,6 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withTLSContext(tlsContext: TLSContext) =
     copy(tlsContextOpt = tlsContext.some)
   def withoutTLSContext = copy(tlsContextOpt = None)
-
-  def withBlocker(blocker: Blocker) =
-    copy(blockerOpt = blocker.some)
 
   def withSocketGroup(sg: SocketGroup) = copy(sgOpt = sg.some)
 
@@ -103,11 +97,10 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Client[F]] =
     for {
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
-      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
+      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
       tlsContextOptWithDefault <- Resource.eval(
         tlsContextOpt
-          .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])
+          .fold(TLSContext.system.attempt.map(_.toOption))(_.some.pure[F])
       )
       builder =
         KeyPoolBuilder
@@ -160,7 +153,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               .map(response =>
                 // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
                 response.copy(body = response.body.onFinalizeCaseWeak {
-                  case ExitCase.Completed =>
+                  case Resource.ExitCase.Succeeded =>
                     val requestClose = request.headers.get(Connection).exists(_.hasClose)
                     val responseClose = response.isChunked || response.headers
                       .get(Connection)
@@ -168,8 +161,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
                     if (requestClose || responseClose) Sync[F].unit
                     else managed.canBeReused.set(Reusable.Reuse)
-                  case ExitCase.Canceled => Sync[F].unit
-                  case ExitCase.Error(_) => Sync[F].unit
+                  case Resource.ExitCase.Canceled => Sync[F].unit
+                  case Resource.ExitCase.Errored(_) => Sync[F].unit
                 }))
         } yield responseResource)
       new EmberClient[F](client, pool)
@@ -178,9 +171,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
 object EmberClientBuilder {
 
-  def default[F[_]: Concurrent: Timer: ContextShift] =
+  def default[F[_]: Async] =
     new EmberClientBuilder[F](
-      blockerOpt = None,
       tlsContextOpt = None,
       sgOpt = None,
       maxTotal = Defaults.maxTotal,
