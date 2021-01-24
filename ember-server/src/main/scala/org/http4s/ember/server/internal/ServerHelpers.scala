@@ -29,7 +29,7 @@ import org.http4s.headers.{Connection, Date}
 import org.typelevel.ci.CIString
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
-import _root_.io.chrisdavenport.log4cats.Logger
+import _root_.org.typelevel.log4cats.Logger
 import cats.data.NonEmptyList
 
 private[server] object ServerHelpers {
