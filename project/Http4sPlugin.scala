@@ -331,7 +331,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.0-M14"
+    val vault = "3.0.0-M1"
   }
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
