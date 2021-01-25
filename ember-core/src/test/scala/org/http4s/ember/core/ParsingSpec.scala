@@ -253,7 +253,6 @@ class ParsingSpec extends Specification {
           for {
             body <- resp.body.through(text.utf8Decode).compile.string
             trailers <- resp.trailerHeaders
-            _ = println(trailers)
           } yield (body must beEqualTo("MozillaDeveloperNetwork")).and(
             trailers.get(Expires) must beSome
           )
@@ -315,8 +314,6 @@ class ParsingSpec extends Specification {
         .compile
         .lastOrError
         .unsafeRunSync()
-
-      println(headers)
 
       headers.toList must_=== List(
         Header("Content-Type", "text/plain"),
