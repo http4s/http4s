@@ -61,14 +61,12 @@ class MediaTypeSpec extends Http4sSpec {
     }
 
     "reject invalid literals" in {
-      import org.specs2.execute._, Typecheck._
-      import org.specs2.matcher.TypecheckMatchers._
-
-      typecheck {
+      illTyped {
         """
            mediaType"not valid"
         """
-      } must not succeed
+      }
+      true
     }
   }
 

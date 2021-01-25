@@ -236,14 +236,12 @@ class UriParserSpec extends Http4sSpec {
     }
 
     "reject invalid URIs" in {
-      import org.specs2.execute._, Typecheck._
-      import org.specs2.matcher.TypecheckMatchers._
-
-      typecheck {
+      illTyped {
         """
            uri"not valid"
         """
-      } must not succeed
+      }
+      true
     }
   }
 }

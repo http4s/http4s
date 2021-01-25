@@ -27,7 +27,7 @@ private[ember] object ChunkedEncoding {
     * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
     */
   def decode[F[_]](maxChunkHeaderSize: Int, trailers: Deferred[F, Headers])(implicit
-      F: MonadError[F, Throwable]): Pipe[F, Byte, Byte] = {
+      F: MonadThrow[F]): Pipe[F, Byte, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
     def go(expect: Either[ByteVector, Long], in: Stream[F, Byte]): Pull[F, Byte, Unit] =
@@ -82,7 +82,7 @@ private[ember] object ChunkedEncoding {
     go(Left(ByteVector.empty), _).stream
   }
 
-  private def parseTrailers[F[_]: MonadError[*[_], Throwable]](
+  private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(s: Stream[F, Byte]): Pull[F, Nothing, Headers] =
     s.pull.uncons.flatMap {

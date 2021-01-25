@@ -20,9 +20,9 @@ package middleware
 
 import cats.effect.Async
 import fs2.{Pipe, Pull, Stream}
+import fs2.compression.DeflateParams
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import scala.util.control.NoStackTrace
-import fs2.compression.DeflateParams
 
 /** Client middleware for enabling gzip.
   */

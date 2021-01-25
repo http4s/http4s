@@ -22,7 +22,7 @@ import cats.~>
 import cats.arrow.FunctionK
 import cats.syntax.all._
 import cats.data.OptionT
-import cats.effect.kernel.{Async, MonadCancel}
+import cats.effect.kernel.{Async, MonadCancelThrow}
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
@@ -38,7 +38,7 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: MonadCancel[G, Throwable], F: Async[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       F.delay(logger.info(s))
     }
@@ -53,7 +53,7 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: MonadCancel[G, Throwable], F: Async[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       F.delay(logger.info(s))
     }

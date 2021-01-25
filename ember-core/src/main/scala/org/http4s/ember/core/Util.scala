@@ -49,7 +49,7 @@ private[ember] object Util {
       timeout: FiniteDuration,
       shallTimeout: F[Boolean],
       chunkSize: Int
-  )(implicit F: ApplicativeError[F, Throwable], C: Clock[F]): Stream[F, Byte] = {
+  )(implicit F: ApplicativeThrow[F], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
       socket.reads(chunkSize, None)
     def whenMayTimeout(remains: FiniteDuration): Stream[F, Byte] =

@@ -19,7 +19,7 @@ package org.http4s
 import cats.Monoid
 import cats.data._
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.{catsSyntaxEq => _, _}
 import cats.kernel.laws.discipline.MonoidTests
 import org.http4s.internal.CollectionCompat
 
@@ -121,9 +121,8 @@ class UrlFormSpec extends Http4sSpec {
     }
 
     "construct consistently from kv-pairs or and Map[String, Chain[String]]" in prop {
-      map: Map[String, NonEmptyList[
-        String
-      ]] => // non-empty because the kv-constructor can't represent valueless fields
+      (map: Map[String, NonEmptyList[String]]) =>
+        // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
           (k, vs) <- map.toSeq
           v <- vs.toList
@@ -133,11 +132,12 @@ class UrlFormSpec extends Http4sSpec {
     }
 
     "construct consistently from Chain of kv-pairs and Map[String, Chain[String]]" in prop {
-      map: Map[String, NonEmptyList[
-        String
-      ]] => // non-empty because the kv-constructor can't represent valueless fields
+      (map: Map[String, NonEmptyList[String]]) =>
+        // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
-          (k, vs) <- Chain.fromSeq(map.toSeq)
+          kv <- Chain.fromSeq(map.toSeq)
+          k = kv._1
+          vs = kv._2
           v <- Chain.fromSeq(vs.toList)
         } yield k -> v
         UrlForm.fromChain(flattened) === UrlForm(
