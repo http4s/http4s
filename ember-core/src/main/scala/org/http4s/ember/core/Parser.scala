@@ -17,11 +17,11 @@
 package org.http4s.ember.core
 
 import cats._
+import cats.effect.{MonadThrow => _, _}
+import cats.effect.kernel.Deferred
 import cats.syntax.all._
 import fs2._
 import org.http4s._
-import cats.effect._
-import cats.effect.kernel.Deferred
 import scala.annotation.switch
 import scala.collection.mutable
 
@@ -29,7 +29,7 @@ private[ember] object Parser {
 
   object HeaderP {
 
-    def parseHeaders[F[_]: MonadError[*[_], Throwable]](
+    def parseHeaders[F[_]: MonadThrow](
         s: Stream[F, Byte],
         maxHeaderLength: Int,
         acc: Option[ParseHeadersIncomplete])
@@ -192,7 +192,7 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
-      def parsePrelude[F[_]: MonadError[*[_], Throwable]](
+      def parsePrelude[F[_]: MonadThrow](
           s: Stream[F, Byte],
           maxHeaderLength: Int,
           acc: Option[ParsePreludeIncomlete] = None)
@@ -401,7 +401,7 @@ private[ember] object Parser {
 
     object RespPrelude {
 
-      def parsePrelude[F[_]: MonadError[*[_], Throwable]](
+      def parsePrelude[F[_]: MonadThrow](
           s: Stream[F, Byte],
           maxHeaderLength: Int,
           acc: Option[Array[Byte]] = None)

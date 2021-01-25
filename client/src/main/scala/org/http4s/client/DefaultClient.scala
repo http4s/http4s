@@ -19,14 +19,13 @@ package client
 
 import cats.Applicative
 import cats.data.Kleisli
-import cats.effect.Resource
+import cats.effect.{MonadCancelThrow, Resource}
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-import cats.effect.kernel.MonadCancel
 
-private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancel[F, Throwable])
+private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[F])
     extends Client[F] {
   def run(req: Request[F]): Resource[F, Response[F]]
 
@@ -72,7 +71,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancel[F, Th
     */
   def toHttpApp: HttpApp[F] =
     Kleisli { req =>
-      run(req).allocated.map { case (resp, release) =>
+      F.map(run(req).allocated) { case (resp, release) =>
         resp.withBodyStream(resp.body.onFinalizeWeak(release))
       }
     }

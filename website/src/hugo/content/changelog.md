@@ -156,43 +156,23 @@ This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 deve
 * jawn-1.0.3
 * jawn-fs2-2.0.0-M2
 
-# v0.22.0-M1 (unreleased)
+# v0.22.0-M1 (2021-01-24)
 
-This is a new series based on v1.0.0-M10, forked off before Cats-Effect 3 support was merged.
-It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support.
-Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be found further below in this changelog.
+This is a new series, forked from main before Cats-Effect 3 support was merged.  It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support. It builds on all the changes from v1.0.0-M1 through v1.0.0-M10, which are not echoed here.
+
+The headline change is that all parboiled2 parsers have been replaced with cats-parse.
 
 ## Should I switch?
 
 * Users who had been tracking the 1.0 series, but are not prepared for Cats Effect 3, should switch to this series.
-* Users who wish to remain on the bleeding edge, including Cats Effect 3, should track the 1.0 series.
-* Users who want a more hardened release should remain on 0.21 for a bit.
+* Users who wish to remain on the bleeding edge, including Cats Effect 3, should continue track the 1.0 series.
+* Users who need a stable release should remain on the 0.21 series for now.
 
 ## http4s-core
 
 ### Breaking changes
 
-* [#3855](https://github.com/http4s/http4s/pull/3855): All parboiled2 parsers are replaced by cats-parse.  parboiled2 was not part of the public API, nor are our cats-parse parsers.  Users may observe a difference in the error messages and subtle semantic changes.  We've attempted to minimize them, but this is a significant underlying change.  See also:
-  [#3897](https://github.com/http4s/http4s/pull/3897),
-  [#3901](https://github.com/http4s/http4s/pull/3901),
-  [#3954](https://github.com/http4s/http4s/pull/3954),
-  [#3958](https://github.com/http4s/http4s/pull/3958),
-  [#3995](https://github.com/http4s/http4s/pull/3995),
-  [#4023](https://github.com/http4s/http4s/pull/4023),
-  [#4001](https://github.com/http4s/http4s/pull/4001),
-  [#4013](https://github.com/http4s/http4s/pull/4013),
-  [#4042](https://github.com/http4s/http4s/pull/4042),
-  [#3982](https://github.com/http4s/http4s/pull/3982),
-  [#4071](https://github.com/http4s/http4s/pull/4071),
-  [#4017](https://github.com/http4s/http4s/pull/4017),
-  [#4132](https://github.com/http4s/http4s/pull/4132),
-  [#4154](https://github.com/http4s/http4s/pull/4154),
-  [#4200](https://github.com/http4s/http4s/pull/4200),
-  [#4202](https://github.com/http4s/http4s/pull/4202),
-  [#4206](https://github.com/http4s/http4s/pull/4206),
-  [#4201](https://github.com/http4s/http4s/pull/4201),
-  [#4208](https://github.com/http4s/http4s/pull/4208),
-  [#4235](https://github.com/http4s/http4s/pull/4235)
+* [#3855](https://github.com/http4s/http4s/pull/3855): All parboiled2 parsers are replaced by cats-parse.  parboiled2 was not part of the public API, nor are our cats-parse parsers.  Users may observe a difference in the error messages and subtle semantic changes.  We've attempted to minimize them, but this is a significant underlying change.  See also: [#3897](https://github.com/http4s/http4s/pull/3897), [#3901](https://github.com/http4s/http4s/pull/3901), [#3954](https://github.com/http4s/http4s/pull/3954), [#3958](https://github.com/http4s/http4s/pull/3958), [#3995](https://github.com/http4s/http4s/pull/3995), [#4023](https://github.com/http4s/http4s/pull/4023), [#4001](https://github.com/http4s/http4s/pull/4001), [#4013](https://github.com/http4s/http4s/pull/4013), [#4042](https://github.com/http4s/http4s/pull/4042), [#3982](https://github.com/http4s/http4s/pull/3982), [#4071](https://github.com/http4s/http4s/pull/4071), [#4017](https://github.com/http4s/http4s/pull/4017), [#4132](https://github.com/http4s/http4s/pull/4132), [#4154](https://github.com/http4s/http4s/pull/4154), [#4200](https://github.com/http4s/http4s/pull/4200), [#4202](https://github.com/http4s/http4s/pull/4202), [#4206](https://github.com/http4s/http4s/pull/4206), [#4201](https://github.com/http4s/http4s/pull/4201), [#4208](https://github.com/http4s/http4s/pull/4208), [#4235](https://github.com/http4s/http4s/pull/4235), [#4147](https://github.com/http4s/http4s/pull/4147), [#4238](https://github.com/http4s/http4s/pull/4238) [#4238](https://github.com/http4s/http4s/pull/4243)
 * [#4070](https://github.com/http4s/http4s/pull/4070): No longer publish a `scala.annotations.nowarn` annotation in the 2.12 build.  This is provided in the standard library in 2.12.13, and isn't necessary at runtime in any version.
 * [#4138](https://github.com/http4s/http4s/pull/4138): Replace boolean with `Weakness` sum type in `EntityTag` model
 * [#4148](https://github.com/http4s/http4s/pull/4148): Lift `ETag.EntityTag` out of header and into the `org.http4s` package
@@ -226,7 +206,10 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 
 * async-http-client-2.12.2
 * cats-parse-0.3.0
+* circe-0.14.0-M3
 * jackson-databind-2.12.1
+* jawn-1.0.3
+* log4cats-1.2.0-RC1 (now under `org.typelevel`)
 * log4s-1.0.0-M4
 * okio-2.10.0
 * vault-2.1.0-M14 (now under `org.typelevel`)
@@ -234,32 +217,6 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 ## Dependency removals
 
 * parboiled2
-
-# v0.21.16 (unreleased)
-
-## http4s-blaze-core
-
-### Bugfixes
-
-* [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
-
-## http4s-laws
-
-### Bugfixes
-
-* [#4243](https://github.com/http4s/http4s/pull/4243): Don't generate ipv6 addresses with only one section shorted by `::`
-
-## http4s-blaze-client
-
-### Bugfixes
-
-* [#4152](https://github.com/http4s/http4s/pull/4152): Omit implicit `Content-Length: 0` header when rendering GET, DELETE, CONNECT, and TRACE requests.
-
-## http4s-circe
-
-### Enhancements
-
-* [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
 
 # v1.0.0-M10 (2020-12-31)
 
@@ -272,7 +229,67 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 ## Dependency updates
 
 * argonaut-6.3.3
+
+# v0.21.16 (2021-01-24)
+>>>>>>> series/0.22
+
+## http4s-laws
+
+### Bugfixes
+
+* [#4243](https://github.com/http4s/http4s/pull/4243): Don't generate ipv6 addresses with only one section shorted by `::`
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4152](https://github.com/http4s/http4s/pull/4152): Omit implicit `Content-Length: 0` header when rendering GET, DELETE, CONNECT, and TRACE requests.
+
+## http4s-ember-client
+
+### Bugfixes
+
+* [#4179](https://github.com/http4s/http4s/pull/4179): Render requests in "origin form", so the request line contains only the path of the request, and host information is only in the Host header.  We were previously rendering the fulll URI on the request line, which the spec mandates all servers to handle, but clients should not send when not speaking to a proxy.
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4179](https://github.com/http4s/http4s/pull/4179): Support a graceful shutdown
+
+## http4s-circe
+
+### Enhancements
+
+* [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
+
+<<<<<<< HEAD
+# v1.0.0-M10 (2020-12-31)
+
+## http4s-client
+
+### Enhancements
+
+* [#4051](https://github.com/http4s/http4s/pull/4051): Add `customized` function to `Logger` middleware that takes a function to produce the log string. Add a `colored` implementation on that that adds colors to the logs.
+
+## Dependency updates
+
+* argonaut-6.3.3
 =======
+>>>>>>> series/0.22
+=======
+## Dependency updates
+
+* dropwizard-metrics-4.1.17
+* netty-4.1.58.Final
+* play-json-29.9.2
+* scalatags-0.9.3
 >>>>>>> series/0.22
 
 # v0.21.15 (2020-12-31)

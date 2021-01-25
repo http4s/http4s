@@ -21,7 +21,7 @@ package middleware
 import cats.~>
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
-import cats.effect.kernel.{Async, MonadCancel, Outcome, Sync}
+import cats.effect.kernel.{Async, MonadCancelThrow, Outcome, Sync}
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
@@ -41,7 +41,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None
   )(http: Http[G, F])(implicit
       F: Async[F],
-      G: MonadCancel[G, Throwable]
+      G: MonadCancelThrow[G]
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
@@ -53,7 +53,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]]
   )(http: Http[G, F])(implicit
       F: Async[F],
-      G: MonadCancel[G, Throwable]
+      G: MonadCancelThrow[G]
   ): Http[G, F] = {
     val log = logAction.fold { (s: String) =>
       Sync[F].delay(logger.info(s))

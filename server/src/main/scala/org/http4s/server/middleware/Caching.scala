@@ -17,7 +17,7 @@
 package org.http4s.server.middleware
 
 import cats.syntax.all._
-import cats.effect._
+import cats.effect.{MonadThrow => _, _}
 import cats.data._
 import org.http4s._
 import org.http4s.headers.{Date => HDate, _}
