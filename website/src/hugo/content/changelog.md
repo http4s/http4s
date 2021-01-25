@@ -33,49 +33,6 @@ This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 deve
 ### Breaking changes
 
 * [#3807](https://github.com/http4s/http4s/pull/3807): Several arbitraries and cogens now require a `Dispatcher` and a `TestContext`.
-
-## http4s-jawn
-
-### Breaking changes
-
-* [#3871](https://github.com/http4s/http4s/pull/3871): `Sync` constraints relaxed to `Concurrent`
-
-## http4s-argonaut
-
-### Breaking changes
-
-* [#3961](https://github.com/http4s/http4s/pull/3961): `Sync` constraints relaxed to `Concurrent`
-
-## http4s-circe
-
-### Breaking changes
-
-* [#3965](https://github.com/http4s/http4s/pull/3965): `Sync` constraints relaxed to to `Concurrent`.
-
-## http4s-json4s
-
-### Breaking changes
-
-* [#3885](https://github.com/http4s/http4s/pull/3885): `Sync` constraints relaxed to to `Concurrent`.
-
-## http4s-play-json
-
-### Breaking changes
-
-* [#3962](https://github.com/http4s/http4s/pull/3962): `Sync` constraints relaxed to to `Concurrent`.
-
-## http4s-scala-xml
-
-### Breaking changes
-
-* [#4054](https://github.com/http4s/http4s/pull/4054): `Sync` constraints relaxed to to `Concurrent`.
-
-## http4s-boopickle
-
-### Breaking changes
-
-* [#3871](https://github.com/http4s/http4s/pull/3852): `Sync` constraints relaxed to `Concurrent`
-
 ## http4s-client 
 
 * [#3857](https://github.com/http4s/http4s/pull/3857): Inexhaustively,
@@ -155,11 +112,53 @@ This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 deve
 
 * [#4191](https://github.com/http4s/http4s/pull/4191): `ConcurrentEffect` constraint relaxed to `Async`
 
-## http4s-jetty
+## http4s-tomcat
 
 ### Breaking changes
 
 * [#4216](https://github.com/http4s/http4s/pull/4216): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-jawn
+
+### Breaking changes
+
+* [#3871](https://github.com/http4s/http4s/pull/3871): `Sync` constraints relaxed to `Concurrent`
+
+## http4s-argonaut
+
+### Breaking changes
+
+* [#3961](https://github.com/http4s/http4s/pull/3961): `Sync` constraints relaxed to `Concurrent`
+
+## http4s-circe
+
+### Breaking changes
+
+* [#3965](https://github.com/http4s/http4s/pull/3965): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-json4s
+
+### Breaking changes
+
+* [#3885](https://github.com/http4s/http4s/pull/3885): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-play-json
+
+### Breaking changes
+
+* [#3962](https://github.com/http4s/http4s/pull/3962): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-scala-xml
+
+### Breaking changes
+
+* [#4054](https://github.com/http4s/http4s/pull/4054): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-boopickle
+
+### Breaking changes
+
+* [#3871](https://github.com/http4s/http4s/pull/3852): `Sync` constraints relaxed to `Concurrent`
 
 ## Dependency updates
 
