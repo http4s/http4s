@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-Then we create the [service] again so tut picks it up:
+Then we create the [service] again so [mdoc] picks it up:
 >
 ```scala mdoc:silent
 import cats.effect._
@@ -85,7 +85,7 @@ BlazeClientBuilder[IO](global).resource.use { client =>
 }
 ```
 
-For the remainder of this tut, we'll use an alternate client backend
+For the remainder of this tutorial, we'll use an alternate client backend
 built on the standard `java.net` library client.  Unlike the blaze
 client, it does not need to be shut down.  Like the blaze-client, and
 any other http4s backend, it presents the exact same `Client`
@@ -389,3 +389,4 @@ blockingPool.shutdown()
 [Request Logger]: ../api/org/http4s/client/middleware/RequestLogger$
 [Response Logger]: ../api/org/http4s/client/middleware/ResponseLogger$
 [Logger]: ../api/org/http4s/client/middleware/Logger$
+[mdoc]: https://scalameta.org/mdoc/

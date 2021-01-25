@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
 // scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
-This tutorial is compiled as part of the build using [tut].  Each page
+This tutorial is compiled as part of the build using [mdoc].  Each page
 is its own REPL session.  If you copy and paste code samples starting
 from the top, you should be able to follow along in a REPL.
 
@@ -219,7 +219,7 @@ object MainWithResource extends IOApp {
 ```
 
 [blaze]: https://github.com/http4s/blaze
-[tut]: https://github.com/tpolecat/tut
+[mdoc]: https://scalameta.org/mdoc/
 [Cats Kleisli Datatype]: https://typelevel.org/cats/datatypes/kleisli.html
 [cats-effect: The IO Monad for Scala]: https://typelevel.org/cats-effect/
 [http4s-dsl]: ../dsl
