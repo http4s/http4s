@@ -313,7 +313,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/2cd2d705c388fb357ffb812dc51a897cb0e49951/server/src/main/scala/org/http4s/server/middleware/ErrorHandling.scala" target="_blank">ErrorHandling.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M1/server/src/main/scala/org/http4s/server/middleware/ErrorHandling.scala" target="_blank">ErrorHandling.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -419,9 +419,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.ErrorHandling#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_],G[_]](k:cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]])(implicitF:cats.MonadError[F,Throwable]):cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]"></a><a id="apply[F[_],G[_]](Kleisli[F,Request[G],Response[G]])(MonadError[F,Throwable]):Kleisli[F,Request[G],Response[G]]"></a>
+      <a id="apply[F[_],G[_]](k:cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]])(implicitF:cats.MonadThrow[F]):cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]"></a><a id="apply[F[_],G[_]](Kleisli[F,Request[G],Response[G]])(MonadThrow[F]):Kleisli[F,Request[G],Response[G]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#apply[F[_],G[_]](k:cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]])(implicitF:cats.MonadError[F,Throwable]):cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#apply[F[_],G[_]](k:cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]])(implicitF:cats.MonadThrow[F]):cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -430,7 +430,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="k">k: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>], <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <a href="../../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>], <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>]]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="k">k: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>], <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>], <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>]]</span>
       </span>
       
       
@@ -567,9 +567,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.server.middleware.ErrorHandling#httpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.MonadError[F,Throwable]):org.http4s.HttpApp[F]"></a><a id="httpApp[F[_]](HttpApp[F])(MonadError[F,Throwable]):HttpApp[F]"></a>
+      <a id="httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.MonadThrow[F]):org.http4s.HttpApp[F]"></a><a id="httpApp[F[_]](HttpApp[F])(MonadThrow[F]):HttpApp[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.MonadError[F,Throwable]):org.http4s.HttpApp[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.MonadThrow[F]):org.http4s.HttpApp[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -578,14 +578,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">httpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpApp.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpApp.F">F</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpApp.F">F</span>]</span>
+        <span class="name">httpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpApp.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpApp.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpApp.F">F</span>]</span>
       </span>
       
       
     </li><li name="org.http4s.server.middleware.ErrorHandling#httpRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.MonadError[F,Throwable]):org.http4s.HttpRoutes[F]"></a><a id="httpRoutes[F[_]](HttpRoutes[F])(MonadError[F,Throwable]):HttpRoutes[F]"></a>
+      <a id="httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.MonadThrow[F]):org.http4s.HttpRoutes[F]"></a><a id="httpRoutes[F[_]](HttpRoutes[F])(MonadThrow[F]):HttpRoutes[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.MonadError[F,Throwable]):org.http4s.HttpRoutes[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.MonadThrow[F]):org.http4s.HttpRoutes[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -594,7 +594,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">httpRoutes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpRoutes.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpRoutes.F">F</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpRoutes.F">F</span>]</span>
+        <span class="name">httpRoutes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpRoutes.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpRoutes.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.httpRoutes.F">F</span>]</span>
       </span>
       
       

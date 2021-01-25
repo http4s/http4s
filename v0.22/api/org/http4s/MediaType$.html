@@ -681,6 +681,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="MediaTypeMissing.html" title="Indicates that a Message attempting to be decoded has no MediaType and no EntityDecoder was lenient enough to accept it."></a>
                         <a href="MediaTypeMissing.html" title="Indicates that a Message attempting to be decoded has no MediaType and no EntityDecoder was lenient enough to accept it.">MediaTypeMissing</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="MediaTypePlaform$.html" title=""></a>
+                        <a class="trait" href="MediaTypePlaform.html" title=""></a>
+                        <a href="MediaTypePlaform.html" title="">MediaTypePlaform</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Message$.html" title=""></a>
                         <a class="trait" href="Message.html" title="Represents a HTTP Message."></a>
                         <a href="Message.html" title="Represents a HTTP Message.">Message</a>
@@ -720,6 +724,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="QValue.html" title="A Quality Value."></a>
                         <a href="QValue.html" title="A Quality Value.">QValue</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="QValuePlatform$.html" title=""></a>
+                        <a class="trait" href="QValuePlatform.html" title=""></a>
+                        <a href="QValuePlatform.html" title="">QValuePlatform</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="Query$.html" title=""></a>
                         <a class="class" href="Query.html" title="Collection representation of a query string"></a>
@@ -813,6 +821,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Uri.html" title="Representation of the Request URI"></a>
                         <a href="Uri.html" title="Representation of the Request URI">Uri</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="UriPlatform$.html" title=""></a>
+                        <a class="trait" href="UriPlatform.html" title=""></a>
+                        <a href="UriPlatform.html" title="">UriPlatform</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="UriTemplate$.html" title=""></a>
                         <a class="class" href="UriTemplate.html" title="Simple representation of a URI Template that can be rendered as RFC6570 conform string."></a>
                         <a href="UriTemplate.html" title="Simple representation of a URI Template that can be rendered as RFC6570 conform string.">UriTemplate</a>
@@ -854,7 +866,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/2cd2d705c388fb357ffb812dc51a897cb0e49951/core/src/main/scala/org/http4s/MediaType.scala" target="_blank">MediaType.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M1/core/src/main/scala/org/http4s/MediaType.scala" target="_blank">MediaType.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -904,29 +916,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.MediaType.Macros" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="MacrosextendsAnyRef"></a><a id="Macros:Macros"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/MediaType$$Macros.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="MediaType$$Macros.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.16) This location of the implementation complicates Dotty support">Macros</span></a><span class="result"> extends <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.16)</i> This location of the implementation complicates Dotty support</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
 
         
 
@@ -1472,7 +1462,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <p class="shortcomment cmt">Parse a MediaType</p><div class="fullcomment"><div class="comment cmt"><p>Parse a MediaType</p><p>For totality, call <a href="#parse(s:String):org.http4s.ParseResult[org.http4s.MediaType]" class="extmbr" name="org.http4s.MediaType#parse">#parse</a>. For compile-time
-verification of literals, call <a href="#mediaType(s:String):org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType#mediaType">#mediaType</a>.
+verification of literals, call <span class="extype" name="#mediaType">#mediaType</span>.
 </p></div></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
@@ -1740,31 +1730,7 @@ verification of literals, call <a href="#mediaType(s:String):org.http4s.MediaTyp
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.MediaType#mediaType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="mediaType(s:String):org.http4s.MediaType"></a><a id="mediaType(String):MediaType"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/MediaType$.html#mediaType(s:String):org.http4s.MediaType" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">macro </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20) use mediaType&quot;&quot; string interpolation instead">mediaType</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Literal syntax for MediaTypes.</p><div class="fullcomment"><div class="comment cmt"><p>Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
-at compile time.
-</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20)</i> use mediaType&quot;&quot; string interpolation instead</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">

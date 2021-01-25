@@ -681,6 +681,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="MediaTypeMissing.html" title="Indicates that a Message attempting to be decoded has no MediaType and no EntityDecoder was lenient enough to accept it."></a>
                         <a href="MediaTypeMissing.html" title="Indicates that a Message attempting to be decoded has no MediaType and no EntityDecoder was lenient enough to accept it.">MediaTypeMissing</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="MediaTypePlaform$.html" title=""></a>
+                        <a class="trait" href="MediaTypePlaform.html" title=""></a>
+                        <a href="MediaTypePlaform.html" title="">MediaTypePlaform</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Message$.html" title=""></a>
                         <a class="trait" href="" title="Represents a HTTP Message."></a>
                         <a href="" title="Represents a HTTP Message.">Message</a>
@@ -720,6 +724,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="QValue.html" title="A Quality Value."></a>
                         <a href="QValue.html" title="A Quality Value.">QValue</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="QValuePlatform$.html" title=""></a>
+                        <a class="trait" href="QValuePlatform.html" title=""></a>
+                        <a href="QValuePlatform.html" title="">QValuePlatform</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="Query$.html" title=""></a>
                         <a class="class" href="Query.html" title="Collection representation of a query string"></a>
@@ -813,6 +821,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Uri.html" title="Representation of the Request URI"></a>
                         <a href="Uri.html" title="Representation of the Request URI">Uri</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="UriPlatform$.html" title=""></a>
+                        <a class="trait" href="UriPlatform.html" title=""></a>
+                        <a href="UriPlatform.html" title="">UriPlatform</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="UriTemplate$.html" title=""></a>
                         <a class="class" href="UriTemplate.html" title="Simple representation of a URI Template that can be rendered as RFC6570 conform string."></a>
                         <a href="UriTemplate.html" title="Simple representation of a URI Template that can be rendered as RFC6570 conform string.">UriTemplate</a>
@@ -855,7 +867,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response.
-</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/2cd2d705c388fb357ffb812dc51a897cb0e49951/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M1/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1084,9 +1096,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Media#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="as[A](implicitF:cats.MonadError[F,Throwable],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadError[F,Throwable],EntityDecoder[F,A]):F[A]"></a>
+      <a id="as[A](implicitF:cats.MonadThrow[F],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadThrow[F],EntityDecoder[F,A]):F[A]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#as[A](implicitF:cats.MonadError[F,Throwable],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+      <a href="../../org/http4s/Message.html#as[A](implicitF:cats.MonadThrow[F],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1095,7 +1107,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">as</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <a href="../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.Media.as.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Message.F">F</span>[<span class="extype" name="org.http4s.Media.as.A">A</span>]</span>
+        <span class="name">as</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.Media.as.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Message.F">F</span>[<span class="extype" name="org.http4s.Media.as.A">A</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Decode the <a href="Media.html" class="extype" name="org.http4s.Media">Media</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Media.html" class="extype" name="org.http4s.Media">Media</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok
