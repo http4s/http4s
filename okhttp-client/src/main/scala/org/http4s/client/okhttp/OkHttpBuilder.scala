@@ -184,6 +184,9 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 }
 
 /** Builder for a [[org.http4s.client.Client]] with an OkHttp backend
+  * 
+  * @define DISPATCHER a [[cats.effect.std.Dispatcher]] using which
+  * we will call unsafeRunSync
   */
 object OkHttpBuilder {
   private[this] val logger = getLogger
