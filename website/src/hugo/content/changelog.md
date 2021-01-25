@@ -26,30 +26,7 @@ The headline change is that all parboiled2 parsers have been replaced with cats-
 
 ### Breaking changes
 
-* [#3855](https://github.com/http4s/http4s/pull/3855): All parboiled2 parsers are replaced by cats-parse.  parboiled2 was not part of the public API, nor are our cats-parse parsers.  Users may observe a difference in the error messages and subtle semantic changes.  We've attempted to minimize them, but this is a significant underlying change.  See also:
-  [#3897](https://github.com/http4s/http4s/pull/3897),
-  [#3901](https://github.com/http4s/http4s/pull/3901),
-  [#3954](https://github.com/http4s/http4s/pull/3954),
-  [#3958](https://github.com/http4s/http4s/pull/3958),
-  [#3995](https://github.com/http4s/http4s/pull/3995),
-  [#4023](https://github.com/http4s/http4s/pull/4023),
-  [#4001](https://github.com/http4s/http4s/pull/4001),
-  [#4013](https://github.com/http4s/http4s/pull/4013),
-  [#4042](https://github.com/http4s/http4s/pull/4042),
-  [#3982](https://github.com/http4s/http4s/pull/3982),
-  [#4071](https://github.com/http4s/http4s/pull/4071),
-  [#4017](https://github.com/http4s/http4s/pull/4017),
-  [#4132](https://github.com/http4s/http4s/pull/4132),
-  [#4154](https://github.com/http4s/http4s/pull/4154),
-  [#4200](https://github.com/http4s/http4s/pull/4200),
-  [#4202](https://github.com/http4s/http4s/pull/4202),
-  [#4206](https://github.com/http4s/http4s/pull/4206),
-  [#4201](https://github.com/http4s/http4s/pull/4201),
-  [#4208](https://github.com/http4s/http4s/pull/4208),
-  [#4235](https://github.com/http4s/http4s/pull/4235),
-  [#4147](https://github.com/http4s/http4s/pull/4147),
-  [#4238](https://github.com/http4s/http4s/pull/4238)
-  [#4238](https://github.com/http4s/http4s/pull/4243)
+* [#3855](https://github.com/http4s/http4s/pull/3855): All parboiled2 parsers are replaced by cats-parse.  parboiled2 was not part of the public API, nor are our cats-parse parsers.  Users may observe a difference in the error messages and subtle semantic changes.  We've attempted to minimize them, but this is a significant underlying change.  See also: [#3897](https://github.com/http4s/http4s/pull/3897), [#3901](https://github.com/http4s/http4s/pull/3901), [#3954](https://github.com/http4s/http4s/pull/3954), [#3958](https://github.com/http4s/http4s/pull/3958), [#3995](https://github.com/http4s/http4s/pull/3995), [#4023](https://github.com/http4s/http4s/pull/4023), [#4001](https://github.com/http4s/http4s/pull/4001), [#4013](https://github.com/http4s/http4s/pull/4013), [#4042](https://github.com/http4s/http4s/pull/4042), [#3982](https://github.com/http4s/http4s/pull/3982), [#4071](https://github.com/http4s/http4s/pull/4071), [#4017](https://github.com/http4s/http4s/pull/4017), [#4132](https://github.com/http4s/http4s/pull/4132), [#4154](https://github.com/http4s/http4s/pull/4154), [#4200](https://github.com/http4s/http4s/pull/4200), [#4202](https://github.com/http4s/http4s/pull/4202), [#4206](https://github.com/http4s/http4s/pull/4206), [#4201](https://github.com/http4s/http4s/pull/4201), [#4208](https://github.com/http4s/http4s/pull/4208), [#4235](https://github.com/http4s/http4s/pull/4235), [#4147](https://github.com/http4s/http4s/pull/4147), [#4238](https://github.com/http4s/http4s/pull/4238) [#4238](https://github.com/http4s/http4s/pull/4243)
 * [#4070](https://github.com/http4s/http4s/pull/4070): No longer publish a `scala.annotations.nowarn` annotation in the 2.12 build.  This is provided in the standard library in 2.12.13, and isn't necessary at runtime in any version.
 * [#4138](https://github.com/http4s/http4s/pull/4138): Replace boolean with `Weakness` sum type in `EntityTag` model
 * [#4148](https://github.com/http4s/http4s/pull/4148): Lift `ETag.EntityTag` out of header and into the `org.http4s` package
