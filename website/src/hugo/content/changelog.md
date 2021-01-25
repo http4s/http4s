@@ -8,9 +8,9 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M11 (unreleased)
+# v1.0.0-M11 (2021-01-25)
 
-This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 development, please see the new 0.22.x series.
+This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 development, please see the new 0.22.x series.  Everything in 0.22.0-M1, including the cats-parse port, is here.
 
 ## http4s-core
 
@@ -117,6 +117,18 @@ This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 deve
 
 * [#4097](https://github.com/http4s/http4s/pull/4097): `ConcurrentEffect` constraint relaxed to `Async`
 
+## http4s-ember-client
+
+### Breaking changes
+
+* [#4256](https://github.com/http4s/http4s/pull/4256): `Concurrent: Timer: ContextShift` constraint turned to `Async`
+
+## http4s-ember-server
+
+### Breaking changes
+
+* [#4256](https://github.com/http4s/http4s/pull/4256): `Concurrent: Timer: ContextShift` constraint turned to `Async`
+ 
 ## http4s-okhttp-client
 
 ### Breaking changes
@@ -155,6 +167,9 @@ This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 deve
 * fs2-3.0.0-M7
 * jawn-1.0.3
 * jawn-fs2-2.0.0-M2
+* keypool-0.4.0-M1 (moved to `org.typelevel`)
+* log4cats-2.0.0-M1
+* vault-3.0.0-M1
 
 # v0.22.0-M1 (2021-01-24)
 

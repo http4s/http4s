@@ -50,8 +50,8 @@ title: Versions
   </thead>
   <tbody>
 	<tr>
-	  <td><a href="/v1.0">1.0.x</a></td>
-	  <td class="text-center"><span class="badge badge-warning">Snapshots</span></td>
+	  <td><a href="/v1.0">{{% latestInSeries "1.0" %}}</a></td>
+	  <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
@@ -62,8 +62,8 @@ title: Versions
 	  <td>1.8+</td>
 	</tr>
 	<tr>
-	  <td><a href="/v0.22">0.22.x</a></td>
-	  <td class="text-center"><span class="badge badge-warning">Snapshots</span></td>
+	  <td><a href="/v0.22">{{% latestInSeries "0.22" %}}</a></td>
+	  <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
