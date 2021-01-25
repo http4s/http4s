@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.0-M1 (unreleased)
+# v0.22.0-M1 (2021-01-24)
 
 This is a new series based on v1.0.0-M10, forked off before Cats-Effect 3 support was merged.
 It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support.
@@ -44,7 +44,10 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
   [#4206](https://github.com/http4s/http4s/pull/4206),
   [#4201](https://github.com/http4s/http4s/pull/4201),
   [#4208](https://github.com/http4s/http4s/pull/4208),
-  [#4235](https://github.com/http4s/http4s/pull/4235)
+  [#4235](https://github.com/http4s/http4s/pull/4235),
+  [#4147](https://github.com/http4s/http4s/pull/4147),
+  [#4238](https://github.com/http4s/http4s/pull/4238)
+  [#4238](https://github.com/http4s/http4s/pull/4243)
 * [#4070](https://github.com/http4s/http4s/pull/4070): No longer publish a `scala.annotations.nowarn` annotation in the 2.12 build.  This is provided in the standard library in 2.12.13, and isn't necessary at runtime in any version.
 * [#4138](https://github.com/http4s/http4s/pull/4138): Replace boolean with `Weakness` sum type in `EntityTag` model
 * [#4148](https://github.com/http4s/http4s/pull/4148): Lift `ETag.EntityTag` out of header and into the `org.http4s` package
@@ -78,7 +81,10 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 
 * async-http-client-2.12.2
 * cats-parse-0.3.0
+* circe-0.14.0-M3
 * jackson-databind-2.12.1
+* jawn-1.0.3
+* log4cats-1.2.0-RC1 (now under `org.typelevel`)
 * log4s-1.0.0-M4
 * okio-2.10.0
 * vault-2.1.0-M14 (now under `org.typelevel`)
