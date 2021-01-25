@@ -231,7 +231,6 @@ The headline change is that all parboiled2 parsers have been replaced with cats-
 * argonaut-6.3.3
 
 # v0.21.16 (2021-01-24)
->>>>>>> series/0.22
 
 ## http4s-laws
 
@@ -269,7 +268,6 @@ The headline change is that all parboiled2 parsers have been replaced with cats-
 
 * [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
 
-<<<<<<< HEAD
 # v1.0.0-M10 (2020-12-31)
 
 ## http4s-client
@@ -281,16 +279,11 @@ The headline change is that all parboiled2 parsers have been replaced with cats-
 ## Dependency updates
 
 * argonaut-6.3.3
-=======
->>>>>>> series/0.22
-=======
-## Dependency updates
 
 * dropwizard-metrics-4.1.17
 * netty-4.1.58.Final
 * play-json-29.9.2
 * scalatags-0.9.3
->>>>>>> series/0.22
 
 # v0.21.15 (2020-12-31)
 
