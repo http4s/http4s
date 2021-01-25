@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M12 (2021-01-25)
+# v1.0.0-M11 (2021-01-25)
 
 This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 development, please see the new 0.22.x series.  Everything in 0.22.0-M1, including the cats-parse port, is here.
 
@@ -169,10 +169,6 @@ This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 deve
 * keypool-0.4.0-M1 (moved to `org.typelevel`)
 * log4cats-2.0.0-M1
 * vault-3.0.0-M1
-
-~~# v1.0.0-M11 (2021-01-25)~~
-
-Release failed.
 
 # v0.22.0-M1 (2021-01-24)
 
