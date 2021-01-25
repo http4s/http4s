@@ -10,15 +10,17 @@ it.
 
 # v0.22.0-M1 (2021-01-24)
 
-This is a new series based on v1.0.0-M10, forked off before Cats-Effect 3 support was merged.
+This is a new series, forked from main before Cats-Effect 3 support was merged.
 It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support.
-Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be found further below in this changelog.
+It includes all the changes from v1.0.0-M1 through v1.0.0-M10, which are not echoed here, but can be found further below in this changelog.
+
+The headline change is that all parboiled2 parsers have been replaced with cats-parse.
 
 ## Should I switch?
 
 * Users who had been tracking the 1.0 series, but are not prepared for Cats Effect 3, should switch to this series.
-* Users who wish to remain on the bleeding edge, including Cats Effect 3, should track the 1.0 series.
-* Users who want a more hardened release should remain on 0.21 for a bit.
+* Users who wish to remain on the bleeding edge, including Cats Effect 3, should continue track the 1.0 series.
+* Users who need a stable release should remain on the 0.21 series for now.
 
 ## http4s-core
 
