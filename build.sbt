@@ -92,6 +92,7 @@ lazy val core = libraryProject("core")
       fs2Io,
       log4s,
       parboiled,
+      scalaCollectionCompat,
       scalaReflect(scalaVersion.value) % Provided,
       scodecBits,
       slf4jApi, // residual dependency from macros
