@@ -80,8 +80,7 @@ package object oauth1 {
     for {
       reqParams <- getUserParams(req)
       // Working around lack of withFilter
-      req = reqParams._1
-      params = reqParams._2
+      (req, params) = reqParams
       auth <- genAuthHeader(
         req.method,
         req.uri,
