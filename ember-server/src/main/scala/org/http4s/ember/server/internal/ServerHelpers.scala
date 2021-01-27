@@ -212,7 +212,7 @@ private[server] object ServerHelpers {
           .attempt
           .flatMap(handleResult) >> available.release >> decrementRunning
 
-        incrementRunning >> available.acquire >> F.start(fa).void
+        available.acquire >> incrementRunning >> F.start(fa).void
       }
 
       val runOuter: F[Unit] =
