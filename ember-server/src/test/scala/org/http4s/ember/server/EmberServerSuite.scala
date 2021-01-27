@@ -56,7 +56,7 @@ class EmberServerSuite extends Http4sSuite {
     FunFixture.map2(server, client)
 
   fixture.test("server responds to requests") { case (server, client) =>
-    IO.sleep(3.seconds) >> client
+    client
       .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
       .timeout(5.seconds)
       .assertEquals(Status.Ok)
