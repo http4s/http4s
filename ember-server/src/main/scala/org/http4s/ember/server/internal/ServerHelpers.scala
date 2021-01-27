@@ -21,6 +21,7 @@ import fs2.concurrent._
 import fs2.io.tcp._
 import fs2.io.tls._
 import cats.effect._
+import cats.effect.concurrent._
 import cats.syntax.all._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
@@ -45,6 +46,7 @@ private[server] object ServerHelpers {
       httpApp: HttpApp[F],
       sg: SocketGroup,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      ready: Deferred[F, Either[Throwable, Unit]],
       shutdown: Shutdown[F],
       // Defaults
       onError: Throwable => Response[F] = { (_: Throwable) =>
@@ -151,18 +153,25 @@ private[server] object ServerHelpers {
         }
         .drain
 
-    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
-      .interruptWhen(shutdown.signal.attempt)
-      // Divorce the scopes of the server stream and handler streams so the
-      // former can be terminated while handlers complete.
-      .prefetch
-      .map { connect =>
-        shutdown.trackConnection >>
-          Stream
-            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
-            .flatMap(withUpgradedSocket(_))
+    Stream.resource(sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
+      .attempt
+      .flatMap {
+        case Right((_, sockets)) =>
+          Stream.eval(ready.complete(Right(()))) >>
+            sockets
+              .interruptWhen(shutdown.signal.attempt)
+              // Divorce the scopes of the server stream and handler streams so the
+              // former can be terminated while handlers complete.
+              .prefetch
+              .map { connect =>
+                shutdown.trackConnection >>
+                  Stream
+                    .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
+                    .flatMap(withUpgradedSocket(_))
+              }
+              .parJoin(maxConcurrency)
+              .drain
+        case Left(err) => Stream.eval(ready.complete(Left(err))).drain
       }
-      .parJoin(maxConcurrency)
-      .drain
   }
 }
