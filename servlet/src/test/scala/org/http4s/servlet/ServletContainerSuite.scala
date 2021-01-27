@@ -18,13 +18,13 @@ package org.http4s
 package servlet
 
 class ServletContainerSuite extends Http4sSuite {
-    import ServletContainer.prefixMapping
+  import ServletContainer.prefixMapping
 
-   test( "prefixMapping should append /* when prefix does not have trailing slash") {
-      assert(prefixMapping("/foo") == "/foo/*")
-    }
+  test("prefixMapping should append /* when prefix does not have trailing slash") {
+    assert(prefixMapping("/foo") == "/foo/*")
+  }
 
-  test( "prefixMapping should append * when prefix has trailing slash") {
-      assert(prefixMapping("/") == "/*")
-    }
+  test("prefixMapping should append * when prefix has trailing slash") {
+    assert(prefixMapping("/") == "/*")
+  }
 }
