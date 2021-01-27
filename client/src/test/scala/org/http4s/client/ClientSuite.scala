@@ -17,7 +17,6 @@
 package org.http4s
 package client
 
-import scala.concurrent.duration._
 import cats.effect.concurrent.Deferred
 import cats.effect._
 import cats.syntax.all._
@@ -26,19 +25,19 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
 import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
+import org.http4s.syntax.AllSyntax
 
-class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
-  val app = HttpApp[IO] { case r =>
+class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
+  private val app = HttpApp[IO] { r =>
     Response[IO](Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpApp(app)
 
-  "mock client" should {
-    "read body before dispose" in {
-      client.expect[String](Request[IO](POST).withEntity("foo")).unsafeRunSync() must_== "foo"
+    test("mock client should read body before dispose") {
+      client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
     }
 
-    "fail to read body after dispose" in {
+    test("mock client should fail to read body after dispose") {
       Request[IO](POST)
         .withEntity("foo")
         .pure[IO]
@@ -47,32 +46,33 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
           client.run(req).use(IO.pure).flatMap(_.as[String])
         }
         .attempt
-        .unsafeRunSync() must beLeft.like { case e: IOException =>
-        e.getMessage == "response was disposed"
-      }
+        .map {
+          case Left(e: IOException) => e.getMessage == "response was disposed"
+          case _ => false
+        }
     }
 
-    "include a Host header in requests whose URIs are absolute" in {
+    test("mock client should include a Host header in requests whose URIs are absolute") {
       val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
         Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
       })
 
       hostClient
         .expect[String](Request[IO](GET, uri"https://http4s.org/"))
-        .unsafeRunSync() must_== "http4s.org"
+        .assertEquals("http4s.org")
     }
 
-    "include a Host header with a port when the port is non-standard" in {
-      val hostClient = Client.fromHttpApp(HttpApp[IO] { case r =>
+    test("mock client should include a Host header with a port when the port is non-standard") {
+      val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
         Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
       })
 
       hostClient
         .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
-        .unsafeRunSync() must_== "http4s.org:1983"
+        .assertEquals("http4s.org:1983")
     }
 
-    "cooperate with the VirtualHost server middleware" in {
+    test("mock client should cooperate with the VirtualHost server middleware") {
       val routes = HttpRoutes.of[IO] { case r =>
         Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
       }
@@ -81,10 +81,10 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
 
       hostClient
         .expect[String](Request[IO](GET, uri"https://http4s.org/"))
-        .unsafeRunSync() must_== "http4s.org"
+        .assertEquals("http4s.org")
     }
 
-    "allow request to be canceled" in {
+    test("mock client should allow request to be canceled") {
 
       Deferred[IO, Unit]
         .flatMap { cancelSignal =>
@@ -105,8 +105,6 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
             }
             .flatMap(_.get)
         }
-        .unsafeRunTimed(2.seconds) must_== Some(ExitCase.Canceled)
-
+        .assertEquals(ExitCase.Canceled)
     }
-  }
 }
