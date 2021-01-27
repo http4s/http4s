@@ -82,7 +82,7 @@ Putting it all together into a small app that will print the JSON objects foreve
 
 ```scala mdoc:reset:silent
 import org.http4s._
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import org.http4s.client.oauth1
 import org.http4s.implicits._
 import cats.effect._
@@ -91,9 +91,8 @@ import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
 import io.circe.Json
 import jawnfs2._
-import scala.concurrent.ExecutionContext.global
 
-class TWStream[F[_]: ConcurrentEffect : ContextShift] {
+class TWStream[F[_]: ConcurrentEffect : ContextShift: Timer] {
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = new io.circe.jawn.CirceSupportParser(None, false).facade
 
@@ -114,7 +113,7 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
   def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
             (req: Request[F]): Stream[F, Json] =
     for {
-      client <- BlazeClientBuilder(global).stream
+      client <- Stream.resource(EmberClientBuilder.default[F].build)
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
       res <- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
     } yield res

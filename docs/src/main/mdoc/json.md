@@ -101,11 +101,7 @@ to JSON as long as an implicit `Encoder` is in scope:
 import io.circe.syntax._
 ```
 
-```scala mdoc:fail
-Hello("Alice").asJson
-```
-
-Oops!  We haven't told Circe how we want to encode our case class.
+We haven't told Circe how we want to encode our case class.
 Let's provide an encoder:
 
 ```scala mdoc
@@ -217,10 +213,10 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
 import org.http4s.implicits._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.global
 
 case class User(name: String)
 case class Hello(greeting: String)
@@ -241,7 +237,7 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080).withHttpApp(jsonApp).resource
+val server = EmberServerBuilder.default[IO].withHost("0.0.0.0").withPort(8081).withHttpApp(jsonApp).build
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
@@ -251,7 +247,7 @@ Now let's make a client for the service above:
 
 ```scala mdoc:silent
 import org.http4s.client.dsl.io._
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import cats.effect.IO
 import io.circe.generic.auto._
 import fs2.Stream
@@ -259,9 +255,9 @@ import fs2.Stream
 // Decode the Hello response
 def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
-  val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
+  val req = POST(User(name).asJson, uri"http://localhost:8081/hello")
   // Create a client
-  BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
+  Stream.resource(EmberClientBuilder.default[IO].build).flatMap { httpClient =>
     // Decode a Hello response
     Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
   }
