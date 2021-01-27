@@ -204,18 +204,20 @@ private[server] object ServerHelpers {
             }
         }
 
-      def runInner(inner: Stream[F, O]): F[Unit] =
-        incrementRunning >> available.acquire >>
-          inner
-            .interruptWhen(stopSignal)
-            .compile
-            .drain
-            .attempt
-            .flatMap(handleResult) >> available.release >> decrementRunning
+      def runInner(inner: Stream[F, O]): F[Unit] = {
+        val fa = inner
+          .interruptWhen(stopSignal)
+          .compile
+          .drain
+          .attempt
+          .flatMap(handleResult) >> available.release >> decrementRunning
+
+        incrementRunning >> available.acquire >> F.start(fa).void
+      }
 
       val runOuter: F[Unit] =
         streams
-          .evalMap(inner => F.start(runInner(inner)))
+          .evalMap(runInner(_))
           .interruptWhen(stopSignal)
           .compile
           .drain
