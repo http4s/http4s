@@ -173,6 +173,10 @@ private[server] object ServerHelpers {
     * stream available in scope. However, network servers built on top of fs2.io can
     * safely utilize this because inner streams are created fresh from socket Resources
     * that don't close over any resources from the outer stream.
+    *
+    * One important semantic that the previous prefetch trick didn't have was backpressuring
+    * the outer stream from continuing if the max concurrency is reached, which has been
+    * recovered here.
     */
   def forking[F[_], O](streams: Stream[F, Stream[F, O]], maxConcurrency: Int = Int.MaxValue)(
       implicit F: Concurrent[F]): Stream[F, INothing] = {
