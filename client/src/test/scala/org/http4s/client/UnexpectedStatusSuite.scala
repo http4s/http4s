@@ -22,12 +22,12 @@ import org.scalacheck.Prop
 
 class UnexpectedStatusSuite extends Http4sSuite {
 
-  property( "UnexpectedStatus should include status in message" ) {
+  property("UnexpectedStatus should include status in message") {
     val e = UnexpectedStatus(Status.NotFound)
     e.getMessage() == "unexpected HTTP status: 404 Not Found"
   }
 
-  property( "UnexpectedStatus should not return null" ) {
+  property("UnexpectedStatus should not return null") {
     Prop.forAll { (status: Status) =>
       val e = UnexpectedStatus(status)
       Option(e.getMessage()).isDefined

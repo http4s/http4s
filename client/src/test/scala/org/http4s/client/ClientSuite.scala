@@ -33,78 +33,78 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
   }
   val client: Client[IO] = Client.fromHttpApp(app)
 
-    test("mock client should read body before dispose") {
-      client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
-    }
+  test("mock client should read body before dispose") {
+    client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
+  }
 
-    test("mock client should fail to read body after dispose") {
-      Request[IO](POST)
-        .withEntity("foo")
-        .pure[IO]
-        .flatMap { req =>
-          // This is bad. Don't do this.
-          client.run(req).use(IO.pure).flatMap(_.as[String])
-        }
-        .attempt
-        .map {
-          case Left(e: IOException) => e.getMessage == "response was disposed"
-          case _ => false
-        }
-    }
-
-    test("mock client should include a Host header in requests whose URIs are absolute") {
-      val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
-        Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
-      })
-
-      hostClient
-        .expect[String](Request[IO](GET, uri"https://http4s.org/"))
-        .assertEquals("http4s.org")
-    }
-
-    test("mock client should include a Host header with a port when the port is non-standard") {
-      val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
-        Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
-      })
-
-      hostClient
-        .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
-        .assertEquals("http4s.org:1983")
-    }
-
-    test("mock client should cooperate with the VirtualHost server middleware") {
-      val routes = HttpRoutes.of[IO] { case r =>
-        Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+  test("mock client should fail to read body after dispose") {
+    Request[IO](POST)
+      .withEntity("foo")
+      .pure[IO]
+      .flatMap { req =>
+        // This is bad. Don't do this.
+        client.run(req).use(IO.pure).flatMap(_.as[String])
       }
+      .attempt
+      .map {
+        case Left(e: IOException) => e.getMessage == "response was disposed"
+        case _ => false
+      }
+  }
 
-      val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
+  test("mock client should include a Host header in requests whose URIs are absolute") {
+    val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
+      Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+    })
 
-      hostClient
-        .expect[String](Request[IO](GET, uri"https://http4s.org/"))
-        .assertEquals("http4s.org")
+    hostClient
+      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+      .assertEquals("http4s.org")
+  }
+
+  test("mock client should include a Host header with a port when the port is non-standard") {
+    val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
+      Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+    })
+
+    hostClient
+      .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
+      .assertEquals("http4s.org:1983")
+  }
+
+  test("mock client should cooperate with the VirtualHost server middleware") {
+    val routes = HttpRoutes.of[IO] { case r =>
+      Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
     }
 
-    test("mock client should allow request to be canceled") {
+    val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
 
-      Deferred[IO, Unit]
-        .flatMap { cancelSignal =>
-          val routes = HttpRoutes.of[IO] { case _ =>
-            cancelSignal.complete(()) >> IO.never
-          }
+    hostClient
+      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+      .assertEquals("http4s.org")
+  }
 
-          val cancelClient = Client.fromHttpApp(routes.orNotFound)
+  test("mock client should allow request to be canceled") {
 
-          Deferred[IO, ExitCase[Throwable]]
-            .flatTap { exitCase =>
-              cancelClient
-                .expect[String](Request[IO](GET, uri"https://http4s.org/"))
-                .guaranteeCase(exitCase.complete)
-                .start
-                .flatTap(fiber =>
-                  cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
-            }
-            .flatMap(_.get)
+    Deferred[IO, Unit]
+      .flatMap { cancelSignal =>
+        val routes = HttpRoutes.of[IO] { case _ =>
+          cancelSignal.complete(()) >> IO.never
         }
-        .assertEquals(ExitCase.Canceled)
-    }
+
+        val cancelClient = Client.fromHttpApp(routes.orNotFound)
+
+        Deferred[IO, ExitCase[Throwable]]
+          .flatTap { exitCase =>
+            cancelClient
+              .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+              .guaranteeCase(exitCase.complete)
+              .start
+              .flatTap(fiber =>
+                cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
+          }
+          .flatMap(_.get)
+      }
+      .assertEquals(ExitCase.Canceled)
+  }
 }
