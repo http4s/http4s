@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 
 class StreamForkingSuite extends CatsEffectSuite {
 
-  import ServerHelpers.forking
+  import StreamForking.forking
 
   test("forking stream completes after outer and inner streams finalize") {
     Ref
