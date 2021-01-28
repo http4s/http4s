@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,16 @@
  */
 
 package org.http4s
-package client
+package servlet
 
-class UnexpectedStatusSpec extends Http4sSpec {
-  "UnexpectedStatus" should {
-    "include status in message" in {
-      val e = UnexpectedStatus(Status.NotFound)
-      e.getMessage() must_== "unexpected HTTP status: 404 Not Found"
-    }
+class ServletContainerSuite extends Http4sSuite {
+  import ServletContainer.prefixMapping
 
-    "not return null" in {
-      prop { (status: Status) =>
-        val e = UnexpectedStatus(status)
-        e.getMessage() must not beNull
-      }
-    }
+  test("prefixMapping should append /* when prefix does not have trailing slash") {
+    assert(prefixMapping("/foo") == "/foo/*")
+  }
+
+  test("prefixMapping should append * when prefix has trailing slash") {
+    assert(prefixMapping("/") == "/*")
   }
 }

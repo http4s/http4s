@@ -23,7 +23,7 @@ import _root_.scalatags.Text
 import cats.data.NonEmptyList
 import org.http4s.headers.`Content-Type`
 
-class ScalatagsSpec extends Http4sSpec {
+class ScalatagsSuite extends Http4sSuite {
   private val testCharsets = NonEmptyList.of(
     Charset.`ISO-8859-1`,
     Charset.fromString("Windows-1251").yolo,
@@ -39,18 +39,20 @@ class ScalatagsSpec extends Http4sSpec {
     )
   }
 
-  "TypedTag encoder" should {
-    "return Content-Type text/html with proper charset" in {
-      testCharsets.forall { implicit cs =>
-        val headers = EntityEncoder[IO, Text.TypedTag[String]].headers
-        headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.text.html, Some(cs)))
-      }
-    }
-
-    "render the body" in {
-      val resp = Response[IO](Ok).withEntity(testBody())
-      EntityDecoder.text[IO].decode(resp, strict = false).value.unsafeRunSync() must beRight(
-        "<div><p>this is my testBody</p></div>")
-    }
+  test("TypedTag encoder should return Content-Type text/html with proper charset") {
+    assert(testCharsets.forall { implicit cs =>
+      val headers = EntityEncoder[IO, Text.TypedTag[String]].headers
+      headers.get(`Content-Type`).contains(`Content-Type`(MediaType.text.html, Some(cs)))
+    })
   }
+
+  test("TypedTag encoder should render the body") {
+    val resp = Response[IO](Ok).withEntity(testBody())
+    EntityDecoder
+      .text[IO]
+      .decode(resp, strict = false)
+      .value
+      .assertEquals(Right("<div><p>this is my testBody</p></div>"))
+  }
+
 }

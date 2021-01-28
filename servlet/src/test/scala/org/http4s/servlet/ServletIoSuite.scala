@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-package org.http4s.servlet
+package org.http4s
+package servlet
 
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import javax.servlet._
 
 import cats.effect.IO
-import org.http4s.Http4sSpec
 
-class ServletIoSpec extends Http4sSpec {
-  "NonBlockingServletIo" should {
-    "decode request body which is smaller than chunk size correctly" in {
-      val request =
-        HttpServletRequestStub(inputStream = new TestServletInputStream("test".getBytes(UTF_8)))
+class ServletIoSuite extends Http4sSuite {
 
-      val io = NonBlockingServletIo[IO](10)
-      val body = io.reader(request)
-      val bytes = body.compile.toList.unsafeRunSync()
+  test(
+    "NonBlockingServletIo should decode request body which is smaller than chunk size correctly") {
+    val request =
+      HttpServletRequestStub(inputStream = new TestServletInputStream("test".getBytes(UTF_8)))
 
-      new String(bytes.toArray, UTF_8) must_== "test"
-    }
+    val io = NonBlockingServletIo[IO](10)
+    val body = io.reader(request)
+    body.compile.toList.map(bytes => new String(bytes.toArray, UTF_8)).assertEquals("test")
+  }
 
-    "decode request body which is bigger than chunk size correctly" in {
-      val request = HttpServletRequestStub(inputStream =
-        new TestServletInputStream("testtesttest".getBytes(UTF_8)))
+  test(
+    "NonBlockingServletIo should decode request body which is bigger than chunk size correctly") {
+    val request = HttpServletRequestStub(inputStream =
+      new TestServletInputStream("testtesttest".getBytes(UTF_8)))
 
-      val io = NonBlockingServletIo[IO](10)
-      val body = io.reader(request)
-      val bytes = body.compile.toList.unsafeRunSync()
-
-      new String(bytes.toArray, UTF_8) must_== "testtesttest"
-    }
+    val io = NonBlockingServletIo[IO](10)
+    val body = io.reader(request)
+    body.compile.toList.map(bytes => new String(bytes.toArray, UTF_8)).assertEquals("testtesttest")
   }
 
   class TestServletInputStream(body: Array[Byte]) extends ServletInputStream {
