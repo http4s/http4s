@@ -27,10 +27,9 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Timestamp,
   Version
 }
-import org.specs2.mutable.Specification
 import org.typelevel.ci.CIString
 
-class OAuthTest extends Specification {
+class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // http://tools.ietf.org/html/rfc5849
   implicit val timer: Timer[IO] = Http4sSpec.TestTimer
@@ -72,49 +71,45 @@ class OAuthTest extends Specification {
       "3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%" +
       "3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal"
 
-  "OAuth support" should {
-    "generate a Base String" in {
-      oauth1.genBaseString(Method.GET, uri, allParams) must_== specBaseString
-    }
-
-    "Generate correct SHA1 signature" in {
-      oauth1.makeSHASig(
-        specBaseString,
-        consumer,
-        Some(token)) must_== "tR3+Ty81lMeYAr/Fid0kMTYa/WM="
-    }
-
-    "generate a Authorization header" in {
-      val auth =
-        oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
-      val creds = auth.credentials
-      creds.authScheme must_== CIString("OAuth")
-    }
-
-    "generate a Authorization header with config" in {
-      val auth =
-        oauth1
-          .genAuthHeader[IO](
-            Method.GET,
-            uri,
-            oauth1.ProtocolParameter.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44"),
-            Some(oauth1.ProtocolParameter.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
-            realm = Some(Realm("Example")),
-            signatureMethod = SignatureMethod(),
-            timestampGenerator = Timestamp.now[IO],
-            version = Version(),
-            nonceGenerator = Nonce.now[IO],
-            callback = None,
-            verifier = None,
-            userParams.map { case (k, v) => Custom(k, v) }
-          )
-          .unsafeRunSync()
-      val creds = auth.credentials
-      creds.authScheme must_== CIString("OAuth")
-    }
+  test("OAuth support should generate a Base String") {
+    assert(oauth1.genBaseString(Method.GET, uri, allParams) == specBaseString)
   }
 
-  "RFC 5849 example" should {
+  test("OAuth support should generate a correct SHA1 signature") {
+    assert(
+      oauth1.makeSHASig(specBaseString, consumer, Some(token)) == "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
+  }
+
+  test("OAuth support should generate a Authorization header") {
+    val auth =
+      oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
+    val creds = auth.credentials
+    assert(creds.authScheme == CIString("OAuth"))
+  }
+
+  test("OAuth support should generate a Authorization header with config") {
+    oauth1
+      .genAuthHeader[IO](
+        Method.GET,
+        uri,
+        oauth1.ProtocolParameter.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44"),
+        Some(oauth1.ProtocolParameter.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
+        realm = Some(Realm("Example")),
+        signatureMethod = SignatureMethod(),
+        timestampGenerator = Timestamp.now[IO],
+        version = Version(),
+        nonceGenerator = Nonce.now[IO],
+        callback = None,
+        verifier = None,
+        userParams.map { case (k, v) => Custom(k, v) }
+      )
+      .map { auth =>
+        val creds = auth.credentials
+        assert(creds.authScheme == CIString("OAuth"))
+      }
+  }
+
+  test("RFC 5849 example shouldCollect proper params, pg 22") {
     implicit def urlFormEncoder: EntityEncoder[IO, UrlForm] =
       UrlForm.entityEncoder(Charset.`US-ASCII`)
 
@@ -123,15 +118,16 @@ class OAuthTest extends Specification {
 
     val req = Request[IO](method = Method.POST, uri = uri).withEntity(body)
 
-    "Collect proper params, pg 22" in {
-      oauth1.getUserParams(req).unsafeRunSync()._2.sorted must_== Seq(
-        "b5" -> "=%3D",
-        "a3" -> "a",
-        "c@" -> "",
-        "a2" -> "r b",
-        "c2" -> "",
-        "a3" -> "2 q"
-      ).sorted
+    oauth1.getUserParams(req).map { case (_, v) =>
+      assert(
+        v.sorted == Seq(
+          "b5" -> "=%3D",
+          "a3" -> "a",
+          "c@" -> "",
+          "a2" -> "r b",
+          "c2" -> "",
+          "a3" -> "2 q"
+        ).sorted)
     }
   }
 }

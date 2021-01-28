@@ -145,7 +145,7 @@ object Http4sPlugin extends AutoPlugin {
     extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
   /**
-    * @return the version we want to document, for example in tuts,
+    * @return the version we want to document, for example in mdoc,
     * given the version being built.
     *
     * For snapshots after a stable release, return the previous stable

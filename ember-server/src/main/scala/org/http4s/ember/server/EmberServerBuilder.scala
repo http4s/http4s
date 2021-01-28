@@ -19,6 +19,7 @@ package org.http4s.ember.server
 import cats._
 import cats.syntax.all._
 import cats.effect._
+import cats.effect.concurrent._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
@@ -123,6 +124,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
+      ready <- Resource.liftF(Deferred[F, Either[Throwable, Unit]])
       shutdown <- Resource.liftF(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(
         ServerHelpers
@@ -131,6 +133,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             httpApp,
             sg,
             tlsInfoOpt,
+            ready,
             shutdown,
             onError,
             onWriteFailure,
@@ -146,6 +149,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           .drain
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
+      _ <- Resource.liftF(ready.get.rethrow)
     } yield new Server {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined

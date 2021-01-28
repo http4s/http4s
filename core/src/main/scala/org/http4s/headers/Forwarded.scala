@@ -79,7 +79,7 @@ object Forwarded
       *
       * @param value obfuscated identifier with leading '_' (underscore) symbol.
       *
-      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3]]
+      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
       */
     sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
