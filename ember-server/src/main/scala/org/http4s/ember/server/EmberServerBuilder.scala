@@ -148,9 +148,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     copy(shutdownTimeout = shutdownTimeout)
 
   @deprecated("0.21.17", "Use withErrorOfLastResort")
-  def withOnError(onError: Throwable => Response[F]) = withErrorOfLastResourt(onError)
+  def withOnError(onError: Throwable => Response[F]) = withErrorOfLastResort(onError)
 
-  def withErrorOfLastResourt(errorOfLastResort: Throwable => Response[F]) = copy(errorOfLastResort = errorOfLastResort)
+  def withErrorOfLastResort(errorOfLastResort: Throwable => Response[F]) = copy(errorOfLastResort = errorOfLastResort)
 
   def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) = copy(errorHandler = errorHandler)
 
@@ -226,13 +226,16 @@ object EmberServerBuilder {
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
     
-    // Initial Impure Handler
+    private val serverFailure = Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+    // Effectful Handler - Perhaps a Logger
+    // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
     def errorHandler[F[_]: Applicative]: PartialFunction[Throwable, F[Response[F]]] = {(_: Throwable) => 
-      Response[F](Status.InternalServerError).pure[F]
+      serverFailure.covary[F].pure[F]
     }
 
+    // Will Only arrive here if your ErrorHandler Fails. Hopefully Never Necessary
     def errorOfLastResort[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
-      Response[F](Status.InternalServerError)
+      serverFailure.covary[F]
     }
     @deprecated("0.21.17", "Use errorOfLastResort for end of the line, or error handler for expected effectful handling")
     def onError[F[_]]: Throwable => Response[F] = errorOfLastResort
