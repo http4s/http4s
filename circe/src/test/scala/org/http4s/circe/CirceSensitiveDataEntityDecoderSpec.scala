@@ -20,8 +20,7 @@ import cats.data.EitherT
 import cats.effect.IO
 import io.circe.{Decoder, HCursor, Json}
 import io.circe.syntax._
-import org.http4s.{DecodeFailure, InvalidMessageBodyFailure, Response, Status}
-import munit.CatsEffectSuite
+import org.http4s.{DecodeFailure, Http4sSuite, InvalidMessageBodyFailure, Response, Status}
 
 object CirceSensitiveDataEntityDecoderSpec {
 
@@ -35,7 +34,7 @@ object CirceSensitiveDataEntityDecoderSpec {
 
 }
 
-class CirceSensitiveDataEntityDecoderSpec extends CatsEffectSuite {
+class CirceSensitiveDataEntityDecoderSpec extends Http4sSuite {
 
   import CirceSensitiveDataEntityDecoderSpec.Person
   import CirceSensitiveDataEntityDecoder.circeEntityDecoder

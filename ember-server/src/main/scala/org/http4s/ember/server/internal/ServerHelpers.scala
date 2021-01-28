@@ -46,6 +46,7 @@ private[server] object ServerHelpers {
       httpApp: HttpApp[F],
       sg: SocketGroup,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      ready: Deferred[F, Either[Throwable, Unit]],
       shutdown: Shutdown[F],
       // Defaults
       onError: Throwable => Response[F] = { (_: Throwable) =>
@@ -157,7 +158,16 @@ private[server] object ServerHelpers {
         }
         .drain
 
-    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+    val server: Stream[F, Resource[F, Socket[F]]] =
+      Stream
+        .resource(
+          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
+        .attempt
+        .evalTap(e => ready.complete(e.void))
+        .rethrow
+        .flatMap { case (_, clients) => clients }
+
+    server
       .interruptWhen(shutdown.signal.attempt)
       // Divorce the scopes of the server stream and handler streams so the
       // former can be terminated while handlers complete.

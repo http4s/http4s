@@ -28,7 +28,7 @@ import org.http4s.headers.Cookie
 class CookieJarSuite extends Http4sSuite {
   val epoch: HttpDate = HttpDate.Epoch
 
-  test("extract a cookie and apply it correctly") {
+  test("CookieJar middleware should extract a cookie and apply it correctly") {
     val routes = HttpRoutes
       .of[IO] {
         case GET -> Root / "get-cookie" =>
@@ -52,67 +52,65 @@ class CookieJarSuite extends Http4sSuite {
 
     val client = Client.fromHttpApp(routes)
 
-    val result = for {
+    for {
       jar <- CookieJar.jarImpl[IO]
       testClient = CookieJar(jar)(client)
       _ <- testClient.successful(Request[IO](Method.GET, uri"http://google.com/get-cookie"))
       second <- testClient.successful(Request[IO](Method.GET, uri"http://google.com/test-cookie"))
-    } yield second
-
-    result.assertEquals(true)
+    } yield assert(second)
   }
 
-  test("apply if the given domain matches") {
+  test("cookieAppliesToRequest should apply if the given domain matches") {
     val req = Request[IO](Method.GET, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
       domain = Some("google.com")
     )
-    assertEquals(CookieJar.cookieAppliesToRequest(req, cookie), true)
+    assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("not apply if not given a domain") {
-    val req = Request[IO](Method.GET, uri = Uri.uri("http://google.com"))
+  test("cookieAppliesToRequest should not apply if not given a domain") {
+    val req = Request[IO](Method.GET, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
       domain = None
     )
-    assertEquals(CookieJar.cookieAppliesToRequest(req, cookie), false)
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("apply if a subdomain") {
-    val req = Request[IO](Method.GET, uri = Uri.uri("http://api.google.com"))
+  test("cookieAppliesToRequest should apply if a subdomain") {
+    val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
       domain = Some("google.com")
     )
-    assertEquals(CookieJar.cookieAppliesToRequest(req, cookie), true)
+    assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("not apply if the wrong subdomain") {
-    val req = Request[IO](Method.GET, uri = Uri.uri("http://api.google.com"))
+  test("cookieAppliesToRequest should not apply if the wrong subdomain") {
+    val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
       domain = Some("bad.google.com")
     )
-    assertEquals(CookieJar.cookieAppliesToRequest(req, cookie), false)
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("not apply if the superdomain") {
-    val req = Request[IO](Method.GET, uri = Uri.uri("http://google.com"))
+  test("cookieAppliesToRequest should not apply if the superdomain") {
+    val req = Request[IO](Method.GET, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
       domain = Some("bad.google.com")
     )
-    assertEquals(CookieJar.cookieAppliesToRequest(req, cookie), false)
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("not apply a secure cookie to an http request") {
+  test("cookieAppliesToRequest should not apply a secure cookie to an http request") {
     val req = Request[IO](Method.GET, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
@@ -120,10 +118,10 @@ class CookieJarSuite extends Http4sSuite {
       domain = Some("google.com"),
       secure = true
     )
-    assertEquals(CookieJar.cookieAppliesToRequest(req, cookie), false)
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("apply a secure cookie to an https request") {
+  test("cookieAppliesToRequest should apply a secure cookie to an https request") {
     val req = Request[IO](Method.GET, uri = uri"https://google.com")
     val cookie = ResponseCookie(
       "foo",
@@ -131,6 +129,6 @@ class CookieJarSuite extends Http4sSuite {
       domain = Some("google.com"),
       secure = true
     )
-    assertEquals(CookieJar.cookieAppliesToRequest(req, cookie), true)
+    assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
 }

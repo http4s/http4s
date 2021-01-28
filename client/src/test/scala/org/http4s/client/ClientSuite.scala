@@ -27,17 +27,17 @@ import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.all._
 
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
-  val app = HttpApp[IO] { case r =>
+  private val app = HttpApp[IO] { case r =>
     Response[IO](Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpApp(app)
 
-  test("read body before dispose") {
+  test("mock client should read body before dispose") {
     client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
   }
 
-  test("fail to read body after dispose") {
-    val result = Request[IO](POST)
+  test("mock client should fail to read body after dispose") {
+    Request[IO](POST)
       .withEntity("foo")
       .pure[IO]
       .flatMap { req =>
@@ -46,31 +46,30 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       }
       .attempt
       .map(_.left.toOption.get.getMessage)
-
-    result.assertEquals("response was disposed")
+      .assertEquals("response was disposed")
   }
 
-  test("include a Host header in requests whose URIs are absolute") {
+  test("mock client should include a Host header in requests whose URIs are absolute") {
     val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
       Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
     })
 
     hostClient
-      .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
       .assertEquals("http4s.org")
   }
 
-  test("include a Host header with a port when the port is non-standard") {
-    val hostClient = Client.fromHttpApp(HttpApp[IO] { case r =>
+  test("mock client should include a Host header with a port when the port is non-standard") {
+    val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
       Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
     })
 
     hostClient
-      .expect[String](Request[IO](GET, Uri.uri("https://http4s.org:1983/")))
+      .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
       .assertEquals("http4s.org:1983")
   }
 
-  test("cooperate with the VirtualHost server middleware") {
+  test("mock client should cooperate with the VirtualHost server middleware") {
     val routes = HttpRoutes.of[IO] { case r =>
       Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
     }
@@ -78,12 +77,13 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
 
     hostClient
-      .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
       .assertEquals("http4s.org")
   }
 
-  test("allow request to be canceled") {
-    val result = Deferred[IO, Unit]
+  test("mock client should allow request to be canceled") {
+
+    Deferred[IO, Unit]
       .flatMap { cancelSignal =>
         val routes = HttpRoutes.of[IO] { case _ =>
           cancelSignal.complete(()) >> IO.never
@@ -94,7 +94,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
         Deferred[IO, Outcome[IO, Throwable, String]]
           .flatTap { outcome =>
             cancelClient
-              .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+              .expect[String](Request[IO](GET, uri"https://http4s.org/"))
               .guaranteeCase(oc => outcome.complete(oc).void)
               .start
               .flatTap(fiber =>
@@ -102,8 +102,6 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
           }
           .flatMap(_.get)
       }
-
-    result.assertEquals(Outcome.canceled[IO, Throwable, String])
-
+      .assertEquals(Outcome.canceled[IO, Throwable, String])
   }
 }

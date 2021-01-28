@@ -63,7 +63,7 @@ object util {
       case "2xx_responses" =>
         registry
           .getSampleValue(
-            s"${prefix}_request_count",
+            s"${prefix}_request_count_total",
             Array("classifier", "method", "status"),
             Array(classifier, method, "2xx"))
       case "2xx_headers_duration" =>
@@ -79,7 +79,7 @@ object util {
       case "4xx_responses" =>
         registry
           .getSampleValue(
-            s"${prefix}_request_count",
+            s"${prefix}_request_count_total",
             Array("classifier", "method", "status"),
             Array(classifier, method, "4xx"))
       case "4xx_headers_duration" =>
@@ -95,7 +95,7 @@ object util {
       case "5xx_responses" =>
         registry
           .getSampleValue(
-            s"${prefix}_request_count",
+            s"${prefix}_request_count_total",
             Array("classifier", "method", "status"),
             Array(classifier, method, "5xx"))
       case "5xx_headers_duration" =>

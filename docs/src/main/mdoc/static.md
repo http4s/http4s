@@ -66,7 +66,7 @@ You can create a `Resource[F, Blocker]` by calling `Blocker[F]`, which will hand
 creating and disposing of an underlying thread pool. You can also create your
 own by lifting an execution context or an executor service.
 
-For now, we will lift an executor service, since using `Resource` in a `tut` 
+For now, we will lift an executor service, since using `Resource` in a [mdoc]
 example is not feasible.
 
 ```scala mdoc:silent:nest
@@ -160,3 +160,4 @@ blockingPool.shutdown()
 Assuming that the service is mounted as root on port `8080`, and you included the webjar `swagger-ui-3.20.9.jar` on your classpath, you would reach the assets with the path: `http://localhost:8080/swagger-ui/3.20.9/index.html`
 
 [StaticFile]: ../api/org/http4s/StaticFile$
+[mdoc]: https://scalameta.org/mdoc/

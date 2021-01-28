@@ -143,7 +143,7 @@ object Http4sPlugin extends AutoPlugin {
     extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
   /**
-    * @return the version we want to document, for example in tuts,
+    * @return the version we want to document, for example in mdoc,
     * given the version being built.
     *
     * For snapshots after a stable release, return the previous stable
@@ -316,7 +316,7 @@ object Http4sPlugin extends AutoPlugin {
     val okio = "2.10.0"
     val okhttp = "4.9.0"
     val playJson = "2.9.2"
-    val prometheusClient = "0.9.0"
+    val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.2"

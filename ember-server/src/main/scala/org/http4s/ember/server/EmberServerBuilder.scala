@@ -114,8 +114,9 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def build: Resource[F, Server] =
     for {
-      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
       bindAddress <- Resource.eval(Sync[F].delay(new InetSocketAddress(host, port)))
+      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
+      ready <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(
         ServerHelpers
@@ -124,6 +125,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             httpApp,
             sg,
             tlsInfoOpt,
+            ready,
             shutdown,
             onError,
             onWriteFailure,
@@ -139,6 +141,7 @@ final class EmberServerBuilder[F[_]: Async] private (
           .drain
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
+      _ <- Resource.eval(ready.get.rethrow)
     } yield new Server {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
