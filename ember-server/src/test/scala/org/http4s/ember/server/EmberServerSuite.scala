@@ -25,7 +25,6 @@ import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 
-import java.net.BindException
 import scala.concurrent.duration._
 
 class EmberServerSuite extends Http4sSuite {
