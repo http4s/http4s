@@ -170,7 +170,7 @@ object Uri extends UriPlatform {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
-    ParseResult.fromParser(uriReference(StandardCharsets.UTF_8), "Invalid URI")(s)
+    ParseResult.fromParser(uriReferenceUtf8, "Invalid URI")(s)
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
     *  fails, throws a [[ParseFailure]].
@@ -255,6 +255,7 @@ object Uri extends UriPlatform {
     }
   }
 
+  private[http4s] val uriReferenceUtf8: Parser0[Uri] = uriReference(StandardCharsets.UTF_8)
   private[http4s] def uriReference(cs: JCharset): Parser0[Uri] =
     parser(cs).backtrack.orElse(relativeRef(cs))
 
@@ -624,7 +625,7 @@ object Uri extends UriPlatform {
     import Segment.{segment, segmentNz, segmentNzNc}
 
     /* path-abempty  = *( "/" segment ) */
-    val pathAbempty: cats.parse.Parser0[Path] =
+    lazy val pathAbempty: cats.parse.Parser0[Path] =
       (char('/') *> segment).rep0.map {
         case Nil => Path.empty
         case List(Segment.empty) => Path.Root
