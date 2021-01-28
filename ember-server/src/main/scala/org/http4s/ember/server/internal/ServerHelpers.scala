@@ -47,7 +47,8 @@ private[server] object ServerHelpers {
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
-      onError: Throwable => Response[F] = { (_: Throwable) =>
+      errorHandler: PartialFunction[Throwable, F[Response[F]]],
+      errorOfLastResort: Throwable => Response[F] = { (_: Throwable) =>
         Response[F](Status.InternalServerError)
       },
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
@@ -96,7 +97,7 @@ private[server] object ServerHelpers {
     def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
       for {
         req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
-        resp <- httpApp.run(req).handleError(onError)
+        resp <- httpApp.run(req).handleErrorWith(errorHandler).handleError(errorOfLastResort)
       } yield (req, resp)
 
     def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
@@ -138,7 +139,10 @@ private[server] object ServerHelpers {
             }
             .evalTap {
               case Right((request, response)) => send(socket)(Some(request), response)
-              case Left(err) => send(socket)(None, onError(err))
+              case Left(err) =>
+                errorHandler.lift.apply(err)
+                  .fold(errorOfLastResort(err).pure[F])(_.handleError(_ => errorOfLastResort(err)))
+                  .flatMap(send(socket)(None, _))
             }
         }
         .takeWhile {
