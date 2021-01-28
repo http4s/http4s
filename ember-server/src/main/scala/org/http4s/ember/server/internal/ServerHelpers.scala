@@ -153,26 +153,27 @@ private[server] object ServerHelpers {
         }
         .drain
 
-    Stream
-      .resource(
-        sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
-      .attempt
-      .evalTap(e => ready.complete(e.void))
-      .rethrow
-      .flatMap { case (_, sockets) =>
-        sockets
-          .interruptWhen(shutdown.signal.attempt)
-          // Divorce the scopes of the server stream and handler streams so the
-          // former can be terminated while handlers complete.
-          .prefetch
-          .map { connect =>
-            shutdown.trackConnection >>
-              Stream
-                .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
-                .flatMap(withUpgradedSocket(_))
-          }
-          .parJoin(maxConcurrency)
-          .drain
+    val server: Stream[F, Resource[F, Socket[F]]] =
+      Stream
+        .resource(
+          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
+        .attempt
+        .evalTap(e => ready.complete(e.void))
+        .rethrow
+        .flatMap { case (_, clients) => clients }
+
+    server
+      .interruptWhen(shutdown.signal.attempt)
+      // Divorce the scopes of the server stream and handler streams so the
+      // former can be terminated while handlers complete.
+      .prefetch
+      .map { connect =>
+        shutdown.trackConnection >>
+          Stream
+            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
+            .flatMap(withUpgradedSocket(_))
       }
+      .parJoin(maxConcurrency)
+      .drain
   }
 }

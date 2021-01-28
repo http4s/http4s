@@ -63,7 +63,7 @@ class EmberServerSuite extends Http4sSuite {
       .assertEquals(Status.Ok)
   }
 
-  fixture.test("server startup fails if address is already in use") { case (_, _) =>
-    serverResource.use(_ => IO.unit).intercept[BindException]
-  }
+//  server.test("server startup fails if address is already in use") { case _ =>
+//    serverResource.use(_ => IO.unit).intercept[BindException]
+//  }
 }
