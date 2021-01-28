@@ -168,7 +168,7 @@ final case class Uri(
 
 object Uri extends UriPlatform {
 
-  private val uriRefUtf8 = uriReference(StandardCharsets.UTF_8)
+  private lazy val uriRefUtf8 = uriReference(StandardCharsets.UTF_8)
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
