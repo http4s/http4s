@@ -170,7 +170,8 @@ object Uri extends UriPlatform {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
-    ParseResult.fromParser(uriReference(StandardCharsets.UTF_8), "Invalid URI")(s)
+    ParseResult.fromParser(utf8UriParser, "Invalid URI")(s)
+  private val utf8UriParser = uriReference(StandardCharsets.UTF_8)
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
     *  fails, throws a [[ParseFailure]].
@@ -190,12 +191,12 @@ object Uri extends UriPlatform {
     import P.string
     import Authority.{parser => authority}
     import Path.{pathAbempty, pathAbsolute, pathEmpty, pathRootless}
-
-    ((string("//") *> authority(cs) ~ pathAbempty)
-      .map { case (a, p) => (Some(a), p) })
-      .orElse(pathAbsolute.map((None, _)))
-      .orElse(pathRootless.map((None, _)))
-      .orElse(pathEmpty.map((None, _)))
+    val rel: P[(Option[Authority], Path)] = (string("//") *> authority(cs) ~ pathAbempty).map {
+      case (a, p) => (Some(a), p)
+    }
+    P.oneOf0(
+      rel :: pathAbsolute.map((None, _)) :: pathRootless.map((None, _)) :: pathEmpty.map(
+        (None, _)) :: Nil)
   }
 
   /* absolute-URI  = scheme ":" hier-part [ "?" query ] */
@@ -236,11 +237,11 @@ object Uri extends UriPlatform {
     import Authority.{parser => authority}
     import Path.{pathAbempty, pathAbsolute, pathEmpty, pathNoscheme}
 
-    ((string("//") *> authority(cs) ~ pathAbempty)
-      .map { case (a, p) => (Some(a), p) })
-      .orElse(pathAbsolute.map((None, _)))
-      .orElse(pathNoscheme.map((None, _)))
-      .orElse(pathEmpty.map((None, _)))
+    P.oneOf0(
+      ((string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
+        (Some(a), p)
+      }) :: (pathAbsolute.map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map(
+        (None, _))) :: Nil)
   }
 
   /* relative-ref  = relative-part [ "?" query ] [ "#" fragment ] */
@@ -268,7 +269,7 @@ object Uri extends UriPlatform {
                     / asterisk-form
    */
   private lazy val requestTargetParser: Parser0[Uri] = {
-    import cats.parse.Parser.char
+    import cats.parse.Parser.{char, oneOf0}
     import Authority.{parser => authority}
     import Path.absolutePath
     import Query.{parser => query}
@@ -290,7 +291,7 @@ object Uri extends UriPlatform {
     val asteriskForm: P[Uri] =
       char('*').as(Uri(path = Path.Asterisk))
 
-    originForm.orElse(absoluteForm).orElse(authorityForm).orElse(asteriskForm)
+    oneOf0(originForm :: absoluteForm :: authorityForm :: asteriskForm :: Nil)
   }
 
   /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a
@@ -721,11 +722,11 @@ object Uri extends UriPlatform {
 
     /* userinfo    = *( unreserved / pct-encoded / sub-delims / ":" ) */
     private[http4s] def parser(cs: JCharset): cats.parse.Parser0[UserInfo] = {
-      import cats.parse.Parser.{char, charIn}
+      import cats.parse.Parser.{char, charIn, oneOf}
       import Rfc3986.{pctEncoded, subDelims, unreserved}
 
-      val username = unreserved.orElse(pctEncoded).orElse(subDelims).rep0.string
-      val password = unreserved.orElse(pctEncoded).orElse(subDelims).orElse(charIn(':')).rep0.string
+      val username = oneOf(unreserved :: pctEncoded :: subDelims :: Nil).rep0.string
+      val password = oneOf(unreserved :: pctEncoded :: subDelims :: charIn(':') :: Nil).rep0.string
       (username ~ (char(':') *> password).?).map { case (u, p) =>
         UserInfo(decode(u, cs), p.map(decode(_, cs)))
       }
