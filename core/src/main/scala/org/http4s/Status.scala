@@ -26,8 +26,8 @@ import org.http4s.util.Renderable
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
-  * @see [http://tools.ietf.org/html/rfc7231#section-6 RFC7231, Section 6]
-  * @see [http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]
+  * @see [[http://tools.ietf.org/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
+  * @see [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
   */
 sealed abstract case class Status private (code: Int)(
     val reason: String,

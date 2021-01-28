@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.http4s.servlet
+package org.http4s
+package client
 
-import org.http4s.Http4sSpec
+import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.Prop
 
-class ServletContainerSpec extends Http4sSpec {
-  "prefixMapping" should {
-    import ServletContainer.prefixMapping
+class UnexpectedStatusSuite extends Http4sSuite {
 
-    "append /* when prefix does not have trailing slash" in {
-      prefixMapping("/foo") must_== "/foo/*"
-    }
+  property("UnexpectedStatus should include status in message") {
+    val e = UnexpectedStatus(Status.NotFound)
+    e.getMessage() == "unexpected HTTP status: 404 Not Found"
+  }
 
-    "append * when prefix has trailing slash" in {
-      prefixMapping("/") must_== "/*"
+  property("UnexpectedStatus should not return null") {
+    Prop.forAll { (status: Status) =>
+      val e = UnexpectedStatus(status)
+      Option(e.getMessage()).isDefined
     }
   }
 }
