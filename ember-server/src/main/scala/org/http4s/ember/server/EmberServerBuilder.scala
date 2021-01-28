@@ -150,9 +150,11 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   @deprecated("0.21.17", "Use withErrorOfLastResort")
   def withOnError(onError: Throwable => Response[F]) = withErrorOfLastResort(onError)
 
-  def withErrorOfLastResort(errorOfLastResort: Throwable => Response[F]) = copy(errorOfLastResort = errorOfLastResort)
+  def withErrorOfLastResort(errorOfLastResort: Throwable => Response[F]) =
+    copy(errorOfLastResort = errorOfLastResort)
 
-  def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) = copy(errorHandler = errorHandler)
+  def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
+    copy(errorHandler = errorHandler)
 
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
@@ -225,19 +227,23 @@ object EmberServerBuilder {
     val port: Int = server.defaults.HttpPort
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
-    
-    private val serverFailure = Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+
+    private val serverFailure =
+      Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
     // Effectful Handler - Perhaps a Logger
     // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
-    def errorHandler[F[_]: Applicative]: PartialFunction[Throwable, F[Response[F]]] = {(_: Throwable) => 
-      serverFailure.covary[F].pure[F]
+    def errorHandler[F[_]: Applicative]: PartialFunction[Throwable, F[Response[F]]] = {
+      (_: Throwable) =>
+        serverFailure.covary[F].pure[F]
     }
 
     // Will Only arrive here if your ErrorHandler Fails. Hopefully Never Necessary
     def errorOfLastResort[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
       serverFailure.covary[F]
     }
-    @deprecated("0.21.17", "Use errorOfLastResort for end of the line, or error handler for expected effectful handling")
+    @deprecated(
+      "0.21.17",
+      "Use errorOfLastResort for end of the line, or error handler for expected effectful handling")
     def onError[F[_]]: Throwable => Response[F] = errorOfLastResort
 
     def onWriteFailure[F[_]: Applicative]

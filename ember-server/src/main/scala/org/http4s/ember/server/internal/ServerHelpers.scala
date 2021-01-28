@@ -140,7 +140,8 @@ private[server] object ServerHelpers {
             .evalTap {
               case Right((request, response)) => send(socket)(Some(request), response)
               case Left(err) =>
-                errorHandler.lift.apply(err)
+                errorHandler.lift
+                  .apply(err)
                   .fold(errorOfLastResort(err).pure[F])(_.handleError(_ => errorOfLastResort(err)))
                   .flatMap(send(socket)(None, _))
             }
