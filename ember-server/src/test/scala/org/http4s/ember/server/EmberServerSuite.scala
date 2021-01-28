@@ -25,6 +25,7 @@ import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 
+import java.net.BindException
 import scala.concurrent.duration._
 
 class EmberServerSuite extends Http4sSuite {
@@ -60,5 +61,9 @@ class EmberServerSuite extends Http4sSuite {
       .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
       .timeout(5.seconds)
       .assertEquals(Status.Ok)
+  }
+
+  fixture.test("server startup fails if address is already in use") { case (_, _) =>
+    serverResource.use(_ => IO.unit).intercept[BindException]
   }
 }
