@@ -167,18 +167,15 @@ private[server] object ServerHelpers {
         .rethrow
         .flatMap { case (_, clients) => clients }
 
-    server
+    val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
-      // Divorce the scopes of the server stream and handler streams so the
-      // former can be terminated while handlers complete.
-      .prefetch
       .map { connect =>
         shutdown.trackConnection >>
           Stream
             .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
             .flatMap(withUpgradedSocket(_))
       }
-      .parJoin(maxConcurrency)
-      .drain
+
+    StreamForking.forking(streams, maxConcurrency)
   }
 }
