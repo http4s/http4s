@@ -162,7 +162,7 @@ private[server] object ServerHelpers {
         .rethrow
         .flatMap { case (_, clients) => clients }
 
-    val streams: Stream[F, Stream[F, Socket[F]]] = server
+    val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
         shutdown.trackConnection >>
