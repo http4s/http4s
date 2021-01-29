@@ -204,7 +204,8 @@ class AuthenticationSuite extends Http4sSuite {
             },
             challenge)
         }
-        (res2, res3) <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
+        results <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
+        (res2, res3) = results
       } yield {
         assertEquals(res2.status, Ok)
 

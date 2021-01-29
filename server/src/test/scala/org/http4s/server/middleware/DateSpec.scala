@@ -41,7 +41,7 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- testService(req).value
         now <- HttpDate.current[IO]
-      } yield out.flatMap(_.headers.get(HDate)) must beSome.like { case date =>
+      } yield out.flatMap(_.headers.get(HDate)) must beSome.like { case date: HDate =>
         val diff = now.epochSecond - date.date.epochSecond
         diff must be_<=(2L)
       }
