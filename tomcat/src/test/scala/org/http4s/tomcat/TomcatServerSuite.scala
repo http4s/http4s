@@ -68,8 +68,7 @@ class TomcatServerSuite extends Http4sSuite {
       )
       .resource
 
-  def tomcatServer: FunFixture[Server[IO]] =
-    ResourceFixture[Server[IO]](serverR)
+  val tomcatServer = ResourceFixture[Server[IO]](serverR)
 
   def get(server: Server[IO], path: String): IO[String] =
     testBlocker.blockOn(

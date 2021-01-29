@@ -16,7 +16,7 @@
 
 package org.http4s.metrics.prometheus
 
-import cats.effect.{Clock, IO, Resource}
+import cats.effect._
 import io.prometheus.client.CollectorRegistry
 import org.http4s.{Http4sSuite, HttpApp, HttpRoutes, Request, Status}
 import org.http4s.Method.GET
@@ -231,6 +231,6 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
 
   def meteredRoutes(
       classifier: Request[IO] => Option[String] = (_: Request[IO]) => None
-  ): FunFixture[(CollectorRegistry, HttpApp[IO])] =
+  ): SyncIO[FunFixture[(CollectorRegistry, HttpApp[IO])]] =
     ResourceFixture(buildMeteredRoutes(classifier))
 }

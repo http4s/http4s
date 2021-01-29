@@ -50,8 +50,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       }
     }
 
-  def clientFixture: FunFixture[(JettyScaffold, Client[IO])] =
-    ResourceFixture(((JettyScaffold[IO](1, false, testServlet), clientResource)).tupled)
+  val clientFixture = ResourceFixture(
+    (JettyScaffold[IO](1, false, testServlet), clientResource).tupled)
 
   // Need to override the context shift from munitCatsEffect
   // This is only required for JettyClient
