@@ -24,27 +24,27 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 class ContextRouterSuite extends Http4sSuite {
-  val numbers = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+  val numbers = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" withContext _ =>
     Ok("one")
   }
-  val numbers2 = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+  val numbers2 = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" withContext _ =>
     Ok("two")
   }
 
-  val letters = ContextRoutes.of[Unit, IO] { case GET -> Root / "/b" as _ =>
+  val letters = ContextRoutes.of[Unit, IO] { case GET -> Root / "/b" withContext _ =>
     Ok("bee")
   }
-  val shadow = ContextRoutes.of[Unit, IO] { case GET -> Root / "shadowed" as _ =>
+  val shadow = ContextRoutes.of[Unit, IO] { case GET -> Root / "shadowed" withContext _ =>
     Ok("visible")
   }
   val root = ContextRoutes.of[Unit, IO] {
-    case GET -> Root / "about" as _ =>
+    case GET -> Root / "about" withContext _ =>
       Ok("about")
-    case GET -> Root / "shadow" / "shadowed" as _ =>
+    case GET -> Root / "shadow" / "shadowed" withContext _ =>
       Ok("invisible")
   }
 
-  val notFound = ContextRoutes.of[Unit, IO] { case _ as _ =>
+  val notFound = ContextRoutes.of[Unit, IO] { case _ withContext _ =>
     NotFound("Custom NotFound")
   }
 

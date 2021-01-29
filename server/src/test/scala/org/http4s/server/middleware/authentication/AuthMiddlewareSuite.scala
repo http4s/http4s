@@ -63,7 +63,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case GET -> Root as user =>
+      AuthedRoutes.of { case GET -> Root withContext user =>
         Ok(user.toString)
       }
 
@@ -91,7 +91,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 
@@ -116,7 +116,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli.pure(userId)
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 
@@ -134,7 +134,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli.pure(userId)
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 
@@ -150,7 +150,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli.liftF(OptionT.none)
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 
@@ -166,7 +166,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli.liftF(OptionT.none)
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 
@@ -184,12 +184,12 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli.pure(userId)
 
     val authedRoutes1: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 
     val authedRoutes2: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case GET -> Root as _ =>
+      AuthedRoutes.of { case GET -> Root withContext _ =>
         Ok()
       }
 
@@ -206,7 +206,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli.liftF(OptionT.none)
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 
@@ -231,7 +231,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
       Kleisli.liftF(OptionT.none)
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
+      AuthedRoutes.of { case POST -> Root withContext _ =>
         Ok()
       }
 

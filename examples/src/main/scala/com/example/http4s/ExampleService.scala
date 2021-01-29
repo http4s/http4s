@@ -206,7 +206,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
   def authRoutes: HttpRoutes[F] =
     basicAuth(AuthedRoutes.of[String, F] {
       // AuthedRoutes look like HttpRoutes, but the user is extracted with `as`.
-      case GET -> Root / "protected" as user =>
+      case GET -> Root / "protected" withContext user =>
         Ok(s"This page is protected using HTTP authentication; logged in as $user")
     })
 }

@@ -19,7 +19,13 @@ package org.http4s.dsl.impl
 import org.http4s.{AuthedRequest, Request}
 
 trait Auth {
+  @deprecated("Changed to `withContext`. `as` is a soft keyword in Scala 3.", "0.21.17")
   object as {
+    def unapply[F[_], A](ar: AuthedRequest[F, A]): Option[(Request[F], A)] =
+      Some(ar.req -> ar.context)
+  }
+
+  object withContext {
     def unapply[F[_], A](ar: AuthedRequest[F, A]): Option[(Request[F], A)] =
       Some(ar.req -> ar.context)
   }
