@@ -24,6 +24,6 @@ import cats.effect.std.Dispatcher
 class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
   def clientResource =
     Dispatcher[IO].flatMap { dispatcher =>
-      OkHttpBuilder.withDefaultClient[IO](dispatcher).map(_.create)
+      OkHttpBuilder.withDefaultClient[IO].map(_.create(dispatcher))
     }
 }
