@@ -255,7 +255,7 @@ object Uri extends UriPlatform {
     }
   }
 
-  private[http4s] val uriReferenceUtf8: Parser0[Uri] = uriReference(StandardCharsets.UTF_8)
+  private[http4s] lazy val uriReferenceUtf8: Parser0[Uri] = uriReference(StandardCharsets.UTF_8)
   private[http4s] def uriReference(cs: JCharset): Parser0[Uri] =
     parser(cs).backtrack.orElse(relativeRef(cs))
 
