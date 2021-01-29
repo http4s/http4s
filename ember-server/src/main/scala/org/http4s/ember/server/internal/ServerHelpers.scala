@@ -17,9 +17,9 @@
 package org.http4s.ember.server.internal
 
 import fs2._
-import fs2.concurrent._
 import fs2.io.tcp._
 import fs2.io.tls._
+import cats._
 import cats.effect._
 import cats.syntax.all._
 import scala.concurrent.duration._
@@ -28,9 +28,10 @@ import org.http4s._
 import org.http4s.implicits._
 import org.http4s.headers.{Connection, Date}
 import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.io.chrisdavenport.log4cats.Logger
 import cats.data.NonEmptyList
+import java.util.concurrent.TimeoutException
+import java.nio.channels.InterruptedByTimeoutException
 
 private[server] object ServerHelpers {
 
@@ -59,30 +60,33 @@ private[server] object ServerHelpers {
       idleTimeout: Duration = 60.seconds,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit F: Concurrent[F], C: Clock[F]): Stream[F, Nothing] = {
+  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
     def socketReadRequest(
         socket: Socket[F],
         requestHeaderReceiveTimeout: Duration,
-        receiveBufferSize: Int,
-        isReused: Boolean
+        receiveBufferSize: Int
     ): F[Request[F]] = {
-      val (initial, readDuration) = (requestHeaderReceiveTimeout, idleTimeout, isReused) match {
-        case (fin: FiniteDuration, idle: FiniteDuration, true) => (true, idle + fin)
-        case (fin: FiniteDuration, _, false) => (true, fin)
-        case _ => (false, Duration.Zero)
+      val idle: Option[FiniteDuration] = idleTimeout match {
+        case idle: FiniteDuration => Some(idle)
+        case _ => None
       }
-
-      SignallingRef[F, Boolean](initial).flatMap { timeoutSignal =>
-        C.realTime(MILLISECONDS)
-          .flatMap(now =>
-            Parser.Request
-              .parser(maxHeaderSize)(
-                readWithTimeout[F](socket, now, readDuration, timeoutSignal.get, receiveBufferSize)
-              )
-              .flatMap { req =>
-                timeoutSignal.set(false).as(req)
-              })
+      def errorIfEmpty(
+          socket: Socket[F],
+          maxBytes: Int,
+          timeout: Option[FiniteDuration]): Stream[F, Byte] =
+        Stream.eval(socket.read(maxBytes, timeout)).flatMap {
+          case Some(bytes) =>
+            Stream.chunk(bytes) ++ errorIfEmpty(socket, maxBytes, timeout)
+          case None => Stream.raiseError(new RuntimeException("Received Unexpected EOF"))
+        }
+      val action = requestHeaderReceiveTimeout match {
+        case i: FiniteDuration =>
+          Parser.Request.parser(maxHeaderSize, Some(i))(
+            errorIfEmpty(socket, receiveBufferSize, idle))
+        case _ =>
+          Parser.Request.parser(maxHeaderSize, None)(errorIfEmpty(socket, receiveBufferSize, idle))
       }
+      action
     }
 
     def upgradeSocket(
@@ -94,9 +98,9 @@ private[server] object ServerHelpers {
           .widen[Socket[F]]
       }
 
-    def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
+    def runApp(socket: Socket[F]): F[(Request[F], Response[F])] =
       for {
-        req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
+        req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
         resp <- httpApp
           .run(req)
           .handleErrorWith(errorHandler)
@@ -131,18 +135,26 @@ private[server] object ServerHelpers {
     }
 
     def withUpgradedSocket(socket: Socket[F]): Stream[F, Nothing] =
-      (Stream(false) ++ Stream(true).repeat)
-        .flatMap { isReused =>
-          Stream
-            .eval(runApp(socket, isReused).attempt)
-            .evalMap {
-              case Right((req, resp)) =>
-                postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
-              case other => other.pure[F]
-            }
-            .evalTap {
-              case Right((request, response)) => send(socket)(Some(request), response)
-              case Left(err) =>
+      Stream
+        .eval(runApp(socket).attempt)
+        .repeat
+        .evalMap {
+          case Right((req, resp)) =>
+            postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
+          case other => other.pure[F]
+        }
+        .evalTap {
+          case Right((request, response)) => send(socket)(Some(request), response)
+          case Left(err) =>
+            err match {
+              // Timeouts Do Not Get Responses
+              // Thrown by Stream.timeout or Concurrent.timeout
+              case _: TimeoutException =>
+                errorHandler(
+                  err).void // Lets users see responses, but cannot generate responses i don't like this
+              // Thrown by fs2.io.tcp.Socket read/write
+              case _: InterruptedByTimeoutException => errorHandler(err).void
+              case err =>
                 errorHandler(err)
                   .handleError(_ => serverFailure.covary[F])
                   .flatMap(send(socket)(None, _))

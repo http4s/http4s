@@ -17,7 +17,7 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
-import fs2.concurrent._
+import fs2._
 import fs2.io.tcp._
 import cats._
 import cats.data.NonEmptyList
@@ -30,7 +30,6 @@ import org.http4s._
 import org.http4s.implicits._
 import org.http4s.client.RequestKey
 import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
 import _root_.io.chrisdavenport.keypool.Reusable
@@ -85,10 +84,11 @@ private[client] object ClientHelpers {
       reuseable: Ref[F, Reusable],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
+      idleReadTimeout: Duration,
       timeout: Duration,
       userAgent: Option[`User-Agent`]
   ): Resource[F, Response[F]] = {
-    val RT: Timer[Resource[F, *]] = Timer[F].mapK(Resource.liftK[F])
+    // val RT: Timer[Resource[F, *]] = Timer[F].mapK(Resource.liftK[F])
 
     def writeRequestToSocket(
         req: Request[F],
@@ -101,33 +101,30 @@ private[client] object ClientHelpers {
         .resource
         .drain
 
-    def onNoTimeout(req: Request[F], socket: Socket[F]): Resource[F, Response[F]] =
-      writeRequestToSocket(req, socket, None) >>
-        Parser.Response.parser(maxResponseHeaderSize)(
-          socket.reads(chunkSize, None)
-        )
-
-    def onTimeout(
-        req: Request[F],
-        socket: Socket[F],
-        fin: FiniteDuration): Resource[F, Response[F]] =
-      for {
-        start <- RT.clock.realTime(MILLISECONDS)
-        _ <- writeRequestToSocket(req, socket, Option(fin))
-        timeoutSignal <- Resource.liftF(SignallingRef[F, Boolean](true))
-        sent <- RT.clock.realTime(MILLISECONDS)
-        remains = fin - (sent - start).millis
-        resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
-          readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
-        )
-        _ <- Resource.liftF(timeoutSignal.set(false).void)
-      } yield resp
-
-    def writeRead(req: Request[F]) =
-      timeout match {
-        case t: FiniteDuration => onTimeout(req, requestKeySocket.socket, t)
-        case _ => onNoTimeout(req, requestKeySocket.socket)
+    def writeRead(req: Request[F]) = writeRequestToSocket(req, requestKeySocket.socket, None) >> {
+      val idle: Option[FiniteDuration] = idleReadTimeout match {
+        case idle: FiniteDuration => Some(idle)
+        case _ => None
       }
+      def errorIfEmpty(
+          socket: Socket[F],
+          maxBytes: Int,
+          timeout: Option[FiniteDuration]): Stream[F, Byte] =
+        Stream.eval(socket.read(maxBytes, timeout)).flatMap {
+          case Some(bytes) =>
+            Stream.chunk(bytes) ++ errorIfEmpty(socket, maxBytes, timeout)
+          case None => Stream.raiseError(new RuntimeException("Received Unexpected EOF"))
+        }
+      val action = timeout match {
+        case i: FiniteDuration =>
+          Parser.Response.parser(maxResponseHeaderSize, Some(i))(
+            errorIfEmpty(requestKeySocket.socket, chunkSize, idle))
+        case _ =>
+          Parser.Response.parser(maxResponseHeaderSize, None)(
+            errorIfEmpty(requestKeySocket.socket, chunkSize, idle))
+      }
+      action
+    }
 
     for {
       processedReq <- Resource.liftF(preprocessRequest(request, userAgent))

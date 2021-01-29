@@ -38,24 +38,24 @@ class ParsingSpec extends Specification with CatsIO {
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
 
     // Only for Use with Text Requests
-    def parseRequestRig[F[_]: Concurrent](s: String): F[Request[F]] = {
+    def parseRequestRig[F[_]: Concurrent: Timer](s: String): F[Request[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Request.parser[F](Int.MaxValue)(byteStream)
+      Parser.Request.parser[F](Int.MaxValue, None)(byteStream)
     }
 
-    def parseResponseRig[F[_]: Concurrent](s: String): Resource[F, Response[F]] = {
+    def parseResponseRig[F[_]: Concurrent: Timer](s: String): Resource[F, Response[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Response.parser[F](Int.MaxValue)(byteStream) //(logger)
+      Parser.Response.parser[F](Int.MaxValue, None)(byteStream) //(logger)
     }
 
     def forceScopedParsing[F[_]: Sync](s: String): Stream[F, Byte] = {
@@ -168,7 +168,9 @@ class ParsingSpec extends Specification with CatsIO {
       (for {
         parsed <-
           Parser.Response
-            .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw)) //(logger)
+            .parser[IO](defaultMaxHeaderLength, None)(
+              Helpers.forceScopedParsing[IO](raw)
+            ) //(logger)
             .use { resp =>
               resp.body.through(text.utf8Decode).compile.string
             }
@@ -185,7 +187,7 @@ class ParsingSpec extends Specification with CatsIO {
       val baseBv = ByteVector.fromBase64(base).get
 
       Parser.Response
-        .parser[IO](defaultMaxHeaderLength)(Stream.chunk(ByteVectorChunk(baseBv)))
+        .parser[IO](defaultMaxHeaderLength, None)(Stream.chunk(ByteVectorChunk(baseBv)))
         .use { resp =>
           resp.body.through(text.utf8Decode).compile.string
 
@@ -220,7 +222,7 @@ class ParsingSpec extends Specification with CatsIO {
           Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
 
       Parser.Response
-        .parser[IO](defaultMaxHeaderLength)(byteStream)
+        .parser[IO](defaultMaxHeaderLength, None)(byteStream)
         .use { resp =>
           resp.body.through(text.utf8Decode).compile.string.map { body =>
             body must beEqualTo("MozillaDeveloperNetwork")
@@ -252,7 +254,7 @@ class ParsingSpec extends Specification with CatsIO {
           Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
 
       Parser.Response
-        .parser[IO](defaultMaxHeaderLength)(byteStream)
+        .parser[IO](defaultMaxHeaderLength, None)(byteStream)
         .use { resp =>
           for {
             body <- resp.body.through(text.utf8Decode).compile.string

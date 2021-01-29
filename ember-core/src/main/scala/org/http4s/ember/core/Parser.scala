@@ -24,6 +24,7 @@ import fs2._
 import org.http4s._
 import scala.annotation.switch
 import scala.collection.mutable
+import scala.concurrent.duration.FiniteDuration
 
 private[ember] object Parser {
 
@@ -334,9 +335,10 @@ private[ember] object Parser {
       }
     }
 
-    def parser[F[_]: Concurrent](maxHeaderLength: Int)(s: Stream[F, Byte]): F[Request[F]] =
+    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
+        s: Stream[F, Byte]): F[Request[F]] =
       Deferred[F, Headers].flatMap { trailers =>
-        ReqPrelude
+        val base = ReqPrelude
           .parsePrelude[F](s, maxHeaderLength, None)
           .flatMap { case (method, uri, httpVersion, rest) =>
             HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
@@ -361,17 +363,17 @@ private[ember] object Parser {
           }
           .stream
           .take(1)
-          .compile
-          .lastOrError
-      }
 
+        timeout.fold(base)(duration => base.timeout(duration)).compile.lastOrError
+      }
   }
 
   object Response {
-    def parser[F[_]: Concurrent](maxHeaderLength: Int)(
-        s: Stream[F, Byte]): Resource[F, Response[F]] =
+    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
+        s: Stream[F, Byte]
+    ): Resource[F, Response[F]] =
       Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
-        RespPrelude
+        val base = RespPrelude
           .parsePrelude(s, maxHeaderLength, None)
           .flatMap { case (httpVersion, status, s) =>
             HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
@@ -394,9 +396,8 @@ private[ember] object Parser {
           }
           .stream
           .take(1)
-          .compile
-          .resource
-          .lastOrError
+
+        timeout.fold(base)(duration => base.timeout(duration)).compile.resource.lastOrError
       }
 
     object RespPrelude {

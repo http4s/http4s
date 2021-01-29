@@ -40,39 +40,11 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val logger: Logger[F],
     val chunkSize: Int,
     val maxResponseHeaderSize: Int,
+    private val idleReadTime: Duration,
     val timeout: Duration,
     val additionalSocketOptions: List[SocketOptionMapping[_]],
     val userAgent: Option[`User-Agent`]
 ) { self =>
-
-  @deprecated("Preserved for binary compatibility", "0.21.7")
-  private[EmberClientBuilder] def this(
-      blockerOpt: Option[Blocker],
-      tlsContextOpt: Option[TLSContext],
-      sgOpt: Option[SocketGroup],
-      maxTotal: Int,
-      maxPerKey: RequestKey => Int,
-      idleTimeInPool: Duration,
-      logger: Logger[F],
-      chunkSize: Int,
-      maxResponseHeaderSize: Int,
-      timeout: Duration,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
-  ) =
-    this(
-      blockerOpt = blockerOpt,
-      tlsContextOpt = tlsContextOpt,
-      sgOpt = sgOpt,
-      maxTotal = maxTotal,
-      maxPerKey = maxPerKey,
-      idleTimeInPool = idleTimeInPool,
-      logger = logger,
-      chunkSize = chunkSize,
-      maxResponseHeaderSize = maxResponseHeaderSize,
-      timeout = timeout,
-      additionalSocketOptions = additionalSocketOptions,
-      userAgent = EmberClientBuilder.Defaults.userAgent
-    )
 
   private def copy(
       blockerOpt: Option[Blocker] = self.blockerOpt,
@@ -84,6 +56,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       logger: Logger[F] = self.logger,
       chunkSize: Int = self.chunkSize,
       maxResponseHeaderSize: Int = self.maxResponseHeaderSize,
+      idleReadTime: Duration = self.idleReadTime,
       timeout: Duration = self.timeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent
@@ -98,6 +71,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       logger = logger,
       chunkSize = chunkSize,
       maxResponseHeaderSize = maxResponseHeaderSize,
+      idleReadTime = idleReadTime,
       timeout = timeout,
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent
@@ -154,7 +128,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 socket.endOfInput.attempt.void >>
                 socket.endOfOutput.attempt.void >>
                 socket.close.attempt.void >>
-                shutdown
+                shutdown.attempt.void
             }
           )
           .withDefaultReuseState(Reusable.DontReuse)
@@ -164,9 +138,22 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
     } yield {
-      val client = Client[F](request =>
+      val client = Client[F] { request =>
+        def getValidManaged: Resource[F, Managed[F, (RequestKeySocket[F], F[Unit])]] =
+          pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
+            Resource
+              .liftF(managed.value._1.socket.isOpen)
+              .ifM(
+                managed.pure[Resource[F, *]],
+                // Already Closed,
+                // The Resource Scopes Aren't doing us anything
+                // if we have max removed from pool we will need to revisit
+                Resource.liftF(managed.canBeReused.set(Reusable.DontReuse)) >>
+                  getValidManaged
+              )
+          }
         for {
-          managed <- pool.take(RequestKey.fromRequest(request))
+          managed <- getValidManaged
           _ <- Resource.liftF(
             pool.state.flatMap { poolState =>
               logger.trace(
@@ -182,6 +169,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 managed.canBeReused,
                 chunkSize,
                 maxResponseHeaderSize,
+                idleReadTime,
                 timeout,
                 userAgent
               )
@@ -199,7 +187,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   case ExitCase.Canceled => Sync[F].unit
                   case ExitCase.Error(_) => Sync[F].unit
                 }))
-        } yield responseResource)
+        } yield responseResource
+      }
       new EmberClient[F](client, pool)
     }
 }
@@ -217,6 +206,7 @@ object EmberClientBuilder {
       logger = Slf4jLogger.getLogger[F],
       chunkSize = Defaults.chunkSize,
       maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
+      idleReadTime = Defaults.idleReadTime,
       timeout = Defaults.timeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent
@@ -226,7 +216,8 @@ object EmberClientBuilder {
     val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
-    val timeout: Duration = 60.seconds
+    val idleReadTime = org.http4s.client.defaults.RequestTimeout
+    val timeout: Duration = org.http4s.client.defaults.RequestTimeout
 
     // Pool Settings
     val maxPerKey = { (_: RequestKey) =>
