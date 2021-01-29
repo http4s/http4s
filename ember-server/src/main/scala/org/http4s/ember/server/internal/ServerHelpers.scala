@@ -19,7 +19,6 @@ package org.http4s.ember.server.internal
 import fs2._
 import fs2.io.tcp._
 import fs2.io.tls._
-import cats._
 import cats.effect._
 import cats.syntax.all._
 import scala.concurrent.duration._
