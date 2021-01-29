@@ -35,8 +35,8 @@ class PathInHttpRoutesSuite extends Http4sSuite {
   object P extends QueryParamDecoderMatcher[Double]("decimal")
   object T extends QueryParamDecoderMatcher[String]("term")
 
-  implicit val limitQueryParam = QueryParam.fromKey[Limit]("limit")
-  implicit val limitDecoder = QueryParamDecoder[Long].map(Limit.apply)
+  implicit val limitQueryParam: QueryParam[Limit] = QueryParam.fromKey[Limit]("limit")
+  implicit val limitDecoder: QueryParamDecoder[Limit] = QueryParamDecoder[Long].map(Limit.apply)
 
   object L extends QueryParamMatcher[Limit]
 
