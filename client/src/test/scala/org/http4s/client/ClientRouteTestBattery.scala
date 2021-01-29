@@ -50,12 +50,12 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       }
     }
 
-  val clientFixture = ResourceFixture(
-    (JettyScaffold[IO](1, false, testServlet), clientResource).tupled)
-
   // Need to override the context shift from munitCatsEffect
   // This is only required for JettyClient
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
+
+  val clientFixture = ResourceFixture(
+    (JettyScaffold[IO](1, false, testServlet), clientResource).tupled)
 
   clientFixture.test(s"$name Repeat a simple request") { case (jetty, client) =>
     val address = jetty.addresses.head
