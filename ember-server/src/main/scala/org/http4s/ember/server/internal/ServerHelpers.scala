@@ -40,6 +40,9 @@ private[server] object ServerHelpers {
   private val close = Connection(NonEmptyList.of(closeCi))
   private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
 
+  private val serverFailure =
+      Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+
   def server[F[_]: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
@@ -94,10 +97,7 @@ private[server] object ServerHelpers {
     def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
       for {
         req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
-        resp <- httpApp
-          .run(req)
-          .handleErrorWith(errorHandler)
-          .handleError(_ => Response[F](Status.InternalServerError))
+        resp <- httpApp.run(req).handleErrorWith(errorHandler).handleError(_ => serverFailure.covary[F])
       } yield (req, resp)
 
     def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
@@ -142,8 +142,7 @@ private[server] object ServerHelpers {
               case Left(err) =>
                 errorHandler.lift
                   .apply(err)
-                  .fold(Response[F](Status.InternalServerError).pure[F])(_.handleError(_ =>
-                    Response[F](Status.InternalServerError)))
+                  .fold(serverFailure.covary[F].pure[F])(_.handleError(_ => serverFailure.covary[F]))
                   .flatMap(send(socket)(None, _))
             }
         }
