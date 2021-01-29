@@ -19,13 +19,12 @@ package org.http4s.ember.server
 import cats.syntax.all._
 import cats.effect._
 import org.http4s._
-import org.http4s.client.Client
 import org.http4s.server.Server
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 
-import scala.concurrent.duration._
+import java.net.BindException
 
 class EmberServerSuite extends Http4sSuite {
 
@@ -40,29 +39,29 @@ class EmberServerSuite extends Http4sSuite {
       .orNotFound
   }
 
-  def serverResource: Resource[IO, Server[IO]] =
+  val serverResource: Resource[IO, Server[IO]] =
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
       .build
 
-  def client: FunFixture[Client[IO]] =
-    ResourceFixture(EmberClientBuilder.default[IO].build)
+  val client = ResourceFixture(EmberClientBuilder.default[IO].build)
 
-  def server: FunFixture[Server[IO]] =
-    ResourceFixture(serverResource)
+  val server = ResourceFixture(
+    EmberServerBuilder
+      .default[IO]
+      .withHttpApp(service[IO])
+      .build)
 
-  def fixture: FunFixture[(Server[IO], Client[IO])] =
-    FunFixture.map2(server, client)
+  val fixture = (server, client).mapN(FunFixture.map2(_, _))
 
   fixture.test("server responds to requests") { case (server, client) =>
     client
       .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
-      .timeout(5.seconds)
       .assertEquals(Status.Ok)
   }
 
-//  server.test("server startup fails if address is already in use") { case _ =>
-//    serverResource.use(_ => IO.unit).intercept[BindException]
-//  }
+  server.test("server startup fails if address is already in use") { case _ =>
+    serverResource.use(_ => IO.unit).intercept[BindException]
+  }
 }
