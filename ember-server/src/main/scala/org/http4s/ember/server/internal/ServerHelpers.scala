@@ -50,7 +50,7 @@ private[server] object ServerHelpers {
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
-      errorHandler: PartialFunction[Throwable, F[Response[F]]],
+      errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConcurrency: Int = Int.MaxValue,
       receiveBufferSize: Int = 256 * 1024,
@@ -143,10 +143,8 @@ private[server] object ServerHelpers {
             .evalTap {
               case Right((request, response)) => send(socket)(Some(request), response)
               case Left(err) =>
-                errorHandler.lift
-                  .apply(err)
-                  .fold(serverFailure.covary[F].pure[F])(_.handleError(_ =>
-                    serverFailure.covary[F]))
+                errorHandler(err)
+                  .handleError(_ => serverFailure.covary[F])
                   .flatMap(send(socket)(None, _))
             }
         }
