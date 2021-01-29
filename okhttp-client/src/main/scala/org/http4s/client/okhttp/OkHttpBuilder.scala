@@ -72,7 +72,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     *
     * The shutdown method on this client is a no-op.  $WHYNOSHUTDOWN
     */
-  def create(dispatcher: Dispatcher[F]): Client[F] = Client(run(dispatcher))
+  private def create(dispatcher: Dispatcher[F]): Client[F] = Client(run(dispatcher))
 
   def resource: Resource[F, Client[F]] =
     Dispatcher[F].flatMap(dispatcher => Resource.make(F.delay(create(dispatcher)))(_ => F.unit))
