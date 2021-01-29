@@ -113,15 +113,15 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
         KeyPoolBuilder
           .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
             (requestKey: RequestKey) => {
-              val alloced = 
-              org.http4s.ember.client.internal.ClientHelpers
-                .requestKeyToSocketWithKey[F](
-                  requestKey,
-                  tlsContextOptWithDefault,
-                  sg,
-                  additionalSocketOptions
-                )
-                .allocated
+              val alloced =
+                org.http4s.ember.client.internal.ClientHelpers
+                  .requestKeyToSocketWithKey[F](
+                    requestKey,
+                    tlsContextOptWithDefault,
+                    sg,
+                    additionalSocketOptions
+                  )
+                  .allocated
               alloced <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
             },
             { case (RequestKeySocket(socket, r), shutdown) =>
