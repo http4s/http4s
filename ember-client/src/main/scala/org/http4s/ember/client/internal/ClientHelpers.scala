@@ -34,7 +34,7 @@ import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
-import _root_.org.typelevel.keypool.Reusable
+import org.typelevel.keypool.Reusable
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 

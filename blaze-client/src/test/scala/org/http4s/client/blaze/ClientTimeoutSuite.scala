@@ -40,7 +40,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
     Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
       IO(tickWheel.shutdown())))
 
-  def fixture = FunFixture.map2(tickWheelFixture, dispatcher)
+  def fixture = (tickWheelFixture, dispatcher).mapN(FunFixture.map2(_, _))
 
   val www_foo_com = Uri.uri("http://www.foo.com")
   val FooRequest = Request[IO](uri = www_foo_com)

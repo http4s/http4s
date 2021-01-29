@@ -49,7 +49,7 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
     }
     .orNotFound
 
-  def servletServer: FunFixture[Int] =
+  val servletServer =
     ResourceFixture(Dispatcher[IO].flatMap(d => serverPortR(d)))
 
   def get(serverPort: Int, path: String): IO[String] =

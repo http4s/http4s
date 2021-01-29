@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.http4s.testing
+package org.http4s.headers
 
-import cats.effect.{IO, SyncIO}
-import cats.effect.std.Dispatcher
-import munit.CatsEffectFunFixtures
+import org.http4s.{Http4sSuite, Method}
 
-trait DispatcherIOFixture { this: CatsEffectFunFixtures =>
+class AllowSuite extends Http4sSuite {
+  test("Allow should parse an empty string") {
+    assert(Allow.parse("") == Right(Allow()))
+  }
 
-  def dispatcher: SyncIO[FunFixture[Dispatcher[IO]]] = ResourceFixture(Dispatcher[IO])
+  test("Allow should parse with an ending comma") {
+    assert(Allow.parse("GET,  POST   ,") == Right(Allow(Method.GET, Method.POST)))
+  }
 
+  test("Allow should parse with multiple commas") {
+    assert(Allow.parse("GET,,POST") == Right(Allow(Method.GET, Method.POST)))
+  }
 }

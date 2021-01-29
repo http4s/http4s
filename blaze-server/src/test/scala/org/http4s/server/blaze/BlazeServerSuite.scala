@@ -64,7 +64,7 @@ class BlazeServerSuite extends Http4sSuite {
       .withHttpApp(service)
       .resource
 
-  def blazeServer: FunFixture[Server] =
+  val blazeServer =
     ResourceFixture[Server](
       serverR,
       (_: TestOptions, _: Server) => IO.unit,

@@ -105,15 +105,18 @@ final class EmberClientBuilder[F[_]: Async] private (
       builder =
         KeyPoolBuilder
           .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
-            (requestKey: RequestKey) =>
-              org.http4s.ember.client.internal.ClientHelpers
-                .requestKeyToSocketWithKey[F](
-                  requestKey,
-                  tlsContextOptWithDefault,
-                  sg,
-                  additionalSocketOptions
-                )
-                .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+            (requestKey: RequestKey) => {
+              val alloced =
+                org.http4s.ember.client.internal.ClientHelpers
+                  .requestKeyToSocketWithKey[F](
+                    requestKey,
+                    tlsContextOptWithDefault,
+                    sg,
+                    additionalSocketOptions
+                  )
+                  .allocated
+              alloced <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
+            },
             { case (RequestKeySocket(socket, r), shutdown) =>
               logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
                 socket.endOfInput.attempt.void >>

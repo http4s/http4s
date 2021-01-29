@@ -30,9 +30,15 @@ object DecodeResult {
   def success[F[_], A](a: A)(implicit F: Applicative[F]): DecodeResult[F, A] =
     EitherT(F.pure(Right(a)))
 
+  def successT[F[_], A](a: A)(implicit F: Applicative[F]): DecodeResult[F, A] =
+    EitherT(F.pure(Right(a)))
+
   def failure[F[_], A](fe: F[DecodeFailure])(implicit F: Functor[F]): DecodeResult[F, A] =
     EitherT(fe.map(Left(_)))
 
   def failure[F[_], A](e: DecodeFailure)(implicit F: Applicative[F]): DecodeResult[F, A] =
+    EitherT(F.pure(Left(e)))
+
+  def failureT[F[_], A](e: DecodeFailure)(implicit F: Applicative[F]): DecodeResult[F, A] =
     EitherT(F.pure(Left(e)))
 }

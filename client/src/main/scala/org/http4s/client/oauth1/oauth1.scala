@@ -78,7 +78,9 @@ package object oauth1 {
       verifier: Option[Verifier] = None
   )(implicit F: MonadThrow[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     for {
-      (req, params) <- getUserParams(req)
+      reqParams <- getUserParams(req)
+      // Working around lack of withFilter
+      (req, params) = reqParams
       auth <- genAuthHeader(
         req.method,
         req.uri,
