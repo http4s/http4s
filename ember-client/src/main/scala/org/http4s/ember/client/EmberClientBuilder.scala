@@ -16,7 +16,7 @@
 
 package org.http4s.ember.client
 
-import io.chrisdavenport.keypool._
+import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats._
@@ -112,7 +112,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       builder =
         KeyPoolBuilder
           .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
-            (requestKey: RequestKey) =>
+            (requestKey: RequestKey) => {
+              val alloced = 
               org.http4s.ember.client.internal.ClientHelpers
                 .requestKeyToSocketWithKey[F](
                   requestKey,
@@ -120,7 +121,9 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   sg,
                   additionalSocketOptions
                 )
-                .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+                .allocated
+              alloced <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
+            },
             { case (RequestKeySocket(socket, r), shutdown) =>
               logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
                 socket.endOfInput.attempt.void >>
