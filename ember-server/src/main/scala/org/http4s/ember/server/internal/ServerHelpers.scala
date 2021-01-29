@@ -27,7 +27,7 @@ import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.implicits._
-import org.http4s.headers.{Connection, Date}
+import org.http4s.headers.{Connection}
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.io.chrisdavenport.log4cats.Logger
@@ -48,6 +48,7 @@ private[server] object ServerHelpers {
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
       ready: Deferred[F, Either[Throwable, Unit]],
       shutdown: Shutdown[F],
+      dateCaching: DateCaching[F],
       // Defaults
       onError: Throwable => Response[F] = { (_: Throwable) =>
         Response[F](Status.InternalServerError)
@@ -124,7 +125,7 @@ private[server] object ServerHelpers {
         if (reqHasClose) close
         else keepAlive
       for {
-        date <- HttpDate.current[F].map(Date(_))
+        date <- dateCaching.getDate
       } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
     }
 

@@ -30,7 +30,7 @@ import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import _root_.io.chrisdavenport.log4cats.Logger
 import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
+import org.http4s.ember.server.internal.{DateCaching, ServerHelpers, Shutdown}
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val host: String,
@@ -159,8 +159,10 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
+      dateCaching <- Resource.liftF(DateCaching.impl[F])
       ready <- Resource.liftF(Deferred[F, Either[Throwable, Unit]])
       shutdown <- Resource.liftF(Shutdown[F](shutdownTimeout))
+
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(
@@ -170,6 +172,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             tlsInfoOpt,
             ready,
             shutdown,
+            dateCaching,
             onError,
             onWriteFailure,
             maxConcurrency,
