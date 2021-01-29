@@ -44,58 +44,49 @@ import OkHttpBuilder._
 
 /** A builder for [[org.http4s.client.Client]] with an OkHttp backend.
   *
-  * @define DISPATCHER a [[cats.effect.std.Dispatcher]] using which
-  * we will call unsafeRunSync
-  *
   * @define WHYNOSHUTDOWN It is assumed that the OkHttp client is
   * passed to us as a Resource, or that the caller will shut it down, or
   * that the caller is comfortable letting OkHttp's resources expire on
   * their own.
   *
   * @param okHttpClient the underlying OkHttp client.
-  * @param dispatcher $DISPATCHER
   */
 sealed abstract class OkHttpBuilder[F[_]] private (
-    val okHttpClient: OkHttpClient,
-    val dispatcher: Dispatcher[F]
+    val okHttpClient: OkHttpClient
 )(implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
 
-  private def invokeCallback(result: Result[F], cb: Result[F] => Unit)(implicit
-      F: Async[F]): Unit = {
+  private def invokeCallback(result: Result[F], cb: Result[F] => Unit, dispatcher: Dispatcher[F])(
+      implicit F: Async[F]): Unit = {
     val f = logTap(result).flatMap(r => F.delay(cb(r)))
     dispatcher.unsafeRunSync(f)
     ()
   }
 
-  private def copy(
-      okHttpClient: OkHttpClient = okHttpClient,
-      dispatcher: Dispatcher[F] = dispatcher) = new OkHttpBuilder[F](okHttpClient, dispatcher) {}
+  private def copy(okHttpClient: OkHttpClient) = new OkHttpBuilder[F](okHttpClient) {}
 
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
     copy(okHttpClient = okHttpClient)
-
-  def withDispatcher(dispatcher: Dispatcher[F]): OkHttpBuilder[F] =
-    copy(dispatcher = dispatcher)
 
   /** Creates the [[org.http4s.client.Client]]
     *
     * The shutdown method on this client is a no-op.  $WHYNOSHUTDOWN
     */
-  def create: Client[F] = Client(run)
+  def create(dispatcher: Dispatcher[F]): Client[F] = Client(run(dispatcher))
 
   def resource: Resource[F, Client[F]] =
-    Resource.make(F.delay(create))(_ => F.unit)
+    Dispatcher[F].flatMap(dispatcher => Resource.make(F.delay(create(dispatcher)))(_ => F.unit))
 
-  private def run(req: Request[F]) =
+  private def run(dispatcher: Dispatcher[F])(req: Request[F]) =
     Resource.suspend(F.async_[Resource[F, Response[F]]] { cb =>
-      okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
+      okHttpClient.newCall(toOkHttpRequest(req, dispatcher)).enqueue(handler(cb, dispatcher))
     })
 
-  private def handler(cb: Result[F] => Unit)(implicit F: Async[F]): Callback =
+  private def handler(cb: Result[F] => Unit, dispatcher: Dispatcher[F])(implicit
+      F: Async[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
-        invokeCallback(Left(e), cb)
+        invokeCallback(Left(e), cb, dispatcher)
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
@@ -130,7 +121,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
             bodyStream.close()
             t
           }
-        invokeCallback(r, cb)
+        invokeCallback(r, cb, dispatcher)
       }
     }
 
@@ -139,7 +130,8 @@ sealed abstract class OkHttpBuilder[F[_]] private (
       response.headers().values(v).asScala.map(Header(v, _))
     })
 
-  private def toOkHttpRequest(req: Request[F])(implicit F: Async[F]): OKRequest = {
+  private def toOkHttpRequest(req: Request[F], dispatcher: Dispatcher[F])(implicit
+      F: Async[F]): OKRequest = {
     val body = req match {
       case _ if req.isChunked || req.contentLength.isDefined =>
         new RequestBody {
@@ -184,9 +176,6 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 }
 
 /** Builder for a [[org.http4s.client.Client]] with an OkHttp backend
-  *
-  * @define DISPATCHER a [[cats.effect.std.Dispatcher]] using which
-  * we will call unsafeRunSync
   */
 object OkHttpBuilder {
   private[this] val logger = getLogger
@@ -194,19 +183,16 @@ object OkHttpBuilder {
   /** Creates a builder.
     *
     * @param okHttpClient the underlying client.
-    * @param dispatcher $DISPATCHER
     */
-  def apply[F[_]: Async](okHttpClient: OkHttpClient, dispatcher: Dispatcher[F]): OkHttpBuilder[F] =
-    new OkHttpBuilder[F](okHttpClient, dispatcher) {}
+  def apply[F[_]: Async](okHttpClient: OkHttpClient): OkHttpBuilder[F] =
+    new OkHttpBuilder[F](okHttpClient) {}
 
   /** Create a builder with a default OkHttp client.  The builder is
     * returned as a `Resource` so we shut down the OkHttp client that
     * we create.
-    *
-    * @param dispatcher $DISPATCHER
     */
-  def withDefaultClient[F[_]: Async](dispatcher: Dispatcher[F]): Resource[F, OkHttpBuilder[F]] =
-    defaultOkHttpClient.map(apply(_, dispatcher))
+  def withDefaultClient[F[_]: Async]: Resource[F, OkHttpBuilder[F]] =
+    defaultOkHttpClient.map(apply(_))
 
   private def defaultOkHttpClient[F[_]](implicit F: Async[F]): Resource[F, OkHttpClient] =
     Resource.make(F.delay(new OkHttpClient()))(shutdown(_))
