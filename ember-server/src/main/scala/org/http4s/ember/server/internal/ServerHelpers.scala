@@ -48,9 +48,6 @@ private[server] object ServerHelpers {
       shutdown: Shutdown[F],
       // Defaults
       errorHandler: PartialFunction[Throwable, F[Response[F]]],
-      errorOfLastResort: Throwable => Response[F] = { (_: Throwable) =>
-        Response[F](Status.InternalServerError)
-      },
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConcurrency: Int = Int.MaxValue,
       receiveBufferSize: Int = 256 * 1024,
@@ -97,7 +94,10 @@ private[server] object ServerHelpers {
     def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
       for {
         req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
-        resp <- httpApp.run(req).handleErrorWith(errorHandler).handleError(errorOfLastResort)
+        resp <- httpApp
+          .run(req)
+          .handleErrorWith(errorHandler)
+          .handleError(_ => Response[F](Status.InternalServerError))
       } yield (req, resp)
 
     def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
@@ -142,7 +142,8 @@ private[server] object ServerHelpers {
               case Left(err) =>
                 errorHandler.lift
                   .apply(err)
-                  .fold(errorOfLastResort(err).pure[F])(_.handleError(_ => errorOfLastResort(err)))
+                  .fold(Response[F](Status.InternalServerError).pure[F])(_.handleError(_ =>
+                    Response[F](Status.InternalServerError)))
                   .flatMap(send(socket)(None, _))
             }
         }

@@ -39,7 +39,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
     private val sgOpt: Option[SocketGroup],
     private val errorHandler: PartialFunction[Throwable, F[Response[F]]],
-    private val errorOfLastResort: Throwable => Response[F],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
     val maxConcurrency: Int,
     val receiveBufferSize: Int,
@@ -75,7 +74,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
       errorHandler = EmberServerBuilder.Defaults.errorHandler[F],
-      errorOfLastResort = onError,
       onWriteFailure = onWriteFailure,
       maxConcurrency = maxConcurrency,
       receiveBufferSize = receiveBufferSize,
@@ -95,7 +93,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
       errorHandler: PartialFunction[Throwable, F[Response[F]]] = self.errorHandler,
-      errorOfLastResort: Throwable => Response[F] = self.errorOfLastResort,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
       maxConcurrency: Int = self.maxConcurrency,
       receiveBufferSize: Int = self.receiveBufferSize,
@@ -114,7 +111,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
       errorHandler = errorHandler,
-      errorOfLastResort = errorOfLastResort,
       onWriteFailure = onWriteFailure,
       maxConcurrency = maxConcurrency,
       receiveBufferSize = receiveBufferSize,
@@ -147,11 +143,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withShutdownTimeout(shutdownTimeout: Duration) =
     copy(shutdownTimeout = shutdownTimeout)
 
-  @deprecated("0.21.17", "Use withErrorOfLastResort")
-  def withOnError(onError: Throwable => Response[F]) = withErrorOfLastResort(onError)
-
-  def withErrorOfLastResort(errorOfLastResort: Throwable => Response[F]) =
-    copy(errorOfLastResort = errorOfLastResort)
+  @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
+  def withOnError(onError: Throwable => Response[F]) =
+    withErrorHandler({ case e => onError(e).pure[F] })
 
   def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
     copy(errorHandler = errorHandler)
@@ -180,7 +174,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             tlsInfoOpt,
             shutdown,
             errorHandler,
-            errorOfLastResort,
             onWriteFailure,
             maxConcurrency,
             receiveBufferSize,
@@ -210,7 +203,6 @@ object EmberServerBuilder {
       tlsInfoOpt = None,
       sgOpt = None,
       errorHandler = Defaults.errorHandler[F],
-      errorOfLastResort = Defaults.errorOfLastResort[F],
       onWriteFailure = Defaults.onWriteFailure[F],
       maxConcurrency = Defaults.maxConcurrency,
       receiveBufferSize = Defaults.receiveBufferSize,
@@ -233,18 +225,16 @@ object EmberServerBuilder {
     // Effectful Handler - Perhaps a Logger
     // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
     def errorHandler[F[_]: Applicative]: PartialFunction[Throwable, F[Response[F]]] = {
-      (_: Throwable) =>
+      case (_: Throwable) =>
         serverFailure.covary[F].pure[F]
     }
 
-    // Will Only arrive here if your ErrorHandler Fails. Hopefully Never Necessary
-    def errorOfLastResort[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
-      serverFailure.covary[F]
-    }
     @deprecated(
       "0.21.17",
       "Use errorOfLastResort for end of the line, or error handler for expected effectful handling")
-    def onError[F[_]]: Throwable => Response[F] = errorOfLastResort
+    def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
+      serverFailure.covary[F]
+    }
 
     def onWriteFailure[F[_]: Applicative]
         : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
