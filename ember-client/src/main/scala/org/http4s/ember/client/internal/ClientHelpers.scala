@@ -17,7 +17,6 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
-import fs2._
 import fs2.io.tcp._
 import cats._
 import cats.data.NonEmptyList
@@ -37,6 +36,12 @@ import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 
 private[client] object ClientHelpers {
+
+  private def durationToFinite(duration: Duration): Option[FiniteDuration] = duration match {
+    case f: FiniteDuration => Some(f)
+    case _ => None
+  }
+
   def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       request: Request[F],
       tlsContextOpt: Option[TLSContext],
@@ -88,7 +93,6 @@ private[client] object ClientHelpers {
       timeout: Duration,
       userAgent: Option[`User-Agent`]
   ): Resource[F, Response[F]] = {
-    // val RT: Timer[Resource[F, *]] = Timer[F].mapK(Resource.liftK[F])
 
     def writeRequestToSocket(
         req: Request[F],
@@ -101,30 +105,14 @@ private[client] object ClientHelpers {
         .resource
         .drain
 
-    def writeRead(req: Request[F]) = writeRequestToSocket(req, requestKeySocket.socket, None) >> {
-      val idle: Option[FiniteDuration] = idleReadTimeout match {
-        case idle: FiniteDuration => Some(idle)
-        case _ => None
+    def writeRead(req: Request[F]): Resource[F, Response[F]] =
+      writeRequestToSocket(req, requestKeySocket.socket, None) >> {
+        Parser.Response
+          .parser(maxResponseHeaderSize, durationToFinite(timeout))(
+            requestKeySocket.socket.reads(chunkSize, durationToFinite(idleReadTimeout))
+          )
+          .map(_._1)
       }
-      def errorIfEmpty(
-          socket: Socket[F],
-          maxBytes: Int,
-          timeout: Option[FiniteDuration]): Stream[F, Byte] =
-        Stream.eval(socket.read(maxBytes, timeout)).flatMap {
-          case Some(bytes) =>
-            Stream.chunk(bytes) ++ errorIfEmpty(socket, maxBytes, timeout)
-          case None => Stream.raiseError(new RuntimeException("Received Unexpected EOF"))
-        }
-      val action = timeout match {
-        case i: FiniteDuration =>
-          Parser.Response.parser(maxResponseHeaderSize, Some(i))(
-            errorIfEmpty(requestKeySocket.socket, chunkSize, idle))
-        case _ =>
-          Parser.Response.parser(maxResponseHeaderSize, None)(
-            errorIfEmpty(requestKeySocket.socket, chunkSize, idle))
-      }
-      action
-    }
 
     for {
       processedReq <- Resource.liftF(preprocessRequest(request, userAgent))

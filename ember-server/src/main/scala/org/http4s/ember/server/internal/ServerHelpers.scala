@@ -43,6 +43,11 @@ private[server] object ServerHelpers {
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
+  private def durationToFinite(duration: Duration): Option[FiniteDuration] = duration match {
+    case f: FiniteDuration => Some(f)
+    case _ => None
+  }
+
   def server[F[_]: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
@@ -60,33 +65,12 @@ private[server] object ServerHelpers {
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
   )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
-    def socketReadRequest(
-        socket: Socket[F],
-        requestHeaderReceiveTimeout: Duration,
-        receiveBufferSize: Int
-    ): F[Request[F]] = {
-      val idle: Option[FiniteDuration] = idleTimeout match {
-        case idle: FiniteDuration => Some(idle)
-        case _ => None
+
+    def reachedEndError(socket: Socket[F]): Stream[F, Byte] =
+      Stream.eval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
+        case None => Stream.raiseError(new RuntimeException("Unexpected EOF"))
+        case Some(value) => Stream.chunk(value)
       }
-      def errorIfEmpty(
-          socket: Socket[F],
-          maxBytes: Int,
-          timeout: Option[FiniteDuration]): Stream[F, Byte] =
-        Stream.eval(socket.read(maxBytes, timeout)).flatMap {
-          case Some(bytes) =>
-            Stream.chunk(bytes) ++ errorIfEmpty(socket, maxBytes, timeout)
-          case None => Stream.raiseError(new RuntimeException("Received Unexpected EOF"))
-        }
-      val action = requestHeaderReceiveTimeout match {
-        case i: FiniteDuration =>
-          Parser.Request.parser(maxHeaderSize, Some(i))(
-            errorIfEmpty(socket, receiveBufferSize, idle))
-        case _ =>
-          Parser.Request.parser(maxHeaderSize, None)(errorIfEmpty(socket, receiveBufferSize, idle))
-      }
-      action
-    }
 
     def upgradeSocket(
         socketInit: Socket[F],
@@ -97,19 +81,21 @@ private[server] object ServerHelpers {
           .widen[Socket[F]]
       }
 
-    def runApp(socket: Socket[F]): F[(Request[F], Response[F])] =
+    def runApp(incoming: Stream[F, Byte]): F[(Request[F], Response[F], Stream[F, Byte])] =
       for {
-        req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
+        tup <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
+          incoming)
+        (req, rest) = tup
         resp <- httpApp
           .run(req)
           .handleErrorWith(errorHandler)
           .handleError(_ => serverFailure.covary[F])
-      } yield (req, resp)
+      } yield (req, resp, rest)
 
     def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
       Encoder
         .respToBytes[F](resp)
-        .through(socket.writes())
+        .through(socket.writes(durationToFinite(idleTimeout)))
         .compile
         .drain
         .attempt
@@ -135,8 +121,11 @@ private[server] object ServerHelpers {
 
     def withUpgradedSocket(socket: Socket[F]): Stream[F, Nothing] =
       Stream
-        .eval(runApp(socket).attempt)
-        .repeat
+        .unfoldLoopEval(reachedEndError(socket))(s =>
+          runApp(s).attempt.map {
+            case Right((req, resp, rest)) => (Right((req, resp)), Some(rest))
+            case Left(e) => (Left(e), None)
+          })
         .evalMap {
           case Right((req, resp)) =>
             postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])

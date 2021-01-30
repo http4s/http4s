@@ -336,7 +336,7 @@ private[ember] object Parser {
     }
 
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
-        s: Stream[F, Byte]): F[Request[F]] =
+        s: Stream[F, Byte]): F[(Request[F], Stream[F, Byte])] =
       Deferred[F, Headers].flatMap { trailers =>
         val base = ReqPrelude
           .parsePrelude[F](s, maxHeaderLength, None)
@@ -358,7 +358,7 @@ private[ember] object Parser {
                   else
                     baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
 
-                Pull.output1(req)
+                Pull.output1((req, rest))
             }
           }
           .stream
@@ -371,7 +371,7 @@ private[ember] object Parser {
   object Response {
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         s: Stream[F, Byte]
-    ): Resource[F, Response[F]] =
+    ): Resource[F, (Response[F], Stream[F, Byte])] =
       Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
         val base = RespPrelude
           .parsePrelude(s, maxHeaderLength, None)
@@ -391,7 +391,7 @@ private[ember] object Parser {
                         rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
                   else
                     baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
-                Pull.output1(resp)
+                Pull.output1((resp, rest))
             }
           }
           .stream
