@@ -28,6 +28,7 @@ import org.http4s.parser.{QueryParser, RequestUriParser}
 import org.http4s.util.{Renderable, Writer}
 
 import scala.collection.immutable
+import scala.collection.compat._
 
 /** Collection representation of a query string
   *
@@ -133,7 +134,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
     * none exist, the empty `String` "" is returned.
     */
   lazy val params: Map[String, String] =
-    CollectionCompat.mapValues(multiParams)(_.headOption.getOrElse(""))
+    multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
 
   /** Map[String, Seq[String]] representation of the [[Query]]
     *
