@@ -65,7 +65,7 @@ private[client] object ClientHelpers {
       socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
           tlsContextOpt.fold[Resource[F, Socket[F]]] {
-            ApplicativeError[Resource[F, *], Throwable].raiseError(
+            ApplicativeThrow[Resource[F, *]].raiseError(
               new Throwable("EmberClient Not Configured for Https")
             )
           } { tlsContext =>

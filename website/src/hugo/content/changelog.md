@@ -8,6 +8,51 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.16 (2021-01-24)
+
+## http4s-laws
+
+### Bugfixes
+
+* [#4243](https://github.com/http4s/http4s/pull/4243): Don't generate ipv6 addresses with only one section shorted by `::`
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4152](https://github.com/http4s/http4s/pull/4152): Omit implicit `Content-Length: 0` header when rendering GET, DELETE, CONNECT, and TRACE requests.
+
+## http4s-ember-client
+
+### Bugfixes
+
+* [#4179](https://github.com/http4s/http4s/pull/4179): Render requests in "origin form", so the request line contains only the path of the request, and host information is only in the Host header.  We were previously rendering the fulll URI on the request line, which the spec mandates all servers to handle, but clients should not send when not speaking to a proxy.
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4179](https://github.com/http4s/http4s/pull/4179): Support a graceful shutdown
+
+## http4s-circe
+
+### Enhancements
+
+* [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
+
+## Dependency updates
+
+* dropwizard-metrics-4.1.17
+* netty-4.1.58.Final
+* play-json-29.9.2
+* scalatags-0.9.3
+
 # v0.21.15 (2020-12-31)
 
 ## http4s-core

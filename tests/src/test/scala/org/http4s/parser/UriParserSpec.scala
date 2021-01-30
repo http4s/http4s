@@ -47,6 +47,7 @@ class UriParserSpec extends Http4sSpec {
         l <- 0 to 7 - h
         f = List.fill(h)("01ab").mkString(":")
         b = List.fill(l)("32ba").mkString(":")
+        if (f ++ b).size < 7 // a single shortened section is disallowed
       } yield f + "::" + b)
 
       foreach(v) { s =>
@@ -296,14 +297,12 @@ class UriParserSpec extends Http4sSpec {
     }
 
     "reject invalid URIs" in {
-      import org.specs2.execute._, Typecheck._
-      import org.specs2.matcher.TypecheckMatchers._
-
-      typecheck {
+      illTyped {
         """
            uri"not valid"
         """
-      } must not succeed
+      }
+      true
     }
   }
 }

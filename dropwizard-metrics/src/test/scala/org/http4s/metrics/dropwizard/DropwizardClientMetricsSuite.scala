@@ -271,7 +271,6 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         EntityDecoder[IO, String].decode(resp, false).value.map { r =>
           assertEquals(r, Right("200 OK"))
           assertEquals(count(registry, Counter("client.default.active-requests")), 1L)
-          println(valuesOf(registry, Timer("client.default.requests.headers")).map(_.headOption))
           assertEquals(
             valuesOf(registry, Timer("client.default.requests.headers")).map(
               Arrays.equals(_, Array(50000000L))),

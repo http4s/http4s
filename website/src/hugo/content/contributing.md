@@ -220,7 +220,7 @@ markdown via GitHub.
 Each branch `main` and `series/X.Y`, publishes documentation per
 minor version into the `/vX.Y` directory of http4s.org.  The Hugo site
 chrome lives in the `docs/src/hugo` directory, and the [mdoc] content
-lives in `docs/src/main/mdoc`.  Tut is used to typecheck our
+lives in `docs/src/main/mdoc`.  [mdoc] is used to typecheck our
 documentation as part of the build.
 
 #### Editing the versioned site
@@ -229,13 +229,11 @@ All pages have an edit link at the top right for direct editing of the
 markdown via GitHub.  Be aware that the Travis build will fail if invalid
 code is added.
 
-[mdoc]: https://github.com/scalameta/mdoc
-
 ## Submit a pull request
 
 Before you open a pull request, you should make sure that `sbt ci` runs
 successfully. Travis CI will run this as well, but it may save you some
-time to be alerted to style or tut problems earlier.
+time to be alerted to style or [mdoc] problems earlier.
 
 If your pull request addresses an existing issue, please tag that
 issue number in the body of your pull request or commit message. For
@@ -254,3 +252,4 @@ branch.
 contributors guide]</small>
 
 [Cats' contributors guide]: https://github.com/typelevel/cats/blob/master/CONTRIBUTING.md
+[mdoc]: https://scalameta.org/mdoc/

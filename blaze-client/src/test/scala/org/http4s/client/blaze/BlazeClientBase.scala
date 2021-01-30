@@ -79,8 +79,7 @@ trait BlazeClientBase extends Http4sSuite {
       }
     }
 
-  def jettyScaffold: FunFixture[(JettyScaffold, JettyScaffold)] =
-    ResourceFixture(
-      (JettyScaffold[IO](5, false, testServlet), JettyScaffold[IO](1, true, testServlet)).tupled)
+  val jettyScaffold = ResourceFixture(
+    (JettyScaffold[IO](5, false, testServlet), JettyScaffold[IO](1, true, testServlet)).tupled)
 
 }

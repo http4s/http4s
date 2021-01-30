@@ -171,6 +171,13 @@ final case class Uri(
       else s"$path$encoded"
     newPath
   }
+
+  /** Converts this request to origin-form, which is the absolute path and optional
+    * query.  If the path is relative, it is assumed to be relative to the root.
+    */
+  def toOriginForm: Uri =
+    if (path.startsWith("/")) Uri(path = path, query = query)
+    else Uri(path = s"/${path}", query = query)
 }
 
 object Uri {
@@ -223,7 +230,7 @@ object Uri {
     * If the scheme is defined, the URI is absolute.  If the scheme is
     * not defined, the URI is a relative reference.
     *
-    * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
+    * @see [[https://tools.ietf.org/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
   final class Scheme private (val value: String) extends Ordered[Scheme] {
     override def equals(o: Any) =
@@ -346,7 +353,7 @@ object Uri {
     * clear text in a URI is a security risk and deprecated by RFC
     * 3986, but preserved in this model for losslessness.
     *
-    * @see https://www.ietf.org/rfc/rfc3986.txt#section-3.21.
+    * @see [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
   final case class UserInfo private (username: String, password: Option[String])
       extends Ordered[UserInfo] {

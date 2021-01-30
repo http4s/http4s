@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.http4s.servlet
+package org.http4s
 
-import org.http4s.Http4sSpec
+import org.http4s.syntax.all._
 
-class ServletContainerSpec extends Http4sSpec {
-  "prefixMapping" should {
-    import ServletContainer.prefixMapping
+class UriSuite extends Http4sSuite {
+  test("toOriginForm strips scheme and authority") {
+    uri"http://example.com/foo?q".toOriginForm == uri"/foo?q"
+  }
 
-    "append /* when prefix does not have trailing slash" in {
-      prefixMapping("/foo") must_== "/foo/*"
-    }
+  test("toOriginForm strips fragment") {
+    uri"/foo?q#top".toOriginForm == uri"/foo?q"
+  }
 
-    "append * when prefix has trailing slash" in {
-      prefixMapping("/") must_== "/*"
-    }
+  test("toOriginForm infers an empty path") {
+    uri"http://example.com".toOriginForm == uri"/"
+  }
+
+  test("toOriginForm infers paths relative to root") {
+    uri"dubious".toOriginForm == uri"/dubious"
   }
 }

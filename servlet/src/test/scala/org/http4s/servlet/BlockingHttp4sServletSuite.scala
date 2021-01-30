@@ -47,8 +47,7 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
     }
     .orNotFound
 
-  def servletServer: FunFixture[Int] =
-    ResourceFixture[Int](serverPortR)
+  val servletServer = ResourceFixture[Int](serverPortR)
 
   def get(serverPort: Int, path: String): IO[String] =
     testBlocker.delay[IO, String](

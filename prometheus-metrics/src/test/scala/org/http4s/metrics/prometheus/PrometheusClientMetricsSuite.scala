@@ -16,7 +16,7 @@
 
 package org.http4s.metrics.prometheus
 
-import cats.effect.{Clock, IO, Resource}
+import cats.effect._
 import io.prometheus.client.CollectorRegistry
 import java.io.IOException
 import java.util.concurrent.TimeoutException
@@ -186,6 +186,6 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
 
   def meteredClient(
       classifier: Request[IO] => Option[String] = (_: Request[IO]) => None
-  ): FunFixture[(CollectorRegistry, Client[IO])] =
+  ): SyncIO[FunFixture[(CollectorRegistry, Client[IO])]] =
     ResourceFixture(buildMeteredClient(classifier))
 }

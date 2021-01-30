@@ -157,7 +157,7 @@ object Http4sPlugin extends AutoPlugin {
     extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
   /**
-    * @return the version we want to document, for example in tuts,
+    * @return the version we want to document, for example in mdoc,
     * given the version being built.
     *
     * For snapshots after a stable release, return the previous stable
@@ -311,17 +311,17 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.11.4"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.35.v20201120"
+    val jetty = "9.4.36.v20210114"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
     val log4s = "1.9.0"
     val mockito = "3.5.15"
-    val netty = "4.1.56.Final"
+    val netty = "4.1.58.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.12.0"
+    val munitCatsEffect = "0.13.0"
     val munitDiscipline = "1.0.4"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
@@ -332,12 +332,12 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheck = "1.15.2"
     val scalacheckEffect = "0.7.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    val scalatags = "0.9.2"
+    val scalatags = "0.9.3"
     val scalaXml = "1.3.0"
     val scodecBits = "1.1.23"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
-    val specs2 = "4.10.5"
+    val specs2 = "4.10.6"
     val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"

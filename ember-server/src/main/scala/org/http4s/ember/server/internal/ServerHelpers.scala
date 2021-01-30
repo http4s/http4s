@@ -21,6 +21,7 @@ import fs2.concurrent._
 import fs2.io.tcp._
 import fs2.io.tls._
 import cats.effect._
+import cats.effect.concurrent._
 import cats.syntax.all._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
@@ -40,17 +41,19 @@ private[server] object ServerHelpers {
   private val close = Connection(NonEmptyList.of(closeCi))
   private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
 
-  def server[F[_]: Concurrent: ContextShift](
+  private val serverFailure =
+    Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+
+  def server[F[_]: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
       sg: SocketGroup,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      ready: Deferred[F, Either[Throwable, Unit]],
+      shutdown: Shutdown[F],
       // Defaults
-      onError: Throwable => Response[F] = { (_: Throwable) =>
-        Response[F](Status.InternalServerError)
-      },
+      errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      terminationSignal: Option[SignallingRef[F, Boolean]] = None,
       maxConcurrency: Int = Int.MaxValue,
       receiveBufferSize: Int = 256 * 1024,
       maxHeaderSize: Int = 10 * 1024,
@@ -58,11 +61,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration = 60.seconds,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit C: Clock[F]): Stream[F, Nothing] = {
-    // Termination Signal, if not present then does not terminate.
-    val termSignal: F[SignallingRef[F, Boolean]] =
-      terminationSignal.fold(SignallingRef[F, Boolean](false))(_.pure[F])
-
+  )(implicit F: Concurrent[F], C: Clock[F]): Stream[F, Nothing] = {
     def socketReadRequest(
         socket: Socket[F],
         requestHeaderReceiveTimeout: Duration,
@@ -100,7 +99,10 @@ private[server] object ServerHelpers {
     def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
       for {
         req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
-        resp <- httpApp.run(req).handleError(onError)
+        resp <- httpApp
+          .run(req)
+          .handleErrorWith(errorHandler)
+          .handleError(_ => serverFailure.covary[F])
       } yield (req, resp)
 
     def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
@@ -142,7 +144,10 @@ private[server] object ServerHelpers {
             }
             .evalTap {
               case Right((request, response)) => send(socket)(Some(request), response)
-              case Left(err) => send(socket)(None, onError(err))
+              case Left(err) =>
+                errorHandler(err)
+                  .handleError(_ => serverFailure.covary[F])
+                  .flatMap(send(socket)(None, _))
             }
         }
         .takeWhile {
@@ -155,18 +160,24 @@ private[server] object ServerHelpers {
         }
         .drain
 
-    Stream
-      .eval(termSignal)
-      .flatMap(terminationSignal =>
-        sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
-          .map { connect =>
-            Stream
-              .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
-              .flatMap(withUpgradedSocket(_))
-          }
-          .parJoin(maxConcurrency)
-          .interruptWhen(terminationSignal)
-          .drain)
+    val server: Stream[F, Resource[F, Socket[F]]] =
+      Stream
+        .resource(
+          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
+        .attempt
+        .evalTap(e => ready.complete(e.void))
+        .rethrow
+        .flatMap { case (_, clients) => clients }
 
+    val streams: Stream[F, Stream[F, Nothing]] = server
+      .interruptWhen(shutdown.signal.attempt)
+      .map { connect =>
+        shutdown.trackConnection >>
+          Stream
+            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
+            .flatMap(withUpgradedSocket(_))
+      }
+
+    StreamForking.forking(streams, maxConcurrency)
   }
 }

@@ -36,7 +36,8 @@ class ChunkAggregatorSuite extends Http4sSuite {
         TransferCoding.deflate,
         TransferCoding.gzip,
         TransferCoding.identity))
-  implicit val transferCodingArbitrary = Arbitrary(transferCodingGen.map(_.toList))
+  implicit val transferCodingArbitrary: Arbitrary[List[TransferCoding]] = Arbitrary(
+    transferCodingGen.map(_.toList))
 
   def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
     Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))

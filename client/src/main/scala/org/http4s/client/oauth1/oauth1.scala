@@ -17,7 +17,7 @@
 package org.http4s
 package client
 
-import cats.{Monad, MonadError, Show}
+import cats.{Monad, MonadThrow, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import cats.instances.order._
@@ -59,7 +59,7 @@ package object oauth1 {
       callback: Option[Uri],
       verifier: Option[String],
       token: Option[Token])(implicit
-      F: MonadError[F, Throwable],
+      F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).map { case (req, params) =>
       val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
@@ -77,7 +77,7 @@ package object oauth1 {
       nonceGenerator: F[Nonce],
       callback: Option[Callback] = None,
       verifier: Option[Verifier] = None
-  )(implicit F: MonadError[F, Throwable], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+  )(implicit F: MonadThrow[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     for {
       (req, params) <- getUserParams(req)
       auth <- genAuthHeader(
@@ -149,7 +149,7 @@ package object oauth1 {
         "OAuth".ci,
         NonEmptyList(
           "oauth_signature" -> encode(sig),
-          realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)) toList)
+          realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
       )
 
       Authorization(creds)
@@ -234,7 +234,7 @@ package object oauth1 {
     Uri.encode(str, spaceIsPlus = false, toSkip = Uri.Unreserved)
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
-      F: MonadError[F, Throwable],
+      F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 
