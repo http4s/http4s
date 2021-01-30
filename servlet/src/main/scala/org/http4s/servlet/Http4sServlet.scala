@@ -46,6 +46,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
   }
 
   override def init(config: ServletConfig): Unit = {
+    super.init(config)
     val servletContext = config.getServletContext
     servletApiVersion = ServletApiVersion(servletContext)
     logger.info(s"Detected Servlet API version $servletApiVersion")
