@@ -45,7 +45,7 @@ class ParsingSpec extends Specification with CatsIO {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Request.parser[F](Int.MaxValue, None)(byteStream)
+      Parser.Request.parser[F](Int.MaxValue, None)(byteStream).map(_._1)
     }
 
     def parseResponseRig[F[_]: Concurrent: Timer](s: String): Resource[F, Response[F]] = {
@@ -55,7 +55,7 @@ class ParsingSpec extends Specification with CatsIO {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Response.parser[F](Int.MaxValue, None)(byteStream) //(logger)
+      Parser.Response.parser[F](Int.MaxValue, None)(byteStream).map(_._1) //(logger)
     }
 
     def forceScopedParsing[F[_]: Sync](s: String): Stream[F, Byte] = {
@@ -171,7 +171,7 @@ class ParsingSpec extends Specification with CatsIO {
             .parser[IO](defaultMaxHeaderLength, None)(
               Helpers.forceScopedParsing[IO](raw)
             ) //(logger)
-            .use { resp =>
+            .use { case (resp, _) =>
               resp.body.through(text.utf8Decode).compile.string
             }
       } yield parsed must_== "{}").unsafeRunSync()
@@ -188,7 +188,7 @@ class ParsingSpec extends Specification with CatsIO {
 
       Parser.Response
         .parser[IO](defaultMaxHeaderLength, None)(Stream.chunk(ByteVectorChunk(baseBv)))
-        .use { resp =>
+        .use { case (resp, _) =>
           resp.body.through(text.utf8Decode).compile.string
 
         }
@@ -223,7 +223,7 @@ class ParsingSpec extends Specification with CatsIO {
 
       Parser.Response
         .parser[IO](defaultMaxHeaderLength, None)(byteStream)
-        .use { resp =>
+        .use { case (resp, _) =>
           resp.body.through(text.utf8Decode).compile.string.map { body =>
             body must beEqualTo("MozillaDeveloperNetwork")
           }
@@ -255,7 +255,7 @@ class ParsingSpec extends Specification with CatsIO {
 
       Parser.Response
         .parser[IO](defaultMaxHeaderLength, None)(byteStream)
-        .use { resp =>
+        .use { case (resp, _) =>
           for {
             body <- resp.body.through(text.utf8Decode).compile.string
             trailers <- resp.trailerHeaders
