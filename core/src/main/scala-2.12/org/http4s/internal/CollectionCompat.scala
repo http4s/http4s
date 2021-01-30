@@ -24,7 +24,7 @@ private[http4s] object CollectionCompat {
   type LazyList[A] = Stream[A]
   val LazyList = Stream
 
-  @deprecated("Deprecated in favour of inlining", "0.21.16")
+  @deprecated("Deprecated in favour of inlining", "0.21.17")
   def pairsToMultiParams[K, V](map: collection.Seq[(K, Option[V])]): Map[K, immutable.Seq[V]] =
     if (map.isEmpty) Map.empty
     else {
