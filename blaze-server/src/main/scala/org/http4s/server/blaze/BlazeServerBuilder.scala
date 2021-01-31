@@ -86,6 +86,7 @@ import scodec.bits.ByteVector
   *    this is necessary to recover totality from the error condition.
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
+  * @param maxConnections: The maximum number of client connections that may be active at any time.
   */
 class BlazeServerBuilder[F[_]](
     socketAddress: InetSocketAddress,
@@ -105,6 +106,7 @@ class BlazeServerBuilder[F[_]](
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
+    maxConnections: Int,
     val channelOptions: ChannelOptions
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
@@ -131,6 +133,7 @@ class BlazeServerBuilder[F[_]](
       httpApp: HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
+      maxConnections: Int = maxConnections,
       channelOptions: ChannelOptions = channelOptions
   ): Self =
     new BlazeServerBuilder(
@@ -151,6 +154,7 @@ class BlazeServerBuilder[F[_]](
       httpApp,
       serviceErrorHandler,
       banner,
+      maxConnections,
       channelOptions
     )
 
@@ -246,6 +250,9 @@ class BlazeServerBuilder[F[_]](
 
   def withChunkBufferMaxSize(chunkBufferMaxSize: Int): BlazeServerBuilder[F] =
     copy(chunkBufferMaxSize = chunkBufferMaxSize)
+
+  def withMaxConnections(maxConnections: Int): BlazeServerBuilder[F] =
+    copy(maxConnections = maxConnections)
 
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
@@ -422,6 +429,7 @@ object BlazeServerBuilder {
       httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,
+      maxConnections = defaults.MaxConnections,
       channelOptions = ChannelOptions(Vector.empty)
     )
 
