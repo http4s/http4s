@@ -28,6 +28,8 @@ import org.http4s.parser.{QueryParser, RequestUriParser}
 import org.http4s.util.{Renderable, Writer}
 
 import scala.collection.immutable
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /** Collection representation of a query string
   *
@@ -140,7 +142,15 @@ final class Query private (value: Either[Vector[KeyValue], String])
     * Params are represented as a `Seq[String]` and may be empty.
     */
   lazy val multiParams: Map[String, immutable.Seq[String]] =
-    CollectionCompat.pairsToMultiParams(toVector)
+    if (toVector.isEmpty) Map.empty
+    else {
+      val m = mutable.Map.empty[String, ListBuffer[String]]
+      toVector.foreach {
+        case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
+        case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
+      }
+      CollectionCompat.mapValues(m.toMap)(_.toList)
+    }
 
   override def equals(that: Any): Boolean =
     that match {
