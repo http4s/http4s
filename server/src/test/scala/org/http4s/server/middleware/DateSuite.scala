@@ -23,7 +23,7 @@ import org.http4s._
 import org.http4s.syntax.kleisli._
 import org.http4s.headers.{Date => HDate}
 
-class DateSpec extends Http4sSuite {
+class DateSuite extends Http4sSuite {
   implicit val timer: Timer[IO] = Http4sSuite.TestTimer
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] { case _ =>
