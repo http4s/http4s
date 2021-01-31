@@ -19,11 +19,12 @@ package org.http4s
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
+import cats.effect.unsafe.Scheduler
 import fs2._
 import fs2.text.utf8Decode
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import munit._
-import org.http4s.internal.threads.newDaemonPool
-
+import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import scala.concurrent.ExecutionContext
 
 /** Common stack for http4s' munit based tests
@@ -33,7 +34,7 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
   // BatchExecutor on Scala 2.12.
   override val munitExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
-  override implicit val ioRuntime: IORuntime = Http4sSpec.TestIORuntime
+  override implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -50,4 +51,30 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
       .last
       .map(_.getOrElse(""))
 
+}
+
+object Http4sSuite {
+  val TestScheduler: ScheduledExecutorService = {
+    val s =
+      new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
+    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+    s.allowCoreThreadTimeOut(true)
+    s
+  }
+
+  val TestIORuntime: IORuntime = {
+    val blockingPool = newBlockingPool("http4s-spec-blocking")
+    val computePool = newDaemonPool("http4s-spec", timeout = true)
+    val scheduledExecutor = TestScheduler
+    IORuntime.apply(
+      ExecutionContext.fromExecutor(computePool),
+      ExecutionContext.fromExecutor(blockingPool),
+      Scheduler.fromScheduledExecutor(scheduledExecutor),
+      () => {
+        blockingPool.shutdown()
+        computePool.shutdown()
+        scheduledExecutor.shutdown()
+      }
+    )
+  }
 }
