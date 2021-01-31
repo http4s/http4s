@@ -50,7 +50,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
           _ === "Unauthorized" && res.status === Forbidden
         }
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("enrich the request with a user when authentication returns Either.Right") {
@@ -78,7 +78,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
           _ === "42" && res.status === Ok
         }
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("not find a route if requested with the wrong verb inside an authenticated route") {

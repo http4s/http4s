@@ -82,18 +82,16 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withHeaders(Header(overrideHeader, "PUT"))
     val app = HttpMethodOverrider(testApp, noMethodHeaderOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ === mkResponseText(
-              msg = "resource's details",
-              reqMethod = GET,
-              overriddenMethod = None) &&
-              res.status === Status.Ok)
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ === mkResponseText(
+            msg = "resource's details",
+            reqMethod = GET,
+            overriddenMethod = None) &&
+            res.status === Status.Ok)
+    }.assert
   }
 
   test(
@@ -103,19 +101,17 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withHeaders(Header(overrideHeader, "PUT"))
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ === mkResponseText(
-              msg = "resource updated",
-              reqMethod = PUT,
-              overriddenMethod = Some(POST)) &&
-              res.status === Status.Ok
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ === mkResponseText(
+            msg = "resource updated",
+            reqMethod = PUT,
+            overriddenMethod = Some(POST)) &&
+            res.status === Status.Ok
+        )
+    }.assert
   }
 
   test(
@@ -124,19 +120,17 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(DELETE)
     val app = HttpMethodOverrider(testApp, deleteHeaderOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ ===
-              mkResponseText(
-                msg = "resource deleted",
-                reqMethod = DELETE,
-                overriddenMethod = None) && res.status === Status.Ok
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ ===
+            mkResponseText(
+              msg = "resource deleted",
+              reqMethod = DELETE,
+              overriddenMethod = None) && res.status === Status.Ok
+        )
+    }.assert
   }
 
   test(
@@ -145,18 +139,16 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(POST)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ === mkResponseText(
-              msg = "resource updated",
-              reqMethod = PUT,
-              overriddenMethod = Some(POST)) && res.status === Status.Ok
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ === mkResponseText(
+            msg = "resource updated",
+            reqMethod = PUT,
+            overriddenMethod = Some(POST)) && res.status === Status.Ok
+        )
+    }.assert
   }
 
   test(
@@ -165,19 +157,17 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(DELETE)
     val app = HttpMethodOverrider(testApp, deleteQueryOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ ===
-              mkResponseText(
-                msg = "resource deleted",
-                reqMethod = DELETE,
-                overriddenMethod = None) && res.status === Status.Ok
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ ===
+            mkResponseText(
+              msg = "resource deleted",
+              reqMethod = DELETE,
+              overriddenMethod = None) && res.status === Status.Ok
+        )
+    }.assert
   }
 
   test(
@@ -188,18 +178,16 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(POST)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ === mkResponseText(
-              msg = "resource updated",
-              reqMethod = PUT,
-              overriddenMethod = Some(POST)) && res.status === Status.Ok
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ === mkResponseText(
+            msg = "resource updated",
+            reqMethod = PUT,
+            overriddenMethod = Some(POST)) && res.status === Status.Ok
+        )
+    }.assert
   }
 
   test(
@@ -210,18 +198,16 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(DELETE)
     val app = HttpMethodOverrider(testApp, deleteFormOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ === mkResponseText(
-              msg = "resource deleted",
-              reqMethod = DELETE,
-              overriddenMethod = None) && res.status === Status.Ok
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ === mkResponseText(
+            msg = "resource deleted",
+            reqMethod = DELETE,
+            overriddenMethod = None) && res.status === Status.Ok
+        )
+    }.assert
   }
 
   test(
@@ -371,19 +357,17 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withHeaders(Header(overrideHeader, "DELETE"))
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ === mkResponseText(
-              msg = "resource deleted",
-              reqMethod = DELETE,
-              overriddenMethod = Some(POST)) && res.status === Status.Ok &&
-              res.headers.toList.exists(_ === Header(varyHeader, s"$overrideHeader"))
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ === mkResponseText(
+            msg = "resource deleted",
+            reqMethod = DELETE,
+            overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+            res.headers.toList.exists(_ === Header(varyHeader, s"$overrideHeader"))
+        )
+    }.assert
   }
 
   test(
@@ -392,20 +376,18 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(POST)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ ===
-              mkResponseText(
-                msg = "resource deleted",
-                reqMethod = DELETE,
-                overriddenMethod = Some(POST)) && res.status === Status.Ok &&
-              !res.headers.exists(_.name === CaseInsensitiveString(varyHeader))
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ ===
+            mkResponseText(
+              msg = "resource deleted",
+              reqMethod = DELETE,
+              overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+            !res.headers.exists(_.name === CaseInsensitiveString(varyHeader))
+        )
+    }.assert
   }
 
   test(
@@ -414,20 +396,18 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(POST)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ ===
-              mkResponseText(
-                msg = "resource updated",
-                reqMethod = PUT,
-                overriddenMethod = Some(POST)) && res.status === Status.Ok &&
-              res.headers.toList.exists(_ === Header(varyHeader, s"$customHeader"))
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ ===
+            mkResponseText(
+              msg = "resource updated",
+              reqMethod = PUT,
+              overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+            res.headers.toList.exists(_ === Header(varyHeader, s"$customHeader"))
+        )
+    }.assert
   }
 
   test(
@@ -438,18 +418,16 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(POST)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res.as[String].map {
-          _ ===
-            mkResponseText(
-              msg = "resource deleted",
-              reqMethod = DELETE,
-              overriddenMethod = Some(POST)) && res.status === Status.Ok && !res.headers.toList
-              .exists(_.name === CaseInsensitiveString(varyHeader))
-        }
+    app(req).flatMap { res =>
+      res.as[String].map {
+        _ ===
+          mkResponseText(
+            msg = "resource deleted",
+            reqMethod = DELETE,
+            overriddenMethod = Some(POST)) && res.status === Status.Ok && !res.headers.toList
+            .exists(_.name === CaseInsensitiveString(varyHeader))
       }
-      .assertEquals(true)
+    }.assert
   }
 
   test(
@@ -460,20 +438,18 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .withMethod(POST)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
-    app(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ ===
-              mkResponseText(
-                msg = "resource updated",
-                reqMethod = PUT,
-                overriddenMethod = Some(POST)) && res.status === Status.Ok &&
-              res.headers.toList.exists(_ === Header(varyHeader, s"$customHeader"))
-          )
-      }
-      .assertEquals(true)
+    app(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ ===
+            mkResponseText(
+              msg = "resource updated",
+              reqMethod = PUT,
+              overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+            res.headers.toList.exists(_ === Header(varyHeader, s"$customHeader"))
+        )
+    }.assert
 
   }
 }

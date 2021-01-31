@@ -42,7 +42,7 @@ class GZipSuite extends Http4sSuite {
         resp.status === Status.Ok &&
         resp.headers.get(`Content-Encoding`).isEmpty
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("encodes random content-type if given isZippable is true") {
@@ -63,7 +63,7 @@ class GZipSuite extends Http4sSuite {
     gZIPStream.write(response.getBytes)
     gZIPStream.close()
 
-    actual.map(Arrays.equals(_, byteStream.toByteArray)).assertEquals(true)
+    actual.map(Arrays.equals(_, byteStream.toByteArray)).assert
   }
 
   test("encoding") {
@@ -83,7 +83,7 @@ class GZipSuite extends Http4sSuite {
       gzipStream.close()
       val expected = byteArrayStream.toByteArray
 
-      actual.map(Arrays.equals(_, expected)).assertEquals(true)
+      actual.map(Arrays.equals(_, expected)).assert
     }
   }
 }

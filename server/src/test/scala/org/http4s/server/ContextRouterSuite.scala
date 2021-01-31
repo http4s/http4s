@@ -84,7 +84,7 @@ class ContextRouterSuite extends Http4sSuite {
           b =!= "bee" && b =!= "one" && resp.status === NotFound
         }
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("support root mappings") {
@@ -126,6 +126,6 @@ class ContextRouterSuite extends Http4sSuite {
     val router = ContextRouter[IO, Unit]("/foo" -> notFound)
     router(ContextRequest((), Request[IO](uri = uri"/bar"))).value
       .map(_ == Option.empty[Response[IO]])
-      .assertEquals(true)
+      .assert
   }
 }

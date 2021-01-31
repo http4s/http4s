@@ -64,11 +64,11 @@ class CORSSuite extends Http4sSuite {
     cors1
       .orNotFound(req)
       .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
-      .assertEquals(true) *>
+      .assert *>
       cors2
         .orNotFound(req)
         .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false"))
-        .assertEquals(true)
+        .assert
   }
 
   test("Respect Access-Control-Allow-Headers in preflight call") {
@@ -81,7 +81,7 @@ class CORSSuite extends Http4sSuite {
           `Access-Control-Allow-Headers`,
           "User-Agent, Keep-Alive, Content-Type")
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("Respect Access-Control-Expose-Headers in non-preflight call") {
@@ -91,7 +91,7 @@ class CORSSuite extends Http4sSuite {
       .map { resp =>
         matchHeader(resp.headers, `Access-Control-Expose-Headers`, "x-header")
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("Offer a successful reply to OPTIONS on fallthrough") {
@@ -103,7 +103,7 @@ class CORSSuite extends Http4sSuite {
           resp.headers,
           `Access-Control-Allow-Credentials`,
           "true"))
-      .assertEquals(true) *>
+      .assert *>
       cors2
         .orNotFound(req)
         .map(resp =>
@@ -111,13 +111,13 @@ class CORSSuite extends Http4sSuite {
             resp.headers,
             `Access-Control-Allow-Credentials`,
             "false"))
-        .assertEquals(true)
+        .assert
   }
 
   test("Always respond with 200 and empty body for OPTIONS request") {
     val req = buildRequest("/bar", OPTIONS)
-    cors1.orNotFound(req).map(_.headers.toList.exists(headerCheck _)).assertEquals(true) *>
-      cors2.orNotFound(req).map(_.headers.toList.exists(headerCheck _)).assertEquals(true)
+    cors1.orNotFound(req).map(_.headers.toList.exists(headerCheck _)).assert *>
+      cors2.orNotFound(req).map(_.headers.toList.exists(headerCheck _)).assert
   }
 
   test("Respond with 403 when origin is not valid") {
@@ -125,7 +125,7 @@ class CORSSuite extends Http4sSuite {
     cors2
       .orNotFound(req)
       .map(resp => resp.status.code == 403)
-      .assertEquals(true)
+      .assert
   }
 
   test("Fall through") {
@@ -149,7 +149,7 @@ class CORSSuite extends Http4sSuite {
       .map { resp =>
         matchHeader(resp.headers, `Vary`, "Origin,Accept")
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("Be created via httpRoutes constructor") {
@@ -159,7 +159,7 @@ class CORSSuite extends Http4sSuite {
     cors
       .orNotFound(req)
       .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
-      .assertEquals(true)
+      .assert
   }
 
   test("Be created via httpApp constructor") {
@@ -169,6 +169,6 @@ class CORSSuite extends Http4sSuite {
     cors
       .run(req)
       .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
-      .assertEquals(true)
+      .assert
   }
 }

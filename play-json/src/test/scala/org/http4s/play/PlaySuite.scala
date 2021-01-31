@@ -77,7 +77,7 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
 
   test("Message[F].decodeJson[A] should fail on invalid json") {
     val req = Request[IO]().withEntity(Json.toJson(List(13, 14)))
-    req.decodeJson[Foo].attempt.map(_.isLeft).assertEquals(true)
+    req.decodeJson[Foo].attempt.map(_.isLeft).assert
   }
 
   test("PlayEntityCodec should decode json without defining EntityDecoder") {

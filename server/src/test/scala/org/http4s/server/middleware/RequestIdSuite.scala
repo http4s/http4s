@@ -52,7 +52,7 @@ class RequestIdSuite extends Http4sSuite {
         requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp))
       }
       .map { case (req, resp) => req === "123" && resp === "123" }
-      .assertEquals(true)
+      .assert
   }
 
   test("generate X-Request-ID header when unset") {
@@ -66,7 +66,7 @@ class RequestIdSuite extends Http4sSuite {
       .map { case (reqReqId, respReqId) =>
         reqReqId === respReqId && Either.catchNonFatal(UUID.fromString(respReqId)).isRight
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("generate different request ids on subsequent requests") {
@@ -74,7 +74,7 @@ class RequestIdSuite extends Http4sSuite {
     val resp = RequestId.httpRoutes(testService()).orNotFound(req)
     (resp.map(requestIdFromHeaders(_)), resp.map(requestIdFromHeaders(_)))
       .parMapN(_ =!= _)
-      .assertEquals(true)
+      .assert
   }
 
   test("propagate custom request id header from request to response") {
@@ -90,7 +90,7 @@ class RequestIdSuite extends Http4sSuite {
       .map { case (reqReqId, respReqId) =>
         reqReqId === "abc" && respReqId === "abc"
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("generate custom request id header when unset") {
@@ -105,7 +105,7 @@ class RequestIdSuite extends Http4sSuite {
       .map { case (reqReqId, respReqId) =>
         reqReqId === respReqId && Either.catchNonFatal(UUID.fromString(respReqId)).isRight
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("generate X-Request-ID header when unset using supplied generator") {
@@ -120,7 +120,7 @@ class RequestIdSuite extends Http4sSuite {
       .map { case (reqReqId, respReqId) =>
         reqReqId === uuid.show && respReqId === uuid.show
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("include requestId attribute with request and response") {
@@ -136,6 +136,6 @@ class RequestIdSuite extends Http4sSuite {
       .map { case (reqReqId, respReqId) =>
         reqReqId === "123" && respReqId === "123"
       }
-      .assertEquals(true)
+      .assert
   }
 }
