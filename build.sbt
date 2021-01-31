@@ -789,6 +789,7 @@ lazy val commonSettings = Seq(
       ).map(_ % Test)
   },
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
+  scalacOptions := scalacOptions.value.filterNot(_ == "-source:3.0-migration"),
 )
 
 def initCommands(additionalImports: String*) =

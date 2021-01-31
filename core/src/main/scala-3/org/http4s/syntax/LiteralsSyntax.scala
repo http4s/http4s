@@ -63,11 +63,11 @@ private[syntax] object LiteralsSyntax {
       val literal = parts.head
       validator.validate(literal) match {
         case Some(err) =>
-          report.throwError(err.message)
+          quotes.reflect.report.throwError(err.message)
         case None => validator.construct(literal)
       }
     } else {
-      report.throwError("interpolation not supported", argsExpr)
+      quotes.reflect.report.throwError("interpolation not supported", argsExpr)
     }
   }
 

@@ -122,10 +122,10 @@ object Forwarded
       val nodeName: P[Node.Name] =
         P.oneOf[Node.Name](
           List(
-            Ipv4Address.parser.map(Node.Name.Ipv4),
+            Ipv4Address.parser.map(Node.Name.Ipv4.apply),
             Ipv6Address.parser
               .between(P.char('['), P.char(']'))
-              .map(Node.Name.Ipv6),
+              .map(Node.Name.Ipv6.apply),
             P.string("unknown").as(Node.Name.Unknown),
             Obfuscated.parser
           )
