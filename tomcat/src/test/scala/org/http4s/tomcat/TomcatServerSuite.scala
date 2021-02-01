@@ -93,16 +93,16 @@ class TomcatServerSuite extends Http4sSuite {
   tomcatServer.test("server should route requests on the service executor") { server =>
     get(server, "/thread/routing")
       .map(_.startsWith("http4s-spec-"))
-      .assertEquals(true)
+      .assert
   }
 
   tomcatServer.test("server should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assertEquals(true)
+    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assert
   }
 
   tomcatServer.test("server should be able to echo its input") { server =>
     val input = """{ "Hello": "world" }"""
-    post(server, "/echo", input).map(_.startsWith(input)).assertEquals(true)
+    post(server, "/echo", input).map(_.startsWith(input)).assert
   }
 
   tomcatServer.test("Timeout should not fire prematurely") { server =>

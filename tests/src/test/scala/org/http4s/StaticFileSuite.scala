@@ -105,7 +105,7 @@ class StaticFileSuite extends Http4sSuite {
   test("handle an empty file") {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
-    StaticFile.fromFile[IO](emptyFile).value.map(_.isDefined).assertEquals(true)
+    StaticFile.fromFile[IO](emptyFile).value.map(_.isDefined).assert
   }
 
   test("Don't send unmodified files") {
@@ -236,7 +236,7 @@ class StaticFileSuite extends Http4sSuite {
                       .equals(
                         bytes.toArray,
                         java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1)))
-                  .assertEquals(true)
+                  .assert
             }
             .getOrElse(IO.raiseError(new RuntimeException("test error")))
         }

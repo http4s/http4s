@@ -58,7 +58,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val disposingClient = Client { (req: Request[IO]) =>
       Resource.make(app(req))(_ => dispose)
     }
-    f(disposingClient).attempt.map(_ => disposed).assertEquals(true)
+    f(disposingClient).attempt.map(_ => disposed).assert
   }
 
   test("Client should match responses to Uris with get") {
@@ -127,7 +127,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
         case Left(_: MatchError) => true
         case _ => false
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("Client should fetch Uris with expect") {
@@ -175,11 +175,11 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should successful returns the success of the status for a request") {
-    client.successful(req).assertEquals(true)
+    client.successful(req).assert
   }
 
   test("Client should successful returns the success of the status for a request task") {
-    client.successful(IO.pure(req)).assertEquals(true)
+    client.successful(IO.pure(req)).assert
   }
 
   test("Client should status returns the status for a request") {
@@ -191,11 +191,11 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should successful returns the success of the status for a request") {
-    client.successful(req).assertEquals(true)
+    client.successful(req).assert
   }
 
   test("Client should successful returns the success of the status for a request task") {
-    client.successful(IO.pure(req)).assertEquals(true)
+    client.successful(IO.pure(req)).assert
   }
 
   test(

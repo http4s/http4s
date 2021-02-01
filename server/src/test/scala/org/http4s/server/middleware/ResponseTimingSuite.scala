@@ -44,9 +44,10 @@ class ResponseTimingSuite extends Http4sSuite {
     val res = app(req)
 
     val header = res
-      .map(_.headers.find(_.name == CIString("X-Response-Time")).map(_.value.toInt))
-
-    header.assertEquals(Some(artificialDelay))
+      .map(_.headers.find(_.name == CIString("X-Response-Time")))
+    header
+      .map(_.forall(_.value.toInt === artificialDelay))
+      .assert
   }
 }
 

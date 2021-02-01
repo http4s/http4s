@@ -439,8 +439,8 @@ class EntityDecoderSuite extends Http4sSuite {
           response.body.compile.toVector
             .map(_.toArray)
             .map(Arrays.equals(_, "Hello".getBytes))
-            .assertEquals(true) *>
-            readFile(tmpFile).map(Arrays.equals(_, binData)).assertEquals(true)
+            .assert *>
+            readFile(tmpFile).map(Arrays.equals(_, binData)).assert
         }
       }
   }

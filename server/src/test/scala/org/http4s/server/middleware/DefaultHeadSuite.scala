@@ -54,7 +54,7 @@ class DefaultHeadSuite extends Http4sSuite {
     val head = get.withMethod(Method.HEAD)
     val getHeaders = app(get).map(_.headers)
     val headHeaders = app(head).map(_.headers)
-    (getHeaders, headHeaders).parMapN(_ === _).assertEquals(true)
+    (getHeaders, headHeaders).parMapN(_ === _).assert
   }
 
   test("allow GET body to clean up on fallthrough") {

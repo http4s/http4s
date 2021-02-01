@@ -34,31 +34,27 @@ class DateSuite extends Http4sSuite {
 
   val req = Request[IO]()
 
-  test("always be very shortly before the current time httpRoutes") {
-    val result = for {
+  test("Date should always be very shortly before the current time httpRoutes") {
+    (for {
       out <- testService(req).value
       now <- HttpDate.current[IO]
-    } yield out.flatMap(_.headers.get(HDate)).map { case date =>
+    } yield out.flatMap(_.headers.get(HDate)).exists { (date: HDate) =>
       val diff = now.epochSecond - date.date.epochSecond
       diff <= 2L
-    }
-
-    result.assertEquals(Some(true))
+    }).assertEquals(true)
   }
 
-  test("always be very shortly before the current time httpApp") {
-    val result = for {
+  test("Date should always be very shortly before the current time httpApp") {
+    (for {
       out <- testApp(req)
       now <- HttpDate.current[IO]
-    } yield out.headers.get(HDate).map { case date =>
+    } yield out.headers.get(HDate).exists { date =>
       val diff = now.epochSecond - date.date.epochSecond
       diff <= 2L
-    }
-
-    result.assertEquals(Some(true))
+    }).assertEquals(true)
   }
 
-  test("not override a set date header") {
+  test("Date should not override a set date header") {
     val service = HttpRoutes
       .of[IO] { case _ =>
         Response[IO](Status.Ok)
@@ -68,31 +64,31 @@ class DateSuite extends Http4sSuite {
       .orNotFound
     val test = Date(service)
 
-    val result = for {
+    (for {
       out <- test(req)
       nowD <- HttpDate.current[IO]
-    } yield out.headers.get(HDate).map { case date =>
+    } yield out.headers.get(HDate).exists { date =>
       val now = nowD.epochSecond
       val diff = now - date.date.epochSecond
       now == diff
-    }
-
-    result.assertEquals(Some(true))
+    }).assertEquals(true)
   }
 
-  test("be created via httpRoutes constructor") {
+  test("Date should be created via httpRoutes constructor") {
     val httpRoute = Date.httpRoutes(service)
 
-    httpRoute(req).value
-      .map(_.flatMap(_.headers.get(HDate)).isDefined)
-      .assertEquals(true)
+    val r = for {
+      response <- httpRoute(req).value
+    } yield response.flatMap(_.headers.get(HDate)).isDefined
+    assertIOBoolean(r)
   }
 
-  test("be created via httpApp constructor") {
+  test("Date should be created via httpApp constructor") {
     val httpApp = Date.httpApp(service.orNotFound)
 
-    httpApp(req)
-      .map(_.headers.get(HDate).isDefined)
-      .assertEquals(true)
+    val r = for {
+      response <- httpApp(req)
+    } yield response.headers.get(HDate).isDefined
+    assertIOBoolean(r)
   }
 }
