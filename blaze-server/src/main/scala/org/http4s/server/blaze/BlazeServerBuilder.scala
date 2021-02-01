@@ -115,49 +115,6 @@ class BlazeServerBuilder[F[_]] private (
 
   private[this] val logger = getLogger
 
-  @deprecated("Use `BlazeServerBuilder.apply` and configure with `with` methods", "0.21.17")
-  def this(
-      socketAddress: InetSocketAddress,
-      executionContext: ExecutionContext,
-      responseHeaderTimeout: Duration,
-      idleTimeout: Duration,
-      isNio2: Boolean,
-      connectorPoolSize: Int,
-      bufferSize: Int,
-      selectorThreadFactory: ThreadFactory,
-      enableWebSockets: Boolean,
-      sslConfig: SslConfig[F],
-      isHttp2Enabled: Boolean,
-      maxRequestLineLen: Int,
-      maxHeadersLen: Int,
-      chunkBufferMaxSize: Int,
-      httpApp: HttpApp[F],
-      serviceErrorHandler: ServiceErrorHandler[F],
-      banner: immutable.Seq[String],
-      maxConnections: Int,
-      channelOptions: ChannelOptions
-  )(implicit F: ConcurrentEffect[F], timer: Timer[F]) = this(
-    socketAddress = socketAddress,
-    executionContext = executionContext,
-    idleTimeout = idleTimeout,
-    responseHeaderTimeout = responseHeaderTimeout,
-    nioVersion = if (isNio2) Nio2 else Nio1,
-    connectorPoolSize = connectorPoolSize,
-    bufferSize = bufferSize,
-    selectorThreadFactory = selectorThreadFactory,
-    enableWebSockets = enableWebSockets,
-    sslConfig = sslConfig,
-    isHttp2Enabled = isHttp2Enabled,
-    maxRequestLineLen = maxRequestLineLen,
-    maxHeadersLen = maxHeadersLen,
-    chunkBufferMaxSize = chunkBufferMaxSize,
-    httpApp = httpApp,
-    serviceErrorHandler = serviceErrorHandler,
-    banner = banner,
-    maxConnections = maxConnections,
-    channelOptions = channelOptions
-  )
-
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
       executionContext: ExecutionContext = executionContext,
