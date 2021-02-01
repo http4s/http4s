@@ -20,8 +20,8 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
-import org.http4s.internal.threads.newBlockingPool
-import org.http4s.internal.threads.newDaemonPool
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
+import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import scala.concurrent.ExecutionContext
 import munit._
 
@@ -60,4 +60,15 @@ object Http4sSuite {
 
   val TestContextShift: ContextShift[IO] =
     IO.contextShift(TestExecutionContext)
+
+  val TestScheduler: ScheduledExecutorService = {
+    val s =
+      new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
+    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+    s.allowCoreThreadTimeOut(true)
+    s
+  }
+
+  val TestTimer: Timer[IO] =
+    IO.timer(TestExecutionContext, TestScheduler)
 }
