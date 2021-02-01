@@ -8,6 +8,33 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.17
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#4281](https://github.com/http4s/http4s/pull/4281): Add backpressure to ember startup, so the server is up before `use` returns.
+
+### Enhancements
+
+* [#4244](https://github.com/http4s/http4s/pull/4244): Internal refactoring of how the stream of server connections is parallelized and terminated.
+* [#4287](https://github.com/http4s/http4s/pull/4287): Replace `onError: Throwable => Response[F]` with `withErrorHandler: PartialFunction[Thrwable, F[Response[F]]`.  Error handling is invoked earlier, allowing custom responses to parsing and timeout failures.
+
+## http4s-servlet
+
+### Bugfixes
+
+* [#4309](https://github.com/http4s/http4s/pull/4309): Call `GenericServlet.init` when intializing an `Http4sServlet`.  Avoids `NullPointerExceptions` from the `ServletConfig`.
+
+## Documentation
+
+* [#4261](https://github.com/http4s/http4s/pull/4261): Better `@see` links throughout the Scaladoc
+
+## Dependency upgrades
+
+* okhttp-4.9.1
+
 # v0.22.0-M1 (2021-01-24)
 
 This is a new series, forked from main before Cats-Effect 3 support was merged.  It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support. It builds on all the changes from v1.0.0-M1 through v1.0.0-M10, which are not echoed here.
