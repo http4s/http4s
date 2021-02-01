@@ -81,7 +81,7 @@ class RouterSuite extends Http4sSuite {
           b =!= "bee" && b =!= "one" && res.status === NotFound
         }
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("support root mappings") {
@@ -119,6 +119,6 @@ class RouterSuite extends Http4sSuite {
     val router = Router[IO]("/foo" -> notFound)
     router(Request[IO](uri = uri"/bar")).value
       .map(_ == Option.empty[Response[IO]])
-      .assertEquals(true)
+      .assert
   }
 }
