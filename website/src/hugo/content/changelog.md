@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M14
+
+## http4s-okhttp-client
+
+### Breaking changes
+
+* [#4299](https://github.com/http4s/http4s/pull/4299): Manage the `Dispatcher` internally in `OkHttpBuilder`. `create` becomes a private method.
+
+### Documentation
+
+* [#4306](https://github.com/http4s/http4s/pull/4306): Update the copyright notice to 2021.
+
 # v0.22.0-M2
 
 ## http4s-core
