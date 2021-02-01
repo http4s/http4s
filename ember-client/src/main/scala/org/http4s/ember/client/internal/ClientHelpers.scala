@@ -34,13 +34,9 @@ import _root_.fs2.io.tls._
 import _root_.io.chrisdavenport.keypool.Reusable
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
+import _root_.org.http4s.ember.core.Util.durationToFinite
 
 private[client] object ClientHelpers {
-
-  private def durationToFinite(duration: Duration): Option[FiniteDuration] = duration match {
-    case f: FiniteDuration => Some(f)
-    case _ => None
-  }
 
   def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       request: Request[F],

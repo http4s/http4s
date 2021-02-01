@@ -240,8 +240,8 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Util"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Util$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Util.readWithTimeout"),
+      
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -283,6 +283,7 @@ lazy val emberClient = libraryProject("ember-client")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
     )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")

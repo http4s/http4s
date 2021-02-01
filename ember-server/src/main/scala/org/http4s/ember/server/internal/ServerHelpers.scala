@@ -31,6 +31,7 @@ import _root_.io.chrisdavenport.log4cats.Logger
 import cats.data.NonEmptyList
 import java.util.concurrent.TimeoutException
 import java.nio.channels.InterruptedByTimeoutException
+import _root_.org.http4s.ember.core.Util.durationToFinite
 
 private[server] object ServerHelpers {
 
@@ -42,11 +43,6 @@ private[server] object ServerHelpers {
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
-
-  private def durationToFinite(duration: Duration): Option[FiniteDuration] = duration match {
-    case f: FiniteDuration => Some(f)
-    case _ => None
-  }
 
   def server[F[_]: ContextShift](
       bindAddress: InetSocketAddress,
@@ -68,7 +64,7 @@ private[server] object ServerHelpers {
 
     def reachedEndError(socket: Socket[F]): Stream[F, Byte] =
       Stream.eval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
-        case None => Stream.raiseError(new RuntimeException("Unexpected EOF"))
+        case None => Stream.raiseError(new java.io.EOFException("Unexpected EOF - socket.read returned None"))
         case Some(value) => Stream.chunk(value)
       }
 
