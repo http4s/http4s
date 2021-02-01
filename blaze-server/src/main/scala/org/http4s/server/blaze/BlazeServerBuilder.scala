@@ -86,13 +86,14 @@ import scodec.bits.ByteVector
   *    this is necessary to recover totality from the error condition.
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
+  * @param maxConnections: The maximum number of client connections that may be active at any time.
   */
-class BlazeServerBuilder[F[_]](
+class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    isNio2: Boolean,
+    nioVersion: NioVersion,
     connectorPoolSize: Int,
     bufferSize: Int,
     selectorThreadFactory: ThreadFactory,
@@ -105,6 +106,7 @@ class BlazeServerBuilder[F[_]](
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
+    maxConnections: Int,
     val channelOptions: ChannelOptions
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
@@ -113,12 +115,55 @@ class BlazeServerBuilder[F[_]](
 
   private[this] val logger = getLogger
 
+  @deprecated("Use `BlazeServerBuilder.apply` and configure with `with` methods", "0.21.17")
+  def this(
+      socketAddress: InetSocketAddress,
+      executionContext: ExecutionContext,
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      isNio2: Boolean,
+      connectorPoolSize: Int,
+      bufferSize: Int,
+      selectorThreadFactory: ThreadFactory,
+      enableWebSockets: Boolean,
+      sslConfig: SslConfig[F],
+      isHttp2Enabled: Boolean,
+      maxRequestLineLen: Int,
+      maxHeadersLen: Int,
+      chunkBufferMaxSize: Int,
+      httpApp: HttpApp[F],
+      serviceErrorHandler: ServiceErrorHandler[F],
+      banner: immutable.Seq[String],
+      maxConnections: Int,
+      channelOptions: ChannelOptions
+  )(implicit F: ConcurrentEffect[F], timer: Timer[F]) = this(
+    socketAddress = socketAddress,
+    executionContext = executionContext,
+    idleTimeout = idleTimeout,
+    responseHeaderTimeout = responseHeaderTimeout,
+    nioVersion = if (isNio2) Nio2 else Nio1,
+    connectorPoolSize = connectorPoolSize,
+    bufferSize = bufferSize,
+    selectorThreadFactory = selectorThreadFactory,
+    enableWebSockets = enableWebSockets,
+    sslConfig = sslConfig,
+    isHttp2Enabled = isHttp2Enabled,
+    maxRequestLineLen = maxRequestLineLen,
+    maxHeadersLen = maxHeadersLen,
+    chunkBufferMaxSize = chunkBufferMaxSize,
+    httpApp = httpApp,
+    serviceErrorHandler = serviceErrorHandler,
+    banner = banner,
+    maxConnections = maxConnections,
+    channelOptions = channelOptions
+  )
+
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
       executionContext: ExecutionContext = executionContext,
       idleTimeout: Duration = idleTimeout,
       responseHeaderTimeout: Duration = responseHeaderTimeout,
-      isNio2: Boolean = isNio2,
+      nioVersion: NioVersion = nioVersion,
       connectorPoolSize: Int = connectorPoolSize,
       bufferSize: Int = bufferSize,
       selectorThreadFactory: ThreadFactory = selectorThreadFactory,
@@ -131,6 +176,7 @@ class BlazeServerBuilder[F[_]](
       httpApp: HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
+      maxConnections: Int = maxConnections,
       channelOptions: ChannelOptions = channelOptions
   ): Self =
     new BlazeServerBuilder(
@@ -138,7 +184,7 @@ class BlazeServerBuilder[F[_]](
       executionContext,
       responseHeaderTimeout,
       idleTimeout,
-      isNio2,
+      nioVersion,
       connectorPoolSize,
       bufferSize,
       selectorThreadFactory,
@@ -151,6 +197,7 @@ class BlazeServerBuilder[F[_]](
       httpApp,
       serviceErrorHandler,
       banner,
+      maxConnections,
       channelOptions
     )
 
@@ -219,7 +266,8 @@ class BlazeServerBuilder[F[_]](
   def withSelectorThreadFactory(selectorThreadFactory: ThreadFactory): Self =
     copy(selectorThreadFactory = selectorThreadFactory)
 
-  def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
+  @deprecated("NIO2 support in http4s-blaze-server will be removed in 0.22.", "0.21.17")
+  def withNio2(isNio2: Boolean): Self = copy(nioVersion = if (isNio2) Nio2 else Nio1)
 
   def withWebSockets(enableWebsockets: Boolean): Self =
     copy(enableWebSockets = enableWebsockets)
@@ -246,6 +294,9 @@ class BlazeServerBuilder[F[_]](
 
   def withChunkBufferMaxSize(chunkBufferMaxSize: Int): BlazeServerBuilder[F] =
     copy(chunkBufferMaxSize = chunkBufferMaxSize)
+
+  def withMaxConnections(maxConnections: Int): BlazeServerBuilder[F] =
+    copy(maxConnections = maxConnections)
 
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
@@ -341,12 +392,19 @@ class BlazeServerBuilder[F[_]](
         else address
 
       val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
-        if (isNio2)
-          NIO2SocketServerGroup
-            .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
-        else
-          NIO1SocketServerGroup
-            .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
+        nioVersion match {
+          case Nio2 =>
+            NIO2SocketServerGroup
+              .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
+          case Nio1 =>
+            NIO1SocketServerGroup
+              .fixedGroup(
+                connectorPoolSize,
+                bufferSize,
+                channelOptions,
+                selectorThreadFactory,
+                maxConnections = maxConnections)
+        }
       })(factory => F.delay(factory.closeGroup()))
 
       def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
@@ -409,7 +467,7 @@ object BlazeServerBuilder {
       executionContext = executionContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
-      isNio2 = false,
+      nioVersion = Nio1,
       connectorPoolSize = DefaultPoolSize,
       bufferSize = 64 * 1024,
       selectorThreadFactory = defaultThreadSelectorFactory,
@@ -422,6 +480,7 @@ object BlazeServerBuilder {
       httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,
+      maxConnections = defaults.MaxConnections,
       channelOptions = ChannelOptions(Vector.empty)
     )
 
@@ -523,4 +582,8 @@ object BlazeServerBuilder {
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
     }
+
+  private sealed trait NioVersion extends Product with Serializable
+  private case object Nio1 extends NioVersion
+  private case object Nio2 extends NioVersion
 }
