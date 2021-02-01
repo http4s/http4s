@@ -16,6 +16,7 @@
 
 package org.http4s.ember.server.internal
 
+import cats._
 import fs2._
 import fs2.io.tcp._
 import fs2.io.tls._
@@ -32,6 +33,7 @@ import cats.data.NonEmptyList
 import java.util.concurrent.TimeoutException
 import java.nio.channels.InterruptedByTimeoutException
 import _root_.org.http4s.ember.core.Util.durationToFinite
+import java.io.EOFException
 
 private[server] object ServerHelpers {
 
@@ -53,108 +55,14 @@ private[server] object ServerHelpers {
       // Defaults
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      maxConcurrency: Int = Int.MaxValue,
-      receiveBufferSize: Int = 256 * 1024,
-      maxHeaderSize: Int = 10 * 1024,
-      requestHeaderReceiveTimeout: Duration = 5.seconds,
-      idleTimeout: Duration = 60.seconds,
+      maxConcurrency: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
-
-    def reachedEndError(socket: Socket[F]): Stream[F, Byte] =
-      Stream.eval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
-        case None =>
-          Stream.raiseError(new java.io.EOFException("Unexpected EOF - socket.read returned None"))
-        case Some(value) => Stream.chunk(value)
-      }
-
-    def upgradeSocket(
-        socketInit: Socket[F],
-        tlsInfoOpt: Option[(TLSContext, TLSParameters)]): Resource[F, Socket[F]] =
-      tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
-        context
-          .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
-          .widen[Socket[F]]
-      }
-
-    def runApp(incoming: Stream[F, Byte]): F[(Request[F], Response[F], Stream[F, Byte])] =
-      for {
-        tup <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
-          incoming)
-        (req, rest) = tup
-        resp <- httpApp
-          .run(req)
-          .handleErrorWith(errorHandler)
-          .handleError(_ => serverFailure.covary[F])
-      } yield (req, resp, rest)
-
-    def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
-      Encoder
-        .respToBytes[F](resp)
-        .through(socket.writes(durationToFinite(idleTimeout)))
-        .compile
-        .drain
-        .attempt
-        .flatMap {
-          case Left(err) => onWriteFailure(request, resp, err)
-          case Right(()) => Sync[F].pure(())
-        }
-
-    def postProcessResponse(req: Request[F], resp: Response[F]): F[Response[F]] = {
-      val reqHasClose = req.headers.exists {
-        // We know this is raw because we have not parsed any headers in the underlying alg.
-        // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-        case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.value)
-        case _ => false
-      }
-      val connection: Connection =
-        if (reqHasClose) close
-        else keepAlive
-      for {
-        date <- HttpDate.current[F].map(Date(_))
-      } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
-    }
-
-    def withUpgradedSocket(socket: Socket[F]): Stream[F, Nothing] =
-      Stream
-        .unfoldLoopEval(reachedEndError(socket))(s =>
-          runApp(s).attempt.map {
-            case Right((req, resp, rest)) => (Right((req, resp)), Some(rest))
-            case Left(e) => (Left(e), None)
-          })
-        .evalMap {
-          case Right((req, resp)) =>
-            postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
-          case other => other.pure[F]
-        }
-        .evalTap {
-          case Right((request, response)) => send(socket)(Some(request), response)
-          case Left(err) =>
-            err match {
-              // Timeouts Do Not Get Responses
-              // Thrown by Stream.timeout or Concurrent.timeout
-              case _: TimeoutException =>
-                errorHandler(
-                  err).void // Lets users see responses, but cannot generate responses i don't like this
-              // Thrown by fs2.io.tcp.Socket read/write
-              case _: InterruptedByTimeoutException => errorHandler(err).void
-              case err =>
-                errorHandler(err)
-                  .handleError(_ => serverFailure.covary[F])
-                  .flatMap(send(socket)(None, _))
-            }
-        }
-        .takeWhile {
-          case Left(_) => false
-          case Right((req, resp)) =>
-            !(
-              req.headers.get(Connection).exists(_.hasClose) ||
-                resp.headers.get(Connection).exists(_.hasClose)
-            )
-        }
-        .drain
-
+  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] =
     sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
       .interruptWhen(shutdown.signal.attempt)
       // Divorce the scopes of the server stream and handler streams so the
@@ -163,10 +71,141 @@ private[server] object ServerHelpers {
       .map { connect =>
         shutdown.trackConnection >>
           Stream
-            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
-            .flatMap(withUpgradedSocket(_))
+            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt, logger)))
+            .flatMap(
+              runConnection(
+                _,
+                logger,
+                idleTimeout,
+                receiveBufferSize,
+                maxHeaderSize,
+                requestHeaderReceiveTimeout,
+                httpApp,
+                errorHandler,
+                onWriteFailure))
       }
       .parJoin(maxConcurrency)
       .drain
+
+  private[internal] def reachedEndError[F[_]: Sync](
+      socket: Socket[F],
+      idleTimeout: Duration,
+      receiveBufferSize: Int): Stream[F, Byte] =
+    Stream.eval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
+      case None =>
+        Stream.raiseError(new EOFException("Unexpected EOF - socket.read returned None"))
+      case Some(value) => Stream.chunk(value)
+    }
+
+  private[internal] def upgradeSocket[F[_]: Concurrent: ContextShift](
+      socketInit: Socket[F],
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      logger: Logger[F]
+  ): Resource[F, Socket[F]] =
+    tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
+      context
+        .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
+        .widen[Socket[F]]
+    }
+
+  private[internal] def runApp[F[_]: Concurrent: Timer](
+      incoming: Stream[F, Byte],
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      httpApp: HttpApp[F],
+      errorHandler: Throwable => F[Response[F]]): F[(Request[F], Response[F], Stream[F, Byte])] =
+    for {
+      tup <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
+        incoming)
+      (req, rest) = tup
+      resp <- httpApp
+        .run(req)
+        .handleErrorWith(errorHandler)
+        .handleError(_ => serverFailure.covary[F])
+    } yield (req, resp, rest)
+
+  private[internal] def send[F[_]: Sync](socket: Socket[F])(
+      request: Option[Request[F]],
+      resp: Response[F],
+      idleTimeout: Duration,
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]): F[Unit] =
+    Encoder
+      .respToBytes[F](resp)
+      .through(socket.writes(durationToFinite(idleTimeout)))
+      .compile
+      .drain
+      .attempt
+      .flatMap {
+        case Left(err) => onWriteFailure(request, resp, err)
+        case Right(()) => Sync[F].pure(())
+      }
+
+  private[internal] def postProcessResponse[F[_]: Timer: Monad](
+      req: Request[F],
+      resp: Response[F]): F[Response[F]] = {
+    val reqHasClose = req.headers.exists {
+      // We know this is raw because we have not parsed any headers in the underlying alg.
+      // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
+      case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.value)
+      case _ => false
+    }
+    val connection: Connection =
+      if (reqHasClose) close
+      else keepAlive
+    for {
+      date <- HttpDate.current[F].map(Date(_))
+    } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
   }
+
+  private[internal] def runConnection[F[_]: Concurrent: Timer](
+      socket: Socket[F],
+      logger: Logger[F],
+      idleTimeout: Duration,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      httpApp: HttpApp[F],
+      errorHandler: Throwable => F[org.http4s.Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
+  ): Stream[F, Nothing] =
+    Stream
+      .unfoldLoopEval(reachedEndError(socket, idleTimeout, receiveBufferSize))(s =>
+        runApp(s, maxHeaderSize, requestHeaderReceiveTimeout, httpApp, errorHandler).attempt.map {
+          case Right((req, resp, rest)) => (Right((req, resp)), Some(rest))
+          case Left(e) => (Left(e), None)
+        })
+      .evalMap {
+        case Right((req, resp)) =>
+          postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
+        case other => other.pure[F]
+      }
+      .evalTap {
+        case Right((request, response)) =>
+          send(socket)(Some(request), response, idleTimeout, onWriteFailure)
+        case Left(err) =>
+          err match {
+            // Timeouts Do Not Get Responses
+            // Thrown by Stream.timeout or Concurrent.timeout
+            case _: TimeoutException =>
+              errorHandler(
+                err).void // Lets users see responses, but cannot generate responses i don't like this
+            // Thrown by fs2.io.tcp.Socket read/write
+            case _: InterruptedByTimeoutException => errorHandler(err).void
+            case e: EOFException => logger.warn(e)("Unexpected EOF Encountered")
+            case err =>
+              errorHandler(err)
+                .handleError(_ => serverFailure.covary[F])
+                .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+          }
+      }
+      .takeWhile {
+        case Left(_) => false
+        case Right((req, resp)) =>
+          !(
+            req.headers.get(Connection).exists(_.hasClose) ||
+              resp.headers.get(Connection).exists(_.hasClose)
+          )
+      }
+      .drain
+
 }
