@@ -35,6 +35,6 @@ class StaticHeadersSuite extends Http4sSuite {
 
     resp
       .map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache"))
-      .assertEquals(true)
+      .assert
   }
 }

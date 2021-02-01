@@ -251,12 +251,10 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
     val result = accumulatingJsonOf[IO, Bar]
       .decode(Request[IO]().withEntity(json), strict = true)
-    result.value
-      .map {
-        case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.value.map {
+      case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => true
+      case _ => false
+    }.assert
   }
 
   test("stream json array encoder of should fail with custom message from a decoder") {
@@ -280,7 +278,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
 
   test("Message[F].decodeJson[A] should fail on invalid json") {
     val req = Request[IO]().withEntity(List(13, 14).asJson)
-    req.decodeJson[Foo].attempt.map(_.isLeft).assertEquals(true)
+    req.decodeJson[Foo].attempt.map(_.isLeft).assert
   }
 
   test("CirceEntityEncDec should decode json without defining EntityDecoder") {
@@ -303,12 +301,10 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
     val result = decoder.decode(req, true).value
 
-    result
-      .map {
-        case Left(_: MalformedMessageBodyFailure) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.map {
+      case Left(_: MalformedMessageBodyFailure) => true
+      case _ => false
+    }.assert
   }
 
   test("CirceInstances.builder should handle JSON decoding errors") {
@@ -318,12 +314,10 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
     val result = decoder.decode(req, true).value
 
-    result
-      .map {
-        case Left(_: InvalidMessageBodyFailure) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.map {
+      case Left(_: InvalidMessageBodyFailure) => true
+      case _ => false
+    }.assert
   }
 
   // checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)

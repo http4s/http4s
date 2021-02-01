@@ -36,16 +36,14 @@ class ThrottleSuite extends Http4sSuite {
     val createBucket =
       TokenBucket.local[IO](capacity, someRefillTime)(ioEffect, munitTimer.clock)
 
-    createBucket
-      .flatMap { testee =>
-        val takeFiveTokens: IO[List[TokenAvailability]] =
-          (1 to 5).toList.traverse(_ => testee.takeToken)
-        val checkTokensUpToCapacity =
-          takeFiveTokens.map(tokens => tokens.exists(_ == TokenAvailable))
-        (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
-          .mapN(_ && _)
-      }
-      .assertEquals(true)
+    createBucket.flatMap { testee =>
+      val takeFiveTokens: IO[List[TokenAvailability]] =
+        (1 to 5).toList.traverse(_ => testee.takeToken)
+      val checkTokensUpToCapacity =
+        takeFiveTokens.map(tokens => tokens.exists(_ == TokenAvailable))
+      (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
+        .mapN(_ && _)
+    }.assert
   }
 
   test("LocalTokenBucket should add another token at specified interval when not at capacity") {
@@ -87,7 +85,7 @@ class ThrottleSuite extends Http4sSuite {
         result
       }
       .map(_.isInstanceOf[TokenUnavailable])
-      .assertEquals(true)
+      .assert
   }
 
   test(
@@ -118,15 +116,13 @@ class ThrottleSuite extends Http4sSuite {
       testee.takeToken *> munitTimer.sleep(75.milliseconds) *> testee.takeToken
     }
 
-    takeTwoTokens
-      .map { result =>
-        ctx.tick(75.milliseconds)
-        result match {
-          case TokenUnavailable(t) => t.exists(_ <= 25.milliseconds)
-          case _ => false
-        }
+    takeTwoTokens.map { result =>
+      ctx.tick(75.milliseconds)
+      result match {
+        case TokenUnavailable(t) => t.exists(_ <= 25.milliseconds)
+        case _ => false
       }
-      .assertEquals(true)
+    }.assert
   }
   val alwaysOkApp = HttpApp[IO] { _ =>
     Ok()
@@ -140,7 +136,7 @@ class ThrottleSuite extends Http4sSuite {
     val testee = Throttle(limitNotReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
     val req = Request[IO](uri = uri"/")
 
-    testee(req).map(_.status === Status.Ok).assertEquals(true)
+    testee(req).map(_.status === Status.Ok).assert
   }
 
   test(" Throttle / should deny a request when the rate limit had been reached") {
@@ -151,6 +147,6 @@ class ThrottleSuite extends Http4sSuite {
     val testee = Throttle(limitReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
     val req = Request[IO](uri = uri"/")
 
-    testee(req).map(_.status === Status.TooManyRequests).assertEquals(true)
+    testee(req).map(_.status === Status.TooManyRequests).assert
   }
 }
