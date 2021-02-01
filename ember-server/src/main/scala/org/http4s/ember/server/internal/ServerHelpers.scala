@@ -21,6 +21,7 @@ import fs2._
 import fs2.io.tcp._
 import fs2.io.tls._
 import cats.effect._
+import cats.effect.concurrent._
 import cats.syntax.all._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
@@ -51,6 +52,7 @@ private[server] object ServerHelpers {
       httpApp: HttpApp[F],
       sg: SocketGroup,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      ready: Deferred[F, Either[Throwable, Unit]],
       shutdown: Shutdown[F],
       // Defaults
       errorHandler: Throwable => F[Response[F]],
@@ -62,12 +64,19 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] =
-    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
+
+    val server: Stream[F, Resource[F, Socket[F]]] =
+      Stream
+        .resource(
+          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
+        .attempt
+        .evalTap(e => ready.complete(e.void))
+        .rethrow
+        .flatMap { case (_, clients) => clients }
+
+    val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
-      // Divorce the scopes of the server stream and handler streams so the
-      // former can be terminated while handlers complete.
-      .prefetch
       .map { connect =>
         shutdown.trackConnection >>
           Stream
@@ -84,8 +93,9 @@ private[server] object ServerHelpers {
                 errorHandler,
                 onWriteFailure))
       }
-      .parJoin(maxConcurrency)
-      .drain
+
+    StreamForking.forking(streams, maxConcurrency)
+  }
 
   private[internal] def reachedEndError[F[_]: Sync](
       socket: Socket[F],
