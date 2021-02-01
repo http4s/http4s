@@ -75,8 +75,8 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
       .string
       .map(Uri.Scheme.unsafeFromString)
     val stringHost = until(char(':').orElse(`end`)).map(RegName.apply)
-    val bracketedIpv6 = char('[') *> Uri.Ipv6Address.parser <* char(']')
-    val host = List(bracketedIpv6, Uri.Ipv4Address.parser, stringHost).reduceLeft(_ orElse _)
+    val bracketedIpv6 = char('[') *> Uri.Parser.ipv6Address <* char(']')
+    val host = List(bracketedIpv6, Uri.Parser.ipv4Address, stringHost).reduceLeft(_ orElse _)
     val port = char(':') *> digit.rep.string.map(_.toInt)
     val nullHost = (string("null") *> `end`).orElse(`end`).as(Origin.Null)
 
