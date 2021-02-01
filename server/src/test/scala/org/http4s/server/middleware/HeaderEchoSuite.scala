@@ -51,7 +51,7 @@ class HeaderEchoSuite extends Http4sSuite {
   test("echo a single header in addition to the defaults") {
     testSingleHeader(
       HeaderEcho(_ === CaseInsensitiveString("someheaderkey"))(testService).orNotFound
-    ).assertEquals(true)
+    ).assert
   }
 
   test("echo multiple headers") {
@@ -74,7 +74,7 @@ class HeaderEchoSuite extends Http4sSuite {
         responseHeaders.exists(_.value === "anotherheadervalue") &&
         responseHeaders.toList.length === 4
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("echo only the default headers where none match the key") {
@@ -92,18 +92,19 @@ class HeaderEchoSuite extends Http4sSuite {
         !responseHeaders.exists(_.value === "someunmatchedvalue") &&
         responseHeaders.toList.length === 2
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("be created via the httpRoutes constructor") {
     testSingleHeader(
-      HeaderEcho.httpRoutes(_ == CaseInsensitiveString("someheaderkey"))(testService).orNotFound)
-      .assertEquals(true)
+      HeaderEcho
+        .httpRoutes(_ == CaseInsensitiveString("someheaderkey"))(testService)
+        .orNotFound).assert
   }
 
   test("be created via the httpApps constructor") {
     testSingleHeader(
-      HeaderEcho.httpApp(_ == CaseInsensitiveString("someheaderkey"))(testService.orNotFound))
-      .assertEquals(true)
+      HeaderEcho.httpApp(_ == CaseInsensitiveString("someheaderkey"))(
+        testService.orNotFound)).assert
   }
 }

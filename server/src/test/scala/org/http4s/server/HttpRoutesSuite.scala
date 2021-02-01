@@ -76,6 +76,6 @@ class HttpRoutesSuite extends Http4sSuite {
       .apply(Request[IO](uri = uri"/wontMatch"))
       .value
       .map(_ == Option.empty[Response[IO]])
-      .assertEquals(true)
+      .assert
   }
 }

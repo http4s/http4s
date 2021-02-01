@@ -82,17 +82,17 @@ class JettyServerSuite extends Http4sSuite {
 
   jettyServer.test("ChannelOptions should should route requests on the service executor") {
     server =>
-      get(server, "/thread/routing").map(_.startsWith("http4s-spec-")).assertEquals(true)
+      get(server, "/thread/routing").map(_.startsWith("http4s-spec-")).assert
   }
 
   jettyServer.test(
     "ChannelOptions should should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assertEquals(true)
+    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assert
   }
 
   jettyServer.test("ChannelOptions should be able to echo its input") { server =>
     val input = """{ "Hello": "world" }"""
-    post(server, "/echo", input).map(_.startsWith(input)).assertEquals(true)
+    post(server, "/echo", input).map(_.startsWith(input)).assert
   }
 
   jettyServer.test("Timeout not fire prematurely") { server =>
@@ -104,6 +104,6 @@ class JettyServerSuite extends Http4sSuite {
   }
 
   jettyServer.test("Timeout should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assertEquals(true)
+    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assert
   }
 }

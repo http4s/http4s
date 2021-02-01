@@ -103,7 +103,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   //         case Right(r) => r == response
   //         case _ => false
   //       }
-  //       .assertEquals(true)
+  //       .assert
   //   }
   //
   //   "method" | "status" | "body" | "pure" | "response" |>
