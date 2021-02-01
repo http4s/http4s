@@ -24,6 +24,7 @@ jobs:
   build:
     name: Build and Test
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         scala: [2.12.12, 2.13.3]
@@ -111,7 +112,10 @@ jobs:
 
       - run: git status
 
-      - run: sbt ++${{ matrix.scala }} release
+      - run: sbt ++${{ matrix.scala }} +publish
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
       - name: Setup Hugo
         run: |
