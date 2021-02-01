@@ -85,7 +85,7 @@ private[client] object ClientHelpers {
       reuseable: Ref[F, Reusable],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
-      idleReadTimeout: Duration,
+      idleTimeout: Duration,
       timeout: Duration,
       userAgent: Option[`User-Agent`]
   ): F[Response[F]] = {
@@ -101,10 +101,10 @@ private[client] object ClientHelpers {
         .drain
 
     def writeRead(req: Request[F]): F[Response[F]] =
-      writeRequestToSocket(req, requestKeySocket.socket, None) >> {
+      writeRequestToSocket(req, requestKeySocket.socket, durationToFinite(idleTimeout)) >> {
         Parser.Response
           .parser(maxResponseHeaderSize, durationToFinite(timeout))(
-            requestKeySocket.socket.reads(chunkSize, durationToFinite(idleReadTimeout))
+            requestKeySocket.socket.reads(chunkSize, durationToFinite(idleTimeout))
           )
           .map(_._1)
       }

@@ -40,7 +40,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val logger: Logger[F],
     val chunkSize: Int,
     val maxResponseHeaderSize: Int,
-    private val idleReadTime: Duration,
+    private val idleConnectionTime: Duration,
     val timeout: Duration,
     val additionalSocketOptions: List[SocketOptionMapping[_]],
     val userAgent: Option[`User-Agent`]
@@ -56,7 +56,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       logger: Logger[F] = self.logger,
       chunkSize: Int = self.chunkSize,
       maxResponseHeaderSize: Int = self.maxResponseHeaderSize,
-      idleReadTime: Duration = self.idleReadTime,
+      idleConnectionTime: Duration = self.idleConnectionTime,
       timeout: Duration = self.timeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent
@@ -71,7 +71,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       logger = logger,
       chunkSize = chunkSize,
       maxResponseHeaderSize = maxResponseHeaderSize,
-      idleReadTime = idleReadTime,
+      idleConnectionTime = idleConnectionTime,
       timeout = timeout,
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent
@@ -89,11 +89,14 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
   def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
   def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
+  def withIdleConnectionTime(idleConnectionTime: Duration) =
+    copy(idleConnectionTime = idleConnectionTime)
 
   def withLogger(logger: Logger[F]) = copy(logger = logger)
   def withChunkSize(chunkSize: Int) = copy(chunkSize = chunkSize)
   def withMaxResponseHeaderSize(maxResponseHeaderSize: Int) =
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
+
   def withTimeout(timeout: Duration) = copy(timeout = timeout)
   def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOptionMapping[_]]) =
     copy(additionalSocketOptions = additionalSocketOptions)
@@ -170,7 +173,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   managed.canBeReused,
                   chunkSize,
                   maxResponseHeaderSize,
-                  idleReadTime,
+                  idleConnectionTime,
                   timeout,
                   userAgent
                 )
@@ -208,7 +211,7 @@ object EmberClientBuilder {
       logger = Slf4jLogger.getLogger[F],
       chunkSize = Defaults.chunkSize,
       maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
-      idleReadTime = Defaults.idleReadTime,
+      idleConnectionTime = Defaults.idleConnectionTime,
       timeout = Defaults.timeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent
@@ -218,7 +221,7 @@ object EmberClientBuilder {
     val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
-    val idleReadTime = org.http4s.client.defaults.RequestTimeout
+    val idleConnectionTime = org.http4s.client.defaults.RequestTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
 
     // Pool Settings

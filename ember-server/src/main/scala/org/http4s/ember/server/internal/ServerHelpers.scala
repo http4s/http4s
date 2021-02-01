@@ -64,7 +64,8 @@ private[server] object ServerHelpers {
 
     def reachedEndError(socket: Socket[F]): Stream[F, Byte] =
       Stream.eval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
-        case None => Stream.raiseError(new java.io.EOFException("Unexpected EOF - socket.read returned None"))
+        case None =>
+          Stream.raiseError(new java.io.EOFException("Unexpected EOF - socket.read returned None"))
         case Some(value) => Stream.chunk(value)
       }
 
