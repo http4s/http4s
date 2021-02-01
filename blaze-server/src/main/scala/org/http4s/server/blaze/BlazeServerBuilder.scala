@@ -154,7 +154,7 @@ class BlazeServerBuilder[F[_]] private (
     httpApp = httpApp,
     serviceErrorHandler = serviceErrorHandler,
     banner = banner,
-    maxConnections = maxConnections,    
+    maxConnections = maxConnections,
     channelOptions = channelOptions
   )
 
@@ -398,7 +398,12 @@ class BlazeServerBuilder[F[_]] private (
               .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
           case Nio1 =>
             NIO1SocketServerGroup
-              .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
+              .fixedGroup(
+                connectorPoolSize,
+                bufferSize,
+                channelOptions,
+                selectorThreadFactory,
+                maxConnections = maxConnections)
         }
       })(factory => F.delay(factory.closeGroup()))
 
