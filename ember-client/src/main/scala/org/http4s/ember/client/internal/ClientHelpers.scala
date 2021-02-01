@@ -92,20 +92,19 @@ private[client] object ClientHelpers {
       idleReadTimeout: Duration,
       timeout: Duration,
       userAgent: Option[`User-Agent`]
-  ): Resource[F, Response[F]] = {
+  ): F[Response[F]] = {
 
     def writeRequestToSocket(
         req: Request[F],
         socket: Socket[F],
-        timeout: Option[FiniteDuration]): Resource[F, Unit] =
+        timeout: Option[FiniteDuration]): F[Unit] =
       Encoder
         .reqToBytes(req)
         .through(socket.writes(timeout))
         .compile
-        .resource
         .drain
 
-    def writeRead(req: Request[F]): Resource[F, Response[F]] =
+    def writeRead(req: Request[F]): F[Response[F]] =
       writeRequestToSocket(req, requestKeySocket.socket, None) >> {
         Parser.Response
           .parser(maxResponseHeaderSize, durationToFinite(timeout))(
@@ -115,10 +114,9 @@ private[client] object ClientHelpers {
       }
 
     for {
-      processedReq <- Resource.liftF(preprocessRequest(request, userAgent))
+      processedReq <- preprocessRequest(request, userAgent)
       resp <- writeRead(processedReq)
-      processedResp <- postProcessResponse(processedReq, resp, reuseable)
-    } yield processedResp
+    } yield postProcessResponse(processedReq, resp, reuseable)
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -138,7 +136,7 @@ private[client] object ClientHelpers {
   private[internal] def postProcessResponse[F[_]: Concurrent](
       req: Request[F],
       resp: Response[F],
-      canBeReused: Ref[F, Reusable]): Resource[F, Response[F]] = {
+      canBeReused: Ref[F, Reusable]): Response[F] = {
     val out = resp.copy(
       body = resp.body.onFinalizeCaseWeak {
         case ExitCase.Completed =>
@@ -151,7 +149,7 @@ private[client] object ClientHelpers {
         case ExitCase.Error(_) => Applicative[F].unit
       }
     )
-    Resource.pure[F, Response[F]](out)
+    out
   }
 
   // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86

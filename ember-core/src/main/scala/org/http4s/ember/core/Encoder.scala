@@ -32,6 +32,7 @@ private[ember] object Encoder {
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = resp.isChunked
+    // resp.status.isEntityAllowed TODO
     val initSection = {
       var appliedContentLength = false
       val stringBuilder = new StringBuilder()

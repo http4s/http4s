@@ -161,32 +161,34 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               )
             }
           )
-          responseResource <-
-            org.http4s.ember.client.internal.ClientHelpers
-              .request[F](
-                request,
-                managed.value._1,
-                managed.canBeReused,
-                chunkSize,
-                maxResponseHeaderSize,
-                idleReadTime,
-                timeout,
-                userAgent
-              )
-              .map(response =>
-                // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
-                response.copy(body = response.body.onFinalizeCaseWeak {
-                  case ExitCase.Completed =>
-                    val requestClose = request.headers.get(Connection).exists(_.hasClose)
-                    val responseClose = response.isChunked || response.headers
-                      .get(Connection)
-                      .exists(_.hasClose)
+          responseResource <- Resource
+            .liftF(
+              org.http4s.ember.client.internal.ClientHelpers
+                .request[F](
+                  request,
+                  managed.value._1,
+                  managed.canBeReused,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleReadTime,
+                  timeout,
+                  userAgent
+                )
+            )
+            .map(response =>
+              // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
+              response.copy(body = response.body.onFinalizeCaseWeak {
+                case ExitCase.Completed =>
+                  val requestClose = request.headers.get(Connection).exists(_.hasClose)
+                  val responseClose = response.isChunked || response.headers
+                    .get(Connection)
+                    .exists(_.hasClose)
 
-                    if (requestClose || responseClose) Sync[F].unit
-                    else managed.canBeReused.set(Reusable.Reuse)
-                  case ExitCase.Canceled => Sync[F].unit
-                  case ExitCase.Error(_) => Sync[F].unit
-                }))
+                  if (requestClose || responseClose) Sync[F].unit
+                  else managed.canBeReused.set(Reusable.Reuse)
+                case ExitCase.Canceled => Sync[F].unit
+                case ExitCase.Error(_) => Sync[F].unit
+              }))
         } yield responseResource
       }
       new EmberClient[F](client, pool)

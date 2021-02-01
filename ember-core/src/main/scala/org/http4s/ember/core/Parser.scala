@@ -338,7 +338,7 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         s: Stream[F, Byte]): F[(Request[F], Stream[F, Byte])] =
       Deferred[F, Headers].flatMap { trailers =>
-        val base = ReqPrelude
+        val baseStream = ReqPrelude
           .parsePrelude[F](s, maxHeaderLength, None)
           .flatMap { case (method, uri, httpVersion, rest) =>
             HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
@@ -364,15 +364,19 @@ private[ember] object Parser {
           .stream
           .take(1)
 
-        timeout.fold(base)(duration => base.timeout(duration)).compile.lastOrError
+        val action = baseStream.compile.lastOrError
+        timeout match {
+          case None => action
+          case Some(timeout) => Concurrent.timeout(action, timeout)
+        }
       }
   }
 
   object Response {
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         s: Stream[F, Byte]
-    ): Resource[F, (Response[F], Stream[F, Byte])] =
-      Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
+    ): F[(Response[F], Stream[F, Byte])] =
+      Deferred[F, Headers].flatMap { trailers =>
         val base = RespPrelude
           .parsePrelude(s, maxHeaderLength, None)
           .flatMap { case (httpVersion, status, s) =>
@@ -395,9 +399,9 @@ private[ember] object Parser {
             }
           }
           .stream
-          .take(1)
 
-        timeout.fold(base)(duration => base.timeout(duration)).compile.resource.lastOrError
+        val action = base.compile.lastOrError
+        timeout.fold(action)(duration => Concurrent.timeout(action, duration))
       }
 
     object RespPrelude {
