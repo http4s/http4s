@@ -8,6 +8,30 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.0-M2
+
+## http4s-core
+
+### Enhancements
+
+* [#4286](https://github.com/http4s/http4s/pull/4286): Improve performance by using `oneOf` and caching a URI parser. This was an identified new hotspot in v0.22.0-M1.
+
+### Breaking changes
+
+* [#4259](https://github.com/http4s/http4s/pull/4259): Regenerate `MimeDb` from the IANA database. This shifts around some constants in a binary incompatible way, but almost nobody will notice.
+
+## http4s-prometheus
+
+### Breaking changes
+
+* [#4273](https://github.com/http4s/http4s/pull/4273): Change metric names from `_count` to `_count_total` to match Prometheus' move to the OpenMetrics standard.  Your metrics names will change!  See [prometheus/client_java#615](https://github.com/prometheus/client_java/pull/615) for more details from the Prometheus team.
+
+## Dependency updates
+
+* jawn-fs2-1.0.1
+* keypool-0.3.0-RC1 (moved to `org.typelevel`)
+* simpleclient-0.10.0 (Prometheus)
+
 # v0.21.17
 
 ## http4s-ember-server
