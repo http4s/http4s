@@ -241,7 +241,18 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Util.readWithTimeout"),
-
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.cause"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.copy"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.copy$default$1"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.throwable"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.copy"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.copy$default$1"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$Request$ReqPrelude$ParsePreludeError$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.apply"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$Response$RespPrelude$RespPreludeError$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.apply")
     )
   )
   .dependsOn(core, testing % "test->test")

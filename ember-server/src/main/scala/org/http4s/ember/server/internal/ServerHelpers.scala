@@ -31,11 +31,7 @@ import org.http4s.headers.{Connection, Date}
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.io.chrisdavenport.log4cats.Logger
 import cats.data.NonEmptyList
-import java.util.concurrent.TimeoutException
-import java.nio.channels.InterruptedByTimeoutException
 import _root_.org.http4s.ember.core.Util.durationToFinite
-import java.io.EOFException
-
 private[server] object ServerHelpers {
 
   private val closeCi = "close".ci
@@ -97,15 +93,15 @@ private[server] object ServerHelpers {
     StreamForking.forking(streams, maxConcurrency)
   }
 
-  private[internal] def reachedEndError[F[_]: Sync](
-      socket: Socket[F],
-      idleTimeout: Duration,
-      receiveBufferSize: Int): Stream[F, Byte] =
-    Stream.eval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
-      case None =>
-        Stream.raiseError(new EOFException("Unexpected EOF - socket.read returned None"))
-      case Some(value) => Stream.chunk(value)
-    }
+  // private[internal] def reachedEndError[F[_]: Sync](
+  //     socket: Socket[F],
+  //     idleTimeout: Duration,
+  //     receiveBufferSize: Int): Stream[F, Byte] =
+  //   Stream.repeatEval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
+  //     case None =>
+  //       Stream.raiseError(new EOFException("Unexpected EOF - socket.read returned None") with NoStackTrace)
+  //     case Some(value) => Stream.chunk(value)
+  //   }
 
   private[internal] def upgradeSocket[F[_]: Concurrent: ContextShift](
       socketInit: Socket[F],
@@ -177,9 +173,10 @@ private[server] object ServerHelpers {
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[org.http4s.Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
-  ): Stream[F, Nothing] =
+  ): Stream[F, Nothing] = {
+    val _ = logger
     Stream
-      .unfoldLoopEval(reachedEndError(socket, idleTimeout, receiveBufferSize))(s =>
+      .unfoldLoopEval(socket.reads(receiveBufferSize, durationToFinite(idleTimeout)))(s =>
         runApp(s, maxHeaderSize, requestHeaderReceiveTimeout, httpApp, errorHandler).attempt.map {
           case Right((req, resp, rest)) => (Right((req, resp)), Some(rest))
           case Left(e) => (Left(e), None)
@@ -194,14 +191,9 @@ private[server] object ServerHelpers {
           send(socket)(Some(request), response, idleTimeout, onWriteFailure)
         case Left(err) =>
           err match {
-            // Timeouts Do Not Get Responses
-            // Thrown by Stream.timeout or Concurrent.timeout
-            case _: TimeoutException =>
-              errorHandler(
-                err).void // Lets users see responses, but cannot generate responses i don't like this
-            // Thrown by fs2.io.tcp.Socket read/write
-            case _: InterruptedByTimeoutException => errorHandler(err).void
-            case e: EOFException => logger.warn(e)("Unexpected EOF Encountered")
+            case req: Parser.Request.ReqPrelude.ParsePreludeError
+                if req == Parser.Request.ReqPrelude.emptyStreamError =>
+              Applicative[F].unit
             case err =>
               errorHandler(err)
                 .handleError(_ => serverFailure.covary[F])
@@ -216,6 +208,7 @@ private[server] object ServerHelpers {
               resp.headers.get(Connection).exists(_.hasClose)
           )
       }
-      .drain
+      .drain ++ Stream.eval_(socket.close)
+  }
 
 }
