@@ -113,7 +113,6 @@ lazy val core = libraryProject("core")
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
-    Compile / packageBin / mappings ~= { _.filterNot(_._2.startsWith("scala/")) },
   )
 
 lazy val laws = libraryProject("laws")
