@@ -51,6 +51,9 @@ package object server {
 
     /** Default max size of all headers. */
     val MaxHeadersSize: Int = 40 * 1024
+
+    /** Default max connections */
+    val MaxConnections: Int = 1024
   }
 
   object ServerRequestKeys {

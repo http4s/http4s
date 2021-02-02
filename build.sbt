@@ -753,7 +753,8 @@ def http4sProject(name: String) =
       moduleName := s"http4s-$name",
       Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       testFrameworks += new TestFramework("munit.Framework"),
-      initCommands()
+      initCommands(),
+      scalacOptions in Test += "-language:postfixOps", // for Specs2 DSL
     )
     .enablePlugins(Http4sPlugin)
 
