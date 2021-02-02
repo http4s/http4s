@@ -344,11 +344,12 @@ class BlazeServerBuilder[F[_]] private (
       val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
         NIO1SocketServerGroup
           .fixed(
-            connectorPoolSize,
-            bufferSize,
-            channelOptions,
-            selectorThreadFactory,
-            maxConnections = maxConnections)
+            workerThreads = connectorPoolSize,
+            bufferSize = bufferSize,
+            channelOptions = channelOptions,
+            selectorThreadFactory = selectorThreadFactory,
+            maxConnections = maxConnections
+          )
       })(factory => F.delay(factory.closeGroup()))
 
       def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =

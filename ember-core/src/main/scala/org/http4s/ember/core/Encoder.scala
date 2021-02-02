@@ -54,7 +54,7 @@ private[ember] object Encoder {
           .append(CRLF)
         ()
       }
-      if (!chunked && !appliedContentLength) {
+      if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
         stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
         chunked = true
         ()
