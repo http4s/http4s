@@ -96,7 +96,7 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;1.0-234-d1a2b53&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;1.0.0-M15&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
@@ -177,7 +177,7 @@ val greeting = hello(&quot;world&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@74560a01
+//   io.chrisdavenport.vault.Vault@232d817e
 // )
 </code></pre>
 
@@ -187,14 +187,14 @@ useful on client requests:</p>
 <pre><code class="language-scala">import org.http4s.client.dsl.io._
 </code></pre>
 
-<pre><code class="language-scala">POST(json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;)
+<pre><code class="language-scala">POST(json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).unsafeRunSync()
 // res2: Request[IO] = (
-//   POST,
-//   Uri(None, None, /hello, , None),
+//   Method(&quot;POST&quot;),
+//   Uri(None, None, &quot;/hello&quot;, , None),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 16),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@413aa74c
+//   io.chrisdavenport.vault.Vault@68e30568
 // )
 </code></pre>
 
@@ -230,7 +230,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { (hello: Hello) =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@1baeabe3
+// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@46555c9
 
 Hello(&quot;Alice&quot;).asJson
 // res4: Json = JObject(object[hello -&gt; &quot;Alice&quot;])
@@ -256,16 +256,16 @@ and responses for our case classes:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@644987f0
+//   io.chrisdavenport.vault.Vault@2e0c7363
 // )
-POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
+POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;).unsafeRunSync()
 // res7: Request[IO] = (
-//   POST,
-//   Uri(None, None, /hello, , None),
+//   Method(&quot;POST&quot;),
+//   Uri(None, None, &quot;/hello&quot;, , None),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 14),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@2c0aacba
+//   io.chrisdavenport.vault.Vault@7be3fea5
 // )
 </code></pre>
 
@@ -291,7 +291,7 @@ response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T]
 
 <pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[Json]).unsafeRunSync()
 // res9: Json = JObject(object[name -&gt; &quot;Alice&quot;])
-POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).as[Json].unsafeRunSync()
+POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).flatMap(_.as[Json]).unsafeRunSync()
 // res10: Json = JObject(object[name -&gt; &quot;Bob&quot;])
 </code></pre>
 
@@ -307,11 +307,11 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@5563ec2c
+// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@34ec9079
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res11: User = User(&quot;Alice&quot;)
 
-POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).as[User].unsafeRunSync()
+POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res12: User = User(&quot;Bob&quot;)
 </code></pre>
 
@@ -503,7 +503,7 @@ helloAlice.compile.last.unsafeRunSync()
       </div>
       <hr />
       <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
       </footer>
 
     </div>

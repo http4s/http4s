@@ -143,8 +143,8 @@
                         <a href="$minus$greater$.html" title="">-&gt;</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="$div$.html" title=""></a>
-                        <a href="$div$.html" title="">/</a>
+                        <a class="class" href="$div.html" title=""></a>
+                        <a href="$div.html" title="">/</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="$div$colon$.html" title="Path separator extractor:"></a>
@@ -214,6 +214,10 @@
                         <a class="class" href="OptionalValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder."></a>
                         <a href="OptionalValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder.">OptionalValidatingQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
+                        <a class="object" href="Path$.html" title=""></a>
+                        <a class="trait" href="Path.html" title="Base class for path extractors."></a>
+                        <a href="Path.html" title="Base class for path extractors.">Path</a>
+                      </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="PathVar.html" title=""></a>
                         <a href="PathVar.html" title="">PathVar</a>
@@ -237,6 +241,10 @@
                         <a class="object" href="Responses$.html" title=""></a>
                         <a class="trait" href="Responses.html" title=""></a>
                         <a href="Responses.html" title="">Responses</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="Root$.html" title="Root extractor:"></a>
+                        <a href="Root$.html" title="Root extractor:">Root</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="trait" href="Statuses.html" title=""></a>
@@ -288,11 +296,11 @@
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain
 a Location header and may contain a body.</p><p>A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
 distinguishes this from other <code>EntityResponseGenerator</code>s.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d1a2b53d0a262698a6fd5b0d395f8fd212afa0ad/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.G">G</span>], <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.G">G</span>], <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
@@ -413,7 +421,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -429,7 +437,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -445,7 +453,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -557,7 +565,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -573,7 +581,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -589,7 +597,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -646,7 +654,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
             </div><div class="parent" name="org.http4s.dsl.impl.ResponseGenerator">
               <h3>Inherited from <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

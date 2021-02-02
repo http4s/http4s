@@ -111,7 +111,7 @@ object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     app.use(_ =&gt; IO.never).as(ExitCode.Success)
 
-  val app: Resource[IO, Server] =
+  val app: Resource[IO, Server[IO]] =
     for {
       blocker &lt;- Blocker[IO]
       server &lt;- BlazeServerBuilder[IO](global)
@@ -147,7 +147,7 @@ You can create a <code>Resource[F, Blocker]</code> by calling <code>Blocker[F]</
 creating and disposing of an underlying thread pool. You can also create your
 own by lifting an execution context or an executor service.</p>
 
-<p>For now, we will lift an executor service, since using <code>Resource</code> in a <code>tut</code>
+<p>For now, we will lift an executor service, since using <code>Resource</code> in a <a href="https://scalameta.org/mdoc/">mdoc</a>
 example is not feasible.</p>
 
 <pre><code class="language-scala">import java.util.concurrent._
@@ -188,9 +188,9 @@ val routes = HttpRoutes.of[IO] {
 <p>For simple file serving, it&rsquo;s possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under <code>assets</code>:</p>
 
-<pre><code class="language-scala">val routes = resourceServiceBuilder[IO](&quot;/assets&quot;, blocker).toRoutes
+<pre><code class="language-scala">val routes = resourceService[IO](ResourceService.Config(&quot;/assets&quot;, blocker))
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$9613/445786035@4dc1fcda
+//   org.http4s.server.staticcontent.ResourceService$$$Lambda$9555/276478658@17ed68d4
 // )
 </code></pre>
 
@@ -205,7 +205,7 @@ val routes = HttpRoutes.of[IO] {
     static(path, blocker, request)
 }
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8163/554800054@2002c625
+//   org.http4s.HttpRoutes$$$Lambda$8222/2054675153@738ccdde
 // )
 </code></pre>
 
@@ -222,16 +222,21 @@ class path, as you usually would:</p>
 <p>Then, mount the <code>WebjarService</code> like any other service:</p>
 
 <pre><code class="language-scala">import org.http4s.server.staticcontent.webjarService
-import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
+import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 </code></pre>
 
 <pre><code class="language-scala">// only allow js assets
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(&quot;.js&quot;)
 
-val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker).withWebjarAssetFilter(isJsAsset).toRoutes
+val webjars: HttpRoutes[IO] = webjarService(
+  Config(
+    filter = isJsAsset,
+    blocker = blocker
+  )
+)
 // webjars: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$9615/809898672@28b738f9
+//   org.http4s.server.staticcontent.WebjarService$$$Lambda$9556/1400124005@c70ce23
 // )
 </code></pre>
 
@@ -331,7 +336,7 @@ val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker).withWe
       </div>
       <hr />
       <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
       </footer>
 
     </div>

@@ -119,16 +119,20 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="ContentLocationHeader.html" title=""></a>
-                        <a href="ContentLocationHeader.html" title="">ContentLocationHeader</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
                         <a class="object" href="" title=""></a>
                         <a href="" title="">HttpHeaderParser</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="LocationHeader.html" title=""></a>
                         <a href="LocationHeader.html" title="">LocationHeader</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="OriginHeader.html" title=""></a>
+                        <a href="OriginHeader.html" title="">OriginHeader</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="ProxyAuthenticateHeader.html" title=""></a>
+                        <a href="ProxyAuthenticateHeader.html" title="">ProxyAuthenticateHeader</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="RefererHeader.html" title=""></a>
@@ -160,16 +164,16 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpHeaderParser</span><span class="result"> extends <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span> with <span class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</span> with <span class="extype" name="org.http4s.parser.ContentLanguageHeader">ContentLanguageHeader</span> with <a href="ContentLocationHeader.html" class="extype" name="org.http4s.parser.ContentLocationHeader">ContentLocationHeader</a> with <span class="extype" name="org.http4s.parser.ForwardedHeader">ForwardedHeader</span> with <span class="extype" name="org.http4s.parser.LinkHeader">LinkHeader</span> with <a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a> with <a href="RefererHeader.html" class="extype" name="org.http4s.parser.RefererHeader">RefererHeader</a> with <span class="extype" name="org.http4s.parser.StrictTransportSecurityHeader">StrictTransportSecurityHeader</span></span>
+        <span class="name">HttpHeaderParser</span><span class="result"> extends <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span> with <span class="extype" name="org.http4s.parser.AcceptCharsetHeader">AcceptCharsetHeader</span> with <span class="extype" name="org.http4s.parser.AcceptEncodingHeader">AcceptEncodingHeader</span> with <span class="extype" name="org.http4s.parser.AcceptHeader">AcceptHeader</span> with <span class="extype" name="org.http4s.parser.AcceptLanguageHeader">AcceptLanguageHeader</span> with <span class="extype" name="org.http4s.parser.AuthorizationHeader">AuthorizationHeader</span> with <span class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</span> with <span class="extype" name="org.http4s.parser.ContentTypeHeader">ContentTypeHeader</span> with <span class="extype" name="org.http4s.parser.CookieHeader">CookieHeader</span> with <span class="extype" name="org.http4s.parser.ForwardedHeader">ForwardedHeader</span> with <span class="extype" name="org.http4s.parser.LinkHeader">LinkHeader</span> with <a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a> with <a href="OriginHeader.html" class="extype" name="org.http4s.parser.OriginHeader">OriginHeader</a> with <a href="ProxyAuthenticateHeader.html" class="extype" name="org.http4s.parser.ProxyAuthenticateHeader">ProxyAuthenticateHeader</a> with <span class="extype" name="org.http4s.parser.RangeParser">RangeParser</span> with <a href="RefererHeader.html" class="extype" name="org.http4s.parser.RefererHeader">RefererHeader</a> with <span class="extype" name="org.http4s.parser.StrictTransportSecurityHeader">StrictTransportSecurityHeader</span> with <span class="extype" name="org.http4s.parser.WwwAuthenticateHeader">WwwAuthenticateHeader</span> with <span class="extype" name="org.http4s.parser.ZipkinHeader">ZipkinHeader</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d1a2b53d0a262698a6fd5b0d395f8fd212afa0ad/core/src/main/scala/org/http4s/parser/HttpHeaderParser.scala" target="_blank">HttpHeaderParser.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/core/src/main/scala/org/http4s/parser/HttpHeaderParser.scala" target="_blank">HttpHeaderParser.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.parser.StrictTransportSecurityHeader">StrictTransportSecurityHeader</span>, <a href="RefererHeader.html" class="extype" name="org.http4s.parser.RefererHeader">RefererHeader</a>, <a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a>, <span class="extype" name="org.http4s.parser.LinkHeader">LinkHeader</span>, <span class="extype" name="org.http4s.parser.ForwardedHeader">ForwardedHeader</span>, <a href="ContentLocationHeader.html" class="extype" name="org.http4s.parser.ContentLocationHeader">ContentLocationHeader</a>, <span class="extype" name="org.http4s.parser.ContentLanguageHeader">ContentLanguageHeader</span>, <span class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</span>, <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span>, <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.parser.ZipkinHeader">ZipkinHeader</span>, <span class="extype" name="org.http4s.parser.WwwAuthenticateHeader">WwwAuthenticateHeader</span>, <span class="extype" name="org.http4s.parser.StrictTransportSecurityHeader">StrictTransportSecurityHeader</span>, <a href="RefererHeader.html" class="extype" name="org.http4s.parser.RefererHeader">RefererHeader</a>, <span class="extype" name="org.http4s.parser.RangeParser">RangeParser</span>, <a href="ProxyAuthenticateHeader.html" class="extype" name="org.http4s.parser.ProxyAuthenticateHeader">ProxyAuthenticateHeader</a>, <a href="OriginHeader.html" class="extype" name="org.http4s.parser.OriginHeader">OriginHeader</a>, <a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a>, <span class="extype" name="org.http4s.parser.LinkHeader">LinkHeader</span>, <span class="extype" name="org.http4s.parser.ForwardedHeader">ForwardedHeader</span>, <span class="extype" name="org.http4s.parser.CookieHeader">CookieHeader</span>, <span class="extype" name="org.http4s.parser.ContentTypeHeader">ContentTypeHeader</span>, <span class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</span>, <span class="extype" name="org.http4s.parser.AuthorizationHeader">AuthorizationHeader</span>, <span class="extype" name="org.http4s.parser.AcceptLanguageHeader">AcceptLanguageHeader</span>, <span class="extype" name="org.http4s.parser.AcceptHeader">AcceptHeader</span>, <span class="extype" name="org.http4s.parser.AcceptEncodingHeader">AcceptEncodingHeader</span>, <span class="extype" name="org.http4s.parser.AcceptCharsetHeader">AcceptCharsetHeader</span>, <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span>, <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -195,7 +199,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.parser.HttpHeaderParser"><span>HttpHeaderParser</span></li><li class="in" name="org.http4s.parser.StrictTransportSecurityHeader"><span>StrictTransportSecurityHeader</span></li><li class="in" name="org.http4s.parser.RefererHeader"><span>RefererHeader</span></li><li class="in" name="org.http4s.parser.LocationHeader"><span>LocationHeader</span></li><li class="in" name="org.http4s.parser.LinkHeader"><span>LinkHeader</span></li><li class="in" name="org.http4s.parser.ForwardedHeader"><span>ForwardedHeader</span></li><li class="in" name="org.http4s.parser.ContentLocationHeader"><span>ContentLocationHeader</span></li><li class="in" name="org.http4s.parser.ContentLanguageHeader"><span>ContentLanguageHeader</span></li><li class="in" name="org.http4s.parser.CacheControlHeader"><span>CacheControlHeader</span></li><li class="in" name="org.http4s.parser.SimpleHeaders"><span>SimpleHeaders</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.parser.HttpHeaderParser"><span>HttpHeaderParser</span></li><li class="in" name="org.http4s.parser.ZipkinHeader"><span>ZipkinHeader</span></li><li class="in" name="org.http4s.parser.WwwAuthenticateHeader"><span>WwwAuthenticateHeader</span></li><li class="in" name="org.http4s.parser.StrictTransportSecurityHeader"><span>StrictTransportSecurityHeader</span></li><li class="in" name="org.http4s.parser.RefererHeader"><span>RefererHeader</span></li><li class="in" name="org.http4s.parser.RangeParser"><span>RangeParser</span></li><li class="in" name="org.http4s.parser.ProxyAuthenticateHeader"><span>ProxyAuthenticateHeader</span></li><li class="in" name="org.http4s.parser.OriginHeader"><span>OriginHeader</span></li><li class="in" name="org.http4s.parser.LocationHeader"><span>LocationHeader</span></li><li class="in" name="org.http4s.parser.LinkHeader"><span>LinkHeader</span></li><li class="in" name="org.http4s.parser.ForwardedHeader"><span>ForwardedHeader</span></li><li class="in" name="org.http4s.parser.CookieHeader"><span>CookieHeader</span></li><li class="in" name="org.http4s.parser.ContentTypeHeader"><span>ContentTypeHeader</span></li><li class="in" name="org.http4s.parser.CacheControlHeader"><span>CacheControlHeader</span></li><li class="in" name="org.http4s.parser.AuthorizationHeader"><span>AuthorizationHeader</span></li><li class="in" name="org.http4s.parser.AcceptLanguageHeader"><span>AcceptLanguageHeader</span></li><li class="in" name="org.http4s.parser.AcceptHeader"><span>AcceptHeader</span></li><li class="in" name="org.http4s.parser.AcceptEncodingHeader"><span>AcceptEncodingHeader</span></li><li class="in" name="org.http4s.parser.AcceptCharsetHeader"><span>AcceptCharsetHeader</span></li><li class="in" name="org.http4s.parser.SimpleHeaders"><span>SimpleHeaders</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -233,6 +237,22 @@
       </span>
       
       
+    </li><li name="org.http4s.parser.RangeParser.RangeRule" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="RangeRuleextendsParserwithAdditionalRules"></a><a id="RangeRule:RangeRule"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#RangeRuleextendsParserwithAdditionalRules" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RangeRule</span><span class="result"> extends <span class="extype" name="org.http4s.internal.parboiled2.Parser">Parser</span> with <span class="extype" name="org.http4s.parser.AdditionalRules">AdditionalRules</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>RangeParser</dd></dl></div>
     </li></ol>
             </div>
 
@@ -253,7 +273,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -269,7 +289,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -285,14 +305,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.parser.SimpleHeaders#ACCEPT_PATCH" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ACCEPT_PATCH(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Patch]"></a><a id="ACCEPT_PATCH(String):ParseResult[Accept-Patch]"></a>
+    </li><li name="org.http4s.parser.AcceptHeader#ACCEPT" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ACCEPT(value:String):org.http4s.ParseResult[org.http4s.headers.Accept]"></a><a id="ACCEPT(String):ParseResult[Accept]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCEPT_PATCH(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Patch]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCEPT(value:String):org.http4s.ParseResult[org.http4s.headers.Accept]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -301,14 +321,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ACCEPT_PATCH</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Accept$minusPatch.html" class="extype" name="org.http4s.headers.Accept-Patch">Accept-Patch</a>]</span>
+        <span class="name">ACCEPT</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Accept.html" class="extype" name="org.http4s.headers.Accept">Accept</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
-    </li><li name="org.http4s.parser.SimpleHeaders#ACCESS_CONTROL_ALLOW_CREDENTIALS" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ACCESS_CONTROL_ALLOW_CREDENTIALS(value:String):org.http4s.ParseResult[org.http4s.headers.Access-Control-Allow-Credentials]"></a><a id="ACCESS_CONTROL_ALLOW_CREDENTIALS(String):ParseResult[Access-Control-Allow-Credentials]"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AcceptHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.AcceptCharsetHeader#ACCEPT_CHARSET" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ACCEPT_CHARSET(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Charset]"></a><a id="ACCEPT_CHARSET(String):ParseResult[Accept-Charset]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCESS_CONTROL_ALLOW_CREDENTIALS(value:String):org.http4s.ParseResult[org.http4s.headers.Access-Control-Allow-Credentials]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCEPT_CHARSET(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Charset]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -317,14 +337,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ACCESS_CONTROL_ALLOW_CREDENTIALS</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Access$minusControl$minusAllow$minusCredentials.html" class="extype" name="org.http4s.headers.Access-Control-Allow-Credentials">Access-Control-Allow-Credentials</a>]</span>
+        <span class="name">ACCEPT_CHARSET</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Accept$minusCharset.html" class="extype" name="org.http4s.headers.Accept-Charset">Accept-Charset</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
-    </li><li name="org.http4s.parser.SimpleHeaders#ACCESS_CONTROL_ALLOW_HEADERS" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ACCESS_CONTROL_ALLOW_HEADERS(value:String):org.http4s.ParseResult[org.http4s.headers.Access-Control-Allow-Headers]"></a><a id="ACCESS_CONTROL_ALLOW_HEADERS(String):ParseResult[Access-Control-Allow-Headers]"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AcceptCharsetHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.AcceptEncodingHeader#ACCEPT_ENCODING" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ACCEPT_ENCODING(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Encoding]"></a><a id="ACCEPT_ENCODING(String):ParseResult[Accept-Encoding]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCESS_CONTROL_ALLOW_HEADERS(value:String):org.http4s.ParseResult[org.http4s.headers.Access-Control-Allow-Headers]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCEPT_ENCODING(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Encoding]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -333,14 +353,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ACCESS_CONTROL_ALLOW_HEADERS</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Access$minusControl$minusAllow$minusHeaders.html" class="extype" name="org.http4s.headers.Access-Control-Allow-Headers">Access-Control-Allow-Headers</a>]</span>
+        <span class="name">ACCEPT_ENCODING</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Accept$minusEncoding.html" class="extype" name="org.http4s.headers.Accept-Encoding">Accept-Encoding</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
-    </li><li name="org.http4s.parser.SimpleHeaders#ACCESS_CONTROL_EXPOSE_HEADERS" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ACCESS_CONTROL_EXPOSE_HEADERS(value:String):org.http4s.ParseResult[org.http4s.headers.Access-Control-Expose-Headers]"></a><a id="ACCESS_CONTROL_EXPOSE_HEADERS(String):ParseResult[Access-Control-Expose-Headers]"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AcceptEncodingHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.AcceptLanguageHeader#ACCEPT_LANGUAGE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ACCEPT_LANGUAGE(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Language]"></a><a id="ACCEPT_LANGUAGE(String):ParseResult[Accept-Language]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCESS_CONTROL_EXPOSE_HEADERS(value:String):org.http4s.ParseResult[org.http4s.headers.Access-Control-Expose-Headers]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCEPT_LANGUAGE(value:String):org.http4s.ParseResult[org.http4s.headers.Accept-Language]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -349,10 +369,26 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ACCESS_CONTROL_EXPOSE_HEADERS</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Access$minusControl$minusExpose$minusHeaders.html" class="extype" name="org.http4s.headers.Access-Control-Expose-Headers">Access-Control-Expose-Headers</a>]</span>
+        <span class="name">ACCEPT_LANGUAGE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Accept$minusLanguage.html" class="extype" name="org.http4s.headers.Accept-Language">Accept-Language</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AcceptLanguageHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.RangeParser#ACCEPT_RANGES" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ACCEPT_RANGES(input:String):org.http4s.ParseResult[org.http4s.headers.Accept-Ranges]"></a><a id="ACCEPT_RANGES(String):ParseResult[Accept-Ranges]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ACCEPT_RANGES(input:String):org.http4s.ParseResult[org.http4s.headers.Accept-Ranges]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ACCEPT_RANGES</span><span class="params">(<span name="input">input: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Accept$minusRanges.html" class="extype" name="org.http4s.headers.Accept-Ranges">Accept-Ranges</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>RangeParser</dd></dl></div>
     </li><li name="org.http4s.parser.SimpleHeaders#AGE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="AGE(value:String):org.http4s.ParseResult[org.http4s.headers.Age]"></a><a id="AGE(String):ParseResult[Age]"></a>
       <span class="permalink">
@@ -385,6 +421,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.AuthorizationHeader#AUTHORIZATION" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AUTHORIZATION(value:String):org.http4s.ParseResult[org.http4s.headers.Authorization]"></a><a id="AUTHORIZATION(String):ParseResult[Authorization]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#AUTHORIZATION(value:String):org.http4s.ParseResult[org.http4s.headers.Authorization]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">AUTHORIZATION</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Authorization.html" class="extype" name="org.http4s.headers.Authorization">Authorization</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AuthorizationHeader</dd></dl></div>
     </li><li name="org.http4s.parser.CacheControlHeader#CACHE_CONTROL" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CACHE_CONTROL(value:String):org.http4s.ParseResult[org.http4s.headers.Cache-Control]"></a><a id="CACHE_CONTROL(String):ParseResult[Cache-Control]"></a>
       <span class="permalink">
@@ -449,22 +501,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
-    </li><li name="org.http4s.parser.ContentLanguageHeader#CONTENT_LANGUAGE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="CONTENT_LANGUAGE(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Language]"></a><a id="CONTENT_LANGUAGE(String):ParseResult[Content-Language]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#CONTENT_LANGUAGE(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Language]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">CONTENT_LANGUAGE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Content$minusLanguage.html" class="extype" name="org.http4s.headers.Content-Language">Content-Language</a>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ContentLanguageHeader</dd></dl></div>
     </li><li name="org.http4s.parser.SimpleHeaders#CONTENT_LENGTH" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CONTENT_LENGTH(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Length]"></a><a id="CONTENT_LENGTH(String):ParseResult[Content-Length]"></a>
       <span class="permalink">
@@ -481,10 +517,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
-    </li><li name="org.http4s.parser.ContentLocationHeader#CONTENT_LOCATION" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="CONTENT_LOCATION(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Location]"></a><a id="CONTENT_LOCATION(String):ParseResult[Content-Location]"></a>
+    </li><li name="org.http4s.parser.RangeParser#CONTENT_RANGE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CONTENT_RANGE(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Range]"></a><a id="CONTENT_RANGE(String):ParseResult[Content-Range]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#CONTENT_LOCATION(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Location]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#CONTENT_RANGE(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Range]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -493,10 +529,90 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">CONTENT_LOCATION</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Content$minusLocation.html" class="extype" name="org.http4s.headers.Content-Location">Content-Location</a>]</span>
+        <span class="name">CONTENT_RANGE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Content$minusRange.html" class="extype" name="org.http4s.headers.Content-Range">Content-Range</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ContentLocationHeader.html" class="extype" name="org.http4s.parser.ContentLocationHeader">ContentLocationHeader</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>RangeParser</dd></dl></div>
+    </li><li name="org.http4s.parser.ContentTypeHeader#CONTENT_TYPE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CONTENT_TYPE(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Type]"></a><a id="CONTENT_TYPE(String):ParseResult[Content-Type]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#CONTENT_TYPE(value:String):org.http4s.ParseResult[org.http4s.headers.Content-Type]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">CONTENT_TYPE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ContentTypeHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.CookieHeader#COOKIE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="COOKIE(value:String):org.http4s.ParseResult[org.http4s.headers.Cookie]"></a><a id="COOKIE(String):ParseResult[Cookie]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#COOKIE(value:String):org.http4s.ParseResult[org.http4s.headers.Cookie]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">COOKIE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Cookie.html" class="extype" name="org.http4s.headers.Cookie">Cookie</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>CookieHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.SimpleHeaders#DATE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DATE(value:String):org.http4s.ParseResult[org.http4s.headers.Date]"></a><a id="DATE(String):ParseResult[Date]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#DATE(value:String):org.http4s.ParseResult[org.http4s.headers.Date]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">DATE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Date.html" class="extype" name="org.http4s.headers.Date">Date</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.SimpleHeaders#ETAG" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ETAG(value:String):org.http4s.ParseResult[org.http4s.headers.ETag]"></a><a id="ETAG(String):ParseResult[ETag]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ETAG(value:String):org.http4s.ParseResult[org.http4s.headers.ETag]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ETAG</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/ETag.html" class="extype" name="org.http4s.headers.ETag">ETag</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.SimpleHeaders#EXPIRES" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="EXPIRES(value:String):org.http4s.ParseResult[org.http4s.headers.Expires]"></a><a id="EXPIRES(String):ParseResult[Expires]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#EXPIRES(value:String):org.http4s.ParseResult[org.http4s.headers.Expires]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">EXPIRES</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Expires.html" class="extype" name="org.http4s.headers.Expires">Expires</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
     </li><li name="org.http4s.parser.ForwardedHeader#FORWARDED" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="FORWARDED(value:String):org.http4s.ParseResult[org.http4s.headers.Forwarded]"></a><a id="FORWARDED(String):ParseResult[Forwarded]"></a>
       <span class="permalink">
@@ -545,6 +661,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.SimpleHeaders#IF_MODIFIED_SINCE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="IF_MODIFIED_SINCE(value:String):org.http4s.ParseResult[org.http4s.headers.If-Modified-Since]"></a><a id="IF_MODIFIED_SINCE(String):ParseResult[If-Modified-Since]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#IF_MODIFIED_SINCE(value:String):org.http4s.ParseResult[org.http4s.headers.If-Modified-Since]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">IF_MODIFIED_SINCE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/If$minusModified$minusSince.html" class="extype" name="org.http4s.headers.If-Modified-Since">If-Modified-Since</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
     </li><li name="org.http4s.parser.SimpleHeaders#IF_NONE_MATCH" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="IF_NONE_MATCH(value:String):org.http4s.ParseResult[org.http4s.headers.If-None-Match]"></a><a id="IF_NONE_MATCH(String):ParseResult[If-None-Match]"></a>
       <span class="permalink">
@@ -561,6 +693,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.SimpleHeaders#IF_UNMODIFIED_SINCE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="IF_UNMODIFIED_SINCE(value:String):org.http4s.ParseResult[org.http4s.headers.If-Unmodified-Since]"></a><a id="IF_UNMODIFIED_SINCE(String):ParseResult[If-Unmodified-Since]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#IF_UNMODIFIED_SINCE(value:String):org.http4s.ParseResult[org.http4s.headers.If-Unmodified-Since]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">IF_UNMODIFIED_SINCE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/If$minusUnmodified$minusSince.html" class="extype" name="org.http4s.headers.If-Unmodified-Since">If-Unmodified-Since</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
     </li><li name="org.http4s.parser.SimpleHeaders#LAST_EVENT_ID" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="LAST_EVENT_ID(value:String):org.http4s.ParseResult[org.http4s.headers.Last-Event-Id]"></a><a id="LAST_EVENT_ID(String):ParseResult[Last-Event-Id]"></a>
       <span class="permalink">
@@ -574,6 +722,22 @@
       </span>
       <span class="symbol">
         <span class="name">LAST_EVENT_ID</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Last$minusEvent$minusId.html" class="extype" name="org.http4s.headers.Last-Event-Id">Last-Event-Id</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.SimpleHeaders#LAST_MODIFIED" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="LAST_MODIFIED(value:String):org.http4s.ParseResult[org.http4s.headers.Last-Modified]"></a><a id="LAST_MODIFIED(String):ParseResult[Last-Modified]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#LAST_MODIFIED(value:String):org.http4s.ParseResult[org.http4s.headers.Last-Modified]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">LAST_MODIFIED</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Last$minusModified.html" class="extype" name="org.http4s.headers.Last-Modified">Last-Modified</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
@@ -609,10 +773,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a></dd></dl></div>
-    </li><li name="org.http4s.parser.SimpleHeaders#MAX_FORWARDS" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="MAX_FORWARDS(value:String):org.http4s.ParseResult[org.http4s.headers.Max-Forwards]"></a><a id="MAX_FORWARDS(String):ParseResult[Max-Forwards]"></a>
+    </li><li name="org.http4s.parser.OriginHeader#ORIGIN" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ORIGIN(value:String):org.http4s.ParseResult[org.http4s.headers.Origin]"></a><a id="ORIGIN(String):ParseResult[Origin]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#MAX_FORWARDS(value:String):org.http4s.ParseResult[org.http4s.headers.Max-Forwards]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#ORIGIN(value:String):org.http4s.ParseResult[org.http4s.headers.Origin]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -621,10 +785,42 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">MAX_FORWARDS</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Max$minusForwards.html" class="extype" name="org.http4s.headers.Max-Forwards">Max-Forwards</a>]</span>
+        <span class="name">ORIGIN</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Origin.html" class="extype" name="org.http4s.headers.Origin">Origin</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="OriginHeader.html" class="extype" name="org.http4s.parser.OriginHeader">OriginHeader</a></dd></dl></div>
+    </li><li name="org.http4s.parser.ProxyAuthenticateHeader#PROXY_AUTHENTICATE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PROXY_AUTHENTICATE(value:String):org.http4s.ParseResult[org.http4s.headers.Proxy-Authenticate]"></a><a id="PROXY_AUTHENTICATE(String):ParseResult[Proxy-Authenticate]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#PROXY_AUTHENTICATE(value:String):org.http4s.ParseResult[org.http4s.headers.Proxy-Authenticate]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">PROXY_AUTHENTICATE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Proxy$minusAuthenticate.html" class="extype" name="org.http4s.headers.Proxy-Authenticate">Proxy-Authenticate</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ProxyAuthenticateHeader.html" class="extype" name="org.http4s.parser.ProxyAuthenticateHeader">ProxyAuthenticateHeader</a></dd></dl></div>
+    </li><li name="org.http4s.parser.RangeParser#RANGE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RANGE(value:String):org.http4s.ParseResult[org.http4s.headers.Range]"></a><a id="RANGE(String):ParseResult[Range]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#RANGE(value:String):org.http4s.ParseResult[org.http4s.headers.Range]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RANGE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Range.html" class="extype" name="org.http4s.headers.Range">Range</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>RangeParser</dd></dl></div>
     </li><li name="org.http4s.parser.RefererHeader#REFERER" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="REFERER(value:String):org.http4s.ParseResult[org.http4s.headers.Referer]"></a><a id="REFERER(String):ParseResult[Referer]"></a>
       <span class="permalink">
@@ -641,10 +837,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RefererHeader.html" class="extype" name="org.http4s.parser.RefererHeader">RefererHeader</a></dd></dl></div>
-    </li><li name="org.http4s.parser.SimpleHeaders#SERVER" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="SERVER(value:String):org.http4s.ParseResult[org.http4s.headers.Server]"></a><a id="SERVER(String):ParseResult[Server]"></a>
+    </li><li name="org.http4s.parser.SimpleHeaders#RETRY_AFTER" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RETRY_AFTER(value:String):org.http4s.ParseResult[org.http4s.headers.Retry-After]"></a><a id="RETRY_AFTER(String):ParseResult[Retry-After]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#SERVER(value:String):org.http4s.ParseResult[org.http4s.headers.Server]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#RETRY_AFTER(value:String):org.http4s.ParseResult[org.http4s.headers.Retry-After]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -653,10 +849,26 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">SERVER</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Server.html" class="extype" name="org.http4s.headers.Server">Server</a>]</span>
+        <span class="name">RETRY_AFTER</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Retry$minusAfter.html" class="extype" name="org.http4s.headers.Retry-After">Retry-After</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.CookieHeader#SET_COOKIE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SET_COOKIE(value:String):org.http4s.ParseResult[org.http4s.headers.Set-Cookie]"></a><a id="SET_COOKIE(String):ParseResult[Set-Cookie]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#SET_COOKIE(value:String):org.http4s.ParseResult[org.http4s.headers.Set-Cookie]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">SET_COOKIE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">Set-Cookie</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>CookieHeader</dd></dl></div>
     </li><li name="org.http4s.parser.StrictTransportSecurityHeader#STRICT_TRANSPORT_SECURITY" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="STRICT_TRANSPORT_SECURITY(value:String):org.http4s.ParseResult[org.http4s.headers.Strict-Transport-Security]"></a><a id="STRICT_TRANSPORT_SECURITY(String):ParseResult[Strict-Transport-Security]"></a>
       <span class="permalink">
@@ -673,6 +885,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>StrictTransportSecurityHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.SimpleHeaders#TRANSFER_ENCODING" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="TRANSFER_ENCODING(value:String):org.http4s.ParseResult[org.http4s.headers.Transfer-Encoding]"></a><a id="TRANSFER_ENCODING(String):ParseResult[Transfer-Encoding]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#TRANSFER_ENCODING(value:String):org.http4s.ParseResult[org.http4s.headers.Transfer-Encoding]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">TRANSFER_ENCODING</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/Transfer$minusEncoding.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
     </li><li name="org.http4s.parser.SimpleHeaders#USER_AGENT" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="USER_AGENT(value:String):org.http4s.ParseResult[org.http4s.headers.User-Agent]"></a><a id="USER_AGENT(String):ParseResult[User-Agent]"></a>
       <span class="permalink">
@@ -689,6 +917,102 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
+    </li><li name="org.http4s.parser.WwwAuthenticateHeader#WWW_AUTHENTICATE" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WWW_AUTHENTICATE(value:String):org.http4s.ParseResult[org.http4s.headers.WWW-Authenticate]"></a><a id="WWW_AUTHENTICATE(String):ParseResult[WWW-Authenticate]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#WWW_AUTHENTICATE(value:String):org.http4s.ParseResult[org.http4s.headers.WWW-Authenticate]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">WWW_AUTHENTICATE</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/WWW$minusAuthenticate.html" class="extype" name="org.http4s.headers.WWW-Authenticate">WWW-Authenticate</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>WwwAuthenticateHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.ZipkinHeader#X_B3_FLAGS" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="X_B3_FLAGS(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-Flags]"></a><a id="X_B3_FLAGS(String):ParseResult[X-B3-Flags]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#X_B3_FLAGS(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-Flags]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">X_B3_FLAGS</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/X$minusB3$minusFlags.html" class="extype" name="org.http4s.headers.X-B3-Flags">X-B3-Flags</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ZipkinHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.ZipkinHeader#X_B3_PARENTSPANID" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="X_B3_PARENTSPANID(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-ParentSpanId]"></a><a id="X_B3_PARENTSPANID(String):ParseResult[X-B3-ParentSpanId]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#X_B3_PARENTSPANID(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-ParentSpanId]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">X_B3_PARENTSPANID</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/X$minusB3$minusParentSpanId.html" class="extype" name="org.http4s.headers.X-B3-ParentSpanId">X-B3-ParentSpanId</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ZipkinHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.ZipkinHeader#X_B3_SAMPLED" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="X_B3_SAMPLED(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-Sampled]"></a><a id="X_B3_SAMPLED(String):ParseResult[X-B3-Sampled]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#X_B3_SAMPLED(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-Sampled]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">X_B3_SAMPLED</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/X$minusB3$minusSampled.html" class="extype" name="org.http4s.headers.X-B3-Sampled">X-B3-Sampled</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ZipkinHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.ZipkinHeader#X_B3_SPANID" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="X_B3_SPANID(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-SpanId]"></a><a id="X_B3_SPANID(String):ParseResult[X-B3-SpanId]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#X_B3_SPANID(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-SpanId]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">X_B3_SPANID</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/X$minusB3$minusSpanId.html" class="extype" name="org.http4s.headers.X-B3-SpanId">X-B3-SpanId</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ZipkinHeader</dd></dl></div>
+    </li><li name="org.http4s.parser.ZipkinHeader#X_B3_TRACEID" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="X_B3_TRACEID(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-TraceId]"></a><a id="X_B3_TRACEID(String):ParseResult[X-B3-TraceId]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#X_B3_TRACEID(value:String):org.http4s.ParseResult[org.http4s.headers.X-B3-TraceId]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">X_B3_TRACEID</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="../index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="../headers/X$minusB3$minusTraceId.html" class="extype" name="org.http4s.headers.X-B3-TraceId">X-B3-TraceId</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ZipkinHeader</dd></dl></div>
     </li><li name="org.http4s.parser.SimpleHeaders#X_FORWARDED_FOR" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="X_FORWARDED_FOR(value:String):org.http4s.ParseResult[org.http4s.headers.X-Forwarded-For]"></a><a id="X_FORWARDED_FOR(String):ParseResult[X-Forwarded-For]"></a>
       <span class="permalink">
@@ -706,9 +1030,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SimpleHeaders</dd></dl></div>
     </li><li name="org.http4s.parser.HttpHeaderParser#addParser" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addParser(key:org.typelevel.ci.CIString,parser:org.http4s.parser.HttpHeaderParser.HeaderParser):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]"></a><a id="addParser(CIString,HeaderParser):Option[HeaderParser]"></a>
+      <a id="addParser(key:org.http4s.util.CaseInsensitiveString,parser:org.http4s.parser.HttpHeaderParser.HeaderParser):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]"></a><a id="addParser(CaseInsensitiveString,HeaderParser):Option[HeaderParser]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#addParser(key:org.typelevel.ci.CIString,parser:org.http4s.parser.HttpHeaderParser.HeaderParser):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#addParser(key:org.http4s.util.CaseInsensitiveString,parser:org.http4s.parser.HttpHeaderParser.HeaderParser):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -717,7 +1041,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addParser</span><span class="params">(<span name="key">key: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>, <span name="parser">parser: <a href="#HeaderParser=String=&gt;org.http4s.ParseResult[org.http4s.Header.Parsed]" class="extmbr" name="org.http4s.parser.HttpHeaderParser.HeaderParser">HeaderParser</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderParser=String=&gt;org.http4s.ParseResult[org.http4s.Header.Parsed]" class="extmbr" name="org.http4s.parser.HttpHeaderParser.HeaderParser">HeaderParser</a>]</span>
+        <span class="name">addParser</span><span class="params">(<span name="key">key: <a href="../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="parser">parser: <a href="#HeaderParser=String=&gt;org.http4s.ParseResult[org.http4s.Header.Parsed]" class="extmbr" name="org.http4s.parser.HttpHeaderParser.HeaderParser">HeaderParser</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderParser=String=&gt;org.http4s.ParseResult[org.http4s.Header.Parsed]" class="extmbr" name="org.http4s.parser.HttpHeaderParser.HeaderParser">HeaderParser</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a parser to the global header parser registry
@@ -764,9 +1088,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.parser.HttpHeaderParser#dropParser" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="dropParser(key:org.typelevel.ci.CIString):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]"></a><a id="dropParser(CIString):Option[HeaderParser]"></a>
+      <a id="dropParser(key:org.http4s.util.CaseInsensitiveString):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]"></a><a id="dropParser(CaseInsensitiveString):Option[HeaderParser]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#dropParser(key:org.typelevel.ci.CIString):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]" title="Permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#dropParser(key:org.http4s.util.CaseInsensitiveString):Option[org.http4s.parser.HttpHeaderParser.HeaderParser]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -775,7 +1099,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">dropParser</span><span class="params">(<span name="key">key: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderParser=String=&gt;org.http4s.ParseResult[org.http4s.Header.Parsed]" class="extmbr" name="org.http4s.parser.HttpHeaderParser.HeaderParser">HeaderParser</a>]</span>
+        <span class="name">dropParser</span><span class="params">(<span name="key">key: <a href="../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderParser=String=&gt;org.http4s.ParseResult[org.http4s.Header.Parsed]" class="extmbr" name="org.http4s.parser.HttpHeaderParser.HeaderParser">HeaderParser</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Remove the parser for the specified header key
@@ -793,7 +1117,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -809,7 +1133,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -825,7 +1149,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -866,13 +1190,29 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.parser.ZipkinHeader#idStringToLong" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="idStringToLong(idString:String):Long"></a><a id="idStringToLong(String):Long"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/HttpHeaderParser$.html#idStringToLong(idString:String):Long" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">idStringToLong</span><span class="params">(<span name="idString">idString: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ZipkinHeader</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -885,7 +1225,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -901,7 +1241,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -917,7 +1257,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -936,7 +1276,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1003,7 +1343,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1025,7 +1365,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1047,7 +1387,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.12/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1071,7 +1411,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">warmUp</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">warmUp</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <p class="shortcomment cmt">Warm up the header parsers by triggering the loading of most classes in this package,
@@ -1086,28 +1426,48 @@ so as to increase the speed of the first usage.</p>
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.parser.StrictTransportSecurityHeader">
+        <div class="parent" name="org.http4s.parser.ZipkinHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.ZipkinHeader">ZipkinHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.WwwAuthenticateHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.WwwAuthenticateHeader">WwwAuthenticateHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.StrictTransportSecurityHeader">
               <h3>Inherited from <span class="extype" name="org.http4s.parser.StrictTransportSecurityHeader">StrictTransportSecurityHeader</span></h3>
             </div><div class="parent" name="org.http4s.parser.RefererHeader">
               <h3>Inherited from <a href="RefererHeader.html" class="extype" name="org.http4s.parser.RefererHeader">RefererHeader</a></h3>
+            </div><div class="parent" name="org.http4s.parser.RangeParser">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.RangeParser">RangeParser</span></h3>
+            </div><div class="parent" name="org.http4s.parser.ProxyAuthenticateHeader">
+              <h3>Inherited from <a href="ProxyAuthenticateHeader.html" class="extype" name="org.http4s.parser.ProxyAuthenticateHeader">ProxyAuthenticateHeader</a></h3>
+            </div><div class="parent" name="org.http4s.parser.OriginHeader">
+              <h3>Inherited from <a href="OriginHeader.html" class="extype" name="org.http4s.parser.OriginHeader">OriginHeader</a></h3>
             </div><div class="parent" name="org.http4s.parser.LocationHeader">
               <h3>Inherited from <a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a></h3>
             </div><div class="parent" name="org.http4s.parser.LinkHeader">
               <h3>Inherited from <span class="extype" name="org.http4s.parser.LinkHeader">LinkHeader</span></h3>
             </div><div class="parent" name="org.http4s.parser.ForwardedHeader">
               <h3>Inherited from <span class="extype" name="org.http4s.parser.ForwardedHeader">ForwardedHeader</span></h3>
-            </div><div class="parent" name="org.http4s.parser.ContentLocationHeader">
-              <h3>Inherited from <a href="ContentLocationHeader.html" class="extype" name="org.http4s.parser.ContentLocationHeader">ContentLocationHeader</a></h3>
-            </div><div class="parent" name="org.http4s.parser.ContentLanguageHeader">
-              <h3>Inherited from <span class="extype" name="org.http4s.parser.ContentLanguageHeader">ContentLanguageHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.CookieHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.CookieHeader">CookieHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.ContentTypeHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.ContentTypeHeader">ContentTypeHeader</span></h3>
             </div><div class="parent" name="org.http4s.parser.CacheControlHeader">
               <h3>Inherited from <span class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.AuthorizationHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.AuthorizationHeader">AuthorizationHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.AcceptLanguageHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.AcceptLanguageHeader">AcceptLanguageHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.AcceptHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.AcceptHeader">AcceptHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.AcceptEncodingHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.AcceptEncodingHeader">AcceptEncodingHeader</span></h3>
+            </div><div class="parent" name="org.http4s.parser.AcceptCharsetHeader">
+              <h3>Inherited from <span class="extype" name="org.http4s.parser.AcceptCharsetHeader">AcceptCharsetHeader</span></h3>
             </div><div class="parent" name="org.http4s.parser.SimpleHeaders">
               <h3>Inherited from <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

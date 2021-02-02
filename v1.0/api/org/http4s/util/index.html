@@ -493,6 +493,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented3">
+                        <a class="object" href="CaseInsensitiveString$.html" title=""></a>
+                        <a class="class" href="CaseInsensitiveString.html" title="A String wrapper such that two strings x and y are equal if x.value.equalsIgnoreCase(y.value)"></a>
+                        <a href="CaseInsensitiveString.html" title="A String wrapper such that two strings x and y are equal if x.value.equalsIgnoreCase(y.value)">CaseInsensitiveString</a>
+                      </li><li class="current-entities indented3">
                         <a class="object" href="Renderable$.html" title=""></a>
                         <a class="trait" href="Renderable.html" title="Mixin that makes a type writable by a Writer without needing a Renderer instance"></a>
                         <a href="Renderable.html" title="Mixin that makes a type writable by a Writer without needing a Renderer instance">Renderable</a>
@@ -568,11 +572,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d1a2b53d0a262698a6fd5b0d395f8fd212afa0ad/core/src/main/scala/org/http4s/util/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/core/src/main/scala/org/http4s/util/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -620,7 +624,25 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.util.Renderable" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.util.CaseInsensitiveString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CaseInsensitiveStringextendsCharSequencewithOrdered[org.http4s.util.CaseInsensitiveString]"></a><a id="CaseInsensitiveString:CaseInsensitiveString"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="A String wrapper such that two strings x and y are equal if x.value.equalsIgnoreCase(y.value)" href="CaseInsensitiveString.html"><span class="name">CaseInsensitiveString</span></a><span class="result"> extends <span class="extype" name="java.lang.CharSequence">CharSequence</span> with <a href="../../../scala/index.html#Ordered[T]=scala.math.Ordered[T]" class="extmbr" name="scala.Ordered">Ordered</a>[<a href="CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">A String wrapper such that two strings <code>x</code> and <code>y</code> are equal if
+<code>x.value.equalsIgnoreCase(y.value)</code>
+</p>
+    </li><li name="org.http4s.util.Renderable" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="RenderableextendsAny"></a><a id="Renderable:Renderable"></a>
       <span class="permalink">
       <a href="../../../org/http4s/util/Renderable.html" title="Permalink">
@@ -632,7 +654,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Mixin that makes a type writable by a Writer without needing a Renderer instance" href="Renderable.html"><span class="name">Renderable</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
+        <a title="Mixin that makes a type writable by a Writer without needing a Renderer instance" href="Renderable.html"><span class="name">Renderable</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
       </span>
       
       <p class="shortcomment cmt">Mixin that makes a type writable by a <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> without needing a <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a> instance</p>
@@ -684,25 +706,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <p class="shortcomment cmt">Efficiently accumulate <a href="Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> representations</p>
-    </li><li name="org.http4s.util.CaseInsensitiveString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="CaseInsensitiveString=org.typelevel.ci.CIString"></a><a id="CaseInsensitiveString:CaseInsensitiveString"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/util/index.html#CaseInsensitiveString=org.typelevel.ci.CIString" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 1.0.0-M1) Replaced by org.typelevel.ci.CIString">CaseInsensitiveString</span><span class="result alias"> = <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 1.0.0-M1)</i> Replaced by org.typelevel.ci.CIString</p></dd></dl></div>
     </li><li name="org.http4s.util.CaseInsensitiveStringOps" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CaseInsensitiveStringOps=org.http4s.syntax.StringOps"></a><a id="CaseInsensitiveStringOps:CaseInsensitiveStringOps"></a>
       <span class="permalink">
@@ -768,7 +771,23 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.util.Renderable" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="org.http4s.util.CaseInsensitiveString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CaseInsensitiveString"></a><a id="CaseInsensitiveString:CaseInsensitiveString"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CaseInsensitiveString$.html"><span class="name">CaseInsensitiveString</span></a><span class="result"> extends <span class="extype" name="org.http4s.util.CaseInsensitiveStringInstances">CaseInsensitiveStringInstances</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.util.Renderable" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Renderable"></a><a id="Renderable:Renderable"></a>
       <span class="permalink">
       <a href="../../../org/http4s/util/Renderable$.html" title="Permalink">
@@ -832,6 +851,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
+    </li><li name="org.http4s.util.execution" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="execution"></a><a id="execution:execution"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/execution$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="execution$.html"><span class="name">execution</span></a>
+      </span>
+      
+      
     </li>
               </ol>
             </div>
@@ -840,26 +875,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.util#CaseInsensitiveString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="CaseInsensitiveString:org.typelevel.ci.CIString.type"></a><a id="CaseInsensitiveString:CIString.type"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/util/index.html#CaseInsensitiveString:org.typelevel.ci.CIString.type" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 1.0.0-M1) Replaced by org.typelevel.ci.CIString">CaseInsensitiveString</span><span class="result">: <span class="extype" name="org.typelevel.ci.CIString">CIString</span>.type</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 1.0.0-M1)</i> Replaced by org.typelevel.ci.CIString</p></dd></dl></div>
-    </li><li name="org.http4s.util#TrampolineExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.util#TrampolineExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="TrampolineExecutionContext:scala.concurrent.ExecutionContextExecutor"></a><a id="TrampolineExecutionContext:ExecutionContextExecutor"></a>
       <span class="permalink">
       <a href="../../../org/http4s/util/index.html#TrampolineExecutionContext:scala.concurrent.ExecutionContextExecutor" title="Permalink">
@@ -871,7 +887,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.18.0-M2) Moved to org.http4s.execution.trampoline, is now merely a ExecutionContextExecutor.">TrampolineExecutionContext</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/concurrent/ExecutionContextExecutor.html#scala.concurrent.ExecutionContextExecutor" class="extype" name="scala.concurrent.ExecutionContextExecutor">ExecutionContextExecutor</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.18.0-M2) Moved to org.http4s.execution.trampoline, is now merely a ExecutionContextExecutor.">TrampolineExecutionContext</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/concurrent/ExecutionContextExecutor.html#scala.concurrent.ExecutionContextExecutor" class="extype" name="scala.concurrent.ExecutionContextExecutor">ExecutionContextExecutor</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
@@ -909,7 +925,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Can fall into an infinite loop, which can't be fixed without a RaiseThrowable constraint. A corrected version will be contributed to fs2.">decode</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="charset">charset: <a href="../Charset.html" class="extype" name="org.http4s.Charset">Charset</a></span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.util.decode.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Can fall into an infinite loop, which can't be fixed without a RaiseThrowable constraint. A corrected version will be contributed to fs2.">decode</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="charset">charset: <a href="../Charset.html" class="extype" name="org.http4s.Charset">Charset</a></span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.util.decode.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
@@ -928,32 +944,13 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Not a good hash. Prefer org.typelevel.ci.CIString.">hashLower</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Not a good hash. Prefer org.typelevel.ci.CIString.">hashLower</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.5)</i> Not a good hash. Prefer org.typelevel.ci.CIString.</p></dd></dl></div>
-    </li><li name="org.http4s.util.execution" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="execution"></a><a id="execution:execution"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/util/execution$.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="execution$.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.4) Not related to HTTP. Will be removed from public API.">execution</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.4)</i> Not related to HTTP. Will be removed from public API.</p></dd></dl></div>
     </li><li name="org.http4s.util.nonEmptyList" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="nonEmptyList"></a><a id="nonEmptyList:nonEmptyList"></a>
       <span class="permalink">
@@ -1019,7 +1016,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

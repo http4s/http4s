@@ -111,17 +111,17 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
 // service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8163/554800054@2c5c29af
+//   org.http4s.HttpRoutes$$$Lambda$8222/2054675153@767636f6
 // )
 
 val request = Request[IO](Method.GET, uri&quot;/&quot;)
 // request: Request[IO] = (
-//   GET,
-//   Uri(None, None, /, , None),
+//   Method(&quot;GET&quot;),
+//   Uri(None, None, &quot;/&quot;, , None),
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@4e426f6a
+//   io.chrisdavenport.vault.Vault@5f6d9b47
 // )
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
@@ -131,7 +131,7 @@ val response = service.orNotFound(request).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@41264ba0
+//   io.chrisdavenport.vault.Vault@717e589b
 // )
 val body = response.as[String].unsafeRunSync()
 // body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
@@ -144,7 +144,7 @@ body.length
 <pre><code class="language-scala">import org.http4s.server.middleware._
 val zipService = GZip(service)
 // zipService: Http[cats.data.OptionT[IO, A], IO] = Kleisli(
-//   org.http4s.server.middleware.GZip$$$Lambda$9280/1680828240@7c1ac839
+//   org.http4s.server.middleware.GZip$$$Lambda$9143/1055092343@4bc86988
 // )
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
@@ -154,7 +154,7 @@ val response = zipService.orNotFound(request).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@31469744
+//   io.chrisdavenport.vault.Vault@cce3781
 // )
 val body = response.as[String].unsafeRunSync()
 // body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
@@ -170,12 +170,12 @@ values for the <code>Accept-Encoding</code> header are <strong>&ldquo;gzip&rdquo
 // acceptHeader: Header.Raw = Raw(Accept-Encoding, &quot;gzip&quot;)
 val zipRequest = request.putHeaders(acceptHeader)
 // zipRequest: request.Self = (
-//   GET,
-//   Uri(None, None, /, , None),
+//   Method(&quot;GET&quot;),
+//   Uri(None, None, &quot;/&quot;, , None),
 //   HttpVersion(1, 1),
 //   Headers(Accept-Encoding: gzip),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@4e426f6a
+//   io.chrisdavenport.vault.Vault@5f6d9b47
 // )
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
@@ -185,7 +185,7 @@ val response = zipService.orNotFound(zipRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@6c228739
+//   io.chrisdavenport.vault.Vault@3f4a22fc
 // )
 val body = response.as[String].unsafeRunSync()
 // body: String = &quot;\u001f\ufffd\b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\ufffdT(J-HM,Q\u022d,N\ufffdIS(\ufffdH\ufffdS\ufffdT\ufffdU(\ufffdKI-R(.)J-.\ufffdS\ufffd2\u0000UX\ufffd&lt;u\u0000\u0000\u0000&quot;
@@ -296,7 +296,7 @@ of a service or middleware code. You can work with values while keeping them ins
       </div>
       <hr />
       <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
       </footer>
 
     </div>
