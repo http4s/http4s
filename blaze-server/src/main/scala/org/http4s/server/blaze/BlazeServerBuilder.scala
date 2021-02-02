@@ -50,6 +50,7 @@ import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.blaze.BlazeServerBuilder._
 import org.log4s.getLogger
+import scala.annotation.nowarn
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -391,6 +392,7 @@ class BlazeServerBuilder[F[_]] private (
         if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
         else address
 
+      @nowarn("cat=deprecation")
       val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
         nioVersion match {
           case Nio2 =>
@@ -398,12 +400,7 @@ class BlazeServerBuilder[F[_]] private (
               .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
           case Nio1 =>
             NIO1SocketServerGroup
-              .fixedGroup(
-                connectorPoolSize,
-                bufferSize,
-                channelOptions,
-                selectorThreadFactory,
-                maxConnections = maxConnections)
+              .fixed(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory, maxConnections)
         }
       })(factory => F.delay(factory.closeGroup()))
 
