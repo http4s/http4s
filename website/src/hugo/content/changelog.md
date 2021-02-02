@@ -19,6 +19,7 @@ it.
 ### Breaking changes
 
 * [#4259](https://github.com/http4s/http4s/pull/4259): Regenerate `MimeDb` from the IANA database. This shifts around some constants in a binary incompatible way, but almost nobody will notice.
+* [#4327](https://github.com/http4s/http4s/pull/4237): Shifted the parsers around in `Uri` to prevent deadlocks that appeared since M1.  This should not be visible, but is binary breaking.
 
 ## http4s-prometheus
 
@@ -30,6 +31,7 @@ it.
 
 * jawn-fs2-1.0.1
 * keypool-0.3.0-RC1 (moved to `org.typelevel`)
+* play-json-2.10.0-RC1
 * simpleclient-0.10.0 (Prometheus)
 
 # v0.21.17
