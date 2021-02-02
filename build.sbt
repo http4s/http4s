@@ -83,7 +83,6 @@ lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
-    NowarnCompatPlugin,
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -172,7 +171,6 @@ lazy val tests = libraryProject("tests")
   .dependsOn(core, specs2 % "test->test")
 
 lazy val server = libraryProject("server")
-  .enablePlugins(NowarnCompatPlugin)
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
@@ -206,7 +204,6 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
 
 lazy val client = libraryProject("client")
-  .enablePlugins(NowarnCompatPlugin)
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
@@ -283,6 +280,10 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      // privat constructor with new parameter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.blaze.BlazeServerBuilder.this")
+    )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 

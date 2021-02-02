@@ -343,7 +343,7 @@ class BlazeServerBuilder[F[_]] private (
 
       val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
         NIO1SocketServerGroup
-          .fixedGroup(
+          .fixed(
             connectorPoolSize,
             bufferSize,
             channelOptions,

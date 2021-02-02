@@ -8,7 +8,13 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.0-M2
+# v0.22.0-M2 (2021-02-02)
+
+This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
+
+## http4s-blaze-server
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): Additionally to the fix in v0.21.17, drops support for NIO2.
 
 ## http4s-core
 
@@ -34,7 +40,23 @@ it.
 * play-json-2.10.0-RC1
 * simpleclient-0.10.0 (Prometheus)
 
-# v0.21.17
+# v0.21.17 (2021-02-02)
+
+This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
+
+## http4s-blaze-server
+
+### Security patches
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): blaze-core, a library underlying http4s-blaze-server, accepts connections without bound.  Each connection claims a file handle, a scarce resource, leading to a denial of service vector.
+
+  `BlazeServerBuilder` now has a `maxConnections` property, limiting the number of concurrent connections.  The cap is not applied to the NIO2 socket server, which is now deprecated. 
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#4331](https://github.com/http4s/http4s/pull/4331): Don't render an empty chunked payload if a request has neither a `Content-Length` or `Transfer-Encoding` and the method is one of `GET`, `DELETE`, `CONNECT`, or `TRACE`. It is undefined behavior for those methods to send payloads.
 
 ## http4s-ember-server
 
@@ -46,6 +68,12 @@ it.
 
 * [#4244](https://github.com/http4s/http4s/pull/4244): Internal refactoring of how the stream of server connections is parallelized and terminated.
 * [#4287](https://github.com/http4s/http4s/pull/4287): Replace `onError: Throwable => Response[F]` with `withErrorHandler: PartialFunction[Thrwable, F[Response[F]]`.  Error handling is invoked earlier, allowing custom responses to parsing and timeout failures.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4301](https://github.com/http4s/http4s/pull/4301): Add an `idleConnectionTime` to `EmberClientBuilder`. Discard stale connections from the pool and try to acquire a new one.
 
 ## http4s-servlet
 
@@ -59,6 +87,7 @@ it.
 
 ## Dependency upgrades
 
+* blaze-0.14.15
 * okhttp-4.9.1
 
 # v0.22.0-M1 (2021-01-24)

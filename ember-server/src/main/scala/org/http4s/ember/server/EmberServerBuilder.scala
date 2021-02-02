@@ -156,6 +156,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       _ <- Resource.liftF(ready.get.rethrow)
+      _ <- Resource.liftF(logger.info(s"Ember-Server service bound to address: $bindAddress"))
     } yield new Server {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
