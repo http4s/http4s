@@ -39,7 +39,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val blockerOpt: Option[Blocker],
     private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
     private val sgOpt: Option[SocketGroup],
-    private val onError: Throwable => Response[F],
+    private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
     val maxConcurrency: Int,
     val receiveBufferSize: Int,
@@ -51,41 +51,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val logger: Logger[F]
 ) { self =>
 
-  @deprecated("Kept for binary compatibility", "0.21.7")
-  private[EmberServerBuilder] def this(
-      host: String,
-      port: Int,
-      httpApp: HttpApp[F],
-      blockerOpt: Option[Blocker],
-      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
-      sgOpt: Option[SocketGroup],
-      onError: Throwable => Response[F],
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      maxConcurrency: Int,
-      receiveBufferSize: Int,
-      maxHeaderSize: Int,
-      requestHeaderReceiveTimeout: Duration,
-      additionalSocketOptions: List[SocketOptionMapping[_]],
-      logger: Logger[F]) =
-    this(
-      host = host,
-      port = port,
-      httpApp = httpApp,
-      blockerOpt = blockerOpt,
-      tlsInfoOpt = tlsInfoOpt,
-      sgOpt = sgOpt,
-      onError = onError,
-      onWriteFailure = onWriteFailure,
-      maxConcurrency = maxConcurrency,
-      receiveBufferSize = receiveBufferSize,
-      maxHeaderSize = maxHeaderSize,
-      requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
-      idleTimeout = EmberServerBuilder.Defaults.idleTimeout,
-      shutdownTimeout = EmberServerBuilder.Defaults.shutdownTimeout,
-      additionalSocketOptions = additionalSocketOptions,
-      logger = logger
-    )
-
   private def copy(
       host: String = self.host,
       port: Int = self.port,
@@ -93,7 +58,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       blockerOpt: Option[Blocker] = self.blockerOpt,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
-      onError: Throwable => Response[F] = self.onError,
+      errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
       maxConcurrency: Int = self.maxConcurrency,
       receiveBufferSize: Int = self.receiveBufferSize,
@@ -111,7 +76,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       blockerOpt = blockerOpt,
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
-      onError = onError,
+      errorHandler = errorHandler,
       onWriteFailure = onWriteFailure,
       maxConcurrency = maxConcurrency,
       receiveBufferSize = receiveBufferSize,
@@ -144,7 +109,13 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withShutdownTimeout(shutdownTimeout: Duration) =
     copy(shutdownTimeout = shutdownTimeout)
 
-  def withOnError(onError: Throwable => Response[F]) = copy(onError = onError)
+  @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
+  def withOnError(onError: Throwable => Response[F]) =
+    withErrorHandler({ case e => onError(e).pure[F] })
+
+  def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
+    copy(errorHandler = errorHandler)
+
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
   def withMaxConcurrency(maxConcurrency: Int) = copy(maxConcurrency = maxConcurrency)
@@ -170,7 +141,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             tlsInfoOpt,
             ready,
             shutdown,
-            onError,
+            errorHandler,
             onWriteFailure,
             maxConcurrency,
             receiveBufferSize,
@@ -185,6 +156,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       _ <- Resource.liftF(ready.get.rethrow)
+      _ <- Resource.liftF(logger.info(s"Ember-Server service bound to address: $bindAddress"))
     } yield new Server[F] {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
@@ -200,7 +172,7 @@ object EmberServerBuilder {
       blockerOpt = None,
       tlsInfoOpt = None,
       sgOpt = None,
-      onError = Defaults.onError[F],
+      errorHandler = Defaults.errorHandler[F],
       onWriteFailure = Defaults.onWriteFailure[F],
       maxConcurrency = Defaults.maxConcurrency,
       receiveBufferSize = Defaults.receiveBufferSize,
@@ -217,9 +189,20 @@ object EmberServerBuilder {
     val port: Int = server.defaults.HttpPort
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
-    def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
-      Response[F](Status.InternalServerError)
+
+    private val serverFailure =
+      Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+    // Effectful Handler - Perhaps a Logger
+    // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
+    def errorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case (_: Throwable) =>
+      serverFailure.covary[F].pure[F]
     }
+
+    @deprecated("0.21.17", "Use errorHandler, default fallback of failure InternalServerFailure")
+    def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
+      serverFailure.covary[F]
+    }
+
     def onWriteFailure[F[_]: Applicative]
         : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
       case _: (Option[Request[F]], Response[F], Throwable) => Applicative[F].unit

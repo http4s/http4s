@@ -43,7 +43,7 @@ class Http1ClientStageSuite extends Http4sSuite {
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
-  private def fooConnection: FunFixture[Http1Connection[IO]] =
+  private val fooConnection =
     ResourceFixture[Http1Connection[IO]] {
       for {
         connection <- Resource[IO, Http1Connection[IO]] {

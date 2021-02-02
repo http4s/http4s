@@ -32,6 +32,7 @@ private[ember] object Encoder {
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = resp.isChunked
+    // resp.status.isEntityAllowed TODO
     val initSection = {
       var appliedContentLength = false
       val stringBuilder = new StringBuilder()
@@ -71,6 +72,9 @@ private[ember] object Encoder {
         .flatMap(Stream.chunk)
   }
 
+  private val NoPayloadMethods: Set[Method] =
+    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
+
   def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = req.isChunked
     val initSection = {
@@ -106,7 +110,7 @@ private[ember] object Encoder {
         ()
       }
 
-      if (!chunked && !appliedContentLength) {
+      if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
         stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
         chunked = true
         ()

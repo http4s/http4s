@@ -22,8 +22,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.3"
-  val scala_212 = "2.12.12"
+  val scala_213 = "2.13.4"
+  val scala_212 = "2.12.13"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -93,10 +93,11 @@ object Http4sPlugin extends AutoPlugin {
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
-    // https://github.com/scalacenter/scalafix/issues/1299
-    dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
+    // Breaking change to metric names
+    dependencyUpdatesFilter -= moduleFilter(name = "io.prometheus"),
+
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -303,7 +304,7 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.3.3"
     val cats = "2.3.1"
     val catsEffect = "2.3.1"
-    val catsEffectTesting = "0.5.0"
+    val catsEffectTesting = "0.5.1"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
@@ -323,9 +324,9 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.58.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.12.0"
-    val munitDiscipline = "1.0.4"
-    val okhttp = "4.9.0"
+    val munitCatsEffect = "0.13.0"
+    val munitDiscipline = "1.0.5"
+    val okhttp = "4.9.1"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.2"
     val prometheusClient = "0.8.1"

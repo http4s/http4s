@@ -74,7 +74,6 @@ lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
-    NowarnCompatPlugin,
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -149,7 +148,6 @@ lazy val tests = libraryProject("tests")
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
-  .enablePlugins(NowarnCompatPlugin)
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
@@ -183,7 +181,6 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
 
 lazy val client = libraryProject("client")
-  .enablePlugins(NowarnCompatPlugin)
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
@@ -239,7 +236,20 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.splitHeader"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Util.readWithTimeout"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.cause"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.copy"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.copy$default$1"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.throwable"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.copy"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.copy$default$1"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.this"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$Request$ReqPrelude$ParsePreludeError$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.apply"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$Response$RespPrelude$RespPreludeError$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.apply")
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -263,7 +273,16 @@ lazy val emberServer = libraryProject("ember-server")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$8"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$13"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$7")
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$7"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$9"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$10"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$13"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$9")
+
     )
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
@@ -280,6 +299,10 @@ lazy val emberClient = libraryProject("ember-client")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
     )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
