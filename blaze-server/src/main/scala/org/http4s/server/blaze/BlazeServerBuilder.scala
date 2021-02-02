@@ -400,7 +400,13 @@ class BlazeServerBuilder[F[_]] private (
               .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
           case Nio1 =>
             NIO1SocketServerGroup
-              .fixed(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory, maxConnections)
+              .fixed(
+                workerThreads = connectorPoolSize,
+                bufferSize = bufferSize,
+                channelOptions = channelOptions,
+                selectorThreadFactory = selectorThreadFactory,
+                maxConnections = maxConnections
+              )
         }
       })(factory => F.delay(factory.closeGroup()))
 
