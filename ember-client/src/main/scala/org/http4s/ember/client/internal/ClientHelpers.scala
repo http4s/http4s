@@ -17,7 +17,6 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
-import fs2.concurrent._
 import fs2.io.tcp._
 import cats._
 import cats.data.NonEmptyList
@@ -30,14 +29,15 @@ import org.http4s._
 import org.http4s.client.RequestKey
 import org.typelevel.ci.CIString
 import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
-import org.typelevel.keypool.Reusable
+import org.typelevel.keypool._
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
+import _root_.org.http4s.ember.core.Util.durationToFinite
 
 private[client] object ClientHelpers {
+
   def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       request: Request[F],
       tlsContextOpt: Option[TLSContext],
@@ -85,55 +85,34 @@ private[client] object ClientHelpers {
       reuseable: Ref[F, Reusable],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
+      idleTimeout: Duration,
       timeout: Duration,
       userAgent: Option[`User-Agent`]
-  ): Resource[F, Response[F]] = {
-    val RT: Timer[Resource[F, *]] = Timer[F].mapK(Resource.liftK[F])
+  ): F[Response[F]] = {
 
     def writeRequestToSocket(
         req: Request[F],
         socket: Socket[F],
-        timeout: Option[FiniteDuration]): Resource[F, Unit] =
+        timeout: Option[FiniteDuration]): F[Unit] =
       Encoder
         .reqToBytes(req)
         .through(socket.writes(timeout))
         .compile
-        .resource
         .drain
 
-    def onNoTimeout(req: Request[F], socket: Socket[F]): Resource[F, Response[F]] =
-      writeRequestToSocket(req, socket, None) >>
-        Parser.Response.parser(maxResponseHeaderSize)(
-          socket.reads(chunkSize, None)
-        )
-
-    def onTimeout(
-        req: Request[F],
-        socket: Socket[F],
-        fin: FiniteDuration): Resource[F, Response[F]] =
-      for {
-        start <- RT.clock.realTime(MILLISECONDS)
-        _ <- writeRequestToSocket(req, socket, Option(fin))
-        timeoutSignal <- Resource.liftF(SignallingRef[F, Boolean](true))
-        sent <- RT.clock.realTime(MILLISECONDS)
-        remains = fin - (sent - start).millis
-        resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
-          readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
-        )
-        _ <- Resource.liftF(timeoutSignal.set(false).void)
-      } yield resp
-
-    def writeRead(req: Request[F]) =
-      timeout match {
-        case t: FiniteDuration => onTimeout(req, requestKeySocket.socket, t)
-        case _ => onNoTimeout(req, requestKeySocket.socket)
+    def writeRead(req: Request[F]): F[Response[F]] =
+      writeRequestToSocket(req, requestKeySocket.socket, durationToFinite(idleTimeout)) >> {
+        Parser.Response
+          .parser(maxResponseHeaderSize, durationToFinite(timeout))(
+            requestKeySocket.socket.reads(chunkSize, durationToFinite(idleTimeout))
+          )
+          .map(_._1)
       }
 
     for {
-      processedReq <- Resource.liftF(preprocessRequest(request, userAgent))
+      processedReq <- preprocessRequest(request, userAgent)
       resp <- writeRead(processedReq)
-      processedResp <- postProcessResponse(processedReq, resp, reuseable)
-    } yield processedResp
+    } yield postProcessResponse(processedReq, resp, reuseable)
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -153,7 +132,7 @@ private[client] object ClientHelpers {
   private[internal] def postProcessResponse[F[_]: Concurrent](
       req: Request[F],
       resp: Response[F],
-      canBeReused: Ref[F, Reusable]): Resource[F, Response[F]] = {
+      canBeReused: Ref[F, Reusable]): Response[F] = {
     val out = resp.copy(
       body = resp.body.onFinalizeCaseWeak {
         case ExitCase.Completed =>
@@ -166,7 +145,7 @@ private[client] object ClientHelpers {
         case ExitCase.Error(_) => Applicative[F].unit
       }
     )
-    Resource.pure[F, Response[F]](out)
+    out
   }
 
   // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
@@ -176,5 +155,26 @@ private[client] object ClientHelpers {
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
         Sync[F].delay(new InetSocketAddress(host, port))
+    }
+
+  // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
+  private[client] def getValidManaged[F[_]: Sync](
+      pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])],
+      request: Request[F]): Resource[F, Managed[F, (RequestKeySocket[F], F[Unit])]] =
+    pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
+      Resource
+        .liftF(managed.value._1.socket.isOpen)
+        .ifM(
+          managed.pure[Resource[F, *]],
+          // Already Closed,
+          // The Resource Scopes Aren't doing us anything
+          // if we have max removed from pool we will need to revisit
+          if (managed.isReused) {
+            Resource.liftF(managed.canBeReused.set(Reusable.DontReuse)) >>
+              getValidManaged(pool, request)
+          } else
+            Resource.liftF(Sync[F].raiseError(
+              new java.net.SocketException("Fresh connection from pool was not open")))
+        )
     }
 }
