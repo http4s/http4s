@@ -22,7 +22,6 @@ import cats.syntax.either._
 import org.http4s._
 import org.http4s.util.{Renderable, Writer}
 import cats.parse.{Numbers, Parser0, Rfc5234, Parser => P}
-import org.http4s.Uri.{Ipv4Address, Ipv6Address}
 import org.http4s.internal.parsing.Rfc7230
 
 import java.util.Locale
@@ -122,8 +121,8 @@ object Forwarded
       val nodeName: P[Node.Name] =
         P.oneOf[Node.Name](
           List(
-            Ipv4Address.parser.map(Node.Name.Ipv4),
-            Ipv6Address.parser
+            Uri.Parser.ipv4Address.map(Node.Name.Ipv4),
+            Uri.Parser.ipv6Address
               .between(P.char('['), P.char(']'))
               .map(Node.Name.Ipv6),
             P.string("unknown").as(Node.Name.Unknown),
@@ -193,7 +192,7 @@ object Forwarded
 
       // ** RFC3986 **
       // port = *DIGIT
-      (Uri.Host.parser ~ (P.char(':') *> port).?)
+      (Uri.Parser.host ~ (P.char(':') *> port).?)
         .map { case (h, p) => apply(h, p.flatten) }
     }
   }
@@ -308,7 +307,7 @@ object Forwarded
     // [RFC3986]
 
     val host = Host.parser
-    val proto = Uri.Scheme.parser
+    val proto = Uri.Parser.scheme
     val node = Node.parser
 
     val forwardedPair = P.oneOf(

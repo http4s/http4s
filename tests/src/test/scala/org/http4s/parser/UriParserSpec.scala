@@ -43,7 +43,7 @@ class UriParserSpec extends Http4sSpec {
       } yield f + "::" + b)
 
       foreach(v) { s =>
-        Ipv6Address.parser.string.parseAll(s) must beRight(s)
+        Uri.Parser.ipv6Address.string.parseAll(s) must beRight(s)
       }
     }
 
