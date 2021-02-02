@@ -16,9 +16,12 @@
 
 package org.http4s.headers
 
-import org.http4s.{Http4sSuite, Method}
+import org.http4s.Method
+import org.http4s.laws.discipline.ArbitraryInstances._
 
-class AllowSuite extends Http4sSuite {
+class AllowSuite extends MHeaderLaws {
+  checkAll("Allow", headerLaws(Allow))
+
   test("Allow should parse an empty string") {
     assert(Allow.parse("") == Right(Allow()))
   }
