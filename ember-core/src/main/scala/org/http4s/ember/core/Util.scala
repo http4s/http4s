@@ -79,4 +79,10 @@ private[ember] object Util {
         )
     go(timeout)
   }
+
+  def durationToFinite(duration: Duration): Option[FiniteDuration] = duration match {
+    case f: FiniteDuration => Some(f)
+    case _ => None
+  }
+
 }

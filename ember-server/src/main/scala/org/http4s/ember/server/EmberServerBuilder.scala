@@ -148,6 +148,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       _ <- Resource.eval(ready.get.rethrow)
+      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: $bindAddress"))
     } yield new Server {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
@@ -197,7 +198,7 @@ object EmberServerBuilder {
         : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
       case _: (Option[Request[F]], Response[F], Throwable) => Applicative[F].unit
     }
-    val maxConcurrency: Int = Int.MaxValue
+    val maxConcurrency: Int = server.defaults.MaxConnections
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = server.defaults.MaxHeadersSize
     val requestHeaderReceiveTimeout: Duration = 5.seconds

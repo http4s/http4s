@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets
 object Referer extends HeaderKey.Internal[Referer] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Referer] =
     ParseResult.fromParser(parser, "Invalid Referer")(s)
-  private[http4s] val parser = Uri
+  private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
-    .orElse(Uri.relativeRef(StandardCharsets.ISO_8859_1))
+    .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
     .map(Referer(_))
 }
 

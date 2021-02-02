@@ -23,8 +23,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.3"
-  val scala_212 = "2.12.12"
+  val scala_213 = "2.13.4"
+  val scala_212 = "2.12.13"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -78,8 +78,6 @@ object Http4sPlugin extends AutoPlugin {
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
-    // https://github.com/scalacenter/scalafix/issues/1299
-    dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -286,7 +284,7 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val argonaut = "6.3.3"
     val asyncHttpClient = "2.12.2"
-    val blaze = "0.14.14"
+    val blaze = "0.14.15"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.0.0-RC2"
     val cats = "2.3.1"
@@ -315,7 +313,7 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.58.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
-    val playJson = "2.9.2"
+    val playJson = "2.10.0-RC1"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
