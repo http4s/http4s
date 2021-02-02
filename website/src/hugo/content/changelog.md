@@ -8,7 +8,17 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.17
+# v0.21.17 (2021-02-02)
+
+This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
+
+## http4s-blaze-server
+
+### Security patches
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): blaze-core, a library underlying http4s-blaze-server, accepts connections without bound.  Each connection claims a file handle, a scarce resource, leading to a denial of service vector.
+
+  `BlazeServerBuilder` now has a `maxConnections` property, limiting the number of concurrent connections.  The cap is not applied to the NIO2 socket server, which is now deprecated. 
 
 ## http4s-ember-core
 
@@ -45,6 +55,7 @@ it.
 
 ## Dependency upgrades
 
+* blaze-0.14.15
 * okhttp-4.9.1
 
 # v0.21.16 (2021-01-24)
