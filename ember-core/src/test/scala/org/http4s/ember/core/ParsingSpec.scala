@@ -186,6 +186,27 @@ class ParsingSpec extends Specification with CatsIO {
       } yield parsed must_== "{}").unsafeRunSync()
     }
 
+    "parse a request with Content-Length and return the rest of the stream" in {
+      val raw =
+        """POST /foo HTTP/1.1
+          |Host: localhost:8080
+          |User-Agent: curl/7.64.1
+          |Accept: */*
+          |Content-Length: 2
+          |
+          |abeverything after the body""".stripMargin
+
+      val byteStream = Stream
+        .emit(raw)
+        .covary[IO]
+        .map(Helpers.httpifyString)
+        .through(text.utf8Encode)
+
+      val result = Parser.Request.parser[IO](Int.MaxValue, None)(byteStream).unsafeRunSync()
+
+      result._1.body.through(text.utf8Decode).compile.string.unsafeRunSync() mustEqual "ab"
+      result._2.through(text.utf8Decode).compile.string.unsafeRunSync() mustEqual "everything after the body"
+    }
   }
 
   "Parser.Response.parser" should {
