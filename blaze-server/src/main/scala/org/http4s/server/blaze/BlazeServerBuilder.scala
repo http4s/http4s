@@ -38,7 +38,6 @@ import org.http4s.blaze.channel.{
   SocketConnection
 }
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
-import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
@@ -93,7 +92,6 @@ class BlazeServerBuilder[F[_]] private (
     executionContext: ExecutionContext,
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    nioVersion: NioVersion,
     connectorPoolSize: Int,
     bufferSize: Int,
     selectorThreadFactory: ThreadFactory,
@@ -120,7 +118,6 @@ class BlazeServerBuilder[F[_]] private (
       executionContext: ExecutionContext = executionContext,
       idleTimeout: Duration = idleTimeout,
       responseHeaderTimeout: Duration = responseHeaderTimeout,
-      nioVersion: NioVersion = nioVersion,
       connectorPoolSize: Int = connectorPoolSize,
       bufferSize: Int = bufferSize,
       selectorThreadFactory: ThreadFactory = selectorThreadFactory,
@@ -141,7 +138,6 @@ class BlazeServerBuilder[F[_]] private (
       executionContext,
       responseHeaderTimeout,
       idleTimeout,
-      nioVersion,
       connectorPoolSize,
       bufferSize,
       selectorThreadFactory,
@@ -222,9 +218,6 @@ class BlazeServerBuilder[F[_]] private (
 
   def withSelectorThreadFactory(selectorThreadFactory: ThreadFactory): Self =
     copy(selectorThreadFactory = selectorThreadFactory)
-
-  @deprecated("NIO2 support in http4s-blaze-server will be removed in 0.22.", "0.21.17")
-  def withNio2(isNio2: Boolean): Self = copy(nioVersion = if (isNio2) Nio2 else Nio1)
 
   def withWebSockets(enableWebsockets: Boolean): Self =
     copy(enableWebSockets = enableWebsockets)
@@ -349,19 +342,13 @@ class BlazeServerBuilder[F[_]] private (
         else address
 
       val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
-        nioVersion match {
-          case Nio2 =>
-            NIO2SocketServerGroup
-              .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
-          case Nio1 =>
-            NIO1SocketServerGroup
-              .fixedGroup(
-                connectorPoolSize,
-                bufferSize,
-                channelOptions,
-                selectorThreadFactory,
-                maxConnections = maxConnections)
-        }
+        NIO1SocketServerGroup
+          .fixedGroup(
+            connectorPoolSize,
+            bufferSize,
+            channelOptions,
+            selectorThreadFactory,
+            maxConnections = maxConnections)
       })(factory => F.delay(factory.closeGroup()))
 
       def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
@@ -424,7 +411,6 @@ object BlazeServerBuilder {
       executionContext = executionContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
-      nioVersion = Nio1,
       connectorPoolSize = DefaultPoolSize,
       bufferSize = 64 * 1024,
       selectorThreadFactory = defaultThreadSelectorFactory,
@@ -539,8 +525,4 @@ object BlazeServerBuilder {
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
     }
-
-  private sealed trait NioVersion extends Product with Serializable
-  private case object Nio1 extends NioVersion
-  private case object Nio2 extends NioVersion
 }
