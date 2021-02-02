@@ -32,7 +32,7 @@ import org.typelevel.ci.CIString
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // http://tools.ietf.org/html/rfc5849
-  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
+  implicit val timer: Timer[IO] = Http4sSuite.TestTimer
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")

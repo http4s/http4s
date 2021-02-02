@@ -23,8 +23,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.3"
-  val scala_212 = "2.12.12"
+  val scala_213 = "2.13.4"
+  val scala_212 = "2.12.13"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -78,8 +78,6 @@ object Http4sPlugin extends AutoPlugin {
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
-    // https://github.com/scalacenter/scalafix/issues/1299
-    dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
 
@@ -300,21 +298,21 @@ object Http4sPlugin extends AutoPlugin {
     val fs2 = "2.5.0"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.0.3"
-    val jawnFs2 = "1.0.0"
+    val jawnFs2 = "1.0.1"
     val jetty = "9.4.36.v20210114"
     val json4s = "3.6.10"
     val log4cats = "1.2.0-RC2"
-    val keypool = "0.2.0"
+    val keypool = "0.3.0-RC1"
     val logback = "1.2.3"
     val log4s = "1.10.0-M4"
     val mockito = "3.5.15"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.12.0"
+    val munitCatsEffect = "0.13.0"
     val munitDiscipline = "1.0.4"
     val netty = "4.1.58.Final"
     val okio = "2.10.0"
-    val okhttp = "4.9.0"
-    val playJson = "2.9.2"
+    val okhttp = "4.9.1"
+    val playJson = "2.10.0-RC1"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
@@ -377,7 +375,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
-  lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % V.keypool
+  lazy val keypool                          = "org.typelevel"          %% "keypool"                   % V.keypool
   lazy val log4catsCore                     = "org.typelevel"          %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "org.typelevel"          %% "log4cats-slf4j"            % V.log4cats
   lazy val log4catsTesting                  = "org.typelevel"          %% "log4cats-testing"          % V.log4cats

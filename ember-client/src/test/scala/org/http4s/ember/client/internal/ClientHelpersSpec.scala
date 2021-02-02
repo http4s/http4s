@@ -26,7 +26,7 @@ import cats.effect.testing.specs2.CatsIO
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
-import io.chrisdavenport.keypool.Reusable
+import org.typelevel.keypool.Reusable
 import scala.concurrent.duration._
 
 class ClientHelpersSpec extends Specification with CatsIO {

@@ -38,12 +38,10 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
     final case class Type(value: MediaRange) extends LinkParam
 
     // https://tools.ietf.org/html/rfc3986#section-4.1
-    val linkValue: Parser0[LinkValue] = {
-      import Uri._
-      uriReference(StandardCharsets.UTF_8).map { uri =>
+    val linkValue: Parser0[LinkValue] =
+      Uri.Parser.uriReference(StandardCharsets.UTF_8).map { uri =>
         headers.LinkValue(uri)
       }
-    }
 
     val linkParam: Parser0[LinkParam] = {
       val relParser = (string("rel=") *> token.orElse(quotedString))

@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.http4s
-package headers
+package org.http4s.headers
 
-import org.http4s.ServerSentEvent._
-import org.scalacheck._
-import org.scalacheck.Arbitrary._
+import org.http4s.Method
+import org.http4s.laws.discipline.ArbitraryInstances._
 
-class LastEventIdSpec extends HeaderLaws {
-  implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =
-    Arbitrary(for {
-      id <- arbitrary[String]
-      if !id.contains("\n") && !id.contains("\r")
-    } yield `Last-Event-Id`(EventId(id)))
+class AllowSuite extends MHeaderLaws {
+  checkAll("Allow", headerLaws(Allow))
 
-  checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
+  test("Allow should parse an empty string") {
+    assert(Allow.parse("") == Right(Allow()))
+  }
+
+  test("Allow should parse with an ending comma") {
+    assert(Allow.parse("GET,  POST   ,") == Right(Allow(Method.GET, Method.POST)))
+  }
+
+  test("Allow should parse with multiple commas") {
+    assert(Allow.parse("GET,,POST") == Right(Allow(Method.GET, Method.POST)))
+  }
 }

@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-package org.http4s.headers
+package org.http4s
+package headers
 
-class AllowSpec extends HeaderLaws {
-  checkAll("Allow", headerLaws(Allow))
+import org.http4s.ServerSentEvent._
+import org.scalacheck._
+import org.scalacheck.Arbitrary._
+
+class LastEventIdSuite extends MHeaderLaws {
+  implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =
+    Arbitrary(for {
+      id <- arbitrary[String]
+      if !id.contains("\n") && !id.contains("\r")
+    } yield `Last-Event-Id`(EventId(id)))
+
+  checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
 }
