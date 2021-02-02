@@ -10,6 +10,12 @@ it.
 
 # v0.21.17
 
+## http4s-ember-core
+
+### Enhancements
+
+* [#4331](https://github.com/http4s/http4s/pull/4331): Don't render an empty chunked payload if a request has neither a `Content-Length` or `Transfer-Encoding` and the method is one of `GET`, `DELETE`, `CONNECT`, or `TRACE`. It is undefined behavior for those methods to send payloads.
+
 ## http4s-ember-server
 
 ### Bugfixes
