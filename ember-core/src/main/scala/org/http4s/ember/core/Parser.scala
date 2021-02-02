@@ -362,14 +362,15 @@ private[ember] object Parser {
                   httpVersion = httpVersion,
                   headers = headers
                 )
-                val req: org.http4s.Request[F] =
-                  if (chunked)
-                    baseReq
+                val (req, restOfStream): (org.http4s.Request[F], Int) =
+                  if (chunked) {
+                    (baseReq
                       .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
                       .withBodyStream(
-                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
-                  else
-                    baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers))), 1)
+                  } else {
+                    (baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L))), 1)
+                  }
 
                 Pull.output1((req, rest))
             }
@@ -409,6 +410,24 @@ private[ember] object Parser {
                         rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
                   else
                     baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+
+                if (chunked) {
+
+                } else {
+                  var remaining: Long = contentLength.getOrElse(0L)
+
+                  // TODO: this doesn't work right now because some of the body may already have been fetched
+
+                  val body = rest.chunks
+                    .evalTap(chunk => Concurrent[F].delay(remaining -= chunk.size))
+                    .flatMap(Stream.chunk(_))
+
+                  val nextRest = rest.drop(remaining)
+
+
+//                  val nextRest = Stream.eval(Concurrent[F].delay())
+                }
+
                 Pull.output1((resp, rest))
             }
           }
