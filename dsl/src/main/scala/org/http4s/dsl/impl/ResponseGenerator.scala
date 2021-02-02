@@ -46,7 +46,12 @@ private[impl] object ResponseGenerator {
   */
 trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response(status, headers = Headers(headers.toList)))
+    F.pure(
+      Response(
+        status,
+        headers =
+          if (status.isEntityAllowed) addEntityLength[F](Entity.empty, Headers(headers.toList))
+          else Headers(headers.toList)))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
