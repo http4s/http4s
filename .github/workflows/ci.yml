@@ -24,9 +24,10 @@ jobs:
   build:
     name: Build and Test
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12, 2.13.3]
+        scala: [2.12.13, 2.13.4]
         java: [adopt@1.8, adopt@1.11, adopt@1.15]
     runs-on: ${{ matrix.os }}
     steps:
@@ -80,7 +81,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.3]
+        scala: [2.13.4]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -111,7 +112,10 @@ jobs:
 
       - run: git status
 
-      - run: sbt ++${{ matrix.scala }} release
+      - run: sbt ++${{ matrix.scala }} +publish
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
       - name: Setup Hugo
         run: |
@@ -129,7 +133,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.12 website/makeSite website/ghpagesPushSite
+          sbt ++2.12.13 website/makeSite website/ghpagesPushSite
 
                 
 
@@ -138,7 +142,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12]
+        scala: [2.12.13]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
