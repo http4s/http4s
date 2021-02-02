@@ -152,7 +152,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val req = Request[IO](PUT, uri"http://localhost/303").withEntity("foo")
     client
       .run(req)
-      .use { case Ok(resp) =>
+      .use { resp =>
         resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[IO]
       }
       .map(_.get)
@@ -206,7 +206,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       uri"http://localhost/different-authority",
       Header("Authorization", "Bearer s3cr3t"))
     req
-      .flatMap(client.run(_).use { case Ok(resp) =>
+      .flatMap(client.run(_).use { resp =>
         resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
       })
       .assertEquals(Some(""))
@@ -218,7 +218,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       uri"http://localhost/307",
       Header("Authorization", "Bearer s3cr3t"))
     req
-      .flatMap(client.run(_).use { case Ok(resp) =>
+      .flatMap(client.run(_).use { case resp =>
         resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
       })
       .assertEquals(Some("Bearer s3cr3t"))
@@ -227,7 +227,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test("FollowRedirect should ggRecord the intermediate URIs") {
     client
       .run(Request[IO](uri = uri"http://localhost/loop/0"))
-      .use { case Ok(resp) =>
+      .use { resp =>
         IO.pure(FollowRedirect.getRedirectUris(resp))
       }
       .assertEquals(
@@ -241,7 +241,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test("FollowRedirect should ggNot add any URIs when there are no redirects") {
     client
       .run(Request[IO](uri = uri"http://localhost/loop/100"))
-      .use { case Ok(resp) =>
+      .use { case resp =>
         IO.pure(FollowRedirect.getRedirectUris(resp))
       }
       .assertEquals(List.empty[Uri])
