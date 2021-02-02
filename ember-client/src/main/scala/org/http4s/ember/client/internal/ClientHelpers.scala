@@ -31,7 +31,7 @@ import org.http4s.client.RequestKey
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
-import _root_.io.chrisdavenport.keypool.Reusable
+import _root_.io.chrisdavenport.keypool._
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import _root_.org.http4s.ember.core.Util.durationToFinite
@@ -155,5 +155,26 @@ private[client] object ClientHelpers {
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
         Sync[F].delay(new InetSocketAddress(host, port))
+    }
+
+  // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
+  private[client] def getValidManaged[F[_]: Sync](
+      pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])],
+      request: Request[F]): Resource[F, Managed[F, (RequestKeySocket[F], F[Unit])]] =
+    pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
+      Resource
+        .liftF(managed.value._1.socket.isOpen)
+        .ifM(
+          managed.pure[Resource[F, *]],
+          // Already Closed,
+          // The Resource Scopes Aren't doing us anything
+          // if we have max removed from pool we will need to revisit
+          if (managed.isReused) {
+            Resource.liftF(managed.canBeReused.set(Reusable.DontReuse)) >>
+              getValidManaged(pool, request)
+          } else
+            Resource.liftF(Sync[F].raiseError(
+              new java.net.SocketException("Fresh connection from pool was not open")))
+        )
     }
 }

@@ -29,6 +29,7 @@ import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 import scala.concurrent.duration.Duration
 import org.http4s.headers.{AgentProduct, Connection, `User-Agent`}
+import org.http4s.ember.client.internal.ClientHelpers
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val blockerOpt: Option[Blocker],
@@ -142,21 +143,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       pool <- builder.build
     } yield {
       val client = Client[F] { request =>
-        def getValidManaged: Resource[F, Managed[F, (RequestKeySocket[F], F[Unit])]] =
-          pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
-            Resource
-              .liftF(managed.value._1.socket.isOpen)
-              .ifM(
-                managed.pure[Resource[F, *]],
-                // Already Closed,
-                // The Resource Scopes Aren't doing us anything
-                // if we have max removed from pool we will need to revisit
-                Resource.liftF(managed.canBeReused.set(Reusable.DontReuse)) >>
-                  getValidManaged
-              )
-          }
         for {
-          managed <- getValidManaged
+          managed <- ClientHelpers.getValidManaged(pool, request)
           _ <- Resource.liftF(
             pool.state.flatMap { poolState =>
               logger.trace(
@@ -166,7 +154,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           )
           responseResource <- Resource
             .liftF(
-              org.http4s.ember.client.internal.ClientHelpers
+              ClientHelpers
                 .request[F](
                   request,
                   managed.value._1,
