@@ -254,7 +254,7 @@ private[ember] object Parser {
           uri: Option[Uri],
           httpVersion: Option[HttpVersion]
       ) extends Exception(
-            s"Parse Prelude Error Encountered - Partially Decoded: $method $uri $httpVersion",
+            s"Parse Prelude Error Encountered - Message: $message - Partially Decoded: $method $uri $httpVersion",
             caused.orNull
           )
           with ParsePreludeResult
@@ -471,7 +471,7 @@ private[ember] object Parser {
       case object RespPreludeIncomplete extends RespPreludeResult
       case class RespPreludeError(message: String, cause: Option[Throwable])
           extends Throwable(
-            s"Received Error while parsing prelude - ${cause.map(_.getMessage)}",
+            s"Received Error while parsing prelude - Message: $message - ${cause.map(_.getMessage)}",
             cause.orNull)
           with RespPreludeResult
 
