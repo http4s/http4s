@@ -18,7 +18,7 @@ package org.http4s.ember.core
 
 import cats._
 import cats.effect.{MonadThrow => _, _}
-import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.{Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._
@@ -356,12 +356,19 @@ private[ember] object Parser {
 
     final case class SocketStream[F[_]](loaded: Array[Byte], read: F[Option[Chunk[Byte]]])
 
-    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
+    private def readingStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
+      Stream.eval(read).flatMap {
+        case Some(bytes) =>
+          Stream.chunk(bytes) ++ readingStream(read)
+        case None => Stream.empty
+      }
+
+    def parser[F[_]](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
       p: Array[Byte],
       r: F[Option[Chunk[Byte]]]
-    ): F[(Request[F], F[Array[Byte]])] =
+    )(implicit F: Concurrent[F], timer: Timer[F]): F[(Request[F], F[Array[Byte]])] =
       Deferred[F, Headers].flatMap { trailers =>
-        val baseStream = ReqPrelude
+        val action = ReqPrelude
           .parsePrelude[F](p, r, maxHeaderLength, None)
           .flatMap { case (method, uri, httpVersion, bytes) =>
             HeaderP.parseHeaders(bytes, r, maxHeaderLength, None).flatMap {
@@ -372,28 +379,82 @@ private[ember] object Parser {
                   httpVersion = httpVersion,
                   headers = headers
                 )
-                val (req, drain): (Request[F], F[Array[Byte]]) =
-                  if (chunked) {
-                    (baseReq
-                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                      .withBodyStream(
-                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers))), Concurrent[F].pure(Array.emptyByteArray))
-                  } else {
-                    val size = contentLength.getOrElse(0L)
-                    if (size > 0) {
-                      baseReq.withBodyStream(Stream.chunk(Chunk.bytes(bytes)) ++ rest.take(contentLength.getOrElse(0L)))
-                    } else {
-                      (baseReq, Concurrent[F].pure(bytes))
-                    }
-                  }
 
-                Pull.output1((req, drain))
+                val f: F[(Request[F], F[Array[Byte]])] = if (chunked) {
+//                  (baseReq
+//                    .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+//                    .withBodyStream(
+//                      rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers))), F.pure(Array.emptyByteArray))
+
+                  ???
+                } else {
+                  val size = contentLength.getOrElse(0L)
+                  if (size > 0) {
+                    if (bytes.length >= size) {
+                      val (body, extras) = bytes.splitAt(size.toInt)
+                      (baseReq.withBodyStream(Stream.chunk(Chunk.bytes(body))), extras.pure[F]).pure[F]
+                    } else {
+                      // TODO: we could just use a volatile var for performance here
+                      // TODO: deal with streams that terminate early?
+                      // TODO: Add a done state?
+                      Ref.of[F, Either[Long, Array[Byte]]](Left(size - bytes.length)).map { state =>
+                        val bodyStream = readingStream(r)
+                          .chunks
+                          .evalMap { chunk =>
+                            state.modify {
+                              case Left(remaining) =>
+                                if (chunk.size >= remaining) {
+                                  val (rest, after) = chunk.splitAt(remaining.toInt)
+                                  (Right(after.toArray), (rest, false))
+                                } else
+                                  (Left(remaining - chunk.size), (chunk, true))
+                              case r @ Right(_) => (r, (chunk, true)) // TODO: possibly error here?
+                            }
+                          }
+                          .takeWhile(_._2)
+                          .map(_._1)
+                          .flatMap(Stream.chunk(_))
+
+                        // Separate Ref for the second drain?
+                        val drain: F[Array[Byte]] = state.modify {
+                          case l @ Left(_) => {
+                            // TODO: I think we can make this better with Pull
+                            val f = readingStream(r)
+                              .chunks
+                              .evalMap { chunk =>
+                                state.modify {
+                                  case Left(remaining) =>
+                                    if (chunk.size >= remaining) {
+                                      val (rest, after) = chunk.splitAt(remaining.toInt)
+                                      (Right(after.toArray), (rest, false))
+                                    } else
+                                      (Left(remaining - chunk.size), (chunk, true))
+                                  case r @ Right(_) => (r, (chunk, true)) // TODO: possibly error here?
+                                }
+                              }
+                              .takeWhile(_._2)
+                              .map(_._1)
+                              .flatMap(Stream.chunk(_))
+                              .compile
+                              .drain
+
+                            (l, f >> state.get.map(_.toOption.get))
+                          }
+                          case r @ Right(bytes) => (r, F.pure(bytes))
+                        }.flatten
+
+                        (baseReq.withBodyStream(Stream.chunk(Chunk.bytes(bytes)) ++ bodyStream), drain)
+                      }
+                    }
+                  } else {
+                    (baseReq, Concurrent[F].pure(bytes)).pure[F]
+                  }
+                }
+
+                f
             }
           }
-          .stream
-          .take(1)
 
-        val action = baseStream.compile.lastOrError
         timeout match {
           case None => action
           case Some(timeout) => Concurrent.timeout(action, timeout)
