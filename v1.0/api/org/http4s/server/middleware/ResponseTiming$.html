@@ -313,11 +313,11 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/server/src/main/scala/org/http4s/server/middleware/ResponseTiming.scala" target="_blank">ResponseTiming.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/middleware/ResponseTiming.scala" target="_blank">ResponseTiming.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -419,9 +419,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.ResponseTiming#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_]](http:org.http4s.HttpApp[F],timeUnit:concurrent.duration.TimeUnit,headerName:org.http4s.util.CaseInsensitiveString)(implicitF:cats.effect.Sync[F],implicitclock:cats.effect.Clock[F]):org.http4s.HttpApp[F]"></a><a id="apply[F[_]](HttpApp[F],TimeUnit,CaseInsensitiveString)(Sync[F],Clock[F]):HttpApp[F]"></a>
+      <a id="apply[F[_]](http:org.http4s.HttpApp[F],timeUnit:concurrent.duration.TimeUnit,headerName:org.typelevel.ci.CIString)(implicitF:cats.effect.Sync[F],implicitclock:cats.effect.Clock[F]):org.http4s.HttpApp[F]"></a><a id="apply[F[_]](HttpApp[F],TimeUnit,CIString)(Sync[F],Clock[F]):HttpApp[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/ResponseTiming$.html#apply[F[_]](http:org.http4s.HttpApp[F],timeUnit:concurrent.duration.TimeUnit,headerName:org.http4s.util.CaseInsensitiveString)(implicitF:cats.effect.Sync[F],implicitclock:cats.effect.Clock[F]):org.http4s.HttpApp[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ResponseTiming$.html#apply[F[_]](http:org.http4s.HttpApp[F],timeUnit:concurrent.duration.TimeUnit,headerName:org.typelevel.ci.CIString)(implicitF:cats.effect.Sync[F],implicitclock:cats.effect.Clock[F]):org.http4s.HttpApp[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -430,7 +430,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>, <span name="timeUnit">timeUnit: <span class="extype" name="scala.concurrent.duration.TimeUnit">TimeUnit</span> = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">MILLISECONDS</a></span></span></span>, <span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> = <span class="defval" name='<span class="name"><a href="../../../index.html">CaseInsensitiveString(&quot;X-Response-Time&quot;)</a></span>'>...</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>, <span name="clock">clock: <a href="https://typelevel.org/cats-effect/api/cats/effect/Clock.html#cats.effect.Clock" class="extype" name="cats.effect.Clock">Clock</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>, <span name="timeUnit">timeUnit: <span class="extype" name="scala.concurrent.duration.TimeUnit">TimeUnit</span> = <span class="symbol">MILLISECONDS</span></span>, <span name="headerName">headerName: <span class="extype" name="org.typelevel.ci.CIString">CIString</span> = <span class="symbol"><span class="name"><a href="../../../index.html">CIString(&quot;X-Response-Time&quot;)</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>, <span name="clock">clock: <a href="https://typelevel.org/cats-effect/api/cats/effect/Clock.html#cats.effect.Clock" class="extype" name="cats.effect.Clock">Clock</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.ResponseTiming.apply.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Simple middleware for adding a custom header with timing information to a response.</p><div class="fullcomment"><div class="comment cmt"><p>Simple middleware for adding a custom header with timing information to a response.</p><p>This middleware captures the time starting from when the request headers are parsed and supplied
@@ -465,7 +465,7 @@ work best as the outer layer to ensure work done by other middleware is also inc
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -489,7 +489,7 @@ work best as the outer layer to ensure work done by other middleware is also inc
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -597,7 +597,7 @@ work best as the outer layer to ensure work done by other middleware is also inc
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -750,7 +750,7 @@ work best as the outer layer to ensure work done by other middleware is also inc
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

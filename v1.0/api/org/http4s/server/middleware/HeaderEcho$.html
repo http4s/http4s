@@ -313,11 +313,11 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/server/src/main/scala/org/http4s/server/middleware/HeaderEcho.scala" target="_blank">HeaderEcho.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/middleware/HeaderEcho.scala" target="_blank">HeaderEcho.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -419,9 +419,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.HeaderEcho#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_],G[_]](echoHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Functor[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]]((CaseInsensitiveString)⇒Boolean)(Http[F,G])(Functor[F]):Http[F,G]"></a>
+      <a id="apply[F[_],G[_]](echoHeadersWhen:org.typelevel.ci.CIString=&gt;Boolean)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Functor[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]]((CIString)⇒Boolean)(Http[F,G])(Functor[F]):Http[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/HeaderEcho$.html#apply[F[_],G[_]](echoHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Functor[F]):org.http4s.Http[F,G]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HeaderEcho$.html#apply[F[_],G[_]](echoHeadersWhen:org.typelevel.ci.CIString=&gt;Boolean)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Functor[F]):org.http4s.Http[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -430,7 +430,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="echoHeadersWhen">echoHeadersWhen: (<a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.G">G</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="echoHeadersWhen">echoHeadersWhen: (<span class="extype" name="org.typelevel.ci.CIString">CIString</span>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HeaderEcho.apply.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Simple server middleware that adds selected headers present on the request to the response.</p><div class="fullcomment"><div class="comment cmt"><p>Simple server middleware that adds selected headers present on the request to the response.
@@ -463,7 +463,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -487,7 +487,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -568,9 +568,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.server.middleware.HeaderEcho#httpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="httpApp[F[_]](echoHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(httpApp:org.http4s.HttpApp[F])(implicitevidence$3:cats.Functor[F]):org.http4s.HttpApp[F]"></a><a id="httpApp[F[_]]((CaseInsensitiveString)⇒Boolean)(HttpApp[F])(Functor[F]):HttpApp[F]"></a>
+      <a id="httpApp[F[_]](echoHeadersWhen:org.typelevel.ci.CIString=&gt;Boolean)(httpApp:org.http4s.HttpApp[F])(implicitevidence$3:cats.Functor[F]):org.http4s.HttpApp[F]"></a><a id="httpApp[F[_]]((CIString)⇒Boolean)(HttpApp[F])(Functor[F]):HttpApp[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/HeaderEcho$.html#httpApp[F[_]](echoHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(httpApp:org.http4s.HttpApp[F])(implicitevidence$3:cats.Functor[F]):org.http4s.HttpApp[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HeaderEcho$.html#httpApp[F[_]](echoHeadersWhen:org.typelevel.ci.CIString=&gt;Boolean)(httpApp:org.http4s.HttpApp[F])(implicitevidence$3:cats.Functor[F]):org.http4s.HttpApp[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -579,14 +579,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">httpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="echoHeadersWhen">echoHeadersWhen: (<a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpApp.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpApp.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpApp.F">F</span>]</span>
+        <span class="name">httpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="echoHeadersWhen">echoHeadersWhen: (<span class="extype" name="org.typelevel.ci.CIString">CIString</span>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpApp.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpApp.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpApp.F">F</span>]</span>
       </span>
       
       
     </li><li name="org.http4s.server.middleware.HeaderEcho#httpRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="httpRoutes[F[_]](echoHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$2:cats.Functor[F]):org.http4s.HttpRoutes[F]"></a><a id="httpRoutes[F[_]]((CaseInsensitiveString)⇒Boolean)(HttpRoutes[F])(Functor[F]):HttpRoutes[F]"></a>
+      <a id="httpRoutes[F[_]](echoHeadersWhen:org.typelevel.ci.CIString=&gt;Boolean)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$2:cats.Functor[F]):org.http4s.HttpRoutes[F]"></a><a id="httpRoutes[F[_]]((CIString)⇒Boolean)(HttpRoutes[F])(Functor[F]):HttpRoutes[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/HeaderEcho$.html#httpRoutes[F[_]](echoHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$2:cats.Functor[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HeaderEcho$.html#httpRoutes[F[_]](echoHeadersWhen:org.typelevel.ci.CIString=&gt;Boolean)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$2:cats.Functor[F]):org.http4s.HttpRoutes[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -595,7 +595,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">httpRoutes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="echoHeadersWhen">echoHeadersWhen: (<a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpRoutes.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpRoutes.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpRoutes.F">F</span>]</span>
+        <span class="name">httpRoutes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="echoHeadersWhen">echoHeadersWhen: (<span class="extype" name="org.typelevel.ci.CIString">CIString</span>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpRoutes.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpRoutes.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.HeaderEcho.httpRoutes.F">F</span>]</span>
       </span>
       
       
@@ -627,7 +627,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -780,7 +780,7 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

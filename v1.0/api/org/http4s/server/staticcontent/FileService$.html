@@ -156,9 +156,17 @@ for serious static content serving.
                         <a class="object" href="ResourceService$.html" title=""></a>
                         <a href="ResourceService$.html" title="">ResourceService</a>
                       </li><li class="current-entities indented4">
+                        <a class="object" href="ResourceServiceBuilder$.html" title=""></a>
+                        <a class="class" href="ResourceServiceBuilder.html" title="org.http4s.server.staticcontent.ResourceServiceBuilder builder"></a>
+                        <a href="ResourceServiceBuilder.html" title="org.http4s.server.staticcontent.ResourceServiceBuilder builder">ResourceServiceBuilder</a>
+                      </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="WebjarService$.html" title="Constructs new services to serve assets from Webjars"></a>
-                        <a href="WebjarService$.html" title="Constructs new services to serve assets from Webjars">WebjarService</a>
+                        <a class="object" href="WebjarService$.html" title=""></a>
+                        <a href="WebjarService$.html" title="">WebjarService</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="WebjarServiceBuilder$.html" title=""></a>
+                        <a class="class" href="WebjarServiceBuilder.html" title="org.http4s.server.staticcontent.WebjarServiceBuilder builder"></a>
+                        <a href="WebjarServiceBuilder.html" title="org.http4s.server.staticcontent.WebjarServiceBuilder builder">WebjarServiceBuilder</a>
                       </li>
               </ul>
             </div>
@@ -187,11 +195,11 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/server/src/main/scala/org/http4s/server/staticcontent/FileService.scala" target="_blank">FileService.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/staticcontent/FileService.scala" target="_blank">FileService.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -256,7 +264,7 @@ for serious static content serving.
       
       <p class="shortcomment cmt"><a href="" class="extype" name="org.http4s.server.staticcontent.FileService">org.http4s.server.staticcontent.FileService</a> configuration
 </p><div class="fullcomment"><div class="comment cmt"><p><a href="" class="extype" name="org.http4s.server.staticcontent.FileService">org.http4s.server.staticcontent.FileService</a> configuration
-</p></div><dl class="paramcmts block"><dt class="param">systemPath</dt><dd class="cmt"><p>path prefix to the folder from which content will be served</p></dd><dt class="param">pathCollector</dt><dd class="cmt"><p>function that performs the work of collecting the file or rendering the directory into a response.</p></dd><dt class="param">pathPrefix</dt><dd class="cmt"><p>prefix of Uri from which content will be served</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>buffer size to use for internal read buffers</p></dd><dt class="param">cacheStrategy</dt><dd class="cmt"><p>strategy to use for caching purposes. Default to no caching.</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">systemPath</dt><dd class="cmt"><p>path prefix to the folder from which content will be served</p></dd><dt class="param">blocker</dt><dd class="cmt"><p>to use for blocking I/O</p></dd><dt class="param">pathCollector</dt><dd class="cmt"><p>function that performs the work of collecting the file or rendering the directory into a response.</p></dd><dt class="param">pathPrefix</dt><dd class="cmt"><p>prefix of Uri from which content will be served</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>buffer size to use for internal read buffers</p></dd><dt class="param">cacheStrategy</dt><dd class="cmt"><p>strategy to use for caching purposes. Default to no caching.</p></dd></dl></div>
     </li><li name="org.http4s.server.staticcontent.FileService.PathCollector" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="PathCollector[F[_]]=(java.io.File,org.http4s.server.staticcontent.FileService.Config[F],org.http4s.Request[F])=&gt;cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="PathCollector[F[_]]:PathCollector[F]"></a>
       <span class="permalink">
@@ -357,7 +365,7 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -381,7 +389,7 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -489,7 +497,7 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -658,7 +666,7 @@ for serious static content serving.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

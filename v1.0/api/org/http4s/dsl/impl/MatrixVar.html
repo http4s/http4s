@@ -143,8 +143,8 @@
                         <a href="$minus$greater$.html" title="">-&gt;</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="$div.html" title=""></a>
-                        <a href="$div.html" title="">/</a>
+                        <a class="object" href="$div$.html" title=""></a>
+                        <a href="$div$.html" title="">/</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="$div$colon$.html" title="Path separator extractor:"></a>
@@ -214,10 +214,6 @@
                         <a class="class" href="OptionalValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder."></a>
                         <a href="OptionalValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder.">OptionalValidatingQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="Path$.html" title=""></a>
-                        <a class="trait" href="Path.html" title="Base class for path extractors."></a>
-                        <a href="Path.html" title="Base class for path extractors.">Path</a>
-                      </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="PathVar.html" title=""></a>
                         <a href="PathVar.html" title="">PathVar</a>
@@ -241,10 +237,6 @@
                         <a class="object" href="Responses$.html" title=""></a>
                         <a class="trait" href="Responses.html" title=""></a>
                         <a href="Responses.html" title="">Responses</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="Root$.html" title="Root extractor:"></a>
-                        <a href="Root$.html" title="Root extractor:">Root</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="trait" href="Statuses.html" title=""></a>
@@ -290,7 +282,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">MatrixVar</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">MatrixVar</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       </h4>
 
@@ -300,11 +292,11 @@ For an example see <a href="https://www.w3.org/DesignIssues/MatrixURIs.html" tar
 This is useful for representing a resource that may be addressed in multiple dimensions where order is unimportant</p><pre><span class="kw">object</span> BoardVar <span class="kw">extends</span> MatrixVar(<span class="lit">"square"</span>, <span class="std">List</span>(<span class="lit">"x"</span>, <span class="lit">"y"</span>))
 Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</span> {
   <span class="kw">case</span> Root / <span class="lit">"board"</span> / BoardVar(IntVar(x), IntVar(y)) <span class="kw">=&gt;</span> ...
-}</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
+}</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -452,7 +444,7 @@ Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</s
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -476,7 +468,7 @@ Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</s
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -584,7 +576,7 @@ Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</s
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -670,7 +662,7 @@ Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</s
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unapplySeq</span><span class="params">(<span name="str">str: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../../../scala/index.html#Seq[+A]=Seq[A]" class="extmbr" name="scala.Seq">Seq</a>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
+        <span class="name">unapplySeq</span><span class="params">(<span name="str">str: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
       </span>
       
       
@@ -753,7 +745,7 @@ Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</s
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

@@ -189,11 +189,11 @@ https://devcenter.heroku.com/articles/http-request-id
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/server/src/main/scala/org/http4s/server/middleware/RequestId.scala" target="_blank">RequestId.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/middleware/RequestId.scala" target="_blank">RequestId.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -295,9 +295,9 @@ https://devcenter.heroku.com/articles/http-request-id
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.RequestId.httpRoutes#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](headerName:org.http4s.util.CaseInsensitiveString,genReqId:F[java.util.UUID])(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$6:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](CaseInsensitiveString,F[UUID])(HttpRoutes[F])(Sync[F]):HttpRoutes[F]"></a>
+      <a id="apply[F[_]](headerName:org.typelevel.ci.CIString,genReqId:F[java.util.UUID])(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$6:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](CIString,F[UUID])(HttpRoutes[F])(Sync[F]):HttpRoutes[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/RequestId$$httpRoutes$.html#apply[F[_]](headerName:org.http4s.util.CaseInsensitiveString,genReqId:F[java.util.UUID])(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$6:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/RequestId$$httpRoutes$.html#apply[F[_]](headerName:org.typelevel.ci.CIString,genReqId:F[java.util.UUID])(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$6:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -306,14 +306,14 @@ https://devcenter.heroku.com/articles/http-request-id
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> = <span class="symbol">requestIdHeader</span></span>, <span name="genReqId">genReqId: <span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>[<span class="extype" name="java.util.UUID">UUID</span>]</span>)</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <span class="extype" name="org.typelevel.ci.CIString">CIString</span> = <span class="symbol">requestIdHeader</span></span>, <span name="genReqId">genReqId: <span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>[<span class="extype" name="java.util.UUID">UUID</span>]</span>)</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>
       </span>
       
       
     </li><li name="org.http4s.server.middleware.RequestId.httpRoutes#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](headerName:org.http4s.util.CaseInsensitiveString)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$5:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](CaseInsensitiveString)(HttpRoutes[F])(Sync[F]):HttpRoutes[F]"></a>
+      <a id="apply[F[_]](headerName:org.typelevel.ci.CIString)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$5:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](CIString)(HttpRoutes[F])(Sync[F]):HttpRoutes[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/RequestId$$httpRoutes$.html#apply[F[_]](headerName:org.http4s.util.CaseInsensitiveString)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$5:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/RequestId$$httpRoutes$.html#apply[F[_]](headerName:org.typelevel.ci.CIString)(httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$5:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -322,7 +322,7 @@ https://devcenter.heroku.com/articles/http-request-id
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>)</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.RequestId.httpRoutes.apply.F">F</span>]</span>
       </span>
       
       
@@ -370,7 +370,7 @@ https://devcenter.heroku.com/articles/http-request-id
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -394,7 +394,7 @@ https://devcenter.heroku.com/articles/http-request-id
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -502,7 +502,7 @@ https://devcenter.heroku.com/articles/http-request-id
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -655,7 +655,7 @@ https://devcenter.heroku.com/articles/http-request-id
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

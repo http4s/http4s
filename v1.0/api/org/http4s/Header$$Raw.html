@@ -133,6 +133,10 @@
                         <span class="separator"></span>
                         <a class="trait" href="Header$$RecurringRenderable.html" title="Simple helper trait that provides a default way of rendering the value"></a>
                         <a href="Header$$RecurringRenderable.html" title="Simple helper trait that provides a default way of rendering the value">RecurringRenderable</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="Header$$RecurringRenderer.html" title="Helper trait that provides a default way of rendering the value provided a Renderer"></a>
+                        <a href="Header$$RecurringRenderer.html" title="Helper trait that provides a default way of rendering the value provided a Renderer">RecurringRenderer</a>
                       </li>
               </ul>
             </div>
@@ -156,17 +160,17 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Raw</span><span class="params">(<span name="name">name: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Header.html" class="extype" name="org.http4s.Header">Header</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Raw</span><span class="params">(<span name="name">name: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Header.html" class="extype" name="org.http4s.Header">Header</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Raw representation of the Header</p><p>This can be considered the simplest representation where the header is specified as the product of
-a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>case-insensitive string used to identify the header</p></dd><dt class="param">value</dt><dd class="cmt"><p>String representation of the header value</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/core/src/main/scala/org/http4s/Header.scala" target="_blank">Header.scala</a></dd></dl><div class="toggleContainer block">
+a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>case-insensitive string used to identify the header</p></dd><dt class="param">value</dt><dd class="cmt"><p>String representation of the header value</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/core/src/main/scala/org/http4s/Header.scala" target="_blank">Header.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -213,9 +217,9 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.Header.Raw#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(name:org.http4s.util.CaseInsensitiveString,value:String):org.http4s.Header.Raw"></a><a id="&lt;init&gt;:Raw"></a>
+      <a id="&lt;init&gt;(name:org.typelevel.ci.CIString,value:String):org.http4s.Header.Raw"></a><a id="&lt;init&gt;:Raw"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Header$$Raw.html#&lt;init&gt;(name:org.http4s.util.CaseInsensitiveString,value:String):org.http4s.Header.Raw" title="Permalink">
+      <a href="../../org/http4s/Header$$Raw.html#&lt;init&gt;(name:org.typelevel.ci.CIString,value:String):org.http4s.Header.Raw" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -224,7 +228,7 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Raw</span><span class="params">(<span name="name">name: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span>
+        <span class="name">Raw</span><span class="params">(<span name="name">name: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span>
       </span>
       
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>case-insensitive string used to identify the header</p></dd><dt class="param">value</dt><dd class="cmt"><p>String representation of the header value</p></dd></dl></div>
@@ -314,7 +318,7 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -338,7 +342,7 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -464,9 +468,9 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="org.http4s.Header.Raw#name" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="name:org.http4s.util.CaseInsensitiveString"></a><a id="name:CaseInsensitiveString"></a>
+      <a id="name:org.typelevel.ci.CIString"></a><a id="name:CIString"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Header$$Raw.html#name:org.http4s.util.CaseInsensitiveString" title="Permalink">
+      <a href="../../org/http4s/Header$$Raw.html#name:org.typelevel.ci.CIString" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -475,7 +479,7 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">name</span><span class="result">: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
+        <span class="name">name</span><span class="result">: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Header.Raw">Raw</a> → <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
@@ -491,7 +495,7 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -768,7 +772,7 @@ a key and a value</p></div><dl class="paramcmts block"><dt class="param">name</d
             </div><div class="parent" name="org.http4s.util.Renderable">
               <h3>Inherited from <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

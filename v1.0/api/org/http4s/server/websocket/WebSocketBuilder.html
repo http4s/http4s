@@ -162,36 +162,19 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">WebSocketBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="send">send: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">WebSocketBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onClose">onClose: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>, <span name="filterPingPongs">filterPingPongs: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$1">evidence$1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
-supplied exchange to process and respond to websocket messages.</p></div><dl class="paramcmts block"><dt class="param">send</dt><dd class="cmt"><p>The send side of the Exchange represents the outgoing stream of messages that should be sent to the client</p></dd><dt class="param">receive</dt><dd class="cmt"><p>The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages
-                Once both streams have terminated, the server will initiate a close of the websocket connection.
-                As defined in the websocket specification, this means the server
-                will send a CloseFrame to the client and wait for a CloseFrame in response before closing the
-                connection, this ensures that no messages are lost in flight. The server will shutdown the
-                connection when it receives the <code>CloseFrame</code> message back from the client. The connection will also
-                be closed if the client does not respond with a <code>CloseFrame</code> after some reasonable amount of
-                time.
-                Another way of closing the connection is by emitting a <code>CloseFrame</code> in the stream of messages
-                heading to the client. This method allows one to attach a message to the <code>CloseFrame</code> as defined
-                by the websocket protocol.
-                Unfortunately the current implementation does not quite respect the description above, it violates
-                the websocket protocol by terminating the connection immediately upon reception
-                of a <code>CloseFrame</code>. This bug will be addressed soon in an upcoming release and this message will be
-                removed.
-                Currently, there is no way for the server to be notified when the connection is closed, neither in
-                the case of a normal disconnection such as a Close handshake or due to a connection error. There
-                are plans to address this limitation in the future.</p></dd><dt class="param">headers</dt><dd class="cmt"><p>Handshake response headers, such as such as:Sec-WebSocket-Protocol.</p></dd><dt class="param">onNonWebSocketRequest</dt><dd class="cmt"><p>The status code to return to a client making a non-websocket HTTP request to this route.
+supplied exchange to process and respond to websocket messages.</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p>Handshake response headers, such as such as:Sec-WebSocket-Protocol.</p></dd><dt class="param">onNonWebSocketRequest</dt><dd class="cmt"><p>The status code to return to a client making a non-websocket HTTP request to this route.
                              default: NotImplemented</p></dd><dt class="param">onHandshakeFailure</dt><dd class="cmt"><p>The status code to return when failing to handle a websocket HTTP request to this route.
-                          default: BadRequest</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/server/src/main/scala/org/http4s/server/websocket/WebSocketBuilder.scala" target="_blank">WebSocketBuilder.scala</a></dd></dl><div class="toggleContainer block">
+                          default: BadRequest</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/websocket/WebSocketBuilder.scala" target="_blank">WebSocketBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -238,9 +221,9 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.websocket.WebSocketBuilder#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]]):org.http4s.server.websocket.WebSocketBuilder[F]"></a><a id="&lt;init&gt;:WebSocketBuilder[F]"></a>
+      <a id="&lt;init&gt;(headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]],onClose:F[Unit],filterPingPongs:Boolean)(implicitevidence$1:cats.Applicative[F]):org.http4s.server.websocket.WebSocketBuilder[F]"></a><a id="&lt;init&gt;:WebSocketBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#&lt;init&gt;(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]]):org.http4s.server.websocket.WebSocketBuilder[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#&lt;init&gt;(headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]],onClose:F[Unit],filterPingPongs:Boolean)(implicitevidence$1:cats.Applicative[F]):org.http4s.server.websocket.WebSocketBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -249,27 +232,10 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">WebSocketBuilder</span><span class="params">(<span name="send">send: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>)</span>
+        <span class="name">WebSocketBuilder</span><span class="params">(<span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onClose">onClose: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>, <span name="filterPingPongs">filterPingPongs: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]</span>)</span>
       </span>
       
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">send</dt><dd class="cmt"><p>The send side of the Exchange represents the outgoing stream of messages that should be sent to the client</p></dd><dt class="param">receive</dt><dd class="cmt"><p>The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages
-                Once both streams have terminated, the server will initiate a close of the websocket connection.
-                As defined in the websocket specification, this means the server
-                will send a CloseFrame to the client and wait for a CloseFrame in response before closing the
-                connection, this ensures that no messages are lost in flight. The server will shutdown the
-                connection when it receives the <code>CloseFrame</code> message back from the client. The connection will also
-                be closed if the client does not respond with a <code>CloseFrame</code> after some reasonable amount of
-                time.
-                Another way of closing the connection is by emitting a <code>CloseFrame</code> in the stream of messages
-                heading to the client. This method allows one to attach a message to the <code>CloseFrame</code> as defined
-                by the websocket protocol.
-                Unfortunately the current implementation does not quite respect the description above, it violates
-                the websocket protocol by terminating the connection immediately upon reception
-                of a <code>CloseFrame</code>. This bug will be addressed soon in an upcoming release and this message will be
-                removed.
-                Currently, there is no way for the server to be notified when the connection is closed, neither in
-                the case of a normal disconnection such as a Close handshake or due to a connection error. There
-                are plans to address this limitation in the future.</p></dd><dt class="param">headers</dt><dd class="cmt"><p>Handshake response headers, such as such as:Sec-WebSocket-Protocol.</p></dd><dt class="param">onNonWebSocketRequest</dt><dd class="cmt"><p>The status code to return to a client making a non-websocket HTTP request to this route.
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p>Handshake response headers, such as such as:Sec-WebSocket-Protocol.</p></dd><dt class="param">onNonWebSocketRequest</dt><dd class="cmt"><p>The status code to return to a client making a non-websocket HTTP request to this route.
                              default: NotImplemented</p></dd><dt class="param">onHandshakeFailure</dt><dd class="cmt"><p>The status code to return when failing to handle a websocket HTTP request to this route.
                           default: BadRequest</p></dd></dl></div>
     </li></ol>
@@ -346,6 +312,72 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.server.websocket.WebSocketBuilder#build" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="build(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit]):F[org.http4s.Response[F]]"></a><a id="build(Stream[F,WebSocketFrame],Pipe[F,WebSocketFrame,Unit]):F[Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#build(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit]):F[org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">build</span><span class="params">(<span name="send">send: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">send</dt><dd class="cmt"><p>The send side of the Exchange represents the outgoing stream of messages that should be sent to the client</p></dd><dt class="param">receive</dt><dd class="cmt"><p>The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages
+                Once both streams have terminated, the server will initiate a close of the websocket connection.
+                As defined in the websocket specification, this means the server
+                will send a CloseFrame to the client and wait for a CloseFrame in response before closing the
+                connection, this ensures that no messages are lost in flight. The server will shutdown the
+                connection when it receives the <code>CloseFrame</code> message back from the client. The connection will also
+                be closed if the client does not respond with a <code>CloseFrame</code> after some reasonable amount of
+                time.
+                Another way of closing the connection is by emitting a <code>CloseFrame</code> in the stream of messages
+                heading to the client. This method allows one to attach a message to the <code>CloseFrame</code> as defined
+                by the websocket protocol.
+                Unfortunately the current implementation does not quite respect the description above, it violates
+                the websocket protocol by terminating the connection immediately upon reception
+                of a <code>CloseFrame</code>. This bug will be addressed soon in an upcoming release and this message will be
+                removed.
+                Currently, there is no way for the server to be notified when the connection is closed, neither in
+                the case of a normal disconnection such as a Close handshake or due to a connection error. There
+                are plans to address this limitation in the future.</p></dd></dl></div>
+    </li><li name="org.http4s.server.websocket.WebSocketBuilder#build" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="build(sendReceive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,org.http4s.websocket.WebSocketFrame]):F[org.http4s.Response[F]]"></a><a id="build(Pipe[F,WebSocketFrame,WebSocketFrame]):F[Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#build(sendReceive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,org.http4s.websocket.WebSocketFrame]):F[org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">build</span><span class="params">(<span name="sendReceive">sendReceive: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">sendReceive</dt><dd class="cmt"><p>The send-receive stream represents transforming of incoming messages to outgoing for a single websocket
+                   Once the stream have terminated, the server will initiate a close of the websocket connection.
+                   As defined in the websocket specification, this means the server
+                   will send a CloseFrame to the client and wait for a CloseFrame in response before closing the
+                   connection, this ensures that no messages are lost in flight. The server will shutdown the
+                   connection when it receives the <code>CloseFrame</code> message back from the client. The connection will also
+                   be closed if the client does not respond with a <code>CloseFrame</code> after some reasonable amount of
+                   time.
+                   Another way of closing the connection is by emitting a <code>CloseFrame</code> in the stream of messages
+                   heading to the client. This method allows one to attach a message to the <code>CloseFrame</code> as defined
+                   by the websocket protocol.
+                   Unfortunately the current implementation does not quite respect the description above, it violates
+                   the websocket protocol by terminating the connection immediately upon reception
+                   of a <code>CloseFrame</code>. This bug will be addressed soon in an upcoming release and this message will be
+                   removed.
+                   Currently, there is no way for the server to be notified when the connection is closed, neither in
+                   the case of a normal disconnection such as a Close handshake or due to a connection error. There
+                   are plans to address this limitation in the future.</p></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -358,7 +390,7 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -382,10 +414,26 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.server.websocket.WebSocketBuilder#filterPingPongs" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="filterPingPongs:Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#filterPingPongs:Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">filterPingPongs</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -471,7 +519,7 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -513,6 +561,22 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.websocket.WebSocketBuilder#onClose" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="onClose:F[Unit]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#onClose:F[Unit]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onClose</span><span class="result">: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.server.websocket.WebSocketBuilder#onHandshakeFailure" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="onHandshakeFailure:F[org.http4s.Response[F]]"></a><a id="onHandshakeFailure:F[Response[F]]"></a>
       <span class="permalink">
@@ -542,38 +606,6 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
       </span>
       <span class="symbol">
         <span class="name">onNonWebSocketRequest</span><span class="result">: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.server.websocket.WebSocketBuilder#receive" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit]"></a><a id="receive:Pipe[F,WebSocketFrame,Unit]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">receive</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.server.websocket.WebSocketBuilder#send" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame]"></a><a id="send:Stream[F,WebSocketFrame]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">send</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>
       </span>
       
       
@@ -680,7 +712,7 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

@@ -167,11 +167,11 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>], <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>], <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]], <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>], <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>], <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>], <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -308,7 +308,7 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> → BackendBuilder</dd></dl></div>
     </li><li name="org.http4s.internal.BackendBuilder#allocated" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="allocated:F[(A,F[Unit])]"></a><a id="allocated:F[(Server[F],F[Unit])]"></a>
+      <a id="allocated:F[(A,F[Unit])]"></a><a id="allocated:F[(Server,F[Unit])]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#allocated:F[(A,F[Unit])]" title="Permalink">
         <i class="material-icons"></i>
@@ -319,18 +319,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">allocated</span><span class="result">: <span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>[(<a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>], <span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>])]</span>
+        <span class="name">allocated</span><span class="result">: <span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>[(<a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>, <span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>])]</span>
       </span>
       
       <p class="shortcomment cmt">Returns an effect that allocates a backend and an <code>F[Unit]</code> to
 release it.</p><div class="fullcomment"><div class="comment cmt"><p>Returns an effect that allocates a backend and an <code>F[Unit]</code> to
 release it.  The returned <code>F</code> waits until the backend is ready
 to process requests.  The second element of the tuple shuts
-down the backend when run.</p><p>Unlike <a href="#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#resource">resource</a> and <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#stream">stream</a>, there is no automatic
+down the backend when run.</p><p>Unlike <a href="#resource:cats.effect.Resource[F,org.http4s.server.Server]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#resource">resource</a> and <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#stream">stream</a>, there is no automatic
 release of the backend.  This function is intended for REPL
 sessions, tests, and other situations where composing a
 <a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html" class="extype" name="cats.effect.Resource">cats.effect.Resource</a> or <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html" class="extype" name="fs2.Stream">fs2.Stream</a> is not tenable.
-<a href="#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#resource">resource</a> or <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#stream">stream</a> is recommended wherever possible.
+<a href="#resource:cats.effect.Resource[F,org.http4s.server.Server]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#resource">resource</a> or <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#stream">stream</a> is recommended wherever possible.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
@@ -424,7 +424,7 @@ sessions, tests, and other situations where composing a
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -448,7 +448,7 @@ sessions, tests, and other situations where composing a
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -608,7 +608,7 @@ a servlet container.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">mountServlet</span><span class="params">(<span name="servlet">servlet: <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">None</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+        <span class="name">mountServlet</span><span class="params">(<span name="servlet">servlet: <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Mounts a servlet to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a servlet to the server.</p><p>The http4s way is to create <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>, which runs not just on servlet containers,
@@ -627,7 +627,7 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -670,9 +670,9 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
               
         </dd></dl></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#resource" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="resource:cats.effect.Resource[F,org.http4s.server.Server[F]]"></a><a id="resource:Resource[F,Server[F]]"></a>
+      <a id="resource:cats.effect.Resource[F,org.http4s.server.Server]"></a><a id="resource:Resource[F,Server]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" title="Permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#resource:cats.effect.Resource[F,org.http4s.server.Server]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -681,7 +681,7 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">resource</span><span class="result">: <a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html#cats.effect.Resource" class="extype" name="cats.effect.Resource">Resource</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</span>
+        <span class="name">resource</span><span class="result">: <a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html#cats.effect.Resource" class="extype" name="cats.effect.Resource">Resource</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Returns a Server resource.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a Server resource.  The resource is not acquired until the
@@ -724,7 +724,7 @@ that runs for the rest of the JVM's life.
 Useful for servers with associated lifetime behaviors.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.internal.BackendBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="stream:fs2.Stream[F,A]"></a><a id="stream:Stream[F,Server[F]]"></a>
+      <a id="stream:fs2.Stream[F,A]"></a><a id="stream:Stream[F,Server]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#stream:fs2.Stream[F,A]" title="Permalink">
         <i class="material-icons"></i>
@@ -735,7 +735,7 @@ Useful for servers with associated lifetime behaviors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</span>
+        <span class="name">stream</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Returns the backend as a single-element stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a single-element stream.  The stream
@@ -1101,7 +1101,7 @@ default <code>SSLParameters</code>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-RC3) Build an SSLContext from the first four parameters and use withSslContext (note lowercase). To also request client certificates, use withSslContextAndParameters, calling either .setWantClientAuth(true) or setNeedClientAuth(true) on the SSLParameters.">withSSL</span><span class="params">(<span name="keyStore">keyStore: <a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a></span>, <span name="keyManagerPassword">keyManagerPassword: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="protocol">protocol: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;TLS&quot;</span></span>, <span name="trustStore">trustStore: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a>] = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">None</a></span></span></span>, <span name="clientAuth">clientAuth: <a href="../SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> = <span class="symbol"><span class="name"><a href="../SSLClientAuthMode$.html">SSLClientAuthMode.NotRequested</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-RC3) Build an SSLContext from the first four parameters and use withSslContext (note lowercase). To also request client certificates, use withSslContextAndParameters, calling either .setWantClientAuth(true) or setNeedClientAuth(true) on the SSLParameters.">withSSL</span><span class="params">(<span name="keyStore">keyStore: <a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a></span>, <span name="keyManagerPassword">keyManagerPassword: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="protocol">protocol: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;TLS&quot;</span></span>, <span name="trustStore">trustStore: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a>] = <span class="symbol">None</span></span>, <span name="clientAuth">clientAuth: <a href="../SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> = <span class="symbol"><span class="name"><a href="../SSLClientAuthMode$.html">SSLClientAuthMode.NotRequested</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
@@ -1137,9 +1137,9 @@ default <code>SSLParameters</code>
             </div><div class="parent" name="org.http4s.server.ServerBuilder">
               <h3>Inherited from <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]</h3>
             </div><div class="parent" name="org.http4s.internal.BackendBuilder">
-              <h3>Inherited from <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</h3>
+              <h3>Inherited from <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

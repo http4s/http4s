@@ -156,9 +156,17 @@ for serious static content serving.
                         <a class="object" href="ResourceService$.html" title=""></a>
                         <a href="ResourceService$.html" title="">ResourceService</a>
                       </li><li class="current-entities indented4">
+                        <a class="object" href="ResourceServiceBuilder$.html" title=""></a>
+                        <a class="class" href="ResourceServiceBuilder.html" title="org.http4s.server.staticcontent.ResourceServiceBuilder builder"></a>
+                        <a href="ResourceServiceBuilder.html" title="org.http4s.server.staticcontent.ResourceServiceBuilder builder">ResourceServiceBuilder</a>
+                      </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title="Constructs new services to serve assets from Webjars"></a>
-                        <a href="" title="Constructs new services to serve assets from Webjars">WebjarService</a>
+                        <a class="object" href="" title=""></a>
+                        <a href="" title="">WebjarService</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="WebjarServiceBuilder$.html" title=""></a>
+                        <a class="class" href="WebjarServiceBuilder.html" title="org.http4s.server.staticcontent.WebjarServiceBuilder builder"></a>
+                        <a href="WebjarServiceBuilder.html" title="org.http4s.server.staticcontent.WebjarServiceBuilder builder">WebjarServiceBuilder</a>
                       </li>
               </ul>
             </div>
@@ -187,12 +195,11 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Constructs new services to serve assets from Webjars
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M15/server/src/main/scala/org/http4s/server/staticcontent/WebjarService.scala" target="_blank">WebjarService.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/staticcontent/WebjarService.scala" target="_blank">WebjarService.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -350,24 +357,6 @@ should be served to the client.</p>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.staticcontent.WebjarService#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_]](config:org.http4s.server.staticcontent.WebjarService.Config[F])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](Config[F])(Sync[F],ContextShift[F]):HttpRoutes[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#apply[F[_]](config:org.http4s.server.staticcontent.WebjarService.Config[F])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.HttpRoutes[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="config">config: <a href="WebjarService$$Config.html" class="extype" name="org.http4s.server.staticcontent.WebjarService.Config">Config</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>, <span name="cs">cs: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Creates a new <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a> that will filter the webjars
-</p><div class="fullcomment"><div class="comment cmt"><p>Creates a new <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a> that will filter the webjars
-</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The configuration for this service</p></dd><dt>returns</dt><dd class="cmt"><p>The HttpRoutes</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -396,7 +385,7 @@ should be served to the client.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -420,7 +409,7 @@ should be served to the client.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -528,7 +517,7 @@ should be served to the client.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -676,12 +665,36 @@ should be served to the client.</p>
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.staticcontent.WebjarService#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[F[_]](config:org.http4s.server.staticcontent.WebjarService.Config[F])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](Config[F])(Sync[F],ContextShift[F]):HttpRoutes[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#apply[F[_]](config:org.http4s.server.staticcontent.WebjarService.Config[F])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.0-M1) use WebjarServiceBuilder">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="config">config: <a href="WebjarService$$Config.html" class="extype" name="org.http4s.server.staticcontent.WebjarService.Config">Config</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>, <span name="cs">cs: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.staticcontent.WebjarService.apply.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Creates a new <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a> that will filter the webjars
+</p><div class="fullcomment"><div class="comment cmt"><p>Creates a new <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a> that will filter the webjars
+</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The configuration for this service</p></dd><dt>returns</dt><dd class="cmt"><p>The HttpRoutes</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.0-M1)</i> use WebjarServiceBuilder</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>

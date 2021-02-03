@@ -100,7 +100,7 @@ import org.http4s.implicits._
 // uri: Uri = Uri(
 //   Some(Scheme(http)),
 //   Some(Authority(None, RegName(http4s.org), None)),
-//   &quot;&quot;,
+//   ,
 //   ,
 //   None
 // )
@@ -116,11 +116,11 @@ or you could use the URLTemplates.</p>
 
 <p>Use the methods on the <a href="../api/org/http4s/Uri">uri class</a>.</p>
 
-<pre><code class="language-scala">val docs = uri.withPath(&quot;/docs/0.15&quot;)
+<pre><code class="language-scala">val docs = uri.withPath(path&quot;/docs/0.15&quot;)
 // docs: Uri = Uri(
 //   Some(Scheme(http)),
 //   Some(Authority(None, RegName(http4s.org), None)),
-//   &quot;/docs/0.15&quot;,
+//   /docs/0.15,
 //   ,
 //   None
 // )
@@ -128,7 +128,7 @@ val docs2 = uri / &quot;docs&quot; / &quot;0.15&quot;
 // docs2: Uri = Uri(
 //   Some(Scheme(http)),
 //   Some(Authority(None, RegName(http4s.org), None)),
-//   &quot;/docs/0.15&quot;,
+//   /docs/0.15,
 //   ,
 //   None
 // )
@@ -158,7 +158,7 @@ template.toUriIfPossible
 //   Uri(
 //     Some(Scheme(http)),
 //     Some(Authority(None, RegName(http4s.org), None)),
-//     &quot;/docs/0.15&quot;,
+//     /docs/0.15,
 //     ,
 //     None
 //   )
@@ -267,7 +267,7 @@ own, use <a href="../api/index.html#org.http4s.Uri$@fromString(s:String):org.htt
       </div>
       <hr />
       <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
       </footer>
 
     </div>

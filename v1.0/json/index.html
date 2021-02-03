@@ -96,14 +96,14 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;1.0.0-M15&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;1.0.0-M16&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.13.0&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.0-M3&quot;,
   // Optional for string interpolation to JSON model
-  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.13.0&quot;
+  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.14.0-M3&quot;
 )
 
 addCompilerPlugin(&quot;org.scalamacros&quot; % &quot;paradise&quot; % &quot;2.1.0&quot; cross CrossVersion.full)
@@ -177,7 +177,7 @@ val greeting = hello(&quot;world&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@232d817e
+//   org.typelevel.vault.Vault@423faed7
 // )
 </code></pre>
 
@@ -187,14 +187,14 @@ useful on client requests:</p>
 <pre><code class="language-scala">import org.http4s.client.dsl.io._
 </code></pre>
 
-<pre><code class="language-scala">POST(json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).unsafeRunSync()
+<pre><code class="language-scala">POST(json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;)
 // res2: Request[IO] = (
-//   Method(&quot;POST&quot;),
-//   Uri(None, None, &quot;/hello&quot;, , None),
+//   POST,
+//   Uri(None, None, /hello, , None),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 16),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@68e30568
+//   org.typelevel.vault.Vault@4e5404cc
 // )
 </code></pre>
 
@@ -230,7 +230,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { (hello: Hello) =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@46555c9
+// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@700bd44b
 
 Hello(&quot;Alice&quot;).asJson
 // res4: Json = JObject(object[hello -&gt; &quot;Alice&quot;])
@@ -256,16 +256,16 @@ and responses for our case classes:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@2e0c7363
+//   org.typelevel.vault.Vault@3a80c5ee
 // )
-POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;).unsafeRunSync()
+POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 // res7: Request[IO] = (
-//   Method(&quot;POST&quot;),
-//   Uri(None, None, &quot;/hello&quot;, , None),
+//   POST,
+//   Uri(None, None, /hello, , None),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 14),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@7be3fea5
+//   org.typelevel.vault.Vault@48ec2d4e
 // )
 </code></pre>
 
@@ -291,7 +291,7 @@ response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T]
 
 <pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[Json]).unsafeRunSync()
 // res9: Json = JObject(object[name -&gt; &quot;Alice&quot;])
-POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).flatMap(_.as[Json]).unsafeRunSync()
+POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).as[Json].unsafeRunSync()
 // res10: Json = JObject(object[name -&gt; &quot;Bob&quot;])
 </code></pre>
 
@@ -307,11 +307,11 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@34ec9079
+// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@234ee266
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res11: User = User(&quot;Alice&quot;)
 
-POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).flatMap(_.as[User]).unsafeRunSync()
+POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, uri&quot;/hello&quot;).as[User].unsafeRunSync()
 // res12: User = User(&quot;Bob&quot;)
 </code></pre>
 
@@ -503,7 +503,7 @@ helloAlice.compile.last.unsafeRunSync()
       </div>
       <hr />
       <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
       </footer>
 
     </div>
