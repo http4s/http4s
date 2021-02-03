@@ -384,6 +384,7 @@ private[ember] object Parser {
                 )
 
                 val f: F[(Request[F], F[Array[Byte]])] = if (chunked) {
+                  // TODO: I think we will need to keep track of state here
 //                  (baseReq
 //                    .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
 //                    .withBodyStream(
@@ -391,6 +392,7 @@ private[ember] object Parser {
 
                   ???
                 } else {
+                  // TODO: factor this out to a separate function
                   val size = contentLength.getOrElse(0L)
                   if (size > 0) {
                     if (bytes.length >= size) {

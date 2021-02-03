@@ -115,14 +115,17 @@ private[server] object ServerHelpers {
     }
 
   private[internal] def runApp[F[_]: Concurrent: Timer](
-      incoming: Stream[F, Byte],
+      incoming: F[Array[Byte]],
+      read: F[Option[Chunk[Byte]]],
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
-      errorHandler: Throwable => F[Response[F]]): F[(Request[F], Response[F], Stream[F, Byte])] =
+      errorHandler: Throwable => F[Response[F]]): F[(Request[F], Response[F], F[Array[Byte]])] =
     for {
+      bytes <- incoming
       tup <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
-        incoming)
+        bytes,
+        read)
       (req, rest) = tup
       resp <- httpApp
         .run(req)
@@ -175,9 +178,17 @@ private[server] object ServerHelpers {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
   ): Stream[F, Nothing] = {
     val _ = logger
+    val read: F[Option[Chunk[Byte]]] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+
     Stream
-      .unfoldLoopEval(socket.reads(receiveBufferSize, durationToFinite(idleTimeout)))(s =>
-        runApp(s, maxHeaderSize, requestHeaderReceiveTimeout, httpApp, errorHandler).attempt.map {
+      .unfoldLoopEval(Array.emptyByteArray.pure[F])(incoming =>
+        runApp(
+          incoming,
+          read,
+          maxHeaderSize,
+          requestHeaderReceiveTimeout,
+          httpApp,
+          errorHandler).attempt.map {
           case Right((req, resp, rest)) => (Right((req, resp)), Some(rest))
           case Left(e) => (Left(e), None)
         })
