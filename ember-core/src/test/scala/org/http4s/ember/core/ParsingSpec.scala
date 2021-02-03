@@ -53,7 +53,7 @@ class ParsingSpec extends Specification {
         .through(fs2.text.utf8Encode[F])
 
       val action = Parser.Response.parser[F](Int.MaxValue, None)(byteStream).map(_._1) //(logger)
-      Resource.liftF(action)
+      Resource.eval(action)
     }
 
     def forceScopedParsing[F[_]: Concurrent](s: String): Stream[F, Byte] = {
