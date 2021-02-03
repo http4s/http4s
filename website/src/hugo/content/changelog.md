@@ -8,9 +8,13 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M15 (2021-02-02)
+# v1.0.0-M16 (2021-02-02)
 
 Inherits the fixes of v0.21.18
+
+~~# v1.0.0-M15 (2021-02-02)~~
+
+Build failure.
 
 # v0.22.0-M3 (2021-02-02)
 
