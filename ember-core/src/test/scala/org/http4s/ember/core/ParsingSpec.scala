@@ -205,7 +205,11 @@ class ParsingSpec extends Specification with CatsIO {
       val result = Parser.Request.parser[IO](Int.MaxValue, None)(byteStream).unsafeRunSync()
 
       result._1.body.through(text.utf8Decode).compile.string.unsafeRunSync() mustEqual "ab"
-      result._2.through(text.utf8Decode).compile.string.unsafeRunSync() mustEqual "everything after the body"
+      result._2
+        .through(text.utf8Decode)
+        .compile
+        .string
+        .unsafeRunSync() mustEqual "everything after the body"
     }
   }
 
