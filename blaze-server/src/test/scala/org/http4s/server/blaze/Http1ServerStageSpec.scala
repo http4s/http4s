@@ -35,6 +35,7 @@ import org.http4s.syntax.all._
 import scala.concurrent.duration._
 import _root_.io.chrisdavenport.vault._
 import org.http4s.testing.ErrorReporting._
+import munit.TestOptions
 
 class Http1ServerStageSpec extends Http4sSuite {
   implicit val ec = Http4sSuite.TestExecutionContext
@@ -495,7 +496,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test("Http1ServerStage: routes should cancels on stage shutdown") { tw =>
+  tickWheel.test(TestOptions("Http1ServerStage: routes should cancels on stage shutdown").flaky) { tw =>
     Deferred[IO, Unit]
       .flatMap { canceled =>
         Deferred[IO, Unit].flatMap { gate =>
