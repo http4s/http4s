@@ -14,7 +14,9 @@ Inherits the fixes of v0.21.18
 
 ~~# v1.0.0-M15 (2021-02-02)~~
 
-Build failure.
+~~Build failure.~~
+
+Accidentally published from the 0.21.x series after a series of unfortunate events. Do not use.
 
 # v0.22.0-M3 (2021-02-02)
 
