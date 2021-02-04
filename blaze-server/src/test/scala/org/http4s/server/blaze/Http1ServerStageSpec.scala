@@ -496,22 +496,24 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test(TestOptions("Http1ServerStage: routes should cancels on stage shutdown").flaky) { tw =>
-    Deferred[IO, Unit]
-      .flatMap { canceled =>
-        Deferred[IO, Unit].flatMap { gate =>
-          val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-          val app: HttpApp[IO] = HttpApp { _ =>
-            gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+  tickWheel.test(TestOptions("Http1ServerStage: routes should cancels on stage shutdown").flaky) {
+    tw =>
+      Deferred[IO, Unit]
+        .flatMap { canceled =>
+          Deferred[IO, Unit].flatMap { gate =>
+            val req =
+              "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+            val app: HttpApp[IO] = HttpApp { _ =>
+              gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+            }
+            for {
+              head <- IO(runRequest(tw, List(req), app))
+              _ <- gate.get
+              _ <- IO(head.closePipeline(None))
+              _ <- canceled.get
+            } yield ()
           }
-          for {
-            head <- IO(runRequest(tw, List(req), app))
-            _ <- gate.get
-            _ <- IO(head.closePipeline(None))
-            _ <- canceled.get
-          } yield ()
         }
-      }
   }
 
   tickWheel.test("Http1ServerStage: routes should Disconnect if we read an EOF") { tw =>
