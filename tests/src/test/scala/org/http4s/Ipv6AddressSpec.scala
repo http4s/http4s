@@ -58,9 +58,8 @@ class Ipv6AddressSpec extends Http4sSpec {
   }
 
   "compare" should {
-    "be consistent with unsigned int" in prop { (xs: List[Ipv6Address]) =>
-      def tupled(a: Ipv6Address) = (a.a, a.b, a.c, a.d)
-      xs.sorted.map(tupled) must_== xs.map(tupled).sorted
+    "be consistent with address" in prop { (xs: List[Ipv6Address]) =>
+      xs.sorted.map(_.address) must_== xs.map(_.address).sorted
     }
 
     "be consistent with Ordered" in prop { (a: Ipv6Address, b: Ipv6Address) =>

@@ -17,7 +17,7 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import org.http4s.Uri
+import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
 import org.http4s.util.Renderer
 import org.specs2.ScalaCheck
 import org.specs2.mutable.{Specification, Tables}
@@ -39,11 +39,11 @@ class ForwardedRenderersSpec
 
       nodeName match {
         case Node.Name.Ipv4(ipv4) =>
-          Uri.Ipv4Address.fromString(rendered) must beRight(ipv4)
+          Ipv4Address(rendered) must beSome(ipv4)
         case Node.Name.Ipv6(ipv6) =>
           rendered must startWith("[")
           rendered must endWith("]")
-          Uri.Ipv6Address.fromString(rendered.tail.init) must beRight(ipv6)
+          Ipv6Address(rendered.tail.init) must beSome(ipv6)
         case Node.Name.Unknown =>
           rendered ==== "unknown"
         case obfName: Node.Obfuscated =>

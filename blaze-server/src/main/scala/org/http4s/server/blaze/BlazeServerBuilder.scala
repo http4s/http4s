@@ -23,6 +23,7 @@ import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
 import cats.effect.{ConcurrentEffect, Resource, Timer}
+import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -260,8 +261,12 @@ class BlazeServerBuilder[F[_]] private (
               .insert(
                 Request.Keys.ConnectionInfo,
                 Request.Connection(
-                  local = local,
-                  remote = remote,
+                  local = SocketAddress(
+                    IpAddress.fromBytes(local.getAddress.getAddress).get,
+                    Port(local.getPort).get),
+                  remote = SocketAddress(
+                    IpAddress.fromBytes(remote.getAddress.getAddress).get,
+                    Port(remote.getPort).get),
                   secure = secure
                 )
               )

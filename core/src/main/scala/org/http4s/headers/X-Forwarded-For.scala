@@ -19,36 +19,42 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse._
+import com.comcast.ip4s.IpAddress
 import java.net.InetAddress
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import org.http4s.util.Writer
 
 object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`X-Forwarded-For`] =
     ParseResult.fromParser(parser, "Invalid X-Forwarded-For header")(s)
+
+  @deprecated("Construct with Option[com.comcast.ip4s.IpAddress]", "0.22.0-1")
+  def apply(first: Option[InetAddress], more: Option[InetAddress]*): `X-Forwarded-For` =
+    apply(NonEmptyList(first, more.toList).map(_.map(a => IpAddress.fromBytes(a.getAddress).get)))
+
   private[http4s] val parser: Parser[`X-Forwarded-For`] =
     Rfc7230
       .headerRep1(
-        (Uri.Parser.ipv4Address.map(_.toInet4Address).backtrack | Uri.Parser.ipv6Address.map(
-          _.toInet6Address)).map(s => Some(s)) | (Parser.string("unknown").as(None)))
+        (Rfc3986.ipv4Address.backtrack | Rfc3986.ipv6Address)
+          .map(s => Some(s)) | (Parser.string("unknown").as(None)))
       .map(`X-Forwarded-For`.apply)
 }
 
-final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]])
+final case class `X-Forwarded-For`(values: NonEmptyList[Option[IpAddress]])
     extends Header.Recurring {
   override def key: `X-Forwarded-For`.type = `X-Forwarded-For`
-  type Value = Option[InetAddress]
+  type Value = Option[IpAddress]
   override lazy val value = super.value
   override def renderValue(writer: Writer): writer.type = {
-    values.head.fold(writer.append("unknown"))(i => writer.append(i.getHostAddress))
+    values.head.fold(writer.append("unknown"))(i => writer.append(i.toString))
     values.tail.foreach(append(writer, _))
     writer
   }
 
   @inline
-  private def append(w: Writer, add: Option[InetAddress]): w.type = {
+  private def append(w: Writer, add: Option[IpAddress]): w.type = {
     w.append(", ")
-    if (add.isDefined) w.append(add.get.getHostAddress)
+    if (add.isDefined) w.append(add.get.toString)
     else w.append("unknown")
   }
 }

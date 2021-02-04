@@ -18,8 +18,7 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-
-import java.net.InetAddress
+import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
 import org.http4s.headers._
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
@@ -247,19 +246,17 @@ class SimpleHeadersSpec extends Http4sSpec {
 
     "parse X-Forwarded-For" in {
       // ipv4
-      val header2 = `X-Forwarded-For`(
-        NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress)))
+      val header2 = `X-Forwarded-For`(Ipv4Address("192.168.1.100"), Ipv4Address("192.168.1.101"))
       HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
 
       // ipv6
       val header3 = `X-Forwarded-For`(
-        NonEmptyList.of(
-          Some(InetAddress.getByName("::1")),
-          Some(InetAddress.getByName("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))))
+        Ipv6Address("::1"),
+        Ipv6Address("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))
       HttpHeaderParser.parseHeader(header3.toRaw) must beRight(header3)
 
       // "unknown"
-      val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
+      val header4 = `X-Forwarded-For`(Option.empty[Ipv4Address])
       HttpHeaderParser.parseHeader(header4.toRaw) must beRight(header4)
 
       val bad = Header("x-forwarded-for", "foo")

@@ -32,8 +32,8 @@ private[http4s] trait ForwardedRenderers {
     new Renderer[Node.Name] {
       override def render(writer: Writer, nodeName: Node.Name): writer.type =
         nodeName match {
-          case Node.Name.Ipv4(ipv4addr) => writer << ipv4addr
-          case Node.Name.Ipv6(ipv6addr) => writer << '[' << ipv6addr << ']'
+          case Node.Name.Ipv4(ipv4addr) => writer << ipv4addr.toUriString
+          case Node.Name.Ipv6(ipv6addr) => writer << ipv6addr.toUriString
           case Node.Name.Unknown => writer << "unknown"
           case Node.Obfuscated(str) => writer << str
         }

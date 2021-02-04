@@ -100,6 +100,7 @@ lazy val core = libraryProject("core")
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
+      ip4sCore,
       log4s,
       scodecBits,
       slf4jApi, // residual dependency from macros
@@ -123,6 +124,7 @@ lazy val laws = libraryProject("laws")
       catsEffectLaws,
       catsLaws,
       disciplineCore,
+      ip4sTestKit,
       scalacheck,
       scalacheckEffectMunit,
       munitCatsEffect
