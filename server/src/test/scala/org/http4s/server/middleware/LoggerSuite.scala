@@ -53,15 +53,13 @@ class LoggerSuite extends Http4sSuite {
 
   test("response should not affect a Post") {
     val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
-    respApp(req)
-      .flatMap { res =>
-        res
-          .as[String]
-          .map(
-            _ === expectedBody && res.status === (Status.Ok)
-          )
-      }
-      .assertEquals(true)
+    respApp(req).flatMap { res =>
+      res
+        .as[String]
+        .map(
+          _ === expectedBody && res.status === (Status.Ok)
+        )
+    }.assert
   }
 
   val reqApp = RequestLogger.httpApp(logHeaders = true, logBody = true)(testApp)
@@ -73,11 +71,9 @@ class LoggerSuite extends Http4sSuite {
 
   test("request should not affect a Post") {
     val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
-    reqApp(req)
-      .flatMap { res =>
-        res.as[String].map(_ === expectedBody && res.status === Status.Ok)
-      }
-      .assertEquals(true)
+    reqApp(req).flatMap { res =>
+      res.as[String].map(_ === expectedBody && res.status === Status.Ok)
+    }.assert
   }
 
   val loggerApp = Logger.httpApp(logHeaders = true, logBody = true)(testApp)
@@ -89,10 +85,8 @@ class LoggerSuite extends Http4sSuite {
 
   test("logger should not affect a Post") {
     val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
-    loggerApp(req)
-      .flatMap { res =>
-        res.as[String].map(_ === expectedBody && res.status === Status.Ok)
-      }
-      .assertEquals(true)
+    loggerApp(req).flatMap { res =>
+      res.as[String].map(_ === expectedBody && res.status === Status.Ok)
+    }.assert
   }
 }

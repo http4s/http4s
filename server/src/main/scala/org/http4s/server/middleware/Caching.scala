@@ -18,7 +18,7 @@ package org.http4s.server.middleware
 
 import cats._
 import cats.syntax.all._
-import cats.effect._
+import cats.effect.{MonadThrow => _, _}
 import cats.data._
 import org.http4s._
 import org.http4s.headers.{Date => HDate, _}
@@ -90,9 +90,7 @@ object Caching {
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
     */
-  def publicCache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
-      lifetime: Duration,
-      http: Http[G, F]): Http[G, F] =
+  def publicCache[G[_]: MonadThrow: Clock, F[_]](lifetime: Duration, http: Http[G, F]): Http[G, F] =
     cache(
       lifetime,
       Either.left(CacheDirective.public),
@@ -113,7 +111,7 @@ object Caching {
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
     */
-  def privateCache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
+  def privateCache[G[_]: MonadThrow: Clock, F[_]](
       lifetime: Duration,
       http: Http[G, F],
       fieldNames: List[CIString] = Nil): Http[G, F] =
@@ -142,7 +140,7 @@ object Caching {
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
     */
-  def cache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
+  def cache[G[_]: MonadThrow: Clock, F[_]](
       lifetime: Duration,
       isPublic: Either[CacheDirective.public.type, CacheDirective.`private`],
       methodToSetOn: Method => Boolean,
@@ -181,7 +179,7 @@ object Caching {
     }
     new PartiallyAppliedCache[G] {
       override def apply[F[_]](
-          resp: Response[F])(implicit M: MonadError[G, Throwable], C: Clock[G]): G[Response[F]] =
+          resp: Response[F])(implicit M: MonadThrow[G], C: Clock[G]): G[Response[F]] =
         for {
           now <- HttpDate.current[G]
           expires <-
@@ -205,8 +203,7 @@ object Caching {
   }
 
   trait PartiallyAppliedCache[G[_]] {
-    def apply[F[_]](
-        resp: Response[F])(implicit M: MonadError[G, Throwable], C: Clock[G]): G[Response[F]]
+    def apply[F[_]](resp: Response[F])(implicit M: MonadThrow[G], C: Clock[G]): G[Response[F]]
   }
 
   trait PartiallyAppliedNoStoreCache[G[_]] {

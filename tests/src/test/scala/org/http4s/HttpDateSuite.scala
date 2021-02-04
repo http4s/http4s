@@ -23,8 +23,8 @@ class HttpDateSuite extends Http4sSuite {
   test("current should be within a second of Instant.now") {
     for {
       current <- HttpDate.current[IO]
-      now <- IO.delay(java.time.Instant.now).map(HttpDate.unsafeFromInstant)
-      diff = current.epochSecond - now.epochSecond
+      now <- IO(HttpDate.unsafeFromInstant(java.time.Instant.now))
+      diff = now.epochSecond - current.epochSecond
     } yield assert(diff == 0 || diff == 1, "diff was " + diff)
   }
 

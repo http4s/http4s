@@ -8,47 +8,128 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.0-M1 (unreleased)
+# v0.22.0-M3 (2021-02-02)
 
-This is a new series based on v1.0.0-M10, forked off before Cats-Effect 3 support was merged.
-It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support.
-Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be found further below in this changelog.
+Inherits the fixes of v0.21.18
+
+# v0.21.18 (2021-02-02)
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#4337](https://github.com/http4s/http4s/pull/4337): Pass the `maxConnections` parameter to the blaze infrastructure correctly. The `maxConnections` value was being passed as the `acceptorThreads`, leaving `maxConnections` set to its Blaze default of 512.
+
+## http4s-ember-core
+
+### Bug fixes
+
+* [#4335](https://github.com/http4s/http4s/pull/4335): Don't render an empty body with chunked transfer encoding on response statuses that don't permit a body (e.g., `204 No Content`).
+ 
+# v0.22.0-M2 (2021-02-02)
+
+This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
+
+## http4s-blaze-server
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): Additionally to the fix in v0.21.17, drops support for NIO2.
+
+## http4s-core
+
+### Enhancements
+
+* [#4286](https://github.com/http4s/http4s/pull/4286): Improve performance by using `oneOf` and caching a URI parser. This was an identified new hotspot in v0.22.0-M1.
+
+### Breaking changes
+
+* [#4259](https://github.com/http4s/http4s/pull/4259): Regenerate `MimeDb` from the IANA database. This shifts around some constants in a binary incompatible way, but almost nobody will notice.
+* [#4327](https://github.com/http4s/http4s/pull/4237): Shifted the parsers around in `Uri` to prevent deadlocks that appeared since M1.  This should not be visible, but is binary breaking.
+
+## http4s-prometheus
+
+### Breaking changes
+
+* [#4273](https://github.com/http4s/http4s/pull/4273): Change metric names from `_count` to `_count_total` to match Prometheus' move to the OpenMetrics standard.  Your metrics names will change!  See [prometheus/client_java#615](https://github.com/prometheus/client_java/pull/615) for more details from the Prometheus team.
+
+## Dependency updates
+
+* jawn-fs2-1.0.1
+* keypool-0.3.0-RC1 (moved to `org.typelevel`)
+* play-json-2.10.0-RC1
+* simpleclient-0.10.0 (Prometheus)
+
+# v0.21.17 (2021-02-02)
+
+This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
+
+## http4s-blaze-server
+
+### Security patches
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): blaze-core, a library underlying http4s-blaze-server, accepts connections without bound.  Each connection claims a file handle, a scarce resource, leading to a denial of service vector.
+
+  `BlazeServerBuilder` now has a `maxConnections` property, limiting the number of concurrent connections.  The cap is not applied to the NIO2 socket server, which is now deprecated. 
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#4331](https://github.com/http4s/http4s/pull/4331): Don't render an empty chunked payload if a request has neither a `Content-Length` or `Transfer-Encoding` and the method is one of `GET`, `DELETE`, `CONNECT`, or `TRACE`. It is undefined behavior for those methods to send payloads.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#4281](https://github.com/http4s/http4s/pull/4281): Add backpressure to ember startup, so the server is up before `use` returns.
+
+### Enhancements
+
+* [#4244](https://github.com/http4s/http4s/pull/4244): Internal refactoring of how the stream of server connections is parallelized and terminated.
+* [#4287](https://github.com/http4s/http4s/pull/4287): Replace `onError: Throwable => Response[F]` with `withErrorHandler: PartialFunction[Thrwable, F[Response[F]]`.  Error handling is invoked earlier, allowing custom responses to parsing and timeout failures.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4301](https://github.com/http4s/http4s/pull/4301): Add an `idleConnectionTime` to `EmberClientBuilder`. Discard stale connections from the pool and try to acquire a new one.
+
+## http4s-servlet
+
+### Bugfixes
+
+* [#4309](https://github.com/http4s/http4s/pull/4309): Call `GenericServlet.init` when intializing an `Http4sServlet`.  Avoids `NullPointerExceptions` from the `ServletConfig`.
+
+## Documentation
+
+* [#4261](https://github.com/http4s/http4s/pull/4261): Better `@see` links throughout the Scaladoc
+
+## Dependency upgrades
+
+* blaze-0.14.15
+* okhttp-4.9.1
+
+# v0.22.0-M1 (2021-01-24)
+
+This is a new series, forked from main before Cats-Effect 3 support was merged.  It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support. It builds on all the changes from v1.0.0-M1 through v1.0.0-M10, which are not echoed here.
+
+The headline change is that all parboiled2 parsers have been replaced with cats-parse.
 
 ## Should I switch?
 
 * Users who had been tracking the 1.0 series, but are not prepared for Cats Effect 3, should switch to this series.
-* Users who wish to remain on the bleeding edge, including Cats Effect 3, should track the 1.0 series.
-* Users who want a more hardened release should remain on 0.21 for a bit.
+* Users who wish to remain on the bleeding edge, including Cats Effect 3, should continue track the 1.0 series.
+* Users who need a stable release should remain on the 0.21 series for now.
 
 ## http4s-core
 
 ### Breaking changes
 
-* [#3855](https://github.com/http4s/http4s/pull/3855): All parboiled2 parsers are replaced by cats-parse.  parboiled2 was not part of the public API, nor are our cats-parse parsers.  Users may observe a difference in the error messages and subtle semantic changes.  We've attempted to minimize them, but this is a significant underlying change.  See also:
-  [#3897](https://github.com/http4s/http4s/pull/3897),
-  [#3901](https://github.com/http4s/http4s/pull/3901),
-  [#3954](https://github.com/http4s/http4s/pull/3954),
-  [#3958](https://github.com/http4s/http4s/pull/3958),
-  [#3995](https://github.com/http4s/http4s/pull/3995),
-  [#4023](https://github.com/http4s/http4s/pull/4023),
-  [#4001](https://github.com/http4s/http4s/pull/4001),
-  [#4013](https://github.com/http4s/http4s/pull/4013),
-  [#4042](https://github.com/http4s/http4s/pull/4042),
-  [#3982](https://github.com/http4s/http4s/pull/3982),
-  [#4071](https://github.com/http4s/http4s/pull/4071),
-  [#4017](https://github.com/http4s/http4s/pull/4017),
-  [#4132](https://github.com/http4s/http4s/pull/4132),
-  [#4154](https://github.com/http4s/http4s/pull/4154),
-  [#4200](https://github.com/http4s/http4s/pull/4200),
-  [#4202](https://github.com/http4s/http4s/pull/4202),
-  [#4206](https://github.com/http4s/http4s/pull/4206),
-  [#4201](https://github.com/http4s/http4s/pull/4201),
-  [#4208](https://github.com/http4s/http4s/pull/4208),
-  [#4235](https://github.com/http4s/http4s/pull/4235)
+* [#3855](https://github.com/http4s/http4s/pull/3855): All parboiled2 parsers are replaced by cats-parse.  parboiled2 was not part of the public API, nor are our cats-parse parsers.  Users may observe a difference in the error messages and subtle semantic changes.  We've attempted to minimize them, but this is a significant underlying change.  See also: [#3897](https://github.com/http4s/http4s/pull/3897), [#3901](https://github.com/http4s/http4s/pull/3901), [#3954](https://github.com/http4s/http4s/pull/3954), [#3958](https://github.com/http4s/http4s/pull/3958), [#3995](https://github.com/http4s/http4s/pull/3995), [#4023](https://github.com/http4s/http4s/pull/4023), [#4001](https://github.com/http4s/http4s/pull/4001), [#4013](https://github.com/http4s/http4s/pull/4013), [#4042](https://github.com/http4s/http4s/pull/4042), [#3982](https://github.com/http4s/http4s/pull/3982), [#4071](https://github.com/http4s/http4s/pull/4071), [#4017](https://github.com/http4s/http4s/pull/4017), [#4132](https://github.com/http4s/http4s/pull/4132), [#4154](https://github.com/http4s/http4s/pull/4154), [#4200](https://github.com/http4s/http4s/pull/4200), [#4202](https://github.com/http4s/http4s/pull/4202), [#4206](https://github.com/http4s/http4s/pull/4206), [#4201](https://github.com/http4s/http4s/pull/4201), [#4208](https://github.com/http4s/http4s/pull/4208), [#4235](https://github.com/http4s/http4s/pull/4235), [#4147](https://github.com/http4s/http4s/pull/4147), [#4238](https://github.com/http4s/http4s/pull/4238) [#4238](https://github.com/http4s/http4s/pull/4243)
 * [#4070](https://github.com/http4s/http4s/pull/4070): No longer publish a `scala.annotations.nowarn` annotation in the 2.12 build.  This is provided in the standard library in 2.12.13, and isn't necessary at runtime in any version.
 * [#4138](https://github.com/http4s/http4s/pull/4138): Replace boolean with `Weakness` sum type in `EntityTag` model
 * [#4148](https://github.com/http4s/http4s/pull/4148): Lift `ETag.EntityTag` out of header and into the `org.http4s` package
 * [#4164](https://github.com/http4s/http4s/pull/4164): Removal of several deprecated interfaces.  Most were non-public binary compatibility shims, or explicit cats instances that had been superseded by new implicits.  Some exceptions:
+* [#4145](https://github.com/http4s/http4s/pull/4145): Port macros in `org.http4s.syntax.literals` to Scala 3.  Deprecated macros that were on various companion objects will not be in the Scala 3 releases.
 
 ### Bugfixes
 
@@ -77,10 +158,17 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 
 * async-http-client-2.12.2
 * cats-parse-0.3.0
+* circe-0.14.0-M3
 * jackson-databind-2.12.1
+* jawn-1.0.3
+* log4cats-1.2.0-RC1 (now under `org.typelevel`)
 * log4s-1.0.0-M4
 * okio-2.10.0
 * vault-2.1.0-M14 (now under `org.typelevel`)
+
+## Dependency removals
+
+* parboiled2
 
 # v1.0.0-M10 (2020-12-31)
 
@@ -93,6 +181,51 @@ Changes from v1.0.0-M1 through v1.0.0-M10 are not repeated here, but can be foun
 ## Dependency updates
 
 * argonaut-6.3.3
+
+# v0.21.16 (2021-01-24)
+
+## http4s-laws
+
+### Bugfixes
+
+* [#4243](https://github.com/http4s/http4s/pull/4243): Don't generate ipv6 addresses with only one section shorted by `::`
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4143](https://github.com/http4s/http4s/pull/4143): Fix race condition that leads to `WritePendingException`. A tradeoff of this change is that some connections that were previously reused must now be closed.
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4152](https://github.com/http4s/http4s/pull/4152): Omit implicit `Content-Length: 0` header when rendering GET, DELETE, CONNECT, and TRACE requests.
+
+## http4s-ember-client
+
+### Bugfixes
+
+* [#4179](https://github.com/http4s/http4s/pull/4179): Render requests in "origin form", so the request line contains only the path of the request, and host information is only in the Host header.  We were previously rendering the fulll URI on the request line, which the spec mandates all servers to handle, but clients should not send when not speaking to a proxy.
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4179](https://github.com/http4s/http4s/pull/4179): Support a graceful shutdown
+
+## http4s-circe
+
+### Enhancements
+
+* [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
+
+## Dependency updates
+
+* dropwizard-metrics-4.1.17
+* netty-4.1.58.Final
+* play-json-29.9.2
+* scalatags-0.9.3
 
 # v0.21.15 (2020-12-31)
 

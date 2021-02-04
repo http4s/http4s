@@ -97,7 +97,7 @@ object Forwarded
       *
       * @param value obfuscated identifier with leading '_' (underscore) symbol.
       *
-      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3]]
+      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
       */
     sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
@@ -211,7 +211,7 @@ object Forwarded
 
       // ** RFC3986 **
       // port = *DIGIT
-      (Uri.Host.parser ~ (P.char(':') *> port).?)
+      (Uri.Parser.host ~ (P.char(':') *> port).?)
         .map { case (h, p) => apply(h, p.flatten) }
     }
   }
@@ -326,7 +326,7 @@ object Forwarded
     // [RFC3986]
 
     val host = Host.parser
-    val proto = Uri.Scheme.parser
+    val proto = Uri.Parser.scheme
     val node = Node.parser
 
     val forwardedPair = P.oneOf(

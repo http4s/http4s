@@ -90,7 +90,7 @@ class EntityDecoderSuite extends Http4sSuite {
         EntityDecoder
           .text[IO]
           .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
-          .handleErrorWith(_ => DecodeResult.success("SAVED"))
+          .handleErrorWith(_ => DecodeResult.success[IO, String]("SAVED"))
           .decode(r, strict = false)
       }
       .value
@@ -161,7 +161,7 @@ class EntityDecoderSuite extends Http4sSuite {
           .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
           .biflatMap(
             _ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")),
-            s => DecodeResult.success(s)
+            s => DecodeResult.success[IO, String](s)
           )
           .decode(r, strict = false)
       }
@@ -440,8 +440,8 @@ class EntityDecoderSuite extends Http4sSuite {
           response.body.compile.toVector
             .map(_.toArray)
             .map(Arrays.equals(_, "Hello".getBytes))
-            .assertEquals(true) *>
-            readFile(tmpFile).map(Arrays.equals(_, binData)).assertEquals(true)
+            .assert *>
+            readFile(tmpFile).map(Arrays.equals(_, binData)).assert
         }
       }
   }

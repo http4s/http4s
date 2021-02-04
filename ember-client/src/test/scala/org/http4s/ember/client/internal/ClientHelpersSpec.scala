@@ -26,7 +26,7 @@ import cats.effect.testing.specs2.CatsIO
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
-import io.chrisdavenport.keypool.Reusable
+import org.typelevel.keypool.Reusable
 import scala.concurrent.duration._
 
 class ClientHelpersSpec extends Specification with CatsIO {
@@ -104,18 +104,17 @@ class ClientHelpersSpec extends Specification with CatsIO {
       for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-        testResult <-
+        resp =
           ClientHelpers
             .postProcessResponse(
               Request[IO](),
               Response[IO](),
               reuse
             )
-            .use { resp =>
-              resp.body.compile.drain >>
-                reuse.get.map { case r =>
-                  r must beEqualTo(Reusable.Reuse)
-                }
+        testResult <-
+          resp.body.compile.drain >>
+            reuse.get.map { case r =>
+              r must beEqualTo(Reusable.Reuse)
             }
       } yield testResult
     }
@@ -124,18 +123,18 @@ class ClientHelpersSpec extends Specification with CatsIO {
       for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-        testResult <-
+        _ =
           ClientHelpers
             .postProcessResponse(
               Request[IO](),
               Response[IO](),
               reuse
             )
-            .use { _ =>
-              reuse.get.map { case r =>
-                r must beEqualTo(Reusable.DontReuse)
-              }
-            }
+
+        testResult <-
+          reuse.get.map { case r =>
+            r must beEqualTo(Reusable.DontReuse)
+          }
       } yield testResult
     }
 
@@ -143,18 +142,17 @@ class ClientHelpersSpec extends Specification with CatsIO {
       for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-        testResult <-
+        resp =
           ClientHelpers
             .postProcessResponse(
               Request[IO](),
               Response[IO](body = fs2.Stream.raiseError[IO](new Throwable("Boo!"))),
               reuse
             )
-            .use { resp =>
-              resp.body.compile.drain.attempt >>
-                reuse.get.map { case r =>
-                  r must beEqualTo(Reusable.DontReuse)
-                }
+        testResult <-
+          resp.body.compile.drain.attempt >>
+            reuse.get.map { case r =>
+              r must beEqualTo(Reusable.DontReuse)
             }
       } yield testResult
     }
@@ -163,7 +161,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
       for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-        testResult <-
+        resp =
           ClientHelpers
             .postProcessResponse(
               Request[IO](),
@@ -176,11 +174,10 @@ class ClientHelpersSpec extends Specification with CatsIO {
                 .interruptAfter(2.seconds)),
               reuse
             )
-            .use { resp =>
-              resp.body.compile.drain.attempt >>
-                reuse.get.map { case r =>
-                  r must beEqualTo(Reusable.DontReuse)
-                }
+        testResult <-
+          resp.body.compile.drain.attempt >>
+            reuse.get.map { case r =>
+              r must beEqualTo(Reusable.DontReuse)
             }
       } yield testResult
     }.pendingUntilFixed
@@ -189,18 +186,17 @@ class ClientHelpersSpec extends Specification with CatsIO {
       for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-        testResult <-
+        resp =
           ClientHelpers
             .postProcessResponse(
               Request[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
               Response[IO](),
               reuse
             )
-            .use { resp =>
-              resp.body.compile.drain >>
-                reuse.get.map { case r =>
-                  r must beEqualTo(Reusable.DontReuse)
-                }
+        testResult <-
+          resp.body.compile.drain >>
+            reuse.get.map { case r =>
+              r must beEqualTo(Reusable.DontReuse)
             }
       } yield testResult
     }
@@ -209,18 +205,17 @@ class ClientHelpersSpec extends Specification with CatsIO {
       for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-        testResult <-
+        resp =
           ClientHelpers
             .postProcessResponse(
               Request[IO](),
               Response[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
               reuse
             )
-            .use { resp =>
-              resp.body.compile.drain >>
-                reuse.get.map { case r =>
-                  r must beEqualTo(Reusable.DontReuse)
-                }
+        testResult <-
+          resp.body.compile.drain >>
+            reuse.get.map { case r =>
+              r must beEqualTo(Reusable.DontReuse)
             }
       } yield testResult
     }

@@ -151,6 +151,6 @@ class ArgonautSuite extends JawnDecodeSupportSuite[Json] with Argonauts {
 
   test("Message[F].decodeJson[A] should fail on invalid json") {
     val req = Request[IO]().withEntity(List(13, 14).asJson)
-    req.decodeJson[Foo].attempt.map(_.isLeft).assertEquals(true)
+    req.decodeJson[Foo].attempt.map(_.isLeft).assert
   }
 }

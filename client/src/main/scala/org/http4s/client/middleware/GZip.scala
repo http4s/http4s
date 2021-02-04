@@ -18,7 +18,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{Bracket, Sync}
+import cats.effect.{BracketThrow, Sync}
 import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import scala.util.control.NoStackTrace
@@ -66,7 +66,7 @@ object GZip {
     }
 
   private def decompressWith[F[_]](decompressor: Pipe[F, Byte, Byte])(implicit
-      F: Bracket[F, Throwable]): Pipe[F, Byte, Byte] =
+      F: BracketThrow[F]): Pipe[F, Byte, Byte] =
     _.pull.peek1
       .flatMap {
         case None => Pull.raiseError(EmptyBodyException)

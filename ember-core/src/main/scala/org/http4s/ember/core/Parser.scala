@@ -17,19 +17,20 @@
 package org.http4s.ember.core
 
 import cats._
+import cats.effect.{MonadThrow => _, _}
+import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2._
 import org.http4s._
-import cats.effect._
-import cats.effect.concurrent.Deferred
 import scala.annotation.switch
 import scala.collection.mutable
+import scala.concurrent.duration.FiniteDuration
 
 private[ember] object Parser {
 
   object HeaderP {
 
-    def parseHeaders[F[_]: MonadError[*[_], Throwable]](
+    def parseHeaders[F[_]: MonadThrow](
         s: Stream[F, Byte],
         maxHeaderLength: Int,
         acc: Option[ParseHeadersIncomplete])
@@ -192,7 +193,9 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
-      def parsePrelude[F[_]: MonadError[*[_], Throwable]](
+      val emptyStreamError = ParsePreludeError("Cannot Parse Empty Stream", None, None, None, None)
+
+      def parsePrelude[F[_]: MonadThrow](
           s: Stream[F, Byte],
           maxHeaderLength: Int,
           acc: Option[ParsePreludeIncomlete] = None)
@@ -205,26 +208,34 @@ private[ember] object Parser {
             }
             ReqPrelude.preludeInSection(next) match {
               case ParsePreludeComplete(m, u, h, rest) =>
-                Pull.pure((m, u, h, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
-              case t @ ParsePreludeError(_, _, _, _) => Pull.raiseError[F](t)
+                val out = if (rest.isEmpty) tl else Stream.chunk(Chunk.Bytes(rest)) ++ tl
+                Pull.pure((m, u, h, out))
+              case t @ ParsePreludeError(_, _, _, _, _) => Pull.raiseError[F](t)
               case p @ ParsePreludeIncomlete(_, _, method, uri, httpVersion) =>
                 if (next.size <= maxHeaderLength)
                   parsePrelude(tl, maxHeaderLength, p.some)
                 else
                   Pull.raiseError[F](
                     ParsePreludeError(
-                      new Throwable("Reached Max Header Length Looking for Request Prelude"),
+                      "Reached Max Header Length Looking for Request Prelude",
+                      None,
                       method,
                       uri,
                       httpVersion))
             }
           case None =>
-            Pull.raiseError[F](
-              ParsePreludeError(
-                new Throwable("Reached Ended of Stream Looking for Request Prelude"),
-                acc.flatMap(_.method),
-                acc.flatMap(_.uri),
-                acc.flatMap(_.httpVersion)))
+            acc match {
+              case None => Pull.raiseError(emptyStreamError)
+              case Some(incomplete) if incomplete.bv.isEmpty => Pull.raiseError(emptyStreamError)
+              case Some(incomplete) =>
+                Pull.raiseError(
+                  ParsePreludeError(
+                    s"Unexpected EOF - $incomplete",
+                    None,
+                    incomplete.method,
+                    incomplete.uri,
+                    incomplete.httpVersion))
+            }
         }
 
       // sealed trait ParsePreludeState
@@ -236,14 +247,16 @@ private[ember] object Parser {
       private val lf: Byte = '\n'.toByte
 
       sealed trait ParsePreludeResult
-      final case class ParsePreludeError(
-          throwable: Throwable,
+      case class ParsePreludeError(
+          message: String,
+          caused: Option[Throwable],
           method: Option[Method],
           uri: Option[Uri],
           httpVersion: Option[HttpVersion]
-      ) extends Throwable(
-            s"Parse Prelude Error Encountered - Partially Decoded: $method $uri $httpVersion",
-            throwable)
+      ) extends Exception(
+            s"Parse Prelude Error Encountered - Message: $message - Partially Decoded: $method $uri $httpVersion",
+            caused.orNull
+          )
           with ParsePreludeResult
       final case class ParsePreludeIncomlete(
           idx: Int,
@@ -322,7 +335,8 @@ private[ember] object Parser {
 
         if (throwable != null)
           ParsePreludeError(
-            throwable,
+            throwable.getMessage(),
+            Option(throwable),
             Option(method),
             Option(uri),
             Option(httpVersion)
@@ -334,9 +348,10 @@ private[ember] object Parser {
       }
     }
 
-    def parser[F[_]: Concurrent](maxHeaderLength: Int)(s: Stream[F, Byte]): F[Request[F]] =
+    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
+        s: Stream[F, Byte]): F[(Request[F], Stream[F, Byte])] =
       Deferred[F, Headers].flatMap { trailers =>
-        ReqPrelude
+        val baseStream = ReqPrelude
           .parsePrelude[F](s, maxHeaderLength, None)
           .flatMap { case (method, uri, httpVersion, rest) =>
             HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
@@ -356,22 +371,27 @@ private[ember] object Parser {
                   else
                     baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
 
-                Pull.output1(req)
+                Pull.output1((req, rest))
             }
           }
           .stream
           .take(1)
-          .compile
-          .lastOrError
-      }
 
+        val action = baseStream.compile.lastOrError
+        timeout match {
+          case None => action
+          case Some(timeout) => Concurrent.timeout(action, timeout)
+        }
+      }
   }
 
   object Response {
-    def parser[F[_]: Concurrent](maxHeaderLength: Int)(
-        s: Stream[F, Byte]): Resource[F, Response[F]] =
-      Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
-        RespPrelude
+
+    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
+        s: Stream[F, Byte]
+    ): F[(Response[F], Stream[F, Byte])] =
+      Deferred[F, Headers].flatMap { trailers =>
+        val base = RespPrelude
           .parsePrelude(s, maxHeaderLength, None)
           .flatMap { case (httpVersion, status, s) =>
             HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
@@ -389,19 +409,21 @@ private[ember] object Parser {
                         rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
                   else
                     baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
-                Pull.output1(resp)
+                Pull.output1((resp, rest))
             }
           }
           .stream
           .take(1)
-          .compile
-          .resource
-          .lastOrError
+
+        val action = base.compile.lastOrError
+        timeout.fold(action)(duration => Concurrent.timeout(action, duration))
       }
 
     object RespPrelude {
 
-      def parsePrelude[F[_]: MonadError[*[_], Throwable]](
+      val emptyStreamError = RespPreludeError("Cannot Parse Empty Stream", None)
+
+      def parsePrelude[F[_]: MonadThrow](
           s: Stream[F, Byte],
           maxHeaderLength: Int,
           acc: Option[Array[Byte]] = None)
@@ -415,19 +437,28 @@ private[ember] object Parser {
             preludeInSection(next) match {
               case RespPreludeComplete(httpVersion, status, rest) =>
                 Pull.pure((httpVersion, status, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
-              case t @ RespPreludeError(_) => Pull.raiseError[F](t)
+              case t @ RespPreludeError(_, _) => Pull.raiseError[F](t)
               case RespPreludeIncomplete =>
                 if (next.size <= maxHeaderLength)
                   parsePrelude(tl, maxHeaderLength, next.some)
                 else
                   Pull.raiseError[F](
                     RespPreludeError(
-                      new Throwable("Reached Max Header Length Looking for Response Prelude")))
+                      "Reached Max Header Length Looking for Response Prelude",
+                      None))
             }
           case None =>
-            Pull.raiseError[F](
-              RespPreludeError(
-                new Throwable("Reached Ended of Stream Looking for Response Prelude")))
+            acc match {
+              case None => Pull.raiseError(emptyStreamError)
+              case Some(incomplete) if incomplete.isEmpty => Pull.raiseError(emptyStreamError)
+              case Some(_) =>
+                Pull.raiseError[F](
+                  RespPreludeError(
+                    "Unexpectedly Reached Ended of Stream Looking for Response Prelude",
+                    None)
+                )
+            }
+
         }
 
       private val space = ' '.toByte
@@ -438,8 +469,10 @@ private[ember] object Parser {
       case class RespPreludeComplete(httpVersion: HttpVersion, status: Status, rest: Array[Byte])
           extends RespPreludeResult
       case object RespPreludeIncomplete extends RespPreludeResult
-      case class RespPreludeError(cause: Throwable)
-          extends Throwable(s"Received Error while parsing prelude - ${cause.getMessage}", cause)
+      case class RespPreludeError(message: String, cause: Option[Throwable])
+          extends Throwable(
+            s"Received Error while parsing prelude - Message: $message - ${cause.map(_.getMessage)}",
+            cause.orNull)
           with RespPreludeResult
 
       // HTTP/1.1 200 OK
@@ -501,7 +534,7 @@ private[ember] object Parser {
           idx += 1
         }
 
-        if (throwable != null) RespPreludeError(throwable)
+        if (throwable != null) RespPreludeError("Encounterd Error parsing", Option(throwable))
         if (httpVersion != null && status != null)
           RespPreludeComplete(httpVersion, status, bv.drop(idx))
         else RespPreludeIncomplete

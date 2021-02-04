@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.MonadError
+import cats.MonadThrow
 import fs2.{RaiseThrowable, Stream}
 import fs2.text.utf8Decode
 import org.http4s.headers._
@@ -77,7 +77,7 @@ trait Media[F[_]] {
     * @tparam A type of the result
     * @return the effect which will generate the A
     */
-  final def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
+  final def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
     F.rethrow(attemptAs.value)
 }
 

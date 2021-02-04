@@ -182,7 +182,7 @@ trait Client[F[_]] {
 
 object Client {
   def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
-      F: Bracket[F, Throwable]): Client[F] =
+      F: BracketThrow[F]): Client[F] =
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }
@@ -230,9 +230,8 @@ object Client {
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
-  def liftKleisli[F[_]: Bracket[*[_], Throwable]: cats.Defer, A](
-      client: Client[F]): Client[Kleisli[F, A, *]] =
-    Client { req: Request[Kleisli[F, A, *]] =>
+  def liftKleisli[F[_]: BracketThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
+    Client { (req: Request[Kleisli[F, A, *]]) =>
       Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>
         client
           .run(req.mapK(Kleisli.applyK(a)))

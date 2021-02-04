@@ -15,18 +15,16 @@
  */
 
 package org.http4s
-package headers
+package servlet
 
-import org.http4s.ServerSentEvent._
-import org.scalacheck._
-import org.scalacheck.Arbitrary._
+class ServletContainerSuite extends Http4sSuite {
+  import ServletContainer.prefixMapping
 
-class LastEventIdSpec extends HeaderLaws {
-  implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =
-    Arbitrary(for {
-      id <- arbitrary[String]
-      if !id.contains("\n") && !id.contains("\r")
-    } yield `Last-Event-Id`(EventId(id)))
+  test("prefixMapping should append /* when prefix does not have trailing slash") {
+    assert(prefixMapping("/foo") == "/foo/*")
+  }
 
-  checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
+  test("prefixMapping should append * when prefix has trailing slash") {
+    assert(prefixMapping("/") == "/*")
+  }
 }

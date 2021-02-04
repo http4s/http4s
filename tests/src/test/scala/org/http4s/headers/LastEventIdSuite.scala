@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.http4s.servlet
+package org.http4s
+package headers
 
-import org.http4s.Http4sSpec
+import org.http4s.ServerSentEvent._
+import org.scalacheck._
+import org.scalacheck.Arbitrary._
 
-class ServletContainerSpec extends Http4sSpec {
-  "prefixMapping" should {
-    import ServletContainer.prefixMapping
+class LastEventIdSuite extends MHeaderLaws {
+  implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =
+    Arbitrary(for {
+      id <- arbitrary[String]
+      if !id.contains("\n") && !id.contains("\r")
+    } yield `Last-Event-Id`(EventId(id)))
 
-    "append /* when prefix does not have trailing slash" in {
-      prefixMapping("/foo") must_== "/foo/*"
-    }
-
-    "append * when prefix has trailing slash" in {
-      prefixMapping("/") must_== "/*"
-    }
-  }
+  checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
 }

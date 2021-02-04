@@ -24,6 +24,7 @@ lazy val modules: List[ProjectReference] = List(
   core,
   laws,
   testing,
+  specs2,
   tests,
   server,
   prometheusMetrics,
@@ -82,7 +83,6 @@ lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
-    NowarnCompatPlugin,
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -113,7 +113,6 @@ lazy val core = libraryProject("core")
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
-    Compile / packageBin / mappings ~= { _.filterNot(_._2.startsWith("scala/")) },
   )
 
 lazy val laws = libraryProject("laws")
@@ -142,8 +141,6 @@ lazy val testing = libraryProject("testing")
     libraryDependencies ++= Seq(
       catsEffectLaws,
       scalacheck,
-      specs2Common.withDottyCompat(scalaVersion.value),
-      specs2Matcher.withDottyCompat(scalaVersion.value),
       munitCatsEffect,
       munitDiscipline,
       scalacheckEffect,
@@ -152,6 +149,20 @@ lazy val testing = libraryProject("testing")
   )
   .dependsOn(laws)
 
+lazy val specs2 = libraryProject("specs2")
+  .enablePlugins(NoPublishPlugin)
+  .settings(
+    description := "Internal utilities for http4s tests on specs2",
+    startYear := Some(2021),
+    libraryDependencies ++= Seq(
+      catsEffectTestingSpecs2,
+      disciplineSpecs2,
+      specs2Common.withDottyCompat(scalaVersion.value),
+      specs2Matcher.withDottyCompat(scalaVersion.value),
+    ).map(_ % Test),
+  )
+  .dependsOn(testing % "test->test")
+
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
   .enablePlugins(NoPublishPlugin)
@@ -159,10 +170,9 @@ lazy val tests = libraryProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, specs2 % "test->test")
 
 lazy val server = libraryProject("server")
-  .enablePlugins(NowarnCompatPlugin)
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
@@ -175,7 +185,7 @@ lazy val server = libraryProject("server")
     ),
     buildInfoPackage := "org.http4s.server.test",
   )
-  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
+  .dependsOn(core, specs2 % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -196,7 +206,6 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
 
 lazy val client = libraryProject("client")
-  .enablePlugins(NowarnCompatPlugin)
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
@@ -208,8 +217,7 @@ lazy val client = libraryProject("client")
     core,
     testing % "test->test",
     server % "test->compile",
-    theDsl % "test->compile",
-    scalaXml % "test->compile")
+    theDsl % "test->compile")
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
@@ -237,7 +245,7 @@ lazy val emberCore = libraryProject("ember-core")
       log4catsTesting % Test,
     ),
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, specs2 % "test->test")
 
 lazy val emberServer = libraryProject("ember-server")
   .settings(
@@ -268,12 +276,16 @@ lazy val blazeCore = libraryProject("blaze-core")
       blazeHttp,
     )
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, specs2 % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      // privat constructor with new parameter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.blaze.BlazeServerBuilder.this")
+    )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
@@ -368,7 +380,7 @@ lazy val theDsl = libraryProject("dsl")
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, specs2 % "test->test")
 
 lazy val jawn = libraryProject("jawn")
   .settings(
@@ -412,7 +424,7 @@ lazy val circe = libraryProject("circe")
       circeTesting % Test,
     )
   )
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+  .dependsOn(core, specs2 % "test->test", jawn % "compile;test->test")
 
 lazy val json4s = libraryProject("json4s")
   .settings(
@@ -756,7 +768,8 @@ def http4sProject(name: String) =
       moduleName := s"http4s-$name",
       Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       testFrameworks += new TestFramework("munit.Framework"),
-      initCommands()
+      initCommands(),
+      scalacOptions in Test += "-language:postfixOps", // for Specs2 DSL
     )
     .enablePlugins(Http4sPlugin)
 
@@ -772,13 +785,9 @@ def exampleProject(name: String) =
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
   libraryDependencies ++= Seq(
-    catsEffectTestingSpecs2,
     catsLaws,
-    disciplineSpecs2,
     logbackClassic,
     scalacheck,
-    specs2Core.withDottyCompat(scalaVersion.value),
-    specs2MatcherExtra.withDottyCompat(scalaVersion.value),
   ).map(_ % Test),
   libraryDependencies ++= {
     if (isDotty.value)

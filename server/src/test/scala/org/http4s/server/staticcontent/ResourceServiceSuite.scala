@@ -72,7 +72,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
@@ -84,7 +84,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
     val s0 = builder.withBasePath("/testDir").toRoutes
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
@@ -94,7 +94,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
@@ -106,7 +106,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
     val s0 = builder.toRoutes
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
@@ -120,7 +120,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val s0 = builder
       .withPathPrefix("/test")
       .toRoutes
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
@@ -131,7 +131,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val uri = Uri.unsafeFromString("///" + absPath)
     val req = Request[IO](uri = uri)
     val s0 = builder.toRoutes
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
@@ -163,7 +163,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
         .assertEquals(MediaType.text.plain.some) *>
       rb.map(_.headers.get(`Content-Encoding`).map(_.contentCoding))
         .map(_ =!= ContentCoding.gzip.some)
-        .assertEquals(true)
+        .assert
   }
 
   test("Generate non on missing content") {

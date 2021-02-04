@@ -19,6 +19,7 @@ package org.http4s.ember.server
 import cats._
 import cats.syntax.all._
 import cats.effect._
+import cats.effect.concurrent._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
@@ -27,8 +28,8 @@ import org.http4s.server.Server
 
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
-import _root_.io.chrisdavenport.log4cats.Logger
-import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import _root_.org.typelevel.log4cats.Logger
+import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
@@ -38,7 +39,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val blockerOpt: Option[Blocker],
     private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
     private val sgOpt: Option[SocketGroup],
-    private val onError: Throwable => Response[F],
+    private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
     val maxConcurrency: Int,
     val receiveBufferSize: Int,
@@ -57,7 +58,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       blockerOpt: Option[Blocker] = self.blockerOpt,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
-      onError: Throwable => Response[F] = self.onError,
+      errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
       maxConcurrency: Int = self.maxConcurrency,
       receiveBufferSize: Int = self.receiveBufferSize,
@@ -75,7 +76,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       blockerOpt = blockerOpt,
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
-      onError = onError,
+      errorHandler = errorHandler,
       onWriteFailure = onWriteFailure,
       maxConcurrency = maxConcurrency,
       receiveBufferSize = receiveBufferSize,
@@ -108,7 +109,13 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withShutdownTimeout(shutdownTimeout: Duration) =
     copy(shutdownTimeout = shutdownTimeout)
 
-  def withOnError(onError: Throwable => Response[F]) = copy(onError = onError)
+  @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
+  def withOnError(onError: Throwable => Response[F]) =
+    withErrorHandler({ case e => onError(e).pure[F] })
+
+  def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
+    copy(errorHandler = errorHandler)
+
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
   def withMaxConcurrency(maxConcurrency: Int) = copy(maxConcurrency = maxConcurrency)
@@ -123,6 +130,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
+      ready <- Resource.liftF(Deferred[F, Either[Throwable, Unit]])
       shutdown <- Resource.liftF(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(
         ServerHelpers
@@ -131,8 +139,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             httpApp,
             sg,
             tlsInfoOpt,
+            ready,
             shutdown,
-            onError,
+            errorHandler,
             onWriteFailure,
             maxConcurrency,
             receiveBufferSize,
@@ -146,6 +155,8 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           .drain
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
+      _ <- Resource.liftF(ready.get.rethrow)
+      _ <- Resource.liftF(logger.info(s"Ember-Server service bound to address: $bindAddress"))
     } yield new Server {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
@@ -161,7 +172,7 @@ object EmberServerBuilder {
       blockerOpt = None,
       tlsInfoOpt = None,
       sgOpt = None,
-      onError = Defaults.onError[F],
+      errorHandler = Defaults.errorHandler[F],
       onWriteFailure = Defaults.onWriteFailure[F],
       maxConcurrency = Defaults.maxConcurrency,
       receiveBufferSize = Defaults.receiveBufferSize,
@@ -178,14 +189,25 @@ object EmberServerBuilder {
     val port: Int = server.defaults.HttpPort
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
-    def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
-      Response[F](Status.InternalServerError)
+
+    private val serverFailure =
+      Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+    // Effectful Handler - Perhaps a Logger
+    // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
+    def errorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case (_: Throwable) =>
+      serverFailure.covary[F].pure[F]
     }
+
+    @deprecated("0.21.17", "Use errorHandler, default fallback of failure InternalServerFailure")
+    def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
+      serverFailure.covary[F]
+    }
+
     def onWriteFailure[F[_]: Applicative]
         : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
       case _: (Option[Request[F]], Response[F], Throwable) => Applicative[F].unit
     }
-    val maxConcurrency: Int = Int.MaxValue
+    val maxConcurrency: Int = server.defaults.MaxConnections
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = server.defaults.MaxHeadersSize
     val requestHeaderReceiveTimeout: Duration = 5.seconds

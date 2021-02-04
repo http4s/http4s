@@ -43,7 +43,7 @@ class UriParserSpec extends Http4sSpec {
       } yield f + "::" + b)
 
       foreach(v) { s =>
-        Ipv6Address.parser.string.parseAll(s) must beRight(s)
+        Uri.Parser.ipv6Address.string.parseAll(s) must beRight(s)
       }
     }
 
@@ -236,14 +236,12 @@ class UriParserSpec extends Http4sSpec {
     }
 
     "reject invalid URIs" in {
-      import org.specs2.execute._, Typecheck._
-      import org.specs2.matcher.TypecheckMatchers._
-
-      typecheck {
+      illTyped {
         """
            uri"not valid"
         """
-      } must not succeed
+      }
+      true
     }
   }
 }

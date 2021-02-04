@@ -24,7 +24,7 @@ import org.http4s._
 
 object ErrorHandling {
   def apply[F[_], G[_]](k: Kleisli[F, Request[G], Response[G]])(implicit
-      F: MonadError[F, Throwable]): Kleisli[F, Request[G], Response[G]] =
+      F: MonadThrow[F]): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       val pf: PartialFunction[Throwable, F[Response[G]]] =
         inDefaultServiceErrorHandler[F, G](F)(req)
@@ -36,9 +36,9 @@ object ErrorHandling {
       }
     }
 
-  def httpRoutes[F[_]: MonadError[*[_], Throwable]](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: MonadThrow](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
 
-  def httpApp[F[_]: MonadError[*[_], Throwable]](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: MonadThrow](httpApp: HttpApp[F]): HttpApp[F] =
     apply(httpApp)
 }

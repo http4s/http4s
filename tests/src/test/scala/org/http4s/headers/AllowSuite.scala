@@ -16,6 +16,21 @@
 
 package org.http4s.headers
 
-class AllowSpec extends HeaderLaws {
+import org.http4s.Method
+import org.http4s.laws.discipline.ArbitraryInstances._
+
+class AllowSuite extends MHeaderLaws {
   checkAll("Allow", headerLaws(Allow))
+
+  test("Allow should parse an empty string") {
+    assert(Allow.parse("") == Right(Allow()))
+  }
+
+  test("Allow should parse with an ending comma") {
+    assert(Allow.parse("GET,  POST   ,") == Right(Allow(Method.GET, Method.POST)))
+  }
+
+  test("Allow should parse with multiple commas") {
+    assert(Allow.parse("GET,,POST") == Right(Allow(Method.GET, Method.POST)))
+  }
 }

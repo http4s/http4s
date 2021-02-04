@@ -19,6 +19,7 @@ package ember.core
 
 import cats.syntax.all._
 import cats.effect.{IO, Sync}
+import org.http4s.headers.`Content-Length`
 
 class EncoderSuite extends Http4sSuite {
   private object Helpers {
@@ -48,9 +49,6 @@ class EncoderSuite extends Http4sSuite {
     val expected =
       """GET / HTTP/1.1
       |Host: www.google.com
-      |Transfer-Encoding: chunked
-      |
-      |0
       |
       |""".stripMargin
 
@@ -81,9 +79,6 @@ class EncoderSuite extends Http4sSuite {
       """GET / HTTP/1.1
         |Host: www.google.com
         |foo: bar
-        |Transfer-Encoding: chunked
-        |
-        |0
         |
         |""".stripMargin
     Helpers.encodeRequestRig(req).assertEquals(expected)
@@ -97,22 +92,41 @@ class EncoderSuite extends Http4sSuite {
     val expected =
       """GET /path?query HTTP/1.1
         |Host: www.example.com
-        |Transfer-Encoding: chunked
         |
-        |0
+        |""".stripMargin
+    Helpers.encodeRequestRig(req).assertEquals(expected)
+  }
+
+  test("reqToBytes respects the host header") {
+    val req = Request[IO](
+      Method.GET,
+      Uri.unsafeFromString("https://www.example.com/"),
+      headers = Headers.of(headers.Host("example.org", Some(8080)))
+    )
+    val expected =
+      """GET / HTTP/1.1
+        |Host: example.org:8080
         |
         |""".stripMargin
     Helpers.encodeRequestRig(req).assertEquals(expected)
   }
 
   test("respToBytes should encode a no body response correctly") {
-    val resp = Response[IO](Status.Ok)
+    val resp = Response[IO](Status.Ok).putHeaders(`Content-Length`.zero)
 
     val expected =
       """HTTP/1.1 200 OK
-      |Transfer-Encoding: chunked
+      |Content-Length: 0
       |
-      |0
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
+  test("encoder a response where entity is not allowed correctly") {
+    val resp = Response[IO](Status.NoContent)
+    val expected =
+      """HTTP/1.1 204 No Content
       |
       |""".stripMargin
 
