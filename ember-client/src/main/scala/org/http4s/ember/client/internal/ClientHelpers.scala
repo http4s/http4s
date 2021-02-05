@@ -104,7 +104,8 @@ private[client] object ClientHelpers {
       writeRequestToSocket(req, requestKeySocket.socket, durationToFinite(idleTimeout)) >> {
         Parser.Response
           .parser(maxResponseHeaderSize, durationToFinite(timeout))(
-            requestKeySocket.socket.reads(chunkSize, durationToFinite(idleTimeout))
+            Array.emptyByteArray, // TODO: we need to drain from the previous request
+            requestKeySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
           )
           .map(_._1)
       }

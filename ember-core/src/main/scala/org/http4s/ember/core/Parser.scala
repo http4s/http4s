@@ -383,8 +383,9 @@ private[ember] object Parser {
 
                   ???
                 } else {
-                  Body.parseFixedBody(contentLength.getOrElse(0L), bytes, r).map { case (bodyStream, drain) =>
-                    (baseReq.withBodyStream(bodyStream), drain)
+                  Body.parseFixedBody(contentLength.getOrElse(0L), bytes, r).map {
+                    case (bodyStream, drain) =>
+                      (baseReq.withBodyStream(bodyStream), drain)
                   }
                 }
             }
@@ -397,8 +398,8 @@ private[ember] object Parser {
   object Response {
 
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
-      p: Array[Byte],
-      r: F[Option[Chunk[Byte]]]
+        p: Array[Byte],
+        r: F[Option[Chunk[Byte]]]
     ): F[(Response[F], F[Array[Byte]])] =
       Deferred[F, Headers].flatMap { trailers =>
         val action = RespPrelude
@@ -411,17 +412,18 @@ private[ember] object Parser {
                   status = status,
                   headers = headers
                 )
-                  if (chunked) {
+                if (chunked) {
 //                    baseResp
 //                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
 //                      .withBodyStream(
 //                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
-                    ???
-                  } else {
-                    Body.parseFixedBody(contentLength.getOrElse(0L), bytes, r).map { case (bodyStream, drain) =>
+                  ???
+                } else {
+                  Body.parseFixedBody(contentLength.getOrElse(0L), bytes, r).map {
+                    case (bodyStream, drain) =>
                       (baseResp.withBodyStream(bodyStream), drain)
-                    }
                   }
+                }
             }
           }
 
@@ -436,8 +438,8 @@ private[ember] object Parser {
           p: Array[Byte],
           r: F[Option[Chunk[Byte]]],
           maxHeaderLength: Int,
-          acc: Option[Array[Byte]] = None)(implicit F: MonadThrow[F])
-          : F[(HttpVersion, Status, Array[Byte])] = {
+          acc: Option[Array[Byte]] = None)(implicit
+          F: MonadThrow[F]): F[(HttpVersion, Status, Array[Byte])] = {
         val pull = if (p.nonEmpty) F.pure(Some(Chunk.bytes(p))) else r
 
         pull.flatMap {
@@ -563,7 +565,10 @@ private[ember] object Parser {
     }
 
   object Body {
-    def parseFixedBody[F[_]: Concurrent](contentLength: Long, bytes: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Array[Byte]])] =
+    def parseFixedBody[F[_]: Concurrent](
+        contentLength: Long,
+        bytes: Array[Byte],
+        read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Array[Byte]])] =
       if (contentLength > 0) {
         if (bytes.length >= contentLength) {
           val (body, extras) = bytes.splitAt(contentLength.toInt)
@@ -572,14 +577,15 @@ private[ember] object Parser {
           // TODO: deal with streams that terminate early?
           Ref.of[F, Either[Long, Array[Byte]]](Left(contentLength - bytes.length)).map { state =>
             val bodyStream = Stream.eval(state.get).flatMap {
-              case Right(_) => Stream.raiseError(new Throwable("Body has already been completely read"))
+              case Right(_) =>
+                Stream.raiseError(new Throwable("Body has already been completely read"))
               case Left(remaining) =>
                 // TODO: evalScanChunks would have been cool here
                 readStream(read).chunks
                   .evalMapAccumulate(remaining) { case (r, chunk) =>
                     if (chunk.size >= r) {
                       val (rest, after) = chunk.splitAt(r.toInt)
-                      state.set(Right(after.toArray)).as((0, rest))
+                      state.set(Right(after.toArray)).as((0L, rest))
                     } else {
                       val r2 = r - chunk.size
                       state.set(Left(r2)).as((r2, chunk))
@@ -596,7 +602,7 @@ private[ember] object Parser {
                   .evalMapAccumulate(remaining) { case (r, chunk) =>
                     if (chunk.size >= r) {
                       val extras = chunk.drop(r.toInt).toArray
-                      state.set(Right(extras)).as((0, extras))
+                      state.set(Right(extras)).as((0L, extras))
                     } else {
                       val r2 = r - chunk.size
                       state.set(Left(r2)).as((r2, Array.emptyByteArray))
