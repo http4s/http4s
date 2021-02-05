@@ -18,12 +18,12 @@ package org.http4s
 
 import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.NonEmptyList
-import cats.effect.SyncIO
+import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
+import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
 import java.io.File
-import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
@@ -373,38 +373,39 @@ final class Request[F[_]](
 
   private def connectionInfo: Option[Connection] = attributes.lookup(Keys.ConnectionInfo)
 
-  def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
+  def remote: Option[SocketAddress[IpAddress]] = connectionInfo.map(_.remote)
 
   /** Returns the the X-Forwarded-For value if present, else the remote address.
     */
-  def from: Option[InetAddress] =
+  def from: Option[IpAddress] =
     headers
       .get(`X-Forwarded-For`)
-      .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
+      .fold(remote.map(_.host))(_.values.head)
 
-  def remoteAddr: Option[String] = remote.map(_.getHostString)
+  def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
-  def remoteHost: Option[String] = remote.map(_.getHostName)
+  def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
+    val inetAddress = remote.map(_.host.toInetAddress)
+    F.delay(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname(_)))
+  }
 
-  def remotePort: Option[Int] = remote.map(_.getPort)
+  def remotePort: Option[Port] = remote.map(_.port)
 
   def remoteUser: Option[String] = None
 
-  def server: Option[InetSocketAddress] = connectionInfo.map(_.local)
+  def server: Option[SocketAddress[IpAddress]] = connectionInfo.map(_.local)
 
-  def serverAddr: String =
+  def serverAddr: Option[IpAddress] =
     server
-      .map(_.getHostString)
-      .orElse(uri.host.map(_.value))
-      .orElse(headers.get(Host).map(_.host))
-      .getOrElse(InetAddress.getLocalHost.getHostName)
+      .map(_.host)
+      .orElse(uri.host.flatMap(_.toIpAddress))
+      .orElse(headers.get(Host).flatMap(h => IpAddress(h.host)))
 
-  def serverPort: Int =
+  def serverPort: Option[Port] =
     server
-      .map(_.getPort)
-      .orElse(uri.port)
-      .orElse(headers.get(Host).flatMap(_.port))
-      .getOrElse(80)
+      .map(_.port)
+      .orElse(uri.port.flatMap(Port(_)))
+      .orElse(headers.get(Host).flatMap(_.port.flatMap(Port(_))))
 
   /** Whether the Request was received over a secure medium */
   def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
@@ -504,7 +505,10 @@ object Request {
       case _ => None
     }
 
-  final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
+  final case class Connection(
+      local: SocketAddress[IpAddress],
+      remote: SocketAddress[IpAddress],
+      secure: Boolean)
 
   object Keys {
     val PathInfoCaret: Key[Int] = Key.newKey[SyncIO, Int].unsafeRunSync()

@@ -42,11 +42,6 @@ https://github.com/Spinoco/fs2-http
 Copyright (c) 2017 Spinoco
 Licensed under the MIT License (see licenses/LICENSE_fs2-http)
 
-This software contains portions of code derived from ip4s
-https://github.com/Comcast/ip4s
-Copyright 2018 Comcast Cable Communications Management, LLC
-Licensed under the Apache License 2.0 (see LICENSE)
-
 This software contains portions of code derived from parboiled2
 https://github.com/sirthias/parboiled2
 Copyright 2009-2019 Mathias Doenitz

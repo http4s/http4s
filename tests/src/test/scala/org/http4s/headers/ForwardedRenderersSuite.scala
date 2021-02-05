@@ -17,92 +17,85 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import org.http4s.Uri
+import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
 import org.http4s.util.Renderer
-import org.specs2.ScalaCheck
-import org.specs2.mutable.{Specification, Tables}
+import org.scalacheck.Prop._
 
-class ForwardedRenderersSpec
-    extends Specification
-    with ScalaCheck
-    with Tables
-    with ForwardedArbitraryInstances {
+class ForwardedRenderersSuite extends munit.ScalaCheckSuite with ForwardedArbitraryInstances {
 
-  "Renderer should render to a string that roundtrips back to the original value".p.tab
-
-  "Node.Name" in {
+  test("Node.Name") {
     import Forwarded.Node
 
-    prop { (nodeName: Node.Name) =>
+    forAll { (nodeName: Node.Name) =>
       val rendered = Renderer.renderString(nodeName)
-      rendered must not be empty // just to check for something here
+      assert(rendered.nonEmpty) // just to check for something here
 
       nodeName match {
         case Node.Name.Ipv4(ipv4) =>
-          Uri.Ipv4Address.fromString(rendered) must beRight(ipv4)
+          assertEquals(Ipv4Address(rendered), Some(ipv4))
         case Node.Name.Ipv6(ipv6) =>
-          rendered must startWith("[")
-          rendered must endWith("]")
-          Uri.Ipv6Address.fromString(rendered.tail.init) must beRight(ipv6)
+          assert(rendered.startsWith("["))
+          assert(rendered.endsWith("]"))
+          assertEquals(Ipv6Address(rendered.tail.init), Some(ipv6))
         case Node.Name.Unknown =>
-          rendered ==== "unknown"
+          assertEquals(rendered, "unknown")
         case obfName: Node.Obfuscated =>
-          Node.Obfuscated.fromString(rendered) must beRight(obfName)
+          assertEquals(Node.Obfuscated.fromString(rendered), Right(obfName))
       }
     }
   }
-  "Node.Port" in {
+  test("Node.Port") {
     import Forwarded.Node
 
-    prop { (nodePort: Node.Port) =>
+    forAll { (nodePort: Node.Port) =>
       val rendered = Renderer.renderString(nodePort)
-      rendered must not be empty
+      assert(rendered.nonEmpty)
 
       nodePort match {
         case Node.Port.Numeric(num) =>
-          Integer.parseUnsignedInt(rendered) ==== num
+          assertEquals(Integer.parseUnsignedInt(rendered), num)
         case obfPort: Node.Obfuscated =>
-          Node.Obfuscated.fromString(rendered) must beRight(obfPort)
+          assertEquals(Node.Obfuscated.fromString(rendered), Right(obfPort))
       }
     }
   }
-  "Node" in {
+  test("Node") {
     import Forwarded.Node
 
-    prop { (node: Node) =>
+    forAll { (node: Node) =>
       val rendered = Renderer.renderString(node)
-      rendered must not be empty
+      assert(rendered.nonEmpty)
 
-      Node.fromString(rendered) must beRight(node)
+      assertEquals(Node.fromString(rendered), Right(node))
     }
   }
-  "Host" in {
+  test("Host") {
     import Forwarded.Host
 
-    prop { (host: Host) =>
+    forAll { (host: Host) =>
       val rendered = Renderer.renderString(host)
 
-      Host.fromString(rendered) must beRight(host)
+      assertEquals(Host.fromString(rendered), Right(host))
     }
   }
-  "Element" in {
+  test("Element") {
     import Forwarded.Element
 
-    prop { (elem: Element) =>
+    forAll { (elem: Element) =>
       val rendered = Renderer.renderString(elem)
-      rendered must not be empty
+      assert(rendered.nonEmpty)
 
-      Forwarded.parse(rendered) must beRight(Forwarded(NonEmptyList(elem, Nil)))
+      assertEquals(Forwarded.parse(rendered), Right(Forwarded(NonEmptyList(elem, Nil))))
     }
   }
-  "Forwarded" in {
+  test("Forwarded") {
     val headerInit = Forwarded.name.toString + ": "
 
-    prop { (fwd: Forwarded) =>
+    forAll { (fwd: Forwarded) =>
       val rendered = Renderer.renderString(fwd)
-      rendered must startWith(headerInit)
+      assert(rendered.startsWith(headerInit))
 
-      Forwarded.parse(rendered.drop(headerInit.length)) must beRight(fwd)
+      assertEquals(Forwarded.parse(rendered.drop(headerInit.length)), Right(fwd))
     }
   }
 }

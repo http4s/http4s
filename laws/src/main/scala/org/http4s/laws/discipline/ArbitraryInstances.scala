@@ -26,6 +26,8 @@ import cats.effect.testkit._
 import cats.effect.std.Dispatcher
 import cats.instances.order._
 import cats.syntax.all._
+import com.comcast.ip4s
+import com.comcast.ip4s.Arbitraries._
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -633,103 +635,31 @@ private[http4s] trait ArbitraryInstances {
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =
     oneOf(g, const(ev.empty))
 
-  // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] = Arbitrary {
-    for {
-      a <- getArbitrary[Byte]
-      b <- getArbitrary[Byte]
-      c <- getArbitrary[Byte]
-      d <- getArbitrary[Byte]
-    } yield Uri.Ipv4Address(a, b, c, d)
-  }
+  implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] =
+    Arbitrary(ip4s.Arbitraries.ipv4Generator.map(Uri.Ipv4Address.apply))
 
   implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
-    Cogen[(Byte, Byte, Byte, Byte)].contramap(ipv4 => (ipv4.a, ipv4.b, ipv4.c, ipv4.d))
+    Cogen[Array[Byte]].contramap(_.address.toBytes)
 
-  // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] = Arbitrary {
-    for {
-      a <- getArbitrary[Short]
-      b <- getArbitrary[Short]
-      c <- getArbitrary[Short]
-      d <- getArbitrary[Short]
-      e <- getArbitrary[Short]
-      f <- getArbitrary[Short]
-      g <- getArbitrary[Short]
-      h <- getArbitrary[Short]
-    } yield Uri.Ipv6Address(a, b, c, d, e, f, g, h)
-  }
+  implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] =
+    Arbitrary(ip4s.Arbitraries.ipv6Generator.map(Uri.Ipv6Address.apply))
 
   implicit val http4sTestingCogenForIpv6Address: Cogen[Uri.Ipv6Address] =
-    Cogen[(Short, Short, Short, Short, Short, Short, Short, Short)]
-      .contramap(ipv6 => (ipv6.a, ipv6.b, ipv6.c, ipv6.d, ipv6.e, ipv6.f, ipv6.g, ipv6.h))
+    Cogen[Array[Byte]].contramap(_.address.toBytes)
 
   /* TODO Everything generated here resembles a plausible hostname,
    * whereas the spec allows weird corner cases of arbitrary,
    * percent-encoded UTF-8 strings.  This is a practical generator,
    * but dragons be here for full spec compliance.
-   *
-   * Derived from https://github.com/Comcast/ip4s/blob/v1.4.1/test-kit/shared/src/main/scala/com/comcast/ip4s/Arbitraries.scala.  TODO: delegate to ip4s when we integrate it
    */
-  implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = {
-    val hostnameGenerator: Gen[Uri.RegName] = {
-      val genLabel: Gen[String] = for {
-        first <- Gen.alphaNumChar
-        middleLen <- Gen.chooseNum(0, 61)
-        middle <- Gen
-          .listOfN(middleLen, Gen.oneOf(Gen.alphaNumChar, Gen.const('-')))
-          .map(_.mkString)
-        last <- if (middleLen > 0) Gen.alphaNumChar.map(Some(_)) else Gen.option(Gen.alphaNumChar)
-      } yield first.toString + middle + last.fold("")(_.toString)
-      for {
-        numLabels <- Gen.chooseNum(1, 5)
-        labels <- Gen.listOfN(numLabels, genLabel)
-        if labels.foldLeft(0)(_ + _.size) < (253 - (numLabels - 1))
-      } yield Uri.RegName(labels.mkString("."))
-    }
-
-    val idnGenerator: Gen[Uri.RegName] = {
-      val DotPattern = "[\\.\u002e\u3002\uff0e\uff61]"
-
-      def apply(value: String): Option[Uri.RegName] =
-        value.length match {
-          case 0 => None
-          case _ =>
-            val labels = value
-              .split(DotPattern)
-              .iterator
-              .toList
-            Option(labels).filterNot(_.isEmpty).flatMap { _ =>
-              Try(java.net.IDN.toASCII(value)).toOption.map(Uri.RegName(_))
-            }
-        }
-
-      val genChar: Gen[Char] =
-        Gen.oneOf(Gen.alphaNumChar, Gen.const('δ'), Gen.const('π'), Gen.const('θ'))
-      val genLabel: Gen[String] = for {
-        first <- genChar
-        middleLen <- Gen.chooseNum(0, 61)
-        middle <- Gen.listOfN(middleLen, Gen.oneOf(genChar, Gen.const('-'))).map(_.mkString)
-        last <- if (middleLen > 0) genChar.map(Some(_)) else Gen.option(genChar)
-        str = first.toString + middle + last.fold("")(_.toString)
-        if Try(java.net.IDN.toASCII(str)).toOption.size < 64
-      } yield str
-      for {
-        numLabels <- Gen.chooseNum(1, 5)
-        labels <- Gen.listOfN(numLabels, genLabel)
-        dot <- Gen.oneOf('.', '\u002e', '\u3002', '\uff0e', '\uff61')
-        idn = apply(labels.mkString(dot.toString)) if idn.isDefined
-      } yield idn.get
-    }
-
+  implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] =
     Arbitrary(
       oneOf(
         getArbitrary[Uri.Ipv4Address],
         getArbitrary[Uri.Ipv6Address],
-        idnGenerator,
-        hostnameGenerator)
+        getArbitrary[ip4s.Hostname].map(Uri.RegName.fromHostname)
+      )
     )
-  }
 
   implicit val http4sTestingArbitraryForUserInfo: Arbitrary[Uri.UserInfo] =
     Arbitrary(

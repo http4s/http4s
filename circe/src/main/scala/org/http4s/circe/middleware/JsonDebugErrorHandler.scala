@@ -127,8 +127,8 @@ object JsonDebugErrorHandler {
           }
           .asJson,
         "path_info" -> req.pathInfo.renderString.asJson,
-        "remote_address" -> req.remoteAddr.asJson,
-        "http_version" -> req.httpVersion.toString().asJson
+        "remote_address" -> req.remoteAddr.toString.asJson,
+        "http_version" -> req.httpVersion.toString.asJson
       )
       .dropNullValues
 

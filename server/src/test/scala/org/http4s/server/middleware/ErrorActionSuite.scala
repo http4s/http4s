@@ -18,16 +18,15 @@ package org.http4s.server.middleware
 
 import cats.effect.IO
 import cats.effect.kernel.Ref
+import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import org.http4s._
 import org.http4s.Request.Connection
-import org.http4s.syntax.all._
 import org.http4s.dsl.io._
+import org.http4s.syntax.all._
 import org.typelevel.vault.Vault
 
-import java.net.{InetAddress, InetSocketAddress}
-
 class ErrorActionSuite extends Http4sSuite {
-  val remote = "192.168.0.1"
+  val remote = IpAddress("192.168.0.1").get
 
   def httpRoutes(error: Throwable = new RuntimeException()) =
     HttpRoutes.of[IO] { case GET -> Root / "error" =>
@@ -40,8 +39,8 @@ class ErrorActionSuite extends Http4sSuite {
     attributes = Vault.empty.insert(
       Request.Keys.ConnectionInfo,
       Connection(
-        new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 80),
-        new InetSocketAddress(InetAddress.getByName(remote), 80),
+        SocketAddress(IpAddress("127.0.0.1").get, Port(80).get),
+        SocketAddress(remote, Port(80).get),
         false
       )
     )

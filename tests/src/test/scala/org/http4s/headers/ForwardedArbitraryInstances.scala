@@ -18,6 +18,8 @@ package org.http4s.headers
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
+import com.comcast.ip4s
+import com.comcast.ip4s.Arbitraries._
 import org.http4s.internal.bug
 import org.http4s.laws.discipline.ArbitraryInstances
 import org.http4s.{ParseResult, Uri}
@@ -42,8 +44,8 @@ private[http4s] trait ForwardedArbitraryInstances
   implicit val http4sTestingArbitraryForForwardedNodeName: Arbitrary[Node.Name] =
     Arbitrary(
       Gen.oneOf(
-        Arbitrary.arbitrary[Uri.Ipv4Address].map(Node.Name.Ipv4),
-        Arbitrary.arbitrary[Uri.Ipv6Address].map(Node.Name.Ipv6),
+        Arbitrary.arbitrary[ip4s.Ipv4Address].map(Node.Name.Ipv4),
+        Arbitrary.arbitrary[ip4s.Ipv6Address].map(Node.Name.Ipv6),
         Arbitrary.arbitrary[Node.Obfuscated],
         Gen.const(Node.Name.Unknown)
       ) :| "Node.Name")

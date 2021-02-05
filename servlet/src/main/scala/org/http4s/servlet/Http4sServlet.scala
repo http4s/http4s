@@ -19,7 +19,7 @@ package org.http4s.servlet
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import java.net.InetSocketAddress
+import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
@@ -109,8 +109,8 @@ abstract class Http4sServlet[F[_]](
         .insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
-            local = InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
-            remote = InetSocketAddress.createUnresolved(req.getRemoteAddr, req.getRemotePort),
+            local = SocketAddress(IpAddress(req.getLocalAddr).get, Port(req.getLocalPort).get),
+            remote = SocketAddress(IpAddress(req.getRemoteAddr).get, Port(req.getRemotePort).get),
             secure = req.isSecure
           )
         )

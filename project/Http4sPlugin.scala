@@ -297,6 +297,7 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineSpecs2 = "1.1.3"
     val dropwizardMetrics = "4.1.17"
     val fs2 = "3.0.0-M7"
+    val ip4s = "2.0-120-b5b65a6"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.0.3"
     val jawnFs2 = "2.0.0-M2"
@@ -326,7 +327,7 @@ object Http4sPlugin extends AutoPlugin {
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.6"
-    val tomcat = "9.0.41"
+    val tomcat = "9.0.43"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.0.0-M1"
@@ -361,6 +362,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Core                          = "co.fs2"                 %% "fs2-core"                  % V.fs2
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
+  lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
+  lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s  
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
