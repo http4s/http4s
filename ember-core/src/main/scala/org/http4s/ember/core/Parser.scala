@@ -357,8 +357,6 @@ private[ember] object Parser {
       }
     }
 
-    final case class SocketStream[F[_]](loaded: Array[Byte], read: F[Option[Chunk[Byte]]])
-
     def parser[F[_]](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         p: Array[Byte],
         r: F[Option[Chunk[Byte]]]
@@ -392,44 +390,41 @@ private[ember] object Parser {
             }
           }
 
-        timeout match {
-          case None => action
-          case Some(timeout) => Concurrent.timeout(action, timeout)
-        }
+        timeout.fold(action)(duration => Concurrent.timeout(action, duration))
       }
   }
 
   object Response {
 
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
-        s: Stream[F, Byte]
-    ): F[(Response[F], Stream[F, Byte])] =
+      p: Array[Byte],
+      r: F[Option[Chunk[Byte]]]
+    ): F[(Response[F], F[Array[Byte]])] =
       Deferred[F, Headers].flatMap { trailers =>
-        val base = RespPrelude
-          .parsePrelude(s, maxHeaderLength, None)
-          .flatMap { case (httpVersion, status, s) =>
-            HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
-              case (headers, chunked, contentLength, rest) =>
+        val action = RespPrelude
+          .parsePrelude(p, r, maxHeaderLength, None)
+          .flatMap { case (httpVersion, status, bytes) =>
+            HeaderP.parseHeaders(bytes, r, maxHeaderLength, None).flatMap {
+              case (headers, chunked, contentLength, bytes) =>
                 val baseResp = org.http4s.Response[F](
                   httpVersion = httpVersion,
                   status = status,
                   headers = headers
                 )
-                val resp: org.http4s.Response[F] =
-                  if (chunked)
-                    baseResp
-                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                      .withBodyStream(
-                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
-                  else
-                    baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
-                Pull.output1((resp, rest))
+                  if (chunked) {
+//                    baseResp
+//                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+//                      .withBodyStream(
+//                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
+                    ???
+                  } else {
+                    Body.parseFixedBody(contentLength.getOrElse(0L), bytes, r).map { case (bodyStream, drain) =>
+                      (baseResp.withBodyStream(bodyStream), drain)
+                    }
+                  }
             }
           }
-          .stream
-          .take(1)
 
-        val action = base.compile.lastOrError
         timeout.fold(action)(duration => Concurrent.timeout(action, duration))
       }
 
@@ -437,36 +432,39 @@ private[ember] object Parser {
 
       val emptyStreamError = RespPreludeError("Cannot Parse Empty Stream", None)
 
-      def parsePrelude[F[_]: MonadThrow](
-          s: Stream[F, Byte],
+      def parsePrelude[F[_]](
+          p: Array[Byte],
+          r: F[Option[Chunk[Byte]]],
           maxHeaderLength: Int,
-          acc: Option[Array[Byte]] = None)
-          : Pull[F, Nothing, (HttpVersion, Status, Stream[F, Byte])] =
-        s.pull.uncons.flatMap {
-          case Some((chunk, tl)) =>
+          acc: Option[Array[Byte]] = None)(implicit F: MonadThrow[F])
+          : F[(HttpVersion, Status, Array[Byte])] = {
+        val pull = if (p.nonEmpty) F.pure(Some(Chunk.bytes(p))) else r
+
+        pull.flatMap {
+          case Some(chunk) =>
             val next: Array[Byte] = acc match {
               case None => chunk.toArray
               case Some(remains) => combineArrays(remains, chunk.toArray)
             }
             preludeInSection(next) match {
               case RespPreludeComplete(httpVersion, status, rest) =>
-                Pull.pure((httpVersion, status, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
-              case t @ RespPreludeError(_, _) => Pull.raiseError[F](t)
+                (httpVersion, status, rest).pure[F]
+              case t @ RespPreludeError(_, _) => F.raiseError(t)
               case RespPreludeIncomplete =>
                 if (next.size <= maxHeaderLength)
-                  parsePrelude(tl, maxHeaderLength, next.some)
+                  parsePrelude(Array.emptyByteArray, r, maxHeaderLength, next.some)
                 else
-                  Pull.raiseError[F](
+                  F.raiseError(
                     RespPreludeError(
                       "Reached Max Header Length Looking for Response Prelude",
                       None))
             }
           case None =>
             acc match {
-              case None => Pull.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.isEmpty => Pull.raiseError(emptyStreamError)
+              case None => F.raiseError(emptyStreamError)
+              case Some(incomplete) if incomplete.isEmpty => F.raiseError(emptyStreamError)
               case Some(_) =>
-                Pull.raiseError[F](
+                F.raiseError(
                   RespPreludeError(
                     "Unexpectedly Reached Ended of Stream Looking for Response Prelude",
                     None)
@@ -474,6 +472,7 @@ private[ember] object Parser {
             }
 
         }
+      }
 
       private val space = ' '.toByte
       private val cr: Byte = '\r'.toByte
@@ -573,7 +572,7 @@ private[ember] object Parser {
           // TODO: deal with streams that terminate early?
           Ref.of[F, Either[Long, Array[Byte]]](Left(contentLength - bytes.length)).map { state =>
             val bodyStream = Stream.eval(state.get).flatMap {
-              case Right(_) => Stream.raiseError(new Throwable("Body has already been read once"))
+              case Right(_) => Stream.raiseError(new Throwable("Body has already been completely read"))
               case Left(remaining) =>
                 // TODO: evalScanChunks would have been cool here
                 readStream(read).chunks
