@@ -359,13 +359,6 @@ private[ember] object Parser {
 
     final case class SocketStream[F[_]](loaded: Array[Byte], read: F[Option[Chunk[Byte]]])
 
-    private def readingStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
-      Stream.eval(read).flatMap {
-        case Some(bytes) =>
-          Stream.chunk(bytes) ++ readingStream(read)
-        case None => Stream.empty
-      }
-
     def parser[F[_]](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         p: Array[Byte],
         r: F[Option[Chunk[Byte]]]
@@ -383,7 +376,7 @@ private[ember] object Parser {
                   headers = headers
                 )
 
-                val f: F[(Request[F], F[Array[Byte]])] = if (chunked) {
+                if (chunked) {
                   // TODO: I think we will need to keep track of state here
 //                  (baseReq
 //                    .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
@@ -392,72 +385,10 @@ private[ember] object Parser {
 
                   ???
                 } else {
-                  // TODO: factor this out to a separate function
-                  val size = contentLength.getOrElse(0L)
-                  if (size > 0) {
-                    if (bytes.length >= size) {
-                      val (body, extras) = bytes.splitAt(size.toInt)
-                      (baseReq.withBodyStream(Stream.chunk(Chunk.bytes(body))), extras.pure[F])
-                        .pure[F]
-                    } else {
-                      // TODO: we could just use a volatile var for performance here
-                      // TODO: deal with streams that terminate early?
-                      // TODO: Add a done state?
-                      Ref.of[F, Either[Long, Array[Byte]]](Left(size - bytes.length)).map { state =>
-                        val bodyStream = readingStream(r).chunks
-                          .evalMap { chunk =>
-                            state.modify {
-                              case Left(remaining) =>
-                                if (chunk.size >= remaining) {
-                                  val (rest, after) = chunk.splitAt(remaining.toInt)
-                                  (Right(after.toArray), (rest, false))
-                                } else
-                                  (Left(remaining - chunk.size), (chunk, true))
-                              case r @ Right(_) => (r, (chunk, true)) // TODO: possibly error here?
-                            }
-                          }
-                          .takeWhile(_._2)
-                          .map(_._1)
-                          .flatMap(Stream.chunk(_))
-
-                        // Separate Ref for the second drain?
-                        val drain: F[Array[Byte]] = state.modify {
-                          case l @ Left(_) =>
-                            // TODO: I think we can make this better with Pull
-                            val f = readingStream(r).chunks
-                              .evalMap { chunk =>
-                                state.modify {
-                                  case Left(remaining) =>
-                                    if (chunk.size >= remaining) {
-                                      val (rest, after) = chunk.splitAt(remaining.toInt)
-                                      (Right(after.toArray), (rest, false))
-                                    } else
-                                      (Left(remaining - chunk.size), (chunk, true))
-                                  case r @ Right(_) =>
-                                    (r, (chunk, true)) // TODO: possibly error here?
-                                }
-                              }
-                              .takeWhile(_._2)
-                              .map(_._1)
-                              .flatMap(Stream.chunk(_))
-                              .compile
-                              .drain
-
-                            (l, f >> state.get.map(_.toOption.get))
-                          case r @ Right(bytes) => (r, F.pure(bytes))
-                        }.flatten
-
-                        (
-                          baseReq.withBodyStream(Stream.chunk(Chunk.bytes(bytes)) ++ bodyStream),
-                          drain)
-                      }
-                    }
-                  } else {
-                    (baseReq, Concurrent[F].pure(bytes)).pure[F]
+                  Body.parseFixedBody(contentLength.getOrElse(0L), bytes, r).map { case (bodyStream, drain) =>
+                    (baseReq.withBodyStream(bodyStream), drain)
                   }
                 }
-
-                f
             }
           }
 
@@ -623,6 +554,75 @@ private[ember] object Parser {
         else RespPreludeIncomplete
       }
     }
+  }
+
+  private def readingStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
+    Stream.eval(read).flatMap {
+      case Some(bytes) =>
+        Stream.chunk(bytes) ++ readingStream(read)
+      case None => Stream.empty
+    }
+
+  object Body {
+    def parseFixedBody[F[_]: Concurrent](contentLength: Long, bytes: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Array[Byte]])] =
+      if (contentLength > 0) {
+        if (bytes.length >= contentLength) {
+          val (body, extras) = bytes.splitAt(contentLength.toInt)
+          (Stream.chunk(Chunk.bytes(body)).covary[F], extras.pure[F]).pure[F]
+        } else {
+          // TODO: we could just use a volatile var for performance here
+          // TODO: deal with streams that terminate early?
+          // TODO: Add a done state?
+          Ref.of[F, Either[Long, Array[Byte]]](Left(contentLength - bytes.length)).map { state =>
+            val bodyStream = readingStream(read).chunks
+              .evalMap { chunk =>
+                state.modify {
+                  case Left(remaining) =>
+                    if (chunk.size >= remaining) {
+                      val (rest, after) = chunk.splitAt(remaining.toInt)
+                      (Right(after.toArray), (rest, false))
+                    } else
+                      (Left(remaining - chunk.size), (chunk, true))
+                  case r @ Right(_) => (r, (chunk, true)) // TODO: possibly error here?
+                }
+              }
+              .takeWhile(_._2)
+              .map(_._1)
+              .flatMap(Stream.chunk(_))
+
+            // Separate Ref for the second drain?
+            val drain: F[Array[Byte]] = state.modify {
+              case l @ Left(_) =>
+                // TODO: I think we can make this better with Pull
+                val f = readingStream(read).chunks
+                  .evalMap { chunk =>
+                    state.modify {
+                      case Left(remaining) =>
+                        if (chunk.size >= remaining) {
+                          val (rest, after) = chunk.splitAt(remaining.toInt)
+                          (Right(after.toArray), (rest, false))
+                        } else
+                          (Left(remaining - chunk.size), (chunk, true))
+                      case r @ Right(_) =>
+                        (r, (chunk, true)) // TODO: possibly error here?
+                    }
+                  }
+                  .takeWhile(_._2)
+                  .map(_._1)
+                  .flatMap(Stream.chunk(_))
+                  .compile
+                  .drain
+
+                (l, f >> state.get.map(_.toOption.get))
+              case r @ Right(bytes) => (r, bytes.pure[F])
+            }.flatten
+
+            (Stream.chunk(Chunk.bytes(bytes)) ++ bodyStream, drain)
+          }
+        }
+      } else {
+        (EmptyBody.covary[F], bytes.pure[F]).pure[F]
+      }
   }
 
   private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {
