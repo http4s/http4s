@@ -78,7 +78,7 @@ class ForwardedSuite
 
     invalidNodes.foreach { nodeStr =>
       Node.fromString(nodeStr) match {
-        case Left(a: ParseFailure) => assertEquals(a.sanitized , s"invalid node '$nodeStr'")
+        case Left(a: ParseFailure) => assertEquals(a.sanitized, s"invalid node '$nodeStr'")
         case _ => fail("failed to parse")
       }
     }
@@ -89,7 +89,7 @@ class ForwardedSuite
     implicit val gen: Arbitrary[String] = Arbitrary[String](obfuscatedStringGen)
     forAll { (obfStr: String) =>
       Obfuscated.fromString(obfStr) match {
-        case Right(r: Obfuscated) => assertEquals(r.value , obfStr)
+        case Right(r: Obfuscated) => assertEquals(r.value, obfStr)
         case _ => fail("failed to parse")
       }
     }
@@ -105,7 +105,8 @@ class ForwardedSuite
 
     forAll { (obfStr: String) =>
       Obfuscated.fromString(obfStr) match {
-        case Left(l: ParseFailure) => assertEquals(l.sanitized , s"invalid obfuscated value '$obfStr'")
+        case Left(l: ParseFailure) =>
+          assertEquals(l.sanitized, s"invalid obfuscated value '$obfStr'")
         case _ => fail("failed to parse")
       }
     }
@@ -122,7 +123,8 @@ class ForwardedSuite
 
     forAll { (obfStr: String) =>
       Obfuscated.fromString(obfStr) match {
-        case Left(a: ParseFailure) => assertEquals(a.sanitized , s"invalid obfuscated value '$obfStr'")
+        case Left(a: ParseFailure) =>
+          assertEquals(a.sanitized, s"invalid obfuscated value '$obfStr'")
         case _ => fail("Failed to parse")
       }
     }
