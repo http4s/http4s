@@ -556,10 +556,10 @@ private[ember] object Parser {
     }
   }
 
-  private def readingStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
+  private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
     Stream.eval(read).flatMap {
       case Some(bytes) =>
-        Stream.chunk(bytes) ++ readingStream(read)
+        Stream.chunk(bytes) ++ readStream(read)
       case None => Stream.empty
     }
 
@@ -570,52 +570,44 @@ private[ember] object Parser {
           val (body, extras) = bytes.splitAt(contentLength.toInt)
           (Stream.chunk(Chunk.bytes(body)).covary[F], extras.pure[F]).pure[F]
         } else {
-          // TODO: we could just use a volatile var for performance here
           // TODO: deal with streams that terminate early?
-          // TODO: Add a done state?
           Ref.of[F, Either[Long, Array[Byte]]](Left(contentLength - bytes.length)).map { state =>
-            val bodyStream = readingStream(read).chunks
-              .evalMap { chunk =>
-                state.modify {
-                  case Left(remaining) =>
-                    if (chunk.size >= remaining) {
-                      val (rest, after) = chunk.splitAt(remaining.toInt)
-                      (Right(after.toArray), (rest, false))
-                    } else
-                      (Left(remaining - chunk.size), (chunk, true))
-                  case r @ Right(_) => (r, (chunk, true)) // TODO: possibly error here?
-                }
-              }
-              .takeWhile(_._2)
-              .map(_._1)
-              .flatMap(Stream.chunk(_))
-
-            // Separate Ref for the second drain?
-            val drain: F[Array[Byte]] = state.modify {
-              case l @ Left(_) =>
-                // TODO: I think we can make this better with Pull
-                val f = readingStream(read).chunks
-                  .evalMap { chunk =>
-                    state.modify {
-                      case Left(remaining) =>
-                        if (chunk.size >= remaining) {
-                          val (rest, after) = chunk.splitAt(remaining.toInt)
-                          (Right(after.toArray), (rest, false))
-                        } else
-                          (Left(remaining - chunk.size), (chunk, true))
-                      case r @ Right(_) =>
-                        (r, (chunk, true)) // TODO: possibly error here?
+            val bodyStream = Stream.eval(state.get).flatMap {
+              case Right(_) => Stream.raiseError(new Throwable("Body has already been read once"))
+              case Left(remaining) =>
+                // TODO: evalScanChunks would have been cool here
+                readStream(read).chunks
+                  .evalMapAccumulate(remaining) { case (r, chunk) =>
+                    if (chunk.size >= r) {
+                      val (rest, after) = chunk.splitAt(r.toInt)
+                      state.set(Right(after.toArray)).as((0, rest))
+                    } else {
+                      val r2 = r - chunk.size
+                      state.set(Left(r2)).as((r2, chunk))
                     }
                   }
-                  .takeWhile(_._2)
-                  .map(_._1)
-                  .flatMap(Stream.chunk(_))
-                  .compile
-                  .drain
+                  .takeThrough(_._1 > 0)
+                  .flatMap(t => Stream.chunk(t._2))
+            }
 
-                (l, f >> state.get.map(_.toOption.get))
-              case r @ Right(bytes) => (r, bytes.pure[F])
-            }.flatten
+            val drain: F[Array[Byte]] = state.get.flatMap {
+              case Right(bytes) => bytes.pure[F]
+              case Left(remaining) =>
+                readStream(read).chunks
+                  .evalMapAccumulate(remaining) { case (r, chunk) =>
+                    if (chunk.size >= r) {
+                      val extras = chunk.drop(r.toInt).toArray
+                      state.set(Right(extras)).as((0, extras))
+                    } else {
+                      val r2 = r - chunk.size
+                      state.set(Left(r2)).as((r2, Array.emptyByteArray))
+                    }
+                  }
+                  .takeThrough(_._1 > 0)
+                  .compile
+                  .lastOrError
+                  .map(_._2)
+            }
 
             (Stream.chunk(Chunk.bytes(bytes)) ++ bodyStream, drain)
           }
