@@ -53,7 +53,6 @@ object HeaderKey {
     */
   trait Recurring extends Extractable {
     type HeaderT <: Header.Recurring
-    type GetT = Option[HeaderT]
 
     def apply(values: NonEmptyList[HeaderT#Value]): HeaderT
 

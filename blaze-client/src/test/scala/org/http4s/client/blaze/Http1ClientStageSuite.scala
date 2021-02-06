@@ -122,6 +122,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
       result <- response.as[String]
       _ <- IO(h.stageShutdown())
       buff <- IO.fromFuture(IO(h.result))
+      _ <- d.get
       request = new String(buff.array(), StandardCharsets.ISO_8859_1)
     } yield (request, result)
 
