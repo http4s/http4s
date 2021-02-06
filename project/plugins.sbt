@@ -4,7 +4,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 classpathTypes += "maven-plugin"
 
 addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.25")
-addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.2.1")
+addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.2.2")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.10.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.3")
 addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.9")
