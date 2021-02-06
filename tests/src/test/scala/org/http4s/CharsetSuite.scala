@@ -17,37 +17,30 @@
 package org.http4s
 
 import cats.kernel.laws.discipline._
+import org.scalacheck.Prop.forAll
+import org.http4s.laws.discipline.ArbitraryInstances._
 import java.nio.charset.{Charset => NioCharset}
 import java.util.Locale
 
-class CharsetSpec extends Http4sSpec {
-  "fromString" should {
-    "be case insensitive" in {
-      prop { (cs: NioCharset) =>
-        val upper = cs.name.toUpperCase(Locale.ROOT)
-        val lower = cs.name.toLowerCase(Locale.ROOT)
-        Charset.fromString(upper) must_== Charset.fromString(lower)
-      }
-    }
+class CharsetSuite extends Http4sSuite {
 
-    "work for aliases" in {
-      Charset.fromString("UTF8") must beRight(Charset.`UTF-8`)
-    }
-
-    "return InvalidCharset for unregistered names" in {
-      Charset.fromString("blah") must beLeft
+  test("fromString should be case insensitive") {
+    forAll { (cs: NioCharset) =>
+      val upper = cs.name.toUpperCase(Locale.ROOT)
+      val lower = cs.name.toLowerCase(Locale.ROOT)
+      assert(Charset.fromString(upper) == Charset.fromString(lower))
     }
   }
 
-  "Order[Charset]" should {
-    "be lawful" in {
-      checkAll("Order[Charset]", OrderTests[Charset].order)
-    }
+  test("fromString should work for aliases") {
+    assert(Charset.fromString("UTF8") == Right(Charset.`UTF-8`))
   }
 
-  "Hash[Charset]" should {
-    "be lawful" in {
-      checkAll("Hash[Charset]", HashTests[Charset].hash)
-    }
+  test("fromString should return InvalidCharset for unregistered names") {
+    assert(Charset.fromString("blah").isLeft)
   }
+
+  checkAll("Order[Charset]", OrderTests[Charset].order)
+  checkAll("Hash[Charset]", HashTests[Charset].hash)
+
 }

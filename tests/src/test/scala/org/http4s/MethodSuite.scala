@@ -21,32 +21,33 @@ import java.util.Locale
 import cats.Hash
 import cats.syntax.all._
 import cats.kernel.laws.discipline._
+import org.http4s.laws.discipline.ArbitraryInstances._
 import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Gen
-import org.scalacheck.Prop.{forAll, forAllNoShrink}
+import org.scalacheck.Prop.{forAll, forAllNoShrink, propBoolean}
 
-class MethodSpec extends Http4sSpec {
+class MethodSuite extends Http4sSuite {
   import Method._
 
   checkAll("Hash[Method]", HashTests[Method].hash)
   checkAll("Order[Method]", OrderTests[Method].order)
   checkAll("Hash[Method]", SerializableTests.serializable(Hash[Method]))
 
-  "parses own string rendering to equal value" in {
+  test("parses own string rendering to equal value") {
     forAll(genToken) { token =>
-      fromString(token).map(_.renderString) must beRight(token)
+      fromString(token).map(_.renderString) == Right(token)
     }
   }
 
-  "only tokens are valid methods" in {
-    prop { (s: String) =>
+  test("only tokens are valid methods") {
+    forAll { (s: String) =>
       // TODO: this check looks meaningless: `fromString` mostly relies on `Rfc2616BasicRules.token`
       //       and the result is compared to `isToken` which calls to `Rfc2616BasicRules.token` as well.
-      fromString(s).isRight must_== Rfc2616BasicRules.isToken(s)
+      fromString(s).isRight == Rfc2616BasicRules.isToken(s)
     }
   }
 
-  "parse a whole input string" in { // see #3680
+  test("parse a whole input string") { // see #3680
     val genAlmostToken = {
       val genNonToken =
         Gen
@@ -63,25 +64,25 @@ class MethodSpec extends Http4sSpec {
       } yield tokenHead + nonToken + tokenTail
     }
     forAllNoShrink(genAlmostToken) { almostToken =>
-      fromString(almostToken) must beLeft((_: ParseFailure).sanitized ==== "Invalid method")
+      fromString(almostToken).left.map((_: ParseFailure).sanitized) == Left("Invalid method")
     }
   }
 
-  "name is case sensitive" in {
-    prop { (m: Method) =>
+  test("name is case sensitive") {
+    forAll { (m: Method) =>
       val upper = m.name.toUpperCase(Locale.ROOT)
       val lower = m.name.toLowerCase(Locale.ROOT)
-      (upper != lower) ==> { fromString(upper) must_!= fromString(lower) }
+      (upper != lower) ==> { fromString(upper) != fromString(lower) }
     }
   }
 
-  "methods are equal by name" in {
-    prop { (m: Method) =>
-      Method.fromString(m.name) must beRight(m)
+  test("methods are equal by name") {
+    forAll { (m: Method) =>
+      Method.fromString(m.name) == Right(m)
     }
   }
 
-  "safety implies idempotence" in {
-    foreach(Method.all.filter(_.isSafe))(_.isIdempotent)
+  test("safety implies idempotence") {
+    assert(Method.all.filter(_.isSafe).forall(_.isIdempotent))
   }
 }

@@ -17,10 +17,11 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
+import org.http4s.laws.discipline.ArbitraryInstances._
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
 
-class HttpVersionSpec extends Http4sSpec {
+class HttpVersionSuite extends Http4sSuite {
   import HttpVersion._
 
   checkAll("HttpVersion", OrderTests[HttpVersion].order)
@@ -29,13 +30,13 @@ class HttpVersionSpec extends Http4sSpec {
 
   checkAll("HttpVersion", BoundedEnumerableTests[HttpVersion].boundedEnumerable)
 
-  "sort by descending major version" in {
-    prop { (x: HttpVersion, y: HttpVersion) =>
+  test("sort by descending major version") {
+    forAll { (x: HttpVersion, y: HttpVersion) =>
       x.major > y.major ==> (x > y)
     }
   }
 
-  "sort by descending minor version if major versions equal" in {
+  test("sort by descending minor version if major versions equal") {
     forAll(choose(0, 9), choose(0, 9), choose(0, 9)) { (major, xMinor, yMinor) =>
       val x = HttpVersion.fromVersion(major, xMinor).yolo
       val y = HttpVersion.fromVersion(major, yMinor).yolo
@@ -43,13 +44,13 @@ class HttpVersionSpec extends Http4sSpec {
     }
   }
 
-  "fromString is consistent with toString" in {
-    prop { (v: HttpVersion) =>
-      fromString(v.toString) must beRight(v)
+  test("fromString is consistent with toString") {
+    forAll { (v: HttpVersion) =>
+      fromString(v.toString) == Right(v)
     }
   }
 
-  "protocol is case sensitive" in {
-    HttpVersion.fromString("http/1.0") must beLeft
+  test("protocol is case sensitive") {
+    assert(HttpVersion.fromString("http/1.0").isLeft)
   }
 }
