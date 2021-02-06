@@ -276,7 +276,7 @@ lazy val blazeCore = libraryProject("blaze-core")
       blazeHttp,
     )
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, specs2 % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
