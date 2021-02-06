@@ -17,11 +17,9 @@
 package org.http4s
 
 /** Tests for the definitions in Cookie.scala */
-final class CookieSpec extends Http4sSpec {
-  "RequestCookieJar" should {
-    "Not duplicate elements when adding the empty set" in {
-      val jar = RequestCookieJar(RequestCookie("foo", "bar"))
-      (jar ++ Set()).## must_== jar.##
-    }
+final class CookieSuite extends Http4sSuite {
+  test("RequestCookieJar should Not duplicate elements when adding the empty set") {
+    val jar = RequestCookieJar(RequestCookie("foo", "bar"))
+    assertEquals((jar ++ Set()).##, jar.##)
   }
 }
