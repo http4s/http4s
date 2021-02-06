@@ -120,16 +120,16 @@ class BlazeServerSuite extends Http4sSuite {
     }
 
   blazeServer.test("route requests on the service executor") { server =>
-    get(server, "/thread/routing").map(_.startsWith("http4s-spec-")).assertEquals(true)
+    get(server, "/thread/routing").map(_.startsWith("http4s-spec-")).assert
   }
 
   blazeServer.test("execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assertEquals(true)
+    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assert
   }
 
   blazeServer.test("be able to echo its input") { server =>
     val input = """{ "Hello": "world" }"""
-    post(server, "/echo", input).map(_.startsWith(input)).assertEquals(true)
+    post(server, "/echo", input).map(_.startsWith(input)).assert
   }
 
   blazeServer.test("return a 503 if the server doesn't respond") { server =>

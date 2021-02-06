@@ -29,12 +29,11 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
     ParseResult.fromParser(parser, "Invalid Host")(s)
 
   private[http4s] val parser = {
-    import Uri.Host.{parser => host}
     val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
       Try(s.toInt).toOption
     }
 
-    (host ~ port.?).map { case (host, port) =>
+    (Uri.Parser.host ~ port.?).map { case (host, port) =>
       Host(host.value, port)
     }
   }

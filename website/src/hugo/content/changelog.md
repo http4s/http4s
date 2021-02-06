@@ -8,6 +8,106 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.0-M3 (2021-02-02)
+
+Inherits the fixes of v0.21.18
+
+# v0.21.18 (2021-02-02)
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#4337](https://github.com/http4s/http4s/pull/4337): Pass the `maxConnections` parameter to the blaze infrastructure correctly. The `maxConnections` value was being passed as the `acceptorThreads`, leaving `maxConnections` set to its Blaze default of 512.
+
+## http4s-ember-core
+
+### Bug fixes
+
+* [#4335](https://github.com/http4s/http4s/pull/4335): Don't render an empty body with chunked transfer encoding on response statuses that don't permit a body (e.g., `204 No Content`).
+ 
+# v0.22.0-M2 (2021-02-02)
+
+This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
+
+## http4s-blaze-server
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): Additionally to the fix in v0.21.17, drops support for NIO2.
+
+## http4s-core
+
+### Enhancements
+
+* [#4286](https://github.com/http4s/http4s/pull/4286): Improve performance by using `oneOf` and caching a URI parser. This was an identified new hotspot in v0.22.0-M1.
+
+### Breaking changes
+
+* [#4259](https://github.com/http4s/http4s/pull/4259): Regenerate `MimeDb` from the IANA database. This shifts around some constants in a binary incompatible way, but almost nobody will notice.
+* [#4327](https://github.com/http4s/http4s/pull/4237): Shifted the parsers around in `Uri` to prevent deadlocks that appeared since M1.  This should not be visible, but is binary breaking.
+
+## http4s-prometheus
+
+### Breaking changes
+
+* [#4273](https://github.com/http4s/http4s/pull/4273): Change metric names from `_count` to `_count_total` to match Prometheus' move to the OpenMetrics standard.  Your metrics names will change!  See [prometheus/client_java#615](https://github.com/prometheus/client_java/pull/615) for more details from the Prometheus team.
+
+## Dependency updates
+
+* jawn-fs2-1.0.1
+* keypool-0.3.0-RC1 (moved to `org.typelevel`)
+* play-json-2.10.0-RC1
+* simpleclient-0.10.0 (Prometheus)
+
+# v0.21.17 (2021-02-02)
+
+This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
+
+## http4s-blaze-server
+
+### Security patches
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): blaze-core, a library underlying http4s-blaze-server, accepts connections without bound.  Each connection claims a file handle, a scarce resource, leading to a denial of service vector.
+
+  `BlazeServerBuilder` now has a `maxConnections` property, limiting the number of concurrent connections.  The cap is not applied to the NIO2 socket server, which is now deprecated. 
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#4331](https://github.com/http4s/http4s/pull/4331): Don't render an empty chunked payload if a request has neither a `Content-Length` or `Transfer-Encoding` and the method is one of `GET`, `DELETE`, `CONNECT`, or `TRACE`. It is undefined behavior for those methods to send payloads.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#4281](https://github.com/http4s/http4s/pull/4281): Add backpressure to ember startup, so the server is up before `use` returns.
+
+### Enhancements
+
+* [#4244](https://github.com/http4s/http4s/pull/4244): Internal refactoring of how the stream of server connections is parallelized and terminated.
+* [#4287](https://github.com/http4s/http4s/pull/4287): Replace `onError: Throwable => Response[F]` with `withErrorHandler: PartialFunction[Thrwable, F[Response[F]]`.  Error handling is invoked earlier, allowing custom responses to parsing and timeout failures.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4301](https://github.com/http4s/http4s/pull/4301): Add an `idleConnectionTime` to `EmberClientBuilder`. Discard stale connections from the pool and try to acquire a new one.
+
+## http4s-servlet
+
+### Bugfixes
+
+* [#4309](https://github.com/http4s/http4s/pull/4309): Call `GenericServlet.init` when intializing an `Http4sServlet`.  Avoids `NullPointerExceptions` from the `ServletConfig`.
+
+## Documentation
+
+* [#4261](https://github.com/http4s/http4s/pull/4261): Better `@see` links throughout the Scaladoc
+
+## Dependency upgrades
+
+* blaze-0.14.15
+* okhttp-4.9.1
+
 # v0.22.0-M1 (2021-01-24)
 
 This is a new series, forked from main before Cats-Effect 3 support was merged.  It is binary incompatible with 0.21, but contains several changes that will be necessary for Scala 3 (Dotty) support. It builds on all the changes from v1.0.0-M1 through v1.0.0-M10, which are not echoed here.

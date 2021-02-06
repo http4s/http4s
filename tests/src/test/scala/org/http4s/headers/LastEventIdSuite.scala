@@ -15,18 +15,18 @@
  */
 
 package org.http4s
+package headers
 
-import cats.effect.IO
-import cats.effect.testing.specs2.CatsEffect
+import org.http4s.ServerSentEvent._
+import org.scalacheck._
+import org.scalacheck.Arbitrary._
 
-class HttpDateSpec extends Http4sSpec with CatsEffect {
-  "HttpDate" should {
-    "current should be extremely close to Instant.now" >> {
-      HttpDate.current[IO].map { current =>
-        val diff =
-          HttpDate.unsafeFromInstant(java.time.Instant.now).epochSecond - current.epochSecond
-        (diff must be_===(0L)).or(be_===(1L))
-      }
-    }
-  }
+class LastEventIdSuite extends MHeaderLaws {
+  implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =
+    Arbitrary(for {
+      id <- arbitrary[String]
+      if !id.contains("\n") && !id.contains("\r")
+    } yield `Last-Event-Id`(EventId(id)))
+
+  checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
 }

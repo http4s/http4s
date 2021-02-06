@@ -33,7 +33,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
       .headers
       .toList
       .traverse { h =>
-        resultheaders.map(_.toList.exists(_ == h)).assertEquals(true)
+        resultheaders.map(_.toList.exists(_ == h)).assert
       } *>
       resultheaders
         .map(_.get(`Content-Length`))

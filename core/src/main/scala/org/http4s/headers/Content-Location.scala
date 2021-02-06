@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets
 object `Content-Location` extends HeaderKey.Internal[`Content-Location`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Content-Location`] =
     ParseResult.fromParser(parser, "Invalid Content-Location")(s)
-  private[http4s] val parser = Uri
+  private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
-    .orElse(Uri.relativeRef(StandardCharsets.ISO_8859_1))
+    .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
     .map(`Content-Location`(_))
 }
 

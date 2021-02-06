@@ -45,7 +45,7 @@ class ResponseTimingSuite extends Http4sSuite {
       .map(_.headers.find(_.name == CIString("X-Response-Time")))
     header
       .map(_.forall(_.value.toInt === artificialDelay))
-      .assertEquals(true)
+      .assert
   }
 }
 

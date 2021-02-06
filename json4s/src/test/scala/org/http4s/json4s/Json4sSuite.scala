@@ -64,12 +64,10 @@ trait Json4sSuite[J] extends JawnDecodeSupportSuite[JValue] {
   test("jsonOf should handle reader failures") {
     val result =
       jsonOf[IO, Int].decode(Request[IO]().withEntity(""""oops""""), strict = false)
-    result.value
-      .map {
-        case Left(InvalidMessageBodyFailure("Could not map JSON", _)) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.value.map {
+      case Left(InvalidMessageBodyFailure("Could not map JSON", _)) => true
+      case _ => false
+    }.assert
   }
 
   implicit val formats = org.json4s.DefaultFormats
@@ -83,12 +81,10 @@ trait Json4sSuite[J] extends JawnDecodeSupportSuite[JValue] {
   test("jsonExtract should handle extract failures") {
     val result = jsonExtract[IO, Foo]
       .decode(Request[IO]().withEntity(""""oops""""), strict = false)
-    result.value
-      .map {
-        case Left(InvalidMessageBodyFailure("Could not extract JSON", _)) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.value.map {
+      case Left(InvalidMessageBodyFailure("Could not extract JSON", _)) => true
+      case _ => false
+    }.assert
   }
 
   test("JsonFormat[Uri] should round trip") {
@@ -109,7 +105,7 @@ trait Json4sSuite[J] extends JawnDecodeSupportSuite[JValue] {
     val req = Request[IO]()
       .withEntity("not a number")
       .withContentType(`Content-Type`(MediaType.application.json))
-    req.decodeJson[Int].attempt.map(_.isLeft).assertEquals(true)
+    req.decodeJson[Int].attempt.map(_.isLeft).assert
   }
 }
 

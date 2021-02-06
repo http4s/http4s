@@ -23,8 +23,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.3"
-  val scala_212 = "2.12.12"
+  val scala_213 = "2.13.4"
+  val scala_212 = "2.12.13"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -78,8 +78,6 @@ object Http4sPlugin extends AutoPlugin {
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
-    // https://github.com/scalacenter/scalafix/issues/1299
-    dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
 
@@ -285,7 +283,7 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val argonaut = "6.3.3"
     val asyncHttpClient = "2.12.2"
-    val blaze = "0.14.14"
+    val blaze = "0.14.15"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.0.0-RC2"
     val cats = "2.3.1"
@@ -298,6 +296,7 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineSpecs2 = "1.1.3"
     val dropwizardMetrics = "4.1.17"
     val fs2 = "2.5.0"
+    val ip4s = "1.4-94-7b5d4a4"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.0.3"
     val jawnFs2 = "1.0.1"
@@ -313,8 +312,8 @@ object Http4sPlugin extends AutoPlugin {
     val munitDiscipline = "1.0.4"
     val netty = "4.1.58.Final"
     val okio = "2.10.0"
-    val okhttp = "4.9.0"
-    val playJson = "2.9.2"
+    val okhttp = "4.9.1"
+    val playJson = "2.10.0-RC1"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
@@ -327,7 +326,7 @@ object Http4sPlugin extends AutoPlugin {
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.6"
-    val tomcat = "9.0.41"
+    val tomcat = "9.0.43"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.0-M14"
@@ -361,6 +360,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Core                          = "co.fs2"                 %% "fs2-core"                  % V.fs2
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
+  lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
+  lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s  
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
