@@ -55,7 +55,7 @@ private[syntax] object LiteralsSyntax {
     validate(qvalue, strCtxExpr, argsExpr)
 
   def validate[A](validator: Validator[A], strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Type[A])(using Quotes): Expr[A] = {
-    val sc = strCtxExpr.unliftOrError
+    val sc = strCtxExpr.valueOrError
     validate(validator, sc.parts, argsExpr)
   }
 
