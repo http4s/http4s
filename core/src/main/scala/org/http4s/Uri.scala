@@ -306,7 +306,6 @@ object Uri {
         case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
         case Authority(None, h, Some(p)) => writer << h << ':' << p
         case Authority(_, h, _) => writer << h
-        case _ => writer
       }
   }
 
@@ -426,7 +425,6 @@ object Uri {
         case RegName(n) => writer << n
         case a: Ipv4Address => writer << a.value
         case a: Ipv6Address => writer << '[' << a << ']'
-        case _ => writer
       }
   }
 
