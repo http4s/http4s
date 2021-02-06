@@ -33,7 +33,7 @@ import org.http4s.jawn.JawnDecodeSupportSuite
 
 // Originally based on ArgonautSuite
 class CirceSuite extends JawnDecodeSupportSuite[Json] {
-  implicit val testContext = TestContext()
+  implicit val testContext: TestContext = TestContext()
 
   val CirceInstancesWithCustomErrors = CirceInstances.builder
     .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
