@@ -72,7 +72,10 @@ private[authentication] class NonceKeeper(
     var n: Nonce = null
     nonces.synchronized {
       checkStale()
-      do n = Nonce.gen(bits) while (nonces.get(n.data) != null)
+      while {
+        n = Nonce.gen(bits)
+        nonces.get(n.data) != null
+      } do ()
       nonces.put(n.data, n)
     }
     n.data
