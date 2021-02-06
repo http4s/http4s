@@ -28,7 +28,7 @@ import org.http4s.headers.AgentProduct
 import io.chrisdavenport.keypool.Reusable
 import scala.concurrent.duration._
 
-class ClientHelpersSpec extends Http4sSuite {
+class ClientHelpersSuite extends Http4sSuite {
 
   test("Request Preprocessing should add a date header if not present") {
     ClientHelpers
@@ -38,7 +38,7 @@ class ClientHelpersSpec extends Http4sSuite {
       }
       .assert
   }
-  
+
   test("Request Preprocessing should not add a date header if already present") {
     ClientHelpers
       .preprocessRequest(
