@@ -99,14 +99,12 @@ object HttpVersion {
       case HttpVersion(major, minor) if fromVersion(major, minor).isLeft => None
       case HttpVersion(major, 9) => Some(HttpVersion(major + 1, 0))
       case HttpVersion(major, minor) => Some(HttpVersion(major, minor + 1))
-      case _ => None
     }
     override def partialPrevious(a: HttpVersion): Option[HttpVersion] = a match {
       case HttpVersion(0, 0) => None
       case HttpVersion(major, minor) if fromVersion(major, minor).isLeft => None
       case HttpVersion(major, 0) => Some(HttpVersion(major - 1, 9))
       case HttpVersion(major, minor) => Some(HttpVersion(major, minor - 1))
-      case _ => None
     }
     override def order: Order[HttpVersion] = self
     override def minBound: HttpVersion = HttpVersion(0, 0)
