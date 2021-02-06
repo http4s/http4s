@@ -619,8 +619,7 @@ object Uri extends UriPlatform {
       apply(ip4s.Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
 
     def fromInet4Address(address: Inet4Address): Ipv4Address =
-      // TODO Use this once released: https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L44
-      fromByteArray(address.getAddress).valueOr(throw _)
+      apply(ip4s.Ipv4Address.fromInet4Address(address))
 
     implicit val http4sInstancesForIpv4Address: HttpCodec[Ipv4Address]
       with Order[Ipv4Address]
@@ -677,8 +676,7 @@ object Uri extends UriPlatform {
       }
 
     def fromInet6Address(address: Inet6Address): Ipv6Address =
-      // TODO After release, replace with https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L58
-      fromByteArray(address.getAddress).valueOr(throw _)
+      apply(ip4s.Ipv6Address.fromInet6Address(address))
 
     def fromShorts(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
         : Ipv6Address = {
