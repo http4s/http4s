@@ -283,18 +283,6 @@ object MultipartParser {
     //whether it's the boundary plus an extra "--", indicating it's
     //the last boundary
     def checkIfLast(c: Chunk[Byte], rest: Stream[F, Byte]): SplitStream[F] = {
-      //Elide empty chunks until nonemptychunk is found
-      def elideEmptyChunks(str: Stream[F, Byte]): Pull[F, Nothing, (Chunk[Byte], Stream[F, Byte])] =
-        str.pull.uncons.flatMap {
-          case Some((chnk, r)) =>
-            if (chnk.size <= 0)
-              elideEmptyChunks(r)
-            else
-              Pull.pure((chnk, r))
-          case None =>
-            Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
-        }
-
       //precond: both c1 and c2 are nonempty chunks
       def checkTwoNonEmpty(
           c1: Chunk[Byte],
@@ -315,21 +303,10 @@ object MultipartParser {
           go(remaining, ix, l, r, add)
         }
 
-      if (c.size <= 0)
-        rest.pull.uncons.flatMap {
-          case Some((chnk, r)) =>
-            checkIfLast(chnk, r)
-          case None =>
-            Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
-        }
-      else if (c.size == 1)
+      if (c.size == 1)
         rest.pull.uncons.flatMap {
           case Some((chnk, remaining)) =>
-            if (chnk.size <= 0)
-              elideEmptyChunks(remaining).flatMap { case (chnk, remaining) =>
-                checkTwoNonEmpty(c, chnk, remaining)
-              }
-            else checkTwoNonEmpty(c, chnk, remaining)
+            checkTwoNonEmpty(c, chnk, remaining)
           case None =>
             Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
         }
