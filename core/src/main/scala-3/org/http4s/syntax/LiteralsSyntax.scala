@@ -18,6 +18,7 @@ package org.http4s
 package syntax
 
 import scala.quoted._
+import scala.language.`3.0`
 
 trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
