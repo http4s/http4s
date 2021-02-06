@@ -691,7 +691,7 @@ private[http4s] trait ArbitraryInstances {
     val idnGenerator: Gen[Uri.RegName] = {
       val DotPattern = "[\\.\u002e\u3002\uff0e\uff61]"
 
-      def apply(value: String): Option[Uri.RegName] =
+      def mk(value: String): Option[Uri.RegName] =
         value.length match {
           case 0 => None
           case _ =>
@@ -718,7 +718,7 @@ private[http4s] trait ArbitraryInstances {
         numLabels <- Gen.chooseNum(1, 5)
         labels <- Gen.listOfN(numLabels, genLabel)
         dot <- Gen.oneOf('.', '\u002e', '\u3002', '\uff0e', '\uff61')
-        idn = apply(labels.mkString(dot.toString)) if idn.isDefined
+        idn = mk(labels.mkString(dot.toString)) if idn.isDefined
       } yield idn.get
     }
 
