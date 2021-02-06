@@ -22,203 +22,208 @@ import cats.effect._
 import cats.effect.concurrent._
 import org.http4s._
 import org.http4s.implicits._
-import org.specs2.mutable.Specification
-import cats.effect.testing.specs2.CatsIO
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.AgentProduct
 import io.chrisdavenport.keypool.Reusable
 import scala.concurrent.duration._
 
-class ClientHelpersSpec extends Specification with CatsIO {
-  "Request Preprocessing" should {
-    "add a date header if not present" in {
-      ClientHelpers
-        .preprocessRequest(Request[IO](), None)
-        .map { req =>
-          req.headers.get(Date) must beSome
-        }
-    }
-    "not add a date header if already present" in {
-      ClientHelpers
-        .preprocessRequest(
-          Request[IO](
-            headers = Headers.of(Date(HttpDate.Epoch))
-          ),
-          None)
-        .map { req =>
-          req.headers.get(Date) must beSome.like { case d: Date =>
-            d.date === HttpDate.Epoch
-          }
-        }
-    }
-    "add a connection keep-alive header if not present" in {
-      ClientHelpers
-        .preprocessRequest(Request[IO](), None)
-        .map { req =>
-          req.headers.get(Connection) must beSome.like { case c: Connection =>
-            c.hasKeepAlive must beTrue
-          }
-        }
-    }
+class ClientHelpersSpec extends Http4sSuite {
 
-    "not add a connection header if already present" in {
-      ClientHelpers
-        .preprocessRequest(
-          Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
-          None
-        )
-        .map { req =>
-          req.headers.get(Connection) must beSome.like { case c: Connection =>
-            c.hasKeepAlive must beFalse
-          }
+  test("Request Preprocessing should add a date header if not present") {
+    ClientHelpers
+      .preprocessRequest(Request[IO](), None)
+      .map { req =>
+        req.headers.get(Date).isDefined
+      }
+      .assert
+  }
+  
+  test("Request Preprocessing should not add a date header if already present") {
+    ClientHelpers
+      .preprocessRequest(
+        Request[IO](
+          headers = Headers.of(Date(HttpDate.Epoch))
+        ),
+        None)
+      .map { req =>
+        req.headers.get(Date).map { case d: Date =>
+          d.date
         }
-    }
-
-    "add default user-agent" in {
-      ClientHelpers
-        .preprocessRequest(Request[IO](), EmberClientBuilder.default[IO].userAgent)
-        .map { req =>
-          req.headers.get(`User-Agent`) must beSome
+      }
+      .assertEquals(Some(HttpDate.Epoch))
+  }
+  test("Request Preprocessing should add a connection keep-alive header if not present") {
+    ClientHelpers
+      .preprocessRequest(Request[IO](), None)
+      .map { req =>
+        req.headers.get(Connection).map { case c: Connection =>
+          c.hasKeepAlive
         }
-    }
-
-    "not change a present user-agent" in {
-      val name = "foo"
-      ClientHelpers
-        .preprocessRequest(
-          Request[IO](
-            headers = Headers.of(`User-Agent`(AgentProduct(name, None)))
-          ),
-          EmberClientBuilder.default[IO].userAgent)
-        .map { req =>
-          req.headers.get(`User-Agent`) must beSome.like { case e =>
-            e.product.name must_=== name
-          }
-        }
-    }
+      }
+      .assertEquals(Some(true))
   }
 
-  "Postprocess response" should {
-    "reuse when body is run" in {
+  test("Request Preprocessing should not add a connection header if already present") {
+    ClientHelpers
+      .preprocessRequest(
+        Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+        None
+      )
+      .map { req =>
+        req.headers.get(Connection).map { case c: Connection =>
+          c.hasKeepAlive
+        }
+      }
+      .assertEquals(Some(false))
+  }
 
-      for {
-        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+  test("Request Preprocessing should add default user-agent") {
+    ClientHelpers
+      .preprocessRequest(Request[IO](), EmberClientBuilder.default[IO].userAgent)
+      .map { req =>
+        req.headers.get(`User-Agent`).isDefined
+      }
+      .assert
+  }
 
-        resp =
-          ClientHelpers
-            .postProcessResponse(
-              Request[IO](),
-              Response[IO](),
-              reuse
-            )
-        testResult <-
-          resp.body.compile.drain >>
-            reuse.get.map { case r =>
-              r must beEqualTo(Reusable.Reuse)
-            }
-      } yield testResult
-    }
+  test("Request Preprocessing should not change a present user-agent") {
+    val name = "foo"
+    ClientHelpers
+      .preprocessRequest(
+        Request[IO](
+          headers = Headers.of(`User-Agent`(AgentProduct(name, None)))
+        ),
+        EmberClientBuilder.default[IO].userAgent)
+      .map { req =>
+        req.headers.get(`User-Agent`).map { case e =>
+          e.product.name
+        }
+      }
+      .assertEquals(Some(name))
+  }
 
-    "do not reuse when body is not run" in {
-      for {
-        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+  test("Postprocess response should reuse when body is run") {
 
-        _ =
-          ClientHelpers
-            .postProcessResponse(
-              Request[IO](),
-              Response[IO](),
-              reuse
-            )
+    for {
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-        testResult <-
+      resp =
+        ClientHelpers
+          .postProcessResponse(
+            Request[IO](),
+            Response[IO](),
+            reuse
+          )
+      testResult <-
+        resp.body.compile.drain >>
           reuse.get.map { case r =>
-            r must beEqualTo(Reusable.DontReuse)
+            assertEquals(r, Reusable.Reuse)
           }
-      } yield testResult
-    }
-
-    "do not reuse when error encountered running stream" in {
-      for {
-        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-        resp =
-          ClientHelpers
-            .postProcessResponse(
-              Request[IO](),
-              Response[IO](body = fs2.Stream.raiseError[IO](new Throwable("Boo!"))),
-              reuse
-            )
-        testResult <-
-          resp.body.compile.drain.attempt >>
-            reuse.get.map { case r =>
-              r must beEqualTo(Reusable.DontReuse)
-            }
-      } yield testResult
-    }
-
-    "do not reuse when cancellation encountered running stream" in {
-      for {
-        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-        resp =
-          ClientHelpers
-            .postProcessResponse(
-              Request[IO](),
-              Response[IO](body = fs2
-                .Stream(1, 2, 3, 4, 5)
-                .map(_.toByte)
-                .zipLeft(
-                  fs2.Stream.awakeDelay[IO](1.second)
-                )
-                .interruptAfter(2.seconds)),
-              reuse
-            )
-        testResult <-
-          resp.body.compile.drain.attempt >>
-            reuse.get.map { case r =>
-              r must beEqualTo(Reusable.DontReuse)
-            }
-      } yield testResult
-    }.pendingUntilFixed
-
-    "do not reuse when connection close is set on request" in {
-      for {
-        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-        resp =
-          ClientHelpers
-            .postProcessResponse[IO](
-              Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
-              Response[IO](),
-              reuse
-            )
-        testResult <-
-          resp.body.compile.drain >>
-            reuse.get.map { case r =>
-              r must beEqualTo(Reusable.DontReuse)
-            }
-      } yield testResult
-    }
-
-    "do not reuse when connection close is set on response" in {
-      for {
-        reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-        resp =
-          ClientHelpers
-            .postProcessResponse(
-              Request[IO](),
-              Response[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
-              reuse
-            )
-        testResult <-
-          resp.body.compile.drain >>
-            reuse.get.map { case r =>
-              r must beEqualTo(Reusable.DontReuse)
-            }
-      } yield testResult
-    }
+    } yield testResult
   }
+
+  test("Postprocess response should do not reuse when body is not run") {
+    for {
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+
+      _ =
+        ClientHelpers
+          .postProcessResponse(
+            Request[IO](),
+            Response[IO](),
+            reuse
+          )
+
+      testResult <-
+        reuse.get.map { case r =>
+          assertEquals(r, Reusable.DontReuse)
+        }
+    } yield testResult
+  }
+
+  test("Postprocess response should do not reuse when error encountered running stream") {
+    for {
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+
+      resp =
+        ClientHelpers
+          .postProcessResponse(
+            Request[IO](),
+            Response[IO](body = fs2.Stream.raiseError[IO](new Throwable("Boo!"))),
+            reuse
+          )
+      testResult <-
+        resp.body.compile.drain.attempt >>
+          reuse.get.map { case r =>
+            assertEquals(r, Reusable.DontReuse)
+          }
+    } yield testResult
+  }
+
+  // pending
+  test(
+    "Postprocess response should do not reuse when cancellation encountered running stream".fail) {
+    for {
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+
+      resp =
+        ClientHelpers
+          .postProcessResponse(
+            Request[IO](),
+            Response[IO](body = fs2
+              .Stream(1, 2, 3, 4, 5)
+              .map(_.toByte)
+              .zipLeft(
+                fs2.Stream.awakeDelay[IO](1.second)
+              )
+              .interruptAfter(2.seconds)),
+            reuse
+          )
+      testResult <-
+        resp.body.compile.drain.attempt >>
+          reuse.get.map { case r =>
+            assertEquals(r, Reusable.DontReuse)
+          }
+    } yield testResult
+  }
+
+  test("Postprocess response should do not reuse when connection close is set on request") {
+    for {
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+
+      resp =
+        ClientHelpers
+          .postProcessResponse[IO](
+            Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+            Response[IO](),
+            reuse
+          )
+      testResult <-
+        resp.body.compile.drain >>
+          reuse.get.map { case r =>
+            assertEquals(r, Reusable.DontReuse)
+          }
+    } yield testResult
+  }
+
+  test("Postprocess response should do not reuse when connection close is set on response") {
+    for {
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+
+      resp =
+        ClientHelpers
+          .postProcessResponse(
+            Request[IO](),
+            Response[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+            reuse
+          )
+      testResult <-
+        resp.body.compile.drain >>
+          reuse.get.map { case r =>
+            assertEquals(r, Reusable.DontReuse)
+          }
+    } yield testResult
+  }
+
 }
