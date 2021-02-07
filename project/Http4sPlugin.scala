@@ -296,7 +296,7 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineSpecs2 = "1.1.3"
     val dropwizardMetrics = "4.1.17"
     val fs2 = "2.5.0"
-    val ip4s = "1.4-94-7b5d4a4"
+    val ip4s = "2.0.0-M1"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.0.3"
     val jawnFs2 = "1.0.1"

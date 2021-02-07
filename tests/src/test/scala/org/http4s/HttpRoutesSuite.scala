@@ -16,10 +16,14 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.OrderTests
-import org.http4s.laws.discipline.HttpCodecTests
+import cats.Id
 
-class MediaRangeSpec extends Http4sSpec {
-  checkAll("Order[MediaRange]", OrderTests[MediaRange].order)
-  checkAll("HttpCodec[MediaRange]", HttpCodecTests[MediaRange].httpCodec)
+class HttpRoutesSuite extends Http4sSuite {
+  test("HttpRoutes.strict should work for type without defer") {
+    val route = HttpRoutes.strict[Id] { case _ =>
+      Response[Id](Status.Ok)
+    }
+    val req = Request[Id](Method.GET)
+    assert(route.run(req).map(_.status).value == Some(Status.Ok))
+  }
 }

@@ -28,10 +28,6 @@ object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with Head
   override def parse(s: String): ParseResult[`X-Forwarded-For`] =
     ParseResult.fromParser(parser, "Invalid X-Forwarded-For header")(s)
 
-  @deprecated("Construct with Option[com.comcast.ip4s.IpAddress]", "0.22.0-1")
-  def apply(first: Option[InetAddress], more: Option[InetAddress]*): `X-Forwarded-For` =
-    apply(NonEmptyList(first, more.toList).map(_.map(a => IpAddress.fromBytes(a.getAddress).get)))
-
   private[http4s] val parser: Parser[`X-Forwarded-For`] =
     Rfc7230
       .headerRep1(

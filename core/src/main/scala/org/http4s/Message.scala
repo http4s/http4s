@@ -380,13 +380,13 @@ final class Request[F[_]](
   def from: Option[IpAddress] =
     headers
       .get(`X-Forwarded-For`)
-      .fold(remote.map(_.ip))(_.values.head)
+      .fold(remote.map(_.host))(_.values.head)
 
-  def remoteAddr: Option[IpAddress] = remote.map(_.ip)
+  def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
   def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
-    val inetAddress = remote.map(_.ip.toInetAddress)
-    F.delay(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname(_)))
+    val inetAddress = remote.map(_.host.toInetAddress)
+    F.delay(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
   }
 
   def remotePort: Option[Port] = remote.map(_.port)
@@ -397,15 +397,15 @@ final class Request[F[_]](
 
   def serverAddr: Option[IpAddress] =
     server
-      .map(_.ip)
+      .map(_.host)
       .orElse(uri.host.flatMap(_.toIpAddress))
-      .orElse(headers.get(Host).flatMap(h => IpAddress(h.host)))
+      .orElse(headers.get(Host).flatMap(h => IpAddress.fromString(h.host)))
 
   def serverPort: Option[Port] =
     server
       .map(_.port)
-      .orElse(uri.port.flatMap(Port(_)))
-      .orElse(headers.get(Host).flatMap(_.port.flatMap(Port(_))))
+      .orElse(uri.port.flatMap(Port.fromInt))
+      .orElse(headers.get(Host).flatMap(_.port.flatMap(Port.fromInt)))
 
   /** Whether the Request was received over a secure medium */
   def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
