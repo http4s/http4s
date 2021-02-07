@@ -16,15 +16,10 @@
 
 package org.http4s
 
-import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingCogenForAuthority
+import org.http4s.laws.discipline.ArbitraryInstances._
 import cats.kernel.laws.discipline._
 
-final class AuthoritySpec extends Http4sSpec {
-
-  "Uri.Authority instances" should {
-    "be lawful" in {
-      checkAll("Order[Uri.Authority]", OrderTests[Uri.Authority].order)
-      checkAll("Hash[Uri.Authority]", HashTests[Uri.Authority].hash)
-    }
-  }
+final class AuthoritySuite extends Http4sSuite {
+  checkAll("Order[Uri.Authority]", OrderTests[Uri.Authority].order)
+  checkAll("Hash[Uri.Authority]", HashTests[Uri.Authority].hash)
 }

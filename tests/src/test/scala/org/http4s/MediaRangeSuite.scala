@@ -16,16 +16,11 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline._
-import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForRegName
-import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingCogenForRegName
+import cats.kernel.laws.discipline.OrderTests
+import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.HttpCodecTests
 
-final class RegNameSpec extends Http4sSpec {
-
-  "Uri.RegName instances" should {
-    "be lawful" in {
-      checkAll("Order[Uri.RegName]", OrderTests[Uri.RegName].order)
-      checkAll("Hash[Uri.RegName]", HashTests[Uri.RegName].hash)
-    }
-  }
+class MediaRangeSuite extends Http4sSuite {
+  checkAll("Order[MediaRange]", OrderTests[MediaRange].order)
+  checkAll("HttpCodec[MediaRange]", HttpCodecTests[MediaRange].httpCodec)
 }
