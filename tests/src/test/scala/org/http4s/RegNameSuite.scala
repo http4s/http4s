@@ -16,10 +16,11 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.EqTests
-import org.http4s.laws.discipline.HttpCodecTests
+import cats.kernel.laws.discipline._
+import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForRegName
+import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingCogenForRegName
 
-class MediaTypeSpec extends Http4sSpec {
-  checkAll("Eq[MediaType]", EqTests[MediaType].eqv)
-  checkAll("HttpCodec[MediaType]", HttpCodecTests[MediaType].httpCodec)
+final class RegNameSuite extends Http4sSuite {
+  checkAll("Order[Uri.RegName]", OrderTests[Uri.RegName].order)
+  checkAll("Hash[Uri.RegName]", HashTests[Uri.RegName].hash)
 }

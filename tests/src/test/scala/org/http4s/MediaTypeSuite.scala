@@ -18,8 +18,13 @@ package org.http4s
 
 import org.http4s.syntax.all._
 import cats.syntax.show._
+import cats.kernel.laws.discipline.EqTests
+import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.HttpCodecTests
 
 class MediaTypeSuite extends Http4sSuite {
+  checkAll("Eq[MediaType]", EqTests[MediaType].eqv)
+  checkAll("HttpCodec[MediaType]", HttpCodecTests[MediaType].httpCodec)
 
   test("MediaType should Render itself") {
     assertEquals(MediaType.text.html.show, "text/html")

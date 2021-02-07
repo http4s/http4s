@@ -255,7 +255,6 @@ object Uri extends UriPlatform {
         case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
         case Authority(None, h, Some(p)) => writer << h << ':' << p
         case Authority(_, h, _) => writer << h
-        case _ => writer
       }
   }
 
@@ -528,7 +527,6 @@ object Uri extends UriPlatform {
         case RegName(n) => writer << encode(n.toString)
         case a: Ipv4Address => writer << a.value
         case a: Ipv6Address => writer << '[' << a << ']'
-        case _ => writer
       }
 
     def toIpAddress: Option[ip4s.IpAddress] = this match {
