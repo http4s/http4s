@@ -115,6 +115,7 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/parser/Rfc2616BasicRules.scala",
           "src/main/scala/org/http4s/parser/SimpleHeaders.scala",
           "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
+          "src/main/scala/org/http4s/play/Parser.scala",
           "src/main/scala/org/http4s/util/UrlCoding.scala",
           "src/main/scala/org/http4s/dsl/impl/Path.scala",
           "src/test/scala/org/http4s/dsl/PathSpec.scala",

@@ -27,7 +27,7 @@ import org.http4s.syntax.all._
 
 // Originally based on CirceSpec
 class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
-  implicit val testContext = TestContext()
+  implicit val testContext: TestContext = TestContext()
 
   testJsonDecoder(jsonDecoder)
 
