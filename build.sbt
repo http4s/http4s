@@ -492,8 +492,9 @@ lazy val scalatags = http4sProject("scalatags")
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      scalatagsApi,
-    )
+      scalatagsApi.withDottyCompat(scalaVersion.value),
+    ),
+    skip in publish := isDotty.value
   )
   .dependsOn(core, testing % "test->test")
 
