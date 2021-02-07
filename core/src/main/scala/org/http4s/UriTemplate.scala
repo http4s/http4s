@@ -218,7 +218,6 @@ object UriTemplate {
       case Authority(Some(u), h, Some(p)) => s"${renderUserInfo(u)}@${renderHost(h)}:${p}"
       case Authority(None, h, Some(p)) => renderHost(h) + ":" + p
       case Authority(_, h, _) => renderHost(h)
-      case _ => ""
     }
 
   protected def renderUserInfo(u: UserInfo): String =
@@ -233,7 +232,6 @@ object UriTemplate {
       case RegName(n) => n.toString
       case a: Ipv4Address => a.value
       case a: Ipv6Address => "[" + a.value + "]"
-      case _ => ""
     }
 
   protected def renderScheme(s: Scheme): String =
@@ -329,7 +327,6 @@ object UriTemplate {
           case VarExp(ns) => elements.append("{" + ns.mkString(",") + "}")
           case ReservedExp(ns) => elements.append("{+" + ns.mkString(",") + "}")
           case PathExp(ns) => elements.append("{/" + ns.mkString(",") + "}")
-          case u => throw new IllegalStateException(s"type ${u.getClass.getName} not supported")
         }
         elements.mkString
     }
@@ -345,8 +342,6 @@ object UriTemplate {
       case UriTemplate(_, _, path, Nil, f) => renderPath(path) + renderFragment(f)
       case UriTemplate(_, _, path, query, f) =>
         renderPath(path) + renderQuery(query) + renderFragment(f)
-
-      case _ => ""
     }
 
   protected def renderUriTemplate(t: UriTemplate): String =
@@ -355,7 +350,6 @@ object UriTemplate {
       case UriTemplate(Some(_), Some(_), Nil, Nil, Nil) => renderSchemeAndAuthority(t)
       case UriTemplate(scheme @ _, authority @ _, path @ _, params @ _, fragment @ _) =>
         renderSchemeAndAuthority(t) + renderPathAndQueryAndFragment(t)
-      case _ => ""
     }
 
   protected def fragmentExp(f: FragmentDef): Boolean =

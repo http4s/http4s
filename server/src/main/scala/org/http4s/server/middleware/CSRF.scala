@@ -420,7 +420,7 @@ object CSRF {
   private[CSRF] def lift(s: String): CSRFToken = s.asInstanceOf[CSRFToken]
   def unlift(s: CSRFToken): String = s.asInstanceOf[String]
 
-  final case object CSRFCheckFailed extends Exception("CSRF Check failed") with NoStackTrace
+  case object CSRFCheckFailed extends Exception("CSRF Check failed") with NoStackTrace
   type CSRFCheckFailed = CSRFCheckFailed.type
 
   /** Check origin matches our proposed origin.

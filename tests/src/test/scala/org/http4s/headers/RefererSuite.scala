@@ -18,36 +18,36 @@ package org.http4s.headers
 
 import cats.effect.IO
 import org.http4s.{Headers, Request, Uri}
+import org.http4s.laws.discipline.ArbitraryInstances._
 
-class RefererSpec extends HeaderLaws {
+class RefererSuite extends MHeaderLaws {
   checkAll("Referer", headerLaws(`Retry-After`))
 
   def getUri(uri: String): Uri =
     Uri.fromString(uri).fold(_ => sys.error(s"Failure on uri: $uri"), identity)
 
-  "render" should {
-    "format an absolute url" in {
-      Referer(getUri("http://localhost:8080")).renderString must_== "Referer: http://localhost:8080"
-    }
-    "format a relative url" in {
-      Referer(getUri("../../index.html")).renderString must_== "Referer: ../../index.html"
-    }
+  test("render format an absolute url") {
+    assertEquals(
+      Referer(getUri("http://localhost:8080")).renderString,
+      "Referer: http://localhost:8080")
+  }
+  test("render format a relative url") {
+    assertEquals(Referer(getUri("../../index.html")).renderString, "Referer: ../../index.html")
   }
 
-  "parse" should {
-    "accept absolute url" in {
-      Referer.parse("http://localhost:8080").map(_.uri) must beRight(
-        getUri("http://localhost:8080"))
-    }
-    "accept relative url" in {
-      Referer.parse("../../index.html").map(_.uri) must beRight(getUri("../../index.html"))
-    }
+  test("parser should accept absolute url") {
+    assertEquals(
+      Referer.parse("http://localhost:8080").map(_.uri),
+      Right(getUri("http://localhost:8080")))
+  }
+  test("parser should accept relative url") {
+    assertEquals(Referer.parse("../../index.html").map(_.uri), Right(getUri("../../index.html")))
   }
 
-  "should be extractable" in {
+  test("should be extractable") {
     val referer = Referer(getUri("http://localhost:8080"))
     val request = Request[IO](headers = Headers.of(referer))
 
-    request.headers.get(Referer) should beSome(referer)
+    assertEquals(request.headers.get(Referer), Some(referer))
   }
 }
