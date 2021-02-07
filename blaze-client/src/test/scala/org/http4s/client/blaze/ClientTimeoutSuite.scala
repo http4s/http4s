@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, SlowTestHead}
+import org.http4s.syntax.all._
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
@@ -38,7 +39,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
       IO(tickWheel.shutdown())))
 
-  val www_foo_com = Uri.uri("http://www.foo.com")
+  val www_foo_com = uri"http://www.foo.com"
   val FooRequest = Request[IO](uri = www_foo_com)
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
