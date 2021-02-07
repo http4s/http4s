@@ -37,7 +37,6 @@ import _root_.io.chrisdavenport.vault._
 import org.http4s.testing.ErrorReporting._
 
 class Http1ServerStageSpec extends Http4sSuite {
-  override def munitFlakyOK = sys.env.get("CI").isDefined
 
   implicit val ec = Http4sSuite.TestExecutionContext
   val tickWheel = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
