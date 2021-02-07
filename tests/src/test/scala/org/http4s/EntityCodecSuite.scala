@@ -24,7 +24,7 @@ import fs2.Chunk
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.testing.fs2Arbitraries._
 
-class EntityCodecSpec extends Http4sSpec {
+class EntityCodecSuite extends Http4sSuite {
   implicit val testContext: TestContext = TestContext()
 
   implicit def eqArray[A](implicit ev: Eq[Vector[A]]): Eq[Array[A]] =
