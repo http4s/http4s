@@ -20,7 +20,6 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse._
 import com.comcast.ip4s.IpAddress
-import java.net.InetAddress
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import org.http4s.util.Writer
 
