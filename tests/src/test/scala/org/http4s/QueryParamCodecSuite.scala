@@ -29,7 +29,7 @@ import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
 
-class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
+class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])
   checkAll("Double QueryParamCodec", QueryParamCodecLaws[Double])
   checkAll("Float QueryParamCodec", QueryParamCodecLaws[Float])
@@ -51,12 +51,14 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
     ContravariantTests[QueryParamEncoder].contravariant[Int, String, Boolean])
 
   // The PlusEmpty check above validates fail() but we need an explicit test for success().
-  "success(a) always succeeds" >> forAll { (n: Int, qpv: QueryParameterValue) =>
-    QueryParamDecoder.success(n).decode(qpv) must_== n.valid
+  test("success(a) always succeeds") {
+    forAll { (n: Int, qpv: QueryParameterValue) =>
+      QueryParamDecoder.success(n).decode(qpv) == n.valid
+    }
   }
 }
 
-trait QueryParamCodecInstances { this: Http4sSpec =>
+trait QueryParamCodecInstances {
 
   // We will assume for the purposes of testing that QueryParamDecoders are equal if they
   // produce the same result for a bunch of arbitrary strings.
@@ -73,7 +75,7 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
   implicit def EqQueryParamEncoder[A: Arbitrary]: Eq[QueryParamEncoder[A]] =
     Eq.instance { (x, y) =>
       val as = List.fill(100)(arbitrary[A].sample).flatten
-      as.forall(a => x.encode(a) === y.encode(a))
+      as.forall(a => x.encode(a) == y.encode(a))
     }
 
   implicit val eqInstant: Eq[Instant] = Eq.fromUniversalEquals[Instant]
