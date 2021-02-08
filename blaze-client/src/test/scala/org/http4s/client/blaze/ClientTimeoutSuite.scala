@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, SlowTestHead}
+import org.http4s.syntax.all._
 import org.http4s.testing.DispatcherIOFixture
 
 import scala.concurrent.TimeoutException
@@ -42,7 +43,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   def fixture = (tickWheelFixture, dispatcher).mapN(FunFixture.map2(_, _))
 
-  val www_foo_com = Uri.uri("http://www.foo.com")
+  val www_foo_com = uri"http://www.foo.com"
   val FooRequest = Request[IO](uri = www_foo_com)
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
