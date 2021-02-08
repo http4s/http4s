@@ -456,7 +456,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   }
 
   def req(path: String) =
-    s"GET /$path HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n" +
+    s"POST /$path HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n" +
       "3\r\n" +
       "foo\r\n" +
       "0\r\n" +
@@ -464,14 +464,14 @@ class Http1ServerStageSpec extends Http4sSuite {
 
   val routes2 = HttpRoutes
     .of[IO] {
-      case req if req.pathInfo == "/foo" =>
+      case req if req.pathInfo === path"/foo" =>
         for {
           _ <- req.body.compile.drain
           hs <- req.trailerHeaders
           resp <- Ok(hs.toList.mkString)
         } yield resp
 
-      case req if req.pathInfo == "/bar" =>
+      case req if req.pathInfo === path"/bar" =>
         for {
           // Don't run the body
           hs <- req.trailerHeaders
@@ -493,7 +493,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     tw =>
       (runRequest(tw, Seq(req("bar")), routes2).result).map { buff =>
         val results = dropDate(ResponseParser.parseBuffer(buff))
-        assert(results._1 == InternalServerError)
+        assertEquals(results._1, InternalServerError)
       }
   }
 
