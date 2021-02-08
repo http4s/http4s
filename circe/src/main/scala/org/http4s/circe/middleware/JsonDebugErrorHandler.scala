@@ -39,7 +39,8 @@ object JsonDebugErrorHandler {
     Kleisli { req =>
       import cats.syntax.applicative._
       import cats.syntax.applicativeError._
-      implicit def entEnc[M[_], N[_]] = JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
+      implicit def entEnc[M[_], N[_]]: EntityEncoder[M, JsonErrorHandlerResponse[N]] =
+        JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
 
       service
         .run(req)
