@@ -64,8 +64,12 @@ class Ipv4AddressSuite extends Http4sSuite {
   }
 
   test("ipv4 interpolator should reject invalid values") {
-    illTyped("""ipv4"256.0.0.0"""")
-    true
+    assertNoDiff(
+      compileErrors("""ipv4"256.0.0.0""""),
+      """error: invalid Ipv4Address
+        |ipv4"256.0.0.0"
+        |^
+        |""".stripMargin)
   }
 
 }

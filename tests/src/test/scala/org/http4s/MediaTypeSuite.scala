@@ -76,18 +76,27 @@ class MediaTypeSuite extends Http4sSuite {
   }
 
   test("MediaType should reject invalid literals") {
-    illTyped {
-      """
-           MediaType.mediaType("not valid")
-        """
-    }
+    assertNoDiff(
+      compileErrors {
+        """MediaType.mediaType("not valid")"""
+      },
+      """error:
+        |Invalid input ' ', expected !Separator or '/' (line 1, column 4):
+        |not valid
+        |   ^
+        |MediaType.mediaType("not valid")
+        |                   ^""".stripMargin
+    )
 
-    illTyped {
-      """
-           mediaType"not valid"
-        """
-    }
-    true
+    assertNoDiff(
+      compileErrors {
+        """mediaType"not valid""""
+      },
+      """|error: invalid MediaType
+              |mediaType"not valid"
+              |^
+              |""".stripMargin
+    )
   }
 
 }

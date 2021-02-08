@@ -78,8 +78,12 @@ class Ipv6AddressSuite extends Http4sSuite {
   }
 
   test("ipv6 interpolator should reject invalid values") {
-    illTyped("""ipv6"127.0.0.1"""")
-    true
+    assertNoDiff(
+      compileErrors("""ipv6"127.0.0.1""""),
+      """error: invalid Ipv6Address
+        |ipv6"127.0.0.1"
+        |^
+        |""".stripMargin)
   }
 
 }
