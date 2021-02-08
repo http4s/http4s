@@ -482,7 +482,15 @@ lazy val twirl = http4sProject("twirl")
   .settings(
     description := "Twirl template support for http4s",
     startYear := Some(2014),
-    TwirlKeys.templateImports := Nil
+    TwirlKeys.templateImports := Nil,
+    libraryDependencies := {
+      libraryDependencies.value.map {
+        case module if module.name == "twirl-api" =>
+          module.withDottyCompat(scalaVersion.value)
+        case module => module
+      }
+    },
+    skip in publish := isDotty.value
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
