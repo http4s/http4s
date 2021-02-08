@@ -96,7 +96,7 @@ object Http4sPlugin extends AutoPlugin {
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
     // Breaking change to metric names
-    dependencyUpdatesFilter -= moduleFilter(name = "io.prometheus"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus"),
 
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
@@ -321,11 +321,11 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.9.0"
     val mockito = "3.5.15"
-    val netty = "4.1.58.Final"
-    val okio = "2.9.0"
     val munit = "0.7.18"
     val munitCatsEffect = "0.13.0"
     val munitDiscipline = "1.0.5"
+    val netty = "4.1.59.Final"
+    val okio = "2.9.0"
     val okhttp = "4.9.1"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.2"
