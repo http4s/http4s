@@ -19,7 +19,6 @@ package server
 package blaze
 
 import cats.data.Kleisli
-import cats.syntax.apply._
 import cats.syntax.eq._
 import cats.effect._
 import cats.effect.kernel.Deferred
@@ -35,19 +34,31 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
-import org.http4s.testing.DispatcherIOFixture
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
 import scala.concurrent.duration._
 
-class Http1ServerStageSpec extends Http4sSuite with DispatcherIOFixture {
-
-  implicit val ec = munitExecutionContext
-  val tickWheel = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
+class Http1ServerStageSpec extends Http4sSuite {
+  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
     IO.delay(twe.shutdown())
   })
 
-  def fixture = (tickWheel, dispatcher).mapN(FunFixture.map2)
+  // todo replace with DispatcherIOFixture
+  val dispatcher = new Fixture[Dispatcher[IO]]("dispatcher") {
+
+    private var d: Dispatcher[IO] = null
+    private var shutdown: IO[Unit] = null
+    def apply() = d
+    override def beforeAll(): Unit = {
+      val dispatcherAndShutdown = Dispatcher[IO].allocated.unsafeRunSync()
+      shutdown = dispatcherAndShutdown._2
+      d = dispatcherAndShutdown._1
+    }
+    override def afterAll(): Unit =
+      shutdown.unsafeRunSync()
+  }
+  override def munitFixtures = List(dispatcher)
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -65,7 +76,7 @@ class Http1ServerStageSpec extends Http4sSuite with DispatcherIOFixture {
   }
 
   def runRequest(
-      td: (TickWheelExecutor, Dispatcher[IO]),
+      tw: TickWheelExecutor,
       req: Seq[String],
       httpApp: HttpApp[IO],
       maxReqLine: Int = 4 * 1024,
@@ -83,8 +94,8 @@ class Http1ServerStageSpec extends Http4sSuite with DispatcherIOFixture {
       silentErrorHandler,
       30.seconds,
       30.seconds,
-      td._1,
-      td._2
+      tw,
+      dispatcher()
     )
 
     pipeline.LeafBuilder(httpStage).base(head)
@@ -151,7 +162,7 @@ class Http1ServerStageSpec extends Http4sSuite with DispatcherIOFixture {
     }
     .orNotFound
 
-  def runError(tw: (TickWheelExecutor, Dispatcher[IO]), path: String) =
+  def runError(tw: TickWheelExecutor, path: String) =
     runRequest(tw, List(path), exceptionService).result
       .map(parseAndDropDate)
       .map { case (s, h, r) =>
