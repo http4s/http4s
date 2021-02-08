@@ -26,8 +26,8 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
-  val local = SocketAddress(ipv4"127.0.0.1".address, Port(8080).get)
-  val remote = SocketAddress(ipv4"192.168.0.1".address, Port(45444).get)
+  val local = SocketAddress(ipv4"127.0.0.1".address, Port.fromInt(8080).get)
+  val remote = SocketAddress(ipv4"192.168.0.1".address, Port.fromInt(45444).get)
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()
@@ -45,8 +45,8 @@ class MessageSuite extends Http4sSuite {
   test("ConnectionInfo should be utilized to determine the address of server and remote") {
     val r = Request()
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
-    assertEquals(r.serverAddr, Some(local.ip))
-    assertEquals(r.remoteAddr, Some(remote.ip))
+    assertEquals(r.serverAddr, Some(local.host))
+    assertEquals(r.remoteAddr, Some(remote.host))
   }
 
   test("ConnectionInfo should be utilized to determine the port of server and remote") {
@@ -70,7 +70,7 @@ class MessageSuite extends Http4sSuite {
     "ConnectionInfo should be utilized to determine the from value (remote value if X-Forwarded-For is not present)") {
     val r = Request()
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
-    assertEquals(r.from, Option(remote.ip))
+    assertEquals(r.from, Option(remote.host))
   }
 
   test("support cookies should contain a Cookie header when an explicit cookie is added") {

@@ -103,8 +103,12 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
         .insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
-            local = SocketAddress(IpAddress(req.getLocalAddr).get, Port(req.getLocalPort).get),
-            remote = SocketAddress(IpAddress(req.getRemoteAddr).get, Port(req.getRemotePort).get),
+            local = SocketAddress(
+              IpAddress.fromString(req.getLocalAddr).get,
+              Port.fromInt(req.getLocalPort).get),
+            remote = SocketAddress(
+              IpAddress.fromString(req.getRemoteAddr).get,
+              Port.fromInt(req.getRemotePort).get),
             secure = req.isSecure
           )
         )

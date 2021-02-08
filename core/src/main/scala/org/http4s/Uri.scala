@@ -721,7 +721,7 @@ object Uri extends UriPlatform {
       * name. In HTTP practice, this conversion should succeed.
       */
     def toHostname: Option[ip4s.Hostname] =
-      ip4s.Hostname(host.toString)
+      ip4s.Hostname.fromString(host.toString)
   }
 
   object RegName {
