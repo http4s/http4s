@@ -34,6 +34,9 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
     ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
   val testBlocker: Blocker = Http4sSuite.TestBlocker
 
+  // allow flaky tests on ci
+  override def munitFlakyOK = sys.env.get("CI").isDefined
+
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
