@@ -16,12 +16,10 @@
 
 package org.http4s.ember.core
 
-import cats.effect._
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
 import fs2._
-import cats.effect.unsafe.implicits.global
 import cats.effect._
 import cats.data.OptionT
 import cats.syntax.all._
