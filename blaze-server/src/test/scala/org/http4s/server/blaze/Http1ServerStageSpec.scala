@@ -19,6 +19,8 @@ package server
 package blaze
 
 import cats.data.Kleisli
+import cats.syntax.apply._
+import cats.syntax.eq._
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.effect.std.Dispatcher
@@ -31,29 +33,21 @@ import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
-import org.specs2.specification.AfterAll
-import org.specs2.specification.core.Fragment
+import org.http4s.testing.DispatcherIOFixture
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
 import scala.concurrent.duration._
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
 
-class Http1ServerStageSpec extends Http4sSpec with AfterAll {
-  sequential
+class Http1ServerStageSpec extends Http4sSuite with DispatcherIOFixture {
 
-  implicit val ec: ExecutionContext = Http4sSpec.TestExecutionContext
+  implicit val ec = munitExecutionContext
+  val tickWheel = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
+    IO.delay(twe.shutdown())
+  })
 
-  val tickWheel = new TickWheelExecutor()
-
-  val dispatcherAndShutdown = Dispatcher[IO].allocated.unsafeRunSync()
-  val dispatcher = dispatcherAndShutdown._1
-
-  def afterAll() = {
-    tickWheel.shutdown()
-    dispatcherAndShutdown._2.unsafeRunSync()
-  }
+  def fixture = (tickWheel, dispatcher).mapN(FunFixture.map2)
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -71,6 +65,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   }
 
   def runRequest(
+      td: (TickWheelExecutor, Dispatcher[IO]),
       req: Seq[String],
       httpApp: HttpApp[IO],
       maxReqLine: Int = 4 * 1024,
@@ -80,7 +75,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     val httpStage = Http1ServerStage[IO](
       httpApp,
       () => Vault.empty,
-      ec,
+      munitExecutionContext,
       enableWebSockets = true,
       maxReqLine,
       maxHeaders,
@@ -88,8 +83,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       silentErrorHandler,
       30.seconds,
       30.seconds,
-      tickWheel,
-      dispatcher
+      td._1,
+      td._2
     )
 
     pipeline.LeafBuilder(httpStage).base(head)
@@ -97,129 +92,138 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     head
   }
 
-  "Http1ServerStage: Invalid Lengths" should {
-    val req = "GET /foo HTTP/1.1\r\nheader: value\r\n\r\n"
+  val req = "GET /foo HTTP/1.1\r\nheader: value\r\n\r\n"
 
+  val routes = HttpRoutes
+    .of[IO] { case _ =>
+      Ok("foo!")
+    }
+    .orNotFound
+
+  fixture.test("Http1ServerStage: Invalid Lengths should fail on too long of a request line") {
+    tickwheel =>
+      runRequest(tickwheel, Seq(req), routes, maxReqLine = 1).result.map { buff =>
+        val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
+        // make sure we don't have signs of chunked encoding.
+        assert(str.contains("400 Bad Request"))
+      }
+  }
+
+  fixture.test("Http1ServerStage: Invalid Lengths should fail on too long of a header") {
+    tickwheel =>
+      (runRequest(tickwheel, Seq(req), routes, maxHeaders = 1).result).map { buff =>
+        val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
+        // make sure we don't have signs of chunked encoding.
+        assert(str.contains("400 Bad Request"))
+      }
+  }
+
+  ServerTestRoutes.testRequestResults.zipWithIndex.foreach {
+    case ((req, (status, headers, resp)), i) =>
+      if (i == 7 || i == 8) // Awful temporary hack
+        fixture.test(
+          s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
+            .split("\r\n\r\n")(0)}\n") { tw =>
+          runRequest(tw, Seq(req), ServerTestRoutes()).result
+            .map(parseAndDropDate)
+            .map(assertEquals(_, (status, headers, resp)))
+
+        }
+      else
+        fixture.test(
+          s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
+            .split("\r\n\r\n")(0)}\n") { tw =>
+          runRequest(tw, Seq(req), ServerTestRoutes()).result
+            .map(parseAndDropDate)
+            .map(assertEquals(_, (status, headers, resp)))
+
+        }
+  }
+
+  val exceptionService = HttpRoutes
+    .of[IO] {
+      case GET -> Root / "sync" => sys.error("Synchronous error!")
+      case GET -> Root / "async" => IO.raiseError(new Exception("Asynchronous error!"))
+      case GET -> Root / "sync" / "422" =>
+        throw InvalidMessageBodyFailure("lol, I didn't even look")
+      case GET -> Root / "async" / "422" =>
+        IO.raiseError(InvalidMessageBodyFailure("lol, I didn't even look"))
+    }
+    .orNotFound
+
+  def runError(tw: (TickWheelExecutor, Dispatcher[IO]), path: String) =
+    runRequest(tw, List(path), exceptionService).result
+      .map(parseAndDropDate)
+      .map { case (s, h, r) =>
+        val close = h.exists { h =>
+          h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
+        }
+        (s, close, r)
+      }
+
+  fixture.test("Http1ServerStage: Errors should Deal with synchronous errors") { tw =>
+    val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+    runError(tw, path).map { case (s, c, _) =>
+      assert(s == InternalServerError && c)
+    }
+  }
+
+  fixture.test("Http1ServerStage: Errors should Call toHttpResponse on synchronous errors") { tw =>
+    val path = "GET /sync/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+    runError(tw, path).map { case (s, c, _) =>
+      assert(s == UnprocessableEntity && !c)
+    }
+  }
+
+  fixture.test("Http1ServerStage: Errors should Deal with asynchronous errors") { tw =>
+    val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+    runError(tw, path).map { case (s, c, _) =>
+      assert(s == InternalServerError && c)
+    }
+  }
+
+  fixture.test("Http1ServerStage: Errors should Call toHttpResponse on asynchronous errors") { tw =>
+    val path = "GET /async/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+    runError(tw, path).map { case (s, c, _) =>
+      assert(s == UnprocessableEntity && !c)
+    }
+  }
+
+  fixture.test("Http1ServerStage: Errors should Handle parse error") { tw =>
+    val path = "THIS\u0000IS\u0000NOT\u0000HTTP"
+    runError(tw, path).map { case (s, c, _) =>
+      assert(s == BadRequest && c)
+    }
+  }
+
+  fixture.test(
+    "Http1ServerStage: routes should Do not send `Transfer-Encoding: identity` response") { tw =>
     val routes = HttpRoutes
       .of[IO] { case _ =>
-        Ok("foo!")
-      }
-      .orNotFound
-
-    "fail on too long of a request line" in {
-      val buff = Await.result(runRequest(Seq(req), routes, maxReqLine = 1).result, 5.seconds)
-      val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
-      // make sure we don't have signs of chunked encoding.
-      str.contains("400 Bad Request") must_== true
-    }
-
-    "fail on too long of a header" in {
-      val buff = Await.result(runRequest(Seq(req), routes, maxHeaders = 1).result, 5.seconds)
-      val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
-      // make sure we don't have signs of chunked encoding.
-      str.contains("400 Bad Request") must_== true
-    }
-  }
-
-  "Http1ServerStage: Common responses" should {
-    Fragment.foreach(ServerTestRoutes.testRequestResults.zipWithIndex) {
-      case ((req, (status, headers, resp)), i) =>
-        if (i == 7 || i == 8) // Awful temporary hack
-          s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
-            val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
-            parseAndDropDate(result) must_== ((status, headers, resp))
-          }
-        else
-          s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
-            val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
-            parseAndDropDate(result) must_== ((status, headers, resp))
-          }
-    }
-  }
-
-  "Http1ServerStage: Errors" should {
-    val exceptionService = HttpRoutes
-      .of[IO] {
-        case GET -> Root / "sync" => sys.error("Synchronous error!")
-        case GET -> Root / "async" => IO.raiseError(new Exception("Asynchronous error!"))
-        case GET -> Root / "sync" / "422" =>
-          throw InvalidMessageBodyFailure("lol, I didn't even look")
-        case GET -> Root / "async" / "422" =>
-          IO.raiseError(InvalidMessageBodyFailure("lol, I didn't even look"))
-      }
-      .orNotFound
-
-    def runError(path: String) =
-      runRequest(List(path), exceptionService).result
-        .map(parseAndDropDate)
-        .map { case (s, h, r) =>
-          val close = h.exists { h =>
-            h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
-          }
-          (s, close, r)
-        }
-
-    "Deal with synchronous errors" in {
-      val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      val (s, c, _) = Await.result(runError(path), 10.seconds)
-      s must_== InternalServerError
-      c must_== true
-    }
-
-    "Call toHttpResponse on synchronous errors" in {
-      val path = "GET /sync/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      val (s, c, _) = Await.result(runError(path), 10.seconds)
-      s must_== UnprocessableEntity
-      c must_== false
-    }
-
-    "Deal with asynchronous errors" in {
-      val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      val (s, c, _) = Await.result(runError(path), 10.seconds)
-      s must_== InternalServerError
-      c must_== true
-    }
-
-    "Call toHttpResponse on asynchronous errors" in {
-      val path = "GET /async/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      val (s, c, _) = Await.result(runError(path), 10.seconds)
-      s must_== UnprocessableEntity
-      c must_== false
-    }
-
-    "Handle parse error" in {
-      val path = "THIS\u0000IS\u0000NOT\u0000HTTP"
-      val (s, c, _) = Await.result(runError(path), 10.seconds)
-      s must_== BadRequest
-      c must_== true
-    }
-  }
-
-  "Http1ServerStage: routes" should {
-    "Do not send `Transfer-Encoding: identity` response" in {
-      val routes = HttpRoutes
-        .of[IO] { case _ =>
-          val headers = Headers.of(H.`Transfer-Encoding`(TransferCoding.identity))
-          IO.pure(Response[IO](headers = headers)
+        val headers = Headers.of(H.`Transfer-Encoding`(TransferCoding.identity))
+        IO.pure(
+          Response[IO](headers = headers)
             .withEntity("hello world"))
-        }
-        .orNotFound
+      }
+      .orNotFound
 
-      // The first request will get split into two chunks, leaving the last byte off
-      val req = "GET /foo HTTP/1.1\r\n\r\n"
+    // The first request will get split into two chunks, leaving the last byte off
+    val req = "GET /foo HTTP/1.1\r\n\r\n"
 
-      val buff = Await.result(runRequest(Seq(req), routes).result, 5.seconds)
-
+    runRequest(tw, Seq(req), routes).result.map { buff =>
       val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
       // make sure we don't have signs of chunked encoding.
-      str.contains("0\r\n\r\n") must_== false
-      str.contains("hello world") must_== true
+      assert(!str.contains("0\r\n\r\n"))
+      assert(str.contains("hello world"))
 
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      hdrs.find(_.name == `Transfer-Encoding`.name) must_== None
+      assert(!hdrs.exists(_.name == `Transfer-Encoding`.name))
     }
+  }
 
-    "Do not send an entity or entity-headers for a status that doesn't permit it" in {
+  fixture.test(
+    "Http1ServerStage: routes should Do not send an entity or entity-headers for a status that doesn't permit it") {
+    tw =>
       val routes: HttpApp[IO] = HttpRoutes
         .of[IO] { case _ =>
           IO.pure(
@@ -231,52 +235,55 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
       val req = "GET /foo HTTP/1.1\r\n\r\n"
 
-      val buf = Await.result(runRequest(Seq(req), routes).result, 5.seconds)
-      val (status, hs, body) = ResponseParser.parseBuffer(buf)
+      (runRequest(tw, Seq(req), routes).result).map { buf =>
+        val (status, hs, body) = ResponseParser.parseBuffer(buf)
 
-      val hss = Headers(hs.toList)
-      `Content-Length`.from(hss).isDefined must_== false
-      body must_== ""
-      status must_== Status.NotModified
-    }
+        val hss = Headers(hs.toList)
+        assert(`Content-Length`.from(hss).isDefined == false)
+        assert(body == "")
+        assert(status == Status.NotModified)
+      }
+  }
 
-    "Add a date header" in {
-      val routes = HttpRoutes
-        .of[IO] { case req =>
-          IO.pure(Response(body = req.body))
-        }
-        .orNotFound
+  fixture.test("Http1ServerStage: routes should Add a date header") { tw =>
+    val routes = HttpRoutes
+      .of[IO] { case req =>
+        IO.pure(Response(body = req.body))
+      }
+      .orNotFound
 
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-      val buff = Await.result(runRequest(Seq(req1), routes).result, 5.seconds)
-
+    (runRequest(tw, Seq(req1), routes).result).map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      hdrs.find(_.name == Date.name) must beSome[Header]
+      assert(hdrs.exists(_.name == Date.name))
     }
+  }
 
-    "Honor an explicitly added date header" in {
-      val dateHeader = Date(HttpDate.Epoch)
-      val routes = HttpRoutes
-        .of[IO] { case req =>
-          IO.pure(Response(body = req.body).withHeaders(dateHeader))
-        }
-        .orNotFound
+  fixture.test("Http1ServerStage: routes should Honor an explicitly added date header") { tw =>
+    val dateHeader = Date(HttpDate.Epoch)
+    val routes = HttpRoutes
+      .of[IO] { case req =>
+        IO.pure(Response(body = req.body).withHeaders(dateHeader))
+      }
+      .orNotFound
 
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-      val buff = Await.result(runRequest(Seq(req1), routes).result, 5.seconds)
-
+    (runRequest(tw, Seq(req1), routes).result).map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
 
-      hdrs.find(_.name == Date.name) must_== Some(dateHeader)
+      assert(hdrs.find(_.name == Date.name) == Some(dateHeader))
     }
+  }
 
-    "Handle routes that echos full request body for non-chunked" in {
+  fixture.test(
+    "Http1ServerStage: routes should Handle routes that echos full request body for non-chunked") {
+    tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
           IO.pure(Response(body = req.body))
@@ -287,13 +294,15 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val (r11, r12) = req1.splitAt(req1.length - 1)
 
-      val buff = Await.result(runRequest(Seq(r11, r12), routes).result, 5.seconds)
+      (runRequest(tw, Seq(r11, r12), routes).result).map { buff =>
+        // Both responses must succeed
+        assert(parseAndDropDate(buff) == ((Ok, Set(H.`Content-Length`.unsafeFromLong(4)), "done")))
+      }
+  }
 
-      // Both responses must succeed
-      parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`.unsafeFromLong(4)), "done"))
-    }
-
-    "Handle routes that consumes the full request body for non-chunked" in {
+  fixture.test(
+    "Http1ServerStage: routes should Handle routes that consumes the full request body for non-chunked") {
+    tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
           req.as[String].map { s =>
@@ -306,19 +315,22 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val (r11, r12) = req1.splitAt(req1.length - 1)
 
-      val buff = Await.result(runRequest(Seq(r11, r12), routes).result, 5.seconds)
+      (runRequest(tw, Seq(r11, r12), routes).result).map { buff =>
+        // Both responses must succeed
+        assert(
+          parseAndDropDate(buff) == (
+            (
+              Ok,
+              Set(
+                H.`Content-Length`.unsafeFromLong(8 + 4),
+                H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)),
+              "Result: done")))
+      }
+  }
 
-      // Both responses must succeed
-      parseAndDropDate(buff) must_== (
-        (
-          Ok,
-          Set(
-            H.`Content-Length`.unsafeFromLong(8 + 4),
-            H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)),
-          "Result: done"))
-    }
-
-    "Maintain the connection if the body is ignored but was already read to completion by the Http1Stage" in {
+  fixture.test(
+    "Http1ServerStage: routes should Maintain the connection if the body is ignored but was already read to completion by the Http1Stage") {
+    tw =>
       val routes = HttpRoutes
         .of[IO] { case _ =>
           IO.pure(Response().withEntity("foo"))
@@ -329,17 +341,19 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(req1, req2), routes).result, 5.seconds)
+      (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
+        val hs = Set(
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+          H.`Content-Length`.unsafeFromLong(3))
+        // Both responses must succeed
+        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
+        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
+      }
+  }
 
-      val hs = Set(
-        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
-        H.`Content-Length`.unsafeFromLong(3))
-      // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
-    }
-
-    "Drop the connection if the body is ignored and was not read to completion by the Http1Stage" in {
+  fixture.test(
+    "Http1ServerStage: routes should Drop the connection if the body is ignored and was not read to completion by the Http1Stage") {
+    tw =>
       val routes = HttpRoutes
         .of[IO] { case _ =>
           IO.pure(Response().withEntity("foo"))
@@ -352,17 +366,19 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(r11, r12, req2), routes).result, 5.seconds)
+      (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
+        val hs = Set(
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+          H.`Content-Length`.unsafeFromLong(3))
+        // Both responses must succeed
+        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
+        assert(buff.remaining() == 0)
+      }
+  }
 
-      val hs = Set(
-        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
-        H.`Content-Length`.unsafeFromLong(3))
-      // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
-      buff.remaining() must_== 0
-    }
-
-    "Handle routes that runs the request body for non-chunked" in {
+  fixture.test(
+    "Http1ServerStage: routes should Handle routes that runs the request body for non-chunked") {
+    tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
           req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
@@ -374,18 +390,19 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       val (r11, r12) = req1.splitAt(req1.length - 1)
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(r11, r12, req2), routes).result, 5.seconds)
+      (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
+        val hs = Set(
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+          H.`Content-Length`.unsafeFromLong(3))
+        // Both responses must succeed
+        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
+        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
+      }
+  }
 
-      val hs = Set(
-        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
-        H.`Content-Length`.unsafeFromLong(3))
-      // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
-    }
-
-    // Think of this as drunk HTTP pipelining
-    "Not die when two requests come in back to back" in {
+  // Think of this as drunk HTTP pipelining
+  fixture.test("Http1ServerStage: routes should Not die when two requests come in back to back") {
+    tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
           IO.pure(Response(body = req.body))
@@ -396,112 +413,117 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(req1 + req2), routes).result, 5.seconds)
-
-      // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== (
-        (
-          Ok,
-          Set(H.`Content-Length`.unsafeFromLong(4)),
-          "done"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== (
-        (
-          Ok,
-          Set(H.`Content-Length`.unsafeFromLong(5)),
-          "total"))
-    }
-
-    "Handle using the request body as the response body" in {
-      val routes = HttpRoutes
-        .of[IO] { case req =>
-          IO.pure(Response(body = req.body))
-        }
-        .orNotFound
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
-
-      val buff = Await.result(runRequest(Seq(req1, req2), routes).result, 5.seconds)
-
-      // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== (
-        (
-          Ok,
-          Set(H.`Content-Length`.unsafeFromLong(4)),
-          "done"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== (
-        (
-          Ok,
-          Set(H.`Content-Length`.unsafeFromLong(5)),
-          "total"))
-    }
-
-    {
-      def req(path: String) =
-        s"GET /$path HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n" +
-          "3\r\n" +
-          "foo\r\n" +
-          "0\r\n" +
-          "Foo:Bar\r\n\r\n"
-
-      val routes = HttpRoutes
-        .of[IO] {
-          case req if req.pathInfo == path"/foo" =>
-            for {
-              _ <- req.body.compile.drain
-              hs <- req.trailerHeaders
-              resp <- Ok(hs.toList.mkString)
-            } yield resp
-
-          case req if req.pathInfo == path"/bar" =>
-            for {
-              // Don't run the body
-              hs <- req.trailerHeaders
-              resp <- Ok(hs.toList.mkString)
-            } yield resp
-        }
-        .orNotFound
-
-      "Handle trailing headers" in {
-        val buff = Await.result(runRequest(Seq(req("foo")), routes).result, 5.seconds)
-
-        val results = dropDate(ResponseParser.parseBuffer(buff))
-        results._1 must_== Ok
-        results._3 must_== "Foo: Bar"
+      (runRequest(tw, Seq(req1 + req2), routes).result).map { buff =>
+        // Both responses must succeed
+        assert(
+          dropDate(ResponseParser.parseBuffer(buff)) == (
+            (
+              Ok,
+              Set(H.`Content-Length`.unsafeFromLong(4)),
+              "done")))
+        assert(
+          dropDate(ResponseParser.parseBuffer(buff)) == (
+            (
+              Ok,
+              Set(H.`Content-Length`.unsafeFromLong(5)),
+              "total")))
       }
+  }
 
-      "Fail if you use the trailers before they have resolved" in {
-        val buff = Await.result(runRequest(Seq(req("bar")), routes).result, 5.seconds)
-
-        val results = dropDate(ResponseParser.parseBuffer(buff))
-        results._1 must_== InternalServerError
+  fixture.test(
+    "Http1ServerStage: routes should Handle using the request body as the response body") { tw =>
+    val routes = HttpRoutes
+      .of[IO] { case req =>
+        IO.pure(Response(body = req.body))
       }
+      .orNotFound
+
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
+
+    (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
+      // Both responses must succeed
+      assert(
+        dropDate(ResponseParser.parseBuffer(buff)) == (
+          (
+            Ok,
+            Set(H.`Content-Length`.unsafeFromLong(4)),
+            "done")))
+      assert(
+        dropDate(ResponseParser.parseBuffer(buff)) == (
+          (
+            Ok,
+            Set(H.`Content-Length`.unsafeFromLong(5)),
+            "total")))
     }
   }
 
-  "cancels on stage shutdown" in skipOnCi {
+  def req(path: String) =
+    s"POST /$path HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n" +
+      "3\r\n" +
+      "foo\r\n" +
+      "0\r\n" +
+      "Foo:Bar\r\n\r\n"
+
+  val routes2 = HttpRoutes
+    .of[IO] {
+      case req if req.pathInfo === path"/foo" =>
+        for {
+          _ <- req.body.compile.drain
+          hs <- req.trailerHeaders
+          resp <- Ok(hs.toList.mkString)
+        } yield resp
+
+      case req if req.pathInfo === path"/bar" =>
+        for {
+          // Don't run the body
+          hs <- req.trailerHeaders
+          resp <- Ok(hs.toList.mkString)
+        } yield resp
+    }
+    .orNotFound
+
+  fixture.test("Http1ServerStage: routes should Handle trailing headers") { tw =>
+    (runRequest(tw, Seq(req("foo")), routes2).result).map { buff =>
+      val results = dropDate(ResponseParser.parseBuffer(buff))
+      assert(results._1 == Ok)
+      assert(results._3 == "Foo: Bar")
+    }
+  }
+
+  fixture.test(
+    "Http1ServerStage: routes should Fail if you use the trailers before they have resolved") {
+    tw =>
+      (runRequest(tw, Seq(req("bar")), routes2).result).map { buff =>
+        val results = dropDate(ResponseParser.parseBuffer(buff))
+        assertEquals(results._1, InternalServerError)
+      }
+  }
+
+  fixture.test("Http1ServerStage: routes should cancels on stage shutdown".flaky) { tw =>
     Deferred[IO, Unit]
       .flatMap { canceled =>
         Deferred[IO, Unit].flatMap { gate =>
-          val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+          val req =
+            "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
           val app: HttpApp[IO] = HttpApp { _ =>
             gate.complete(()) >> canceled.complete(()) >> IO.never[Response[IO]]
           }
           for {
-            head <- IO(runRequest(List(req), app))
+            head <- IO(runRequest(tw, List(req), app))
             _ <- gate.get
             _ <- IO(head.closePipeline(None))
             _ <- canceled.get
           } yield ()
         }
       }
-      .unsafeRunTimed(3.seconds) must beSome(())
   }
 
-  "Disconnect if we read an EOF" in {
-    val head = runRequest(Seq.empty, Kleisli.liftF(Ok("")))
-    Await.ready(head.result, 10.seconds)
-    head.closeCauses must_== Seq(None)
+  fixture.test("Http1ServerStage: routes should Disconnect if we read an EOF") { tw =>
+    val head = runRequest(tw, Seq.empty, Kleisli.liftF(Ok("")))
+    head.result.map { _ =>
+      assert(head.closeCauses == Seq(None))
+    }
   }
 }

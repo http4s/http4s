@@ -39,7 +39,7 @@ private[blaze] object SSLContextFactory {
         val stream = new ByteArrayInputStream(certificate.getEncoded)
         cf.generateCertificate(stream).asInstanceOf[X509Certificate]
       }
-    }.toOption.getOrElse(Array.empty).toList
+    }.toOption.getOrElse(Array.empty[X509Certificate]).toList
 
   /** Given the name of a TLS/SSL cipher suite, return an int representing it effective stream
     * cipher key strength. i.e. How much entropy material is in the key material being fed into the
