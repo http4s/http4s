@@ -26,8 +26,8 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
-  val local = SocketAddress(ipv4"127.0.0.1".address, Port(8080).get)
-  val remote = SocketAddress(ipv4"192.168.0.1".address, Port(45444).get)
+  val local = SocketAddress(ipv4"127.0.0.1".address, Port.fromInt(8080).get)
+  val remote = SocketAddress(ipv4"192.168.0.1".address, Port.fromInt(45444).get)
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()

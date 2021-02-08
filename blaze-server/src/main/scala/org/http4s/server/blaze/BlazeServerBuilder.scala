@@ -264,10 +264,10 @@ class BlazeServerBuilder[F[_]] private (
                 Request.Connection(
                   local = SocketAddress(
                     IpAddress.fromBytes(local.getAddress.getAddress).get,
-                    Port(local.getPort).get),
+                    Port.fromInt(local.getPort).get),
                   remote = SocketAddress(
                     IpAddress.fromBytes(remote.getAddress.getAddress).get,
-                    Port(remote.getPort).get),
+                    Port.fromInt(remote.getPort).get),
                   secure = secure
                 )
               )

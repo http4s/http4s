@@ -246,13 +246,15 @@ class SimpleHeadersSpec extends Http4sSpec {
 
     "parse X-Forwarded-For" in {
       // ipv4
-      val header2 = `X-Forwarded-For`(Ipv4Address("192.168.1.100"), Ipv4Address("192.168.1.101"))
+      val header2 = `X-Forwarded-For`(
+        Ipv4Address.fromString("192.168.1.100"),
+        Ipv4Address.fromString("192.168.1.101"))
       HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
 
       // ipv6
       val header3 = `X-Forwarded-For`(
-        Ipv6Address("::1"),
-        Ipv6Address("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))
+        Ipv6Address.fromString("::1"),
+        Ipv6Address.fromString("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))
       HttpHeaderParser.parseHeader(header3.toRaw) must beRight(header3)
 
       // "unknown"
