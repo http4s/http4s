@@ -360,7 +360,7 @@ private[ember] object Parser {
     def parser[F[_]](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         p: Array[Byte],
         r: F[Option[Chunk[Byte]]]
-    )(implicit F: Concurrent[F], timer: Timer[F]): F[(Request[F], F[Array[Byte]])] =
+    )(implicit F: Concurrent[F], timer: Timer[F]): F[(Request[F], F[Option[Array[Byte]]])] =
       Deferred[F, Headers].flatMap { trailers =>
         val action = ReqPrelude
           .parsePrelude[F](p, r, maxHeaderLength, None)
@@ -400,7 +400,7 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         p: Array[Byte],
         r: F[Option[Chunk[Byte]]]
-    ): F[(Response[F], F[Array[Byte]])] =
+    ): F[(Response[F], F[Option[Array[Byte]]])] =
       Deferred[F, Headers].flatMap { trailers =>
         val action = RespPrelude
           .parsePrelude(p, r, maxHeaderLength, None)
@@ -568,11 +568,11 @@ private[ember] object Parser {
     def parseFixedBody[F[_]: Concurrent](
         contentLength: Long,
         bytes: Array[Byte],
-        read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Array[Byte]])] =
+        read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Option[Array[Byte]]])] =
       if (contentLength > 0) {
         if (bytes.length >= contentLength) {
-          val (body, extras) = bytes.splitAt(contentLength.toInt)
-          (Stream.chunk(Chunk.bytes(body)).covary[F], extras.pure[F]).pure[F]
+          val (body, rest) = bytes.splitAt(contentLength.toInt)
+          (Stream.chunk(Chunk.bytes(body)).covary[F], (Some(rest): Option[Array[Byte]]).pure[F]).pure[F]
         } else {
           // TODO: deal with streams that terminate early?
           Ref.of[F, Either[Long, Array[Byte]]](Left(contentLength - bytes.length)).map { state =>
@@ -595,30 +595,15 @@ private[ember] object Parser {
                   .flatMap(t => Stream.chunk(t._2))
             }
 
-            val drain: F[Array[Byte]] = state.get.flatMap {
-              case Right(bytes) => bytes.pure[F]
-              case Left(remaining) =>
-                readStream(read).chunks
-                  .evalMapAccumulate(remaining) { case (r, chunk) =>
-                    if (chunk.size >= r) {
-                      val extras = chunk.drop(r.toInt).toArray
-                      state.set(Right(extras)).as((0L, extras))
-                    } else {
-                      val r2 = r - chunk.size
-                      state.set(Left(r2)).as((r2, Array.emptyByteArray))
-                    }
-                  }
-                  .takeThrough(_._1 > 0)
-                  .compile
-                  .lastOrError
-                  .map(_._2)
-            }
+            // If the remaining bytes for the body have not yet been read, close the connection.
+            // TODO: Make a determination to read the rest of the bytes depending on how much is left.
+            val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
 
             (Stream.chunk(Chunk.bytes(bytes)) ++ bodyStream, drain)
           }
         }
       } else {
-        (EmptyBody.covary[F], bytes.pure[F]).pure[F]
+        (EmptyBody.covary[F], (Some(bytes): Option[Array[Byte]]).pure[F]).pure[F]
       }
   }
 

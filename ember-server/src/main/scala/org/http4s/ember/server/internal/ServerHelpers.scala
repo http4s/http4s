@@ -120,17 +120,17 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
-      errorHandler: Throwable => F[Response[F]]): F[(Request[F], Response[F], F[Array[Byte]])] =
+      errorHandler: Throwable => F[Response[F]]): F[(Request[F], Response[F], Option[Array[Byte]])] =
     for {
       bytes <- incoming
-      tup <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
+      (req, drain) <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
         bytes,
         read)
-      (req, rest) = tup
       resp <- httpApp
         .run(req)
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
+      rest <- drain // TODO: handle errors?
     } yield (req, resp, rest)
 
   private[internal] def send[F[_]: Sync](socket: Socket[F])(
@@ -189,7 +189,7 @@ private[server] object ServerHelpers {
           requestHeaderReceiveTimeout,
           httpApp,
           errorHandler).attempt.map {
-          case Right((req, resp, rest)) => (Right((req, resp)), Some(rest))
+          case Right((req, resp, rest)) => (Right((req, resp)), rest)
           case Left(e) => (Left(e), None)
         })
       .evalMap {
