@@ -121,7 +121,6 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/testing/IOMatchers.scala",
           "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
           "src/test/scala/org/http4s/Http4sSpec.scala",
-          "src/test/scala/org/http4s/util/illTyped.scala",
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
           "src/test/scala/org/http4s/UriSpec.scala"
         )
