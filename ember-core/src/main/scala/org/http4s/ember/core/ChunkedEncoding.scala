@@ -12,7 +12,7 @@ package org.http4s.ember.core
 
 import cats._
 import cats.syntax.all._
-import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
@@ -26,7 +26,7 @@ private[ember] object ChunkedEncoding {
     * decodes from the HTTP chunked encoding. After last chunk this terminates. Allows to specify max header size, after which this terminates
     * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
     */
-  def decode[F[_]](maxChunkHeaderSize: Int, trailers: Deferred[F, Headers])(implicit
+  def decode[F[_]](maxChunkHeaderSize: Int, trailers: Deferred[F, Headers], rest: Ref[F, Option[Array[Byte]]])(implicit
       F: MonadThrow[F]): Pipe[F, Byte, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
@@ -57,7 +57,8 @@ private[ember] object ChunkedEncoding {
                         s"Failed to parse chunked header : ${hdr.decodeUtf8}"))
                   case Some(0) =>
                     // Done With Message, Now Parse Trailers
-                    parseTrailers[F](maxChunkHeaderSize)(Stream.chunk(Chunk.byteVector(rem)) ++ tl)
+                    // TODO: Will we have remaining headers here?
+                    Pull.eval(rest.set(Some(Array.emptyByteArray))) >> parseTrailers[F](maxChunkHeaderSize)(Stream.chunk(Chunk.byteVector(rem)) ++ tl)
                       .flatMap { hdrs =>
                         Pull.eval(trailers.complete(hdrs)) >> Pull.done
                       }
@@ -90,6 +91,7 @@ private[ember] object ChunkedEncoding {
       case Some((chunk, tl)) =>
         if (chunk.isEmpty) parseTrailers(maxHeaderSize)(tl)
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
+          // TODO: return remaining bytes here
           Pull.pure(Headers.empty)
         else
           Parser.HeaderP.parseHeaders(Stream.chunk(chunk) ++ tl, maxHeaderSize, None).map {

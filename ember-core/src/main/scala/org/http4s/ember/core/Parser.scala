@@ -375,13 +375,12 @@ private[ember] object Parser {
                 )
 
                 if (chunked) {
-                  // TODO: I think we will need to keep track of state here
-//                  (baseReq
-//                    .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-//                    .withBodyStream(
-//                      rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers))), F.pure(Array.emptyByteArray))
-
-                  ???
+                  Ref.of[F, Option[Array[Byte]]](None).map { rest =>
+                    (baseReq
+                    .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                    .withBodyStream(
+                      Stream.empty.through(ChunkedEncoding.decode(maxHeaderLength, trailers, rest))), rest.get)
+                  }
                 } else {
                   Body.parseFixedBody(contentLength.getOrElse(0L), bytes, r).map {
                     case (bodyStream, drain) =>
@@ -565,6 +564,7 @@ private[ember] object Parser {
     }
 
   object Body {
+    // TODO: could pass in the Ref rather than returning drain
     def parseFixedBody[F[_]: Concurrent](
         contentLength: Long,
         bytes: Array[Byte],
