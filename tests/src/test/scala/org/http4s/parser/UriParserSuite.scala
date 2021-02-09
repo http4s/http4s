@@ -16,16 +16,17 @@
 
 package org.http4s.parser
 
-import org.http4s.Uri.Scheme.https
 import org.http4s._
 import org.http4s.Uri._
+import org.http4s.Uri.Scheme.https
+import org.http4s.syntax.all._
 import org.typelevel.ci.CIString
 
-class UriParserSpec extends Http4sSpec {
-  "Uri.requestTarget" should {
+class UriParserSuite extends Http4sSuite {
+  {
     def check(items: Seq[(String, Uri)]) =
-      foreach(items) { case (str, uri) =>
-        Uri.requestTarget(str) must beRight(uri)
+      items.foreach { case (str, uri) =>
+        assertEquals(Uri.requestTarget(str), Right(uri))
       }
 
     // RFC 3986 examples
@@ -33,34 +34,35 @@ class UriParserSpec extends Http4sSpec {
 
     // http://www.ietf.org/rfc/rfc2396.txt
 
-    "parse a IPv6 address" in {
-      val v = "01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab" +: (for {
+    test("Uri.requestTarget should parse a IPv6 address") {
+      val v = "1ab:1ab:1ab:1ab:1ab:1ab:1ab:1ab" +: (for {
         h <- 0 to 7
         l <- 0 to 7 - h
-        f = List.fill(h)("01ab").mkString(":")
+        f = List.fill(h)("1ab").mkString(":")
         b = List.fill(l)("32ba").mkString(":")
         if (f ++ b).size < 7 // a single shortened section is disallowed
       } yield f + "::" + b)
 
-      foreach(v) { s =>
-        Uri.Parser.ipv6Address.string.parseAll(s) must beRight(s)
+      v.foreach { s =>
+        assertEquals(Ipv6Address.fromString(s).map(_.value), Right(s))
       }
     }
 
-    "parse a IPv4 address" in {
-      foreach(0 to 255) { i =>
+    test("Uri.requestTarget should parse a IPv4 address") {
+      (0 to 255).foreach { i =>
         val addr = s"$i.$i.$i.$i"
-        Ipv4Address.fromString(addr).map(_.value) must beRight(addr)
+        assertEquals(Ipv4Address.fromString(addr).map(_.value), Right(addr))
       }
     }
 
-    "parse a short IPv6 address in brackets" in {
+    test("Uri.requestTarget should parse a short IPv6 address in brackets") {
       val s = "[01ab::32ba:32ba]"
-      Uri.requestTarget(s) must beRight(
-        Uri(authority = Some(Authority(host = ipv6"01ab::32ba:32ba"))))
+      assertEquals(
+        Uri.requestTarget(s),
+        Right(Uri(authority = Some(Authority(host = ipv6"01ab::32ba:32ba")))))
     }
 
-    "handle port configurations" in {
+    test("Uri.requestTarget should handle port configurations") {
       val portExamples: Seq[(String, Uri)] = Seq(
         (
           "http://foo.com",
@@ -82,7 +84,7 @@ class UriParserSpec extends Http4sSpec {
       check(portExamples)
     }
 
-    "parse absolute URIs" in {
+    test("Uri.requestTarget should parse absolute URIs") {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
@@ -117,7 +119,7 @@ class UriParserSpec extends Http4sSpec {
       check(absoluteUris)
     }
 
-    "parse relative URIs" in {
+    test("Uri.requestTarget should parse relative URIs") {
       val relativeUris: Seq[(String, Uri)] = Seq(
         ("/foo/bar", Uri(path = path"/foo/bar")),
         (
@@ -129,39 +131,39 @@ class UriParserSpec extends Http4sSpec {
       check(relativeUris)
     }
 
-    "parse relative URI with empty query string" in {
+    test("Uri.requestTarget should parse relative URI with empty query string") {
       val u = Uri.requestTarget("/foo/bar?")
-      u must beRight(Uri(path = path"/foo/bar", query = Query("" -> None)))
+      assertEquals(u, Right(Uri(path = path"/foo/bar", query = Query("" -> None))))
     }
 
     {
       val q = Query.fromString("param1=3&param2=2&param2=foo")
       val u = Uri(query = q)
-      "represent query as multiParams as a Map[String,Seq[String]]" in {
-        u.multiParams must be_==(Map("param1" -> Seq("3"), "param2" -> Seq("2", "foo")))
+      test("Uri.requestTarget should represent query as multiParams as a Map[String,Seq[String]]") {
+        assert(u.multiParams == Map("param1" -> Seq("3"), "param2" -> Seq("2", "foo")))
       }
 
-      "parse query and represent params as a Map[String,String] taking the first param" in {
-        u.params must be_==(Map("param1" -> "3", "param2" -> "2"))
+      test(
+        "Uri.requestTarget should parse query and represent params as a Map[String,String] taking the first param") {
+        assert(u.params == Map("param1" -> "3", "param2" -> "2"))
       }
     }
 
-    "fail on invalid uri" in {
+    test("Uri.requestTarget should fail on invalid uri") {
       val invalid = Seq("^", "]", "/hello/wo%2rld", "/hello/world?bad=enc%ode")
-      forall(invalid) { _ =>
-        Uri.fromString("^") must beLeft
-        Uri.requestTarget("^") must beLeft
-      }
+      assert(invalid.forall { i =>
+        Uri.fromString(i).isLeft && Uri.requestTarget(i).isLeft
+      })
     }
   }
 
-  "Uri.fromString" should {
+  {
     def check(items: Seq[(String, Uri)]) =
-      foreach(items) { case (str, uri) =>
-        Uri.fromString(str) must beRight(uri)
+      items.foreach { case (str, uri) =>
+        assertEquals(Uri.fromString(str), Right(uri))
       }
 
-    "parse absolute URIs" in {
+    test("Uri.fromString should parse absolute URIs") {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
@@ -196,52 +198,68 @@ class UriParserSpec extends Http4sSpec {
       check(absoluteUris)
     }
 
-    "parse a path-noscheme uri" in {
-      Uri.fromString("q") must beRight.like { case u =>
-        u must_== Uri(path = path"q")
-      }
-      Uri.fromString("a/b") must beRight.like { case u =>
-        u must_== Uri(path = path"a/b")
-      }
+    test("Uri.fromString should parse a path-noscheme uri") {
+      assertEquals(
+        Uri.fromString("q"),
+        Right(
+          Uri(path = path"q")
+        ))
+      assertEquals(
+        Uri.fromString("a/b"),
+        Right(
+          Uri(path = path"a/b")
+        ))
     }
 
-    "parse a path-noscheme uri with query" in {
-      Uri.fromString("a/b?foo") must beRight.like { case u =>
-        u must_== Uri(path = path"a/b", query = Query(("foo", None)))
-      }
+    test("Uri.fromString should parse a path-noscheme uri with query") {
+      assertEquals(
+        Uri.fromString("a/b?foo"),
+        Right(
+          Uri(path = path"a/b", query = Query(("foo", None)))
+        ))
     }
 
-    "parse a path-absolute uri" in {
-      Uri.fromString("/a/b") must beRight.like { case u =>
-        u must_== Uri(path = path"/a/b")
-      }
+    test("Uri.fromString should parse a path-absolute uri") {
+      assertEquals(
+        Uri.fromString("/a/b"),
+        Right(
+          Uri(path = path"/a/b")
+        ))
     }
-    "parse a path-absolute uri with query" in {
-      Uri.fromString("/a/b?foo") must beRight.like { case u =>
-        u must_== Uri(path = path"/a/b", query = Query(("foo", None)))
-      }
+    test("Uri.fromString should parse a path-absolute uri with query") {
+      assertEquals(
+        Uri.fromString("/a/b?foo"),
+        Right(
+          Uri(path = path"/a/b", query = Query(("foo", None)))
+        ))
     }
-    "parse a path-absolute uri with query and fragment" in {
-      Uri.fromString("/a/b?foo#bar") must beRight.like { case u =>
-        u must_== Uri(path = path"/a/b", query = Query(("foo", None)), fragment = Some("bar"))
-      }
+    test("Uri.fromString should parse a path-absolute uri with query and fragment") {
+      assertEquals(
+        Uri.fromString("/a/b?foo#bar"),
+        Right(
+          Uri(path = path"/a/b", query = Query(("foo", None)), fragment = Some("bar"))
+        ))
     }
   }
 
-  "String interpolator" should {
-    "parse valid URIs" in {
-      uri"https://http4s.org" must_== Uri(
-        scheme = Option(https),
-        authority = Option(Uri.Authority(host = RegName(CIString("http4s.org")))))
+  {
+    test("String interpolator should parse valid URIs") {
+      assertEquals(
+        uri"https://http4s.org",
+        Uri(
+          scheme = Option(https),
+          authority = Option(Uri.Authority(host = RegName(CIString("http4s.org"))))))
     }
 
-    "reject invalid URIs" in {
-      illTyped {
-        """
-           uri"not valid"
-        """
-      }
-      true
+    test("String interpolator should reject invalid URIs") {
+      assertNoDiff(
+        compileErrors {
+          """uri"not valid""""
+        },
+        """error: invalid Uri
+          |uri"not valid"
+          |^
+        """.stripMargin)
     }
   }
 }

@@ -25,9 +25,8 @@ import java.io.File
 import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
-import org.specs2.mutable.Specification
 
-class MultipartSpec extends Specification {
+class MultipartSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
 
   val url = uri"https://example.com/path/to/some/where"
@@ -49,10 +48,9 @@ class MultipartSpec extends Specification {
       a.parts === b.parts
     }
 
-  def multipartSpec(name: String)(implicit
-      E: EntityDecoder[IO, Multipart[IO]]): org.specs2.specification.core.Fragment = {
-    s"Multipart form data $name" should {
-      "be encoded and decoded with content types" in {
+  def multipartSpec(name: String)(implicit E: EntityDecoder[IO, Multipart[IO]]) = {
+    {
+      test(s"Multipart form data $name should be encoded and decoded with content types") {
         val field1 =
           Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
         val field2 = Part.formData[IO]("field2", "Text_Field_2")
@@ -62,14 +60,12 @@ class MultipartSpec extends Specification {
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.value
 
-        result must beRight.like { case mp =>
-          mp === multipart
-        }
+        assertIOBoolean(result.map(_ === Right(multipart)))
       }
 
-      "be encoded and decoded without content types" in {
+      test(s"Multipart form data $name should be encoded and decoded without content types") {
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
         val multipart = Multipart[IO](Vector(field1))
 
@@ -78,14 +74,12 @@ class MultipartSpec extends Specification {
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.value
 
-        result must beRight.like { case mp =>
-          mp === multipart
-        }
+        assertIOBoolean(result.map(_ === Right(multipart)))
       }
 
-      "encoded and decoded with binary data" in {
+      test(s"Multipart form data $name should encoded and decoded with binary data") {
         val file = new File(getClass.getResource("/ball.png").toURI)
 
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
@@ -100,14 +94,12 @@ class MultipartSpec extends Specification {
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.value
 
-        result must beRight.like { case mp =>
-          mp === multipart
-        }
+        assertIOBoolean(result.map(_ === Right(multipart)))
       }
 
-      "be decoded and encode with content types" in {
+      test(s"Multipart form data $name should be decoded and encode with content types") {
         val body =
           """
 ------WebKitFormBoundarycaZFo8IAKVROTEeD
@@ -136,12 +128,12 @@ Content-Type: application/pdf
           headers = header)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.value.map(_.isRight)
 
-        result must beRight
+        result.assertEquals(true)
       }
 
-      "be decoded and encoded without content types" in {
+      test(s"Multipart form data $name should be decoded and encoded without content types") {
         val body =
           """--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz
 Content-Disposition: form-data; name="Mooses"
@@ -163,31 +155,32 @@ I am a big moose
           body = Stream.emit(body).through(text.utf8Encode),
           headers = header)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.value.map(_.isRight)
 
-        result must beRight
+        result.assertEquals(true)
       }
 
-      "extract name properly if it is present" in {
+      test(s"Multipart form data $name should extract name properly if it is present") {
         val part = Part(
           Headers.of(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
           Stream.empty.covary[IO])
-        part.name must beEqualTo(Some("Rich Homie Quan"))
+        assertEquals(part.name, Some("Rich Homie Quan"))
       }
 
-      "extract filename property if it is present" in {
+      test(s"Multipart form data $name should extract filename property if it is present") {
         val part = Part(
           Headers.of(
             `Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
           Stream.empty.covary[IO]
         )
-        part.filename must beEqualTo(Some("file.txt"))
+        assertEquals(part.filename, Some("file.txt"))
       }
 
-      "include chunked transfer encoding header so that body is streamed by client" in {
+      test(
+        s"Multipart form data $name should include chunked transfer encoding header so that body is streamed by client") {
         val multipart = Multipart(Vector())
         val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
-        request.isChunked must beTrue
+        assert(request.isChunked)
       }
     }
   }
@@ -195,20 +188,21 @@ I am a big moose
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO](Http4sSpec.TestBlocker))
 
-  "Part" >> {
-    def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
-    "covary" should {
-      "disallow unrelated effects" in {
-        illTyped("testPart[Option].covary[IO]")
-        true
-      }
-
-      "allow related effects" in {
-        trait F1[A]
-        trait F2[A] extends F1[A]
-        testPart[F2].covary[F1]
-        true
-      }
-    }
+  def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
+  test("Part.covary should disallow unrelated effects") {
+    assertNoDiff(
+      compileErrors("testPart[Option].covary[IO]"),
+      """|error: type arguments [cats.effect.IO] do not conform to method covary's type parameter bounds [F2[x] >: Option[x]]
+         |testPart[Option].covary[IO]
+         |                       ^
+         |""".stripMargin
+    )
   }
+
+  test("Part.covary should allow related effects") {
+    trait F1[A]
+    trait F2[A] extends F1[A]
+    testPart[F2].covary[F1]
+  }
+
 }
