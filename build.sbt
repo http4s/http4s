@@ -310,6 +310,7 @@ lazy val emberClient = libraryProject("ember-client")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse")
     )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
