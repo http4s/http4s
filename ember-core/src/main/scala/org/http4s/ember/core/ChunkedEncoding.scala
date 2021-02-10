@@ -26,14 +26,19 @@ private[ember] object ChunkedEncoding {
     * decodes from the HTTP chunked encoding. After last chunk this terminates. Allows to specify max header size, after which this terminates
     * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
     */
-  def decode[F[_]](maxChunkHeaderSize: Int, trailers: Deferred[F, Headers], rest: Ref[F, Option[Array[Byte]]])(implicit
-      F: MonadThrow[F]): Pipe[F, Byte, Byte] = {
+  def decode[F[_]](
+      head: Array[Byte],
+      read: F[Option[Chunk[Byte]]],
+      maxChunkHeaderSize: Int,
+      trailers: Deferred[F, Headers],
+      rest: Ref[F, Option[Array[Byte]]])(implicit F: MonadThrow[F]): Stream[F, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
-    def go(expect: Either[ByteVector, Long], in: Stream[F, Byte]): Pull[F, Byte, Unit] =
-      in.pull.uncons.flatMap {
+    def go(expect: Either[ByteVector, Long], head: Array[Byte]): Pull[F, Byte, Unit] = {
+      val uncons = if (head.nonEmpty) Pull.pure(Some(Chunk.bytes(head))) else Pull.eval(read)
+      uncons.flatMap {
         case None => Pull.done
-        case Some((h, tl)) =>
+        case Some(h) =>
           val bv = h.toByteVector
           expect match {
             case Left(header) =>
@@ -42,12 +47,12 @@ private[ember] object ChunkedEncoding {
               if (endOfheader == 0)
                 go(
                   expect,
-                  Stream.chunk(Chunk.ByteVectorChunk(bv.drop(`\r\n`.size))) ++ tl
+                  bv.drop(`\r\n`.size).toArray
                 ) //strip any leading crlf on header, as this starts with /r/n
               else if (endOfheader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](EmberException.ChunkedEncodingError(
                   s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"))
-              else if (endOfheader < 0) go(Left(nh), tl)
+              else if (endOfheader < 0) go(Left(nh), Array.emptyByteArray)
               else {
                 val (hdr, rem) = nh.splitAt(endOfheader + `\r\n`.size)
                 readChunkedHeader(hdr.dropRight(`\r\n`.size)) match {
@@ -57,48 +62,55 @@ private[ember] object ChunkedEncoding {
                         s"Failed to parse chunked header : ${hdr.decodeUtf8}"))
                   case Some(0) =>
                     // Done With Message, Now Parse Trailers
-                    // TODO: Will we have remaining headers here?
-                    Pull.eval(rest.set(Some(Array.emptyByteArray))) >> parseTrailers[F](maxChunkHeaderSize)(Stream.chunk(Chunk.byteVector(rem)) ++ tl)
-                      .flatMap { hdrs =>
-                        Pull.eval(trailers.complete(hdrs)) >> Pull.done
-                      }
-                  case Some(sz) => go(Right(sz), Stream.chunk(Chunk.ByteVectorChunk(rem)) ++ tl)
+                    Pull.eval(
+                      parseTrailers[F](maxChunkHeaderSize)(rem.toArray, read)
+                        .flatMap { case (hdrs, bytes) =>
+                          trailers.complete(hdrs) >> rest.set(Some(bytes))
+                        }
+                    ) >> Pull.done
+                  case Some(sz) => go(Right(sz), rem.toArray)
                 }
               }
 
             case Right(remains) =>
               if (remains == bv.size)
-                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(Left(ByteVector.empty), tl)
+                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(
+                  Left(ByteVector.empty),
+                  Array.emptyByteArray)
               else if (remains > bv.size)
-                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(Right(remains - bv.size), tl)
+                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(
+                  Right(remains - bv.size),
+                  Array.emptyByteArray)
               else {
                 val (out, next) = bv.splitAt(remains.toLong)
-                Pull.output(Chunk.ByteVectorChunk(out)) >> go(
-                  Left(ByteVector.empty),
-                  Stream.chunk(Chunk.ByteVectorChunk(next)) ++ tl)
+                Pull.output(Chunk.ByteVectorChunk(out)) >> go(Left(ByteVector.empty), next.toArray)
               }
           }
       }
+    }
 
-    go(Left(ByteVector.empty), _).stream
+    go(Left(ByteVector.empty), head).stream
   }
 
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
-  )(s: Stream[F, Byte]): Pull[F, Nothing, Headers] =
-    s.pull.uncons.flatMap {
-      case None => Pull.pure(Headers.empty)
-      case Some((chunk, tl)) =>
-        if (chunk.isEmpty) parseTrailers(maxHeaderSize)(tl)
+  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(Headers, Array[Byte])] = {
+    val uncons = if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
+    uncons.flatMap {
+      case None => (Headers.empty, Array.emptyByteArray).pure[F]
+      case Some(chunk) =>
+        // TODO: Is this state eliminated because we check for nonemptiness already? Or can we get an empty chunk from read
+        if (chunk.isEmpty) parseTrailers(maxHeaderSize)(Array.emptyByteArray, read)
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
           // TODO: return remaining bytes here
-          Pull.pure(Headers.empty)
+          (Headers.empty, chunk.toArray.drop(1)).pure[F]
         else
-          Parser.HeaderP.parseHeaders(Stream.chunk(chunk) ++ tl, maxHeaderSize, None).map {
-            case (headers, _, _, _) =>
-              headers
+          Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map {
+            case (headers, _, _, bytes) =>
+              (headers, bytes)
           }
     }
+  }
 
   private val lastChunk: Chunk[Byte] =
     Chunk.ByteVectorChunk((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
