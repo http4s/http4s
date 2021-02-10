@@ -18,9 +18,9 @@ package org.http4s.testing
 
 import cats.effect.{IO, SyncIO}
 import cats.effect.std.Dispatcher
-import munit.CatsEffectFunFixtures
+import munit.{CatsEffectFunFixtures, CatsEffectSuite}
 
-trait DispatcherIOFixture { this: CatsEffectFunFixtures =>
+trait DispatcherIOFixture { this: CatsEffectSuite =>
 
   def dispatcher: SyncIO[FunFixture[Dispatcher[IO]]] = ResourceFixture(Dispatcher[IO])
 
