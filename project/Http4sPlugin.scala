@@ -113,6 +113,7 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/parser/Rfc2616BasicRules.scala",
           "src/main/scala/org/http4s/parser/SimpleHeaders.scala",
           "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
+          "src/main/scala/org/http4s/play/Parser.scala",
           "src/main/scala/org/http4s/util/UrlCoding.scala",
           "src/main/scala/org/http4s/dsl/impl/Path.scala",
           "src/test/scala/org/http4s/dsl/PathSpec.scala",
@@ -321,7 +322,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "0.7.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.3"
-    val scalaXml = "1.3.0"
+    val scalaXml = "2.0.0-M4"
     val scodecBits = "1.1.23"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
