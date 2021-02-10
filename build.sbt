@@ -411,8 +411,10 @@ lazy val boopickle = libraryProject("boopickle")
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle,
-    )
+      Http4sPlugin.boopickle.withDottyCompat(scalaVersion.value),
+    ),
+    skip in compile := isDotty.value,
+    skip in publish := isDotty.value
   )
   .dependsOn(core, testing % "test->test")
 
