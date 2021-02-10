@@ -210,9 +210,9 @@ class ParsingSpec extends Http4sSuite {
           |Host: localhost:8080
           |User-Agent: curl/7.64.1
           |Accept: */*
-          |Content-Length: 2
+          |Content-Length: 5
           |
-          |abeverything after the body""".stripMargin
+          |helloeverything after the body""".stripMargin
 
     val byteStream = Stream
       .emit(raw)
@@ -230,7 +230,7 @@ class ParsingSpec extends Http4sSuite {
         .through(text.utf8Decode)
         .compile
         .string
-    } yield body == "ab" && rest == "everything after the body").assert
+    } yield body == "hello" && rest == "everything after the body").assert
   }
 
   test("Parser.Response.parser should handle a chunked response") {
@@ -306,7 +306,39 @@ class ParsingSpec extends Http4sSuite {
         .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
       trailers <- result._1.trailerHeaders
-    } yield (body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined)).assert
+    } yield body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined).assert
+  }
+
+  test(
+    "Parser.Response.parser should parse a response with Content-Length and return the rest of the stream") {
+    val defaultMaxHeaderLength = 4096
+    val raw =
+      """HTTP/1.1 200 OK
+        |Host: localhost:8080
+        |User-Agent: curl/7.64.1
+        |Accept: */*
+        |Content-Length: 5
+        |
+        |helloeverything after the body""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .covary[IO]
+      .map(Helpers.httpifyString)
+      .through(text.utf8Encode)
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      result <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+      body <- result._1.body.through(text.utf8Decode).compile.string
+      rest <- Stream
+        .eval(result._2)
+        .flatMap(chunk => Stream.chunk(Chunk.bytes(chunk.get)))
+        .through(text.utf8Decode)
+        .compile
+        .string
+    } yield body == "hello" && rest == "everything after the body").assert
   }
 
   test("Header Parser should handle headers in a section") {
