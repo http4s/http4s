@@ -48,14 +48,12 @@ object Forwarded
       case object Unknown extends Name
 
       def ofInet4Address(address: Inet4Address): Name =
-        // TODO Use this once released: https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L44
-        Ipv4(Ipv4Address.fromBytes(address.getAddress).get)
+        Ipv4(Ipv4Address.fromInet4Address(address))
       def ofIpv4Address(a: Byte, b: Byte, c: Byte, d: Byte): Name = Ipv4(
         Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
 
       def ofInet6Address(address: Inet6Address): Name =
-        // TODO After release, replace with https://github.com/Comcast/ip4s/blob/4c799aa81d24f0d097daec8cd6f8fc029ed4ad3e/jvm/src/main/scala/com/comcast/ip4s/IpAddressPlatform.scala#L58
-        Ipv6(Ipv6Address.fromBytes(address.getAddress).get)
+        Ipv6(Ipv6Address.fromInet6Address(address))
 
       def ofIpv6Address(
           a: Short,
@@ -140,10 +138,10 @@ object Forwarded
       val nodeName: P[Node.Name] =
         P.oneOf[Node.Name](
           List(
-            Rfc3986.ipv4Address.map(Node.Name.Ipv4),
+            Rfc3986.ipv4Address.map(Node.Name.Ipv4.apply),
             Rfc3986.ipv6Address
               .between(P.char('['), P.char(']'))
-              .map(Node.Name.Ipv6),
+              .map(Node.Name.Ipv6.apply),
             P.string("unknown").as(Node.Name.Unknown),
             Obfuscated.parser
           )

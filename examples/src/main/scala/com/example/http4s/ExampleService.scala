@@ -24,7 +24,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
-import org.http4s.scalaxml._
+import org.http4s.scalaxml.implicits._
 import org.http4s.server._
 import org.http4s.syntax.all._
 import org.http4s.server.middleware.PushSupport._

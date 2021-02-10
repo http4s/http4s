@@ -18,6 +18,7 @@ package org.http4s
 package syntax
 
 import scala.quoted._
+import scala.language.`3.0`
 
 trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
@@ -54,7 +55,7 @@ private[syntax] object LiteralsSyntax {
     validate(qvalue, strCtxExpr, argsExpr)
 
   def validate[A](validator: Validator[A], strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Type[A])(using Quotes): Expr[A] = {
-    val sc = strCtxExpr.unliftOrError
+    val sc = strCtxExpr.valueOrError
     validate(validator, sc.parts, argsExpr)
   }
 
@@ -63,11 +64,11 @@ private[syntax] object LiteralsSyntax {
       val literal = parts.head
       validator.validate(literal) match {
         case Some(err) =>
-          report.throwError(err.message)
+          quotes.reflect.report.throwError(err.message)
         case None => validator.construct(literal)
       }
     } else {
-      report.throwError("interpolation not supported", argsExpr)
+      quotes.reflect.report.throwError("interpolation not supported", argsExpr)
     }
   }
 
