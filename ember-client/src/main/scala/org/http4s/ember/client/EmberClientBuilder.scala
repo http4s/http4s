@@ -130,10 +130,14 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                     sg,
                     additionalSocketOptions
                   )
-                  .allocated.map { case (keySocket, release) => EmberConnection(keySocket, release, nextBytes) }
+                  .allocated
+                  .map { case (keySocket, release) =>
+                    EmberConnection(keySocket, release, nextBytes)
+                  }
               } <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
             { case connection =>
-              logger.trace(s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
+              logger.trace(
+                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
                 connection.cleanup
             }
           )

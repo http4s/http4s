@@ -131,14 +131,14 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       resp =
-      ClientHelpers
-        .postProcessResponse[IO](
-          Request[IO](),
-          Response[IO](),
-          IO.pure(Some(Array[Byte](1, 2, 3))),
-          nextBytes,
-          reuse
-        )
+        ClientHelpers
+          .postProcessResponse[IO](
+            Request[IO](),
+            Response[IO](),
+            IO.pure(Some(Array[Byte](1, 2, 3))),
+            nextBytes,
+            reuse
+          )
       _ <- resp.body.compile.drain
       drained <- nextBytes.get
     } yield assertEquals(drained.toList, List[Byte](1, 2, 3))
@@ -268,14 +268,14 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       resp =
-      ClientHelpers
-        .postProcessResponse[IO](
-          Request[IO](),
-          Response[IO](),
-          IO.pure(None),
-          nextBytes,
-          reuse
-        )
+        ClientHelpers
+          .postProcessResponse[IO](
+            Request[IO](),
+            Response[IO](),
+            IO.pure(None),
+            nextBytes,
+            reuse
+          )
       testResult <-
         resp.body.compile.drain >>
           reuse.get.map { case r =>
