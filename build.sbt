@@ -321,6 +321,10 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      // privat constructor with new parameter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.blaze.BlazeServerBuilder.this")
+    )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
@@ -751,7 +755,7 @@ lazy val scalafixInput = project
       "http4s-client",
       "http4s-core",
       "http4s-dsl",
-    ).map("org.http4s" %% _ % "0.21.15"),
+    ).map("org.http4s" %% _ % "0.21.18"),
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",

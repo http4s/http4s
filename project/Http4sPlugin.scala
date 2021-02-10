@@ -96,7 +96,7 @@ object Http4sPlugin extends AutoPlugin {
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
     // Breaking change to metric names
-    dependencyUpdatesFilter -= moduleFilter(name = "io.prometheus"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus"),
 
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
@@ -140,7 +140,6 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/testing/IOMatchers.scala",
           "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
           "src/test/scala/org/http4s/Http4sSpec.scala",
-          "src/test/scala/org/http4s/util/illTyped.scala",
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
           "src/test/scala/org/http4s/UriSpec.scala"
         )
@@ -300,7 +299,7 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val argonaut = "6.2.5"
     val asyncHttpClient = "2.10.5"
-    val blaze = "0.14.14"
+    val blaze = "0.14.15"
     val boopickle = "1.3.3"
     val cats = "2.3.1"
     val catsEffect = "2.3.1"
@@ -321,11 +320,11 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.9.0"
     val mockito = "3.5.15"
-    val netty = "4.1.58.Final"
-    val okio = "2.9.0"
     val munit = "0.7.18"
     val munitCatsEffect = "0.13.0"
     val munitDiscipline = "1.0.5"
+    val netty = "4.1.59.Final"
+    val okio = "2.9.0"
     val okhttp = "4.9.1"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.2"
@@ -341,7 +340,7 @@ object Http4sPlugin extends AutoPlugin {
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.6"
-    val tomcat = "9.0.41"
+    val tomcat = "9.0.43"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"

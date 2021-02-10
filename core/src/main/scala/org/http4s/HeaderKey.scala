@@ -54,6 +54,8 @@ object HeaderKey {
     */
   trait Recurring extends Extractable {
     type HeaderT <: Header.Recurring
+
+    @deprecated("Unused. Will be removed in 0.22.", "0.21.19")
     type GetT = Option[HeaderT]
 
     def apply(values: NonEmptyList[HeaderT#Value]): HeaderT

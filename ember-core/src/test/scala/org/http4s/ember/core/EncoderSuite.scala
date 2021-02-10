@@ -123,6 +123,16 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeResponseRig(resp).assertEquals(expected)
   }
 
+  test("encoder a response where entity is not allowed correctly") {
+    val resp = Response[IO](Status.NoContent)
+    val expected =
+      """HTTP/1.1 204 No Content
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
   test("encode a response with a body correctly") {
     val resp = Response[IO](Status.NotFound)
       .withEntity("Not Found")

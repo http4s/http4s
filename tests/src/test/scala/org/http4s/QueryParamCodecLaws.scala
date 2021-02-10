@@ -18,42 +18,37 @@ package org.http4s
 
 import cats._
 import cats.syntax.all._
-import org.scalacheck.{Arbitrary, Properties}
+import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
+import org.typelevel.discipline.Laws
 
 /** Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]]
   * must satisfy the following properties
   */
-object QueryParamCodecLaws {
+object QueryParamCodecLaws extends Laws {
   val parseFailure = ParseFailure("For Test", "Let's assume we didn't like this value")
 
   def apply[T: Arbitrary: Eq: QueryParamDecoder: QueryParamEncoder] =
-    new Properties("QueryParamCodec") {
-      property("decode . encode == successNel") = forAll { (value: T) =>
+    new SimpleRuleSet(
+      "QueryParamCodec",
+      "decode . encode == successNel" -> forAll { (value: T) =>
         (QueryParamDecoder[T].decode _)
           .compose(QueryParamEncoder[T].encode)(value) === value.validNel
-      }
-
-      property("decode . emap(Right) . encode == successNel") = forAll { (value: T) =>
+      },
+      "decode . emap(Right) . encode == successNel" -> forAll { (value: T) =>
         (QueryParamDecoder[T].emap((t: T) => t.asRight[ParseFailure]).decode _)
           .compose(QueryParamEncoder[T].encode)(value) === value.validNel
-      }
-
-      property("decode . emap(Left) . encode == failedNel") = forAll { (value: T) =>
+      },
+      "decode . emap(Left) . encode == failedNel" -> forAll { (value: T) =>
         (QueryParamDecoder[T].emap(_ => parseFailure.asLeft[T]).decode _)
           .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
-      }
-
-      property("decode . emapValidatedNel(ValidNel) . encode == successNel") = forAll {
-        (value: T) =>
-          (QueryParamDecoder[T].emapValidatedNel((t: T) => t.validNel[ParseFailure]).decode _)
-            .compose(QueryParamEncoder[T].encode)(value) === value.validNel
-      }
-
-      property("decode . emapValidatedNel(InvalidNel) . encode == failedNel") = forAll {
-        (value: T) =>
-          (QueryParamDecoder[T].emapValidatedNel(_ => parseFailure.invalidNel[T]).decode _)
-            .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
-      }
-    }
+      },
+      "decode . emapValidatedNel(ValidNel) . encode == successNel" -> forAll { (value: T) =>
+        (QueryParamDecoder[T].emapValidatedNel((t: T) => t.validNel[ParseFailure]).decode _)
+          .compose(QueryParamEncoder[T].encode)(value) === value.validNel
+      },
+      "decode . emapValidatedNel(InvalidNel) . encode == failedNel" -> forAll { (value: T) =>
+        (QueryParamDecoder[T].emapValidatedNel(_ => parseFailure.invalidNel[T]).decode _)
+          .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
+      })
 }
