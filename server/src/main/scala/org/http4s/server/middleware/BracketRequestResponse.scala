@@ -126,7 +126,7 @@ object BracketRequestResponse {
                 F.pure(Some(contextResponse.response.copy(body =
                   contextResponse.response.body.onFinalizeCaseWeak(ec =>
                     release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ec)))))))
-              .guaranteeCase { oc: Outcome[F, Throwable, Option[Response[F]]] =>
+              .guaranteeCase { (oc: Outcome[F, Throwable, Option[Response[F]]]) =>
                 oc match {
                   case Outcome.Succeeded(_) =>
                     F.unit
@@ -182,7 +182,7 @@ object BracketRequestResponse {
             .map(response =>
               response.copy(body =
                 response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))))
-            .guaranteeCase { oc: Outcome[F, Throwable, Response[F]] =>
+            .guaranteeCase { (oc: Outcome[F, Throwable, Response[F]]) =>
               oc match {
                 case Outcome.Succeeded(_) =>
                   F.unit
