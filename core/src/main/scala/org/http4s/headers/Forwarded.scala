@@ -140,10 +140,10 @@ object Forwarded
       val nodeName: P[Node.Name] =
         P.oneOf[Node.Name](
           List(
-            Rfc3986.ipv4Address.map(Node.Name.Ipv4),
+            Rfc3986.ipv4Address.map(Node.Name.Ipv4.apply),
             Rfc3986.ipv6Address
               .between(P.char('['), P.char(']'))
-              .map(Node.Name.Ipv6),
+              .map(Node.Name.Ipv6.apply),
             P.string("unknown").as(Node.Name.Unknown),
             Obfuscated.parser
           )
