@@ -48,6 +48,7 @@ class RefererSuite extends MHeaderLaws {
     val referer = Referer(getUri("http://localhost:8080"))
     val request = Request[IO](headers = Headers.of(referer))
 
-    assertEquals(request.headers.get(Referer), Some(referer))
+    val extracted = request.headers.get(Referer)
+    assertEquals(extracted, Some(referer))
   }
 }
