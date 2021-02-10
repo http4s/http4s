@@ -17,7 +17,6 @@
 package org.http4s.ember.client
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import org.http4s._
 import org.http4s.client._
 import io.chrisdavenport.keypool._
