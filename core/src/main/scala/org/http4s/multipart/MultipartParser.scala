@@ -616,7 +616,7 @@ object MultipartParser {
     }
   }
 
-  private[this] def cleanupFileOption[F[_]: Files: MonadError[*[_], Throwable]](
+  private[this] def cleanupFileOption[F[_]: Files: MonadThrow](
       p: Option[Path]
   ): Pull[F, Nothing, Unit] =
     p match {
@@ -629,7 +629,7 @@ object MultipartParser {
 
   private[this] def cleanupFile[F[_]](
       path: Path
-  )(implicit files: Files[F], F: MonadError[F, Throwable]): F[Unit] =
+  )(implicit files: Files[F], F: MonadThrow[F]): F[Unit] =
     files
       .delete(path)
       .handleErrorWith { err =>
