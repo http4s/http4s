@@ -462,7 +462,7 @@ lazy val playJson = libraryProject("play-json")
     description := "Provides Play json codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      jawnPlay,
+      // jawnPlay,
       Http4sPlugin.playJson,
     ),
   )
