@@ -18,6 +18,7 @@ package org.http4s.ember.core
 
 import org.specs2.mutable.Specification
 import cats.effect._
+import fs2.concurrent.Queue
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
@@ -37,6 +38,13 @@ class ParsingSpec extends Specification with CatsIO {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
 
+    def taking[F[_]: Concurrent, A](stream: Stream[F, A]): F[F[Option[Chunk[A]]]] =
+      for {
+        q <- Queue.unbounded[F, Option[Chunk[A]]]
+        _ <- stream.chunks.map(Some(_)).evalMap(q.enqueue1(_)).compile.drain.void
+        _ <- q.enqueue1(None)
+      } yield q.dequeue1
+
     // Only for Use with Text Requests
     def parseRequestRig[F[_]: Concurrent: Timer](s: String): F[Request[F]] = {
       val byteStream: Stream[F, Byte] = Stream
@@ -45,7 +53,9 @@ class ParsingSpec extends Specification with CatsIO {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Request.parser[F](Int.MaxValue, None)(byteStream).map(_._1)
+      taking(byteStream).flatMap { read =>
+        Parser.Request.parser[F](Int.MaxValue, None)(Array.emptyByteArray, read).map(_._1)
+      }
     }
 
     def parseResponseRig[F[_]: Concurrent: Timer](s: String): Resource[F, Response[F]] = {
@@ -55,8 +65,11 @@ class ParsingSpec extends Specification with CatsIO {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      val action = Parser.Response.parser[F](Int.MaxValue, None)(byteStream).map(_._1) //(logger)
-      Resource.liftF(action)
+      Resource.liftF(
+        taking(byteStream).flatMap { read =>
+          Parser.Response.parser[F](Int.MaxValue, None)(Array.emptyByteArray, read).map(_._1)
+        }
+      )
     }
 
     def forceScopedParsing[F[_]: Sync](s: String): Stream[F, Byte] = {
@@ -173,10 +186,12 @@ class ParsingSpec extends Specification with CatsIO {
       val encoded = (Stream(http1) ++ Stream(http2)).through(fs2.text.utf8Encode)
 
       (for {
+        take <- Helpers.taking[IO, Byte](encoded)
         parsed <-
           Parser.Response
             .parser[IO](defaultMaxHeaderLength, None)(
-              encoded
+              Array.emptyByteArray,
+              take
               //Helpers.forceScopedParsing[IO](raw) // Cuts off `}` in current test. Why?
               // I don't follow what the rig is testing vs this.
             ) //(logger)
@@ -202,10 +217,15 @@ class ParsingSpec extends Specification with CatsIO {
         .map(Helpers.httpifyString)
         .through(text.utf8Encode)
 
-      val result = Parser.Request.parser[IO](Int.MaxValue, None)(byteStream).unsafeRunSync()
+      val result = (for {
+        take <- Helpers.taking[IO, Byte](byteStream)
+        result <- Parser.Request.parser[IO](Int.MaxValue, None)(Array.emptyByteArray, take)
+      } yield result).unsafeRunSync()
 
       result._1.body.through(text.utf8Decode).compile.string.unsafeRunSync() mustEqual "ab"
-      result._2
+      Stream
+        .eval(result._2)
+        .flatMap(chunk => Stream.chunk(Chunk.bytes(chunk.get)))
         .through(text.utf8Decode)
         .compile
         .string
@@ -220,17 +240,12 @@ class ParsingSpec extends Specification with CatsIO {
         "SFRUUC8xLjEgMjAwIE9LDQpBcGktVmVyc2lvbjogMS40MA0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uDQpEb2NrZXItRXhwZXJpbWVudGFsOiBmYWxzZQ0KT3N0eXBlOiBsaW51eA0KU2VydmVyOiBEb2NrZXIvMTkuMDMuMTEtY2UgKGxpbnV4KQ0KRGF0ZTogRnJpLCAyNiBKdW4gMjAyMCAyMjozNTo0MiBHTVQNClRyYW5zZmVyLUVuY29kaW5nOiBjaHVua2VkDQoNCjhjMw0KeyJJRCI6IllNS0U6MkZZMzpTUUc3OjZSSFo6TFlTVDpRUk9JOkU1NEU6UTdXRjpERElLOlNOSUE6Rk5UTzpJVllSIiwiQ29udGFpbmVycyI6MjUsIkNvbnRhaW5lcnNSdW5uaW5nIjowLCJDb250YWluZXJzUGF1c2VkIjowLCJDb250YWluZXJzU3RvcHBlZCI6MjUsIkltYWdlcyI6ODMsIkRyaXZlciI6Im92ZXJsYXkyIiwiRHJpdmVyU3RhdHVzIjpbWyJCYWNraW5nIEZpbGVzeXN0ZW0iLCJleHRmcyJdLFsiU3VwcG9ydHMgZF90eXBlIiwidHJ1ZSJdLFsiTmF0aXZlIE92ZXJsYXkgRGlmZiIsImZhbHNlIl1dLCJTeXN0ZW1TdGF0dXMiOm51bGwsIlBsdWdpbnMiOnsiVm9sdW1lIjpbImxvY2FsIl0sIk5ldHdvcmsiOlsiYnJpZGdlIiwiaG9zdCIsImlwdmxhbiIsIm1hY3ZsYW4iLCJudWxsIiwib3ZlcmxheSJdLCJBdXRob3JpemF0aW9uIjpudWxsLCJMb2ciOlsiYXdzbG9ncyIsImZsdWVudGQiLCJnY3Bsb2dzIiwiZ2VsZiIsImpvdXJuYWxkIiwianNvbi1maWxlIiwibG9jYWwiLCJsb2dlbnRyaWVzIiwic3BsdW5rIiwic3lzbG9nIl19LCJNZW1vcnlMaW1pdCI6dHJ1ZSwiU3dhcExpbWl0Ijp0cnVlLCJLZXJuZWxNZW1vcnkiOnRydWUsIktlcm5lbE1lbW9yeVRDUCI6dHJ1ZSwiQ3B1Q2ZzUGVyaW9kIjp0cnVlLCJDcHVDZnNRdW90YSI6dHJ1ZSwiQ1BVU2hhcmVzIjp0cnVlLCJDUFVTZXQiOnRydWUsIlBpZHNMaW1pdCI6dHJ1ZSwiSVB2NEZvcndhcmRpbmciOnRydWUsIkJyaWRnZU5mSXB0YWJsZXMiOnRydWUsIkJyaWRnZU5mSXA2dGFibGVzIjp0cnVlLCJEZWJ1ZyI6ZmFsc2UsIk5GZCI6MjQsIk9vbUtpbGxEaXNhYmxlIjp0cnVlLCJOR29yb3V0aW5lcyI6NDAsIlN5c3RlbVRpbWUiOiIyMDIwLTA2LTI2VDE1OjM1OjQyLjU1MjUzMzQzMS0wNzowMCIsIkxvZ2dpbmdEcml2ZXIiOiJqc29uLWZpbGUiLCJDZ3JvdXBEcml2ZXIiOiJjZ3JvdXBmcyIsIk5FdmVudHNMaXN0ZW5lciI6MCwiS2VybmVsVmVyc2lvbiI6IjUuNy42LWFyY2gxLTEiLCJPcGVyYXRpbmdTeXN0ZW0iOiJBcmNoIExpbnV4IiwiT1NUeXBlIjoibGludXgiLCJBcmNoaXRlY3R1cmUiOiJ4ODZfNjQiLCJJbmRleFNlcnZlckFkZHJlc3MiOiJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iLCJSZWdpc3RyeUNvbmZpZyI6eyJBbGxvd05vbmRpc3RyaWJ1dGFibGVBcnRpZmFjdHNDSURScyI6W10sIkFsbG93Tm9uZGlzdHJpYnV0YWJsZUFydGlmYWN0c0hvc3RuYW1lcyI6W10sIkluc2VjdXJlUmVnaXN0cnlDSURScyI6WyIxMjcuMC4wLjAvOCJdLCJJbmRleENvbmZpZ3MiOnsiZG9ja2VyLmlvIjp7Ik5hbWUiOiJkb2NrZXIuaW8iLCJNaXJyb3JzIjpbXSwiU2VjdXJlIjp0cnVlLCJPZmZpY2lhbCI6dHJ1ZX19LCJNaXJyb3JzIjpbXX0sIk5DUFUiOjQsIk1lbVRvdGFsIjo4MjIwOTgzMjk2LCJHZW5lcmljUmVzb3VyY2VzIjpudWxsLCJEb2NrZXJSb290RGlyIjoiL3Zhci9saWIvZG9ja2VyIiwiSHR0cFByb3h5IjoiIiwiSHR0cHNQcm94eSI6IiIsIk5vUHJveHkiOiIiLCJOYW1lIjoiZGF2ZW5wb3J0LWxhcHRvcCIsIkxhYmVscyI6W10sIkV4cGVyaW1lbnRhbEJ1aWxkIjpmYWxzZSwiU2VydmVyVmVyc2lvbiI6IjE5LjAzLjExLWNlIiwiQ2x1c3RlclN0b3JlIjoiIiwiQ2x1c3RlckFkdmVydGlzZSI6IiIsIlJ1bnRpbWVzIjp7InJ1bmMiOnsicGF0aCI6InJ1bmMifX0sIkRlZmF1bHRSdW50aW1lIjoicnVuYyIsIlN3YXJtIjp7Ik5vZGVJRCI6IiIsIk5vZGVBZGRyIjoiIiwiTG9jYWxOb2RlU3RhdGUiOiJpbmFjdGl2ZSIsIkNvbnRyb2xBdmFpbGFibGUiOmZhbHNlLCJFcnJvciI6IiIsIlJlbW90ZU1hbmFnZXJzIjpudWxsfSwiTGl2ZVJlc3RvcmVFbmFibGVkIjpmYWxzZSwiSXNvbGF0aW9uIjoiIiwiSW5pdEJpbmFyeSI6ImRvY2tlci1pbml0IiwiQ29udGFpbmVyZENvbW1pdCI6eyJJRCI6ImQ3NmMxMjFmNzZhNWZjOGE0NjJkYzY0NTk0YWVhNzJmZTE4ZTExNzgubSIsIkV4cGVjdGVkIjoiZDc2YzEyMWY3NmE1ZmM4YTQ2MmRjNjQ1OTRhZWE3MmZlMThlMTE3OC5tIn0sIlJ1bmNDb21taXQiOnsiSUQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIiwiRXhwZWN0ZWQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIn0sIkluaXRDb21taXQiOnsiSUQiOiJmZWMzNjgzIiwiRXhwZWN0ZWQiOiJmZWMzNjgzIn0sIlNlY3VyaXR5T3B0aW9ucyI6WyJuYW1lPXNlY2NvbXAscHJvZmlsZT1kZWZhdWx0Il0sIldhcm5pbmdzIjpudWxsfQoNCjANCg0K"
       val baseBv = ByteVector.fromBase64(base).get
 
-      Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(Stream.chunk(ByteVectorChunk(baseBv)))
-        .flatMap { case (resp, _) =>
-          resp.body.through(text.utf8Decode).compile.string
-
-        }
-        .map {
-
-          _.size must beGreaterThan(0)
-        }
-        .unsafeRunSync()
+      (for {
+        take <- Helpers.taking[IO, Byte](Stream.chunk(ByteVectorChunk(baseBv)))
+        result <- Parser.Response
+          .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        body <- result._1.body.through(text.utf8Decode).compile.string
+      } yield body.size must beGreaterThan(0)).unsafeRunSync()
     }
 
     "parse a chunked simple" in {
@@ -255,14 +270,12 @@ class ParsingSpec extends Specification with CatsIO {
         .flatMap(s =>
           Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
 
-      Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(byteStream)
-        .flatMap { case (resp, _) =>
-          resp.body.through(text.utf8Decode).compile.string.map { body =>
-            body must beEqualTo("MozillaDeveloperNetwork")
-          }
-        }
-        .unsafeRunSync()
+      (for {
+        take <- Helpers.taking[IO, Byte](byteStream)
+        resp <- Parser.Response
+          .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        body <- resp._1.body.through(text.utf8Decode).compile.string
+      } yield body must beEqualTo("MozillaDeveloperNetwork")).unsafeRunSync()
     }
 
     "parse a chunked with trailer headers" in {
@@ -287,17 +300,15 @@ class ParsingSpec extends Specification with CatsIO {
         .flatMap(s =>
           Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
 
-      Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(byteStream)
-        .flatMap { case (resp, _) =>
-          for {
-            body <- resp.body.through(text.utf8Decode).compile.string
-            trailers <- resp.trailerHeaders
-          } yield (body must beEqualTo("MozillaDeveloperNetwork")).and(
-            trailers.get(Expires) must beSome
-          )
-        }
-        .unsafeRunSync()
+      (for {
+        take <- Helpers.taking[IO, Byte](byteStream)
+        result <- Parser.Response
+          .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        body <- result._1.body.through(text.utf8Decode).compile.string
+        trailers <- result._1.trailerHeaders
+      } yield (body must beEqualTo("MozillaDeveloperNetwork")).and(
+        trailers.get(Expires) must beSome
+      )).unsafeRunSync()
     }
   }
 
@@ -325,9 +336,7 @@ class ParsingSpec extends Specification with CatsIO {
       ).and(
         chunked must beFalse
       ).and(
-        length must beSome.like { case l =>
-          l must_=== 11L
-        }
+        length must beSome(11L)
       )
 
     }
@@ -345,15 +354,12 @@ class ParsingSpec extends Specification with CatsIO {
         .flatMap(s =>
           Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
 
-      val headers = Parser.HeaderP
-        .parseHeaders(byteStream, defaultMaxHeaderLength, None)
-        .flatMap { case (headers, _, _, _) =>
-          Pull.output1(headers)
-        }
-        .stream
-        .compile
-        .lastOrError
-        .unsafeRunSync()
+      val headers = (for {
+        take <- Helpers.taking[IO, Byte](byteStream)
+        headers <- Parser.HeaderP
+          .parseHeaders(Array.emptyByteArray, take, defaultMaxHeaderLength, None)
+          .map(_._1)
+      } yield headers).unsafeRunSync()
 
       headers.toList must_=== List(
         Header("Content-Type", "text/plain"),

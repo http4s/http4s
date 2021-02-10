@@ -115,17 +115,17 @@ private[server] object ServerHelpers {
     }
 
   private[internal] def runApp[F[_]: Concurrent: Timer](
-      incoming: F[Array[Byte]],
+      head: Array[Byte],
       read: F[Option[Chunk[Byte]]],
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
-      errorHandler: Throwable => F[Response[F]]): F[(Request[F], Response[F], Option[Array[Byte]])] =
+      errorHandler: Throwable => F[Response[F]])
+      : F[(Request[F], Response[F], Option[Array[Byte]])] =
     for {
-      bytes <- incoming
-      (req, drain) <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
-        bytes,
-        read)
+      (req, drain) <- Parser.Request.parser(
+        maxHeaderSize,
+        durationToFinite(requestHeaderReceiveTimeout))(head, read)
       resp <- httpApp
         .run(req)
         .handleErrorWith(errorHandler)
@@ -181,7 +181,7 @@ private[server] object ServerHelpers {
     val read: F[Option[Chunk[Byte]]] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
 
     Stream
-      .unfoldLoopEval(Array.emptyByteArray.pure[F])(incoming =>
+      .unfoldLoopEval(Array.emptyByteArray)(incoming =>
         runApp(
           incoming,
           read,
