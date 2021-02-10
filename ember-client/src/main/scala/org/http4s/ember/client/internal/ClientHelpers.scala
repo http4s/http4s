@@ -82,6 +82,7 @@ private[client] object ClientHelpers {
   def request[F[_]: Concurrent: ContextShift: Timer](
       request: Request[F],
       requestKeySocket: RequestKeySocket[F],
+      nextBytes: Ref[F, Array[Byte]],
       reuseable: Ref[F, Reusable],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
@@ -100,20 +101,20 @@ private[client] object ClientHelpers {
         .compile
         .drain
 
-    def writeRead(req: Request[F]): F[Response[F]] =
-      writeRequestToSocket(req, requestKeySocket.socket, durationToFinite(idleTimeout)) >> {
-        Parser.Response
-          .parser(maxResponseHeaderSize, durationToFinite(timeout))(
-            Array.emptyByteArray, // TODO: we need to drain from the previous request
-            requestKeySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
-          )
-          .map(_._1)
-      }
+    def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
+      writeRequestToSocket(req, requestKeySocket.socket, durationToFinite(idleTimeout)) >>
+        nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
+          Parser.Response
+            .parser(maxResponseHeaderSize, durationToFinite(timeout))(
+              head,
+              requestKeySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
+            )
+        }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
-      resp <- writeRead(processedReq)
-    } yield postProcessResponse(processedReq, resp, reuseable)
+      (resp, drain) <- writeRead(processedReq)
+    } yield postProcessResponse(processedReq, resp, drain, nextBytes, reuseable)
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -130,20 +131,27 @@ private[client] object ClientHelpers {
       .putHeaders(userAgentHeader.toSeq: _*)
   }
 
-  private[internal] def postProcessResponse[F[_]: Concurrent](
+  private[internal] def postProcessResponse[F[_]](
       req: Request[F],
       resp: Response[F],
-      canBeReused: Ref[F, Reusable]): Response[F] = {
+      drain: F[Option[Array[Byte]]],
+      nextBytes: Ref[F, Array[Byte]],
+      canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): Response[F] = {
+    // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
     val out = resp.copy(
       body = resp.body.onFinalizeCaseWeak {
         case ExitCase.Completed =>
-          val requestClose = req.headers.get(Connection).exists(_.hasClose)
-          val responseClose = resp.headers.get(Connection).exists(_.hasClose)
+          drain.flatMap {
+            case Some(bytes) =>
+              val requestClose = req.headers.get(Connection).exists(_.hasClose)
+              val responseClose = resp.headers.get(Connection).exists(_.hasClose)
 
-          if (requestClose || responseClose) Applicative[F].unit
-          else canBeReused.set(Reusable.Reuse)
-        case ExitCase.Canceled => Applicative[F].unit
-        case ExitCase.Error(_) => Applicative[F].unit
+              if (requestClose || responseClose) F.unit
+              else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
+            case None => F.unit
+          }
+        case ExitCase.Canceled => F.unit
+        case ExitCase.Error(_) => F.unit
       }
     )
     out
@@ -160,8 +168,8 @@ private[client] object ClientHelpers {
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
   private[client] def getValidManaged[F[_]: Sync](
-      pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])],
-      request: Request[F]): Resource[F, Managed[F, (RequestKeySocket[F], F[Unit])]] =
+      pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])],
+      request: Request[F]): Resource[F, Managed[F, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
         .liftF(managed.value._1.socket.isOpen)

@@ -104,15 +104,17 @@ class ClientHelpersSuite extends Http4sSuite {
   }
 
   test("Postprocess response should reuse when body is run") {
-
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       resp =
         ClientHelpers
-          .postProcessResponse(
+          .postProcessResponse[IO](
             Request[IO](),
             Response[IO](),
+            IO.pure(Option(Array.emptyByteArray)),
+            nextBytes,
             reuse
           )
       testResult <-
@@ -123,15 +125,37 @@ class ClientHelpersSuite extends Http4sSuite {
     } yield testResult
   }
 
+  test("Postprocess response should save drained bytes when reused") {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+
+      resp =
+      ClientHelpers
+        .postProcessResponse[IO](
+          Request[IO](),
+          Response[IO](),
+          IO.pure(Some(Array[Byte](1, 2, 3))),
+          nextBytes,
+          reuse
+        )
+      _ <- resp.body.compile.drain
+      drained <- nextBytes.get
+    } yield assertEquals(drained.toList, List[Byte](1, 2, 3))
+  }
+
   test("Postprocess response should do not reuse when body is not run") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       _ =
         ClientHelpers
-          .postProcessResponse(
+          .postProcessResponse[IO](
             Request[IO](),
             Response[IO](),
+            IO.pure(Some(Array.emptyByteArray)),
+            nextBytes,
             reuse
           )
 
@@ -144,13 +168,16 @@ class ClientHelpersSuite extends Http4sSuite {
 
   test("Postprocess response should do not reuse when error encountered running stream") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       resp =
         ClientHelpers
-          .postProcessResponse(
+          .postProcessResponse[IO](
             Request[IO](),
             Response[IO](body = fs2.Stream.raiseError[IO](new Throwable("Boo!"))),
+            IO.pure(Some(Array.emptyByteArray)),
+            nextBytes,
             reuse
           )
       testResult <-
@@ -165,11 +192,12 @@ class ClientHelpersSuite extends Http4sSuite {
   test(
     "Postprocess response should do not reuse when cancellation encountered running stream".fail) {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       resp =
         ClientHelpers
-          .postProcessResponse(
+          .postProcessResponse[IO](
             Request[IO](),
             Response[IO](body = fs2
               .Stream(1, 2, 3, 4, 5)
@@ -178,6 +206,8 @@ class ClientHelpersSuite extends Http4sSuite {
                 fs2.Stream.awakeDelay[IO](1.second)
               )
               .interruptAfter(2.seconds)),
+            IO.pure(Some(Array.emptyByteArray)),
+            nextBytes,
             reuse
           )
       testResult <-
@@ -190,6 +220,7 @@ class ClientHelpersSuite extends Http4sSuite {
 
   test("Postprocess response should do not reuse when connection close is set on request") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       resp =
@@ -197,6 +228,8 @@ class ClientHelpersSuite extends Http4sSuite {
           .postProcessResponse[IO](
             Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
             Response[IO](),
+            IO.pure(Some(Array.emptyByteArray)),
+            nextBytes,
             reuse
           )
       testResult <-
@@ -209,13 +242,16 @@ class ClientHelpersSuite extends Http4sSuite {
 
   test("Postprocess response should do not reuse when connection close is set on response") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       resp =
         ClientHelpers
-          .postProcessResponse(
+          .postProcessResponse[IO](
             Request[IO](),
             Response[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+            IO.pure(Some(Array.emptyByteArray)),
+            nextBytes,
             reuse
           )
       testResult <-
@@ -226,4 +262,25 @@ class ClientHelpersSuite extends Http4sSuite {
     } yield testResult
   }
 
+  test("Postprocess response should do not reuse when drain is empty") {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+
+      resp =
+      ClientHelpers
+        .postProcessResponse[IO](
+          Request[IO](),
+          Response[IO](),
+          IO.pure(None),
+          nextBytes,
+          reuse
+        )
+      testResult <-
+        resp.body.compile.drain >>
+          reuse.get.map { case r =>
+            assertEquals(r, Reusable.DontReuse)
+          }
+    } yield testResult
+  }
 }

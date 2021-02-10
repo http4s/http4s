@@ -17,13 +17,14 @@
 package org.http4s.ember.client
 
 import cats.effect._
+import cats.effect.concurrent.Ref
 import org.http4s._
 import org.http4s.client._
 import io.chrisdavenport.keypool._
 
 final class EmberClient[F[_]] private[client] (
     private val client: Client[F],
-    private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])]
+    private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])]
 )(implicit F: BracketThrow[F])
     extends DefaultClient[F] {
 

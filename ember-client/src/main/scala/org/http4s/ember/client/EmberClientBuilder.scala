@@ -22,11 +22,14 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import cats._
 import cats.syntax.all._
 import cats.effect._
+import cats.effect.concurrent.Ref
+
 import scala.concurrent.duration._
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
+
 import scala.concurrent.duration.Duration
 import org.http4s.headers.{AgentProduct, Connection, `User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
@@ -117,18 +120,21 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       )
       builder =
         KeyPoolBuilder
-          .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
+          .apply[F, RequestKey, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])](
             (requestKey: RequestKey) =>
-              org.http4s.ember.client.internal.ClientHelpers
-                .requestKeyToSocketWithKey[F](
-                  requestKey,
-                  tlsContextOptWithDefault,
-                  sg,
-                  additionalSocketOptions
-                )
-                .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            { case (RequestKeySocket(socket, r), shutdown) =>
+              Ref.of[F, Array[Byte]](Array.emptyByteArray).flatMap { nextBytes =>
+                org.http4s.ember.client.internal.ClientHelpers
+                  .requestKeyToSocketWithKey[F](
+                    requestKey,
+                    tlsContextOptWithDefault,
+                    sg,
+                    additionalSocketOptions
+                  )
+                  .allocated.map { case (keySocket, release) => (keySocket, release, nextBytes) }
+              }<* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+            { case (RequestKeySocket(socket, r), shutdown, nextBytes) =>
               logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
+                nextBytes.set(Array.emptyByteArray) >>
                 socket.endOfInput.attempt.void >>
                 socket.endOfOutput.attempt.void >>
                 socket.close.attempt.void >>
@@ -158,6 +164,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 .request[F](
                   request,
                   managed.value._1,
+                  managed.value._3,
                   managed.canBeReused,
                   chunkSize,
                   maxResponseHeaderSize,
@@ -166,20 +173,6 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   userAgent
                 )
             )
-            .map(response =>
-              // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
-              response.copy(body = response.body.onFinalizeCaseWeak {
-                case ExitCase.Completed =>
-                  val requestClose = request.headers.get(Connection).exists(_.hasClose)
-                  val responseClose = response.isChunked || response.headers
-                    .get(Connection)
-                    .exists(_.hasClose)
-
-                  if (requestClose || responseClose) Sync[F].unit
-                  else managed.canBeReused.set(Reusable.Reuse)
-                case ExitCase.Canceled => Sync[F].unit
-                case ExitCase.Error(_) => Sync[F].unit
-              }))
         } yield responseResource
       }
       new EmberClient[F](client, pool)
