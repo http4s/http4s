@@ -24,7 +24,7 @@ import io.chrisdavenport.keypool._
 
 final class EmberClient[F[_]] private[client] (
     private val client: Client[F],
-    private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])]
+    private val pool: KeyPool[F, RequestKey, EmberConnection[F]]
 )(implicit F: BracketThrow[F])
     extends DefaultClient[F] {
 

@@ -31,7 +31,7 @@ import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{AgentProduct, Connection, `User-Agent`}
+import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
@@ -120,7 +120,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       )
       builder =
         KeyPoolBuilder
-          .apply[F, RequestKey, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])](
+          .apply[F, RequestKey, EmberConnection[F]](
             (requestKey: RequestKey) =>
               Ref.of[F, Array[Byte]](Array.emptyByteArray).flatMap { nextBytes =>
                 org.http4s.ember.client.internal.ClientHelpers
@@ -130,15 +130,11 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                     sg,
                     additionalSocketOptions
                   )
-                  .allocated.map { case (keySocket, release) => (keySocket, release, nextBytes) }
-              }<* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            { case (RequestKeySocket(socket, r), shutdown, nextBytes) =>
-              logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
-                nextBytes.set(Array.emptyByteArray) >>
-                socket.endOfInput.attempt.void >>
-                socket.endOfOutput.attempt.void >>
-                socket.close.attempt.void >>
-                shutdown.attempt.void
+                  .allocated.map { case (keySocket, release) => EmberConnection(keySocket, release, nextBytes) }
+              } <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+            { case connection =>
+              logger.trace(s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
+                connection.cleanup
             }
           )
           .withDefaultReuseState(Reusable.DontReuse)
@@ -154,7 +150,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           _ <- Resource.liftF(
             pool.state.flatMap { poolState =>
               logger.trace(
-                s"Connection Taken - Key: ${managed.value._1.requestKey} - Reused: ${managed.isReused} - PoolState: $poolState"
+                s"Connection Taken - Key: ${managed.value.keySocket.requestKey} - Reused: ${managed.isReused} - PoolState: $poolState"
               )
             }
           )
@@ -163,8 +159,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               ClientHelpers
                 .request[F](
                   request,
-                  managed.value._1,
-                  managed.value._3,
+                  managed.value,
                   managed.canBeReused,
                   chunkSize,
                   maxResponseHeaderSize,

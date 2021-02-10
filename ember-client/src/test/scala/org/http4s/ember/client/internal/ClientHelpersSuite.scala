@@ -113,7 +113,7 @@ class ClientHelpersSuite extends Http4sSuite {
           .postProcessResponse[IO](
             Request[IO](),
             Response[IO](),
-            IO.pure(Option(Array.emptyByteArray)),
+            IO.pure(Some(Array.emptyByteArray)),
             nextBytes,
             reuse
           )

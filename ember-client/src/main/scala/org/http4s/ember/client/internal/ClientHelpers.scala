@@ -81,8 +81,7 @@ private[client] object ClientHelpers {
 
   def request[F[_]: Concurrent: ContextShift: Timer](
       request: Request[F],
-      requestKeySocket: RequestKeySocket[F],
-      nextBytes: Ref[F, Array[Byte]],
+      connection: EmberConnection[F],
       reuseable: Ref[F, Reusable],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
@@ -102,19 +101,19 @@ private[client] object ClientHelpers {
         .drain
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, requestKeySocket.socket, durationToFinite(idleTimeout)) >>
-        nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
+      writeRequestToSocket(req, connection.keySocket.socket, durationToFinite(idleTimeout)) >>
+        connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
           Parser.Response
             .parser(maxResponseHeaderSize, durationToFinite(timeout))(
               head,
-              requestKeySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
+              connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
             )
         }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
       (resp, drain) <- writeRead(processedReq)
-    } yield postProcessResponse(processedReq, resp, drain, nextBytes, reuseable)
+    } yield postProcessResponse(processedReq, resp, drain, connection.nextBytes, reuseable)
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -168,11 +167,11 @@ private[client] object ClientHelpers {
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
   private[client] def getValidManaged[F[_]: Sync](
-      pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])],
-      request: Request[F]): Resource[F, Managed[F, (RequestKeySocket[F], F[Unit], Ref[F, Array[Byte]])]] =
+      pool: KeyPool[F, RequestKey, EmberConnection[F]],
+      request: Request[F]): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
-        .liftF(managed.value._1.socket.isOpen)
+        .liftF(managed.value.keySocket.socket.isOpen)
         .ifM(
           managed.pure[Resource[F, *]],
           // Already Closed,
