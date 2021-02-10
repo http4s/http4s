@@ -249,7 +249,14 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$Request$ReqPrelude$ParsePreludeError$"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude#ParsePreludeError.apply"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$Response$RespPrelude$RespPreludeError$"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.apply")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude#RespPreludeError.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude$default$3"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude.parsePrelude"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude.parsePrelude$default$3"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.parseHeaders"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$Request$ReqPrelude$ParsePreludeIncomlete"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$Request$ReqPrelude$ParsePreludeIncomlete$")
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -281,8 +288,8 @@ lazy val emberServer = libraryProject("ember-server")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$13"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$9")
-
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$9"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp")
     )
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
