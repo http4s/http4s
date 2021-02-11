@@ -22,7 +22,6 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import cats._
 import cats.syntax.all._
 import cats.effect._
-import cats.effect.concurrent.Ref
 
 import scala.concurrent.duration._
 import org.http4s.client._
@@ -122,19 +121,14 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
         KeyPoolBuilder
           .apply[F, RequestKey, EmberConnection[F]](
             (requestKey: RequestKey) =>
-              Ref.of[F, Array[Byte]](Array.emptyByteArray).flatMap { nextBytes =>
+              EmberConnection(
                 org.http4s.ember.client.internal.ClientHelpers
                   .requestKeyToSocketWithKey[F](
                     requestKey,
                     tlsContextOptWithDefault,
                     sg,
                     additionalSocketOptions
-                  )
-                  .allocated
-                  .map { case (keySocket, release) =>
-                    EmberConnection(keySocket, release, nextBytes)
-                  }
-              } <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+                  )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
             { case connection =>
               logger.trace(
                 s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
@@ -158,21 +152,30 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               )
             }
           )
-          responseResource <- Resource
-            .liftF(
-              ClientHelpers
-                .request[F](
+          responseResource <- Resource.makeCase(
+            ClientHelpers
+              .request[F](
+                request,
+                managed.value,
+                chunkSize,
+                maxResponseHeaderSize,
+                idleConnectionTime,
+                timeout,
+                userAgent
+              )
+          ) { case ((response, drain), exitCase) =>
+            exitCase match {
+              case ExitCase.Completed =>
+                ClientHelpers.postProcessResponse(
                   request,
-                  managed.value,
-                  managed.canBeReused,
-                  chunkSize,
-                  maxResponseHeaderSize,
-                  idleConnectionTime,
-                  timeout,
-                  userAgent
-                )
-            )
-        } yield responseResource
+                  response,
+                  drain,
+                  managed.value.nextBytes,
+                  managed.canBeReused)
+              case _ => Applicative[F].unit
+            }
+          }
+        } yield responseResource._1
       }
       new EmberClient[F](client, pool)
     }

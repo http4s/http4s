@@ -99,11 +99,9 @@ private[ember] object ChunkedEncoding {
     uncons.flatMap {
       case None => (Headers.empty, Array.emptyByteArray).pure[F]
       case Some(chunk) =>
-        // TODO: Is this state eliminated because we check for nonemptiness already? Or can we get an empty chunk from read
         if (chunk.isEmpty) parseTrailers(maxHeaderSize)(Array.emptyByteArray, read)
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
-          // TODO: return remaining bytes here
-          (Headers.empty, chunk.toArray.drop(1)).pure[F]
+          (Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
         else
           Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map {
             case (headers, _, _, bytes) =>

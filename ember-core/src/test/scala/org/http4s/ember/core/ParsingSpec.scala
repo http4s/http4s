@@ -314,9 +314,6 @@ class ParsingSpec extends Http4sSuite {
     val defaultMaxHeaderLength = 4096
     val raw =
       """HTTP/1.1 200 OK
-        |Host: localhost:8080
-        |User-Agent: curl/7.64.1
-        |Accept: */*
         |Content-Length: 5
         |
         |helloeverything after the body""".stripMargin
@@ -437,4 +434,18 @@ class ParsingSpec extends Http4sSuite {
     }
   }
 
+  // Compiling a stream is generally undefined behavior but that doesn't stop us from testing it
+  test("Reading a fixed-length body more than once should raise an error") {
+    val bodyS = Stream("hello world!")
+    val byteStream: Stream[IO, Byte] = bodyS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+    for {
+      take <- Helpers.taking(byteStream)
+      body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
+      _ <- body._1.compile.drain
+      _ <- body._1.compile.drain.intercept[Throwable]
+    } yield ()
+  }
 }

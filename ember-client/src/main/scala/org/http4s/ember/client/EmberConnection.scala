@@ -17,6 +17,7 @@
 package org.http4s.ember.client
 
 import cats._
+import cats.effect.{Concurrent, Resource}
 import cats.syntax.all._
 import cats.effect.concurrent.Ref
 
@@ -30,4 +31,14 @@ private[ember] final case class EmberConnection[F[_]](
       keySocket.socket.endOfOutput.attempt.void >>
       keySocket.socket.close.attempt.void >>
       shutdown.attempt.void
+}
+
+private[ember] object EmberConnection {
+  def apply[F[_]: Concurrent](
+      keySocketResource: Resource[F, RequestKeySocket[F]]): F[EmberConnection[F]] =
+    Ref[F].of(Array.emptyByteArray).flatMap { nextBytes =>
+      keySocketResource.allocated.map { case (keySocket, release) =>
+        EmberConnection(keySocket, release, nextBytes)
+      }
+    }
 }

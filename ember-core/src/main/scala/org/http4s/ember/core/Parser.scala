@@ -603,7 +603,7 @@ private[ember] object Parser {
             }
 
             // If the remaining bytes for the body have not yet been read, close the connection.
-            // TODO: Make a determination to read the rest of the bytes depending on how much is left.
+            // TODO: Check if there are bytes immediately available without blocking
             val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
 
             (Stream.chunk(Chunk.bytes(head)) ++ bodyStream, drain)

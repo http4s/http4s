@@ -82,13 +82,12 @@ private[client] object ClientHelpers {
   def request[F[_]: Concurrent: ContextShift: Timer](
       request: Request[F],
       connection: EmberConnection[F],
-      reuseable: Ref[F, Reusable],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
       idleTimeout: Duration,
       timeout: Duration,
       userAgent: Option[`User-Agent`]
-  ): F[Response[F]] = {
+  ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
     def writeRequestToSocket(
         req: Request[F],
@@ -112,8 +111,8 @@ private[client] object ClientHelpers {
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
-      (resp, drain) <- writeRead(processedReq)
-    } yield postProcessResponse(processedReq, resp, drain, connection.nextBytes, reuseable)
+      res <- writeRead(processedReq)
+    } yield res
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -130,31 +129,21 @@ private[client] object ClientHelpers {
       .putHeaders(userAgentHeader.toSeq: _*)
   }
 
-  private[internal] def postProcessResponse[F[_]](
+  private[ember] def postProcessResponse[F[_]](
       req: Request[F],
       resp: Response[F],
       drain: F[Option[Array[Byte]]],
       nextBytes: Ref[F, Array[Byte]],
-      canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): Response[F] = {
-    // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
-    val out = resp.copy(
-      body = resp.body.onFinalizeCaseWeak {
-        case ExitCase.Completed =>
-          drain.flatMap {
-            case Some(bytes) =>
-              val requestClose = req.headers.get(Connection).exists(_.hasClose)
-              val responseClose = resp.headers.get(Connection).exists(_.hasClose)
+      canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
+    drain.flatMap {
+      case Some(bytes) =>
+        val requestClose = req.headers.get(Connection).exists(_.hasClose)
+        val responseClose = resp.headers.get(Connection).exists(_.hasClose)
 
-              if (requestClose || responseClose) F.unit
-              else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
-            case None => F.unit
-          }
-        case ExitCase.Canceled => F.unit
-        case ExitCase.Error(_) => F.unit
-      }
-    )
-    out
-  }
+        if (requestClose || responseClose) F.unit
+        else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
+      case None => F.unit
+    }
 
   // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
   private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
