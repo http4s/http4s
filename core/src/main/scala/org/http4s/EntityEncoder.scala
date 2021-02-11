@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.{Contravariant, Show}
-import cats.effect.{Blocker, ContextShift, Effect, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import fs2.io.file.readAll
@@ -156,8 +156,7 @@ object EntityEncoder {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]](
-      blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] =
+  def fileEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, File] =
     filePathEncoder[F](blocker).contramap(_.toPath)
 
   // TODO parameterize chunk size
