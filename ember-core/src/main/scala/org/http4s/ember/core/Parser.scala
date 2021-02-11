@@ -38,7 +38,6 @@ private[ember] object Parser {
         F: MonadThrow[F]): F[(Headers, Boolean, Option[Long], Array[Byte])] = {
       // TODO: improve this
       val uncons = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
-
       uncons.flatMap {
         case Some(chunk) =>
           val nextArr: Array[Byte] = acc match {
@@ -562,15 +561,7 @@ private[ember] object Parser {
     }
   }
 
-  private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
-    Stream.eval(read).flatMap {
-      case Some(bytes) =>
-        Stream.chunk(bytes) ++ readStream(read)
-      case None => Stream.empty
-    }
-
   object Body {
-    // TODO: could pass in the Ref rather than returning drain
     def parseFixedBody[F[_]: Concurrent](
         contentLength: Long,
         head: Array[Byte],
@@ -581,13 +572,12 @@ private[ember] object Parser {
           (Stream.chunk(Chunk.bytes(body)).covary[F], (Some(rest): Option[Array[Byte]]).pure[F])
             .pure[F]
         } else {
-          // TODO: deal with streams that terminate early?
-          Ref.of[F, Either[Long, Array[Byte]]](Left(contentLength - head.length)).map { state =>
+          val unread = contentLength - head.length
+          Ref.of[F, Either[Long, Array[Byte]]](Left(unread)).map { state =>
             val bodyStream = Stream.eval(state.get).flatMap {
               case Right(_) =>
                 Stream.raiseError(new Throwable("Body has already been completely read"))
               case Left(remaining) =>
-                // TODO: evalScanChunks would have been cool here
                 readStream(read).chunks
                   .evalMapAccumulate(remaining) { case (r, chunk) =>
                     if (chunk.size >= r) {
@@ -603,7 +593,7 @@ private[ember] object Parser {
             }
 
             // If the remaining bytes for the body have not yet been read, close the connection.
-            // TODO: Check if there are bytes immediately available without blocking
+            // followup: Check if there are bytes immediately available without blocking
             val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
 
             (Stream.chunk(Chunk.bytes(head)) ++ bodyStream, drain)
@@ -611,6 +601,13 @@ private[ember] object Parser {
         }
       } else {
         (EmptyBody.covary[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
+      }
+
+    private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
+      Stream.eval(read).flatMap {
+        case Some(bytes) =>
+          Stream.chunk(bytes) ++ readStream(read)
+        case None => Stream.empty
       }
   }
 
