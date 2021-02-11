@@ -20,7 +20,7 @@ import cats.effect.IO
 import org.http4s.{Headers, Request, Uri}
 import org.http4s.laws.discipline.ArbitraryInstances._
 
-class RefererSuite extends MHeaderLaws {
+class RefererSuite extends HeaderLaws {
   checkAll("Referer", headerLaws(`Retry-After`))
 
   def getUri(uri: String): Uri =
