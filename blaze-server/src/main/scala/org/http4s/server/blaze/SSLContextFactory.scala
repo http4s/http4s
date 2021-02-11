@@ -16,12 +16,8 @@
 
 package org.http4s.server.blaze
 
-import java.io.ByteArrayInputStream
-import java.security.cert.{CertificateFactory, X509Certificate}
-
+import java.security.cert.X509Certificate
 import javax.net.ssl.SSLSession
-
-import scala.util.Try
 
 @deprecated("Moved to org.http4s.internal.tls", "0.21.19")
 private[blaze] object SSLContextFactory {
