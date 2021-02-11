@@ -233,6 +233,25 @@ class ParsingSpec extends Http4sSuite {
     } yield body == "hello" && rest == "everything after the body").assert
   }
 
+  test("Parser.Request.parser should parse two requests in a row") {
+    val reqS =
+      Stream(
+        "GET /foo HTTP/1.1\r\n",
+        "Accept: text/plain\r\n\r\nGET /foo HTTP/1.1\r\n",
+        "Accept: text/plain\r\n\r\n"
+      )
+    val byteStream: Stream[IO, Byte] = reqS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      req1 <- Parser.Request.parser[IO](Int.MaxValue, None)(Array.emptyByteArray, take)
+      drained <- req1._2
+      req2 <- Parser.Request.parser[IO](Int.MaxValue, None)(drained.get, take)
+    } yield req1._1.method == Method.GET && req2._1.method == Method.GET).assert
+  }
+
   test("Parser.Response.parser should handle a chunked response") {
     val defaultMaxHeaderLength = 4096
     val base =
@@ -432,6 +451,33 @@ class ParsingSpec extends Http4sSuite {
         )
       case _ => fail("Parse Error")
     }
+  }
+
+  test("Parser.Response.parser should parse two responses in a row") {
+    val defaultMaxHeaderLength = 4096
+    val respS =
+      Stream(
+        "HTTP/1.1 200 OK\r\n",
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\n",
+        "helloHTTP/1.1 200 OK\r\n", // this is the crucial part
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\nworld"
+      )
+    val byteStream: Stream[IO, Byte] = respS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      resp1 <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+      body1 <- resp1._1.body.through(fs2.text.utf8Decode).compile.string
+      drained <- resp1._2
+      resp2 <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(drained.get, take)
+      body2 <- resp2._1.body.through(fs2.text.utf8Decode).compile.string
+    } yield body1 == "hello" && body2 == "world").assert
   }
 
   // Compiling a stream is generally undefined behavior but that doesn't stop us from testing it
