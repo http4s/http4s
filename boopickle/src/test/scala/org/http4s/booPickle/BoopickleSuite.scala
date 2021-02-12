@@ -28,7 +28,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
 class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawSuite {
-  implicit val testContext = TestContext()
+  implicit val testContext: TestContext = TestContext()
 
   trait Fruit {
     val weight: Double
@@ -50,8 +50,8 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawS
   implicit val fruitPickler: Pickler[Fruit] =
     compositePickler[Fruit].addConcreteType[Banana].addConcreteType[Kiwi].addConcreteType[Carambola]
 
-  implicit val encoder = booEncoderOf[IO, Fruit]
-  implicit val decoder = booOf[IO, Fruit]
+  implicit val encoder: EntityEncoder[IO, Fruit] = booEncoderOf[IO, Fruit]
+  implicit val decoder: EntityDecoder[IO, Fruit] = booOf[IO, Fruit]
 
   implicit val fruitArbitrary: Arbitrary[Fruit] = Arbitrary {
     for {

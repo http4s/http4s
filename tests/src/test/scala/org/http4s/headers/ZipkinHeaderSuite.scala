@@ -20,7 +20,7 @@ package headers
 import cats.syntax.all._
 import org.http4s.laws.discipline.ArbitraryInstances._
 
-class ZipkinHeaderSuite extends Http4sSuite with MHeaderLaws {
+class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
   checkAll("X-B3-Sampled", headerLaws(`X-B3-Sampled`))
   checkAll("X-B3-Flags", headerLaws(`X-B3-Flags`))
   checkAll("X-B3-TraceId", headerLaws(`X-B3-TraceId`))

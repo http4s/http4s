@@ -19,7 +19,7 @@ package org.http4s.headers
 import org.scalacheck.Prop._
 import org.http4s.laws.discipline.ArbitraryInstances._
 
-class ContentLengthSuite extends MHeaderLaws {
+class ContentLengthSuite extends HeaderLaws {
   checkAll("Content-Length", headerLaws(`Content-Length`))
 
   test("fromLong should reject negative lengths") {

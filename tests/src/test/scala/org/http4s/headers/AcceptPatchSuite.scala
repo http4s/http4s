@@ -17,6 +17,8 @@
 package org.http4s
 package headers
 
-class ContentEncodingSpec extends HeaderLaws {
-  checkAll("Content-Encoding", headerLaws(`Content-Encoding`))
+import org.http4s.laws.discipline.arbitrary._
+
+final class AcceptPatchSuite extends HeaderLaws {
+  checkAll("AcceptPatch", headerLaws(`Accept-Patch`))
 }
