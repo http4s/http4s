@@ -480,8 +480,25 @@ class ParsingSpec extends Http4sSuite {
     } yield body1 == "hello" && body2 == "world").assert
   }
 
+  test("Parser.Body should completely read the body") {
+    val bodyS = Stream("hello ", "world!")
+    val byteStream: Stream[IO, Byte] = bodyS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+    for {
+      take <- Helpers.taking(byteStream)
+      body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
+      bodyString <- body._1.through(fs2.text.utf8Decode).compile.string
+      drained <- body._2
+    } yield {
+      assertEquals(bodyString, "hello world!")
+      assertEquals(drained.map(_.toList), Some(Nil))
+    }
+  }
+
   // Compiling a stream is generally undefined behavior but that doesn't stop us from testing it
-  test("Reading a fixed-length body more than once should raise an error") {
+  test("Parser.Body should raise an error when compiling the body more than once") {
     val bodyS = Stream("hello world!")
     val byteStream: Stream[IO, Byte] = bodyS
       .flatMap(s =>
