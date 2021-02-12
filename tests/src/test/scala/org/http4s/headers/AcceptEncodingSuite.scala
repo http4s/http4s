@@ -17,48 +17,52 @@
 package org.http4s
 package headers
 
-class AcceptEncodingSpec extends HeaderLaws {
+import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.syntax.all._
+import org.scalacheck.Prop._
+
+class AcceptEncodingSuite extends HeaderLaws {
   checkAll("Accept-Encoding", headerLaws(`Accept-Encoding`))
 
-  "is satisfied by a content coding if the q value is > 0" in {
-    prop { (h: `Accept-Encoding`, cc: ContentCoding) =>
+  test("is satisfied by a content coding if the q value is > 0") {
+    forAll { (h: `Accept-Encoding`, cc: ContentCoding) =>
       h.qValue(cc) > QValue.Zero ==> h.satisfiedBy(cc)
     }
   }
 
-  "is not satisfied by a content coding if the q value is 0" in {
-    prop { (h: `Accept-Encoding`, cc: ContentCoding) =>
+  test("is not satisfied by a content coding if the q value is 0") {
+    forAll { (h: `Accept-Encoding`, cc: ContentCoding) =>
       !(`Accept-Encoding`(h.values.map(_.withQValue(QValue.Zero))).satisfiedBy(cc))
     }
   }
 
-  "matches atom before splatted" in {
+  test("matches atom before splatted") {
     val acceptEncoding =
       `Accept-Encoding`(ContentCoding.*, ContentCoding.gzip.withQValue(qValue"0.5"))
-    acceptEncoding.qValue(ContentCoding.gzip) must_== qValue"0.5"
+    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), qValue"0.5")
   }
 
-  "matches splatted if atom not present" in {
+  test("matches splatted if atom not present") {
     val acceptEncoding =
       `Accept-Encoding`(ContentCoding.*, ContentCoding.compress.withQValue(qValue"0.5"))
-    acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.One
+    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.One)
   }
 
-  "rejects content coding matching atom with q=0" in {
+  test("rejects content coding matching atom with q=0") {
     val acceptEncoding =
       `Accept-Encoding`(ContentCoding.*, ContentCoding.gzip.withQValue(QValue.Zero))
-    acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.Zero
+    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.Zero)
   }
 
-  "rejects content coding matching splat with q=0" in {
+  test("rejects content coding matching splat with q=0") {
     val acceptEncoding = `Accept-Encoding`(
       ContentCoding.*.withQValue(QValue.Zero),
       ContentCoding.compress.withQValue(qValue"0.5"))
-    acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.Zero
+    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.Zero)
   }
 
-  "rejects unmatched content coding" in {
+  test("rejects unmatched content coding") {
     val acceptEncoding = `Accept-Encoding`(ContentCoding.compress.withQValue(qValue"0.5"))
-    acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.Zero
+    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.Zero)
   }
 }

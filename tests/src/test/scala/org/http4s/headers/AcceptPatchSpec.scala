@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.headers
+package org.http4s
+package headers
 
 import cats.data.NonEmptyList
-import org.http4s.MediaType
 
-class AcceptPatchSpec extends HeaderLaws {
-  checkAll("AcceptPatch", headerLaws(`Accept-Patch`))
-
+class AcceptPatchSpec extends Http4sSpec {
   "render" should {
     "media types" in {
       `Accept-Patch`(

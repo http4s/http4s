@@ -17,6 +17,8 @@
 package org.http4s
 package headers
 
-class AcceptHeaderSpec extends HeaderLaws {
+import org.http4s.laws.discipline.ArbitraryInstances._
+
+class AcceptHeaderSuite extends HeaderLaws {
   checkAll("Accept", headerLaws(Accept))
 }
