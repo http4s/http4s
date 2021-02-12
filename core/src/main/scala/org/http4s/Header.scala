@@ -17,6 +17,60 @@ import org.http4s.util._
 import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
 
+object newH {
+
+  /**
+    * Typeclass representing an HTTP header, which all the http4s
+    * default headers satisfy.
+    * You can add custom headers by providing an implicit instance of
+    * `Header[YourCustomHeader]`
+    */
+  trait Header[A] {
+    /**
+      * Name of the header. Not case sensitive.
+      */
+    def name: CIString
+    /**
+      * Value of the header, which is represented as a String.
+      * Will be a comma separated String for headers with multiple values.
+      */
+    def value(a: A): String
+    /**
+      * Parses the header from its String representation.
+      * Could be a comma separated String in case of a Header with
+      * multiple values.
+      */
+    def parse(headerValue: String): Option[A]
+  }
+  object Header {
+    def apply[A](implicit ev: Header[A]): ev.type = ev
+
+    // TODO scaladoc for error handling
+    trait Exists {
+      type CustomHeader
+      def header: Header[CustomHeader]
+      def value:  CustomHeader
+    }
+    object Exists {
+      implicit def apply[H](h: H)(implicit H: Header[H]): Header.Exists = new Header.Exists {
+        type CustomHeader = H
+        val header = H
+        val value = h
+      }
+    }
+
+
+    case class Raw(name: CIString, value: String) {
+      def toHeader[A: Header]: Option[A] =
+        (name == Header[A].name).guard[Option] >> Header[A].parse(value)
+    }
+    object Raw {
+      def fromHeader[A: Header](a: A): Header.Raw =
+        Header.Raw(Header[A].name, Header[A].value(a))
+    }
+  }
+
+}
 /** Abstract representation o the HTTP header
   * @see org.http4s.HeaderKey
   */
