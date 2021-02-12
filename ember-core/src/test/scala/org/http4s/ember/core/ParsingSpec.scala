@@ -480,7 +480,7 @@ class ParsingSpec extends Http4sSuite {
     } yield body1 == "hello" && body2 == "world").assert
   }
 
-  test("Parser.Body should completely read the body") {
+  test("Parser.Body should completely consume a body") {
     val bodyS = Stream("hello ", "world!")
     val byteStream: Stream[IO, Byte] = bodyS
       .flatMap(s =>
@@ -494,6 +494,23 @@ class ParsingSpec extends Http4sSuite {
     } yield {
       assertEquals(bodyString, "hello world!")
       assertEquals(drained.map(_.toList), Some(Nil))
+    }
+  }
+
+  test("Parser.Body should partially consume a body") {
+    val bodyS = Stream("hello ", "world!")
+    val byteStream: Stream[IO, Byte] = bodyS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+    for {
+      take <- Helpers.taking(byteStream)
+      body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
+      bodyString <- body._1.take(2).through(fs2.text.utf8Decode).compile.string
+      drained <- body._2
+    } yield {
+      assertEquals(bodyString, "he")
+      assertEquals(drained, None)
     }
   }
 
