@@ -57,7 +57,6 @@ object Http4sPlugin extends AutoPlugin {
            |"http4s.doc" = "${docExampleVersion(version.value)}"
            |circe = "${circeJawn.revision}"
            |cryptobits = "${cryptobits.revision}"
-           |"argonaut-shapeless_6.2" = "1.2.0-M6"
            |
            |[releases]
            |$releases
@@ -88,7 +87,6 @@ object Http4sPlugin extends AutoPlugin {
         }
 
         val attributedSources = Set(
-          "src/main/scala/org/http4s/argonaut/Parser.scala",
           "src/main/scala/org/http4s/CacheDirective.scala",
           "src/main/scala/org/http4s/Challenge.scala",
           "src/main/scala/org/http4s/Charset.scala",
@@ -281,7 +279,6 @@ object Http4sPlugin extends AutoPlugin {
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val argonaut = "6.3.3"
     val asyncHttpClient = "2.12.2"
     val blaze = "0.15.0-M1"
     val boopickle = "1.3.3"
@@ -332,8 +329,6 @@ object Http4sPlugin extends AutoPlugin {
     val vault = "2.1.0-M14"
   }
 
-  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
-  lazy val argonautJawn                     = "io.argonaut"            %% "argonaut-jawn"             % V.argonaut
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
   lazy val blazeCore                        = "org.http4s"             %% "blaze-core"                % V.blaze
   lazy val blazeHttp                        = "org.http4s"             %% "blaze-http"                % V.blaze

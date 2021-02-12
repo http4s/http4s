@@ -44,7 +44,6 @@ lazy val modules: List[ProjectReference] = List(
   tomcat,
   theDsl,
   jawn,
-  argonaut,
   boopickle,
   circe,
   json4s,
@@ -392,17 +391,6 @@ lazy val jawn = libraryProject("jawn")
     )
   )
   .dependsOn(core, testing % "test->test")
-
-lazy val argonaut = libraryProject("argonaut")
-  .settings(
-    description := "Provides Argonaut codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.argonaut,
-      argonautJawn
-    )
-  )
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val boopickle = libraryProject("boopickle")
   .settings(
