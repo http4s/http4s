@@ -19,7 +19,7 @@ package headers
 
 import org.http4s.syntax.all._
 
-class LinkSuite extends MHeaderLaws {
+class LinkSuite extends HeaderLaws {
   // FIXME Uri does not round trip properly: https://github.com/http4s/http4s/issues/1651
   // checkAll(name = "Link", headerLaws(Link))
 

@@ -21,7 +21,7 @@ import org.http4s.laws.discipline.ArbitraryInstances._
 import org.scalacheck.Prop._
 import scala.concurrent.duration._
 
-class AgeSuite extends MHeaderLaws {
+class AgeSuite extends HeaderLaws {
   checkAll("Age", headerLaws(Age))
 
   test("render should age in seconds") {
