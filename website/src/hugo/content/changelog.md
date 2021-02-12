@@ -26,6 +26,12 @@ it.
 
 * [#4370](https://github.com/http4s/http4s/pull/4370): Deprecate the http4s-json4s modules.  They won't be published starting in 0.22.
 
+## http4s-scalatags
+
+### Enhancements
+
+* [#3850](https://github.com/http4s/http4s/pull/3850): Relax constraint on encoders from `TypedTag[String]` to `Frag[_, String]`
+
 ## Dependency updates
 
 * cats-2.4.1
