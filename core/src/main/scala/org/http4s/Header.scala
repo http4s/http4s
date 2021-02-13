@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.{Order, Show, Monoid}
+import cats.{Order, Show, Monoid, Id}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.util._
@@ -18,37 +18,6 @@ import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
 
 object newH {
-  sealed trait Select[A <: Header.Type] {
-    type F[_]
-    def from[H](headers: List[Header.Raw])(implicit h: Header[H, A]): Option[F[H]]
-  }
-  object Select {
-    implicit def singletons: Select[Header.Single] { type F[B] = cats.Id[B]} =
-      new Select[Header.Single] {
-        type F[B] = cats.Id[B]
-        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Header.Single]): Option[H] =
-          headers.collectFirst(Function.unlift(h.fromRaw))
-      }
-
-    implicit def recurrings: Select[Header.Recurring] { type F[B] = NonEmptyList[B]} =
-      new Select[Header.Recurring] {
-        type F[B] = NonEmptyList[B]
-        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Header.Recurring]): Option[NonEmptyList[H]] =
-          headers.collect(Function.unlift(h.fromRaw)).toNel
-      }
-  }
-  trait SelectHeader[H] {
-    type F[_]
-    def from(headers: List[Header.Raw]): Option[F[H]]
-  }
-  object SelectHeader {
-    implicit def all[H, T <: Header.Type](implicit h: Header[H, T], s: Select[T]): SelectHeader[H] { type F[B] = s.F[B] } =
-      new SelectHeader[H] {
-        type F[B] = s.F[B]
-        def from(headers: List[Header.Raw]): Option[F[H]] = s.from(headers)
-      }
-  }
-
   /**
     * Typeclass representing an HTTP header, which all the http4s
     * default headers satisfy.
@@ -123,8 +92,25 @@ object newH {
         }
     }
 
+    sealed trait Select[A] {
+      type F[_]
+      def from(headers: List[Header.Raw]): Option[F[A]]
+    }
+    object Select {
+      implicit def singleHeaders[A](implicit h: Header[A, Header.Single]): Select[A] { type F[B] = Id[B]} =
+        new Select[A] {
+          type F[B] = Id[B]
+          def from(headers: List[Header.Raw]): Option[A] =
+            headers.collectFirst(Function.unlift(h.fromRaw))
+        }
 
-
+      implicit def recurringHeaders[A](implicit h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B]} =
+        new Select[A] {
+          type F[B] = NonEmptyList[B]
+          def from(headers: List[Header.Raw]): Option[NonEmptyList[A]] =
+            headers.collect(Function.unlift(h.fromRaw)).toNel
+        }
+    }
   }
 
   import scala.collection.mutable.ListBuffer
@@ -139,7 +125,7 @@ object newH {
       * @return a scala.Option possibly containing the resulting header of type key.HeaderT
       * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
       */
-    def get[A](implicit ev: SelectHeader[A]): Option[ev.F[A]] =
+    def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
       ev.from(headers)
 
     /** Attempt to get a [[org.http4s.Header]] from this collection of headers
@@ -212,6 +198,14 @@ object newH {
   object Headers {
     val empty = of(List.empty)
 
+    /**
+      * Creates a new Headers collection.
+      * The [[Header.ToRaw]] machinery allows the creation of Headers with
+      * variadic and heteregenous arguments, provided they are either:
+      * - A value of type `A`  which has a `Header[A]` in scope
+      * - A (name, value) pair of `String`
+      * - A `Header.Raw`
+      */
     def apply(headers: Header.ToRaw*): Headers =
       of(headers.toList.map(_.value))
 
@@ -284,6 +278,12 @@ object newH {
 
     val a = hs.get[Foo]
     val b = hs.get[Bar]
+
+    // scala> Examples.a
+    // val res0: Option[Foo] = Some(Foo(two))
+    //
+    // scala> Examples.b
+    // val res1: Option[NonEmptyList[Bar]] = Some(NonEmptyList(Bar(one), Bar(three)))
   }
 }
 
