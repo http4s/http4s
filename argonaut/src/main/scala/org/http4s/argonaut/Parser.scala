@@ -15,6 +15,7 @@ import org.typelevel.jawn._
 import scala.collection.mutable
 
 /* Temporary parser until jawn-argonaut supports 6.2.x. */
+@deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
 private[argonaut] object Parser extends SupportParser[Json] {
   implicit val facade: Facade[Json] =
     new Facade.NoIndexFacade[Json] {
