@@ -298,7 +298,6 @@ object Http4sPlugin extends AutoPlugin {
     val jawn = "1.0.3"
     val jawnFs2 = "1.0.1"
     val jetty = "9.4.36.v20210114"
-    val json4s = "3.6.10"
     val log4cats = "1.2.0-RC2"
     val keypool = "0.3.0-RC1"
     val logback = "1.2.3"
@@ -360,7 +359,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
-  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % V.jawn
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % V.jetty
@@ -370,9 +368,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % V.jetty
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % V.jetty
   lazy val jettyUtil                        = "org.eclipse.jetty"      %  "jetty-util"                % V.jetty
-  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
-  lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
-  lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
   lazy val keypool                          = "org.typelevel"          %% "keypool"                   % V.keypool
   lazy val log4catsCore                     = "org.typelevel"          %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "org.typelevel"          %% "log4cats-slf4j"            % V.log4cats

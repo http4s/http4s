@@ -6,7 +6,7 @@ title: JSON handling
 
 ## Add the JSON support module(s)
 
-http4s-core does not include JSON support, but integration with three
+http4s-core does not include JSON support, but integration with some
 popular Scala JSON libraries are supported as modules.
 
 ### Circe
@@ -27,20 +27,6 @@ libraryDependencies ++= Seq(
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ```
-
-### Json4s
-
-Json4s is less functionally pure than Circe or Argonaut, but older and
-integrated with many Scala libraries.  It comes with two backends.
-You should pick one of these dependencies:
-
-```scala
-libraryDependencies += "org.http4s" %% "http4s-json4s-native" % http4sVersion
-libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % http4sVersion
-```
-
-There is no extra codec derivation library for json4s, as it generally
-bases its codecs on runtime reflection.
 
 ## Sending raw JSON
 
@@ -297,5 +283,4 @@ fiber.cancel.unsafeRunSync()
 ```
 
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
-[jsonExtract]: https://github.com/http4s/http4s/blob/7026c019cb552513896ed2c84426fa6719522a31/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L38
 [`as` syntax]: ../api/org/http4s/MessageOps.html#as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]

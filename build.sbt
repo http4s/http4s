@@ -46,9 +46,6 @@ lazy val modules: List[ProjectReference] = List(
   jawn,
   boopickle,
   circe,
-  json4s,
-  json4sNative,
-  json4sJackson,
   playJson,
   scalaXml,
   twirl,
@@ -415,37 +412,6 @@ lazy val circe = libraryProject("circe")
     )
   )
   .dependsOn(core, specs2 % "test->test", jawn % "compile;test->test")
-
-lazy val json4s = libraryProject("json4s")
-  .settings(
-    description := "Base library for json4s codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      jawnJson4s,
-      json4sCore,
-    ),
-  )
-  .dependsOn(jawn % "compile;test->test")
-
-lazy val json4sNative = libraryProject("json4s-native")
-  .settings(
-    description := "Provides json4s-native codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.json4sNative,
-    )
-  )
-  .dependsOn(json4s % "compile;test->test")
-
-lazy val json4sJackson = libraryProject("json4s-jackson")
-  .settings(
-    description := "Provides json4s-jackson codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.json4sJackson,
-    )
-  )
-  .dependsOn(json4s % "compile;test->test")
 
 lazy val playJson = libraryProject("play-json")
   .settings(

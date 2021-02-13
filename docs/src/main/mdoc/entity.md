@@ -83,8 +83,6 @@ a full list.
 With `jsonOf` for the `EntityDecoder`, and `jsonEncoderOf` for the `EntityEncoder`:
 
 - circe: `"org.http4s" %% "http4s-circe" % http4sVersion`
-- json4s-native: `"org.http4s" %% "http4s-json4s-native" % http4sVersion`
-- json4s-jackson: `"org.http4s" %% "http4s-json4s-jackson" % http4sVersion`
 
 ### XML
 For scala-xml (xml literals), import `org.http4s.scalaxml`. No direct naming
