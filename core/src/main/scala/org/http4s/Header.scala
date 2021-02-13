@@ -76,9 +76,15 @@ object newH {
       */
     def parse(headerValue: String): Option[A]
 
+    /**
+     * Transform this header into a [[Header.Raw]]
+     */
     def toRaw(a: A): Header.Raw =
       Header.Raw(name, value(a))
 
+    /**
+     * Convert a [[Header.Raw]] into this header
+     */
     def fromRaw(h: Header.Raw): Option[A] =
       (h.name == name).guard[Option] >> parse(h.value)
   }
