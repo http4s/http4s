@@ -31,14 +31,14 @@ object newH {
       new Select[Singleton] {
         type F[B] = cats.Id[B]
         def from[H](headers: List[Header.Raw])(implicit h: Header[H, Singleton]): Option[H] =
-          headers.collectFirst(Function.unlift((_: Header.Raw).toHeader[H]))
+          headers.collectFirst(Function.unlift(h.fromRaw))
       }
 
     implicit def recurrings: Select[Recurring] { type F[B] = NonEmptyList[B]} =
       new Select[Recurring] {
         type F[B] = NonEmptyList[B]
         def from[H](headers: List[Header.Raw])(implicit h: Header[H, Recurring]): Option[NonEmptyList[H]] =
-          headers.collect(Function.unlift((_: Header.Raw).toHeader[H])).toNel
+          headers.collect(Function.unlift(h.fromRaw)).toNel
       }
   }
   trait SelectHeader[H] {
@@ -75,8 +75,16 @@ object newH {
       * multiple values.
       */
     def parse(headerValue: String): Option[A]
+
+    def toRaw(a: A): Header.Raw =
+      Header.Raw(name, value(a))
+
+    def fromRaw(h: Header.Raw): Option[A] =
+      (h.name == name).guard[Option] >> parse(h.value)
   }
   object Header {
+    case class Raw(name: CIString, value: String)
+
     def apply[A](implicit ev: Header[A, _]): ev.type = ev
 
     /**
@@ -103,14 +111,7 @@ object newH {
     }
 
 
-    case class Raw(name: CIString, value: String) {
-      def toHeader[A](implicit h: Header[A, _]): Option[A] =
-        (name == Header[A].name).guard[Option] >> Header[A].parse(value)
-    }
-    object Raw {
-      def fromHeader[A](a: A)(implicit h: Header[A, _]): Header.Raw =
-        Header.Raw(Header[A].name, Header[A].value(a))
-    }
+
   }
 
   import scala.collection.mutable.ListBuffer
@@ -118,8 +119,6 @@ object newH {
   /** A collection of HTTP Headers */
   final class Headers (val headers: List[Header.Raw]) extends AnyVal {
     /**
-      * TODO get by type
-      * TODO recurring
       * TODO revise scaladoc
       * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
       *
