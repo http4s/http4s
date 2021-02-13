@@ -16,7 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
@@ -26,7 +25,6 @@ import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.AgentProduct
 import io.chrisdavenport.keypool.Reusable
-import scala.concurrent.duration._
 
 class ClientHelpersSuite extends Http4sSuite {
 
@@ -103,127 +101,92 @@ class ClientHelpersSuite extends Http4sSuite {
       .assertEquals(Some(name))
   }
 
-  test("Postprocess response should reuse when body is run") {
-
+  test("Postprocess response should reuse") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-      resp =
-        ClientHelpers
-          .postProcessResponse(
-            Request[IO](),
-            Response[IO](),
-            reuse
-          )
-      testResult <-
-        resp.body.compile.drain >>
-          reuse.get.map { case r =>
-            assertEquals(r, Reusable.Reuse)
-          }
+      _ <- ClientHelpers
+        .postProcessResponse[IO](
+          Request[IO](),
+          Response[IO](),
+          IO.pure(Some(Array.emptyByteArray)),
+          nextBytes,
+          reuse
+        )
+      testResult <- reuse.get.map { case r =>
+        assertEquals(r, Reusable.Reuse)
+      }
     } yield testResult
   }
 
-  test("Postprocess response should do not reuse when body is not run") {
+  test("Postprocess response should save drained bytes when reused") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
-      _ =
-        ClientHelpers
-          .postProcessResponse(
-            Request[IO](),
-            Response[IO](),
-            reuse
-          )
-
-      testResult <-
-        reuse.get.map { case r =>
-          assertEquals(r, Reusable.DontReuse)
-        }
-    } yield testResult
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](),
+        Response[IO](),
+        IO.pure(Some(Array[Byte](1, 2, 3))),
+        nextBytes,
+        reuse
+      )
+      drained <- nextBytes.get
+    } yield assertEquals(drained.toList, List[Byte](1, 2, 3))
   }
 
-  test("Postprocess response should do not reuse when error encountered running stream") {
+  test("Postprocess response should not reuse when connection close is set on request") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-      resp =
-        ClientHelpers
-          .postProcessResponse(
-            Request[IO](),
-            Response[IO](body = fs2.Stream.raiseError[IO](new Throwable("Boo!"))),
-            reuse
-          )
-      testResult <-
-        resp.body.compile.drain.attempt >>
-          reuse.get.map { case r =>
-            assertEquals(r, Reusable.DontReuse)
-          }
-    } yield testResult
-  }
-
-  // pending
-  test(
-    "Postprocess response should do not reuse when cancellation encountered running stream".fail) {
-    for {
-      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-      resp =
-        ClientHelpers
-          .postProcessResponse(
-            Request[IO](),
-            Response[IO](body = fs2
-              .Stream(1, 2, 3, 4, 5)
-              .map(_.toByte)
-              .zipLeft(
-                fs2.Stream.awakeDelay[IO](1.second)
-              )
-              .interruptAfter(2.seconds)),
-            reuse
-          )
-      testResult <-
-        resp.body.compile.drain.attempt >>
-          reuse.get.map { case r =>
-            assertEquals(r, Reusable.DontReuse)
-          }
-    } yield testResult
-  }
-
-  test("Postprocess response should do not reuse when connection close is set on request") {
-    for {
-      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-      resp =
-        ClientHelpers
-          .postProcessResponse[IO](
-            Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
-            Response[IO](),
-            reuse
-          )
-      testResult <-
-        resp.body.compile.drain >>
-          reuse.get.map { case r =>
-            assertEquals(r, Reusable.DontReuse)
-          }
+      _ <- ClientHelpers
+        .postProcessResponse[IO](
+          Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+          Response[IO](),
+          IO.pure(Some(Array.emptyByteArray)),
+          nextBytes,
+          reuse
+        )
+      testResult <- reuse.get.map { case r =>
+        assertEquals(r, Reusable.DontReuse)
+      }
     } yield testResult
   }
 
   test("Postprocess response should do not reuse when connection close is set on response") {
     for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-
-      resp =
-        ClientHelpers
-          .postProcessResponse(
-            Request[IO](),
-            Response[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
-            reuse
-          )
-      testResult <-
-        resp.body.compile.drain >>
-          reuse.get.map { case r =>
-            assertEquals(r, Reusable.DontReuse)
-          }
+      _ <- ClientHelpers
+        .postProcessResponse[IO](
+          Request[IO](),
+          Response[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+          IO.pure(Some(Array.emptyByteArray)),
+          nextBytes,
+          reuse
+        )
+      testResult <- reuse.get.map { case r =>
+        assertEquals(r, Reusable.DontReuse)
+      }
     } yield testResult
   }
 
+  test("Postprocess response should do not reuse when drain is None") {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+      _ <- ClientHelpers
+        .postProcessResponse[IO](
+          Request[IO](),
+          Response[IO](),
+          IO.pure(None),
+          nextBytes,
+          reuse
+        )
+      testResult <- reuse.get.map { case r =>
+        assertEquals(r, Reusable.DontReuse)
+      }
+    } yield testResult
+  }
 }
