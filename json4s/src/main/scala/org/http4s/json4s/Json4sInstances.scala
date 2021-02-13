@@ -23,13 +23,17 @@ import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue
 import org.typelevel.jawn.support.json4s.Parser
+import scala.annotation.nowarn
 
+@deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
 trait Json4sInstances[J] {
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   implicit def jsonDecoder[F[_]](implicit F: Sync[F]): EntityDecoder[F, JValue] =
     jawn.jawnDecoder(F, CustomParser.facade)
 
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   def jsonOf[F[_], A](implicit reader: Reader[A], F: Sync[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       DecodeResult(
@@ -45,6 +49,7 @@ trait Json4sInstances[J] {
     * Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
     * idiomatic http4s, than [[jsonOf]].
     */
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   def jsonExtract[F[_], A](implicit
       F: Sync[F],
       formats: Formats,
@@ -55,8 +60,10 @@ trait Json4sInstances[J] {
           .handleError(e => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))))
     }
 
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   protected def jsonMethods: JsonMethods[J]
 
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   implicit def jsonEncoder[F[_], A <: JValue]: EntityEncoder[F, A] =
     EntityEncoder
       .stringEncoder(Charset.`UTF-8`)
@@ -67,9 +74,11 @@ trait Json4sInstances[J] {
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   def jsonEncoderOf[F[_], A](implicit writer: Writer[A]): EntityEncoder[F, A] =
     jsonEncoder[F, JValue].contramap[A](writer.write)
 
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   implicit val uriWriter: JsonFormat[Uri] =
     new JsonFormat[Uri] {
       def read(json: JValue): Uri =
@@ -89,7 +98,9 @@ trait Json4sInstances[J] {
         JString(uri.toString)
     }
 
+  @deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
   implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+    @nowarn("cat=deprecation")
     def decodeJson[A](implicit decoder: Reader[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }

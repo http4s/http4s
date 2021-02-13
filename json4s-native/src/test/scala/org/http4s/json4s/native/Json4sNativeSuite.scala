@@ -20,4 +20,5 @@ package native
 
 import org.json4s.native.Document
 
+@deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
 class Json4sNativeSpec extends Json4sSuite[Document] with Json4sNativeInstances
