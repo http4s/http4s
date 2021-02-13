@@ -46,7 +46,7 @@ object newH {
     def from(headers: List[Header.Raw]): Option[F[H]]
   }
   object SelectHeader {
-    implicit def all[H, TT <: T](implicit h: Header[H, TT], s: Select[TT]): SelectHeader[H] =
+    implicit def all[H, TT <: T](implicit h: Header[H, TT], s: Select[TT]): SelectHeader[H] { type F[B] = s.F[B] } =
       new SelectHeader[H] {
         type F[B] = s.F[B]
         def from(headers: List[Header.Raw]): Option[F[H]] = s.from(headers)
@@ -232,6 +232,8 @@ object newH {
     )
 
     val a = hs.get[Foo]
+
+
     val b = hs.get[Bar]
 
     /////
