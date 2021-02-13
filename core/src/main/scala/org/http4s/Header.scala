@@ -164,6 +164,24 @@ object newH {
   }
 
   object Headers {
+    ///// test for construction
+    case class Foo(v: String)
+    object Foo {
+      implicit def headerFoo: Header[Foo] = new Header[Foo] {
+        def name = CIString("foo")
+        def value(f: Foo) = f.v
+        def parse(s: String) = Foo(s).some
+      }
+    }
+    def bar = Header.Raw(CIString("bar"), "bbb")
+
+    val myHeaders = Headers(
+      Foo("hello"),
+      "my" -> "header",
+      bar
+    )
+    //////
+
     val empty = of(List.empty)
 
     def apply(headers: Header.ToRaw*): Headers =
@@ -203,6 +221,7 @@ object newH {
     )
   }
 }
+
 /** Abstract representation o the HTTP header
   * @see org.http4s.HeaderKey
   */
