@@ -103,7 +103,6 @@ it.
 * netty-4.1.59.Final
 * okio-2.9.0
 * tomcat-9.0.43
-<<<<<<< HEAD
 
 # v1.0.0-M16 (2021-02-02)
 
@@ -114,8 +113,6 @@ Inherits the fixes of v0.21.18
 ~~Build failure.~~
 
 Accidentally published from the 0.21.x series after a series of unfortunate events. Do not use.
-=======
->>>>>>> series/0.22
 
 # v0.22.0-M3 (2021-02-02)
 
