@@ -37,6 +37,20 @@ it.
 
 * [#4371](https://github.com/http4s/http4s/pull/4371): Replace jawn-play with an internal copy of the facade to work around `withDottyCompat` issues.
 
+## http4s-scala-xml
+
+### Breaking changes
+
+* [#4380](https://github.com/http4s/http4s/pull/4380): Move the implicits from the root package to a Cats-like encoding.  Suggest replacing `import org.http4s.scalaxml._` with `import org.http4s.scalaxml.implicits._`.
+
+## Dependencies
+
+* blaze-0.15.0-M1 (new)
+* ip4s-2.0.0-M1
+* jawn-play (dropped)
+* play-json-2.10.0-RC1
+* scala-xml-2.0.0-M4
+
 # v0.21.19
 
 ## http4s-core
@@ -59,21 +73,14 @@ it.
 
 ### Enhancements
 
-* [#3850](https://github.com/http4s/http4s/pull/3850): Instances that took a `TypedTag` now operate on a `Frag`. This is binary breaking.
+* [#3850](https://github.com/http4s/http4s/pull/3850): Relax constraint on encoders from `TypedTag[String]` to `Frag[_, String]`
 
-## http4s-scala-xml
+## Dependency updates
 
-### Breaking changes
-
-* [#4380](https://github.com/http4s/http4s/pull/4380): Move the implicits from the root package to a Cats-like encoding.  Suggest replacing `import org.http4s.scalaxml._` with `import org.http4s.scalaxml.implicits._`.
-
-## Dependencies
-
-* blaze-0.15.0-M1 (new)
-* ip4s-2.0.0-M1
-* jawn-play (dropped)
-* play-json-2.10.0-RC1
-* scala-xml-2.0.0-M4
+* cats-2.4.1
+* netty-4.1.59.Final
+* okio-2.9.0
+* tomcat-9.0.43
 
 # v1.0.0-M16 (2021-02-02)
 

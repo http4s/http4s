@@ -145,7 +145,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  dispatcher.test("Submit a request line with a query") { dispatcher =>
+  dispatcher.test("Submit a request line with a query".flaky) { dispatcher =>
     val uri = "/huh?foo=bar"
     val Right(parsed) = Uri.fromString("http://www.foo.test" + uri)
     val req = Request[IO](uri = parsed)
@@ -200,7 +200,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  dispatcher.test("Insert a User-Agent header") { dispatcher =>
+  dispatcher.test("Insert a User-Agent header".flaky) { dispatcher =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     getSubmission(FooRequest, resp, dispatcher, DefaultUserAgent).map { case (request, response) =>
