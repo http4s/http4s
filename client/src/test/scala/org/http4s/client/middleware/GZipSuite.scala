@@ -20,7 +20,7 @@ package middleware
 
 import cats.effect.IO
 import org.http4s.dsl.io._
-import org.http4s.headers.`Content-Encoding`
+import org.http4s.headers.{`Content-Encoding`, `Content-Length`}
 
 class GZipSuite extends Http4sSuite {
   private val service = server.middleware.GZip(HttpApp[IO] {
@@ -35,8 +35,8 @@ class GZipSuite extends Http4sSuite {
     gzipClient
       .get(Uri.unsafeFromString("/gziptest")) { response =>
         assert(response.status == Status.Ok)
-        assert(
-          response.headers.get(`Content-Encoding`).contains(`Content-Encoding`(ContentCoding.gzip)))
+        assert(response.headers.get(`Content-Encoding`).isEmpty)
+        assert(response.headers.get(`Content-Length`).isEmpty)
 
         response.as[String]
       }
@@ -51,8 +51,8 @@ class GZipSuite extends Http4sSuite {
       .run(request)
       .use { response =>
         assert(response.status == Status.Ok)
-        assert(
-          response.headers.get(`Content-Encoding`).contains(`Content-Encoding`(ContentCoding.gzip)))
+        assert(response.headers.get(`Content-Encoding`).isEmpty)
+        assert(response.headers.get(`Content-Length`).isEmpty)
 
         response.as[String]
       }

@@ -28,19 +28,6 @@ libraryDependencies ++= Seq(
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ```
 
-### Argonaut
-
-Circe is a fork of argonaut, another popular JSON library in the Scala
-community.  The functionality is similar:
-
-```scala
-libraryDependencies += Seq(
-  "org.http4s" %% "http4s-argonaut" % http4sVersion,
-  // Optional for auto-derivation of JSON codecs
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "{{< version "argonaut-shapeless_6.2" >}}"
-)
-```
-
 ## Sending raw JSON
 
 Let's create a function to produce a simple JSON greeting with circe. First, the imports:
@@ -295,6 +282,5 @@ Finally, shut down our example server.
 fiber.cancel.unsafeRunSync()
 ```
 
-[argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
 [`as` syntax]: ../api/org/http4s/MessageOps.html#as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]

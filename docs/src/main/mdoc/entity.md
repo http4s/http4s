@@ -82,7 +82,6 @@ a full list.
 ### JSON
 With `jsonOf` for the `EntityDecoder`, and `jsonEncoderOf` for the `EntityEncoder`:
 
-- argonaut: `"org.http4s" %% "http4s-argonaut" % http4sVersion`
 - circe: `"org.http4s" %% "http4s-circe" % http4sVersion`
 
 ### XML

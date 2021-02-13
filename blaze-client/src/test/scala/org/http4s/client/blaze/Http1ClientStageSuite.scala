@@ -137,7 +137,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Submit a request line with a query") {
+  test("Submit a request line with a query".flaky) {
     val uri = "/huh?foo=bar"
     val Right(parsed) = Uri.fromString("http://www.foo.test" + uri)
     val req = Request[IO](uri = parsed)
@@ -192,7 +192,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Insert a User-Agent header") {
+  test("Insert a User-Agent header".flaky) {
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     getSubmission(FooRequest, resp, DefaultUserAgent).map { case (request, response) =>
