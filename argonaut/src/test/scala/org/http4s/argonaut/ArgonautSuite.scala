@@ -27,6 +27,7 @@ import org.http4s.syntax.all._
 import org.http4s.argonaut._
 import org.http4s.headers.`Content-Type`
 
+@deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
 class ArgonautSuite extends JawnDecodeSupportSuite[Json] with Argonauts {
   val ArgonautInstancesWithCustomErrors = ArgonautInstances.builder
     .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
