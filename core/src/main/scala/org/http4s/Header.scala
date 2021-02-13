@@ -72,6 +72,12 @@ object newH {
     /**
       * Target for implicit conversions to Header.Raw from custom
       * headers and key-value pairs.
+      * A method taking variadic `ToRaw` arguments will allow taking
+      * heteregenous arguments, provided they are either:
+      * - A value of type `A`  which has a `Header[A]` in scope
+      * - A (name, value) pair of `String`, which is treated as a `Single`? header
+      * - A `Header.Raw`
+      *
       * @see [[org.http4s.Headers$.apply]]
       */
     trait ToRaw {
@@ -135,11 +141,12 @@ object newH {
       */
     def get(key: CIString): Option[Header.Raw] = headers.find(_.name == key)
 
-    /** TODO revise scaladoc
-      * Make a new collection adding the specified headers, replacing existing headers of singleton type
-      * The passed headers are assumed to contain no duplicate Single headers.
+    /**
+      * TODO point about replacing
+      * Make a new collection adding the specified headers, replacing existing `Single` headers.
+      * The passed headers are assumed to contain no duplicate `Single` headers.
       *
-      * @param in multiple [[Header]] to append to the new collection
+      * @param in multiple heteregenous headers [[Header]] to append to the new collection, see [[Header.ToRaw]]
       * @return a new [[Headers]] containing the sum of the initial and input headers
       */
     def put(in: Header.ToRaw*): Headers =
