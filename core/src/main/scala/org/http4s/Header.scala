@@ -18,26 +18,22 @@ import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
 
 object newH {
-
-  sealed trait T
-  case class Singleton() extends T
-  case class Recurring() extends T
-  sealed trait Select[A <: T] {
+  sealed trait Select[A <: Header.Type] {
     type F[_]
     def from[H](headers: List[Header.Raw])(implicit h: Header[H, A]): Option[F[H]]
   }
   object Select {
-    implicit def singletons: Select[Singleton] { type F[B] = cats.Id[B]} =
-      new Select[Singleton] {
+    implicit def singletons: Select[Header.Single] { type F[B] = cats.Id[B]} =
+      new Select[Header.Single] {
         type F[B] = cats.Id[B]
-        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Singleton]): Option[H] =
+        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Header.Single]): Option[H] =
           headers.collectFirst(Function.unlift(h.fromRaw))
       }
 
-    implicit def recurrings: Select[Recurring] { type F[B] = NonEmptyList[B]} =
-      new Select[Recurring] {
+    implicit def recurrings: Select[Header.Recurring] { type F[B] = NonEmptyList[B]} =
+      new Select[Header.Recurring] {
         type F[B] = NonEmptyList[B]
-        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Recurring]): Option[NonEmptyList[H]] =
+        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Header.Recurring]): Option[NonEmptyList[H]] =
           headers.collect(Function.unlift(h.fromRaw)).toNel
       }
   }
@@ -46,7 +42,7 @@ object newH {
     def from(headers: List[Header.Raw]): Option[F[H]]
   }
   object SelectHeader {
-    implicit def all[H, TT <: T](implicit h: Header[H, TT], s: Select[TT]): SelectHeader[H] { type F[B] = s.F[B] } =
+    implicit def all[H, T <: Header.Type](implicit h: Header[H, T], s: Select[T]): SelectHeader[H] { type F[B] = s.F[B] } =
       new SelectHeader[H] {
         type F[B] = s.F[B]
         def from(headers: List[Header.Raw]): Option[F[H]] = s.from(headers)
@@ -59,7 +55,7 @@ object newH {
     * You can add custom headers by providing an implicit instance of
     * `Header[YourCustomHeader]`
     */
-  trait Header[A, TT <: T] {
+  trait Header[A, T <: Header.Type] {
     /**
       * Name of the header. Not case sensitive.
       */
@@ -91,12 +87,23 @@ object newH {
   object Header {
     case class Raw(name: CIString, value: String)
 
+    /**
+     * Classifies custom headers into singleton and recurring headers.
+     */
+    sealed trait Type
+    /** The type of custom headers that can only appear once.
+      */
+    case class Single() extends Type
+    /** The type of custom headers that appear multiple times.
+      */
+    case class Recurring() extends Type
+
     def apply[A](implicit ev: Header[A, _]): ev.type = ev
 
     /**
       * Target for implicit conversions to Header.Raw from custom
       * headers and key-value pairs.
-      * See @see [[org.http4s.Headers$.apply]]
+      * @see [[org.http4s.Headers$.apply]]
       */
     trait ToRaw {
       def value: Header.Raw
@@ -144,7 +151,7 @@ object newH {
 
     /** TODO revise scaladoc
       * Make a new collection adding the specified headers, replacing existing headers of singleton type
-      * The passed headers are assumed to contain no duplicate Singleton headers.
+      * The passed headers are assumed to contain no duplicate Single headers.
       *
       * @param in multiple [[Header]] to append to the new collection
       * @return a new [[Headers]] containing the sum of the initial and input headers
@@ -155,7 +162,7 @@ object newH {
       else this ++ Headers(in:_*)
 
     /** Concatenate the two collections
-      * If the resulting collection is of Headers type, duplicate Singleton headers will be removed from
+      * If the resulting collection is of Headers type, duplicate Single headers will be removed from
       * this Headers collection.
       *
       * @param that collection to append
@@ -202,47 +209,7 @@ object newH {
     // override def toString: String =
     //   Headers.headersShow.show(this)
   }
-
   object Headers {
-    ///// test for construction
-    case class Foo(v: String)
-    object Foo {
-      implicit def headerFoo: Header[Foo, Singleton] = new Header[Foo, Singleton] {
-        def name = CIString("foo")
-        def value(f: Foo) = f.v
-        def parse(s: String) = Foo(s).some
-      }
-    }
-    def bar = Header.Raw(CIString("bar"), "bbb")
-
-    val myHeaders = Headers(
-      Foo("hello"),
-      "my" -> "header",
-      bar
-    )
-    ////// test for selection
-    case class Bar(v: String)
-    object Bar {
-      implicit def headerBar: Header[Bar, Recurring] = new Header[Bar, Recurring] {
-        def name = CIString("Bar")
-        def value(f: Bar) = f.v
-        def parse(s: String) = Bar(s).some
-      }
-    }
-
-    val hs = Headers(
-      Bar("one"),
-      Foo("two"),
-      Bar("three")
-    )
-
-    val a = hs.get[Foo]
-
-
-    val b = hs.get[Bar]
-
-    /////
-
     val empty = of(List.empty)
 
     def apply(headers: Header.ToRaw*): Headers =
@@ -280,6 +247,43 @@ object newH {
       CIString("Cookie"),
       CIString("Set-Cookie")
     )
+  }
+
+  object Examples {
+    ///// test for construction
+    case class Foo(v: String)
+    object Foo {
+      implicit def headerFoo: Header[Foo, Header.Single] = new Header[Foo, Header.Single] {
+        def name = CIString("foo")
+        def value(f: Foo) = f.v
+        def parse(s: String) = Foo(s).some
+      }
+    }
+    def bar = Header.Raw(CIString("bar"), "bbb")
+
+    val myHeaders = Headers(
+      Foo("hello"),
+      "my" -> "header",
+      bar
+    )
+    ////// test for selection
+    case class Bar(v: String)
+    object Bar {
+      implicit def headerBar: Header[Bar, Header.Recurring] = new Header[Bar, Header.Recurring] {
+        def name = CIString("Bar")
+        def value(f: Bar) = f.v
+        def parse(s: String) = Bar(s).some
+      }
+    }
+
+    val hs = Headers(
+      Bar("one"),
+      Foo("two"),
+      Bar("three")
+    )
+
+    val a = hs.get[Foo]
+    val b = hs.get[Bar]
   }
 }
 
