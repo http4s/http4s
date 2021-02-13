@@ -40,21 +40,9 @@ object newH {
       * multiple values.
       */
     def parse(headerValue: String): Option[A]
-
-    /**
-     * Transform this header into a [[Header.Raw]]
-     */
-    def toRaw(a: A): Header.Raw =
-      Header.Raw(name, value(a))
-
-    /**
-     * Convert a [[Header.Raw]] into this header
-     */
-    def fromRaw(h: Header.Raw): Option[A] =
-      (h.name == name).guard[Option] >> parse(h.value)
   }
   object Header {
-    case class Raw(name: CIString, value: String)
+    case class Raw(name: CIString, value: String, recurring: Boolean = true)
 
     /**
      * Classifies custom headers into singleton and recurring headers.
@@ -75,7 +63,7 @@ object newH {
       * A method taking variadic `ToRaw` arguments will allow taking
       * heteregenous arguments, provided they are either:
       * - A value of type `A`  which has a `Header[A]` in scope
-      * - A (name, value) pair of `String`, which is treated as a `Single`? header
+      * - A (name, value) pair of `String`, which is treated as a `Recurring` header
       * - A `Header.Raw`
       *
       * @see [[org.http4s.Headers$.apply]]
@@ -98,23 +86,45 @@ object newH {
         }
     }
 
+    /** Abstracts over Single and Recurring Headers
+      */
     sealed trait Select[A] {
       type F[_]
+
+      /**
+        * Transform this header into a [[Header.Raw]]
+        */
+      def toRaw(a: A): Header.Raw
+
+      /**
+        * Selects this header from a list of [[Header.Raw]]
+        */
       def from(headers: List[Header.Raw]): Option[F[A]]
     }
     object Select {
+      def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[A] =
+        (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value)
+
       implicit def singleHeaders[A](implicit h: Header[A, Header.Single]): Select[A] { type F[B] = Id[B]} =
         new Select[A] {
           type F[B] = Id[B]
+
+          def toRaw(a: A): Header.Raw =
+            Header.Raw(h.name, h.value(a), recurring = false)
+
           def from(headers: List[Header.Raw]): Option[A] =
-            headers.collectFirst(Function.unlift(h.fromRaw))
+            headers.collectFirst(Function.unlift(fromRaw(_)))
         }
 
       implicit def recurringHeaders[A](implicit h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B]} =
         new Select[A] {
           type F[B] = NonEmptyList[B]
+
+          def toRaw(a: A): Header.Raw =
+            Header.Raw(h.name, h.value(a))
+
           def from(headers: List[Header.Raw]): Option[NonEmptyList[A]] =
-            headers.collect(Function.unlift(h.fromRaw)).toNel
+            headers.collect(Function.unlift(fromRaw(_))).toNel
         }
     }
   }
@@ -259,6 +269,8 @@ object newH {
         def value(f: Foo) = f.v
         def parse(s: String) = Foo(s).some
       }
+
+
     }
     def baz = Header.Raw(CIString("baz"), "bbb")
 
