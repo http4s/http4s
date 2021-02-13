@@ -17,21 +17,26 @@
 package org.http4s.ember.server.internal
 
 import cats._
-import fs2._
-import fs2.io.tcp._
-import fs2.io.tls._
+import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
 import cats.syntax.all._
-import scala.concurrent.duration._
+import fs2.{Chunk, Stream}
+import fs2.io.tcp._
+import fs2.io.tls._
+import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.vault.Vault
 import java.net.InetSocketAddress
 import org.http4s._
-import org.http4s.implicits._
+import org.http4s.ember.core.Util.durationToFinite
+import org.http4s.ember.core.{Encoder, Parser}
 import org.http4s.headers.{Connection, Date}
-import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.io.chrisdavenport.log4cats.Logger
-import cats.data.NonEmptyList
-import _root_.org.http4s.ember.core.Util.durationToFinite
+import org.http4s.implicits._
+import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
+import org.http4s.server.{SecureSession, ServerRequestKeys}
+import scala.concurrent.duration._
+import scodec.bits.ByteVector
+
 private[server] object ServerHelpers {
 
   private val closeCi = "close".ci
@@ -87,7 +92,8 @@ private[server] object ServerHelpers {
                 requestHeaderReceiveTimeout,
                 httpApp,
                 errorHandler,
-                onWriteFailure))
+                onWriteFailure
+              ))
       }
 
     StreamForking.forking(streams, maxConcurrency)
@@ -120,14 +126,14 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
-      errorHandler: Throwable => F[Response[F]])
-      : F[(Request[F], Response[F], Option[Array[Byte]])] =
+      errorHandler: Throwable => F[Response[F]],
+      requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] =
     for {
       (req, drain) <- Parser.Request.parser(
         maxHeaderSize,
         durationToFinite(requestHeaderReceiveTimeout))(head, read)
       resp <- httpApp
-        .run(req)
+        .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
       rest <- drain // TODO: handle errors?
@@ -179,47 +185,82 @@ private[server] object ServerHelpers {
   ): Stream[F, Nothing] = {
     val _ = logger
     val read: F[Option[Chunk[Byte]]] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
-
-    Stream
-      .unfoldLoopEval(Array.emptyByteArray)(incoming =>
-        runApp(
-          incoming,
-          read,
-          maxHeaderSize,
-          requestHeaderReceiveTimeout,
-          httpApp,
-          errorHandler).attempt.map {
-          case Right((req, resp, rest)) => (Right((req, resp)), rest)
-          case Left(e) => (Left(e), None)
-        })
-      .evalMap {
-        case Right((req, resp)) =>
-          postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
-        case other => other.pure[F]
-      }
-      .evalTap {
-        case Right((request, response)) =>
-          send(socket)(Some(request), response, idleTimeout, onWriteFailure)
-        case Left(err) =>
-          err match {
-            case req: Parser.Request.ReqPrelude.ParsePreludeError
-                if req == Parser.Request.ReqPrelude.emptyStreamError =>
-              Applicative[F].unit
-            case err =>
-              errorHandler(err)
-                .handleError(_ => serverFailure.covary[F])
-                .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-          }
-      }
-      .takeWhile {
-        case Left(_) => false
-        case Right((req, resp)) =>
-          !(
-            req.headers.get(Connection).exists(_.hasClose) ||
-              resp.headers.get(Connection).exists(_.hasClose)
-          )
-      }
-      .drain ++ Stream.eval_(socket.close)
+    Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
+      Stream
+        .unfoldLoopEval(Array.emptyByteArray)(incoming =>
+          runApp(
+            incoming,
+            read,
+            maxHeaderSize,
+            requestHeaderReceiveTimeout,
+            httpApp,
+            errorHandler,
+            requestVault).attempt.map {
+            case Right((req, resp, rest)) => (Right((req, resp)), rest)
+            case Left(e) => (Left(e), None)
+          })
+        .evalMap {
+          case Right((req, resp)) =>
+            postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
+          case other => other.pure[F]
+        }
+        .evalTap {
+          case Right((request, response)) =>
+            send(socket)(Some(request), response, idleTimeout, onWriteFailure)
+          case Left(err) =>
+            err match {
+              case req: Parser.Request.ReqPrelude.ParsePreludeError
+                  if req == Parser.Request.ReqPrelude.emptyStreamError =>
+                Applicative[F].unit
+              case err =>
+                errorHandler(err)
+                  .handleError(_ => serverFailure.covary[F])
+                  .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+            }
+        }
+        .takeWhile {
+          case Left(_) => false
+          case Right((req, resp)) =>
+            !(
+              req.headers.get(Connection).exists(_.hasClose) ||
+                resp.headers.get(Connection).exists(_.hasClose)
+            )
+        }
+        .drain ++ Stream.eval_(socket.close)
+    }
   }
 
+  private def mkRequestVault[F[_]: Applicative](socket: Socket[F]) =
+    (mkConnectionInfo(socket), mkSecureSession(socket)).mapN(_ ++ _)
+
+  private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =
+    (socket.localAddress, socket.remoteAddress).mapN {
+      case (local: InetSocketAddress, remote: InetSocketAddress) =>
+        Vault.empty.insert(
+          Request.Keys.ConnectionInfo,
+          Request.Connection(
+            local = local,
+            remote = remote,
+            secure = socket.isInstanceOf[TLSSocket[F]]
+          ))
+      case _ =>
+        Vault.empty
+    }
+
+  private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =
+    socket match {
+      case socket: TLSSocket[F] =>
+        socket.session
+          .map { session =>
+            (
+              Option(session.getId).map(ByteVector(_).toHex),
+              Option(session.getCipherSuite),
+              Option(session.getCipherSuite).map(deduceKeyLength),
+              Some(getCertChain(session))
+            ).mapN(SecureSession.apply)
+          }
+          .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
+      case _ =>
+        Vault.empty.pure[F]
+    }
 }
