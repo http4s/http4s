@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.{Order, Show}
+import cats.{Order, Show, Monoid}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.util._
@@ -79,6 +79,129 @@ object newH {
     }
   }
 
+  import scala.collection.mutable.ListBuffer
+
+  /** A collection of HTTP Headers */
+  final class Headers (val headers: List[Header.Raw]) extends AnyVal {
+    /**
+      * TODO get by type
+      * TODO recurring
+      * TODO revise scaladoc
+      * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+      *
+      * @param key [[HeaderKey.Extractable]] that can identify the required header
+      * @return a scala.Option possibly containing the resulting header of type key.HeaderT
+      * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
+      */
+//    def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
+
+    /** Attempt to get a [[org.http4s.Header]] from this collection of headers
+      *
+      * @param key name of the header to find
+      * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
+      */
+    def get(key: CIString): Option[Header.Raw] = headers.find(_.name == key)
+
+    /** TODO revise scaladoc
+      * Make a new collection adding the specified headers, replacing existing headers of singleton type
+      * The passed headers are assumed to contain no duplicate Singleton headers.
+      *
+      * @param in multiple [[Header]] to append to the new collection
+      * @return a new [[Headers]] containing the sum of the initial and input headers
+      */
+    def put(in: Header.ToRaw*): Headers =
+      if (in.isEmpty) this
+      else if (this.headers.isEmpty) Headers(in:_*)
+      else this ++ Headers(in:_*)
+
+    /** Concatenate the two collections
+      * If the resulting collection is of Headers type, duplicate Singleton headers will be removed from
+      * this Headers collection.
+      *
+      * @param that collection to append
+      * @tparam B type contained in collection `that`
+      * @tparam That resulting type of the new collection
+      */
+    def ++(that: Headers): Headers =
+      if (that.headers.isEmpty) this
+      else if (this.headers.isEmpty) that
+      else {
+        val hs = that.headers
+        val acc = new ListBuffer[Header.Raw]
+        this.headers.foreach { orig =>
+          orig match {
+            // TODO recurring
+            // case _: Header.Recurring => acc += orig
+            // case _: `Set-Cookie` => acc += orig
+            case h if !hs.exists(_.name == h.name) => acc += orig
+            case _ => // NOOP, drop non recurring header that already exists
+          }
+        }
+
+        Headers.of(acc.prependToList(hs))
+      }
+
+    /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
+      * `Transfer-Encoding` headers.
+      *
+      *  https://tools.ietf.org/html/rfc7231#section-3.3
+      */
+    def removePayloadHeaders: Headers =
+      Headers.of(headers.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
+
+    def redactSensitive(
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+      Headers.of {
+        headers.map {
+          case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
+          case h => h
+        }
+      }
+
+    // TODO
+    // override def toString: String =
+    //   Headers.headersShow.show(this)
+  }
+
+  object Headers {
+    val empty = of(List.empty)
+
+    def apply(headers: Header.ToRaw*): Headers =
+      of(headers.toList.map(_.value))
+
+    /** Create a new Headers collection from the headers */
+    def of(headers: List[Header.Raw]): Headers =
+      new Headers(headers)
+
+    // TODO
+    // implicit val headersShow: Show[Headers] =
+    //   Show.show[Headers] {
+    //     _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")
+    //   }
+
+    // TODO
+    // implicit lazy val HeadersOrder: Order[Headers] =
+    //   Order.by(_.headers)
+
+    implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
+      def empty: Headers = Headers.empty
+      def combine(xa: Headers, xb: Headers): Headers =
+        xa ++ xb
+    }
+
+    private val PayloadHeaderKeys = Set(
+      CIString("Content-Length"),
+      CIString("Content-Range"),
+      CIString("Trailer"),
+      CIString("Transfer-Encoding")
+    )
+
+    val SensitiveHeaders = Set(
+      CIString("Authorization"),
+      CIString("Cookie"),
+      CIString("Set-Cookie")
+    )
+  }
 }
 /** Abstract representation o the HTTP header
   * @see org.http4s.HeaderKey
