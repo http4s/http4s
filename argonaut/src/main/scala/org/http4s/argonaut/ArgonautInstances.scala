@@ -25,14 +25,18 @@ import org.http4s.headers.`Content-Type`
 import jawn.JawnInstances
 import org.typelevel.jawn.ParseException
 import org.http4s.argonaut.ArgonautInstances.DecodeFailureMessage
+import scala.annotation.nowarn
 
 trait ArgonautInstances extends JawnInstances {
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
     jawnDecoder
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   protected def jsonDecodeError: (Json, DecodeFailureMessage, CursorHistory) => DecodeFailure =
     ArgonautInstances.defaultJsonDecodeError
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   def jsonOf[F[_]: Sync, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
@@ -43,24 +47,30 @@ trait ArgonautInstances extends JawnInstances {
         )
     }
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   protected def defaultPrettyParams: PrettyParams = PrettyParams.nospace
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, Json] =
     jsonEncoderWithPrettyParams[F](defaultPrettyParams)
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   def jsonEncoderWithPrettyParams[F[_]](prettyParams: PrettyParams): EntityEncoder[F, Json] =
     EntityEncoder
       .stringEncoder(Charset.`UTF-8`)
       .contramap[Json](prettyParams.pretty)
       .withContentType(`Content-Type`(MediaType.application.json))
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   def jsonEncoderOf[F[_], A](implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrettyParams)
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   def jsonEncoderWithPrinterOf[F[_], A](prettyParams: PrettyParams)(implicit
       encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrettyParams[F](prettyParams).contramap[A](encoder.encode)
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
   implicit val uriCodec: CodecJson[Uri] = CodecJson(
     (uri: Uri) => Json.jString(uri.toString),
     c =>
@@ -71,12 +81,15 @@ trait ArgonautInstances extends JawnInstances {
             .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok))
   )
 
+  @deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
+  @nowarn("cat=deprecation")
   implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
     def decodeJson[A](implicit decoder: DecodeJson[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }
 }
 
+@deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
 sealed abstract case class ArgonautInstancesBuilder private[argonaut] (
     defaultPrettyParams: PrettyParams = PrettyParams.nospace,
     jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure =
@@ -121,6 +134,7 @@ sealed abstract case class ArgonautInstancesBuilder private[argonaut] (
     }
 }
 
+@deprecated("http4s-argonaut support will be dropped in 0.22", "0.21.19")
 object ArgonautInstances {
   type DecodeFailureMessage = String
   def withPrettyParams(pp: PrettyParams): ArgonautInstancesBuilder =
