@@ -20,7 +20,8 @@ package middleware
 
 import cats.effect.BracketThrow
 import fs2.{Pipe, Pull, Stream}
-import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
+import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
+
 import scala.annotation.nowarn
 import scala.util.control.NoStackTrace
 
@@ -58,11 +59,15 @@ object GZip {
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
           _.through(fs2.compress.gunzip(bufferSize))
-        response.withBodyStream(response.body.through(decompressWith(gunzip)))
+        response
+          .filterHeaders(nonCompressionHeader)
+          .withBodyStream(response.body.through(decompressWith(gunzip)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
         val deflate: Pipe[F, Byte, Byte] = fs2.compress.deflate(bufferSize)
-        response.withBodyStream(response.body.through(decompressWith(deflate)))
+        response
+          .filterHeaders(nonCompressionHeader)
+          .withBodyStream(response.body.through(decompressWith(deflate)))
 
       case _ =>
         response
@@ -82,6 +87,9 @@ object GZip {
         case EmptyBodyException => Stream.empty
         case error => Stream.raiseError(error)
       }
+
+  private def nonCompressionHeader(header: Header): Boolean =
+    header.isNot(`Content-Encoding`) && header.isNot(`Content-Length`)
 
   private object EmptyBodyException extends Throwable with NoStackTrace
 }
