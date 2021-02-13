@@ -17,6 +17,8 @@
 package org.http4s
 package headers
 
+import org.http4s.laws.discipline.arbitrary._
+
 final class AccessControlAllowHeadersSpec extends HeaderLaws {
   checkAll("Access-Control-Allow-Headers", headerLaws(`Access-Control-Allow-Headers`))
 }

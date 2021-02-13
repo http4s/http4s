@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core
 
+import cats.effect.std.Queue
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
@@ -31,6 +32,13 @@ class ParsingSpec extends Http4sSuite {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
 
+    def taking[F[_]: Concurrent, A](stream: Stream[F, A]): F[F[Option[Chunk[A]]]] =
+      for {
+        q <- Queue.unbounded[F, Option[Chunk[A]]]
+        _ <- stream.chunks.map(Some(_)).evalMap(q.offer(_)).compile.drain.void
+        _ <- q.offer(None)
+      } yield q.take
+
     // Only for Use with Text Requests
     def parseRequestRig[F[_]: Concurrent: Temporal](s: String): F[Request[F]] = {
       val byteStream: Stream[F, Byte] = Stream
@@ -39,7 +47,9 @@ class ParsingSpec extends Http4sSuite {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Request.parser[F](Int.MaxValue, None)(byteStream).map(_._1)
+      taking(byteStream).flatMap { read =>
+        Parser.Request.parser[F](Int.MaxValue, None)(Array.emptyByteArray, read).map(_._1)
+      }
     }
 
     def parseResponseRig[F[_]: Concurrent: Temporal](s: String): Resource[F, Response[F]] = {
@@ -49,8 +59,11 @@ class ParsingSpec extends Http4sSuite {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      val action = Parser.Response.parser[F](Int.MaxValue, None)(byteStream).map(_._1) //(logger)
-      Resource.eval(action)
+      Resource.eval(
+        taking(byteStream).flatMap { read =>
+          Parser.Response.parser[F](Int.MaxValue, None)(Array.emptyByteArray, read).map(_._1)
+        }
+      )
     }
 
     def forceScopedParsing[F[_]: Concurrent](s: String): Stream[F, Byte] = {
@@ -165,16 +178,19 @@ class ParsingSpec extends Http4sSuite {
 
     val raw2 = """}
           |""".stripMargin
+
     val http1 = Helpers.httpifyString(raw1)
 
     val http2 = Helpers.httpifyString(raw2)
     val encoded = (Stream(http1) ++ Stream(http2)).through(fs2.text.utf8Encode)
 
     (for {
+      take <- Helpers.taking[IO, Byte](encoded)
       parsed <-
         Parser.Response
           .parser[IO](defaultMaxHeaderLength, None)(
-            encoded
+            Array.emptyByteArray,
+            take
             //Helpers.forceScopedParsing[IO](raw) // Cuts off `}` in current test. Why?
             // I don't follow what the rig is testing vs this.
           ) //(logger)
@@ -184,21 +200,67 @@ class ParsingSpec extends Http4sSuite {
     } yield parsed == "{}").assert
   }
 
+  test(
+    "Parser.Request.parser should parse a request with Content-Length and return the rest of the stream") {
+    val raw =
+      """POST /foo HTTP/1.1
+          |Host: localhost:8080
+          |User-Agent: curl/7.64.1
+          |Accept: */*
+          |Content-Length: 5
+          |
+          |helloeverything after the body""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .covary[IO]
+      .map(Helpers.httpifyString)
+      .through(text.utf8Encode)
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      result <- Parser.Request.parser[IO](Int.MaxValue, None)(Array.emptyByteArray, take)
+      body <- result._1.body.through(text.utf8Decode).compile.string
+      rest <- Stream
+        .eval(result._2)
+        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
+        .through(text.utf8Decode)
+        .compile
+        .string
+    } yield body == "hello" && rest == "everything after the body").assert
+  }
+
+  test("Parser.Request.parser should parse two requests in a row") {
+    val reqS =
+      Stream(
+        "GET /foo HTTP/1.1\r\n",
+        "Accept: text/plain\r\n\r\nGET /foo HTTP/1.1\r\n",
+        "Accept: text/plain\r\n\r\n"
+      )
+    val byteStream: Stream[IO, Byte] = reqS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      req1 <- Parser.Request.parser[IO](Int.MaxValue, None)(Array.emptyByteArray, take)
+      drained <- req1._2
+      req2 <- Parser.Request.parser[IO](Int.MaxValue, None)(drained.get, take)
+    } yield req1._1.method == Method.GET && req2._1.method == Method.GET).assert
+  }
+
   test("Parser.Response.parser should handle a chunked response") {
     val defaultMaxHeaderLength = 4096
     val base =
       "SFRUUC8xLjEgMjAwIE9LDQpBcGktVmVyc2lvbjogMS40MA0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uDQpEb2NrZXItRXhwZXJpbWVudGFsOiBmYWxzZQ0KT3N0eXBlOiBsaW51eA0KU2VydmVyOiBEb2NrZXIvMTkuMDMuMTEtY2UgKGxpbnV4KQ0KRGF0ZTogRnJpLCAyNiBKdW4gMjAyMCAyMjozNTo0MiBHTVQNClRyYW5zZmVyLUVuY29kaW5nOiBjaHVua2VkDQoNCjhjMw0KeyJJRCI6IllNS0U6MkZZMzpTUUc3OjZSSFo6TFlTVDpRUk9JOkU1NEU6UTdXRjpERElLOlNOSUE6Rk5UTzpJVllSIiwiQ29udGFpbmVycyI6MjUsIkNvbnRhaW5lcnNSdW5uaW5nIjowLCJDb250YWluZXJzUGF1c2VkIjowLCJDb250YWluZXJzU3RvcHBlZCI6MjUsIkltYWdlcyI6ODMsIkRyaXZlciI6Im92ZXJsYXkyIiwiRHJpdmVyU3RhdHVzIjpbWyJCYWNraW5nIEZpbGVzeXN0ZW0iLCJleHRmcyJdLFsiU3VwcG9ydHMgZF90eXBlIiwidHJ1ZSJdLFsiTmF0aXZlIE92ZXJsYXkgRGlmZiIsImZhbHNlIl1dLCJTeXN0ZW1TdGF0dXMiOm51bGwsIlBsdWdpbnMiOnsiVm9sdW1lIjpbImxvY2FsIl0sIk5ldHdvcmsiOlsiYnJpZGdlIiwiaG9zdCIsImlwdmxhbiIsIm1hY3ZsYW4iLCJudWxsIiwib3ZlcmxheSJdLCJBdXRob3JpemF0aW9uIjpudWxsLCJMb2ciOlsiYXdzbG9ncyIsImZsdWVudGQiLCJnY3Bsb2dzIiwiZ2VsZiIsImpvdXJuYWxkIiwianNvbi1maWxlIiwibG9jYWwiLCJsb2dlbnRyaWVzIiwic3BsdW5rIiwic3lzbG9nIl19LCJNZW1vcnlMaW1pdCI6dHJ1ZSwiU3dhcExpbWl0Ijp0cnVlLCJLZXJuZWxNZW1vcnkiOnRydWUsIktlcm5lbE1lbW9yeVRDUCI6dHJ1ZSwiQ3B1Q2ZzUGVyaW9kIjp0cnVlLCJDcHVDZnNRdW90YSI6dHJ1ZSwiQ1BVU2hhcmVzIjp0cnVlLCJDUFVTZXQiOnRydWUsIlBpZHNMaW1pdCI6dHJ1ZSwiSVB2NEZvcndhcmRpbmciOnRydWUsIkJyaWRnZU5mSXB0YWJsZXMiOnRydWUsIkJyaWRnZU5mSXA2dGFibGVzIjp0cnVlLCJEZWJ1ZyI6ZmFsc2UsIk5GZCI6MjQsIk9vbUtpbGxEaXNhYmxlIjp0cnVlLCJOR29yb3V0aW5lcyI6NDAsIlN5c3RlbVRpbWUiOiIyMDIwLTA2LTI2VDE1OjM1OjQyLjU1MjUzMzQzMS0wNzowMCIsIkxvZ2dpbmdEcml2ZXIiOiJqc29uLWZpbGUiLCJDZ3JvdXBEcml2ZXIiOiJjZ3JvdXBmcyIsIk5FdmVudHNMaXN0ZW5lciI6MCwiS2VybmVsVmVyc2lvbiI6IjUuNy42LWFyY2gxLTEiLCJPcGVyYXRpbmdTeXN0ZW0iOiJBcmNoIExpbnV4IiwiT1NUeXBlIjoibGludXgiLCJBcmNoaXRlY3R1cmUiOiJ4ODZfNjQiLCJJbmRleFNlcnZlckFkZHJlc3MiOiJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iLCJSZWdpc3RyeUNvbmZpZyI6eyJBbGxvd05vbmRpc3RyaWJ1dGFibGVBcnRpZmFjdHNDSURScyI6W10sIkFsbG93Tm9uZGlzdHJpYnV0YWJsZUFydGlmYWN0c0hvc3RuYW1lcyI6W10sIkluc2VjdXJlUmVnaXN0cnlDSURScyI6WyIxMjcuMC4wLjAvOCJdLCJJbmRleENvbmZpZ3MiOnsiZG9ja2VyLmlvIjp7Ik5hbWUiOiJkb2NrZXIuaW8iLCJNaXJyb3JzIjpbXSwiU2VjdXJlIjp0cnVlLCJPZmZpY2lhbCI6dHJ1ZX19LCJNaXJyb3JzIjpbXX0sIk5DUFUiOjQsIk1lbVRvdGFsIjo4MjIwOTgzMjk2LCJHZW5lcmljUmVzb3VyY2VzIjpudWxsLCJEb2NrZXJSb290RGlyIjoiL3Zhci9saWIvZG9ja2VyIiwiSHR0cFByb3h5IjoiIiwiSHR0cHNQcm94eSI6IiIsIk5vUHJveHkiOiIiLCJOYW1lIjoiZGF2ZW5wb3J0LWxhcHRvcCIsIkxhYmVscyI6W10sIkV4cGVyaW1lbnRhbEJ1aWxkIjpmYWxzZSwiU2VydmVyVmVyc2lvbiI6IjE5LjAzLjExLWNlIiwiQ2x1c3RlclN0b3JlIjoiIiwiQ2x1c3RlckFkdmVydGlzZSI6IiIsIlJ1bnRpbWVzIjp7InJ1bmMiOnsicGF0aCI6InJ1bmMifX0sIkRlZmF1bHRSdW50aW1lIjoicnVuYyIsIlN3YXJtIjp7Ik5vZGVJRCI6IiIsIk5vZGVBZGRyIjoiIiwiTG9jYWxOb2RlU3RhdGUiOiJpbmFjdGl2ZSIsIkNvbnRyb2xBdmFpbGFibGUiOmZhbHNlLCJFcnJvciI6IiIsIlJlbW90ZU1hbmFnZXJzIjpudWxsfSwiTGl2ZVJlc3RvcmVFbmFibGVkIjpmYWxzZSwiSXNvbGF0aW9uIjoiIiwiSW5pdEJpbmFyeSI6ImRvY2tlci1pbml0IiwiQ29udGFpbmVyZENvbW1pdCI6eyJJRCI6ImQ3NmMxMjFmNzZhNWZjOGE0NjJkYzY0NTk0YWVhNzJmZTE4ZTExNzgubSIsIkV4cGVjdGVkIjoiZDc2YzEyMWY3NmE1ZmM4YTQ2MmRjNjQ1OTRhZWE3MmZlMThlMTE3OC5tIn0sIlJ1bmNDb21taXQiOnsiSUQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIiwiRXhwZWN0ZWQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIn0sIkluaXRDb21taXQiOnsiSUQiOiJmZWMzNjgzIiwiRXhwZWN0ZWQiOiJmZWMzNjgzIn0sIlNlY3VyaXR5T3B0aW9ucyI6WyJuYW1lPXNlY2NvbXAscHJvZmlsZT1kZWZhdWx0Il0sIldhcm5pbmdzIjpudWxsfQoNCjANCg0K"
     val baseBv = ByteVector.fromBase64(base).get
 
-    Parser.Response
-      .parser[IO](defaultMaxHeaderLength, None)(Stream.chunk(Chunk.byteVector(baseBv)))
-      .flatMap { case (resp, _) =>
-        resp.body.through(text.utf8Decode).compile.string
-      }
-      .map { x =>
-        x.size > 0
-      }
-      .assert
+    (for {
+      take <- Helpers.taking[IO, Byte](Stream.chunk(Chunk.byteVector(baseBv)))
+      result <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+      body <- result._1.body.through(text.utf8Decode).compile.string
+    } yield body.size > 0).assert
   }
 
   test("Parser.Response.parser should parse a chunked simple") {
@@ -223,14 +285,12 @@ class ParsingSpec extends Http4sSuite {
       .flatMap(s =>
         Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
 
-    Parser.Response
-      .parser[IO](defaultMaxHeaderLength, None)(byteStream)
-      .flatMap { case (resp, _) =>
-        resp.body.through(text.utf8Decode).compile.string.map { body =>
-          body == "MozillaDeveloperNetwork"
-        }
-      }
-      .assert
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      resp <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+      body <- resp._1.body.through(text.utf8Decode).compile.string
+    } yield body == "MozillaDeveloperNetwork").assert
   }
 
   test("Parser.Response.parser should parse a chunked with trailer headers") {
@@ -251,21 +311,47 @@ class ParsingSpec extends Http4sSuite {
         "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n\r\n"
         // "\r\n"
       )
+
     val byteStream: Stream[IO, Byte] = respS
       .flatMap(s =>
         Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
 
-    Parser.Response
-      .parser[IO](defaultMaxHeaderLength, None)(byteStream)
-      .flatMap { case (resp, _) =>
-        for {
-          body <- resp.body.through(text.utf8Decode).compile.string
-          trailers <- resp.trailerHeaders
-        } yield (body == "MozillaDeveloperNetwork").&&(
-          trailers.get(Expires).isDefined
-        )
-      }
-      .assert
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      result <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+      body <- result._1.body.through(text.utf8Decode).compile.string
+      trailers <- result._1.trailerHeaders
+    } yield body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined).assert
+  }
+
+  test(
+    "Parser.Response.parser should parse a response with Content-Length and return the rest of the stream") {
+    val defaultMaxHeaderLength = 4096
+    val raw =
+      """HTTP/1.1 200 OK
+        |Content-Length: 5
+        |
+        |helloeverything after the body""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .covary[IO]
+      .map(Helpers.httpifyString)
+      .through(text.utf8Encode)
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      result <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+      body <- result._1.body.through(text.utf8Decode).compile.string
+      rest <- Stream
+        .eval(result._2)
+        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
+        .through(text.utf8Decode)
+        .compile
+        .string
+    } yield body == "hello" && rest == "everything after the body").assert
   }
 
   test("Header Parser should handle headers in a section") {
@@ -296,7 +382,6 @@ class ParsingSpec extends Http4sSuite {
     assert(
       length == Some(11L)
     )
-
   }
 
   test("Header Parser should Handle weird chunking") {
@@ -312,17 +397,14 @@ class ParsingSpec extends Http4sSuite {
       .flatMap(s =>
         Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
 
-    val headers = Parser.HeaderP
-      .parseHeaders(byteStream, defaultMaxHeaderLength, None)
-      .flatMap { case (headers, _, _, _) =>
-        Pull.output1(headers)
-      }
-      .stream
-      .compile
-      .lastOrError
-      .map(_.toList)
+    val result = for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      headers <- Parser.HeaderP
+        .parseHeaders(Array.emptyByteArray, take, defaultMaxHeaderLength, None)
+        .map(_._1)
+    } yield headers.toList
 
-    headers.assertEquals(
+    result.assertEquals(
       List(
         Header("Content-Type", "text/plain"),
         Header("Transfer-Encoding", "chunked"),
@@ -368,4 +450,99 @@ class ParsingSpec extends Http4sSuite {
     }
   }
 
+  test("Parser.Response.parser should parse two responses in a row") {
+    val defaultMaxHeaderLength = 4096
+    val respS =
+      Stream(
+        "HTTP/1.1 200 OK\r\n",
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\n",
+        "helloHTTP/1.1 200 OK\r\n", // this is the crucial part
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\nworld"
+      )
+    val byteStream: Stream[IO, Byte] = respS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      resp1 <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+      body1 <- resp1._1.body.through(fs2.text.utf8Decode).compile.string
+      drained <- resp1._2
+      resp2 <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, None)(drained.get, take)
+      body2 <- resp2._1.body.through(fs2.text.utf8Decode).compile.string
+    } yield body1 == "hello" && body2 == "world").assert
+  }
+
+  test("Parser.Body should completely consume a body") {
+    val bodyS = Stream("hello ", "world!")
+    val byteStream: Stream[IO, Byte] = bodyS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+    for {
+      take <- Helpers.taking(byteStream)
+      body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
+      bodyString <- body._1.through(fs2.text.utf8Decode).compile.string
+      drained <- body._2
+    } yield {
+      assertEquals(bodyString, "hello world!")
+      assertEquals(drained.map(_.toList), Some(Nil))
+    }
+  }
+
+  test("Parser.Body should partially consume a body") {
+    val bodyS = Stream("hello ", "world!")
+    val byteStream: Stream[IO, Byte] = bodyS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+    for {
+      take <- Helpers.taking(byteStream)
+      body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
+      bodyString <- body._1.take(2).through(fs2.text.utf8Decode).compile.string
+      drained <- body._2
+    } yield {
+      assertEquals(bodyString, "he")
+      assertEquals(drained, None)
+    }
+  }
+
+  test("Parser.Body should consume previous bytes") {
+    val bodyS = Stream("world!")
+    val byteStream: Stream[IO, Byte] = bodyS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+    for {
+      take <- Helpers.taking(byteStream)
+      body <- Parser.Body.parseFixedBody(
+        12L,
+        "hello ".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+        take)
+      bodyString <- body._1.through(fs2.text.utf8Decode).compile.string
+      drained <- body._2
+    } yield {
+      assertEquals(bodyString, "hello world!")
+      assertEquals(drained.map(_.toList), Some(Nil))
+    }
+  }
+
+  // Compiling a stream is generally undefined behavior but that doesn't stop us from testing it
+  test("Parser.Body should raise an error when compiling the body more than once") {
+    val bodyS = Stream("hello world!")
+    val byteStream: Stream[IO, Byte] = bodyS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+    for {
+      take <- Helpers.taking(byteStream)
+      body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
+      _ <- body._1.compile.drain
+      _ <- body._1.compile.drain.intercept[Throwable]
+    } yield ()
+  }
 }

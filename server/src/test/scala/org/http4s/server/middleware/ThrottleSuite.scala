@@ -104,7 +104,7 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test(
-    "LocalTokenBucket should return the time until the next token is available when no token is available") {
+    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky) {
     val ctx = TestContext()
     val capacity = 1
     val createBucket =

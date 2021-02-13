@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,10 @@
  */
 
 package org.http4s
+package headers
 
-package object argonaut extends ArgonautInstances
+import org.http4s.laws.discipline.arbitrary._
+
+final class AcceptPatchSuite extends HeaderLaws {
+  checkAll("AcceptPatch", headerLaws(`Accept-Patch`))
+}

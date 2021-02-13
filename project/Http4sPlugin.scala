@@ -57,7 +57,6 @@ object Http4sPlugin extends AutoPlugin {
            |"http4s.doc" = "${docExampleVersion(version.value)}"
            |circe = "${circeJawn.revision}"
            |cryptobits = "${cryptobits.revision}"
-           |"argonaut-shapeless_6.2" = "1.2.0-M6"
            |
            |[releases]
            |$releases
@@ -86,7 +85,6 @@ object Http4sPlugin extends AutoPlugin {
         }
 
         val attributedSources = Set(
-          "src/main/scala/org/http4s/argonaut/Parser.scala",
           "src/main/scala/org/http4s/CacheDirective.scala",
           "src/main/scala/org/http4s/Challenge.scala",
           "src/main/scala/org/http4s/Charset.scala",
@@ -113,6 +111,7 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/parser/Rfc2616BasicRules.scala",
           "src/main/scala/org/http4s/parser/SimpleHeaders.scala",
           "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
+          "src/main/scala/org/http4s/play/Parser.scala",
           "src/main/scala/org/http4s/util/UrlCoding.scala",
           "src/main/scala/org/http4s/dsl/impl/Path.scala",
           "src/test/scala/org/http4s/dsl/PathSpec.scala",
@@ -281,12 +280,11 @@ object Http4sPlugin extends AutoPlugin {
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val argonaut = "6.3.3"
     val asyncHttpClient = "2.12.2"
     val blaze = "0.15.0-M1"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.0.0-RC2"
-    val cats = "2.3.1"
+    val cats = "2.4.1"
     val catsEffect = "3.0.0-M5"
     val catsEffectTesting = "1.0.0-M1"
     val catsParse = "0.3.0"
@@ -301,7 +299,6 @@ object Http4sPlugin extends AutoPlugin {
     val jawn = "1.0.3"
     val jawnFs2 = "2.0.0-RC1"
     val jetty = "9.4.36.v20210114"
-    val json4s = "3.6.10"
     val log4cats = "2.0.0-M1"
     val keypool = "0.4.0-M1"
     val logback = "1.2.3"
@@ -309,8 +306,8 @@ object Http4sPlugin extends AutoPlugin {
     val mockito = "3.5.15"
     val munit = "0.7.18"
     val munitCatsEffect = "0.13.0"
-    val munitDiscipline = "1.0.4"
-    val netty = "4.1.58.Final"
+    val munitDiscipline = "1.0.5"
+    val netty = "4.1.59.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.10.0-RC1"
@@ -321,7 +318,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "0.7.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.3"
-    val scalaXml = "1.3.0"
+    val scalaXml = "2.0.0-M4"
     val scodecBits = "1.1.23"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
@@ -332,8 +329,6 @@ object Http4sPlugin extends AutoPlugin {
     val vault = "3.0.0-M4"
   }
 
-  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
-  lazy val argonautJawn                     = "io.argonaut"            %% "argonaut-jawn"             % V.argonaut
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
   lazy val blazeCore                        = "org.http4s"             %% "blaze-core"                % V.blaze
   lazy val blazeHttp                        = "org.http4s"             %% "blaze-http"                % V.blaze
@@ -366,7 +361,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
-  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % V.jawn
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % V.jetty
@@ -376,9 +370,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % V.jetty
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % V.jetty
   lazy val jettyUtil                        = "org.eclipse.jetty"      %  "jetty-util"                % V.jetty
-  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
-  lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
-  lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
   lazy val keypool                          = "org.typelevel"          %% "keypool"                   % V.keypool
   lazy val log4catsCore                     = "org.typelevel"          %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "org.typelevel"          %% "log4cats-slf4j"            % V.log4cats

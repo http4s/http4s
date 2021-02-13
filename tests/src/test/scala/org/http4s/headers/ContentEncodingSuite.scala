@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 
 package org.http4s
-package json4s
-package native
+package headers
 
-import org.json4s.native.Document
+import org.http4s.laws.discipline.ArbitraryInstances._
 
-class Json4sNativeSpec extends Json4sSuite[Document] with Json4sNativeInstances
+class ContentEncodingSuite extends HeaderLaws {
+  checkAll("Content-Encoding", headerLaws(`Content-Encoding`))
+}

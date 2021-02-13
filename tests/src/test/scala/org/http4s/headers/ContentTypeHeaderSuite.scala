@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.http4s.json4s
-package jackson
+package org.http4s
+package headers
 
-import org.json4s.JsonAST.JValue
+import org.http4s.laws.discipline.ArbitraryInstances._
 
-class Json4sJacksonSpec extends Json4sSuite[JValue] with Json4sJacksonInstances
+class ContentTypeHeaderSuite extends HeaderLaws {
+  checkAll("Content-Type", headerLaws(`Content-Type`))
+}

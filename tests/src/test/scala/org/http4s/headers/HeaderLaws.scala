@@ -18,26 +18,30 @@ package org.http4s
 package headers
 
 import org.scalacheck.Arbitrary
+import org.scalacheck.Prop._
 import org.typelevel.discipline.Laws
+import org.http4s.laws.discipline.ArbitraryInstances._
 
-trait HeaderLaws extends Http4sSpec with Laws {
-  def headerLaws(key: HeaderKey)(implicit arbHeader: Arbitrary[key.HeaderT]): RuleSet =
+trait HeaderLaws extends munit.DisciplineSuite with Laws {
+  def headerLaws(key: HeaderKey)(implicit
+      arbHeader: Arbitrary[key.HeaderT]
+  ): RuleSet =
     new SimpleRuleSet(
       "header",
-      """parse(a.value) == right(a)"""" -> prop { (a: key.HeaderT) =>
-        key.parse(a.value) must beRight(a)
+      """parse(a.value) == right(a)"""" -> forAll { (a: key.HeaderT) =>
+        assertEquals(key.parse(a.value), Right(a))
       },
-      """renderString == "name: value"""" -> prop { (a: key.HeaderT) =>
-        a.renderString must_== s"${key.name}: ${a.value}"
+      """renderString == "name: value"""" -> forAll { (a: key.HeaderT) =>
+        assertEquals(a.renderString, s"${key.name}: ${a.value}")
       },
-      """matchHeader matches parsed values""" -> prop { (a: key.HeaderT) =>
-        key.matchHeader(a) must beSome(a)
+      """matchHeader matches parsed values""" -> forAll { (a: key.HeaderT) =>
+        assertEquals(key.matchHeader(a), Some(a))
       },
-      """matchHeader matches raw, valid values of same name""" -> prop { (a: key.HeaderT) =>
-        key.matchHeader(a.toRaw) must beSome(a)
+      """matchHeader matches raw, valid values of same name""" -> forAll { (a: key.HeaderT) =>
+        assertEquals(key.matchHeader(a.toRaw), Some(a))
       },
-      """matchHeader does not match other names""" -> prop { (header: Header) =>
-        key.name != header.name ==> { key.matchHeader(header) must beNone }
+      """matchHeader does not match other names""" -> forAll { (header: Header) =>
+        key.name != header.name ==> assert(key.matchHeader(header).isEmpty)
       }
     )
 }

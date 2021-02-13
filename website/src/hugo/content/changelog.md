@@ -8,6 +8,102 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M17
+
+## http4s-core
+
+### Enhancements
+
+* [#4337](https://github.com/http4s/http4s/pull/4337): Optimize multipart parser for the fact that pull can't return empty chunks
+
+### Dependency updates
+
+* ip4s-3.0.0-M1
+
+# v0.22.0-M4
+
+## http4s-core
+
+### Breaking changes
+
+* [#4242](https://github.com/http4s/http4s/pull/4242): Replace internal models of IPv4, IPv6, `java.net.InetAddress`, and `java.net.SocketAddress` with ip4s.  This affects the URI authority, various headers, and message attributes that refer to IP addresses and hostnames.
+* [#4352](https://github.com/http4s/http4s/pull/4352): Remove deprecated `Header.Recurring.GetT` and ``Header.get(`Set-Cookie`)``.
+* [#4364](https://github.com/http4s/http4s/pull/4364): Remove deprecated `AsyncSyntax` and `NonEmpyListSyntax`. These were unrelated to HTTP.
+* [#4407](https://github.com/http4s/http4s/pull/4407): Relax constraint on `EntityEncoder.fileEncoder` from `Effect` to `Sync`. This should be source-compatible.
+
+## http4s-play-json
+
+### Breaking changes
+
+* [#4371](https://github.com/http4s/http4s/pull/4371): Replace jawn-play with an internal copy of the facade to work around `withDottyCompat` issues.
+
+## http4s-scala-xml
+
+### Breaking changes
+
+* [#4380](https://github.com/http4s/http4s/pull/4380): Move the implicits from the root package to a Cats-like encoding.  Suggest replacing `import org.http4s.scalaxml._` with `import org.http4s.scalaxml.implicits._`.
+
+## Dependencies
+
+* blaze-0.15.0-M1 (new)
+* ip4s-2.0.0-M1
+* jawn-play (dropped)
+* play-json-2.10.0-RC1
+* scala-xml-2.0.0-M4
+
+### Breaking changes
+
+* [#4371](https://github.com/http4s/http4s/pull/4371): Replace jawn-play with an internal copy of the facade to work around `withDottyCompat` issues.
+
+# v0.21.19 (2021-02-13)
+
+## http4s-core
+
+### Deprecations
+
+* [#4337](https://github.com/http4s/http4s/pull/4337): Deprecate `Header.Recurring.GetT`, which is unused
+
+## http4s-client
+
+### Bugfixes
+
+* [#4403](https://github.com/http4s/http4s/pull/4403): Remove `Content-Coding` and `Content-Length` headers after decompressing in the `GZip` middleware.
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#4348](https://github.com/http4s/http4s/pull/4348): Handle partially read bodies in persistent connections when the connection is recycled.
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4400](https://github.com/http4s/http4s/pull/4400): Implement the `ConnectionInfo` and `SecureSession` request vault attributes, for parity with the Blaze and Servlet backends
+
+## http4s-argonaut
+
+* [#4366](https://github.com/http4s/http4s/pull/4370): Deprecate http4s-argonaut.  It won't be published starting in 0.22.
+
+## http4s-json4s, http4s-json4s-jackson, http4s-json4s-native
+
+### Deprecations
+
+* [#4370](https://github.com/http4s/http4s/pull/4370): Deprecate the http4s-json4s modules.  They won't be published starting in 0.22.
+
+## http4s-scalatags
+
+### Enhancements
+
+* [#3850](https://github.com/http4s/http4s/pull/3850): Relax constraint on encoders from `TypedTag[String]` to `Frag[_, String]`
+
+## Dependency updates
+
+* cats-2.4.1
+* netty-4.1.59.Final
+* okio-2.9.0
+* tomcat-9.0.43
+
 # v1.0.0-M16 (2021-02-02)
 
 Inherits the fixes of v0.21.18
