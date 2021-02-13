@@ -45,18 +45,27 @@ object newH {
   object Header {
     def apply[A](implicit ev: Header[A]): ev.type = ev
 
-    // TODO scaladoc for error handling
-    trait Exists {
-      type CustomHeader
-      def header: Header[CustomHeader]
-      def value:  CustomHeader
+    /**
+      * Target for implicit conversions to Header.Raw from custom
+      * headers and key-value pairs.
+      * See @see [[org.http4s.Headers$.apply]]
+      */
+    trait ToRaw {
+      def value: Header.Raw
     }
-    object Exists {
-      implicit def apply[H](h: H)(implicit H: Header[H]): Header.Exists = new Header.Exists {
-        type CustomHeader = H
-        val header = H
+    object ToRaw {
+      implicit def rawToRaw(h: Header.Raw): Header.ToRaw = new Header.ToRaw {
         val value = h
       }
+
+      implicit def keyValuesToRaw(kv: (String, String)): Header.ToRaw = new Header.ToRaw {
+        val value = Header.Raw(CIString(kv._1), kv._2)
+      }
+
+      implicit def customHeadersToRaw[H](h: H)(implicit H: Header[H]): Header.ToRaw =
+        new Header.ToRaw {
+          val value = Header.Raw(H.name, H.value(h))
+        }
     }
 
 
