@@ -8,13 +8,31 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.19
+# v0.21.19 (2021-02-13)
 
 ## http4s-core
 
 ### Deprecations
 
 * [#4337](https://github.com/http4s/http4s/pull/4337): Deprecate `Header.Recurring.GetT`, which is unused
+
+## http4s-client
+
+### Bugfixes
+
+* [#4403](https://github.com/http4s/http4s/pull/4403): Remove `Content-Coding` and `Content-Length` headers after decompressing in the `GZip` middleware.
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#4348](https://github.com/http4s/http4s/pull/4348): Handle partially read bodies in persistent connections when the connection is recycled.
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4400](https://github.com/http4s/http4s/pull/4400): Implement the `ConnectionInfo` and `SecureSession` request vault attributes, for parity with the Blaze and Servlet backends
 
 ## http4s-argonaut
 
