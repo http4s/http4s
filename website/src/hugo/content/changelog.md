@@ -51,13 +51,35 @@ it.
 * play-json-2.10.0-RC1
 * scala-xml-2.0.0-M4
 
-# v0.21.19
+### Breaking changes
+
+* [#4371](https://github.com/http4s/http4s/pull/4371): Replace jawn-play with an internal copy of the facade to work around `withDottyCompat` issues.
+
+# v0.21.19 (2021-02-13)
 
 ## http4s-core
 
 ### Deprecations
 
 * [#4337](https://github.com/http4s/http4s/pull/4337): Deprecate `Header.Recurring.GetT`, which is unused
+
+## http4s-client
+
+### Bugfixes
+
+* [#4403](https://github.com/http4s/http4s/pull/4403): Remove `Content-Coding` and `Content-Length` headers after decompressing in the `GZip` middleware.
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#4348](https://github.com/http4s/http4s/pull/4348): Handle partially read bodies in persistent connections when the connection is recycled.
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4400](https://github.com/http4s/http4s/pull/4400): Implement the `ConnectionInfo` and `SecureSession` request vault attributes, for parity with the Blaze and Servlet backends
 
 ## http4s-argonaut
 
@@ -81,6 +103,7 @@ it.
 * netty-4.1.59.Final
 * okio-2.9.0
 * tomcat-9.0.43
+<<<<<<< HEAD
 
 # v1.0.0-M16 (2021-02-02)
 
@@ -91,6 +114,8 @@ Inherits the fixes of v0.21.18
 ~~Build failure.~~
 
 Accidentally published from the 0.21.x series after a series of unfortunate events. Do not use.
+=======
+>>>>>>> series/0.22
 
 # v0.22.0-M3 (2021-02-02)
 
