@@ -19,4 +19,5 @@ package jackson
 
 import org.json4s.JsonAST.JValue
 
+@deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
 class Json4sJacksonSpec extends Json4sSuite[JValue] with Json4sJacksonInstances

@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
 import cats.syntax.all._
-import fs2.Stream
+import fs2.{Chunk, Stream}
 import fs2.io.tcp._
 import fs2.io.tls._
 import io.chrisdavenport.log4cats.Logger
@@ -121,20 +121,22 @@ private[server] object ServerHelpers {
     }
 
   private[internal] def runApp[F[_]: Concurrent: Timer](
-      incoming: Stream[F, Byte],
+      head: Array[Byte],
+      read: F[Option[Chunk[Byte]]],
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      requestVault: Vault): F[(Request[F], Response[F], Stream[F, Byte])] =
+      requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] =
     for {
-      tup <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
-        incoming)
-      (req, rest) = tup
+      (req, drain) <- Parser.Request.parser(
+        maxHeaderSize,
+        durationToFinite(requestHeaderReceiveTimeout))(head, read)
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
+      rest <- drain // TODO: handle errors?
     } yield (req, resp, rest)
 
   private[internal] def send[F[_]: Sync](socket: Socket[F])(
@@ -182,18 +184,19 @@ private[server] object ServerHelpers {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
   ): Stream[F, Nothing] = {
     val _ = logger
-
+    val read: F[Option[Chunk[Byte]]] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
       Stream
-        .unfoldLoopEval(socket.reads(receiveBufferSize, durationToFinite(idleTimeout)))(s =>
+        .unfoldLoopEval(Array.emptyByteArray)(incoming =>
           runApp(
-            s,
+            incoming,
+            read,
             maxHeaderSize,
             requestHeaderReceiveTimeout,
             httpApp,
             errorHandler,
             requestVault).attempt.map {
-            case Right((req, resp, rest)) => (Right((req, resp)), Some(rest))
+            case Right((req, resp, rest)) => (Right((req, resp)), rest)
             case Left(e) => (Left(e), None)
           })
         .evalMap {

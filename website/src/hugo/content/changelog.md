@@ -8,6 +8,37 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.19
+
+## http4s-core
+
+### Deprecations
+
+* [#4337](https://github.com/http4s/http4s/pull/4337): Deprecate `Header.Recurring.GetT`, which is unused
+
+## http4s-argonaut
+
+* [#4366](https://github.com/http4s/http4s/pull/4370): Deprecate http4s-argonaut.  It won't be published starting in 0.22.
+
+## http4s-json4s, http4s-json4s-jackson, http4s-json4s-native
+
+### Deprecations
+
+* [#4370](https://github.com/http4s/http4s/pull/4370): Deprecate the http4s-json4s modules.  They won't be published starting in 0.22.
+
+## http4s-scalatags
+
+### Enhancements
+
+* [#3850](https://github.com/http4s/http4s/pull/3850): Relax constraint on encoders from `TypedTag[String]` to `Frag[_, String]`
+
+## Dependency updates
+
+* cats-2.4.1
+* netty-4.1.59.Final
+* okio-2.9.0
+* tomcat-9.0.43
+
 # v0.21.18 (2021-02-02)
 
 ## http4s-blaze-server

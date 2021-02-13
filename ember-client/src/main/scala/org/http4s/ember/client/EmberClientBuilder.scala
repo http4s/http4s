@@ -22,13 +22,15 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import cats._
 import cats.syntax.all._
 import cats.effect._
+
 import scala.concurrent.duration._
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
+
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{AgentProduct, Connection, `User-Agent`}
+import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
@@ -117,22 +119,20 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       )
       builder =
         KeyPoolBuilder
-          .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
+          .apply[F, RequestKey, EmberConnection[F]](
             (requestKey: RequestKey) =>
-              org.http4s.ember.client.internal.ClientHelpers
-                .requestKeyToSocketWithKey[F](
-                  requestKey,
-                  tlsContextOptWithDefault,
-                  sg,
-                  additionalSocketOptions
-                )
-                .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            { case (RequestKeySocket(socket, r), shutdown) =>
-              logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
-                socket.endOfInput.attempt.void >>
-                socket.endOfOutput.attempt.void >>
-                socket.close.attempt.void >>
-                shutdown.attempt.void
+              EmberConnection(
+                org.http4s.ember.client.internal.ClientHelpers
+                  .requestKeyToSocketWithKey[F](
+                    requestKey,
+                    tlsContextOptWithDefault,
+                    sg,
+                    additionalSocketOptions
+                  )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+            { case connection =>
+              logger.trace(
+                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
+                connection.cleanup
             }
           )
           .withDefaultReuseState(Reusable.DontReuse)
@@ -148,39 +148,34 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           _ <- Resource.liftF(
             pool.state.flatMap { poolState =>
               logger.trace(
-                s"Connection Taken - Key: ${managed.value._1.requestKey} - Reused: ${managed.isReused} - PoolState: $poolState"
+                s"Connection Taken - Key: ${managed.value.keySocket.requestKey} - Reused: ${managed.isReused} - PoolState: $poolState"
               )
             }
           )
-          responseResource <- Resource
-            .liftF(
-              ClientHelpers
-                .request[F](
+          responseResource <- Resource.makeCase(
+            ClientHelpers
+              .request[F](
+                request,
+                managed.value,
+                chunkSize,
+                maxResponseHeaderSize,
+                idleConnectionTime,
+                timeout,
+                userAgent
+              )
+          ) { case ((response, drain), exitCase) =>
+            exitCase match {
+              case ExitCase.Completed =>
+                ClientHelpers.postProcessResponse(
                   request,
-                  managed.value._1,
-                  managed.canBeReused,
-                  chunkSize,
-                  maxResponseHeaderSize,
-                  idleConnectionTime,
-                  timeout,
-                  userAgent
-                )
-            )
-            .map(response =>
-              // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
-              response.copy(body = response.body.onFinalizeCaseWeak {
-                case ExitCase.Completed =>
-                  val requestClose = request.headers.get(Connection).exists(_.hasClose)
-                  val responseClose = response.isChunked || response.headers
-                    .get(Connection)
-                    .exists(_.hasClose)
-
-                  if (requestClose || responseClose) Sync[F].unit
-                  else managed.canBeReused.set(Reusable.Reuse)
-                case ExitCase.Canceled => Sync[F].unit
-                case ExitCase.Error(_) => Sync[F].unit
-              }))
-        } yield responseResource
+                  response,
+                  drain,
+                  managed.value.nextBytes,
+                  managed.canBeReused)
+              case _ => Applicative[F].unit
+            }
+          }
+        } yield responseResource._1
       }
       new EmberClient[F](client, pool)
     }

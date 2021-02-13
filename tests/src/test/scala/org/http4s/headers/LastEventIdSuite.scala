@@ -21,7 +21,7 @@ import org.http4s.ServerSentEvent._
 import org.scalacheck._
 import org.scalacheck.Arbitrary._
 
-class LastEventIdSuite extends MHeaderLaws {
+class LastEventIdSuite extends HeaderLaws {
   implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =
     Arbitrary(for {
       id <- arbitrary[String]

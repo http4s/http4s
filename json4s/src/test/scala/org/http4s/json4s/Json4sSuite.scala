@@ -27,6 +27,7 @@ import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
 import org.json4s.JsonAST.{JField, JInt, JObject, JString}
 
+@deprecated("http4s-json4s will be dropped in 0.22.0", "0.21.19")
 trait Json4sSuite[J] extends JawnDecodeSupportSuite[JValue] {
   self: Json4sInstances[J] =>
   import Json4sSuite._
