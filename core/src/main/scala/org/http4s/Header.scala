@@ -253,12 +253,12 @@ object newH {
         def parse(s: String) = Foo(s).some
       }
     }
-    def bar = Header.Raw(CIString("bar"), "bbb")
+    def baz = Header.Raw(CIString("baz"), "bbb")
 
     val myHeaders = Headers(
       Foo("hello"),
       "my" -> "header",
-      bar
+      baz
     )
     ////// test for selection
     case class Bar(v: String)
