@@ -19,13 +19,47 @@ import scala.util.hashing.MurmurHash3
 
 object newH {
 
+  sealed trait T
+  case class Singleton() extends T
+  case class Recurring() extends T
+  sealed trait Select[A <: T] {
+    type F[_]
+    def from[H](headers: List[Header.Raw])(implicit h: Header[H, A]): Option[F[H]]
+  }
+  object Select {
+    implicit def singletons: Select[Singleton] { type F[B] = cats.Id[B]} =
+      new Select[Singleton] {
+        type F[B] = cats.Id[B]
+        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Singleton]): Option[H] =
+          headers.collectFirst(Function.unlift((_: Header.Raw).toHeader[H]))
+      }
+
+    implicit def recurrings: Select[Recurring] { type F[B] = NonEmptyList[B]} =
+      new Select[Recurring] {
+        type F[B] = NonEmptyList[B]
+        def from[H](headers: List[Header.Raw])(implicit h: Header[H, Recurring]): Option[NonEmptyList[H]] =
+          headers.collect(Function.unlift((_: Header.Raw).toHeader[H])).toNel
+      }
+  }
+  trait SelectHeader[H] {
+    type F[_]
+    def from(headers: List[Header.Raw]): Option[F[H]]
+  }
+  object SelectHeader {
+    implicit def all[H, TT <: T](implicit h: Header[H, TT], s: Select[TT]): SelectHeader[H] =
+      new SelectHeader[H] {
+        type F[B] = s.F[B]
+        def from(headers: List[Header.Raw]): Option[F[H]] = s.from(headers)
+      }
+  }
+
   /**
     * Typeclass representing an HTTP header, which all the http4s
     * default headers satisfy.
     * You can add custom headers by providing an implicit instance of
     * `Header[YourCustomHeader]`
     */
-  trait Header[A] {
+  trait Header[A, TT <: T] {
     /**
       * Name of the header. Not case sensitive.
       */
@@ -43,7 +77,7 @@ object newH {
     def parse(headerValue: String): Option[A]
   }
   object Header {
-    def apply[A](implicit ev: Header[A]): ev.type = ev
+    def apply[A](implicit ev: Header[A, _]): ev.type = ev
 
     /**
       * Target for implicit conversions to Header.Raw from custom
@@ -62,7 +96,7 @@ object newH {
         val value = Header.Raw(CIString(kv._1), kv._2)
       }
 
-      implicit def customHeadersToRaw[H](h: H)(implicit H: Header[H]): Header.ToRaw =
+      implicit def customHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw =
         new Header.ToRaw {
           val value = Header.Raw(H.name, H.value(h))
         }
@@ -70,11 +104,11 @@ object newH {
 
 
     case class Raw(name: CIString, value: String) {
-      def toHeader[A: Header]: Option[A] =
+      def toHeader[A](implicit h: Header[A, _]): Option[A] =
         (name == Header[A].name).guard[Option] >> Header[A].parse(value)
     }
     object Raw {
-      def fromHeader[A: Header](a: A): Header.Raw =
+      def fromHeader[A](a: A)(implicit h: Header[A, _]): Header.Raw =
         Header.Raw(Header[A].name, Header[A].value(a))
     }
   }
@@ -93,7 +127,8 @@ object newH {
       * @return a scala.Option possibly containing the resulting header of type key.HeaderT
       * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
       */
-//    def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
+    def get[A](implicit ev: SelectHeader[A]): Option[ev.F[A]] =
+      ev.from(headers)
 
     /** Attempt to get a [[org.http4s.Header]] from this collection of headers
       *
@@ -167,7 +202,7 @@ object newH {
     ///// test for construction
     case class Foo(v: String)
     object Foo {
-      implicit def headerFoo: Header[Foo] = new Header[Foo] {
+      implicit def headerFoo: Header[Foo, Singleton] = new Header[Foo, Singleton] {
         def name = CIString("foo")
         def value(f: Foo) = f.v
         def parse(s: String) = Foo(s).some
@@ -180,7 +215,26 @@ object newH {
       "my" -> "header",
       bar
     )
-    //////
+    ////// test for selection
+    case class Bar(v: String)
+    object Bar {
+      implicit def headerBar: Header[Bar, Recurring] = new Header[Bar, Recurring] {
+        def name = CIString("Bar")
+        def value(f: Bar) = f.v
+        def parse(s: String) = Bar(s).some
+      }
+    }
+
+    val hs = Headers(
+      Bar("one"),
+      Foo("two"),
+      Bar("three")
+    )
+
+    val a = hs.get[Foo]
+    val b = hs.get[Bar]
+
+    /////
 
     val empty = of(List.empty)
 
