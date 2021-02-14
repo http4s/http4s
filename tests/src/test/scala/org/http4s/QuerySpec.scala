@@ -32,7 +32,7 @@ class QuerySpec extends Http4sSuite {
   }
 
   {
-    test("Query can append a query param"){
+    test("Query can append a query param") {
       forAll { (p: KeyValue, q: Query) =>
         val q2 = q :+ p
         q2.isInstanceOf[Query] &&
@@ -61,12 +61,12 @@ class QuerySpec extends Http4sSuite {
       }
     }
 
-    test("Query can Drop a head element"){
+    test("Query can Drop a head element") {
       forAll { (q: Query) =>
-      val q2 = q.drop(1)
-      q2.isInstanceOf[Query] &&
-      q2.toList == q.toList.drop(1)
-    }
+        val q2 = q.drop(1)
+        q2.isInstanceOf[Query] &&
+        q2.toList == q.toList.drop(1)
+      }
     }
 
     test("Query can Drop a tail element") {
@@ -88,7 +88,7 @@ class QuerySpec extends Http4sSuite {
     }
   }
 
-      checkAll("Order[Query]", OrderTests[Query].order)
-      checkAll("Hash[Query]", HashTests[Query].hash)
+  checkAll("Order[Query]", OrderTests[Query].order)
+  checkAll("Hash[Query]", HashTests[Query].hash)
 
 }

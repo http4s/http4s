@@ -33,33 +33,33 @@ class WwwAuthenticateHeaderSuite extends Http4sSuite with HeaderParserHelper[`WW
 
   val wparams = c.copy(params = params)
 
+  test("WWW-Authenticate Header parser should Render challenge correctly") {
+    assertEquals(c.renderString, str)
+  }
 
-    test("WWW-Authenticate Header parser should Render challenge correctly") {
-      assertEquals(c.renderString, str)
-    }
+  test("WWW-Authenticate Header parser should Parse a basic authentication") {
+    assertEquals(parse(str), `WWW-Authenticate`(c))
+  }
 
-    test("WWW-Authenticate Header parser should Parse a basic authentication") {
-      assertEquals(parse(str), `WWW-Authenticate`(c))
-    }
+  test("WWW-Authenticate Header parser should Parse a basic authentication with params") {
+    assertEquals(parse(wparams.renderString), `WWW-Authenticate`(wparams))
+  }
 
-    test("WWW-Authenticate Header parser should Parse a basic authentication with params") {
-      assertEquals(parse(wparams.renderString), `WWW-Authenticate`(wparams))
-    }
+  test("WWW-Authenticate Header parser should Parse multiple concatenated authentications") {
+    val twotypes = "Newauth realm=\"apps\", Basic realm=\"simple\""
+    val twoparsed = Challenge("Newauth", "apps") :: Challenge("Basic", "simple") :: Nil
 
-    test("WWW-Authenticate Header parser should Parse multiple concatenated authentications") {
-      val twotypes = "Newauth realm=\"apps\", Basic realm=\"simple\""
-      val twoparsed = Challenge("Newauth", "apps") :: Challenge("Basic", "simple") :: Nil
+    assertEquals(parse(twotypes).values.toList, twoparsed)
+  }
 
-      assertEquals(parse(twotypes).values.toList, twoparsed)
-    }
+  test(
+    "WWW-Authenticate Header parser should parse multiple concatenated authentications with params") {
+    val twowparams =
+      "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
+    val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::
+      Challenge("Basic", "simple") :: Nil
 
-    test("WWW-Authenticate Header parser should parse multiple concatenated authentications with params") {
-      val twowparams =
-        "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
-      val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::
-        Challenge("Basic", "simple") :: Nil
-
-      assertEquals(parse(twowparams).values.toList, twp)
-    }
+    assertEquals(parse(twowparams).values.toList, twp)
+  }
 
 }
