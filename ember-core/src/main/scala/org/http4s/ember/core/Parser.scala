@@ -24,7 +24,6 @@ import fs2._
 import org.http4s._
 import scala.annotation.switch
 import scala.collection.mutable
-import scala.concurrent.duration.FiniteDuration
 
 private[ember] object Parser {
 
@@ -356,83 +355,75 @@ private[ember] object Parser {
       }
     }
 
-    def parser[F[_]](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
+    def parser[F[_]](maxHeaderLength: Int)(
         head: Array[Byte],
         read: F[Option[Chunk[Byte]]]
-    )(implicit F: Concurrent[F], timer: Timer[F]): F[(Request[F], F[Option[Array[Byte]]])] =
-      Deferred[F, Headers].flatMap { trailers =>
-        val action = ReqPrelude
-          .parsePrelude[F](head, read, maxHeaderLength, None)
-          .flatMap { case (method, uri, httpVersion, bytes) =>
-            HeaderP.parseHeaders(bytes, read, maxHeaderLength, None).flatMap {
-              case (headers, chunked, contentLength, bytes) =>
-                val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
-                  method = method,
-                  uri = uri,
-                  httpVersion = httpVersion,
-                  headers = headers
-                )
+    )(implicit F: Concurrent[F]): F[(Request[F], F[Option[Array[Byte]]])] =
+      ReqPrelude
+        .parsePrelude[F](head, read, maxHeaderLength, None)
+        .flatMap { case (method, uri, httpVersion, bytes) =>
+          HeaderP.parseHeaders(bytes, read, maxHeaderLength, None).flatMap {
+            case (headers, chunked, contentLength, bytes) =>
+              val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
+                method = method,
+                uri = uri,
+                httpVersion = httpVersion,
+                headers = headers
+              )
 
-                if (chunked) {
-                  Ref.of[F, Option[Array[Byte]]](None).map { rest =>
-                    (
-                      baseReq
-                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
-                      rest.get)
-                  }
-                } else {
-                  Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
-                    case (bodyStream, drain) =>
-                      (baseReq.withBodyStream(bodyStream), drain)
-                  }
+              if (chunked) {
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map { case (rest, trailers) =>
+                  (
+                    baseReq
+                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                      .withBodyStream(
+                        ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                    rest.get)
                 }
-            }
+              } else {
+                Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
+                  case (bodyStream, drain) =>
+                    (baseReq.withBodyStream(bodyStream), drain)
+                }
+              }
           }
-
-        timeout.fold(action)(duration => Concurrent.timeout(action, duration))
-      }
+        }
   }
 
   object Response {
 
-    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(
         head: Array[Byte],
         read: F[Option[Chunk[Byte]]]
-    ): F[(Response[F], F[Option[Array[Byte]]])] =
-      Deferred[F, Headers].flatMap { trailers =>
-        val action = RespPrelude
-          .parsePrelude(head, read, maxHeaderLength, None)
-          .flatMap { case (httpVersion, status, bytes) =>
-            HeaderP.parseHeaders(bytes, read, maxHeaderLength, None).flatMap {
-              case (headers, chunked, contentLength, bytes) =>
-                val baseResp = org.http4s.Response[F](
-                  httpVersion = httpVersion,
-                  status = status,
-                  headers = headers
-                )
+    ): F[(Response[F], F[Option[Array[Byte]]])] = 
+      RespPrelude
+        .parsePrelude(head, read, maxHeaderLength, None)
+        .flatMap { case (httpVersion, status, bytes) =>
+          HeaderP.parseHeaders(bytes, read, maxHeaderLength, None).flatMap {
+            case (headers, chunked, contentLength, bytes) =>
+              val baseResp = org.http4s.Response[F](
+                httpVersion = httpVersion,
+                status = status,
+                headers = headers
+              )
 
-                if (chunked) {
-                  Ref.of[F, Option[Array[Byte]]](None).map { rest =>
-                    (
-                      baseResp
-                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
-                      rest.get)
-                  }
-                } else {
-                  Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
-                    case (bodyStream, drain) =>
-                      (baseResp.withBodyStream(bodyStream), drain)
-                  }
+              if (chunked) {
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map { case (rest, trailers) =>
+                  (
+                    baseResp
+                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                      .withBodyStream(
+                        ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                    rest.get)
                 }
-            }
+              } else {
+                Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
+                  case (bodyStream, drain) =>
+                    (baseResp.withBodyStream(bodyStream), drain)
+                }
+              }
           }
-
-        timeout.fold(action)(duration => Concurrent.timeout(action, duration))
-      }
+        }
 
     object RespPrelude {
 

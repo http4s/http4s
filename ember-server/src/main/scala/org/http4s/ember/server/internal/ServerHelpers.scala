@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
 import cats.syntax.all._
+import cats.effect.implicits._
 import fs2.{Chunk, Stream}
 import fs2.io.tcp._
 import fs2.io.tls._
@@ -127,17 +128,20 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] =
+      requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] = {
+    
+    val parse = Parser.Request.parser(maxHeaderSize)(head, read)
+    val parseWithHeaderTimeout = durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration => parse.timeout(duration))
+
     for {
-      (req, drain) <- Parser.Request.parser(
-        maxHeaderSize,
-        durationToFinite(requestHeaderReceiveTimeout))(head, read)
+      (req, drain) <- parseWithHeaderTimeout
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
       rest <- drain // TODO: handle errors?
     } yield (req, resp, rest)
+  }
 
   private[internal] def send[F[_]: Sync](socket: Socket[F])(
       request: Option[Request[F]],

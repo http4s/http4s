@@ -16,51 +16,104 @@
 
 package org.http4s.ember.core
 
+import cats.effect._
+import cats.syntax.all._
+import fs2._
+import fs2.concurrent.Queue
 import org.http4s.Http4sSuite
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
+import org.scalacheck.effect.PropF
 
 class ParserChunkingSuite extends Http4sSuite {
+
+  object Helpers {
+    def taking[F[_]: Concurrent, A](stream: Stream[F, A]): F[F[Option[Chunk[A]]]] =
+      for {
+        q <- Queue.unbounded[F, Option[Chunk[A]]]
+        _ <- stream.chunks.map(Some(_)).evalMap(q.enqueue1(_)).compile.drain.void
+        _ <- q.enqueue1(None)
+      } yield q.dequeue1
   
-  def subdivided[A](as: List[A]): Gen[List[List[A]]] = {
-    def go(out: List[List[A]], remaining: Int): Gen[List[List[A]]] = {
-      // println(s"go: $out")
-      if (remaining > 0) {
-        Gen.chooseNum(0, out.length - 1).flatMap { idx =>
-          // println(s"index: $idx")
-          val prefix = out.take(idx)
-          val curr = out(idx)
-          val suffix = out.drop(idx + 1)
+    def subdivided[A](as: List[A], count: Int): Gen[List[List[A]]] = {
+      def go(out: List[List[A]], remaining: Int): Gen[List[List[A]]] = {
+        if (remaining > 0) {
+          Gen.chooseNum(0, out.length - 1).flatMap { idx =>
+            val prefix = out.take(idx)
+            val curr = out(idx)
+            val suffix = out.drop(idx + 1)
 
-          // println(s"prefix: $prefix, curr: $curr, suffix: $suffix")
-
-          Gen.chooseNum(0, curr.length - 1).flatMap { splitIdx => 
-            val (l, r) = curr.splitAt(splitIdx)
-            val split = List(l, r).filter(!_.isEmpty)
-            // println(s"split: $split")
-            val next = List(prefix, split, suffix).filter(!_.isEmpty).flatten
-            // println(s"next: $next")
-            // println("----")
-            go(next, remaining - 1)
+            Gen.chooseNum(0, curr.length - 1).flatMap { splitIdx => 
+              val (l, r) = curr.splitAt(splitIdx)
+              val split = List(l, r).filterNot(_.isEmpty)
+              val next = List(prefix, split, suffix).filterNot(_.isEmpty).flatten
+              go(next, remaining - 1)
+            }
           }
-        }
-      } else Gen.const(out)
-    }
+        } else Gen.const(out)
+      }
 
-    go(List(as), 5)
-  }
-
-  test("subdivided") {
-    val gen: Gen[(List[Int], List[List[Int]])] = for {
-      size <- Gen.choose(1, 100)
-      list <- Gen.listOfN(size, Gen.choose(Int.MinValue, Int.MaxValue))
-      divided <- subdivided(list)
-    } yield (list, divided)
-
-    forAll(gen) { case (a, b) =>
-      a.length == b.map(_.length).sum
+      Gen.delay(go(List(as), count))
     }
   }
+
+  test("first") {
+    val messageBytes = List(
+      "HTTP/1.1 200 OK\r\n",
+      "Content-Type: text/plain\r\n",
+      "Transfer-Encoding: chunked\r\n\r\n",
+      "7\r\n",
+      "Mozilla\r\n",
+      "9\r\n",
+      "Developer\r\n",
+      "7\r\n",
+      "Network\r\n",
+      "0\r\n",
+      "\r\n"
+    ).mkString.getBytes().toList
+
+    PropF.forAllF(Helpers.subdivided(messageBytes, 1)) { segments =>
+      // println(segments)
+      (for {
+        read <- Helpers.taking[IO, Byte](segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
+        result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
+      } yield messageBytes == segments.flatten).assert
+    }
+  }
+
+  // test("first") {
+  //   val messageBytes = List(
+  //     "HTTP/1.1 200 OK\r\n",
+  //     "Content-Type: text/plain\r\n",
+  //     "Transfer-Encoding: chunked\r\n\r\n",
+  //     "7\r\n",
+  //     "Mozilla\r\n",
+  //     "9\r\n",
+  //     "Developer\r\n",
+  //     "7\r\n",
+  //     "Network\r\n",
+  //     "0\r\n",
+  //     "\r\n"
+  //   ).mkString.getBytes().toList
+
+  //   PropF.forAllF(Helpers.subdivided(messageBytes, 5)) { segments =>
+  //     println(segments)
+  //     IO(messageBytes == segments.flatten).assert
+  //   }
+  // }
+
+  // test("subdivided") {
+  //   val gen: Gen[(List[Int], List[List[Int]])] = for {
+  //     size <- Gen.choose(1, 100)
+  //     count <- Gen.choose(1, 100)
+  //     list <- Gen.listOfN(size, Gen.choose(Int.MinValue, Int.MaxValue))
+  //     divided <- Helpers.subdivided(list, count)
+  //   } yield (list, divided)
+
+  //   forAll(gen) { case (a, b) =>
+  //     a == b.flatten
+  //   }
+  // }
 
 
 }
