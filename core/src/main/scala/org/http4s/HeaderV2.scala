@@ -16,7 +16,7 @@
 
 package org.http4s.header.v2
 
-import cats.{Id, Monoid, Order, Show}
+import cats.{Id, Semigroup, Monoid, Order, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
@@ -110,7 +110,20 @@ object Header {
       */
     def from(headers: List[Header.Raw]): Option[F[A]]
   }
-  object Select {
+  trait LowPrio {
+    implicit def recurringHeadersNoMerge[A](implicit
+      h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B] } =
+      new Select[A] {
+        type F[B] = NonEmptyList[B]
+
+        def toRaw(a: A): Header.Raw =
+          Header.Raw(h.name, h.value(a))
+
+        def from(headers: List[Header.Raw]): Option[NonEmptyList[A]] =
+          headers.collect(Function.unlift(Select.fromRaw(_))).toNel
+      }
+  }
+  object Select extends LowPrio {
     def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[A] =
       (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value)
 
@@ -126,16 +139,21 @@ object Header {
           headers.collectFirst(Function.unlift(fromRaw(_)))
       }
 
-    implicit def recurringHeaders[A](implicit
-        h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B] } =
+    implicit def recurringHeadersWithMerge[A: Semigroup](implicit
+      h: Header[A, Header.Recurring]): Select[A] { type F[B] = Id[B] } =
       new Select[A] {
-        type F[B] = NonEmptyList[B]
+        type F[B] = Id[B]
 
         def toRaw(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
 
-        def from(headers: List[Header.Raw]): Option[NonEmptyList[A]] =
-          headers.collect(Function.unlift(fromRaw(_))).toNel
+        def from(headers: List[Header.Raw]): Option[A] =
+          headers.foldLeft(Option.empty[A]) { (a, raw) =>
+            fromRaw(raw) match {
+              case Some(aa) => a |+| aa.some
+              case None => a
+            }
+          }
       }
   }
 }
@@ -266,27 +284,51 @@ object Examples {
     baz
   )
   ////// test for selection
-  case class Bar(v: String)
+  case class Bar(v: NonEmptyList[String])
   object Bar {
-    implicit def headerBar: Header[Bar, Header.Recurring] = new Header[Bar, Header.Recurring] {
-      def name = CIString("Bar")
-      def value(f: Bar) = f.v
-      def parse(s: String) = Bar(s).some
+    implicit val headerBar: Header[Bar, Header.Recurring] with Semigroup[Bar] =
+      new Header[Bar, Header.Recurring] with Semigroup[Bar] {
+        def name = CIString("Bar")
+        def value(b: Bar) = b.v.toList.mkString(",")
+        def parse(s: String) = Bar(NonEmptyList.one(s)).some
+        def combine(a: Bar, b: Bar) = Bar(a.v |+| b.v)
     }
   }
 
+
+  case class SetCookie(name: String, value: String)
+  object SetCookie {
+    implicit val headerCookie: Header[SetCookie, Header.Recurring] =
+      new Header[SetCookie, Header.Recurring] {
+        def name = CIString("Set-Cookie")
+        def value(c: SetCookie) = s"${c.name}:${c.value}"
+        def parse(s: String) =
+          s.split(':').toList match {
+            case List(name, value) => SetCookie(name, value).some
+            case _ => None
+          }
+      }
+  }
+
   val hs = Headers(
-    Bar("one"),
+    Bar(NonEmptyList.one("one")),
     Foo("two"),
-    Bar("three")
+    SetCookie("cookie1", "a cookie"),
+    Bar(NonEmptyList.one("three")),
+    SetCookie("cookie2", "another cookie")
   )
 
   val a = hs.get[Foo]
   val b = hs.get[Bar]
+  val c = hs.get[SetCookie]
 
   // scala> Examples.a
   // val res0: Option[Foo] = Some(Foo(two))
-  //
+
   // scala> Examples.b
-  // val res1: Option[NonEmptyList[Bar]] = Some(NonEmptyList(Bar(one), Bar(three)))
+  // val res1: Option[Bar] = Some(Bar(NonEmptyList(one, three)))
+
+  // scala> Examples.c
+  // val res2: Option[NonEmptyList[SetCookie]] = Some(NonEmptyList(SetCookie(cookie1,a cookie), SetCookie(cookie2,another cookie)))
+
 }
