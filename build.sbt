@@ -141,9 +141,7 @@ lazy val testing = libraryProject("testing")
       scalacheck,
       scalacheckEffect,
       scalacheckEffectMunit,
-      specs2Common.withDottyCompat(scalaVersion.value),
-      specs2Matcher.withDottyCompat(scalaVersion.value),
-    ),
+    ).map(_ % Test),
   )
   .dependsOn(laws)
 
