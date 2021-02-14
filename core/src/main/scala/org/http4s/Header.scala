@@ -16,6 +16,7 @@ import cats.syntax.all._
 import org.http4s.util._
 import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
+import scala.collection.mutable.{ListBuffer, Set => MutSet}
 
 object newH {
   /**
@@ -129,7 +130,6 @@ object newH {
     }
   }
 
-  import scala.collection.mutable.ListBuffer
 
   /** A collection of HTTP Headers */
   final class Headers (val headers: List[Header.Raw]) extends AnyVal {
@@ -226,9 +226,23 @@ object newH {
     def apply(headers: Header.ToRaw*): Headers =
       of(headers.toList.map(_.value))
 
-    /** Create a new Headers collection from the headers */
+    /** Creates a new Headers collection from the headers 
+      * Deduplicates non-recurring headers.
+      */
     def of(headers: List[Header.Raw]): Headers =
-      new Headers(headers)
+      if (headers.isEmpty) new Headers(List.empty)
+      else {
+        val acc = MutSet.empty[CIString]
+        val res = ListBuffer.empty[Header.Raw]
+
+        headers.foreach { h =>
+          if (h.recurring || h.name == "Set-Cookie" || acc.add(h.name))
+            res += h
+        }
+
+        new Headers(res.toList)
+      }
+
 
     // TODO
     // implicit val headersShow: Show[Headers] =
