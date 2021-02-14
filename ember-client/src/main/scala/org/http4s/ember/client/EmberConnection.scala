@@ -37,7 +37,8 @@ private[ember] object EmberConnection {
   def apply[F[_]: Concurrent](
       keySocketResource: Resource[F, RequestKeySocket[F]]): F[EmberConnection[F]] =
     Ref[F].of(Array.emptyByteArray).flatMap { nextBytes =>
-      val keySocketResourceAllocated: F[(RequestKeySocket[F], F[Unit])] = keySocketResource.allocated
+      val keySocketResourceAllocated: F[(RequestKeySocket[F], F[Unit])] =
+        keySocketResource.allocated
       keySocketResourceAllocated.map { case (keySocket, release) =>
         EmberConnection(keySocket, release, nextBytes)
       }

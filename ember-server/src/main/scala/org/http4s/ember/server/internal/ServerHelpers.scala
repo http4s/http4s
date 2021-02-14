@@ -130,9 +130,9 @@ private[server] object ServerHelpers {
       errorHandler: Throwable => F[Response[F]],
       requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] =
     for {
-      p <- Parser.Request.parser(
-        maxHeaderSize,
-        durationToFinite(requestHeaderReceiveTimeout))(head, read)
+      p <- Parser.Request.parser(maxHeaderSize, durationToFinite(requestHeaderReceiveTimeout))(
+        head,
+        read)
       (req, drain) = p
       resp <- httpApp
         .run(req.withAttributes(requestVault))

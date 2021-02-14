@@ -77,9 +77,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
 
   test("json encoder should have json content type") {
     val maybeHeaderT: Option[`Content-Type`] = jsonEncoder[IO].headers.get(`Content-Type`)
-    assertEquals(
-      maybeHeaderT,
-      Some(`Content-Type`(MediaType.application.json)))
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("json encoder should write compact JSON") {
@@ -102,9 +100,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
 
   test("jsonEncoderOf should have json content type") {
     val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[IO, Foo].headers.get(`Content-Type`)
-    assertEquals(
-      maybeHeaderT,
-      Some(`Content-Type`(MediaType.application.json)))
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("jsonEncoderOf should write compact JSON") {
@@ -133,9 +129,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("stream json array encoder should have json content type") {
     val maybeHeaderT: Option[`Content-Type`] = streamJsonArrayEncoder[IO].headers
       .get(`Content-Type`)
-    assertEquals(
-      maybeHeaderT,
-      Some(`Content-Type`(MediaType.application.json)))
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("stream json array encoder should write compact JSON") {
@@ -172,9 +166,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("stream json array encoder of should have json content type") {
     val maybeHeaderT: Option[`Content-Type`] = streamJsonArrayEncoderOf[IO, Foo].headers
       .get(`Content-Type`)
-    assertEquals(
-      maybeHeaderT,
-      Some(`Content-Type`(MediaType.application.json)))
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("stream json array encoder of should write compact JSON") {
