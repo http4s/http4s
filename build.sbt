@@ -411,7 +411,7 @@ lazy val circe = libraryProject("circe")
       circeTesting % Test
     )
   )
-  .dependsOn(core, specs2 % "test->test", jawn % "compile;test->test")
+  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val playJson = libraryProject("play-json")
   .settings(

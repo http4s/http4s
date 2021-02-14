@@ -57,6 +57,9 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
 }
 
 object Http4sSuite {
+  val TestExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-suite", timeout = true))
+
   val TestScheduler: ScheduledExecutorService = {
     val s =
       new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
