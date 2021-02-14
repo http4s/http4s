@@ -69,8 +69,8 @@ object Http4sSuite {
   }
 
   val TestIORuntime: IORuntime = {
-    val blockingPool = newBlockingPool("http4s-spec-blocking")
-    val computePool = newDaemonPool("http4s-spec", timeout = true)
+    val blockingPool = newBlockingPool("http4s-suite-blocking")
+    val computePool = newDaemonPool("http4s-suite", timeout = true)
     val scheduledExecutor = TestScheduler
     IORuntime.apply(
       ExecutionContext.fromExecutor(computePool),
