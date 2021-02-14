@@ -121,7 +121,7 @@ class BlazeClientSuite extends BlazeClientBase {
             .start
 
           // Wait 100 millis to shut down
-          IO.sleep(100.millis) *> resp.flatMap(_.joinAndEmbedNever)
+          IO.sleep(100.millis) *> resp.flatMap(_.joinWithNever)
         }
 
       resp.assertEquals(true)

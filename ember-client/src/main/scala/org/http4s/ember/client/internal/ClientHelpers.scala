@@ -19,7 +19,7 @@ package org.http4s.ember.client.internal
 import org.http4s.ember.client._
 import fs2.io.tcp._
 import fs2.io.Network
-import cats._
+import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.kernel.Clock
