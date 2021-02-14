@@ -44,6 +44,10 @@ object newH {
   }
   object Header {
     case class Raw(name: CIString, value: String, recurring: Boolean = true)
+    object Raw {
+      implicit val showForRawHeaders: Show[Raw] =
+        h => s"${h.name.show}: ${h.value}"
+    }
 
     /**
      * Classifies custom headers into singleton and recurring headers.
@@ -216,12 +220,8 @@ object newH {
         new Headers(res.toList)
       }
 
-
-    // TODO
-    // implicit val headersShow: Show[Headers] =
-    //   Show.show[Headers] {
-    //     _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")
-    //   }
+    implicit val headersShow: Show[Headers] =
+      _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")
 
     // TODO
     // implicit lazy val HeadersOrder: Order[Headers] =
