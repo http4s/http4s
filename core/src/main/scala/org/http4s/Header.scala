@@ -47,6 +47,12 @@ object newH {
     object Raw {
       implicit val showForRawHeaders: Show[Raw] =
         h => s"${h.name.show}: ${h.value}"
+
+      implicit lazy val orderForRawHeaders: Order[Raw] =
+        Order.whenEqual(
+          Order.by(_.name),
+          Order.by(_.value)
+        )
     }
 
     /**
@@ -185,9 +191,8 @@ object newH {
         }
       }
 
-    // TODO
-    // override def toString: String =
-    //   Headers.headersShow.show(this)
+    override def toString: String =
+      this.show
   }
   object Headers {
     val empty = of(List.empty)
@@ -223,9 +228,8 @@ object newH {
     implicit val headersShow: Show[Headers] =
       _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")
 
-    // TODO
-    // implicit lazy val HeadersOrder: Order[Headers] =
-    //   Order.by(_.headers)
+    implicit lazy val HeadersOrder: Order[Headers] =
+      Order.by(_.headers)
 
     implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
       def empty: Headers = Headers.empty
