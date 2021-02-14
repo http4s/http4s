@@ -19,12 +19,12 @@ package org.http4s.circe.middleware
 import cats.data.Kleisli
 import cats.effect.IO
 import org.http4s._
-import org.http4s.testing.SilenceOutputStream
+import org.http4s.testing.ErrorReporting
 
-class JsonDebugErrorHandlerSpec extends Http4sSpec with SilenceOutputStream {
+class JsonDebugErrorHandlerSpec extends Http4sSuite {
 
-  "JsonDebugErrorHandler" should {
-    "handle an unknown error" in {
+  test("JsonDebugErrorHandler should handle an unknown error") {
+    ErrorReporting.silenceOutputStreams {
       val service: Kleisli[IO, Request[IO], Response[IO]] =
         Kleisli { (_: Request[IO]) =>
           IO.raiseError[Response[IO]](new Throwable("Boo!"))
@@ -34,9 +34,12 @@ class JsonDebugErrorHandlerSpec extends Http4sSpec with SilenceOutputStream {
       JsonDebugErrorHandler(service)
         .run(req)
         .attempt
-        .unsafeRunSync() must beRight
+        .map(_.isRight)
+        .assert
     }
-    "handle an message failure" in {
+  }
+  test("JsonDebugErrorHandler should handle an message failure") {
+    ErrorReporting.silenceOutputStreams {
       val service: Kleisli[IO, Request[IO], Response[IO]] =
         Kleisli { (_: Request[IO]) =>
           IO.raiseError[Response[IO]](MalformedMessageBodyFailure("Boo!"))
@@ -46,7 +49,9 @@ class JsonDebugErrorHandlerSpec extends Http4sSpec with SilenceOutputStream {
       JsonDebugErrorHandler(service)
         .run(req)
         .attempt
-        .unsafeRunSync() must beRight
+        .map(_.isRight)
+        .assert
     }
   }
+
 }

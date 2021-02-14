@@ -20,10 +20,13 @@ package circe.test // Get out of circe package so we can import custom instances
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
+import cats.effect.laws.util.TestInstances._
 import cats.syntax.all._
 import fs2.Stream
 import io.circe._
+import io.circe.jawn.CirceSupportParser
 import io.circe.syntax._
+import io.circe.testing.instances._
 import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.circe._
@@ -31,8 +34,6 @@ import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
-import io.circe.testing.instances._
-import io.circe.jawn.CirceSupportParser
 
 class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()
@@ -365,5 +366,5 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     }.assert
   }
 
-  checkAllF("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodecF)
+  checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
 }
