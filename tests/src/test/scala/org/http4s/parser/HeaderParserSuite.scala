@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s.testing
+package org.http4s
+package parser
 
-import org.specs2.specification.AroundEach
-import org.specs2.execute.{AsResult, Result}
-import org.http4s.testing.ErrorReporting._
+import org.http4s.syntax.string._
+import scala.util.Try
 
-/** Wraps around each test and silences System.out and System.err output streams.
-  * Restores back the original streams after each test case.
-  */
-
-trait SilenceOutputStream extends AroundEach {
-
-  def around[R: AsResult](r: => R): Result =
-    silenceOutputStreams {
-      AsResult(r)
-    }
+class HeaderParserSuite extends Http4sSuite {
+  test("Header parsing should catch ParseFailures") {
+    val h2 = Header.Raw("Date".ci, "Fri, 06 Feb 0010 15:28:43 GMT") // Invalid year: must be >= 1800
+    assert(Try(h2.parsed).isSuccess)
+  }
 }
