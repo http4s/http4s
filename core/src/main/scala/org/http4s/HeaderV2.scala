@@ -16,7 +16,7 @@
 
 package org.http4s.header.v2
 
-import cats.{Id, Semigroup, Monoid, Order, Show}
+import cats.{Id, Monoid, Order, Semigroup, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
@@ -112,7 +112,7 @@ object Header {
   }
   trait LowPrio {
     implicit def recurringHeadersNoMerge[A](implicit
-      h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B] } =
+        h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B] } =
       new Select[A] {
         type F[B] = NonEmptyList[B]
 
@@ -140,7 +140,7 @@ object Header {
       }
 
     implicit def recurringHeadersWithMerge[A: Semigroup](implicit
-      h: Header[A, Header.Recurring]): Select[A] { type F[B] = Id[B] } =
+        h: Header[A, Header.Recurring]): Select[A] { type F[B] = Id[B] } =
       new Select[A] {
         type F[B] = Id[B]
 
@@ -292,9 +292,8 @@ object Examples {
         def value(b: Bar) = b.v.toList.mkString(",")
         def parse(s: String) = Bar(NonEmptyList.one(s)).some
         def combine(a: Bar, b: Bar) = Bar(a.v |+| b.v)
-    }
+      }
   }
-
 
   case class SetCookie(name: String, value: String)
   object SetCookie {
