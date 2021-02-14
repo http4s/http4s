@@ -26,7 +26,7 @@ import org.http4s.servlet.AsyncHttp4sServlet
 import org.http4s.syntax.all._
 
 object Issue454 {
-  implicit val cs: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val cs: ContextShift[IO] = Http4sSuite.TestContextShift
 
   // If the bug is not triggered right away, try increasing or
   // repeating the request. Also if you decrease the data size (to

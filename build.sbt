@@ -181,7 +181,7 @@ lazy val server = libraryProject("server")
     ),
     buildInfoPackage := "org.http4s.server.test",
   )
-  .dependsOn(core, specs2 % "test->test", theDsl % "test->compile")
+  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -241,7 +241,7 @@ lazy val emberCore = libraryProject("ember-core")
       log4catsTesting % Test,
     ),
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val emberServer = libraryProject("ember-server")
   .settings(
@@ -272,7 +272,7 @@ lazy val blazeCore = libraryProject("blaze-core")
       blazeHttp,
     )
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
@@ -376,7 +376,7 @@ lazy val theDsl = libraryProject("dsl")
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val jawn = libraryProject("jawn")
   .settings(
