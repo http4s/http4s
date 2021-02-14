@@ -53,7 +53,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       dispatcher: Dispatcher[IO]): Http1Connection[IO] =
     new Http1Connection(
       requestKey = requestKey,
-      executionContext = Http4sSpec.TestExecutionContext,
+      executionContext = Http4sSuite.TestExecutionContext,
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
@@ -80,7 +80,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = Http4sSpec.TestExecutionContext
+      ec = Http4sSuite.TestExecutionContext
     )
   }
 

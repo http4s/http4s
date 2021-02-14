@@ -18,9 +18,8 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Content-Type`
-import org.specs2.mutable.Specification
 
-class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Content-Type`] {
+class ContentTypeHeaderSuite extends Http4sSuite with HeaderParserHelper[`Content-Type`] {
   def hparse(value: String): ParseResult[`Content-Type`] =
     `Content-Type`.parse(value)
 
@@ -34,21 +33,23 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
       MediaType.multipart.`form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
       Charset.`UTF-8`)
 
-  "ContentType Header" should {
-    "Generate the correct values" in {
-      simple.value must be_==("text/html")
-      charset.value must be_==("""text/html; charset=UTF-8""")
-      extensions.value must be_==("""text/html; foo="bar"""")
-      extensionsandset.value must be_==("""text/html; foo="bar"; charset=UTF-8""")
-      multipart.value must be_==("""multipart/form-data; boundary="aLotOfMoose"; charset=UTF-8""")
+  {
+    test("ContentType Header should Generate the correct values") {
+      assertEquals(simple.value, "text/html")
+      assertEquals(charset.value, """text/html; charset=UTF-8""")
+      assertEquals(extensions.value, """text/html; foo="bar"""")
+      assertEquals(extensionsandset.value, """text/html; foo="bar"; charset=UTF-8""")
+      assertEquals(
+        multipart.value,
+        """multipart/form-data; boundary="aLotOfMoose"; charset=UTF-8""")
     }
 
-    "Parse correctly" in {
-      parse(simple.value) must be_==(simple)
-      parse(charset.value) must be_==(charset)
-      parse(extensions.value) must be_==(extensions)
-      parse(extensionsandset.value) must be_==(extensionsandset)
-      parse(multipart.value) must be_==(multipart)
+    test("ContentType Header should Parse correctly") {
+      assertEquals(parse(simple.value), simple)
+      assertEquals(parse(charset.value), charset)
+      assertEquals(parse(extensions.value), extensions)
+      assertEquals(parse(extensionsandset.value), extensionsandset)
+      assertEquals(parse(multipart.value), multipart)
     }
   }
 }

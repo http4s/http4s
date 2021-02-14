@@ -18,10 +18,9 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Accept-Language`
-import org.specs2.mutable.Specification
 import org.http4s.syntax.all._
 
-class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-Language`] {
+class AcceptLanguageSuite extends Http4sSuite with HeaderParserHelper[`Accept-Language`] {
   def hparse(value: String): ParseResult[`Accept-Language`] =
     `Accept-Language`.parse(value)
 
@@ -33,16 +32,16 @@ class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-L
   val all = `Accept-Language`(LanguageTag.`*`)
   val ninguno = `Accept-Language`(LanguageTag.`*`.withQValue(QValue.Zero))
 
-  "Accept-Language" should {
-    "Give correct value" in {
-      en.value must be_==("en")
-      enq5.value must be_==("en;q=0.5")
+  {
+    test("Accept-Language should Give correct value") {
+      assertEquals(en.value, "en")
+      assertEquals(enq5.value, "en;q=0.5")
     }
 
-    "Parse properly" in {
-      parse(en.value) must be_==(en)
-      parse(enq5.value) must be_==(enq5)
-      parse(en_cool.value) must be_==(en_cool)
+    test("Accept-Language should Parse properly") {
+      assertEquals(parse(en.value), en)
+      assertEquals(parse(enq5.value), enq5)
+      assertEquals(parse(en_cool.value), en_cool)
     }
   }
 }
