@@ -67,7 +67,7 @@ class GZipSuite extends Http4sSuite {
   }
 
   test("encoding") {
-    PropF.forAllF { vector: Vector[Array[Byte]] =>
+    PropF.forAllF { (vector: Vector[Array[Byte]]) =>
       val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
         Ok(Stream.emits(vector).covary[IO])
       }

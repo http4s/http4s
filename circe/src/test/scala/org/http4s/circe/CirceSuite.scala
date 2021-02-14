@@ -76,8 +76,9 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
   test("json encoder should have json content type") {
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoder[IO].headers.get(`Content-Type`)
     assertEquals(
-      jsonEncoder[IO].headers.get(`Content-Type`),
+      maybeHeaderT,
       Some(`Content-Type`(MediaType.application.json)))
   }
 
@@ -100,8 +101,9 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   }
 
   test("jsonEncoderOf should have json content type") {
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[IO, Foo].headers.get(`Content-Type`)
     assertEquals(
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`),
+      maybeHeaderT,
       Some(`Content-Type`(MediaType.application.json)))
   }
 
@@ -129,9 +131,10 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   ).lift[IO]
 
   test("stream json array encoder should have json content type") {
+    val maybeHeaderT: Option[`Content-Type`] = streamJsonArrayEncoder[IO].headers
+      .get(`Content-Type`)
     assertEquals(
-      streamJsonArrayEncoder[IO].headers
-        .get(`Content-Type`),
+      maybeHeaderT,
       Some(`Content-Type`(MediaType.application.json)))
   }
 
@@ -167,9 +170,10 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   ).lift[IO]
 
   test("stream json array encoder of should have json content type") {
+    val maybeHeaderT: Option[`Content-Type`] = streamJsonArrayEncoderOf[IO, Foo].headers
+      .get(`Content-Type`)
     assertEquals(
-      streamJsonArrayEncoderOf[IO, Foo].headers
-        .get(`Content-Type`),
+      maybeHeaderT,
       Some(`Content-Type`(MediaType.application.json)))
   }
 
