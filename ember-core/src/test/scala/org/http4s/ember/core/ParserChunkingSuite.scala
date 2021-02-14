@@ -34,16 +34,16 @@ class ParserChunkingSuite extends Http4sSuite {
         _ <- stream.chunks.map(Some(_)).evalMap(q.enqueue1(_)).compile.drain.void
         _ <- q.enqueue1(None)
       } yield q.dequeue1
-  
+
     def subdivided[A](as: List[A], count: Int): Gen[List[List[A]]] = {
-      def go(out: List[List[A]], remaining: Int): Gen[List[List[A]]] = {
+      def go(out: List[List[A]], remaining: Int): Gen[List[List[A]]] =
         if (remaining > 0) {
           Gen.chooseNum(0, out.length - 1).flatMap { idx =>
             val prefix = out.take(idx)
             val curr = out(idx)
             val suffix = out.drop(idx + 1)
 
-            Gen.chooseNum(0, curr.length - 1).flatMap { splitIdx => 
+            Gen.chooseNum(0, curr.length - 1).flatMap { splitIdx =>
               val (l, r) = curr.splitAt(splitIdx)
               val split = List(l, r).filterNot(_.isEmpty)
               val next = List(prefix, split, suffix).filterNot(_.isEmpty).flatten
@@ -51,7 +51,6 @@ class ParserChunkingSuite extends Http4sSuite {
             }
           }
         } else Gen.const(out)
-      }
 
       Gen.delay(go(List(as), count))
     }
@@ -91,7 +90,8 @@ class ParserChunkingSuite extends Http4sSuite {
 
     PropF.forAllNoShrinkF(Helpers.subdivided(messageBytes, 1)) { segments =>
       (for {
-        read <- Helpers.taking[IO, Byte](segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
+        read <- Helpers.taking[IO, Byte](
+          segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
         result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
       } yield true).assert
     }

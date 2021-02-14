@@ -372,13 +372,14 @@ private[ember] object Parser {
               )
 
               if (chunked) {
-                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map { case (rest, trailers) =>
-                  (
-                    baseReq
-                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                      .withBodyStream(
-                        ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
-                    rest.get)
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
+                  case (rest, trailers) =>
+                    (
+                      baseReq
+                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                        .withBodyStream(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                      rest.get)
                 }
               } else {
                 Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
@@ -395,7 +396,7 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent](maxHeaderLength: Int)(
         head: Array[Byte],
         read: F[Option[Chunk[Byte]]]
-    ): F[(Response[F], F[Option[Array[Byte]]])] = 
+    ): F[(Response[F], F[Option[Array[Byte]]])] =
       RespPrelude
         .parsePrelude(head, read, maxHeaderLength, None)
         .flatMap { case (httpVersion, status, bytes) =>
@@ -408,13 +409,14 @@ private[ember] object Parser {
               )
 
               if (chunked) {
-                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map { case (rest, trailers) =>
-                  (
-                    baseResp
-                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                      .withBodyStream(
-                        ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
-                    rest.get)
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
+                  case (rest, trailers) =>
+                    (
+                      baseResp
+                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                        .withBodyStream(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                      rest.get)
                 }
               } else {
                 Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
