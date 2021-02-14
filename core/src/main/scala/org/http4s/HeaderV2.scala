@@ -57,24 +57,22 @@ object Header {
       )
   }
 
-  /** Classifies custom headers into singleton and recurring headers.
+  /** Classifies custom headers into `Single` headers, which can only
+    * appear once, and `Recurring` headers, which can appear multiple
+    * times.
     */
   sealed trait Type
-
-  /** The type of custom headers that can only appear once.
-    */
   case class Single() extends Type
-
-  /** The type of custom headers that appear multiple times.
-    */
   case class Recurring() extends Type
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
 
   /** Target for implicit conversions to Header.Raw from custom
     * headers and key-value pairs.
+    *
     * A method taking variadic `ToRaw` arguments will allow taking
     * heteregenous arguments, provided they are either:
+    *
     * - A value of type `A`  which has a `Header[A]` in scope
     * - A (name, value) pair of `String`, which is treated as a `Recurring` header
     * - A `Header.Raw`
@@ -155,12 +153,13 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
     ev.from(headers)
 
-  /** Attempt to get a [[org.http4s.Header]] from this collection of headers
+  /** TODO revise scaladoc
+    * Attempt to get a [[org.http4s.Header]] from this collection of headers
     *
     * @param key name of the header to find
     * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
     */
-  def get(key: CIString): Option[Header.Raw] = headers.find(_.name == key)
+  def get(key: CIString): Option[NonEmptyList[Header.Raw]] = headers.filter(_.name == key).toNel
 
   /** TODO point about replacing
     * Make a new collection adding the specified headers, replacing existing `Single` headers.
