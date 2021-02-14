@@ -81,7 +81,7 @@ object Header {
     *
     * @see [[org.http4s.Headers$.apply]]
     */
-  trait ToRaw {
+  sealed trait ToRaw {
     def value: Header.Raw
   }
   object ToRaw {
