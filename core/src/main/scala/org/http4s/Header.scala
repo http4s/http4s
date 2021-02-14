@@ -162,34 +162,7 @@ object newH {
     def put(in: Header.ToRaw*): Headers =
       if (in.isEmpty) this
       else if (this.headers.isEmpty) Headers(in:_*)
-      else this ++ Headers(in:_*)
-
-    /** Concatenate the two collections
-      * If the resulting collection is of Headers type, duplicate Single headers will be removed from
-      * this Headers collection.
-      *
-      * @param that collection to append
-      * @tparam B type contained in collection `that`
-      * @tparam That resulting type of the new collection
-      */
-    def ++(that: Headers): Headers =
-      if (that.headers.isEmpty) this
-      else if (this.headers.isEmpty) that
-      else {
-        val hs = that.headers
-        val acc = new ListBuffer[Header.Raw]
-        this.headers.foreach { orig =>
-          orig match {
-            // TODO recurring
-            // case _: Header.Recurring => acc += orig
-            // case _: `Set-Cookie` => acc += orig
-            case h if !hs.exists(_.name == h.name) => acc += orig
-            case _ => // NOOP, drop non recurring header that already exists
-          }
-        }
-
-        Headers.of(acc.prependToList(hs))
-      }
+      else Headers.of(headers ++ in.toList.map(_.value))
 
     /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
       * `Transfer-Encoding` headers.
@@ -257,7 +230,7 @@ object newH {
     implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
       def empty: Headers = Headers.empty
       def combine(xa: Headers, xb: Headers): Headers =
-        xa ++ xb
+        Headers.of(xa.headers ++ xb.headers)
     }
 
     private val PayloadHeaderKeys = Set(
