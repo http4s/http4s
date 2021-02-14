@@ -57,7 +57,24 @@ class ParserChunkingSuite extends Http4sSuite {
     }
   }
 
-  test("first") {
+  // println("------")
+  // segments.foreach { s =>
+  //   s.foreach { byte =>
+  //     if (byte == 13) print("CR")
+  //     else if (byte == 10) print("NL")
+  //     else print(new String(Array[Byte](byte)))
+  //   }
+  //   println()
+  // }
+
+  // println()
+
+  // yield messageBytes == segments.flatten).handleErrorWith(e => {
+  //   e.printStackTrace()
+  //   IO(false)
+  // }).assert
+
+  test("parse single response") {
     val messageBytes = List(
       "HTTP/1.1 200 OK\r\n",
       "Content-Type: text/plain\r\n",
@@ -70,50 +87,27 @@ class ParserChunkingSuite extends Http4sSuite {
       "Network\r\n",
       "0\r\n",
       "\r\n"
-    ).mkString.getBytes().toList
+    ).mkString.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList
 
-    PropF.forAllF(Helpers.subdivided(messageBytes, 1)) { segments =>
-      // println(segments)
+    PropF.forAllNoShrinkF(Helpers.subdivided(messageBytes, 1)) { segments =>
       (for {
         read <- Helpers.taking[IO, Byte](segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
         result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
-      } yield messageBytes == segments.flatten).assert
+      } yield true).assert
     }
   }
 
-  // test("first") {
-  //   val messageBytes = List(
-  //     "HTTP/1.1 200 OK\r\n",
-  //     "Content-Type: text/plain\r\n",
-  //     "Transfer-Encoding: chunked\r\n\r\n",
-  //     "7\r\n",
-  //     "Mozilla\r\n",
-  //     "9\r\n",
-  //     "Developer\r\n",
-  //     "7\r\n",
-  //     "Network\r\n",
-  //     "0\r\n",
-  //     "\r\n"
-  //   ).mkString.getBytes().toList
+  test("subdivided") {
+    val gen: Gen[(List[Int], List[List[Int]])] = for {
+      size <- Gen.choose(1, 100)
+      count <- Gen.choose(1, 100)
+      list <- Gen.listOfN(size, Gen.choose(Int.MinValue, Int.MaxValue))
+      divided <- Helpers.subdivided(list, count)
+    } yield (list, divided)
 
-  //   PropF.forAllF(Helpers.subdivided(messageBytes, 5)) { segments =>
-  //     println(segments)
-  //     IO(messageBytes == segments.flatten).assert
-  //   }
-  // }
-
-  // test("subdivided") {
-  //   val gen: Gen[(List[Int], List[List[Int]])] = for {
-  //     size <- Gen.choose(1, 100)
-  //     count <- Gen.choose(1, 100)
-  //     list <- Gen.listOfN(size, Gen.choose(Int.MinValue, Int.MaxValue))
-  //     divided <- Helpers.subdivided(list, count)
-  //   } yield (list, divided)
-
-  //   forAll(gen) { case (a, b) =>
-  //     a == b.flatten
-  //   }
-  // }
-
+    forAll(gen) { case (a, b) =>
+      a == b.flatten
+    }
+  }
 
 }

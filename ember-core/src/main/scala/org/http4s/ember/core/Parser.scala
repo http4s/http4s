@@ -140,19 +140,19 @@ private[ember] object Parser {
               state = 1 // set state to check for header value
               name = new String(bv, start, idx - start) // extract name string
               start = idx + 1 // advance past colon for next start
-              if ((bv.size >= idx + 1) && (bv(idx + 1) == space)) {
+              if ((bv.size > idx + 1 && bv(idx + 1) == space)) {
                 start += 1 // if colon is followed by space advance again
                 idx += 1 // double advance index here to skip the space
               }
               // double CRLF condition - Termination of headers
-            } else if (current == cr && (idx + 1 < bv.size) && (bv(idx + 1) == lf)) {
+            } else if (current == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
               idx += 1 // double advance to drop cr AND lf
               complete = true // completed terminate loop
             }
           case 1 => // HeaderValue
             val current = bv(idx)
             // If crlf is next we have completed the header value
-            if (current == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
+            if (current == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
               val hValue = new String(bv, start, idx - start) // extract header value
 
               val hName = name // copy var to val
@@ -325,7 +325,7 @@ private[ember] object Parser {
                 state = 2
               }
             case 2 =>
-              if (value == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
+              if (value == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
                 HttpVersion.fromString(new String(bv, start, idx - start)) match {
                   case Left(e) =>
                     throwable = e
@@ -522,7 +522,7 @@ private[ember] object Parser {
                 start = idx + 1
               }
             case 2 =>
-              if (value == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
+              if (value == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
                 val reason = new String(bv, start, idx - start)
                 try {
                   val codeInt = codeS.toInt
