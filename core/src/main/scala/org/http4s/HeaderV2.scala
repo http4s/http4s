@@ -161,9 +161,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     */
   def get(key: CIString): Option[NonEmptyList[Header.Raw]] = headers.filter(_.name == key).toNel
 
-  /** TODO point about replacing
-    * Make a new collection adding the specified headers, replacing existing `Single` headers.
-    * The passed headers are assumed to contain no duplicate `Single` headers.
+  /** Make a new collection adding the specified headers, replacing existing `Single` headers.
     *
     * @param in multiple heteregenous headers [[Header]] to append to the new collection, see [[Header.ToRaw]]
     * @return a new [[Headers]] containing the sum of the initial and input headers
