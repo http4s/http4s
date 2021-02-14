@@ -25,7 +25,7 @@ import javax.net.ssl._
 import org.http4s.dsl.io._
 import org.http4s.server.{Server, ServerRequestKeys}
 import org.http4s.testing.ErrorReporting
-import org.http4s.{Http4sSpec, Http4sSuite, HttpApp}
+import org.http4s.{Http4sSuite, HttpApp}
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try
@@ -43,7 +43,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
     //For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
     HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier)
   }
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   def builder: BlazeServerBuilder[IO] =
     BlazeServerBuilder[IO](global)

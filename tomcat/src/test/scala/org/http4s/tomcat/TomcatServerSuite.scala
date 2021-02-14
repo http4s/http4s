@@ -30,7 +30,7 @@ import scala.io.Source
 import java.util.logging.LogManager
 
 class TomcatServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   override def beforeEach(context: BeforeEach): Unit = {
     // Prevents us from loading jar and war URLs, but lets us

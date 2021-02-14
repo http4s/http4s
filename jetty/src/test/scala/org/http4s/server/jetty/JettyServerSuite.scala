@@ -28,7 +28,7 @@ import scala.concurrent.duration._
 import scala.io.Source
 
 class JettyServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   def builder = JettyBuilder[IO]
 

@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext.global
 import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   def builder =
     BlazeServerBuilder[IO](global)
