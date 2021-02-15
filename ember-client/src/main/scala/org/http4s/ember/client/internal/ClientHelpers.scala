@@ -21,7 +21,7 @@ import fs2.io.tcp._
 import fs2.io.Network
 import cats.Monad
 import cats.data.NonEmptyList
-import cats.effect._
+import cats.effect.{ApplicativeThrow => _, _}
 import cats.effect.implicits._
 import cats.effect.kernel.Clock
 import cats.syntax.all._
