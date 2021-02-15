@@ -43,7 +43,7 @@ trait Header[A, T <: Header.Type] {
     * Could be a comma separated String in case of a Header with
     * multiple values.
     */
-  def parse(headerValue: String): Option[A]
+  def parse(headerValue: String): Either[ParseFailure, A]
 }
 object Header {
   case class Raw(name: CIString, value: String, recurring: Boolean = true)
@@ -129,7 +129,7 @@ object Header {
   }
   object Select extends LowPrio {
     def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[A] =
-      (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value)
+      (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value).toOption
 
     implicit def singleHeaders[A](implicit
         h: Header[A, Header.Single]): Select[A] { type F[B] = B } =
@@ -276,7 +276,7 @@ object Examples {
     implicit def headerFoo: Header[Foo, Header.Single] = new Header[Foo, Header.Single] {
       def name = CIString("foo")
       def value(f: Foo) = f.v
-      def parse(s: String) = Foo(s).some
+      def parse(s: String) = Foo(s).asRight
     }
 
   }
@@ -294,7 +294,7 @@ object Examples {
       new Header[Bar, Header.Recurring] with Semigroup[Bar] {
         def name = CIString("Bar")
         def value(b: Bar) = b.v.toList.mkString(",")
-        def parse(s: String) = Bar(NonEmptyList.one(s)).some
+        def parse(s: String) = Bar(NonEmptyList.one(s)).asRight
         def combine(a: Bar, b: Bar) = Bar(a.v |+| b.v)
       }
   }
@@ -307,8 +307,8 @@ object Examples {
         def value(c: SetCookie) = s"${c.name}:${c.value}"
         def parse(s: String) =
           s.split(':').toList match {
-            case List(name, value) => SetCookie(name, value).some
-            case _ => None
+            case List(name, value) => SetCookie(name, value).asRight
+            case _ => Left(ParseFailure("Malformed cookie", ""))
           }
       }
   }
