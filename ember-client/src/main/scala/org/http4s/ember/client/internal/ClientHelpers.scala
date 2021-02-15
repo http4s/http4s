@@ -21,7 +21,7 @@ import fs2.io.tcp._
 import fs2.io.Network
 import cats._
 import cats.data.NonEmptyList
-import cats.effect._
+import cats.effect.{ApplicativeThrow => _, _}
 import cats.effect.kernel.Clock
 import cats.syntax.all._
 import scala.concurrent.duration._

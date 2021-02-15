@@ -186,7 +186,7 @@ private final class Http1Connection[F[_]](
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
-            val idleTimeoutS = timeoutFiber.joinAndEmbedNever.attempt.map {
+            val idleTimeoutS = timeoutFiber.joinWithNever.attempt.map {
               case Right(t) => Left(t): Either[Throwable, Unit]
               case Left(t) => Left(t): Either[Throwable, Unit]
             }
@@ -202,7 +202,7 @@ private final class Http1Connection[F[_]](
             val response: F[Response[F]] = writeRequest.start >>
               receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
 
-            F.race(response, timeoutFiber.joinAndEmbedNever)
+            F.race(response, timeoutFiber.joinWithNever)
               .flatMap[Response[F]] {
                 case Left(r) =>
                   F.pure(r)
