@@ -129,9 +129,10 @@ private[server] object ServerHelpers {
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
       requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] = {
-    
+
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
-    val parseWithHeaderTimeout = durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration => parse.timeout(duration))
+    val parseWithHeaderTimeout =
+      durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration => parse.timeout(duration))
 
     for {
       (req, drain) <- parseWithHeaderTimeout
