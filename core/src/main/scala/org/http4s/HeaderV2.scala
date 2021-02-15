@@ -232,7 +232,7 @@ object Headers {
       val res = ListBuffer.empty[Header.Raw]
 
       headers.foreach { h =>
-        if (h.recurring || h.name == "Set-Cookie" || acc.add(h.name))
+        if (h.recurring || acc.add(h.name))
           res += h
       }
 
