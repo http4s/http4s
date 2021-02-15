@@ -17,7 +17,7 @@
 package org.http4s
 package v2
 
-import cats.{Monoid, Order, Semigroup, Show, Hash}
+import cats.{Hash, Monoid, Order, Semigroup, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
