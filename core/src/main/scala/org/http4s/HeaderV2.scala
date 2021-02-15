@@ -16,7 +16,7 @@
 
 package org.http4s.header.v2
 
-import cats.{Id, Monoid, Order, Semigroup, Show, Hash}
+import cats.{Monoid, Order, Semigroup, Show, Hash}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
@@ -131,9 +131,9 @@ object Header {
       (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value)
 
     implicit def singleHeaders[A](implicit
-        h: Header[A, Header.Single]): Select[A] { type F[B] = Id[B] } =
+        h: Header[A, Header.Single]): Select[A] { type F[B] = B } =
       new Select[A] {
-        type F[B] = Id[B]
+        type F[B] = B
 
         def toRaw(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a), recurring = false)
@@ -143,9 +143,9 @@ object Header {
       }
 
     implicit def recurringHeadersWithMerge[A: Semigroup](implicit
-        h: Header[A, Header.Recurring]): Select[A] { type F[B] = Id[B] } =
+        h: Header[A, Header.Recurring]): Select[A] { type F[B] = B } =
       new Select[A] {
-        type F[B] = Id[B]
+        type F[B] = B
 
         def toRaw(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
