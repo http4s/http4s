@@ -58,15 +58,19 @@ class StreamingParserSuite extends Http4sSuite {
     def debug(segments: List[List[Byte]]): Unit = {
       // handleErrorWith(e => {e.printStackTrace();IO(false)}).assert
 
-      println("------")
+      println("----")
       segments.foreach { s =>
-        s.foreach { byte =>
-          if (byte == 13) print("CR")
-          else if (byte == 10) print("NL")
-          else print(new String(Array[Byte](byte)))
-        }
-        println()
+        println(s)
       }
+      // println("------")
+      // segments.foreach { s =>
+      //   s.foreach { byte =>
+      //     if (byte == 13) print("CR")
+      //     else if (byte == 10) print("NL")
+      //     else print(new String(Array[Byte](byte)))
+      //   }
+      //   println()
+      // }
     }
   }
 
