@@ -132,7 +132,7 @@ class StreamingParserSuite extends Http4sSuite {
         result <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
         _ <- result._1.body.compile.drain
         _ <- result._2
-      } yield true).handleErrorWith(e => {e.printStackTrace();IO(false)}).assert
+      } yield true).assert
     }
   }
 
@@ -143,6 +143,34 @@ class StreamingParserSuite extends Http4sSuite {
         result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
         _ <- result._1.body.compile.drain
         _ <- result._2
+      } yield true).assert
+    }
+  }
+
+  test("parse two requests where bodies are fully read") {
+    PropF.forAllNoShrinkF(Fixtures.genRequest, Fixtures.genRequest) { (s0, s1) =>
+      (for {
+        read <- Helpers.taking[IO, Byte](s0 ++ s1)
+        result1 <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
+        _ <- result1._1.body.compile.drain
+        rest1 <- result1._2
+        result2 <- Parser.Request.parser(Int.MaxValue)(rest1.get, read)
+        _ <- result2._1.body.compile.drain
+        _ <- result2._2
+      } yield true).assert
+    }
+  }
+  
+  test("parse two responses where bodies are fully read") {
+    PropF.forAllNoShrinkF(Fixtures.genResponse, Fixtures.genResponse) { (s0, s1) =>
+      (for {
+        read <- Helpers.taking[IO, Byte](s0 ++ s1)
+        result1 <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
+        _ <- result1._1.body.compile.drain
+        rest1 <- result1._2
+        result2 <- Parser.Response.parser(Int.MaxValue)(rest1.get, read)
+        _ <- result2._1.body.compile.drain
+        _ <- result2._2
       } yield true).assert
     }
   }
