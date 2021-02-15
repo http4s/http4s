@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.header.v2
+package org.http4s
+package v2
 
 import cats.{Monoid, Order, Semigroup, Show, Hash}
 import cats.data.NonEmptyList
