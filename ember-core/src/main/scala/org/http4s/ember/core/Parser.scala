@@ -326,7 +326,7 @@ private[ember] object Parser {
                 state = 2
               }
             case 2 =>
-              if (value == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
+              if (value == lf && (idx > 0 && bv(idx - 1) == cr)) {
                 HttpVersion.fromString(new String(bv, start, idx - start)) match {
                   case Left(e) =>
                     throwable = e
@@ -335,7 +335,6 @@ private[ember] object Parser {
                     httpVersion = h
                 }
                 complete = true
-                idx += 1 // Double Advance
               }
           }
           idx += 1
@@ -525,7 +524,7 @@ private[ember] object Parser {
                 start = idx + 1
               }
             case 2 =>
-              if (value == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
+              if (value == lf && (idx > 0 && bv(idx - 1) == cr)) {
                 val reason = new String(bv, start, idx - start)
                 try {
                   val codeInt = codeS.toInt
@@ -535,7 +534,6 @@ private[ember] object Parser {
                     case Right(s) =>
                       status = s
                       complete = true
-                      idx += 1 // Double Advance
                   }
                 } catch {
                   case scala.util.control.NonFatal(e) =>
