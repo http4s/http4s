@@ -52,7 +52,7 @@ class ParserChunkingSuite extends Http4sSuite {
           }
         } else Gen.const(out)
 
-      Gen.delay(go(List(as), count))
+      if (as.isEmpty) Gen.const(Nil) else Gen.delay(go(List(as), count))
     }
   }
 
@@ -73,7 +73,51 @@ class ParserChunkingSuite extends Http4sSuite {
   //   IO(false)
   // }).assert
 
-  test("parse single response") {
+  test("parse single request with chunked body") {
+    val messageBytes = List(
+      "POST /foo HTTP/1.1\r\n",
+      "Content-Type: text/plain\r\n",
+      "Transfer-Encoding: chunked\r\n\r\n",
+      "7\r\n",
+      "Mozilla\r\n",
+      "9\r\n",
+      "Developer\r\n",
+      "7\r\n",
+      "Network\r\n",
+      "0\r\n",
+      "\r\n"
+    ).mkString.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList
+
+    PropF.forAllNoShrinkF(Helpers.subdivided(messageBytes, 10)) { segments =>
+      (for {
+        read <- Helpers.taking[IO, Byte](
+          segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
+        result <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
+      } yield true).assert
+    }
+  }
+
+  test("parse single response with fixed-length body") {
+    val messageBytes = List(
+      "HTTP/1.1 200 OK\r\n",
+      "Content-Type: text/plain\r\n",
+      "Content-Length: 5\r\n\r\n",
+      "hello"
+    ).mkString.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList
+
+    PropF.forAllNoShrinkF(Helpers.subdivided(messageBytes, 10)) { segments =>
+      (for {
+        read <- Helpers.taking[IO, Byte](
+          segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
+        result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
+      } yield true).handleErrorWith(e => {
+    e.printStackTrace()
+    IO(false)
+  }).assert
+    }
+  }
+
+  test("parse single response with variable-length body") {
     val messageBytes = List(
       "HTTP/1.1 200 OK\r\n",
       "Content-Type: text/plain\r\n",
@@ -88,12 +132,38 @@ class ParserChunkingSuite extends Http4sSuite {
       "\r\n"
     ).mkString.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList
 
-    PropF.forAllNoShrinkF(Helpers.subdivided(messageBytes, 1)) { segments =>
+    PropF.forAllNoShrinkF(Helpers.subdivided(messageBytes, 10)) { segments =>
       (for {
         read <- Helpers.taking[IO, Byte](
           segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
         result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
       } yield true).assert
+    }
+  }
+  
+  test("parse single response correspondence") {
+    val messageBytes = List(
+      "HTTP/1.1 200 OK\r\n",
+      "Content-Type: text/plain\r\n",
+      "Transfer-Encoding: chunked\r\n\r\n",
+      "7\r\n",
+      "Mozilla\r\n",
+      "9\r\n",
+      "Developer\r\n",
+      "7\r\n",
+      "Network\r\n",
+      "0\r\n",
+      "\r\n"
+    ).mkString.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList
+
+    PropF.forAllNoShrinkF(Helpers.subdivided(messageBytes, 10)) { segments =>
+      (for {
+        read1 <- Helpers.taking[IO, Byte](Stream.chunk(Chunk.bytes(messageBytes.toArray)))
+        result1 <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read1)
+        read2 <- Helpers.taking[IO, Byte](
+          segments.map(bytes => Stream.chunk(Chunk.seq(bytes))).reduceLeft(_ ++ _))
+        result2 <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read2)
+      } yield result1._1.status == result2._1.status).assert
     }
   }
 

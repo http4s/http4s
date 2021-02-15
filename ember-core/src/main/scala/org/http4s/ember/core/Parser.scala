@@ -36,8 +36,8 @@ private[ember] object Parser {
         acc: Option[ParseHeadersIncomplete])(implicit
         F: MonadThrow[F]): F[(Headers, Boolean, Option[Long], Array[Byte])] = {
       // TODO: improve this
-      val uncons = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
-      uncons.flatMap {
+      val nextChunk = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
+      nextChunk.flatMap {
         case Some(chunk) =>
           val nextArr: Array[Byte] = acc match {
             case None => chunk.toArray
@@ -74,7 +74,7 @@ private[ember] object Parser {
           }
         case None =>
           F.raiseError(
-            ParseHeadersError(new Throwable("Reached Ended of Stream Looking for Headers")))
+            ParseHeadersError(new Throwable("Reached End of Stream Looking for Headers")))
       }
     }
 
@@ -140,36 +140,37 @@ private[ember] object Parser {
               state = 1 // set state to check for header value
               name = new String(bv, start, idx - start) // extract name string
               start = idx + 1 // advance past colon for next start
+
+              // TODO: This if clause may not be necessary since the header value parser trims
               if ((bv.size > idx + 1 && bv(idx + 1) == space)) {
                 start += 1 // if colon is followed by space advance again
                 idx += 1 // double advance index here to skip the space
               }
               // double CRLF condition - Termination of headers
-            } else if (current == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
-              idx += 1 // double advance to drop cr AND lf
+            } else if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
               complete = true // completed terminate loop
             }
           case 1 => // HeaderValue
             val current = bv(idx)
             // If crlf is next we have completed the header value
-            if (current == cr && (bv.size > idx + 1 && bv(idx + 1) == lf)) {
-              val hValue = new String(bv, start, idx - start) // extract header value
+            if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
+              // extract header value, trim leading and trailing whitespace
+              val hValue = new String(bv, start, idx - start - 1).trim
 
               val hName = name // copy var to val
               name = null // set name back to null
               val newHeader = Header(hName, hValue) // create header
-              if (hName.equalsIgnoreCase(contentLengthS)) // Check if this is content-length.
+              if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
                 try contentLength = hValue.toLong.some
                 catch {
                   case scala.util.control.NonFatal(e) =>
                     throwable = e
                     complete = true
                 }
-
-              if (hName.equalsIgnoreCase(transferEncodingS)) // Check if this is Transfer-encoding
+              } else if (hName.equalsIgnoreCase(transferEncodingS)) { // Check if this is Transfer-encoding
                 chunked = hValue.contains(chunkedS)
-              start = idx + 2 // Next Start is after the CRLF
-              idx += 1 // Double advance to skip CRLF
+              }
+              start = idx + 1 // Next Start is after the CRLF
               headers += newHeader // Add Header
               state = 0 // Go back to Looking for HeaderName or Termination
             }
@@ -205,9 +206,9 @@ private[ember] object Parser {
           maxHeaderLength: Int,
           acc: Option[ParsePreludeIncomplete] = None)(implicit
           F: MonadThrow[F]): F[(Method, Uri, HttpVersion, Array[Byte])] = {
-        val uncons = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
+        val nextChunk = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
 
-        uncons.flatMap {
+        nextChunk.flatMap {
           case Some(chunk) =>
             val next: Array[Byte] = acc match {
               case None => chunk.toArray
