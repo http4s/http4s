@@ -16,7 +16,7 @@
 
 package org.http4s.header.v2
 
-import cats.{Id, Monoid, Order, Semigroup, Show}
+import cats.{Id, Monoid, Order, Semigroup, Show, Hash}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
@@ -49,6 +49,9 @@ object Header {
   object Raw {
     implicit val showForRawHeaders: Show[Raw] =
       h => s"${h.name.show}: ${h.value}"
+
+    implicit val hashForRawHeaders: Hash[Raw] =
+      Hash.fromUniversalHashCode[Raw]
 
     implicit lazy val orderForRawHeaders: Order[Raw] =
       Order.whenEqual(
