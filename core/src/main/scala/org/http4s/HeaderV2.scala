@@ -25,8 +25,8 @@ import scala.collection.mutable.{ListBuffer, Set => MutSet}
 
 /** Typeclass representing an HTTP header, which all the http4s
   * default headers satisfy.
-  * You can add custom headers by providing an implicit instance of
-  * `Header[YourCustomHeader]`
+  * You can add modelled headers by providing an implicit instance of
+  * `Header[YourModelledHeader]`
   */
 trait Header[A, T <: Header.Type] {
 
@@ -61,7 +61,7 @@ object Header {
       )
   }
 
-  /** Classifies custom headers into `Single` headers, which can only
+  /** Classifies modelled headers into `Single` headers, which can only
     * appear once, and `Recurring` headers, which can appear multiple
     * times.
     */
@@ -71,7 +71,7 @@ object Header {
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
 
-  /** Target for implicit conversions to Header.Raw from custom
+  /** Target for implicit conversions to Header.Raw from modelled
     * headers and key-value pairs.
     *
     * A method taking variadic `ToRaw` arguments will allow taking
@@ -95,7 +95,7 @@ object Header {
       val value = Header.Raw(CIString(kv._1), kv._2)
     }
 
-    implicit def customHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw =
+    implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw =
       new Header.ToRaw {
         val value = Header.Raw(H.name, H.value(h))
       }
