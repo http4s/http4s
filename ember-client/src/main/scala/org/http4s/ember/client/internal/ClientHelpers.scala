@@ -17,33 +17,35 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
-import fs2.io.tcp._
-import fs2.io.Network
-import cats.Monad
+import fs2.io.net._
+import fs2.io.net.Network
+import cats._
 import cats.data.NonEmptyList
 import cats.effect.{ApplicativeThrow => _, _}
 import cats.effect.implicits._
 import cats.effect.kernel.Clock
 import cats.syntax.all._
+
 import scala.concurrent.duration._
-import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.typelevel.ci.CIString
 import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.fs2.io.tcp.SocketGroup
-import _root_.fs2.io.tls._
+import _root_.fs2.io.net.SocketGroup
+import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
+
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import _root_.org.http4s.ember.core.Util.durationToFinite
+import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
 
 private[client] object ClientHelpers {
   def requestToSocketWithKey[F[_]: Sync: Network](
       request: Request[F],
-      tlsContextOpt: Option[TLSContext],
-      sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      tlsContextOpt: Option[TLSContext[F]],
+      sg: SocketGroup[F],
+      additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -56,13 +58,13 @@ private[client] object ClientHelpers {
 
   def requestKeyToSocketWithKey[F[_]: Sync: Network](
       requestKey: RequestKey,
-      tlsContextOpt: Option[TLSContext],
-      sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      tlsContextOpt: Option[TLSContext[F]],
+      sg: SocketGroup[F],
+      additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] =
     for {
       address <- Resource.eval(getAddress(requestKey))
-      initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
+      initSocket <- sg.client(address, options = additionalSocketOptions)
       socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
           tlsContextOpt.fold[Resource[F, Socket[F]]] {
@@ -73,12 +75,18 @@ private[client] object ClientHelpers {
             tlsContext
               .client(
                 initSocket,
-                TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
+                TLSParameters(serverNames = extractHostname(address.host).map(List(_))))
               .widen[Socket[F]]
           }
         else initSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
+
+  private def extractHostname(from: Host): Option[SNIHostName] = from match {
+    case hostname: Hostname => new SNIHostName(hostname.normalized.toString).some
+    case address: IpAddress => new SNIHostName(address.toString).some
+    case idn: IDN => extractHostname(idn.hostname)
+  }
 
   def request[F[_]: Async](
       request: Request[F],
@@ -96,7 +104,7 @@ private[client] object ClientHelpers {
         timeout: Option[FiniteDuration]): F[Unit] =
       Encoder
         .reqToBytes(req)
-        .through(socket.writes(timeout))
+        .through(socket.writes)
         .compile
         .drain
 
@@ -149,12 +157,12 @@ private[client] object ClientHelpers {
     }
 
   // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
-  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
+  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
-        Sync[F].delay(new InetSocketAddress(host, port))
+        Sync[F].delay(SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)) // FIXME
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool

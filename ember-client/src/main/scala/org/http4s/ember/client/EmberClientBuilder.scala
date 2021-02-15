@@ -26,17 +26,18 @@ import org.http4s.client._
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import fs2.io.tcp.SocketGroup
-import fs2.io.tcp.SocketOptionMapping
-import fs2.io.tls._
+import fs2.io.net.SocketGroup
+import fs2.io.net.SocketOption
+import fs2.io.net.tls._
+import fs2.io.net.Network
 
 import scala.concurrent.duration.Duration
 import org.http4s.headers.{`User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
 
 final class EmberClientBuilder[F[_]: Async] private (
-    private val tlsContextOpt: Option[TLSContext],
-    private val sgOpt: Option[SocketGroup],
+    private val tlsContextOpt: Option[TLSContext[F]],
+    private val sgOpt: Option[SocketGroup[F]],
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
     val idleTimeInPool: Duration,
@@ -45,13 +46,13 @@ final class EmberClientBuilder[F[_]: Async] private (
     val maxResponseHeaderSize: Int,
     private val idleConnectionTime: Duration,
     val timeout: Duration,
-    val additionalSocketOptions: List[SocketOptionMapping[_]],
+    val additionalSocketOptions: List[SocketOption],
     val userAgent: Option[`User-Agent`]
 ) { self =>
 
   private def copy(
-      tlsContextOpt: Option[TLSContext] = self.tlsContextOpt,
-      sgOpt: Option[SocketGroup] = self.sgOpt,
+      tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
+      sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
       idleTimeInPool: Duration = self.idleTimeInPool,
@@ -60,7 +61,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       maxResponseHeaderSize: Int = self.maxResponseHeaderSize,
       idleConnectionTime: Duration = self.idleConnectionTime,
       timeout: Duration = self.timeout,
-      additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
+      additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
@@ -78,11 +79,11 @@ final class EmberClientBuilder[F[_]: Async] private (
       userAgent = userAgent
     )
 
-  def withTLSContext(tlsContext: TLSContext) =
+  def withTLSContext(tlsContext: TLSContext[F]) =
     copy(tlsContextOpt = tlsContext.some)
   def withoutTLSContext = copy(tlsContextOpt = None)
 
-  def withSocketGroup(sg: SocketGroup) = copy(sgOpt = sg.some)
+  def withSocketGroup(sg: SocketGroup[F]) = copy(sgOpt = sg.some)
 
   def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
   def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
@@ -96,7 +97,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
 
   def withTimeout(timeout: Duration) = copy(timeout = timeout)
-  def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOptionMapping[_]]) =
+  def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOption]) =
     copy(additionalSocketOptions = additionalSocketOptions)
 
   def withUserAgent(userAgent: `User-Agent`) =
@@ -106,10 +107,10 @@ final class EmberClientBuilder[F[_]: Async] private (
 
   def build: Resource[F, Client[F]] =
     for {
-      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
+      sg <- sgOpt.fold(Network.forAsync.socketGroup())(_.pure[Resource[F, *]])
       tlsContextOptWithDefault <- Resource.eval(
         tlsContextOpt
-          .fold(TLSContext.system.attempt.map(_.toOption))(_.some.pure[F])
+          .fold(TLSContext.Builder.forAsync.system.attempt.map(_.toOption))(_.some.pure[F])
       )
       builder =
         KeyPoolBuilder
@@ -206,7 +207,7 @@ object EmberClientBuilder {
     }
     val maxTotal = 100
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
-    val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
+    val additionalSocketOptions = List.empty[SocketOption]
     val userAgent = Some(
       `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version))))
   }
