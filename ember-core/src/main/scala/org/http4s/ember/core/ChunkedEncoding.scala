@@ -95,7 +95,8 @@ private[ember] object ChunkedEncoding {
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(Headers, Array[Byte])] = {
-    val nextChunk = if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
+    val nextChunk =
+      if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
     nextChunk.flatMap {
       case None => (Headers.empty, Array.emptyByteArray).pure[F]
       case Some(chunk) =>

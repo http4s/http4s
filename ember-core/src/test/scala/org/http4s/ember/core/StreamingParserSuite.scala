@@ -37,7 +37,8 @@ class StreamingParserSuite extends Http4sSuite {
 
     def subdivided[A](as: List[A], count: Int): Gen[List[List[A]]] = {
       def go(out: List[List[A]], remaining: Int): Gen[List[List[A]]] =
-        if (remaining <= 0) Gen.const(out) else {
+        if (remaining <= 0) Gen.const(out)
+        else {
           Gen.chooseNum(0, out.length - 1).flatMap { idx =>
             val prefix = out.take(idx)
             val curr = out(idx)
@@ -75,51 +76,57 @@ class StreamingParserSuite extends Http4sSuite {
   }
 
   object Fixtures {
-    val RequestFixedBody = toBytes(List(
-      "POST /foo HTTP/1.1\r\n",
-      "Content-Type: text/plain\r\n",
-      "Content-Length: 5\r\n\r\n",
-      "hello"
-    ))
+    val RequestFixedBody = toBytes(
+      List(
+        "POST /foo HTTP/1.1\r\n",
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\n",
+        "hello"
+      ))
 
-    val RequestChunkedBody = toBytes(List(
-      "POST /foo HTTP/1.1\r\n",
-      "Content-Type: text/plain\r\n",
-      "Transfer-Encoding: chunked\r\n\r\n",
-      "7\r\n",
-      "Mozilla\r\n",
-      "9\r\n",
-      "Developer\r\n",
-      "7\r\n",
-      "Network\r\n",
-      "0\r\n",
-      "\r\n"
-    ))
-    
-    val ResponseFixedBody = toBytes(List(
-      "HTTP/1.1 200 OK\r\n",
-      "Content-Type: text/plain\r\n",
-      "Content-Length: 5\r\n\r\n",
-      "hello"
-    ))
+    val RequestChunkedBody = toBytes(
+      List(
+        "POST /foo HTTP/1.1\r\n",
+        "Content-Type: text/plain\r\n",
+        "Transfer-Encoding: chunked\r\n\r\n",
+        "7\r\n",
+        "Mozilla\r\n",
+        "9\r\n",
+        "Developer\r\n",
+        "7\r\n",
+        "Network\r\n",
+        "0\r\n",
+        "\r\n"
+      ))
 
-    val ResponseVariableBody = toBytes(List(
-      "HTTP/1.1 200 OK\r\n",
-      "Content-Type: text/plain\r\n",
-      "Transfer-Encoding: chunked\r\n\r\n",
-      "7\r\n",
-      "Mozilla\r\n",
-      "9\r\n",
-      "Developer\r\n",
-      "7\r\n",
-      "Network\r\n",
-      "0\r\n",
-      "\r\n"
-    ))
+    val ResponseFixedBody = toBytes(
+      List(
+        "HTTP/1.1 200 OK\r\n",
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\n",
+        "hello"
+      ))
+
+    val ResponseVariableBody = toBytes(
+      List(
+        "HTTP/1.1 200 OK\r\n",
+        "Content-Type: text/plain\r\n",
+        "Transfer-Encoding: chunked\r\n\r\n",
+        "7\r\n",
+        "Mozilla\r\n",
+        "9\r\n",
+        "Developer\r\n",
+        "7\r\n",
+        "Network\r\n",
+        "0\r\n",
+        "\r\n"
+      ))
 
     // TODO: Express in terms of Gen[Request[IO]] and Gen[Response[IO]]
-    def genRequest: Gen[List[List[Byte]]] = Gen.oneOf(RequestFixedBody, RequestChunkedBody).flatMap(Helpers.subdivided(_, 25))
-    def genResponse: Gen[List[List[Byte]]] = Gen.oneOf(ResponseFixedBody, ResponseVariableBody).flatMap(Helpers.subdivided(_, 25))
+    def genRequest: Gen[List[List[Byte]]] =
+      Gen.oneOf(RequestFixedBody, RequestChunkedBody).flatMap(Helpers.subdivided(_, 25))
+    def genResponse: Gen[List[List[Byte]]] =
+      Gen.oneOf(ResponseFixedBody, ResponseVariableBody).flatMap(Helpers.subdivided(_, 25))
 
     def toBytes(lines: List[String]): List[Byte] =
       lines.mkString.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList
@@ -160,7 +167,7 @@ class StreamingParserSuite extends Http4sSuite {
       } yield true).assert
     }
   }
-  
+
   test("parse two responses where bodies are fully read") {
     PropF.forAllNoShrinkF(Fixtures.genResponse, Fixtures.genResponse) { (s0, s1) =>
       (for {
