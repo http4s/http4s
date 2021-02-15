@@ -60,7 +60,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
     headers
       .foldLeft(new ChunkWriter()) { (chunkWriter, header) =>
         chunkWriter
-//          .append(header)
+          .append(header)
           .append(Boundary.CRLF)
       }
       .toChunk
