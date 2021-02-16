@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.{Functor, MonadError, Semigroup}
+import cats.{Functor, MonadError, MonadThrow, Semigroup}
 import cats.data.OptionT
 import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
@@ -35,7 +35,7 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString[F[_]: Files: MonadError[*[_], Throwable]](
+  def fromString[F[_]: Files: MonadThrow](
       url: String,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(new File(url), req)
@@ -125,18 +125,18 @@ object StaticFile {
         .map(isFile =>
           if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
-  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
+  def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, calcETag[F])
 
-  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
+  def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, etagCalculator)
 
-  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
+  def fromFile[F[_]: Files: MonadThrow](
       f: File,
       buffsize: Int,
       req: Option[Request[F]],

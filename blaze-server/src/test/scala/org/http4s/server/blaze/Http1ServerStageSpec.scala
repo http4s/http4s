@@ -36,10 +36,11 @@ import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext
   val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
     IO.delay(twe.shutdown())
   })

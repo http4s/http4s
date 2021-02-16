@@ -103,7 +103,7 @@ object RequestLogger {
               logMessage(req.withBodyStream(newBody))
             val response: G[Response[F]] =
               http(changedRequest)
-                .guaranteeCase { oc: Outcome[G, _, Response[F]] =>
+                .guaranteeCase { (oc: Outcome[G, _, Response[F]]) =>
                   oc match {
                     case Outcome.Succeeded(_) => G.unit
                     case _ => fk(logRequest)

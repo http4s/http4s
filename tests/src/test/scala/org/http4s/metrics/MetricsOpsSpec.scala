@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s.metrics
+package org.http4s
+package metrics
 
 import cats.effect.IO
 import cats.syntax.all._
 import java.util.UUID
-import org.http4s._
-import org.scalacheck.{Arbitrary, Gen}
+import org.http4s.syntax.all._
+import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.{Arbitrary, Gen, Prop}
 import MetricsOps.classifierFMethodWithOptionallyExcludedPath
 
 object MetricsOpsSpec {
@@ -29,13 +31,13 @@ object MetricsOpsSpec {
     Arbitrary(Gen.uuid)
 }
 
-class MetricsOpsSpec extends Http4sSpec {
+class MetricsOpsSpec extends Http4sSuite {
 
   import MetricsOpsSpec.arbUUID
 
-  "classifierFMethodWithOptionallyExcludedPath" should {
-    "properly exclude UUIDs" in prop {
-      (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
+  {
+    test("classifierFMethodWithOptionallyExcludedPath should properly exclude UUIDs") {
+      Prop.forAll { (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
         val request: Request[IO] = Request[IO](
           method = method,
           uri = Uri.unsafeFromString(s"/users/$uuid/comments")
@@ -68,25 +70,28 @@ class MetricsOpsSpec extends Http4sSpec {
               "comments"
           )
 
-        result ==== expected
+        result === expected
+      }
     }
-    "return '$method' if the path is '/'" in prop { (method: Method) =>
-      val request: Request[IO] = Request[IO](
-        method = method,
-        uri = uri"""/"""
-      )
-
-      val classifier: Request[IO] => Option[String] =
-        classifierFMethodWithOptionallyExcludedPath(
-          _ => true,
-          "*",
-          "_"
+    test("classifierFMethodWithOptionallyExcludedPath should return '$method' if the path is '/'") {
+      Prop.forAll { (method: Method) =>
+        val request: Request[IO] = Request[IO](
+          method = method,
+          uri = uri"""/"""
         )
 
-      val result: Option[String] =
-        classifier(request)
+        val classifier: Request[IO] => Option[String] =
+          classifierFMethodWithOptionallyExcludedPath(
+            _ => true,
+            "*",
+            "_"
+          )
 
-      result ==== Some(method.name)
+        val result: Option[String] =
+          classifier(request)
+
+        result === Some(method.name)
+      }
     }
   }
 

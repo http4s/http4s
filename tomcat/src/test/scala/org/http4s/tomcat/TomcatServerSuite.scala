@@ -92,12 +92,12 @@ class TomcatServerSuite extends Http4sSuite {
 
   tomcatServer.test("server should route requests on the service executor") { server =>
     get(server, "/thread/routing")
-      .map(_.startsWith("http4s-spec-"))
+      .map(_.startsWith("http4s-suite-"))
       .assert
   }
 
   tomcatServer.test("server should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assert
+    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
   }
 
   tomcatServer.test("server should be able to echo its input") { server =>
