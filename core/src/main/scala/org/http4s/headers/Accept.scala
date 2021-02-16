@@ -20,7 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230.headerRep1
-import org.http4s.util.{Writer, Renderer, Renderable}
+import org.http4s.util.{Writer, Renderable}
 import org.typelevel.ci.CIString
 
 object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
@@ -51,9 +51,9 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   }
 
   implicit val headerForAccept: v2.Header[Accept, v2.Header.Recurring] =
-    v2.Header.of(
+    v2.Header.createRecurring(
       CIString("Accept"),
-      ac => Renderer.renderString(ac.values),
+      _.values,
       ParseResult.fromParser(parser, "Invalid Accept header")
     )
 }

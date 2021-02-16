@@ -55,8 +55,8 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
     acceptableRanges.map(headers.`Accept-Ranges`.apply)
   }
 
-  implicit val headerForAcceptRanges: v2.Header[`Accept-Ranges`, v2.Header.Single] =
-    v2.Header.of(
+  implicit val headerInstance: v2.Header[`Accept-Ranges`, v2.Header.Single] =
+    v2.Header.create(
       CIString("Accept-Ranges"),
       _.rangeUnits.toNel match {
         case None => "none"

@@ -22,6 +22,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
 import scala.collection.mutable.{ListBuffer, Set => MutSet}
+import org.http4s.util.Renderer
 
 /** Typeclass representing an HTTP header, which all the http4s
   * default headers satisfy.
@@ -70,7 +71,7 @@ object Header {
   case class Recurring() extends Type
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
-  def of[A, T <: Header.Type](
+  def create[A, T <: Header.Type](
       name_ : CIString,
       value_ : A => String,
       parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
@@ -78,6 +79,16 @@ object Header {
     def value(a: A) = value_(a)
     def parse(s: String) = parse_(s)
   }
+
+  def createRecurring[A, B: Renderer](
+    name_ : CIString,
+    value_ : A => NonEmptyList[B],
+    parse_ : String => Either[ParseFailure, A]): Header[A, Recurring] = new Header[A, Recurring] {
+    def name = name_
+    def value(a: A) = Renderer.renderString(value_(a))
+    def parse(s: String) = parse_(s)
+  }
+
 
   /** Target for implicit conversions to Header.Raw from modelled
     * headers and key-value pairs.

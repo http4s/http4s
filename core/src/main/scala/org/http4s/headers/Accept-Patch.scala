@@ -25,18 +25,19 @@ import org.typelevel.ci.CIString
 
 object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.Recurring {
 
-  implicit def headerForAcceptPatch: v2.Header[`Accept-Patch`, v2.Header.Recurring] =
-    v2.Header.of(
-      CIString("Accept-Patch"),
-      ac => Renderer.renderString(ac.values),
-      ParseResult.fromParser(parser, "Invalid Accept-Patch header")
-    )
-
   override def parse(s: String): ParseResult[`Accept-Patch`] =
     ParseResult.fromParser(parser, "Invalid Accept-Patch header")(s)
 
   private[http4s] val parser =
     Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
+
+
+  implicit val headerInstance: v2.Header[`Accept-Patch`, v2.Header.Recurring] =
+    v2.Header.createRecurring(
+      CIString("Accept-Patch"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Accept-Patch header")
+    )
 
 }
 
