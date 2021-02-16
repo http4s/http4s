@@ -81,6 +81,12 @@ object Renderer {
     override def render(writer: Writer, ciString: CIString): writer.type =
       writer << ciString
   }
+
+  implicit def nelRenderer[T: Renderer]: Renderer[NonEmptyList[T]] =
+    new Renderer[NonEmptyList[T]] {
+      override def render(writer: Writer, values: NonEmptyList[T]): writer.type =
+        writer.addNel(values)
+    }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
@@ -154,9 +160,9 @@ trait Writer {
     append(end)
   }
 
-  def addStringNel(
-      s: NonEmptyList[String],
-      sep: String = "",
+  def addNel[T: Renderer](
+      s: NonEmptyList[T],
+      sep: String = ", ",
       start: String = "",
       end: String = ""): this.type = {
     append(start)
