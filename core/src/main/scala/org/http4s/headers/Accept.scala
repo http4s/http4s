@@ -51,7 +51,7 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   }
 
   implicit val headerForAccept: v2.Header[Accept, v2.Header.Recurring] =
-    v2.Header.createRecurring(
+    v2.Header.createRendered(
       CIString("Accept"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept header")

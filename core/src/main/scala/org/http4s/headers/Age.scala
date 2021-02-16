@@ -42,10 +42,10 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
     ParseResult.fromParser(parser, "Invalid Age header")(s)
   private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
 
-  implicit val headerInstace: v2.Header[Age, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: v2.Header[Age, v2.Header.Single] =
+    v2.Header.createRendered(
       CIString("Age"),
-      v => Renderer.renderString(v.age),
+      _.age,
       ParseResult.fromParser(parser, "Invalid Age header")
     )
 }

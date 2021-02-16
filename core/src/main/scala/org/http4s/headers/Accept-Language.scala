@@ -41,7 +41,7 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
   }
 
   implicit val headerInstance: v2.Header[`Accept-Language`, v2.Header.Recurring] =
-    v2.Header.createRecurring(
+    v2.Header.createRendered(
       CIString("Accept-Language"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept-Language header")

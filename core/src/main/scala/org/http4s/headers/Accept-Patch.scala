@@ -33,7 +33,7 @@ object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.
 
 
   implicit val headerInstance: v2.Header[`Accept-Patch`, v2.Header.Recurring] =
-    v2.Header.createRecurring(
+    v2.Header.createRendered(
       CIString("Accept-Patch"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept-Patch header")

@@ -35,7 +35,7 @@ object `Access-Control-Allow-Headers`
     Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Allow-Headers`(_))
 
   implicit val headerInstance: v2.Header[`Access-Control-Allow-Headers`, v2.Header.Recurring] =
-    v2.Header.createRecurring(
+    v2.Header.createRendered(
       CIString("Access-Control-Allow-Headers"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers headers")

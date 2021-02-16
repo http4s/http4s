@@ -71,6 +71,7 @@ object Header {
   case class Recurring() extends Type
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
+
   def create[A, T <: Header.Type](
       name_ : CIString,
       value_ : A => String,
@@ -80,10 +81,10 @@ object Header {
     def parse(s: String) = parse_(s)
   }
 
-  def createRecurring[A, B: Renderer](
+  def createRendered[A, T <: Header.Type, B: Renderer](
     name_ : CIString,
-    value_ : A => NonEmptyList[B],
-    parse_ : String => Either[ParseFailure, A]): Header[A, Recurring] = new Header[A, Recurring] {
+    value_ : A => B,
+    parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
     def name = name_
     def value(a: A) = Renderer.renderString(value_(a))
     def parse(s: String) = parse_(s)

@@ -33,7 +33,7 @@ object `Access-Control-Expose-Headers`
     Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
 
   implicit val headerInstance: v2.Header[`Access-Control-Expose-Headers`, v2.Header.Recurring] =
-    v2.Header.createRecurring(
+    v2.Header.createRendered(
       CIString("Access-Control-Expose-Headers"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Access-Control-Expose-Headers header")

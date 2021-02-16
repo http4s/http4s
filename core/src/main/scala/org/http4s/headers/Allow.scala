@@ -19,6 +19,7 @@ package headers
 
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
   def apply(ms: Method*): Allow = Allow(ms.toSet)
@@ -31,6 +32,13 @@ object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
     .?
     .map(_.getOrElse(Nil))
     .map(ms => Allow(ms.toSet))
+
+  implicit val headerInstance: v2.Header[Allow, v2.Header.Single] =
+    v2.Header.create(
+      CIString("Allow"),
+      v => ???,
+      ParseResult.fromParser(parser, "Invalid Allow")
+    )
 }
 
 /** A Response header that lists the methods that are supported by the target resource.
