@@ -39,6 +39,9 @@ final case class Connection(values: NonEmptyList[CIString]) extends Header.Recur
   type Value = CIString
   def hasClose: Boolean = values.contains_(CIString("close"))
   def hasKeepAlive: Boolean = values.contains_(CIString("keep-alive"))
-  override def renderValue(writer: Writer): writer.type =
-    writer.addStringNel(values.map(_.toString), ", ")
+  override def renderValue(writer: Writer): writer.type = {
+    writer.append(values.head.toString)
+    values.tail.foreach(s => writer.append(", ").append(s.toString))
+    writer
+  }
 }
