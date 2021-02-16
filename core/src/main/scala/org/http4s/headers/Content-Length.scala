@@ -19,6 +19,7 @@ package headers
 
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 /** Constructs a `Content-Length` header.
   *
@@ -50,4 +51,12 @@ object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with Header
     ParseResult.fromParser(parser, "Invalid Content-Length header")(s)
 
   private[http4s] val parser = AdditionalRules.NonNegativeLong.map(fromLong).mapFilter(_.toOption)
+
+  implicit val headerInstance: v2.Header[`Content-Length`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Content-Length"),
+      _.length,
+      ParseResult.fromParser(parser, "Invalid Content-Length header")
+    )
+
 }

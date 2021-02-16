@@ -23,7 +23,6 @@ import org.http4s.util._
 import cats.data.NonEmptyList
 import org.http4s.util.Renderer
 
-
 object `Access-Control-Allow-Headers`
     extends HeaderKey.Internal[`Access-Control-Allow-Headers`]
     with HeaderKey.Recurring {

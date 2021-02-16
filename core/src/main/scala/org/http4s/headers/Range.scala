@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.{Numbers, Parser0 => P0, Parser => P}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 // See https://tools.ietf.org/html/rfc7233
 
@@ -89,6 +90,20 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     // other types of ranges are not supported, `other-ranges-specifier` is ignored
     byteRangesSpecifier
   }
+
+  implicit val headerInstance: v2.Header[Range, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Range"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.unit << '=' << h.ranges.head
+            h.ranges.tail.foreach(writer << ',' << _)
+            writer
+          }
+        },
+      ParseResult.fromParser(parser, "Invalid Range header")
+    )
 
 }
 

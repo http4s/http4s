@@ -19,6 +19,7 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 /** {{{
   *   The "Proxy-Authorization" header field allows the client to identify
@@ -41,6 +42,14 @@ object `Proxy-Authorization`
 
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
+
+  implicit val headerInstance: v2.Header[`Proxy-Authorization`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Proxy-Authorization"),
+      _.credentials,
+      ParseResult.fromParser(parser, "Invalid Proxy-Authorization header")
+    )
+
 }
 
 final case class `Proxy-Authorization`(credentials: Credentials) extends Header.Parsed {

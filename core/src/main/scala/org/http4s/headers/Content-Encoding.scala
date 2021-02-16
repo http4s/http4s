@@ -18,12 +18,20 @@ package org.http4s
 package headers
 
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 object `Content-Encoding` extends HeaderKey.Internal[`Content-Encoding`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Content-Encoding`] =
     ParseResult.fromParser(parser, "Invalid Content-Encoding header")(s)
 
   private[http4s] val parser = ContentCoding.parser.map(`Content-Encoding`(_))
+
+  implicit val headerInstance: v2.Header[`Content-Encoding`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Content-Encoding"),
+      _.contentCoding,
+      ParseResult.fromParser(parser, "Invalid Content-Encoding header")
+    )
 }
 
 final case class `Content-Encoding`(contentCoding: ContentCoding) extends Header.Parsed {

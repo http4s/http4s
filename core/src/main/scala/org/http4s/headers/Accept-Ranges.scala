@@ -23,7 +23,6 @@ import cats.syntax.all._
 import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
-
 object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
   def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply((first +: more).toList)
   def bytes: `Accept-Ranges` = apply(RangeUnit.Bytes)

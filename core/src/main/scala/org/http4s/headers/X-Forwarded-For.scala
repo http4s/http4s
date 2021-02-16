@@ -21,7 +21,8 @@ import cats.data.NonEmptyList
 import cats.parse._
 import com.comcast.ip4s.IpAddress
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`X-Forwarded-For`] =
@@ -33,6 +34,21 @@ object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with Head
         (Rfc3986.ipv4Address.backtrack | Rfc3986.ipv6Address)
           .map(s => Some(s)) | (Parser.string("unknown").as(None)))
       .map(`X-Forwarded-For`.apply)
+
+  implicit val headerInstance: v2.Header[`X-Forwarded-For`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("X-Forwarded-For"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            h.values.head.fold(writer.append("unknown"))(i => writer.append(i.toString))
+            h.values.tail.foreach(h.append(writer, _))
+            writer
+          }
+        },
+      ParseResult.fromParser(parser, "Invalid X-Forwarded-For header")
+    )
+
 }
 
 final case class `X-Forwarded-For`(values: NonEmptyList[Option[IpAddress]])

@@ -32,6 +32,14 @@ object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurrin
   private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
     Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
   }
+
+  implicit val headerInstance: v2.Header[Connection, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Connection"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Connection header")
+    )
+
 }
 
 final case class Connection(values: NonEmptyList[CIString]) extends Header.Recurring {

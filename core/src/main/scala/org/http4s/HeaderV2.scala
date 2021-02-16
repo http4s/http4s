@@ -82,14 +82,13 @@ object Header {
   }
 
   def createRendered[A, T <: Header.Type, B: Renderer](
-    name_ : CIString,
-    value_ : A => B,
-    parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+      name_ : CIString,
+      value_ : A => B,
+      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
     def name = name_
     def value(a: A) = Renderer.renderString(value_(a))
     def parse(s: String) = parse_(s)
   }
-
 
   /** Target for implicit conversions to Header.Raw from modelled
     * headers and key-value pairs.

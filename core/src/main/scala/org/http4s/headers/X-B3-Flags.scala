@@ -19,7 +19,8 @@ package headers
 
 import cats.parse.Parser0
 import cats.parse.Numbers
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-Flags`] =
@@ -67,6 +68,19 @@ object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Sing
 
     `X-B3-Flags`(flags)
   }
+
+  implicit val headerInstance: v2.Header[`X-B3-Flags`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("X-B3-Flags"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            writer.append(h.flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
+
+        },
+      ParseResult.fromParser(parser, "Invalid X-B3-Flags header")
+    )
+
 }
 
 final case class `X-B3-Flags`(flags: Set[`X-B3-Flags`.Flag]) extends Header.Parsed {

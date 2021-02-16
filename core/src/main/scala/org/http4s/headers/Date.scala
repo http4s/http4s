@@ -19,6 +19,7 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.util.{Renderer, Writer}
+import org.typelevel.ci.CIString
 
 object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Date] =
@@ -27,6 +28,13 @@ object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
   /* `Date = HTTP-date` */
   private[http4s] val parser: Parser[`Date`] =
     HttpDate.parser.map(apply)
+
+  implicit val headerInstance: v2.Header[Date, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Date"),
+      _.date,
+      ParseResult.fromParser(parser, "Invalid Date header")
+    )
 }
 
 final case class Date(date: HttpDate) extends Header.Parsed {

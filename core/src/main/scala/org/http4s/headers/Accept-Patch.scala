@@ -31,7 +31,6 @@ object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.
   private[http4s] val parser =
     Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
 
-
   implicit val headerInstance: v2.Header[`Accept-Patch`, v2.Header.Recurring] =
     v2.Header.createRendered(
       CIString("Accept-Patch"),

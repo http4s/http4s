@@ -18,7 +18,8 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` =
@@ -48,6 +49,20 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
 
         `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
     }
+
+  implicit val headerInstance: v2.Header[`Content-Type`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Content-Type"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            h.charset match {
+              case Some(cs) => writer << h.mediaType << "; charset=" << cs
+              case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, h.mediaType)
+            }
+        },
+      ParseResult.fromParser(parser, "Invalid Content-Type header")
+    )
 
 }
 

@@ -64,6 +64,14 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
     )
   private[http4s] val parser: Parser[`Cache-Control`] =
     CacheDirective.repSep(Rfc7230.listSep).map(`Cache-Control`(_))
+
+  implicit val headerInstance: v2.Header[`Cache-Control`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Cache-Control"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Cache-Control header")
+    )
+
 }
 
 final case class `Cache-Control`(values: NonEmptyList[CacheDirective])

@@ -20,7 +20,8 @@ package headers
 import cats.parse.{Numbers, Parser => P}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKey.Singleton {
   def apply(range: Range.SubRange, length: Option[Long] = None): `Content-Range` =
@@ -62,6 +63,23 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
     // other types of ranges are not supported, `other-content-range` is ignored
     byteContentRange
   }
+
+  implicit val headerInstance: v2.Header[`Content-Range`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Content-Range"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.unit << ' ' << h.range << '/'
+            h.length match {
+              case Some(l) => writer << l
+              case None => writer << '*'
+            }
+          }
+        },
+      ParseResult.fromParser(parser, "Invalid Content-Range header")
+    )
+
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])
