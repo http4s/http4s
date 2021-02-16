@@ -16,36 +16,37 @@
 
 package org.http4s
 
+import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.Status._
 import org.scalacheck.Gen
-import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.{forAll, propBoolean}
 
-class StatusSpec extends Http4sSpec {
+class StatusSpec extends Http4sSuite {
   checkAll("Status", OrderTests[Status].order)
 
-  "Statuses" should {
-    "not be equal if their codes are not" in {
-      prop { (s1: Status, s2: Status) =>
+
+    test("Statuses should not be equal if their codes are not") {
+      forAll { (s1: Status, s2: Status) =>
         (s1.code != s2.code) ==> (s1 != s2)
       }
     }
 
-    "be equal if their codes are" in {
+    test("Statuses should be equal if their codes are") {
       forAll(genValidStatusCode) { i =>
         val s1: Status = getStatus(i, "a reason")
         val s2: Status = getStatus(i, "another reason")
-        s1 must_== s2
+        s1 == s2
       }
     }
 
-    "be ordered by their codes" in {
-      prop { (s1: Status, s2: Status) =>
+    test("Statuses should be ordered by their codes") {
+      forAll { (s1: Status, s2: Status) =>
         (s1.code < s2.code) ==> (s1 < s2)
       }
     }
 
-    "have the appropriate response classes" in {
+    test("Statuses should have the appropriate response classes") {
       forAll(genValidStatusCode) { code =>
         val expected = code / 100 match {
           case 1 => Informational
@@ -54,66 +55,66 @@ class StatusSpec extends Http4sSpec {
           case 4 => ClientError
           case 5 => ServerError
         }
-        fromInt(code) must beRight.like { case s => s.responseClass must_== expected }
+        fromInt(code).fold(_ => false, { s => s.responseClass == expected })
       }
     }
-  }
 
-  "The collection of registered statuses" should {
-    "contain 61 standard ones" in {
-      Status.registered.size must_== 61
+
+
+    test("The collection of registered statuses should contain 61 standard ones") {
+      assertEquals(Status.registered.size, 61)
     }
 
-    "not contain any custom statuses" in {
+    test("The collection of registered statuses should not contain any custom statuses") {
       getStatus(371)
-      Status.registered.size must_== 61
+      assertEquals(Status.registered.size, 61)
     }
-  }
 
-  "Finding a status by code" should {
-    "fail if the code is not in the range of valid codes" in {
+
+
+    test("Finding a status by code should fail if the code is not in the range of valid codes") {
       forAll(Gen.choose(Int.MinValue, 99)) { i =>
         fromInt(i).isLeft
       }
     }
 
-    "fail if the code is not in the range of valid codes" in {
+    test("Finding a status by code should fail if the code is not in the range of valid codes") {
       forAll(Gen.choose(600, Int.MaxValue)) { i =>
         fromInt(i).isLeft
       }
     }
 
-    "succeed if the code is in the valid range, but not a standard code" in {
-      fromInt(371) must beRight.like { case s => s.reason must_== "" }
-      fromInt(482) must beRight
+    test("Finding a status by code should succeed if the code is in the valid range, but not a standard code") {
+      assert(fromInt(371).fold(_ => false, { s => s.reason == "" }))
+      assert(fromInt(482).isRight)
     }
 
-    "yield a status with the standard reason for a standard code" in {
-      getStatus(NotFound.code).reason must_== "Not Found"
-    }
-  }
-
-  "Finding a status by code and reason" should {
-    "fail if the code is not in the valid range" in {
-      fromIntAndReason(17, "a reason") must beLeft
+    test("Finding a status by code should yield a status with the standard reason for a standard code") {
+      assertEquals(getStatus(NotFound.code).reason, "Not Found")
     }
 
-    "succeed if the code is in the valid range, but not a standard code" in {
+
+
+    test("Finding a status by code and reason should fail if the code is not in the valid range") {
+      assert(fromIntAndReason(17, "a reason").isLeft)
+    }
+
+    test("Finding a status by code and reason should succeed if the code is in the valid range, but not a standard code") {
       val s1 = getStatus(371, "some reason")
-      s1.code must_== 371
-      s1.reason must_== "some reason"
+      assertEquals(s1.code, 371)
+      assertEquals(s1.reason, "some reason")
     }
 
-    "succeed for a standard code and nonstandard reason, without replacing the default reason" in {
-      getStatus(NotFound.code, "My dog ate my homework").reason must_== "My dog ate my homework"
+    test("Finding a status by code and reason should succeed for a standard code and nonstandard reason, without replacing the default reason") {
+      assertEquals(getStatus(NotFound.code, "My dog ate my homework").reason, "My dog ate my homework")
 
-      getStatus(NotFound.code).reason must_== "Not Found"
+      assertEquals(getStatus(NotFound.code).reason, "Not Found")
     }
 
-    "succeed for a standard code and reason" in {
-      getStatus(NotFound.code, "Not Found").reason must_== "Not Found"
+    test("Finding a status by code and reason should succeed for a standard code and reason") {
+      assertEquals(getStatus(NotFound.code, "Not Found").reason, "Not Found")
     }
-  }
+
 
   private def getStatus(code: Int) =
     fromInt(code) match {
