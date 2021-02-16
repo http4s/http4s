@@ -31,6 +31,13 @@ object `Access-Control-Expose-Headers`
 
   private[http4s] val parser =
     Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
+
+  implicit def headerForAccessControlExposeHeaders: v2.Header[`Access-Control-Expose-Headers`, v2.Header.Recurring] =
+    v2.Header.of(
+      CIString("Access-Control-Expose-Headers"),
+      ac => Renderer.renderString(ac.values),
+      ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers header")
+    )
 }
 
 final case class `Access-Control-Expose-Headers`(values: NonEmptyList[CIString])
