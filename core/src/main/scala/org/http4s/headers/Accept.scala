@@ -20,7 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230.headerRep1
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.{Writer, Renderer, Renderable}
+import org.typelevel.ci.CIString
 
 object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Accept] =
@@ -48,6 +49,13 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
 
     headerRep1(fullRange).map(xs => Accept(xs.head, xs.tail: _*))
   }
+
+  implicit val headerForAccept: v2.Header[Accept, v2.Header.Recurring] =
+    v2.Header.of(
+      CIString("Accept"),
+      ac => Renderer.renderString(ac.values),
+      ParseResult.fromParser(parser, "Invalid Accept header")
+    )
 }
 
 final case class MediaRangeAndQValue(mediaRange: MediaRange, qValue: QValue = QValue.One)

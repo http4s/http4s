@@ -57,9 +57,7 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
 
   implicit val headerForAcceptRanges: v2.Header[`Accept-Ranges`, v2.Header.Single] =
     v2.Header.of(
-      CIString("Accept-Ranges")
-
-,
+      CIString("Accept-Ranges"),
       _.rangeUnits.toNel match {
         case None => "none"
         case Some(nel) => Renderer.renderString(nel)
