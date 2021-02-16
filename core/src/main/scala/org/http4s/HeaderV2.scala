@@ -70,6 +70,14 @@ object Header {
   case class Recurring() extends Type
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
+  def of[A, T <: Header.Type](
+      name_ : CIString,
+      value_ : A => String,
+      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+    def name = name_
+    def value(a: A) = value_(a)
+    def parse(s: String) = parse_(s)
+  }
 
   /** Target for implicit conversions to Header.Raw from modelled
     * headers and key-value pairs.

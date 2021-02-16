@@ -21,8 +21,16 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.CharsetRange.{Atom, `*`}
+import org.typelevel.ci.CIString
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
+  implicit def headerForAcceptCharset: v2.Header[`Accept-Charset`, v2.Header.Recurring] =
+    v2.Header.of(
+      CIString("Accept-Charset"),
+      _ => "",
+      _ => ???
+    )
+
   override def parse(s: String): ParseResult[`Accept-Charset`] =
     ParseResult.fromParser(parser, "Invalid Accept-Charset header")(s)
 
