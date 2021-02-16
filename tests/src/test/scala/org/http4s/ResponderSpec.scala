@@ -54,7 +54,8 @@ class ResponderSpec extends Http4sSuite {
 
   test("Responder should Remove headers") {
     val wHeader = resp.putHeaders(Connection("close".ci))
-    assertEquals(wHeader.headers.get(Connection), Some(Connection("close".ci)))
+    val maybeHeaderT = wHeader.headers.get(Connection)
+    assertEquals(maybeHeaderT, Some(Connection("close".ci)))
 
     val newHeaders = wHeader.removeHeader(Connection)
     assert(newHeaders.headers.get(Connection).isEmpty)
