@@ -55,24 +55,6 @@ class StreamingParserSuite extends Http4sSuite {
 
       if (as.isEmpty) Gen.const(Nil) else Gen.delay(go(List(as), count))
     }
-
-    def debug(segments: List[List[Byte]]): Unit = {
-      // handleErrorWith(e => {e.printStackTrace();IO(false)}).assert
-
-      println("----")
-      segments.foreach { s =>
-        println(s)
-      }
-      // println("------")
-      // segments.foreach { s =>
-      //   s.foreach { byte =>
-      //     if (byte == 13) print("CR")
-      //     else if (byte == 10) print("NL")
-      //     else print(new String(Array[Byte](byte)))
-      //   }
-      //   println()
-      // }
-    }
   }
 
   object Fixtures {
@@ -122,7 +104,7 @@ class StreamingParserSuite extends Http4sSuite {
         "\r\n"
       ))
 
-    // TODO: Express in terms of Gen[Request[IO]] and Gen[Response[IO]]
+    // followup: try to generate raw http messages
     def genRequest: Gen[List[List[Byte]]] =
       Gen.oneOf(RequestFixedBody, RequestChunkedBody).flatMap(Helpers.subdivided(_, 25))
     def genResponse: Gen[List[List[Byte]]] =

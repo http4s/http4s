@@ -219,7 +219,6 @@ lazy val emberCore = libraryProject("ember-core")
     libraryDependencies ++= Seq(
       log4catsTesting % Test,
     ),
-    fork in Test := true,
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
