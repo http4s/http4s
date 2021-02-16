@@ -20,8 +20,18 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderer
+import org.typelevel.ci.CIString
 
 object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring {
+
+  implicit def headerForAcceptLanguage: v2.Header[`Accept-Language`, v2.Header.Recurring] =
+    v2.Header.of(
+      CIString("Accept-Language"),
+      ac => Renderer.renderString(ac.values),
+      ParseResult.fromParser(parser, "Invalid Accept-Language header")
+    )
+
   override def parse(s: String): ParseResult[`Accept-Language`] =
     ParseResult.fromParser(parser, "Invalid Accept-Language header")(s)
 
