@@ -34,9 +34,9 @@ object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
     .map(ms => Allow(ms.toSet))
 
   implicit val headerInstance: v2.Header[Allow, v2.Header.Single] =
-    v2.Header.create(
+    v2.Header.createRendered(
       CIString("Allow"),
-      v => ???,
+      _.methods,
       ParseResult.fromParser(parser, "Invalid Allow")
     )
 }
@@ -49,5 +49,5 @@ object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
 final case class Allow(methods: Set[Method]) extends Header.Parsed {
   override def key: Allow.type = Allow
   override def renderValue(writer: Writer): writer.type =
-    writer.addSet[Method](methods, sep = ", ")
+    writer.addSet[Method](methods)
 }
