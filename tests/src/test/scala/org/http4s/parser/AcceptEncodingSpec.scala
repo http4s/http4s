@@ -18,10 +18,9 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Accept-Encoding`
-import org.specs2.mutable.Specification
 import org.http4s.syntax.all._
 
-class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
+class AcceptEncodingSpec extends Http4sSuite with HeaderParserHelper[`Accept-Encoding`] {
   def hparse(value: String): ParseResult[`Accept-Encoding`] =
     HttpHeaderParser.ACCEPT_ENCODING(value)
 
@@ -32,31 +31,30 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
   val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"1.0"))
 
-  "Accept-Encoding parser" should {
-    "parse all encodings" in {
-      foreach(ContentCoding.standard) { case (_, coding) =>
-        parse(coding.renderString).values.head should be_==(coding)
-      }
+  test("Accept-Encoding parser should parse all encodings") {
+    ContentCoding.standard.foreach { case (_, coding) =>
+      assertEquals(parse(coding.renderString).values.head, coding)
     }
   }
 
-  "Give correct value" in {
-    gzip.value must be_==("gzip")
-    gzip5.value must be_==("gzip;q=0.5")
-    gzip55.value must be_==("gzip;q=0.55")
-    gzip555.value must be_==("gzip;q=0.555")
+  test("Give correct value") {
+    assertEquals(gzip.value, "gzip")
+    assertEquals(gzip5.value, "gzip;q=0.5")
+    assertEquals(gzip55.value, "gzip;q=0.55")
+    assertEquals(gzip555.value, "gzip;q=0.555")
 
-    gzip1.value must be_==("gzip")
+    assertEquals(gzip1.value, "gzip")
   }
 
-  "Parse properly" in {
-    parse(gzip.value) must be_==(gzip)
-    parse(gzip5.value) must be_==(gzip5)
-    parse(gzip555.value) must be_==(gzip555)
+  test("Parse properly") {
+    assertEquals(parse(gzip.value), gzip)
+    assertEquals(parse(gzip5.value), gzip5)
+    assertEquals(parse(gzip555.value), gzip555)
 
-    parse("gzip; q=1.0, compress") must be_==(
+    assertEquals(
+      parse("gzip; q=1.0, compress"),
       `Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
 
-    parse(gzip1.value) must be_==(gzip)
+    assertEquals(parse(gzip1.value), gzip)
   }
 }
