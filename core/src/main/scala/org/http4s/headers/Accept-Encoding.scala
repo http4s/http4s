@@ -17,11 +17,21 @@
 package org.http4s
 package headers
 
+import org.http4s.util.Renderer
+import org.typelevel.ci.CIString
+
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.eq._
 
 object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring {
+  implicit def headerForAcceptEncoding: v2.Header[`Accept-Encoding`, v2.Header.Recurring] =
+    v2.Header.of(
+      CIString("Accept-Encoding"),
+      ac => Renderer.renderString(ac.values),
+      ParseResult.fromParser(parser, "Invalid Accept-Encoding header")
+    )
+
   override def parse(s: String): ParseResult[`Accept-Encoding`] =
     ParseResult.fromParser(parser, "Invalid Accept-Encoding header")(s)
 

@@ -28,7 +28,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
   implicit def headerForAcceptCharset: v2.Header[`Accept-Charset`, v2.Header.Recurring] =
     v2.Header.of(
       CIString("Accept-Charset"),
-      ac => Renderer.renderString(ac.values),
+      h => Renderer.renderString(h.values),
       ParseResult.fromParser(parser, "Invalid Accept-Charset header")
     )
 
