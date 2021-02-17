@@ -20,29 +20,29 @@ package parser
 import org.http4s.headers.`Content-Location`
 
 class ContentLocationHeaderSpec extends Http4sSuite {
-  {
-    "ContentLocationHeader parser can Parse a simple uri" in {
-      val s = "http://www.foo.com"
-      val Right(uri) = Uri.fromString(s)
-      val hs = Headers.of(Header("Content-Location", s))
 
-      assert(hs.get(`Content-Location`) == Some(`Content-Location`(uri)))
-    }
+  test("ContentLocationHeader parser can Parse a simple uri") {
+    val s = "http://www.foo.com"
+    val Right(uri) = Uri.fromString(s)
+    val hs = Headers.of(Header("Content-Location", s))
 
-    "ContentLocationHeader parser can Parse a simple uri with a path but no authority" in {
-      val s = "http:/foo/bar"
-      val Right(uri) = Uri.fromString(s)
-      val hs = Headers.of(Header("Content-Location", s))
-
-      assert(hs.get(`Content-Location`) == Some(`Content-Location`(uri)))
-    }
-
-    "ContentLocationHeader parser can Parse a relative reference" in {
-      val s = "/cats"
-      val Right(uri) = Uri.fromString(s)
-      val hs = Headers.of(Header("Content-Location", s))
-
-      assert(hs.get(`Content-Location`) == Some(`Content-Location`(uri)))
-    }
+    assert(hs.get(`Content-Location`) == Some(`Content-Location`(uri)))
   }
+
+  test("ContentLocationHeader parser can Parse a simple uri with a path but no authority") {
+    val s = "http:/foo/bar"
+    val Right(uri) = Uri.fromString(s)
+    val hs = Headers.of(Header("Content-Location", s))
+
+    assert(hs.get(`Content-Location`) == Some(`Content-Location`(uri)))
+  }
+
+  test("ContentLocationHeader parser can Parse a relative reference") {
+    val s = "/cats"
+    val Right(uri) = Uri.fromString(s)
+    val hs = Headers.of(Header("Content-Location", s))
+
+    assert(hs.get(`Content-Location`) == Some(`Content-Location`(uri)))
+  }
+
 }

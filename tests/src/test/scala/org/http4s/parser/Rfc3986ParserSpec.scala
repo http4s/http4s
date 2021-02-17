@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.parser
+package org.http4s
+package parser
 
-import org.http4s.Http4sSpec
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Uri.{Ipv4Address, Ipv6Address}
 import org.scalacheck.Prop
 
