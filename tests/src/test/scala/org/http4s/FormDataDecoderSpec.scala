@@ -21,63 +21,70 @@ import cats.data.{Chain, NonEmptyList}
 import cats.syntax.all._
 import FormDataDecoder._
 
-class FormDataDecoderSpec extends Http4sSpec {
+class FormDataDecoderSpec extends Http4sSuite {
 
-  "Field decoder" should {
+  {
     val mapper = field[Boolean]("a")
 
-    "decode a field successfully" in {
-      mapper(Map("a" -> Chain("true"))) must_=== Valid(true)
+    test("Field decoder should decode a field successfully") {
+      assertEquals(mapper(Map("a" -> Chain("true"))), Valid(true))
     }
 
-    "report error when field is missing" in {
-      mapper(Map("b" -> Chain("true"))) must_=== ParseFailure("a is missing", "").invalidNel
+    test("Field decoder should report error when field is missing") {
+      assertEquals(mapper(Map("b" -> Chain("true"))), ParseFailure("a is missing", "").invalidNel)
     }
 
-    "report error when field is wrong form" in {
-      mapper(Map("a" -> Chain("1"))) must_=== ParseFailure(
-        "Query decoding Boolean failed",
-        "For input string: \"1\""
-      ).invalidNel
+    test("Field decoder should report error when field is wrong form") {
+      assertEquals(
+        mapper(Map("a" -> Chain("1"))),
+        ParseFailure(
+          "Query decoding Boolean failed",
+          "For input string: \"1\""
+        ).invalidNel)
     }
   }
 
-  "Field Optional Decoder" should {
+  {
     val mapper = fieldOptional[Boolean]("a")
-    "return Some if the field is missing" in {
-      mapper(Map("a" -> Chain("true"))) must_== Valid(Some(true))
+    test("Field Optional Decoder should return Some if the field is missing") {
+      assertEquals(mapper(Map("a" -> Chain("true"))), Valid(Some(true)))
     }
 
-    "return None if the field is missing" in {
-      mapper(Map("b" -> Chain("true"))) must_== Valid(None)
+    test("Field Optional Decoder should return None if the field is missing") {
+      assertEquals(mapper(Map("b" -> Chain("true"))), Valid(None))
     }
   }
 
-  "Field default Decoder" should {
+  {
     val mapper = fieldEither[Boolean]("a").default(false)
-    "return defaultValue if the field is missing" in {
-      mapper(Map()) must_== Valid(false)
+    test("Field default Decoder should return defaultValue if the field is missing") {
+      assertEquals(mapper(Map()), Valid(false))
     }
 
   }
 
-  "mapN to decode case class" should {
+  {
     case class Foo(a: String, b: Boolean)
 
     implicit val fooMapper: FormDataDecoder[Foo] =
       (field[String]("a"), field[Boolean]("b")).mapN(Foo.apply)
 
-    "map successfully for valid data" in {
-      fooMapper(Map("a" -> Chain("bar"), "b" -> Chain("false"))) must_=== Valid(
-        Foo("bar", false)
-      )
+    test("mapN to decode case class should map successfully for valid data") {
+      assertEquals(
+        fooMapper(Map("a" -> Chain("bar"), "b" -> Chain("false"))),
+        Valid(
+          Foo("bar", false)
+        ))
     }
 
-    "accumulate errors for invalid data" in {
-      fooMapper(Map("b" -> Chain("1"))) must_=== Invalid(
-        NonEmptyList.of(
-          ParseFailure("a is missing", ""),
-          ParseFailure("Query decoding Boolean failed", "For input string: \"1\"")
+    test("mapN to decode case class should accumulate errors for invalid data") {
+      assertEquals(
+        fooMapper(Map("b" -> Chain("1"))),
+        Invalid(
+          NonEmptyList.of(
+            ParseFailure("a is missing", ""),
+            ParseFailure("Query decoding Boolean failed", "For input string: \"1\"")
+          )
         )
       )
     }
@@ -87,16 +94,20 @@ class FormDataDecoderSpec extends Http4sSpec {
     implicit val fooStringMapper: FormDataDecoder[FooStrings] =
       listOf[String]("a").map(FooStrings.apply)
 
-    "decode list successfully for valid data" in {
-      fooStringMapper(Map("a[]" -> Chain("bar1", "bar2"))) must_=== Valid(
-        FooStrings(List("bar1", "bar2"))
-      )
+    test("mapN to decode case class should decode list successfully for valid data") {
+      assertEquals(
+        fooStringMapper(Map("a[]" -> Chain("bar1", "bar2"))),
+        Valid(
+          FooStrings(List("bar1", "bar2"))
+        ))
     }
 
-    "decode empty list when data is missing" in {
-      fooStringMapper(Map()) must_=== Valid(
-        FooStrings(Nil)
-      )
+    test("mapN to decode case class should decode empty list when data is missing") {
+      assertEquals(
+        fooStringMapper(Map()),
+        Valid(
+          FooStrings(Nil)
+        ))
     }
 
     case class FooNested(f: Foo, c: String)
@@ -106,14 +117,16 @@ class FormDataDecoderSpec extends Http4sSpec {
       field[String]("c")
     ).mapN(FooNested.apply)
 
-    "map nested case class" in {
-      fooNestedMapper(
-        Map(
-          "c" -> Chain("ccc"),
-          "f.a" -> Chain("bar"),
-          "f.b" -> Chain("true")
-        )
-      ) must_=== Valid(FooNested(Foo("bar", true), "ccc"))
+    test("mapN to decode case class should map nested case class") {
+      assertEquals(
+        fooNestedMapper(
+          Map(
+            "c" -> Chain("ccc"),
+            "f.a" -> Chain("bar"),
+            "f.b" -> Chain("true")
+          )
+        ),
+        Valid(FooNested(Foo("bar", true), "ccc")))
     }
 
     case class FooNestedOptional(f: Option[Foo], c: Option[String])
@@ -123,21 +136,26 @@ class FormDataDecoderSpec extends Http4sSpec {
       fieldOptional[String]("c")
     ).mapN(FooNestedOptional.apply)
 
-    "set values to None if missing" in {
-      fooNestedOptionalMapper(
-        Map(
-        )
-      ) must_=== Valid(FooNestedOptional(None, None))
+    test("mapN to decode case class should set values to None if missing") {
+      assertEquals(
+        fooNestedOptionalMapper(
+          Map(
+          )
+        ),
+        Valid(FooNestedOptional(None, None)))
     }
 
-    "set values to Value if missing" in {
-      fooNestedOptionalMapper(
-        Map(
-          "c" -> Chain("ccc"),
-          "f.a" -> Chain("bar"),
-          "f.b" -> Chain("true")
-        )
-      ) must_=== Valid(FooNestedOptional(Option(Foo("bar", true)), Option("ccc")))
+    test("mapN to decode case class should set values to Value if missing") {
+      assertEquals(
+        fooNestedOptionalMapper(
+          Map(
+            "c" -> Chain("ccc"),
+            "f.a" -> Chain("bar"),
+            "f.b" -> Chain("true")
+          )
+        ),
+        Valid(FooNestedOptional(Option(Foo("bar", true)), Option("ccc")))
+      )
     }
 
     case class FooList(fs: List[Foo], d: Boolean)
@@ -147,22 +165,28 @@ class FormDataDecoderSpec extends Http4sSpec {
       field[Boolean]("d")
     ).mapN(FooList.apply)
 
-    "map nested list of nested data" in {
-      fooListMapper(
-        Map(
-          "d" -> Chain("false"),
-          "fs[].a" -> Chain("f1", "f2"),
-          "fs[].b" -> Chain("false", "true")
-        )
-      ) must_=== Valid(FooList(List(Foo("f1", false), Foo("f2", true)), false))
+    test("mapN to decode case class should map nested list of nested data") {
+      assertEquals(
+        fooListMapper(
+          Map(
+            "d" -> Chain("false"),
+            "fs[].a" -> Chain("f1", "f2"),
+            "fs[].b" -> Chain("false", "true")
+          )
+        ),
+        Valid(FooList(List(Foo("f1", false), Foo("f2", true)), false))
+      )
     }
 
-    "map nested list of nested data to empty list if missing" in {
-      fooListMapper(
-        Map(
-          "d" -> Chain("false")
-        )
-      ) must_=== Valid(FooList(List.empty[Foo], false))
+    test(
+      "mapN to decode case class should map nested list of nested data to empty list if missing") {
+      assertEquals(
+        fooListMapper(
+          Map(
+            "d" -> Chain("false")
+          )
+        ),
+        Valid(FooList(List.empty[Foo], false)))
     }
 
   }

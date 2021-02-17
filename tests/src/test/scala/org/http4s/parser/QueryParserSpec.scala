@@ -21,84 +21,92 @@ import java.nio.CharBuffer
 import org.http4s.internal.CollectionCompat
 import scala.io.Codec
 
-class QueryParserSpec extends Http4sSpec {
+class QueryParserSpec extends Http4sSuite {
   def parseQueryString(str: String): ParseResult[Query] =
     QueryParser.parseQueryString(str)
 
-  "The QueryParser" should {
-    "correctly extract complete key value pairs" in {
-      parseQueryString("key=value") must beRight(Query("key" -> Some("value")))
-      parseQueryString("key=value&key2=value2") must beRight(
-        Query("key" -> Some("value"), "key2" -> Some("value2")))
-    }
+  test("The QueryParser should correctly extract complete key value pairs") {
+    assertEquals(parseQueryString("key=value"), Right(Query("key" -> Some("value"))))
+    assertEquals(
+      parseQueryString("key=value&key2=value2"),
+      Right(Query("key" -> Some("value"), "key2" -> Some("value2"))))
+  }
 
-    "decode URL-encoded keys and values" in {
-      parseQueryString("ke%25y=value") must beRight(Query("ke%y" -> Some("value")))
-      parseQueryString("key=value%26&key2=value2") must beRight(
-        Query("key" -> Some("value&"), "key2" -> Some("value2")))
-    }
+  test("The QueryParser should decode URL-encoded keys and values") {
+    assertEquals(parseQueryString("ke%25y=value"), Right(Query("ke%y" -> Some("value"))))
+    assertEquals(
+      parseQueryString("key=value%26&key2=value2"),
+      Right(Query("key" -> Some("value&"), "key2" -> Some("value2"))))
+  }
 
-    "return an empty Map for an empty query string" in {
-      parseQueryString("") must beRight(Query.empty)
-    }
+  test("The QueryParser should return an empty Map for an empty query string") {
+    assertEquals(parseQueryString(""), Right(Query.empty))
+  }
 
-    "return an empty value for keys without a value following the '=' and keys without following '='" in {
-      parseQueryString("key=&key2") must beRight(Query("key" -> Some(""), "key2" -> None))
-    }
+  test(
+    "The QueryParser should return an empty value for keys without a value following the '=' and keys without following '='") {
+    assertEquals(parseQueryString("key=&key2"), Right(Query("key" -> Some(""), "key2" -> None)))
+  }
 
-    "accept empty key value pairs" in {
-      parseQueryString("&&b&") must beRight(Query("" -> None, "" -> None, "b" -> None, "" -> None))
-    }
+  test("The QueryParser should accept empty key value pairs") {
+    assertEquals(
+      parseQueryString("&&b&"),
+      Right(Query("" -> None, "" -> None, "b" -> None, "" -> None)))
+  }
 
-    "Handle '=' in a query string" in {
-      parseQueryString("a=b=c") must beRight(Query("a" -> Some("b=c")))
-    }
+  test("The QueryParser should Handle '=' in a query string") {
+    assertEquals(parseQueryString("a=b=c"), Right(Query("a" -> Some("b=c"))))
+  }
 
-//    "Gracefully handle invalid URL encoding" in {
-//      parseQueryString("a=b%G") must beRight(Query("a" -> Some("b%G")))
+//    test("The QueryParser should Gracefully handle invalid URL encoding") {
+//      assertEquals(parseQueryString("a=b%G"), Right(Query("a" -> Some("b%G"))))
 //    }
 
-    "Allow ';' seperators" in {
-      parseQueryString("a=b;c") must beRight(Query("a" -> Some("b"), "c" -> None))
-    }
-
-    "Allow PHP-style [] in keys" in {
-      parseQueryString("a[]=b&a[]=c") must beRight(Query("a[]" -> Some("b"), "a[]" -> Some("c")))
-    }
-
-    "QueryParser using QChars doesn't allow PHP-style [] in keys" in {
-      val queryString = "a[]=b&a[]=c"
-      new QueryParser(Codec.UTF8, true, QueryParser.QChars)
-        .decode(CharBuffer.wrap(queryString), true) must beLeft
-    }
-
-    "Reject a query with invalid char" in {
-      parseQueryString("獾") must beLeft
-      parseQueryString("foo獾bar") must beLeft
-      parseQueryString("foo=獾") must beLeft
-    }
-
-    "Keep CharBuffer position if not flushing" in {
-      val s = "key=value&stuff=cat"
-      val cs = CharBuffer.wrap(s)
-      val r = new QueryParser(Codec.UTF8, true).decode(cs, false)
-
-      r must beRight(Query("key" -> Some("value")))
-      cs.remaining must_== 9
-
-      val r2 = new QueryParser(Codec.UTF8, true).decode(cs, false)
-      r2 must beRight(Query())
-      cs.remaining() must_== 9
-
-      val r3 = new QueryParser(Codec.UTF8, true).decode(cs, true)
-      r3 must beRight(Query("stuff" -> Some("cat")))
-      cs.remaining() must_== 0
-    }
-
-    "be stack safe" in {
-      val value = CollectionCompat.LazyList.continually('X').take(1000000).mkString
-      val query = s"little=x&big=${value}"
-      parseQueryString(query) must beRight(Query("little" -> Some("x"), "big" -> Some(value)))
-    }
+  test("The QueryParser should Allow ';' seperators") {
+    assertEquals(parseQueryString("a=b;c"), Right(Query("a" -> Some("b"), "c" -> None)))
   }
+
+  test("The QueryParser should Allow PHP-style [] in keys") {
+    assertEquals(
+      parseQueryString("a[]=b&a[]=c"),
+      Right(Query("a[]" -> Some("b"), "a[]" -> Some("c"))))
+  }
+
+  test("The QueryParser should QueryParser using QChars doesn't allow PHP-style [] in keys") {
+    val queryString = "a[]=b&a[]=c"
+    assert(
+      new QueryParser(Codec.UTF8, true, QueryParser.QChars)
+        .decode(CharBuffer.wrap(queryString), true)
+        .isLeft)
+  }
+
+  test("The QueryParser should Reject a query with invalid char") {
+    assert(parseQueryString("獾").isLeft)
+    assert(parseQueryString("foo獾bar").isLeft)
+    assert(parseQueryString("foo=獾").isLeft)
+  }
+
+  test("The QueryParser should Keep CharBuffer position if not flushing") {
+    val s = "key=value&stuff=cat"
+    val cs = CharBuffer.wrap(s)
+    val r = new QueryParser(Codec.UTF8, true).decode(cs, false)
+
+    assertEquals(r, Right(Query("key" -> Some("value"))))
+    assertEquals(cs.remaining, 9)
+
+    val r2 = new QueryParser(Codec.UTF8, true).decode(cs, false)
+    assertEquals(r2, Right(Query()))
+    assertEquals(cs.remaining(), 9)
+
+    val r3 = new QueryParser(Codec.UTF8, true).decode(cs, true)
+    assertEquals(r3, Right(Query("stuff" -> Some("cat"))))
+    assertEquals(cs.remaining(), 0)
+  }
+
+  test("The QueryParser should be stack safe") {
+    val value = CollectionCompat.LazyList.continually('X').take(1000000).mkString
+    val query = s"little=x&big=${value}"
+    assertEquals(parseQueryString(query), Right(Query("little" -> Some("x"), "big" -> Some(value))))
+  }
+
 }

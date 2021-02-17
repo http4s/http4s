@@ -18,95 +18,98 @@ package org.http4s
 
 import org.http4s.headers._
 import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
+import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.syntax.all._
 
-class HeadersSpec extends Http4sSpec {
+class HeadersSpec extends Http4sSuite {
   val clength = `Content-Length`.unsafeFromLong(10)
   val raw = Header.Raw("raw-header".ci, "Raw value")
 
   val base = Headers.of(clength.toRaw, raw)
 
-  "Headers" should {
-    "Not find a header that isn't there" in {
-      base.get(`Content-Base`) should beNone
-    }
+  test("Headers should Not find a header that isn't there") {
+    assertEquals(base.get(`Content-Base`), None)
+  }
 
-    "Find an existing header and return its parsed form" in {
-      base.get(`Content-Length`) should beSome(clength)
-      base.get("raw-header".ci) should beSome(raw)
-    }
+  test("Headers should Find an existing header and return its parsed form") {
+    assertEquals(base.get(`Content-Length`), Some(clength))
+    assertEquals(base.get("raw-header".ci), Some(raw))
+  }
 
-    "Replaces headers" in {
-      val newlen = `Content-Length`.zero
-      base.put(newlen).get(newlen.key) should beSome(newlen)
-      base.put(newlen.toRaw).get(newlen.key) should beSome(newlen)
-    }
+  test("Headers should Replaces headers") {
+    val newlen = `Content-Length`.zero
+    assertEquals(base.put(newlen).get(newlen.key), Some(newlen))
+    assertEquals(base.put(newlen.toRaw).get(newlen.key), Some(newlen))
+  }
 
-    "also find headers created raw" in {
-      val headers = Headers.of(
-        org.http4s.headers.`Cookie`(RequestCookie("foo", "bar")),
-        Header("Cookie", RequestCookie("baz", "quux").toString)
-      )
-      headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome(2)
-    }
+  test("Headers should also find headers created raw") {
+    val headers = Headers.of(
+      org.http4s.headers.`Cookie`(RequestCookie("foo", "bar")),
+      Header("Cookie", RequestCookie("baz", "quux").toString)
+    )
+    assertEquals(headers.get(org.http4s.headers.Cookie).map(_.values.length), Some(2))
+  }
 
-    "Find the headers with DefaultHeaderKey keys" in {
-      val headers = Headers.of(
-        `Set-Cookie`(ResponseCookie("foo", "bar")),
-        Header("Accept-Patch", ""),
-        Header("Access-Control-Allow-Credentials", "")
-      )
-      headers.get(`Accept-Patch`).map(_.value) must beSome("")
-    }
+  test("Headers should Find the headers with DefaultHeaderKey keys") {
+    val headers = Headers.of(
+      `Set-Cookie`(ResponseCookie("foo", "bar")),
+      Header("Accept-Patch", ""),
+      Header("Access-Control-Allow-Credentials", "")
+    )
+    assertEquals(headers.get(`Accept-Patch`).map(_.value), Some(""))
+  }
 
-    "Remove duplicate headers which are not of type Recurring on concatenation (++)" in {
-      val hs = Headers.of(clength) ++ Headers.of(clength)
-      hs.toList.length must_== 1
-      hs.toList.head must_== clength
-    }
+  test(
+    "Headers should Remove duplicate headers which are not of type Recurring on concatenation (++)") {
+    val hs = Headers.of(clength) ++ Headers.of(clength)
+    assertEquals(hs.toList.length, 1)
+    assertEquals(hs.toList.head, clength)
+  }
 
-    "Allow multiple Set-Cookie headers" in {
-      val h1 = `Set-Cookie`(ResponseCookie("foo1", "bar1")).toRaw
-      val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2")).toRaw
-      val hs = Headers.of(clength) ++ Headers.of(h1) ++ Headers.of(h2)
-      hs.toList.count(_.parsed match { case `Set-Cookie`(_) => true; case _ => false }) must_== 2
-      hs.exists(_ == clength) must_== true
-    }
+  test("Headers should Allow multiple Set-Cookie headers") {
+    val h1 = `Set-Cookie`(ResponseCookie("foo1", "bar1")).toRaw
+    val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2")).toRaw
+    val hs = Headers.of(clength) ++ Headers.of(h1) ++ Headers.of(h2)
+    assertEquals(
+      hs.toList.count(_.parsed match { case `Set-Cookie`(_) => true; case _ => false }),
+      2)
+    assertEquals(hs.exists(_ == clength), true)
+  }
 
-    "Work with Raw headers (++)" in {
-      val foo = ContentCoding.unsafeFromString("foo")
-      val bar = ContentCoding.unsafeFromString("bar")
-      val h1 = `Accept-Encoding`(foo).toRaw
-      val h2 = `Accept-Encoding`(bar).toRaw
-      val hs = Headers.of(clength.toRaw) ++ Headers.of(h1) ++ Headers.of(h2)
-      hs.get(`Accept-Encoding`) must beSome(`Accept-Encoding`(foo, bar))
-      hs.exists(_ == clength) must_== true
-    }
+  test("Headers should Work with Raw headers (++)") {
+    val foo = ContentCoding.unsafeFromString("foo")
+    val bar = ContentCoding.unsafeFromString("bar")
+    val h1 = `Accept-Encoding`(foo).toRaw
+    val h2 = `Accept-Encoding`(bar).toRaw
+    val hs = Headers.of(clength.toRaw) ++ Headers.of(h1) ++ Headers.of(h2)
+    assertEquals(hs.get(`Accept-Encoding`), Some(`Accept-Encoding`(foo, bar)))
+    assertEquals(hs.exists(_ == clength), true)
+  }
 
-    // "Avoid making copies if there are duplicate collections" in {
-    //   base ++ Headers.empty eq base must_== true
-    //   Headers.empty ++ base eq base must_== true
-    // }
+  // test("Headers should Avoid making copies if there are duplicate collections") {
+  //   assertEquals(base ++ Headers.empty eq base, true)
+  //   assertEquals(Headers.empty ++ base eq base, true)
+  // }
 
-    "Preserve original headers when processing" in {
-      val rawAuth = Header("Authorization", "test this")
+  test("Headers should Preserve original headers when processing") {
+    val rawAuth = Header("Authorization", "test this")
 
-      // Mapping to strings because Header equality is based on the *parsed* version
-      (Headers.of(rawAuth) ++ base).toList.map(_.toString) must contain(===(rawAuth.toString))
-    }
+    // Mapping to strings because Header equality is based on the *parsed* version
+    assert((Headers.of(rawAuth) ++ base).toList.map(_.toString).contains(rawAuth.toString))
+  }
 
-    "hash the same when constructed with the same contents" in {
-      val h1 = Headers.of(Header("Test-Header", "Value"))
-      val h2 = Headers.of(Header("Test-Header", "Value"))
-      val h3 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
-      val h4 = Headers(List(Header("TestHeader", "other value"), Header("Test-Header", "Value")))
-      val h5 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
-      h1.hashCode() must_== h2.hashCode()
-      h1.equals(h2) must_== true
-      h2.equals(h1) must_== true
-      h1.equals(h3) must_== false
-      h3.equals(h4) must_== false
-      h3.equals(h5) must_== true
-    }
+  test("Headers should hash the same when constructed with the same contents") {
+    val h1 = Headers.of(Header("Test-Header", "Value"))
+    val h2 = Headers.of(Header("Test-Header", "Value"))
+    val h3 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
+    val h4 = Headers(List(Header("TestHeader", "other value"), Header("Test-Header", "Value")))
+    val h5 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
+    assertEquals(h1.hashCode(), h2.hashCode())
+    assert(h1.equals(h2))
+    assert(h2.equals(h1))
+    assert(!h1.equals(h3))
+    assert(!h3.equals(h4))
+    assert(h3.equals(h5))
   }
 
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
