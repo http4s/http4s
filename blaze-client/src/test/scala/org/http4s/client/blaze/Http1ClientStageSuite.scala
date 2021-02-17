@@ -201,7 +201,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Use User-Agent header provided in Request") {
+  test("Use User-Agent header provided in Request".flaky) {
     import org.http4s.syntax.all._
 
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
