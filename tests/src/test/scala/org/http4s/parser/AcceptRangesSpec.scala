@@ -14,35 +14,34 @@
  * limitations under the License.
  */
 
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.RangeUnit
 import org.http4s.headers.`Accept-Ranges`
-import org.specs2.mutable.Specification
 
-class AcceptRangesSpec extends Specification with HeaderParserHelper[`Accept-Ranges`] {
+class AcceptRangesSpec extends Http4sSuite with HeaderParserHelper[`Accept-Ranges`] {
   def hparse(value: String) = `Accept-Ranges`.parse(value)
 
-  "Accept-Ranges header" should {
-    val ranges = List(
-      `Accept-Ranges`.bytes,
-      `Accept-Ranges`.none,
-      `Accept-Ranges`(RangeUnit("foo")),
-      `Accept-Ranges`(RangeUnit.Bytes, RangeUnit("bar")))
+  val ranges = List(
+    `Accept-Ranges`.bytes,
+    `Accept-Ranges`.none,
+    `Accept-Ranges`(RangeUnit("foo")),
+    `Accept-Ranges`(RangeUnit.Bytes, RangeUnit("bar")))
 
-    "Give correct header value" in {
-      ranges.map(_.value) must be_==(List("bytes", "none", "foo", "bytes, bar"))
-    }
+  test("Accept-Ranges header should Give correct header value") {
+    assertEquals(ranges.map(_.value), List("bytes", "none", "foo", "bytes, bar"))
+  }
 
-//    "Do whitespace right" in {
+//    test("Accept-Ranges header should Do whitespace right") {
 //      val value = " bytes"
-//      parse(value) must be_==(`Accept-Ranges`.bytes)
+//      assertEquals(parse(value), `Accept-Ranges`.bytes)
 //    }
 
-    "Parse correctly" in {
-      foreach(ranges) { r =>
-        parse(r.value) must be_==(r)
-      }
+  test("Accept-Ranges header should Parse correctly") {
+    ranges.foreach { r =>
+      assertEquals(parse(r.value), r)
     }
   }
+
 }
