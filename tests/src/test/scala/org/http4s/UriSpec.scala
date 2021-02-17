@@ -591,47 +591,47 @@ http://example.org/a file
       val u = Uri(
         query =
           Query.fromString("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
-      assertEquals(
-        u.multiParams,
-        Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5")))
+      assert(
+        u.multiParams ==
+          Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5")))
     }
     test("Uri.multiParams should find parameter with empty key and a value") {
       val u = Uri(query = Query.fromString("param1=&=value-of-empty-key&param2=value"))
-      assertEquals(
-        u.multiParams,
-        Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value")))
+      assert(
+        u.multiParams ==
+          Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value")))
     }
     test("Uri.multiParams should find first value of parameter with empty key") {
-      assertEquals(
-        Uri(query = Query.fromString("=value1&=value2")).multiParams,
-        (Map("" -> Seq("value1", "value2"))))
-      assertEquals(
-        Uri(query = Query.fromString("&=value1&=value2")).multiParams,
-        (Map("" -> Seq("value1", "value2"))))
-      assertEquals(
-        Uri(query = Query.fromString("&&&=value1&&&=value2&=&")).multiParams,
-        (Map("" -> Seq("value1", "value2", ""))))
+      assert(
+        Uri(query = Query.fromString("=value1&=value2")).multiParams ==
+          (Map("" -> Seq("value1", "value2"))))
+      assert(
+        Uri(query = Query.fromString("&=value1&=value2")).multiParams ==
+          (Map("" -> Seq("value1", "value2"))))
+      assert(
+        Uri(query = Query.fromString("&&&=value1&&&=value2&=&")).multiParams ==
+          (Map("" -> Seq("value1", "value2", ""))))
     }
     test("Uri.multiParams should find parameter with empty key and without value") {
-      assertEquals(Uri(query = Query.fromString("&")).multiParams, (Map("" -> Seq())))
-      assertEquals(Uri(query = Query.fromString("&&")).multiParams, (Map("" -> Seq())))
-      assertEquals(Uri(query = Query.fromString("&&&")).multiParams, (Map("" -> Seq())))
+      assert(Uri(query = Query.fromString("&")).multiParams == (Map("" -> Seq())))
+      assert(Uri(query = Query.fromString("&&")).multiParams == (Map("" -> Seq())))
+      assert(Uri(query = Query.fromString("&&&")).multiParams == (Map("" -> Seq())))
     }
     test("Uri.multiParams should find parameter with an empty value") {
-      assertEquals(Uri(query = Query.fromString("param1=")).multiParams, (Map("param1" -> Seq(""))))
-      assertEquals(
-        Uri(query = Query.fromString("param1=&param2=")).multiParams,
-        (Map("param1" -> Seq(""), "param2" -> Seq(""))))
+      assert(Uri(query = Query.fromString("param1=")).multiParams == (Map("param1" -> Seq(""))))
+      assert(
+        Uri(query = Query.fromString("param1=&param2=")).multiParams ==
+          (Map("param1" -> Seq(""), "param2" -> Seq(""))))
     }
     test("Uri.multiParams should find parameter with single value") {
-      assertEquals(
-        Uri(query = Query.fromString("param1=value1&param2=value2")).multiParams,
-        (Map("param1" -> Seq("value1"), "param2" -> Seq("value2"))))
+      assert(
+        Uri(query = Query.fromString("param1=value1&param2=value2")).multiParams ==
+          (Map("param1" -> Seq("value1"), "param2" -> Seq("value2"))))
     }
     test("Uri.multiParams should find parameter without value") {
-      assertEquals(
-        Uri(query = Query.fromString("param1&param2&param3")).multiParams,
-        (Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq())))
+      assert(
+        Uri(query = Query.fromString("param1&param2&param3")).multiParams ==
+          (Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq())))
     }
   }
 

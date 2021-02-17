@@ -37,6 +37,9 @@ class UrlFormSpec extends Http4sSuite {
 //    Gen.oneOf(Charset.`UTF-8`, Charset.`UTF-16`, Charset.`UTF-16LE`)
 //  )
 
+  override def scalaCheckTestParameters =
+    super.scalaCheckTestParameters.withMaxSize(20)
+
   {
     val charset = Charset.`UTF-8`
 
