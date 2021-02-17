@@ -19,9 +19,8 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Content-Language`
-import org.specs2.mutable.Specification
 
-class ContentLanguageSpec extends Specification with HeaderParserHelper[`Content-Language`] {
+class ContentLanguageSpec extends Http4sSuite with HeaderParserHelper[`Content-Language`] {
 
   override def hparse(value: String): ParseResult[`Content-Language`] =
     `Content-Language`.parse(value)
@@ -32,19 +31,18 @@ class ContentLanguageSpec extends Specification with HeaderParserHelper[`Content
   val multi_lang =
     `Content-Language`(LanguageTag("en"), LanguageTag("fr"), LanguageTag("da"), LanguageTag("id"))
 
-  "Content-Language" should {
-    "Give correct value" in {
-      en.value must be_==("en")
-      en_IN.value must be_==("en-IN")
-      en_IN_en_US.value must be_==("en-IN, en-US")
-      multi_lang.value must be_==("en, fr, da, id")
-    }
-
-    "Parse Properly" in {
-      parse(en.value) must be_==(en)
-      parse(en_IN.value) must be_==(en_IN)
-      parse(en_IN_en_US.value) must be_==(en_IN_en_US)
-      parse(multi_lang.value) must be_==(multi_lang)
-    }
+  test("Content-Language should Give correct value") {
+    assertEquals(en.value, "en")
+    assertEquals(en_IN.value, "en-IN")
+    assertEquals(en_IN_en_US.value, "en-IN, en-US")
+    assertEquals(multi_lang.value, "en, fr, da, id")
   }
+
+  test("Content-Language should Parse Properly") {
+    assertEquals(parse(en.value), en)
+    assertEquals(parse(en_IN.value), en_IN)
+    assertEquals(parse(en_IN_en_US.value), en_IN_en_US)
+    assertEquals(parse(multi_lang.value), multi_lang)
+  }
+
 }
