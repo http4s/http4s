@@ -16,12 +16,14 @@
 
 package org.http4s
 
+@deprecated("Use the CookieJar middleware instead", "0.21.20")
 object RequestCookieJar {
   def empty: RequestCookieJar = new RequestCookieJar(Nil)
 
   def apply(cookies: RequestCookie*): RequestCookieJar = new RequestCookieJar(cookies.toList)
 }
 
+@deprecated("Use the CookieJar middleware instead", "0.21.20")
 class RequestCookieJar private (val cookies: List[RequestCookie]) extends AnyVal {
   def iterator: Iterator[RequestCookie] = cookies.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
