@@ -26,7 +26,7 @@ import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.scalacheck.{Arbitrary, Cogen, Gen}
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.{arbInstant => _, arbLocalDate => _, arbZonedDateTime => _, _}
 import org.scalacheck.Prop._
 
 class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
