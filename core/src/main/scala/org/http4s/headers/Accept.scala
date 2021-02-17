@@ -50,7 +50,7 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
     headerRep1(fullRange).map(xs => Accept(xs.head, xs.tail: _*))
   }
 
-  implicit val headerForAccept: v2.Header[Accept, v2.Header.Recurring] =
+  implicit val headerInstance: v2.Header[Accept, v2.Header.Recurring] =
     v2.Header.createRendered(
       CIString("Accept"),
       _.values,

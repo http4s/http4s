@@ -36,6 +36,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7235
+import org.typelevel.ci.CIString
 
 object `Proxy-Authenticate`
     extends HeaderKey.Internal[`Proxy-Authenticate`]
@@ -45,6 +46,14 @@ object `Proxy-Authenticate`
 
   override def parse(s: String): ParseResult[`Proxy-Authenticate`] =
     ParseResult.fromParser(parser, "Invalid Proxy-Authenticate")(s)
+
+  implicit val headerInstance: v2.Header[`Proxy-Authenticate`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Proxy-Authenticate"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Proxy-Authenticate header")
+    )
+
 }
 
 /** {{{

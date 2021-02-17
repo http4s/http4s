@@ -19,7 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Cookie] =
@@ -38,6 +39,17 @@ object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
      * here. */
     cookieString <* char(';').?
   }
+
+  implicit val headerInstance: v2.Header[Cookie, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Cookie"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            writer.addNel(h.values, sep = "; ")
+        },
+      ParseResult.fromParser(parser, "Invalid Cookie header")
+    )
 }
 
 final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.RecurringRenderable {

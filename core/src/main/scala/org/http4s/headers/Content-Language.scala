@@ -20,6 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.{Parser, Rfc5234}
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import org.typelevel.ci.CIString
 
 object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with HeaderKey.Recurring {
   override def parse(s: String): org.http4s.ParseResult[`Content-Language`] =
@@ -35,6 +36,12 @@ object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with He
       headers.`Content-Language`(tags)
     }
   }
+  implicit val headerInstance: v2.Header[`Content-Language`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Content-Language"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Content-Language header")
+    )
 
 }
 
