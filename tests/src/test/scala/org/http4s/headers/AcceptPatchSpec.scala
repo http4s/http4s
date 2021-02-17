@@ -19,22 +19,21 @@ package headers
 
 import cats.data.NonEmptyList
 
-class AcceptPatchSpec extends Http4sSpec {
-  "render" should {
-    "media types" in {
-      `Accept-Patch`(
-        NonEmptyList.of(
-          new MediaType("text", "example"))).renderString must_== "Accept-Patch: text/example"
+class AcceptPatchSpec extends Http4sSuite {
+  {
+    test("render should media types") {
+      assertEquals(
+        `Accept-Patch`(NonEmptyList.of(new MediaType("text", "example"))).renderString,
+        "Accept-Patch: text/example")
     }
-    "mulitple media types" in {
-      `Accept-Patch`(
-        NonEmptyList.of(
-          new MediaType("application", "example"),
-          new MediaType(
-            "text",
-            "example",
-            extensions =
-              Map("charset" -> "utf-8")))).renderString must_== "Accept-Patch: application/example, text/example; charset=\"utf-8\""
+    test("render should mulitple media types") {
+      assertEquals(
+        `Accept-Patch`(
+          NonEmptyList.of(
+            new MediaType("application", "example"),
+            new MediaType("text", "example", extensions = Map("charset" -> "utf-8")))).renderString,
+        "Accept-Patch: application/example, text/example; charset=\"utf-8\""
+      )
     }
   }
 
