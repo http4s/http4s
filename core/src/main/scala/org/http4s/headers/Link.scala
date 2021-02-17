@@ -91,6 +91,8 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
       ParseResult.fromParser(parser, "Invalid Link header")
     )
 
+  implicit val headerSemigroupInstance: cats.Semigroup[Link] =
+    (a, b) => Link(a.values concatNel b.values)
 }
 
 final case class Link(values: NonEmptyList[LinkValue]) extends Header.RecurringRenderable {

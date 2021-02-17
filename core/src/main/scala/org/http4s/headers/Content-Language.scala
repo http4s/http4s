@@ -36,6 +36,7 @@ object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with He
       headers.`Content-Language`(tags)
     }
   }
+
   implicit val headerInstance: v2.Header[`Content-Language`, v2.Header.Recurring] =
     v2.Header.createRendered(
       CIString("Content-Language"),
@@ -43,6 +44,8 @@ object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with He
       ParseResult.fromParser(parser, "Invalid Content-Language header")
     )
 
+  implicit val headerSemigroupInstance: cats.Semigroup[`Content-Language`] =
+    (a, b) => `Content-Language`(a.values concatNel b.values)
 }
 
 //RFC - https://tools.ietf.org/html/rfc3282#page-2

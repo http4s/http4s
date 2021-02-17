@@ -39,6 +39,9 @@ object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with Head
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept-Encoding header")
     )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Encoding`] =
+    (a, b) => `Accept-Encoding`(a.values concatNel b.values)
 }
 
 final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])

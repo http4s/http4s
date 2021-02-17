@@ -36,6 +36,8 @@ object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with He
       ParseResult.fromParser(parser, "Invalid WWW-Authenticate header")
     )
 
+  implicit val headerSemigroupInstance: cats.Semigroup[`WWW-Authenticate`] =
+    (a, b) => `WWW-Authenticate`(a.values concatNel b.values)
 }
 
 final case class `WWW-Authenticate`(values: NonEmptyList[Challenge])

@@ -365,6 +365,8 @@ object Forwarded
       ParseResult.fromParser(parser, "Invalid Forwarded header")
     )
 
+  implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =
+    (a, b) => Forwarded(a.values concatNel b.values)
 }
 
 final case class Forwarded(values: NonEmptyList[Forwarded.Element])

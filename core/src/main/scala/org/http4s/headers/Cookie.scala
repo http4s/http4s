@@ -50,6 +50,9 @@ object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
         },
       ParseResult.fromParser(parser, "Invalid Cookie header")
     )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
+    (a, b) => Cookie(a.values concatNel b.values)
 }
 
 final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.RecurringRenderable {

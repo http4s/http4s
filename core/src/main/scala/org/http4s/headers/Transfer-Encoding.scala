@@ -39,6 +39,8 @@ object `Transfer-Encoding`
       ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")
     )
 
+  implicit val headerSemigroupInstance: cats.Semigroup[`Transfer-Encoding`] =
+    (a, b) => `Transfer-Encoding`(a.values concatNel b.values)
 }
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding])

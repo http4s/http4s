@@ -46,6 +46,9 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept-Language header")
     )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Language`] =
+    (a, b) => `Accept-Language`(a.values concatNel b.values)
 }
 
 /** Request header used to indicate which natural language would be preferred for the response

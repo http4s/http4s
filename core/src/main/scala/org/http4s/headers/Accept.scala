@@ -56,6 +56,9 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept header")
     )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Accept] =
+    (a, b) => Accept(a.values concatNel b.values)
 }
 
 final case class MediaRangeAndQValue(mediaRange: MediaRange, qValue: QValue = QValue.One)

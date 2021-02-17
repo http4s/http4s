@@ -72,6 +72,9 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
       ParseResult.fromParser(parser, "Invalid Cache-Control header")
     )
 
+  implicit val headerSemigroupInstance: cats.Semigroup[`Cache-Control`] =
+    (a, b) => `Cache-Control`(a.values concatNel b.values)
+
 }
 
 final case class `Cache-Control`(values: NonEmptyList[CacheDirective])

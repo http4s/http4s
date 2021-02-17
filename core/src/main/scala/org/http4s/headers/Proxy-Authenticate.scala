@@ -54,6 +54,8 @@ object `Proxy-Authenticate`
       ParseResult.fromParser(parser, "Invalid Proxy-Authenticate header")
     )
 
+  implicit val headerSemigroupInstance: cats.Semigroup[`Proxy-Authenticate`] =
+    (a, b) => `Proxy-Authenticate`(a.values concatNel b.values)
 }
 
 /** {{{

@@ -38,6 +38,9 @@ object `Access-Control-Expose-Headers`
       _.values,
       ParseResult.fromParser(parser, "Invalid Access-Control-Expose-Headers header")
     )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Expose-Headers`] =
+    (a, b) => `Access-Control-Expose-Headers`(a.values concatNel b.values)
 }
 
 final case class `Access-Control-Expose-Headers`(values: NonEmptyList[CIString])

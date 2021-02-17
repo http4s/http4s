@@ -19,7 +19,6 @@ package headers
 
 import org.typelevel.ci.CIString
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util._
 import cats.data.NonEmptyList
 import org.http4s.util.Renderer
 
@@ -39,6 +38,11 @@ object `Access-Control-Allow-Headers`
       _.values,
       ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers headers")
     )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Headers`] =
+    (a, b) => `Access-Control-Allow-Headers`(a.values concatNel b.values)
+
+
 }
 
 final case class `Access-Control-Allow-Headers`(values: NonEmptyList[CIString])
