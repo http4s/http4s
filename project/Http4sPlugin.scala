@@ -318,7 +318,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "0.7.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.3"
-    val scalaXml = "2.0.0-M4"
+    val scalaXml = "2.0.0-M5"
     val scodecBits = "1.1.23"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
