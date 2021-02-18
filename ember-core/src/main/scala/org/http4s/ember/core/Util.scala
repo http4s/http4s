@@ -17,7 +17,7 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.effect.kernel.Clock
+import cats.effect.kernel.{Clock, Temporal}
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
@@ -84,5 +84,11 @@ private[ember] object Util {
     case f: FiniteDuration => Some(f)
     case _ => None
   }
+
+  def timeoutMaybe[F[_], A](fa: F[A], d: Duration)(implicit F: Temporal[F]): F[A] =
+    d match {
+      case fd: FiniteDuration => F.timeout(fa, fd)
+      case _ => fa
+    }
 
 }

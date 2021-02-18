@@ -22,7 +22,6 @@ import fs2.io.net.Network
 import cats._
 import cats.data.NonEmptyList
 import cats.effect.{ApplicativeThrow => _, _}
-import cats.effect.implicits._
 import cats.effect.kernel.Clock
 import cats.syntax.all._
 
@@ -37,7 +36,7 @@ import org.typelevel.keypool._
 
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
-import _root_.org.http4s.ember.core.Util.durationToFinite
+import _root_.org.http4s.ember.core.Util.timeoutMaybe
 import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
 
 private[client] object ClientHelpers {
@@ -88,7 +87,7 @@ private[client] object ClientHelpers {
     case idn: IDN => extractHostname(idn.hostname)
   }
 
-  def request[F[_]: Async](
+  def request[F[_]: Async: Temporal](
       request: Request[F],
       connection: EmberConnection[F],
       chunkSize: Int,
@@ -98,26 +97,21 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`]
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
-    def writeRequestToSocket(
-        req: Request[F],
-        socket: Socket[F],
-        timeout: Option[FiniteDuration]): F[Unit] =
+    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
       Encoder
         .reqToBytes(req)
-        .through(socket.writes)
+        .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
         .compile
         .drain
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket, durationToFinite(idleTimeout)) >>
+      writeRequestToSocket(req, connection.keySocket.socket) >>
         connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
-          val finiteDuration = durationToFinite(timeout)
           val parse = Parser.Response.parser(maxResponseHeaderSize)(
             head,
-            connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
+            timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout)
           )
-
-          finiteDuration.fold(parse)(duration => parse.timeout(duration))
+          timeoutMaybe(parse, timeout)
         }
 
     for {
@@ -162,7 +156,9 @@ private[client] object ClientHelpers {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
-        Sync[F].delay(SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)) // FIXME
+        Sync[F].delay(
+          SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)
+        ) // FIXME
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
