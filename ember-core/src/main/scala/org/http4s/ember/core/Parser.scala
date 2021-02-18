@@ -328,7 +328,7 @@ private[ember] object Parser {
               }
             case 2 =>
               if (value == lf && (idx > 0 && bv(idx - 1) == cr)) {
-                HttpVersion.fromString(new String(bv, start, idx - start)) match {
+                HttpVersion.fromString(new String(bv, start, idx - start - 1)) match {
                   case Left(e) =>
                     throwable = e
                     complete = true
@@ -526,7 +526,7 @@ private[ember] object Parser {
               }
             case 2 =>
               if (value == lf && (idx > 0 && bv(idx - 1) == cr)) {
-                val reason = new String(bv, start, idx - start)
+                val reason = new String(bv, start, idx - start - 1)
                 try {
                   val codeInt = codeS.toInt
                   Status.fromIntAndReason(codeInt, reason) match {
