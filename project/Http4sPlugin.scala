@@ -284,7 +284,7 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.0-M1"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.0.0-RC2"
-    val cats = "2.4.1"
+    val cats = "2.4.2"
     val catsEffect = "3.0.0-M5"
     val catsEffectTesting = "1.0.0-M1"
     val catsParse = "0.3.0"
@@ -319,7 +319,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.3"
     val scalaXml = "2.0.0-M5"
-    val scodecBits = "1.1.23"
+    val scodecBits = "1.1.24"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.6"
