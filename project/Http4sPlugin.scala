@@ -290,7 +290,6 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.14.0-M3"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
-    val disciplineSpecs2 = "1.1.4"
     val dropwizardMetrics = "4.1.17"
     val fs2 = "2.5.1"
     val ip4s = "2.0.0-RC1"
@@ -321,7 +320,6 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.24"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
-    val specs2 = "4.10.6"
     val tomcat = "9.0.43"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
@@ -337,7 +335,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
-  lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % V.catsEffectTesting
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
   lazy val catsParse                        = "org.typelevel"          %% "cats-parse"                % V.catsParse
   lazy val circeCore                        = "io.circe"               %% "circe-core"                % V.circe
@@ -348,7 +345,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % V.circe
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % V.cryptobits
   lazy val disciplineCore                   = "org.typelevel"          %% "discipline-core"           % V.disciplineCore
-  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % V.disciplineSpecs2
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % V.dropwizardMetrics
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % V.dropwizardMetrics
   lazy val fs2Core                          = "co.fs2"                 %% "fs2-core"                  % V.fs2
@@ -395,12 +391,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % V.scalaXml
   lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % V.scodecBits
   lazy val slf4jApi                         = "org.slf4j"              %  "slf4j-api"                 % V.slf4j
-  lazy val specs2Cats                       = "org.specs2"             %% "specs2-cats"               % V.specs2
-  lazy val specs2Common                     = "org.specs2"             %% "specs2-common"             % V.specs2
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % V.specs2
-  lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % V.specs2
-  lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % V.specs2
-  lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % V.specs2
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % V.tomcat
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % V.tomcat
   lazy val tomcatUtilScan                   = "org.apache.tomcat"      %  "tomcat-util-scan"          % V.tomcat
