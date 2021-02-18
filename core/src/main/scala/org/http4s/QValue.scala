@@ -148,6 +148,16 @@ object QValue {
   @deprecated("""use qValue"" string interpolation instead""", "0.20")
   def q(d: Double): QValue = macro Macros.qValueLiteral
 
+  @deprecated("Use catsInstancesForHttp4sQValue", "0.21.20")
+  val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
+  @deprecated("Use catsInstancesForHttp4sQValue", "0.21.20")
+  val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]
+  @deprecated("Use catsInstancesForHttp4sQValue", "0.21.20")
+  val http4sHttpCodecForQValue: HttpCodec[QValue] = new HttpCodec[QValue] {
+    def parse(s: String): ParseResult[QValue] = QValue.parse(s)
+    def render(writer: Writer, q: QValue): writer.type = q.render(writer)
+  }
+
   implicit val catsInstancesForHttp4sQValue: Order[QValue]
     with Show[QValue]
     with Hash[QValue]
@@ -174,13 +184,13 @@ object QValue {
     override def partialNext(a: QValue): Option[QValue] = a match {
       case QValue.One => None
       case QValue(thousandths) if fromThousandths(thousandths).isLeft => None
-      case QValue(thousandths) => Some(new QValue(thousandths+1))
+      case QValue(thousandths) => Some(new QValue(thousandths + 1))
       case _ => None
     }
     override def partialPrevious(a: QValue): Option[QValue] = a match {
       case QValue.Zero => None
       case QValue(thousandths) if fromThousandths(thousandths).isLeft => None
-      case QValue(thousandths) => Some(new QValue(thousandths-1))
+      case QValue(thousandths) => Some(new QValue(thousandths - 1))
       case _ => None
     }
     override def order: Order[QValue] = self
