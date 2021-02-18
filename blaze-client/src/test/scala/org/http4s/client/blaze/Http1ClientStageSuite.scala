@@ -188,7 +188,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     getSubmission(FooRequest, resp, dispatcher).map(_._2).assertEquals("done")
   }
 
-  dispatcher.test("Utilize a provided Host header") { dispatcher =>
+  dispatcher.test("Utilize a provided Host header".flaky) { dispatcher =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     val req = FooRequest.withHeaders(headers.Host("bar.test"))
@@ -210,7 +210,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  dispatcher.test("Use User-Agent header provided in Request") { dispatcher =>
+  dispatcher.test("Use User-Agent header provided in Request".flaky) { dispatcher =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     val req = FooRequest.withHeaders(Header.Raw(CIString("User-Agent"), "myagent"))

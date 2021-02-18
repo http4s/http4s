@@ -48,7 +48,7 @@ class ParsingSpec extends Http4sSuite {
         .through(fs2.text.utf8Encode[F])
 
       taking(byteStream).flatMap { read =>
-        Parser.Request.parser[F](Int.MaxValue, None)(Array.emptyByteArray, read).map(_._1)
+        Parser.Request.parser[F](Int.MaxValue)(Array.emptyByteArray, read).map(_._1)
       }
     }
 
@@ -61,7 +61,7 @@ class ParsingSpec extends Http4sSuite {
 
       Resource.eval(
         taking(byteStream).flatMap { read =>
-          Parser.Response.parser[F](Int.MaxValue, None)(Array.emptyByteArray, read).map(_._1)
+          Parser.Response.parser[F](Int.MaxValue)(Array.emptyByteArray, read).map(_._1)
         }
       )
     }
@@ -188,7 +188,7 @@ class ParsingSpec extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](encoded)
       parsed <-
         Parser.Response
-          .parser[IO](defaultMaxHeaderLength, None)(
+          .parser[IO](defaultMaxHeaderLength)(
             Array.emptyByteArray,
             take
             //Helpers.forceScopedParsing[IO](raw) // Cuts off `}` in current test. Why?
@@ -219,7 +219,7 @@ class ParsingSpec extends Http4sSuite {
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
-      result <- Parser.Request.parser[IO](Int.MaxValue, None)(Array.emptyByteArray, take)
+      result <- Parser.Request.parser[IO](Int.MaxValue)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
       rest <- Stream
         .eval(result._2)
@@ -243,9 +243,9 @@ class ParsingSpec extends Http4sSuite {
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
-      req1 <- Parser.Request.parser[IO](Int.MaxValue, None)(Array.emptyByteArray, take)
+      req1 <- Parser.Request.parser[IO](Int.MaxValue)(Array.emptyByteArray, take)
       drained <- req1._2
-      req2 <- Parser.Request.parser[IO](Int.MaxValue, None)(drained.get, take)
+      req2 <- Parser.Request.parser[IO](Int.MaxValue)(drained.get, take)
     } yield req1._1.method == Method.GET && req2._1.method == Method.GET).assert
   }
 
@@ -258,7 +258,7 @@ class ParsingSpec extends Http4sSuite {
     (for {
       take <- Helpers.taking[IO, Byte](Stream.chunk(Chunk.byteVector(baseBv)))
       result <- Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
     } yield body.size > 0).assert
   }
@@ -288,7 +288,7 @@ class ParsingSpec extends Http4sSuite {
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
       resp <- Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- resp._1.body.through(text.utf8Decode).compile.string
     } yield body == "MozillaDeveloperNetwork").assert
   }
@@ -319,7 +319,7 @@ class ParsingSpec extends Http4sSuite {
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
       trailers <- result._1.trailerHeaders
     } yield body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined).assert
@@ -343,7 +343,7 @@ class ParsingSpec extends Http4sSuite {
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
       rest <- Stream
         .eval(result._2)
@@ -468,11 +468,11 @@ class ParsingSpec extends Http4sSuite {
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
       resp1 <- Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(Array.emptyByteArray, take)
+        .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body1 <- resp1._1.body.through(fs2.text.utf8Decode).compile.string
       drained <- resp1._2
       resp2 <- Parser.Response
-        .parser[IO](defaultMaxHeaderLength, None)(drained.get, take)
+        .parser[IO](defaultMaxHeaderLength)(drained.get, take)
       body2 <- resp2._1.body.through(fs2.text.utf8Decode).compile.string
     } yield body1 == "hello" && body2 == "world").assert
   }

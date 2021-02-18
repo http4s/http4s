@@ -16,44 +16,47 @@
 
 package org.http4s
 
+import cats.data.NonEmptyList
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.laws.discipline.HttpCodecTests
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.util.Renderer
+import org.scalacheck.Prop
 
-class TransferCodingSpec extends Http4sSpec {
-  "equals" should {
-    "be consistent with equalsIgnoreCase of the codings" in prop {
-      (a: TransferCoding, b: TransferCoding) =>
-        (a == b) must_== a.coding.equalsIgnoreCase(b.coding)
+class TransferCodingSpec extends Http4sSuite {
+
+  test("equals should be consistent with equalsIgnoreCase of the codings") {
+    Prop.forAll { (a: TransferCoding, b: TransferCoding) =>
+      (a == b) == a.coding.equalsIgnoreCase(b.coding)
     }
   }
 
-  "compare" should {
-    "be consistent with coding.compareToIgnoreCase" in {
-      prop { (a: TransferCoding, b: TransferCoding) =>
-        a.coding.compareToIgnoreCase(b.coding) must_== a.compare(b)
-      }
+  test("compare should be consistent with coding.compareToIgnoreCase") {
+    Prop.forAll { (a: TransferCoding, b: TransferCoding) =>
+      a.coding.compareToIgnoreCase(b.coding) == a.compare(b)
     }
   }
 
-  "hashCode" should {
-    "be consistent with equality" in
-      prop { (a: TransferCoding, b: TransferCoding) =>
-        a == b must_== (a.## == b.##)
-      }
-  }
-
-  "parser" should {
-    "parse TransferCoding" in {
-      prop { (a: TransferCoding) =>
-        TransferCoding.parser.parseAll(a.coding) must beRight(a)
-      }
+  test("hashCode should be consistent with equality") {
+    Prop.forAll { (a: TransferCoding, b: TransferCoding) =>
+      a == b == (a.## == b.##)
     }
   }
 
-  "render" should {
-    "return coding" in prop { (s: TransferCoding) =>
-      Renderer.renderString(s) must_== s.coding
+  test("parse should parse single items") {
+    Prop.forAll { (a: TransferCoding) =>
+      TransferCoding.parseList(a.coding) == ParseResult.success(NonEmptyList.one(a))
+    }
+  }
+  test("parse should parse multiple items") {
+    assertEquals(
+      TransferCoding.parseList("gzip, chunked"),
+      ParseResult.success(NonEmptyList.of(TransferCoding.gzip, TransferCoding.chunked)))
+  }
+
+  test("render should return coding") {
+    Prop.forAll { (s: TransferCoding) =>
+      Renderer.renderString(s) == s.coding
     }
   }
 

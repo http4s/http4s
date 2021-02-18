@@ -26,7 +26,7 @@ import scala.util.Random
 
 class BlazeClient213Suite extends BlazeClientBase {
 
-  jettyScaffold.test("reset request timeout") { case (jettyServer, _) =>
+  jettyScaffold.test("reset request timeout".flaky) { case (jettyServer, _) =>
     val addresses = jettyServer.addresses
     val address = addresses(0)
     val name = address.getHostName

@@ -22,6 +22,7 @@ import fs2.io.Network
 import cats._
 import cats.data.NonEmptyList
 import cats.effect._
+import cats.effect.implicits._
 import cats.effect.kernel.Clock
 import cats.syntax.all._
 import scala.concurrent.duration._
@@ -102,11 +103,13 @@ private[client] object ClientHelpers {
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
       writeRequestToSocket(req, connection.keySocket.socket, durationToFinite(idleTimeout)) >>
         connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
-          Parser.Response
-            .parser(maxResponseHeaderSize, durationToFinite(timeout))(
-              head,
-              connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
-            )
+          val finiteDuration = durationToFinite(timeout)
+          val parse = Parser.Response.parser(maxResponseHeaderSize)(
+            head,
+            connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
+          )
+
+          finiteDuration.fold(parse)(duration => parse.timeout(duration))
         }
 
     for {
