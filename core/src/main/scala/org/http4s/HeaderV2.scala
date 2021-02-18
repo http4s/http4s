@@ -22,7 +22,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
 import scala.collection.mutable.{ListBuffer, Set => MutSet}
-import org.http4s.util.Renderer
+import org.http4s.util.{Renderer, Writer}
 
 /** Typeclass representing an HTTP header, which all the http4s
   * default headers satisfy.
@@ -60,6 +60,11 @@ object Header {
         Order.by(_.name),
         Order.by(_.value)
       )
+
+    implicit val rendererForRawHeaders: Renderer[Raw] = new Renderer[Raw] {
+      def render(writer: Writer, h: Raw): writer.type =
+        writer << h.name << ':' << ' ' << h.value
+    }
   }
 
   /** Classifies modelled headers into `Single` headers, which can only
@@ -183,6 +188,9 @@ object Header {
 
 /** A collection of HTTP Headers */
 final class Headers(val headers: List[Header.Raw]) extends AnyVal {
+
+  def transform(f: List[Header.Raw] => List[Header.Raw]): Headers =
+    Headers.of(f(headers))
 
   /** TODO revise scaladoc
     * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection

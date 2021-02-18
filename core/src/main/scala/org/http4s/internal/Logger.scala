@@ -20,15 +20,16 @@ import cats.effect.Sync
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.{Charset, Headers, MediaType, Message, Request, Response}
+import org.http4s.v2
 import org.typelevel.ci.CIString
 
 object Logger {
 
   def defaultLogHeaders[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains): String =
     if (logHeaders)
-      message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
+      message.headers.redactSensitive(redactHeadersWhen).headers.mkString("Headers(", ", ", ")")
     else ""
 
   def defaultLogBody[F[_]: Sync, A <: Message[F]](message: A)(logBody: Boolean): Option[F[String]] =
@@ -47,7 +48,7 @@ object Logger {
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
 
     val logBodyText = (_: Stream[F, Byte]) => defaultLogBody[F, A](message)(logBody)
@@ -58,7 +59,7 @@ object Logger {
   def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBodyText: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
     def prelude =
       message match {
