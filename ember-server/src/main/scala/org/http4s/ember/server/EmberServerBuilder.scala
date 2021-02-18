@@ -20,7 +20,7 @@ import cats._
 import cats.syntax.all._
 import cats.effect._
 import com.comcast.ip4s.{Host, Port}
-import fs2.io.net.{SocketGroup, SocketOption}
+import fs2.io.net.{Network, SocketGroup, SocketOption}
 import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.server.Server
@@ -29,6 +29,8 @@ import scala.concurrent.duration._
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
+
+import java.net.InetSocketAddress
 
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
@@ -122,16 +124,16 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def build: Resource[F, Server] =
     for {
-      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
+      sg <- sgOpt.getOrElse(Network.forAsync[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
+      serverResource = sg.serverResource(host, Some(port), options = additionalSocketOptions)
+      server <- serverResource
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(
-            host,
-            port,
+            serverResource,
             httpApp,
-            sg,
             tlsInfoOpt,
             ready,
             shutdown,
@@ -142,7 +144,6 @@ final class EmberServerBuilder[F[_]: Async] private (
             maxHeaderSize,
             requestHeaderReceiveTimeout,
             idleTimeout,
-            additionalSocketOptions,
             logger
           )
           .compile
@@ -150,9 +151,9 @@ final class EmberServerBuilder[F[_]: Async] private (
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       _ <- Resource.eval(ready.get.rethrow)
-      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: $bindAddress"))
+      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${server._1}"))
     } yield new Server {
-      def address: InetSocketAddress = bindAddress
+      def address: InetSocketAddress = server._1.toInetSocketAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }

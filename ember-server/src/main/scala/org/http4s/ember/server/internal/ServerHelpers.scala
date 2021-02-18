@@ -20,10 +20,11 @@ import cats._
 import fs2.io.net.Network
 import cats.data.NonEmptyList
 import cats.effect._
+import cats.effect.kernel.Resource
 import cats.syntax.all._
-import com.comcast.ip4s.{Host, Port}
+import com.comcast.ip4s.{IpAddress, SocketAddress}
 import fs2.{Chunk, Stream}
-import fs2.io.net.{Socket, SocketGroup, SocketOption}
+import fs2.io.net.Socket
 import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.ember.core.Util.timeoutMaybe
@@ -34,6 +35,7 @@ import org.http4s.server.{SecureSession, ServerRequestKeys}
 import org.typelevel.ci.CIString
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
+
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
 
@@ -49,10 +51,8 @@ private[server] object ServerHelpers {
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
   def server[F[_]](
-      host: Option[Host],
-      port: Port,
+      serverResource: Resource[F, (SocketAddress[IpAddress], Stream[F, Socket[F]])],
       httpApp: HttpApp[F],
-      sg: SocketGroup[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       ready: Deferred[F, Either[Throwable, Unit]],
       shutdown: Shutdown[F],
@@ -64,13 +64,12 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      additionalSocketOptions: List[SocketOption] = List.empty,
       logger: Logger[F]
   )(implicit F: Temporal[F], N: Network[F]): Stream[F, Nothing] = {
 
-    val server: Stream[F, Resource[F, Socket[F]]] =
+    val server: Stream[F, Socket[F]] =
       Stream
-        .resource(sg.serverResource(host, Some(port), options = additionalSocketOptions))
+        .resource(serverResource)
         .attempt
         .evalTap(e => ready.complete(e.void))
         .rethrow
@@ -81,7 +80,7 @@ private[server] object ServerHelpers {
       .map { connect =>
         shutdown.trackConnection >>
           Stream
-            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt, logger)))
+            .resource(upgradeSocket(connect, tlsInfoOpt, logger))
             .flatMap(
               runConnection(
                 _,
