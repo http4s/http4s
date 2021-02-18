@@ -31,7 +31,6 @@ import java.nio.charset.StandardCharsets
 import org.scalacheck.Prop.{forAll, propBoolean}
 
 class DecodeSpec extends Http4sSuite {
-
   test("decode should be consistent with utf8Decode") {
     forAll { (s: String, chunkSize: Int) =>
       (chunkSize > 0) ==> {
