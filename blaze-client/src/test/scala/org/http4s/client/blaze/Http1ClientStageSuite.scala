@@ -180,7 +180,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     getSubmission(FooRequest, resp).map(_._2).assertEquals("done")
   }
 
-  test("Utilize a provided Host header") {
+  test("Utilize a provided Host header".flaky) {
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     val req = FooRequest.withHeaders(headers.Host("bar.test"))
@@ -202,7 +202,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Use User-Agent header provided in Request") {
+  test("Use User-Agent header provided in Request".flaky) {
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
     val req = FooRequest.withHeaders(Header.Raw(CIString("User-Agent"), "myagent"))
 
