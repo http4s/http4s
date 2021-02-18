@@ -17,9 +17,9 @@
 package org.http4s.ember.core
 
 import cats.effect._
+import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2._
-import fs2.concurrent.Queue
 import org.http4s.Http4sSuite
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
@@ -31,9 +31,9 @@ class StreamingParserSuite extends Http4sSuite {
     def taking[F[_]: Concurrent, A](segments: List[List[A]]): F[F[Option[Chunk[A]]]] =
       for {
         q <- Queue.unbounded[F, Option[Chunk[A]]]
-        _ <- segments.traverse(bytes => q.enqueue1(Some(Chunk.seq(bytes))))
-        _ <- q.enqueue1(None)
-      } yield q.dequeue1
+        _ <- segments.traverse(bytes => q.offer(Some(Chunk.seq(bytes))))
+        _ <- q.offer(None)
+      } yield q.take
 
     def subdivided[A](as: List[A], count: Int): Gen[List[List[A]]] = {
       def go(out: List[List[A]], remaining: Int): Gen[List[List[A]]] =
