@@ -35,26 +35,26 @@ private[ember] object ChunkedEncoding {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
     def go(expect: Either[ByteVector, Long], head: Array[Byte]): Pull[F, Byte, Unit] = {
-      val uncons = if (head.nonEmpty) Pull.pure(Some(Chunk.bytes(head))) else Pull.eval(read)
-      uncons.flatMap {
+      val nextChunk = if (head.nonEmpty) Pull.pure(Some(Chunk.bytes(head))) else Pull.eval(read)
+      nextChunk.flatMap {
         case None => Pull.done
         case Some(h) =>
           val bv = h.toByteVector
           expect match {
             case Left(header) =>
               val nh = header ++ bv
-              val endOfheader = nh.indexOfSlice(`\r\n`)
-              if (endOfheader == 0)
+              val endOfHeader = nh.indexOfSlice(`\r\n`)
+              if (endOfHeader == 0)
                 go(
                   expect,
-                  bv.drop(`\r\n`.size).toArray
+                  nh.drop(`\r\n`.size).toArray
                 ) //strip any leading crlf on header, as this starts with /r/n
-              else if (endOfheader < 0 && nh.size > maxChunkHeaderSize)
+              else if (endOfHeader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](EmberException.ChunkedEncodingError(
                   s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"))
-              else if (endOfheader < 0) go(Left(nh), Array.emptyByteArray)
+              else if (endOfHeader < 0) go(Left(nh), Array.emptyByteArray)
               else {
-                val (hdr, rem) = nh.splitAt(endOfheader + `\r\n`.size)
+                val (hdr, rem) = nh.splitAt(endOfHeader + `\r\n`.size)
                 readChunkedHeader(hdr.dropRight(`\r\n`.size)) match {
                   case None =>
                     Pull.raiseError[F](
@@ -95,8 +95,9 @@ private[ember] object ChunkedEncoding {
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(Headers, Array[Byte])] = {
-    val uncons = if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
-    uncons.flatMap {
+    val nextChunk =
+      if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
+    nextChunk.flatMap {
       case None => (Headers.empty, Array.emptyByteArray).pure[F]
       case Some(chunk) =>
         if (chunk.isEmpty) parseTrailers(maxHeaderSize)(Array.emptyByteArray, read)
