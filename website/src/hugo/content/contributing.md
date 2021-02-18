@@ -186,16 +186,16 @@ Apache License 2.0.
 ## Tests
 
 * Tests for http4s-core go into the `tests` module.
-* Tests should extend `Http4sSpec`.  `Http4sSpec` extends [Specs2]
+* Tests should extend `Http4sSuite`.  `Http4sSuite` extends [MUnit]
   with all syntax, standard instances, and helpers for convenience.
-* We use Specs2's integration with [ScalaCheck] for property testing.
+* We use MUnit's integration with [ScalaCheck] for property testing.
   We prefer property tests where feasible, complemented by example
   tests where they increase clarity or confidence.
 * We encourage the addition of arbitrary instances to
   `org.http4s.testing.Http4sArbitraries` to support richer property
   testing.
 
-[Specs2]: https://etorreborre.github.io/specs2/
+[MUnit]: https://scalameta.org/munit/
 [ScalaCheck]: https://www.scalacheck.org/
 
 ## Documentation
