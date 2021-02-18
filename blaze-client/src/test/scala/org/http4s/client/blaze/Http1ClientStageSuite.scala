@@ -128,7 +128,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     getSubmission(req, resp, tail)
   }
 
-  test("Run a basic request") {
+  test("Run a basic request".flaky) {
     getSubmission(FooRequest, resp).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
       assert(statusLine == "GET / HTTP/1.1")
