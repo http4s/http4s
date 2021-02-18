@@ -76,7 +76,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
-    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.1.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -296,7 +296,7 @@ object Http4sPlugin extends AutoPlugin {
     val fs2 = "3.0.0-M7"
     val ip4s = "3.0.0-M1"
     val jacksonDatabind = "2.12.1"
-    val jawn = "1.0.3"
+    val jawn = "1.1.0"
     val jawnFs2 = "2.0.0-RC1"
     val jetty = "9.4.36.v20210114"
     val keypool = "0.4.0-M1"
