@@ -16,10 +16,12 @@
 
 package org.http4s
 
-import cats.{Order, Show}
+import cats.kernel.BoundedEnumerable
+import cats.{Hash, Order, Show}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer
+
 import scala.reflect.macros.whitebox
 
 /** A Quality Value.  Represented as thousandths for an exact representation rounded to three
@@ -72,11 +74,14 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 
       b.append(convert(mod10)) // Last digit
     }
+
 }
 
 object QValue {
   lazy val One: QValue = new QValue(1000)
   lazy val Zero: QValue = new QValue(0)
+
+  def unapply(qValue: QValue): Option[Int] = Some(qValue.thousandths)
 
   private def mkQValue(thousandths: Int, s: => String): ParseResult[QValue] =
     if (thousandths < 0 || thousandths > 1000)
@@ -144,11 +149,44 @@ object QValue {
   @deprecated("""use qValue"" string interpolation instead""", "0.20")
   def q(d: Double): QValue = macro Macros.qValueLiteral
 
-  implicit val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
-  implicit val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]
-  implicit val http4sHttpCodecForQValue: HttpCodec[QValue] = new HttpCodec[QValue] {
-    def parse(s: String): ParseResult[QValue] = QValue.parse(s)
-    def render(writer: Writer, q: QValue): writer.type = q.render(writer)
+  implicit val catsInstancesForHttp4sQValue: Order[QValue]
+    with Show[QValue]
+    with Hash[QValue]
+    with HttpCodec[QValue]
+    with BoundedEnumerable[QValue] = new Order[QValue]
+    with Show[QValue]
+    with Hash[QValue]
+    with HttpCodec[QValue]
+    with BoundedEnumerable[QValue] { self =>
+    // Order
+    override def compare(x: QValue, y: QValue): Int = x.compare(y)
+
+    // Show
+    override def show(t: QValue): String = t.toString
+
+    // Hash
+    override def hash(x: QValue): Int = x.hashCode
+
+    // HttpCodec
+    override def parse(s: String): ParseResult[QValue] = QValue.parse(s)
+    override def render(writer: Writer, q: QValue): writer.type = q.render(writer)
+
+    // BoundedEnumerable
+    override def partialNext(a: QValue): Option[QValue] = a match {
+      case QValue.One => None
+      case QValue(thousandths) if fromThousandths(thousandths).isLeft => None
+      case QValue(thousandths) => Some(new QValue(thousandths+1))
+      case _ => None
+    }
+    override def partialPrevious(a: QValue): Option[QValue] = a match {
+      case QValue.Zero => None
+      case QValue(thousandths) if fromThousandths(thousandths).isLeft => None
+      case QValue(thousandths) => Some(new QValue(thousandths-1))
+      case _ => None
+    }
+    override def order: Order[QValue] = self
+    override def minBound: QValue = QValue.Zero
+    override def maxBound: QValue = QValue.One
   }
 }
 
