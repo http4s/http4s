@@ -49,7 +49,7 @@ private[server] object ServerHelpers {
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
   def server[F[_]](
-    host: Option[Host],
+      host: Option[Host],
       port: Port,
       httpApp: HttpApp[F],
       sg: SocketGroup[F],
@@ -70,8 +70,7 @@ private[server] object ServerHelpers {
 
     val server: Stream[F, Resource[F, Socket[F]]] =
       Stream
-        .resource(
-          sg.serverResource(host, Some(port), options = additionalSocketOptions))
+        .resource(sg.serverResource(host, Some(port), options = additionalSocketOptions))
         .attempt
         .evalTap(e => ready.complete(e.void))
         .rethrow
