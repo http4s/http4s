@@ -198,12 +198,8 @@ class MessageSuite extends Http4sSuite {
   }
 
   test("covary should disallow unrelated effects") {
-    assertNoDiff(
-      compileErrors("Request[Option]().covary[IO]"),
-      """|error: type arguments [cats.effect.IO] do not conform to method covary's type parameter bounds [F2[x] >: Option[x]]
-                                                                       |Request[Option]().covary[IO]
-                                                                       |                        ^
-                                                                       |""".stripMargin
+    assert(
+      compileErrors("Request[Option]().covary[IO]").nonEmpty
     )
   }
 
@@ -289,12 +285,8 @@ class MessageSuite extends Http4sSuite {
   }
 
   test("covary should disallow unrelated effects") {
-    assertNoDiff(
-      compileErrors("Response[Option]().covary[IO]"),
-      """|error: type arguments [cats.effect.IO] do not conform to method covary's type parameter bounds [F2[x] >: Option[x]]
-                                                                        |Response[Option]().covary[IO]
-                                                                        |                         ^
-                                                                        |""".stripMargin
+    assert(
+      compileErrors("Response[Option]().covary[IO]").nonEmpty
     )
   }
 

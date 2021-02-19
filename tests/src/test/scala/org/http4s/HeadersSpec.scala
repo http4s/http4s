@@ -32,14 +32,14 @@ class HeadersSpec extends Http4sSuite {
   }
 
   test("Headers should Find an existing header and return its parsed form") {
-    assertEquals(base.get(`Content-Length`), Some(clength))
+    assert(base.get(`Content-Length`) == Some(clength))
     assertEquals(base.get(CIString("raw-header")), Some(raw))
   }
 
   test("Headers should Replaces headers") {
     val newlen = `Content-Length`.zero
-    assertEquals(base.put(newlen).get(newlen.key), Some(newlen))
-    assertEquals(base.put(newlen.toRaw).get(newlen.key), Some(newlen))
+    assert(base.put(newlen).get(newlen.key) == Some(newlen))
+    assert(base.put(newlen.toRaw).get(newlen.key) == Some(newlen))
   }
 
   test("Headers should also find headers created raw") {
@@ -73,7 +73,7 @@ class HeadersSpec extends Http4sSuite {
     val h1 = `Accept-Encoding`(foo).toRaw
     val h2 = `Accept-Encoding`(bar).toRaw
     val hs = Headers.of(clength.toRaw) ++ Headers.of(h1) ++ Headers.of(h2)
-    assertEquals(hs.get(`Accept-Encoding`), Some(`Accept-Encoding`(foo, bar)))
+    assert(hs.get(`Accept-Encoding`) == Some(`Accept-Encoding`(foo, bar)))
     assertEquals(hs.exists(_ == clength), true)
   }
 
