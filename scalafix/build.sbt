@@ -12,11 +12,18 @@ inThisBuild(
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     scmInfo := Some(ScmInfo(url("https://github.com/http4s/http4s"), "git@github.com:http4s/http4s.git")),
     developers := List(
-      Developer(
-        "amarrella",
-        "Alessandro Marrella",
-        "hello@alessandromarrella.com",
-        url("https://alessandromarrella.com")
+        Developer(
+          "amarrella",
+          "Alessandro Marrella",
+          "hello@alessandromarrella.com",
+          url("https://alessandromarrella.com")
+        ),
+        Developer(
+          "satorg",
+          "Sergey Torgashov",
+          "satorg@gmail.com",
+          url("https://github.com/satorg")
+        ),
       )
     ),
     scalaVersion := V.scala212,
