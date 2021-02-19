@@ -23,8 +23,7 @@ inThisBuild(
           "Sergey Torgashov",
           "satorg@gmail.com",
           url("https://github.com/satorg")
-        ),
-      )
+        )
     ),
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
