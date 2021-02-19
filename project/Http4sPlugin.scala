@@ -74,11 +74,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
-    // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
-    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
-    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
-    // Unsure about binary compatibility
-    dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -291,7 +286,7 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
     val dropwizardMetrics = "4.1.17"
-    val fs2 = "2.5.1"
+    val fs2 = "2.5.2"
     val ip4s = "2.0.0-RC1"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.1.0"
