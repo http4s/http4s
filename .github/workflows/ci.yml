@@ -70,6 +70,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
       - name: Check unused compile dependencies
+        if: matrix.scala != '3.0.0-M3'
         run: sbt ++${{ matrix.scala }} unusedCompileDependenciesTest
 
       - name: Run tests

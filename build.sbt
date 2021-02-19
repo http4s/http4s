@@ -21,7 +21,7 @@ ThisBuild / githubWorkflowBuild := Seq(
       WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
       WorkflowStep.Sbt(
         List("unusedCompileDependenciesTest"),
-        name = Some("Check unused compile dependencies")),
+        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3M3'")), // todo disable on dotty for now
       WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
       WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
     )
@@ -39,6 +39,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     ),
     scalas = crossScalaVersions.value.toList
   ))
+
 
 enablePlugins(SonatypeCiReleasePlugin)
 
