@@ -56,7 +56,7 @@ class QValueSuite extends Http4sSuite {
   }
 
   test("literal syntax should reject invalid values") {
-    assert (
+    assert(
       compileErrors {
         """qValue"2.0" // doesn't compile: out of range"""
       }.nonEmpty

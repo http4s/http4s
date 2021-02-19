@@ -77,8 +77,7 @@ class Ipv6AddressSuite extends Http4sSuite {
   }
 
   test("ipv6 interpolator should reject invalid values") {
-    assert(
-      compileErrors("""ipv6"127.0.0.1"""").nonEmpty)
+    assert(compileErrors("""ipv6"127.0.0.1"""").nonEmpty)
   }
 
 }

@@ -252,10 +252,9 @@ class UriParserSuite extends Http4sSuite {
     }
 
     test("String interpolator should reject invalid URIs") {
-      assert(
-        compileErrors {
-          """uri"not valid""""
-        }.nonEmpty)
+      assert(compileErrors {
+        """uri"not valid""""
+      }.nonEmpty)
     }
   }
 }
