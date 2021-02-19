@@ -24,7 +24,6 @@ lazy val modules: List[ProjectReference] = List(
   core,
   laws,
   testing,
-  specs2,
   tests,
   server,
   prometheusMetrics,
@@ -145,20 +144,6 @@ lazy val testing = libraryProject("testing")
   )
   .dependsOn(laws)
 
-lazy val specs2 = libraryProject("specs2")
-  .enablePlugins(NoPublishPlugin)
-  .settings(
-    description := "Internal utilities for http4s tests on specs2",
-    startYear := Some(2021),
-    libraryDependencies ++= Seq(
-      catsEffectTestingSpecs2,
-      disciplineSpecs2,
-      specs2Common.withDottyCompat(scalaVersion.value),
-      specs2Matcher.withDottyCompat(scalaVersion.value),
-    ).map(_ % Test),
-  )
-  .dependsOn(testing % "test->test")
-
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
   .enablePlugins(NoPublishPlugin)
@@ -166,7 +151,7 @@ lazy val tests = libraryProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
   .settings(
@@ -731,10 +716,8 @@ def http4sProject(name: String) =
     .settings(commonSettings)
     .settings(
       moduleName := s"http4s-$name",
-      Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       testFrameworks += new TestFramework("munit.Framework"),
-      initCommands(),
-      scalacOptions in Test += "-language:postfixOps", // for Specs2 DSL
+      initCommands()
     )
     .enablePlugins(Http4sPlugin)
 
@@ -754,16 +737,6 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalacheck,
   ).map(_ % Test),
-  libraryDependencies ++= {
-    if (isDotty.value)
-      libraryDependencies.value
-    else
-      // These are going to be a problem
-      Seq(
-        specs2Cats,
-        specs2Scalacheck
-      ).map(_ % Test)
-  },
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
