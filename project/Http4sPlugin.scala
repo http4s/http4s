@@ -94,6 +94,8 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/ResponseCookie.scala",
           "src/main/scala/org/http4s/TransferCoding.scala",
           "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/dsl/impl/Path.scala",
+          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
           "src/main/scala/org/http4s/internal/CharPredicate.scala",
           "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
           "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
@@ -110,15 +112,10 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
           "src/main/scala/org/http4s/play/Parser.scala",
           "src/main/scala/org/http4s/util/UrlCoding.scala",
-          "src/main/scala/org/http4s/dsl/impl/Path.scala",
-          "src/test/scala/org/http4s/dsl/PathSpec.scala",
-          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
-          "src/main/scala/org/http4s/testing/ErrorReportingUtils.scala",
-          "src/main/scala/org/http4s/testing/IOMatchers.scala",
-          "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
           "src/test/scala/org/http4s/Http4sSpec.scala",
+          "src/test/scala/org/http4s/UriSpec.scala",
+          "src/test/scala/org/http4s/dsl/PathSpec.scala",
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
-          "src/test/scala/org/http4s/UriSpec.scala"
         )
       },
 
