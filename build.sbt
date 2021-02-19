@@ -91,7 +91,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= Seq(
       caseInsensitive,
       catsCore,
-      catsEffect,
+      catsEffectStd,
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
@@ -116,6 +116,7 @@ lazy val laws = libraryProject("laws")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
+      catsEffect,
       catsEffectTestkit,
       catsLaws,
       disciplineCore,
