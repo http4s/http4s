@@ -145,11 +145,14 @@ sealed class TomcatBuilder[F[_]] private (
 
   def mountHttpApp(service: HttpApp[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
+
+
+      
       val servlet = new AsyncHttp4sServlet(
-        service = service,
-        asyncTimeout = builder.asyncTimeout,
-        servletIo = builder.servletIo,
-        serviceErrorHandler = builder.serviceErrorHandler
+        service,
+        builder.asyncTimeout,
+        builder.servletIo,
+        builder.serviceErrorHandler
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
