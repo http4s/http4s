@@ -64,13 +64,13 @@ lazy val modules: List[ProjectReference] = List(
   twirl,
   scalatags,
   bench,
-  examples,
-  examplesBlaze,
-  examplesDocker,
-  examplesEmber,
-  examplesJetty,
-  examplesTomcat,
-  examplesWar
+//  examples,
+//  examplesBlaze,
+//  examplesDocker,
+//  examplesEmber,
+//  examplesJetty,
+//  examplesTomcat,
+//  examplesWar
 )
 
 lazy val root = project.in(file("."))
