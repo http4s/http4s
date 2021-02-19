@@ -57,10 +57,11 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        run: sbt ++${{ matrix.scala }} scalafmtCheckAll
+        if: matrix.scala != '3.0.0-M3'
+        run: sbt ++${{ matrix.scala }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
-        run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
+        run: sbt ++${{ matrix.scala }} headerCheckAll
 
       - name: Compile
         run: 'sbt ++${{ matrix.scala }} test:compile'
@@ -68,7 +69,7 @@ jobs:
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
-      - name: Check unused dependencies
+      - name: Check unused compile dependencies
         run: sbt ++${{ matrix.scala }} unusedCompileDependenciesTest
 
       - name: Run tests

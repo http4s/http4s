@@ -11,6 +11,21 @@ ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
+
+// todo remove once salafmt properly supports scala3
+ThisBuild / githubWorkflowBuild := Seq(
+      WorkflowStep
+        .Sbt(List("scalafmtCheckAll", "scalafmtSbtCheck"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3M3'")),
+      WorkflowStep.Sbt(List("headerCheckAll"), name = Some("Check headers")),
+      WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
+      WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+      WorkflowStep.Sbt(
+        List("unusedCompileDependenciesTest"),
+        name = Some("Check unused compile dependencies")),
+      WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
+      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+    )
+
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
     "scalafix",
