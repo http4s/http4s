@@ -331,6 +331,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val caseInsensitiveTesting           = "org.typelevel"          %% "case-insensitive-testing"  % V.caseInsensitive
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
+  lazy val catsEffectStd                    = "org.typelevel"          %% "cats-effect-std"           % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
   lazy val catsEffectTestkit                = "org.typelevel"          %% "cats-effect-testkit"       % V.catsEffect
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
