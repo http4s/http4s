@@ -91,13 +91,16 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
     dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.1"),    
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
-    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
-    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn-json4s"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn-parser"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn-play"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn-fs2"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
     // Breaking change to metric names
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus"),
-
+    // This doesn't really matter. It's only used in the mime generator.
+    dependencyUpdatesFilter -= moduleFilter(name = "http4s-blaze-client"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -309,7 +312,7 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineCore = "1.1.4"
     val disciplineSpecs2 = "1.1.4"
     val dropwizardMetrics = "4.1.17"
-    val fs2 = "2.5.1"
+    val fs2 = "2.5.2"
     val jacksonDatabind = "2.11.4"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
