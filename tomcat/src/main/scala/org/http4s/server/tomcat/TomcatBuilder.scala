@@ -145,9 +145,6 @@ sealed class TomcatBuilder[F[_]] private (
 
   def mountHttpApp(service: HttpApp[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
-
-
-      
       val servlet = new AsyncHttp4sServlet(
         service,
         builder.asyncTimeout,
