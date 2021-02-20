@@ -111,7 +111,9 @@ object Header {
   object ToRaw {
     trait Primitive
 
-    implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = h
+    implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = new Header.ToRaw with Primitive {
+      val values = h.values
+    }
 
     implicit def rawToRaw(h: Header.Raw): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
@@ -122,7 +124,6 @@ object Header {
       new Header.ToRaw with Primitive {
         val values = List(Header.Raw(CIString(kv._1), kv._2))
       }
-
     implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
         val values = List(Header.Raw(H.name, H.value(h)))
