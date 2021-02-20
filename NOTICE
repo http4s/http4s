@@ -52,20 +52,10 @@ https://github.com/scalatra/rl
 Copyright (c) 2011 Mojolly Ltd.
 Licensed under BSD-style license (see licenses/LICENSE_rl)
 
-This software contains portions of code derived from scalaz-specs2
-https://github.com/typelevel/scalaz-specs2
-Copyright (C) 2013 Lars Hupel
-Licensed under BSD-style license (see licenses/LICENSE_scalaz-specs2)
-
 This software contains portions of code derived from shapeless
 https://github.com/milessabin/shapeless
 Copyright (c) 2013-16 Miles Sabin
 Licensed under Apache License 2.0 (see LICENSE)
-
-This software contains portions of code derived from specs2
-https://github.com/etorreborre/specs2
-Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
-Licensed under MIT license (see licenses/LICENSE_specs2)
 
 This software contains portions of code derived from spray
 https://github.com/spray/spray
