@@ -128,7 +128,7 @@ class ResponderSpec extends Http4sSuite {
     assertEquals(
       resp.removeCookie(cookie).cookies,
       List(
-        ResponseCookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
+        ResponseCookie("foo", "", expires = Option(HttpDate.Epoch))
       ))
   }
 }
