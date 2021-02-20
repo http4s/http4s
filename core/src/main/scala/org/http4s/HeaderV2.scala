@@ -17,7 +17,7 @@
 package org.http4s
 package v2
 
-import cats.{Hash, Monoid, Order, Semigroup, Show}
+import cats.{Hash, Monoid, Order, Semigroup, Show, Foldable}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
@@ -104,25 +104,30 @@ object Header {
     * - A value of type `A`  which has a `Header[A]` in scope
     * - A (name, value) pair of `String`, which is treated as a `Recurring` header
     * - A `Header.Raw`
+    * - A `Foldable` (`List`, `Option`, etc) of the above.
     *
     * @see [[org.http4s.Headers$.apply]]
     */
   sealed trait ToRaw {
-    def value: Header.Raw
+    def values: List[Header.Raw]
   }
   object ToRaw {
     implicit def rawToRaw(h: Header.Raw): Header.ToRaw = new Header.ToRaw {
-      val value = h
+      val values = List(h)
     }
 
     implicit def keyValuesToRaw(kv: (String, String)): Header.ToRaw = new Header.ToRaw {
-      val value = Header.Raw(CIString(kv._1), kv._2)
+      val values = List(Header.Raw(CIString(kv._1), kv._2))
     }
 
     implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw =
       new Header.ToRaw {
-        val value = Header.Raw(H.name, H.value(h))
+        val values = List(Header.Raw(H.name, H.value(h)))
       }
+
+    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw): Header.ToRaw = new Header.ToRaw {
+      val values = h.toList.foldMap(v => convert(v).values)
+    }
   }
 
   /** Abstracts over Single and Recurring Headers
@@ -190,7 +195,7 @@ object Header {
 final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
   def transform(f: List[Header.Raw] => List[Header.Raw]): Headers =
-    Headers.of(f(headers))
+    Headers(f(headers))
 
   /** TODO revise scaladoc
     * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
@@ -218,7 +223,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def put(in: Header.ToRaw*): Headers =
     if (in.isEmpty) this
     else if (this.headers.isEmpty) Headers(in: _*)
-    else Headers.of(headers ++ in.toList.map(_.value))
+    else Headers(headers, in.toList)
 
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
@@ -226,12 +231,12 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     *  https://tools.ietf.org/html/rfc7231#section-3.3
     */
   def removePayloadHeaders: Headers =
-    Headers.of(headers.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
+    transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
 
   def redactSensitive(
       redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): Headers =
-    Headers.of {
-      headers.map {
+    transform {
+      _.map {
         case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
         case h => h
       }
@@ -241,7 +246,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     this.show
 }
 object Headers {
-  val empty = of(List.empty)
+  val empty = Headers(List.empty[Header.Raw])
 
   /** Creates a new Headers collection.
     * The [[Header.ToRaw]] machinery allows the creation of Headers with
@@ -249,26 +254,23 @@ object Headers {
     * - A value of type `A`  which has a `Header[A]` in scope
     * - A (name, value) pair of `String`
     * - A `Header.Raw`
-    */
-  def apply(headers: Header.ToRaw*): Headers =
-    of(headers.toList.map(_.value))
-
-  /** Creates a new Headers collection from the headers
+    * - A `Foldable` (`List`, `Option`, etc) of the above.
     * Deduplicates non-recurring headers.
     */
-  def of(headers: List[Header.Raw]): Headers =
+  def apply(headers: Header.ToRaw*): Headers = {
     if (headers.isEmpty) new Headers(List.empty)
     else {
       val acc = MutSet.empty[CIString]
       val res = ListBuffer.empty[Header.Raw]
 
-      headers.foreach { h =>
+      headers.foldMap(_.values).foreach { h =>
         if (h.recurring || acc.add(h.name))
           res += h
       }
 
       new Headers(res.toList)
     }
+  }
 
   implicit val headersShow: Show[Headers] =
     _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")
@@ -279,7 +281,7 @@ object Headers {
   implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
     def empty: Headers = Headers.empty
     def combine(xa: Headers, xb: Headers): Headers =
-      Headers.of(xa.headers ++ xb.headers)
+      Headers(xa.headers ++ xb.headers)
   }
 
   private val PayloadHeaderKeys = Set(

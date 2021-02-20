@@ -66,17 +66,13 @@ object StaticFile {
 
     gzUrl
       .flatMap { url =>
-        // Guess content type from the name without ".gz"
-        val contentType =
-          nameToContentType(normalizedName)
-            .toSeq
-            .map(x => x: v2.Header.ToRaw)
-
         fromURL(url, blocker, req).map {
           _
             .removeHeader[`Content-Type`]
-            .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-            .putHeaders(contentType: _*)
+            .putHeaders(
+              `Content-Encoding`(ContentCoding.gzip),
+              nameToContentType(normalizedName) // Guess content type from the name without ".gz"
+            )
         }
       }
       .orElse(getResource(normalizedName)
@@ -100,16 +96,12 @@ object StaticFile {
 
         if (expired) {
           val len = urlConn.getContentLengthLong
-          val headers =
-            (lastmod, nameToContentType(url.getPath))
-              .mapN { (lastMod, contentType) =>
-                v2.Headers(
-                  `Last-Modified`(lastMod),
-                  contentType,
-                  if (len >= 0) `Content-Length`.unsafeFromLong(len)
-                  else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
-                )
-              }.getOrElse(v2.Headers.empty)
+          val headers = v2.Headers(
+            lastmod.map(`Last-Modified`(_)),
+            nameToContentType(url.getPath),
+            if (len >= 0) `Content-Length`.unsafeFromLong(len)
+            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
+          )
 
           blocker
             .delay(urlConn.getInputStream)
@@ -187,13 +179,12 @@ object StaticFile {
               else (fileToBody[F](f, start, end, blocker), end - start)
 
             val hs =
-              (
+              v2.Headers(
                 lastModified.map(`Last-Modified`(_)),
                 `Content-Length`.fromLong(contentLength).toOption,
-                nameToContentType(f.getName)
-              ).mapN { (lastModified, contentLength, contentType) =>
-                v2.Headers(lastModified, contentLength, contentType, etagCalc)
-              }.getOrElse(v2.Headers.empty)
+                nameToContentType(f.getName),
+                etagCalc
+              )
 
             val r = Response(
               headers = hs,

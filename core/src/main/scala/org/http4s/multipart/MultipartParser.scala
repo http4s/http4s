@@ -396,8 +396,7 @@ object MultipartParser {
         }
       }
 
-    tailrecParse(strim, v2.Headers.empty).stream.compile
-      .fold(v2.Headers.empty)((x, y) => v2.Headers.of(x.headers ++ y.headers))
+    tailrecParse(strim, v2.Headers.empty).stream.compile.foldMonoid
   }
 
   /** Spit our `Stream[F, Byte]` into two halves.

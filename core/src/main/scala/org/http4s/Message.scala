@@ -87,7 +87,9 @@ sealed trait Message[F[_]] extends Media[F] { self =>
               Message.logger.warn(s"Attempt to provide a negative content length of $l")
               w.headers
             },
-            cl => w.headers.transform(v2.Headers(cl).headers ++  _))
+            cl => v2.Headers(cl, w.headers.headers))
+
+
       case None => w.headers
     }
     change(body = entity.body, headers = headers.transform(_ ++ hs.headers))
