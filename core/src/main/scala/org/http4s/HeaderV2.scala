@@ -242,6 +242,8 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
       }
     }
 
+  def foreach(f: Header.Raw => Unit): Unit = headers.foreach(f)
+
   override def toString: String =
     this.show
 }

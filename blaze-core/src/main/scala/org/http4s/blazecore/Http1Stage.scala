@@ -75,9 +75,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       closeOnFinish: Boolean): Http1Writer[F] = {
     val headers = req.headers
     getEncoder(
-      Connection.from(headers),
-      `Transfer-Encoding`.from(headers),
-      `Content-Length`.from(headers),
+      headers.get[Connection],
+      headers.get[`Transfer-Encoding`],
+      headers.get[`Content-Length`],
       req.trailerHeaders,
       rr,
       minor,
@@ -93,7 +93,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       connectionHeader: Option[Connection],
       bodyEncoding: Option[`Transfer-Encoding`],
       lengthHeader: Option[`Content-Length`],
-      trailer: F[Headers],
+      trailer: F[v2.Headers],
       rr: StringWriter,
       minor: Int,
       closeOnFinish: Boolean,

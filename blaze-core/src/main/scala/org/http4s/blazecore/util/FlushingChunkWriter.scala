@@ -25,7 +25,7 @@ import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 import scala.concurrent._
 
-private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
+private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], trailer: F[v2.Headers])(
     implicit
     protected val F: Effect[F],
     protected val ec: ExecutionContext)
