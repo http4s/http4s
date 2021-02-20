@@ -80,13 +80,13 @@ lazy val modules: List[ProjectReference] = List(
   twirl,
   scalatags,
   bench,
-//  examples,
-//  examplesBlaze,
-//  examplesDocker,
-//  examplesEmber,
-//  examplesJetty,
-//  examplesTomcat,
-//  examplesWar
+  examples,
+  examplesBlaze,
+  examplesDocker,
+  examplesEmber,
+  examplesJetty,
+  examplesTomcat,
+  examplesWar
 )
 
 lazy val root = project.in(file("."))
@@ -576,10 +576,10 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime
     ),
-    TwirlKeys.templateImports := Nil,
+    // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
-  .enablePlugins(SbtTwirl)
+  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml/*, twirl*/)
+  // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .enablePlugins(AlpnBootPlugin)
