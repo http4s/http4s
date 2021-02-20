@@ -65,13 +65,13 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawS
 
   test("have octet-stream content type") {
     assertEquals(
-      encoder.headers.get(`Content-Type`),
+      encoder.headers.get[`Content-Type`],
       Some(`Content-Type`(MediaType.application.`octet-stream`)))
   }
 
   test("have octect-stream content type") {
     assertEquals(
-      booEncoderOf[IO, Fruit].headers.get(`Content-Type`),
+      booEncoderOf[IO, Fruit].headers.get[`Content-Type`],
       Some(`Content-Type`(MediaType.application.`octet-stream`)))
   }
 
