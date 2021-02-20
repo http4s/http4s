@@ -31,12 +31,12 @@ class ResponseGeneratorSuite extends Http4sSuite {
     EntityEncoder
       .stringEncoder[IO]
       .headers
-      .toList
+      .headers
       .traverse { h =>
-        resultheaders.map(_.toList.exists(_ == h)).assert
+        resultheaders.map(_.headers.exists(_ == h)).assert
       } *>
       resultheaders
-        .map(_.get(`Content-Length`))
+        .map(_.get[`Content-Length`])
         .assertEquals(
           `Content-Length`
             .fromLong(body.getBytes.length.toLong)
@@ -51,7 +51,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
       )
 
     Ok("foo")(Monad[IO], w)
-      .map(_.headers.get(Accept))
+      .map(_.headers.get[Accept])
       .assertEquals(Some(Accept(MediaRange.`audio/*`)))
   }
 
@@ -64,7 +64,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
     val resp: IO[Response[IO]] =
       Ok("foo", `Content-Type`(MediaType.application.json))(Monad[IO], w)
     resp
-      .map(_.headers.get(`Content-Type`).map(_.mediaType))
+      .map(_.headers.get[`Content-Type`].map(_.mediaType))
       .assertEquals(Some(MediaType.application.json))
   }
 
@@ -124,15 +124,15 @@ class ResponseGeneratorSuite extends Http4sSuite {
 
   test("MovedPermanently() generates expected headers without body") {
     val location = Location(Uri.unsafeFromString("http://foo"))
-    val resp = MovedPermanently(location, Accept(MediaRange.`audio/*`))
+    val resp = MovedPermanently(location)(Accept(MediaRange.`audio/*`))
     resp
-      .map(_.headers)
+      .map(_.headers.headers)
       .assertEquals(
-        Headers.of(
+        v2.Headers(
           `Content-Length`.zero,
           location,
           Accept(MediaRange.`audio/*`)
-        ))
+        ).headers)
   }
 
   test("MovedPermanently() generates expected headers with body") {
@@ -140,13 +140,13 @@ class ResponseGeneratorSuite extends Http4sSuite {
     val body = "foo"
     val resp = MovedPermanently(location, body, Accept(MediaRange.`audio/*`))
     resp
-      .map(_.headers)
+      .map(_.headers.headers)
       .assertEquals(
-        Headers.of(
+        v2.Headers(
           `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
           location,
           Accept(MediaRange.`audio/*`),
           `Content-Length`.unsafeFromLong(3)
-        ))
+        ).headers)
   }
 }

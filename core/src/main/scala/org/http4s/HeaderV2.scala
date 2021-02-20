@@ -231,8 +231,6 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     else if (this.headers.isEmpty) Headers(in: _*)
     else Headers(headers, in.toList)
 
-
-
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
     *
