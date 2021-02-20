@@ -45,6 +45,7 @@ import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.internal.threads.threadFactory
+import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.blaze.BlazeServerBuilder._
@@ -282,8 +283,8 @@ class BlazeServerBuilder[F[_]] private (
                     (
                       Option(session.getId).map(ByteVector(_).toHex),
                       Option(session.getCipherSuite),
-                      Option(session.getCipherSuite).map(SSLContextFactory.deduceKeyLength),
-                      SSLContextFactory.getCertChain(session).some).mapN(SecureSession.apply)
+                      Option(session.getCipherSuite).map(deduceKeyLength),
+                      getCertChain(session).some).mapN(SecureSession.apply)
                   }
               )
         case _ =>

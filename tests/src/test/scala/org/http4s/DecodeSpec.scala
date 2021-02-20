@@ -26,29 +26,33 @@ import java.nio.charset.{
 import fs2._
 import fs2.text.utf8Decode
 import org.http4s.internal.decode
+import org.http4s.laws.discipline.arbitrary._
 import java.nio.charset.StandardCharsets
+import org.scalacheck.Prop.{forAll, propBoolean}
 
-class DecodeSpec extends Http4sSpec {
-  "decode" should {
-    "be consistent with utf8Decode" in prop { (s: String, chunkSize: Int) =>
-      (chunkSize > 0) ==> {
-        val source = Stream
-          .emits {
-            s.getBytes(StandardCharsets.UTF_8)
-              .grouped(chunkSize)
-              .map(_.toArray)
-              .map(Chunk.bytes)
-              .toSeq
-          }
-          .flatMap(Stream.chunk)
-        val utf8Decoded = utf8Decode(source).toList.combineAll
-        val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
-        decoded must_== Right(utf8Decoded)
+class DecodeSpec extends Http4sSuite {
+  {
+    test("decode should be consistent with utf8Decode") {
+      forAll { (s: String, chunkSize: Int) =>
+        (chunkSize > 0) ==> {
+          val source = Stream
+            .emits {
+              s.getBytes(StandardCharsets.UTF_8)
+                .grouped(chunkSize)
+                .map(_.toArray)
+                .map(Chunk.bytes)
+                .toSeq
+            }
+            .flatMap(Stream.chunk)
+          val utf8Decoded = utf8Decode(source).toList.combineAll
+          val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+          decoded == Right(utf8Decoded)
+        }
       }
     }
 
-    "be consistent with String constructor over aggregated output" in prop {
-      (cs: Charset, s: String, chunkSize: Int) =>
+    test("decode should be consistent with String constructor over aggregated output") {
+      forAll { (cs: Charset, s: String, chunkSize: Int) =>
         // x-COMPOUND_TEXT fails with a read only buffer.
         (chunkSize > 0 && cs.nioCharset.canEncode && cs.nioCharset.name != "x-COMPOUND_TEXT") ==> {
           val source: Stream[Pure, Byte] = Stream
@@ -63,71 +67,89 @@ class DecodeSpec extends Http4sSpec {
           !expected.contains("\ufffd") ==> {
             // \ufffd means we generated a String unrepresentable by the charset
             val decoded = source.through(decode[Fallible](cs)).compile.string
-            decoded must_== Right(expected)
+            decoded == Right(expected)
           }
         }
-    }
-
-    "decode an empty chunk" in prop { (cs: Charset) =>
-      val source: Stream[Pure, Byte] = Stream.chunk[Pure, Byte](Chunk.empty[Byte])
-      val expected = new String(source.toVector.toArray, cs.nioCharset)
-      !expected.contains("\ufffd") ==> {
-        // \ufffd means we generated a String unrepresentable by the charset
-        val decoded = source.through(decode[Fallible](cs)).compile.string
-        decoded must_== Right(expected)
       }
     }
 
-    "drop Byte Order Mark" in {
-      val source = Stream(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
-      val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
-      decoded must beRight("")
+    test("decode should decode an empty chunk") {
+      forAll { (cs: Charset) =>
+        val source: Stream[Pure, Byte] = Stream.chunk[Pure, Byte](Chunk.empty[Byte])
+        val expected = new String(source.toVector.toArray, cs.nioCharset)
+        !expected.contains("\ufffd") ==> {
+          // \ufffd means we generated a String unrepresentable by the charset
+          val decoded = source.through(decode[Fallible](cs)).compile.string
+          decoded == Right(expected)
+        }
+      }
     }
 
-    "handle malformed input" in {
+    test("decode should drop Byte Order Mark") {
+      val source = Stream(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
+      val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+      decoded == Right("")
+    }
+
+    test("decode should handle malformed input") {
       // Not a valid first byte in UTF-8
       val source = Stream(0x80.toByte)
       val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
-      decoded must beLeft(beAnInstanceOf[MalformedInputException])
+      assert(decoded match {
+        case Left(_: MalformedInputException) => true
+        case _ => false
+      })
     }
 
-    "handle incomplete input" in {
+    test("decode should handle incomplete input") {
       // Only the first byte of a two-byte UTF-8 sequence
       val source = Stream(0xc2.toByte)
       val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
-      decoded must beLeft(beAnInstanceOf[MalformedInputException])
+      assert(decoded match {
+        case Left(_: MalformedInputException) => true
+        case _ => false
+      })
     }
 
-    "handle unmappable character" in {
+    test("decode should handle unmappable character") {
       // https://stackoverflow.com/a/22902806
       val source = Stream(0x80.toByte, 0x81.toByte)
       val decoded =
         source.through(decode[Fallible](Charset(JCharset.forName("IBM1098")))).compile.string
-      decoded must beLeft(beAnInstanceOf[UnmappableCharacterException])
+      assert(decoded match {
+        case Left(_: UnmappableCharacterException) => true
+        case _ => false
+      })
     }
 
-    "handle overflows" in {
+    test("decode should handle overflows") {
       // Found by scalachek
       val source = Stream(-36.toByte)
       val decoded =
         source.through(decode[Fallible](Charset(JCharset.forName("x-ISCII91")))).compile.string
-      decoded must_== Right("ी")
+      assert(decoded == Right("ी"))
     }
 
-    "not crash in IllegalStateException" in {
+    test("decode should not crash in IllegalStateException") {
       // Found by scalachek
       val source = Stream(-1.toByte)
       val decoded =
         source.through(decode[Fallible](Charset(JCharset.forName("x-IBM943")))).compile.string
-      decoded must beLeft(beAnInstanceOf[MalformedInputException])
+      assert(decoded match {
+        case Left(_: MalformedInputException) => true
+        case _ => false
+      })
     }
 
-    "either succeed or raise a CharacterCodingException" in prop { (bs: Array[Byte], cs: Charset) =>
-      val source = Stream.emits(bs)
-      val decoded = source.through(decode[Fallible](cs)).compile.drain
-      decoded must beLike {
-        case Left(_: CharacterCodingException) => ok
-        case Right(_) if true => ok
+    test("decode should either succeed or raise a CharacterCodingException") {
+      forAll { (bs: Array[Byte], cs: Charset) =>
+        val source = Stream.emits(bs)
+        val decoded = source.through(decode[Fallible](cs)).compile.drain
+        decoded match {
+          case Left(_: CharacterCodingException) => true
+          case Right(_) => true
+          case _ => false
+        }
       }
     }
   }

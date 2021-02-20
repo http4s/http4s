@@ -385,8 +385,11 @@ private[http4s] trait ArbitraryInstances {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
     // Ain't nobody got time for that.
     getArbitrary[Map[String, Chain[String]]]
+      .map(s =>
+        s.map { case (k, v) =>
+          k.replace('\ufffe', 'a') -> v.map(_.replace('\ufffe', 'a'))
+        })
       .map(UrlForm.apply)
-      .suchThat(!_.toString.contains('\ufffe'))
   }
 
   implicit val http4sTestingArbitraryForAllow: Arbitrary[Allow] =

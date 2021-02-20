@@ -26,7 +26,8 @@ class LocationHeaderSuite extends munit.FunSuite {
     val Right(uri) = Uri.fromString(s)
     val hs = Headers.of(Header("Location", s))
 
-    assertEquals(hs.get(Location), Some(Location(uri)))
+    val extracted = hs.get(Location)
+    assertEquals(extracted, Some(Location(uri)))
   }
 
   test("LocationHeader parser shouldParse a simple uri with a path but no authority") {
@@ -34,7 +35,8 @@ class LocationHeaderSuite extends munit.FunSuite {
     val Right(uri) = Uri.fromString(s)
     val hs = Headers.of(Header("Location", s))
 
-    assertEquals(hs.get(Location), Some(Location(uri)))
+    val extracted = hs.get(Location)
+    assertEquals(extracted, Some(Location(uri)))
   }
 
   test("LocationHeader parser shouldParse a relative reference") {
@@ -42,6 +44,7 @@ class LocationHeaderSuite extends munit.FunSuite {
     val Right(uri) = Uri.fromString(s)
     val hs = Headers.of(Header("Location", s))
 
-    assertEquals(hs.get(Location), Some(Location(uri)))
+    val extracted = hs.get(Location)
+    assertEquals(extracted, Some(Location(uri)))
   }
 }

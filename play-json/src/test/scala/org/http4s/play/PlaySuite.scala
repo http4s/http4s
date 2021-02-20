@@ -38,9 +38,8 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
   val json: JsValue = Json.obj("test" -> JsString("PlaySupport"))
 
   test("json encoder should have json content type") {
-    assertEquals(
-      jsonEncoder.headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoder.headers.get(`Content-Type`)
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("json encoder should write JSON") {
@@ -48,9 +47,8 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
   }
 
   test("jsonEncoderOf should have json content type") {
-    assertEquals(
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[IO, Foo].headers.get(`Content-Type`)
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("jsonEncoderOf should write compact JSON") {

@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.OrderTests
+import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.syntax.all._
@@ -27,6 +27,8 @@ class QValueSuite extends Http4sSuite {
 
   checkAll("Order[QValue]", OrderTests[QValue].order)
   checkAll("HttpCodec[QValue]", HttpCodecTests[QValue].httpCodec)
+  checkAll("Hash[QValue]", HashTests[QValue].hash)
+  checkAll("BoundedEnumerable[QValue]", BoundedEnumerableTests[QValue].boundedEnumerable)
 
   test("sort by descending q-value") {
     forAll { (x: QValue, y: QValue) =>

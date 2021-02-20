@@ -40,7 +40,7 @@ class DateSuite extends Http4sSuite {
     (for {
       out <- testService(req).value
       now <- HttpDate.current[IO]
-    } yield out.flatMap(_.headers.get(HDate)).exists { (date: HDate) =>
+    } yield out.flatMap(_.headers.get(HDate)).exists { case (date: HDate) =>
       val diff = now.epochSecond - date.date.epochSecond
       diff <= 2L
     }).assertEquals(true)

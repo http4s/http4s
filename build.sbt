@@ -24,7 +24,6 @@ lazy val modules: List[ProjectReference] = List(
   core,
   laws,
   testing,
-  specs2,
   tests,
   server,
   prometheusMetrics,
@@ -44,12 +43,8 @@ lazy val modules: List[ProjectReference] = List(
   tomcat,
   theDsl,
   jawn,
-  argonaut,
   boopickle,
   circe,
-  json4s,
-  json4sNative,
-  json4sJackson,
   playJson,
   scalaXml,
   twirl,
@@ -149,20 +144,6 @@ lazy val testing = libraryProject("testing")
   )
   .dependsOn(laws)
 
-lazy val specs2 = libraryProject("specs2")
-  .enablePlugins(NoPublishPlugin)
-  .settings(
-    description := "Internal utilities for http4s tests on specs2",
-    startYear := Some(2021),
-    libraryDependencies ++= Seq(
-      catsEffectTestingSpecs2,
-      disciplineSpecs2,
-      specs2Common.withDottyCompat(scalaVersion.value),
-      specs2Matcher.withDottyCompat(scalaVersion.value),
-    ).map(_ % Test),
-  )
-  .dependsOn(testing % "test->test")
-
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
   .enablePlugins(NoPublishPlugin)
@@ -170,7 +151,7 @@ lazy val tests = libraryProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
   .settings(
@@ -185,7 +166,7 @@ lazy val server = libraryProject("server")
     ),
     buildInfoPackage := "org.http4s.server.test",
   )
-  .dependsOn(core, specs2 % "test->test", theDsl % "test->compile")
+  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -245,7 +226,7 @@ lazy val emberCore = libraryProject("ember-core")
       log4catsTesting % Test,
     ),
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val emberServer = libraryProject("ember-server")
   .settings(
@@ -276,7 +257,7 @@ lazy val blazeCore = libraryProject("blaze-core")
       blazeHttp,
     )
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
@@ -380,7 +361,7 @@ lazy val theDsl = libraryProject("dsl")
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
   )
-  .dependsOn(core, specs2 % "test->test")
+  .dependsOn(core, testing % "test->test")
 
 lazy val jawn = libraryProject("jawn")
   .settings(
@@ -392,17 +373,6 @@ lazy val jawn = libraryProject("jawn")
     )
   )
   .dependsOn(core, testing % "test->test")
-
-lazy val argonaut = libraryProject("argonaut")
-  .settings(
-    description := "Provides Argonaut codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.argonaut,
-      argonautJawn
-    )
-  )
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val boopickle = libraryProject("boopickle")
   .settings(
@@ -426,38 +396,7 @@ lazy val circe = libraryProject("circe")
       circeTesting % Test,
     )
   )
-  .dependsOn(core, specs2 % "test->test", jawn % "compile;test->test")
-
-lazy val json4s = libraryProject("json4s")
-  .settings(
-    description := "Base library for json4s codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      jawnJson4s,
-      json4sCore,
-    ),
-  )
-  .dependsOn(jawn % "compile;test->test")
-
-lazy val json4sNative = libraryProject("json4s-native")
-  .settings(
-    description := "Provides json4s-native codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.json4sNative,
-    )
-  )
-  .dependsOn(json4s % "compile;test->test")
-
-lazy val json4sJackson = libraryProject("json4s-jackson")
-  .settings(
-    description := "Provides json4s-jackson codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.json4sJackson,
-    )
-  )
-  .dependsOn(json4s % "compile;test->test")
+  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val playJson = libraryProject("play-json")
   .settings(
@@ -728,7 +667,7 @@ lazy val scalafixInput = project
       "http4s-client",
       "http4s-core",
       "http4s-dsl",
-    ).map("org.http4s" %% _ % "0.21.15"),
+    ).map("org.http4s" %% _ % "0.21.18"),
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
@@ -777,10 +716,8 @@ def http4sProject(name: String) =
     .settings(commonSettings)
     .settings(
       moduleName := s"http4s-$name",
-      Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       testFrameworks += new TestFramework("munit.Framework"),
-      initCommands(),
-      scalacOptions in Test += "-language:postfixOps", // for Specs2 DSL
+      initCommands()
     )
     .enablePlugins(Http4sPlugin)
 
@@ -800,16 +737,6 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalacheck,
   ).map(_ % Test),
-  libraryDependencies ++= {
-    if (isDotty.value)
-      libraryDependencies.value
-    else
-      // These are going to be a problem
-      Seq(
-        specs2Cats,
-        specs2Scalacheck
-      ).map(_ % Test)
-  },
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 

@@ -21,6 +21,7 @@ import boopickle.Default._
 import cats.effect.IO
 import cats.Eq
 import cats.effect.laws.util.TestContext
+import cats.effect.laws.util.TestInstances._
 import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.MediaType
@@ -28,7 +29,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
 class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawSuite {
-  implicit val testContext = TestContext()
+  implicit val testContext: TestContext = TestContext()
 
   trait Fruit {
     val weight: Double
@@ -50,8 +51,8 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawS
   implicit val fruitPickler: Pickler[Fruit] =
     compositePickler[Fruit].addConcreteType[Banana].addConcreteType[Kiwi].addConcreteType[Carambola]
 
-  implicit val encoder = booEncoderOf[IO, Fruit]
-  implicit val decoder = booOf[IO, Fruit]
+  implicit val encoder: EntityEncoder[IO, Fruit] = booEncoderOf[IO, Fruit]
+  implicit val decoder: EntityDecoder[IO, Fruit] = booOf[IO, Fruit]
 
   implicit val fruitArbitrary: Arbitrary[Fruit] = Arbitrary {
     for {
@@ -80,5 +81,5 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawS
     result.value.map(assertEquals(_, Right(Banana(10.0))))
   }
 
-  checkAllF("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodecF)
+  checkAll("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodec)
 }

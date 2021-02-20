@@ -22,6 +22,7 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.syntax.all._
+
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H}
@@ -35,11 +36,12 @@ import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
 
-  implicit val ec = Http4sSuite.TestExecutionContext
+  implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext
   val tickWheel = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
     IO.delay(twe.shutdown())
   })

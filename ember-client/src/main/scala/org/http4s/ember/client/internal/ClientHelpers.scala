@@ -21,6 +21,7 @@ import fs2.io.tcp._
 import cats._
 import cats.data.NonEmptyList
 import cats.effect._
+import cats.effect.implicits._
 import cats.effect.concurrent._
 import cats.syntax.all._
 import scala.concurrent.duration._
@@ -81,14 +82,13 @@ private[client] object ClientHelpers {
 
   def request[F[_]: Concurrent: ContextShift: Timer](
       request: Request[F],
-      requestKeySocket: RequestKeySocket[F],
-      reuseable: Ref[F, Reusable],
+      connection: EmberConnection[F],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
       idleTimeout: Duration,
       timeout: Duration,
       userAgent: Option[`User-Agent`]
-  ): F[Response[F]] = {
+  ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
     def writeRequestToSocket(
         req: Request[F],
@@ -100,19 +100,22 @@ private[client] object ClientHelpers {
         .compile
         .drain
 
-    def writeRead(req: Request[F]): F[Response[F]] =
-      writeRequestToSocket(req, requestKeySocket.socket, durationToFinite(idleTimeout)) >> {
-        Parser.Response
-          .parser(maxResponseHeaderSize, durationToFinite(timeout))(
-            requestKeySocket.socket.reads(chunkSize, durationToFinite(idleTimeout))
+    def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
+      writeRequestToSocket(req, connection.keySocket.socket, durationToFinite(idleTimeout)) >>
+        connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
+          val finiteDuration = durationToFinite(timeout)
+          val parse = Parser.Response.parser(maxResponseHeaderSize)(
+            head,
+            connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
           )
-          .map(_._1)
-      }
+
+          finiteDuration.fold(parse)(duration => parse.timeout(duration))
+        }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
-      resp <- writeRead(processedReq)
-    } yield postProcessResponse(processedReq, resp, reuseable)
+      res <- writeRead(processedReq)
+    } yield res
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -129,24 +132,21 @@ private[client] object ClientHelpers {
       .putHeaders(userAgentHeader.toSeq: _*)
   }
 
-  private[internal] def postProcessResponse[F[_]: Concurrent](
+  private[ember] def postProcessResponse[F[_]](
       req: Request[F],
       resp: Response[F],
-      canBeReused: Ref[F, Reusable]): Response[F] = {
-    val out = resp.copy(
-      body = resp.body.onFinalizeCaseWeak {
-        case ExitCase.Completed =>
-          val requestClose = req.headers.get(Connection).exists(_.hasClose)
-          val responseClose = resp.headers.get(Connection).exists(_.hasClose)
+      drain: F[Option[Array[Byte]]],
+      nextBytes: Ref[F, Array[Byte]],
+      canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
+    drain.flatMap {
+      case Some(bytes) =>
+        val requestClose = req.headers.get(Connection).exists(_.hasClose)
+        val responseClose = resp.headers.get(Connection).exists(_.hasClose)
 
-          if (requestClose || responseClose) Applicative[F].unit
-          else canBeReused.set(Reusable.Reuse)
-        case ExitCase.Canceled => Applicative[F].unit
-        case ExitCase.Error(_) => Applicative[F].unit
-      }
-    )
-    out
-  }
+        if (requestClose || responseClose) F.unit
+        else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
+      case None => F.unit
+    }
 
   // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
   private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
@@ -159,11 +159,11 @@ private[client] object ClientHelpers {
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
   private[client] def getValidManaged[F[_]: Sync](
-      pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])],
-      request: Request[F]): Resource[F, Managed[F, (RequestKeySocket[F], F[Unit])]] =
+      pool: KeyPool[F, RequestKey, EmberConnection[F]],
+      request: Request[F]): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
-        .liftF(managed.value._1.socket.isOpen)
+        .liftF(managed.value.keySocket.socket.isOpen)
         .ifM(
           managed.pure[Resource[F, *]],
           // Already Closed,

@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package org.http4s.headers
+package org.http4s
+package headers
 
 import cats.data.NonEmptyList
-import org.http4s.MediaType
 
-class AcceptPatchSpec extends HeaderLaws {
-  checkAll("AcceptPatch", headerLaws(`Accept-Patch`))
-
-  "render" should {
-    "media types" in {
-      `Accept-Patch`(
-        NonEmptyList.of(
-          new MediaType("text", "example"))).renderString must_== "Accept-Patch: text/example"
+class AcceptPatchSpec extends Http4sSuite {
+  {
+    test("render should media types") {
+      assertEquals(
+        `Accept-Patch`(NonEmptyList.of(new MediaType("text", "example"))).renderString,
+        "Accept-Patch: text/example")
     }
-    "mulitple media types" in {
-      `Accept-Patch`(
-        NonEmptyList.of(
-          new MediaType("application", "example"),
-          new MediaType(
-            "text",
-            "example",
-            extensions =
-              Map("charset" -> "utf-8")))).renderString must_== "Accept-Patch: application/example, text/example; charset=\"utf-8\""
+    test("render should mulitple media types") {
+      assertEquals(
+        `Accept-Patch`(
+          NonEmptyList.of(
+            new MediaType("application", "example"),
+            new MediaType("text", "example", extensions = Map("charset" -> "utf-8")))).renderString,
+        "Accept-Patch: application/example, text/example; charset=\"utf-8\""
+      )
     }
   }
 

@@ -17,6 +17,7 @@
 package org.http4s
 
 /** Tests for the definitions in Cookie.scala */
+@deprecated("Use the CookieJar middleware instead", "0.21.20")
 final class CookieSuite extends Http4sSuite {
   test("RequestCookieJar should Not duplicate elements when adding the empty set") {
     val jar = RequestCookieJar(RequestCookie("foo", "bar"))

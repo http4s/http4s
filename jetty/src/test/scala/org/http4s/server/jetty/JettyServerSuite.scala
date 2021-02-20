@@ -28,7 +28,7 @@ import scala.concurrent.duration._
 import scala.io.Source
 
 class JettyServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   def builder = JettyBuilder[IO]
 
@@ -82,12 +82,12 @@ class JettyServerSuite extends Http4sSuite {
 
   jettyServer.test("ChannelOptions should should route requests on the service executor") {
     server =>
-      get(server, "/thread/routing").map(_.startsWith("http4s-spec-")).assert
+      get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
   }
 
   jettyServer.test(
     "ChannelOptions should should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assert
+    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
   }
 
   jettyServer.test("ChannelOptions should be able to echo its input") { server =>
@@ -104,6 +104,6 @@ class JettyServerSuite extends Http4sSuite {
   }
 
   jettyServer.test("Timeout should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assert
+    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
   }
 }

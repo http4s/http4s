@@ -20,7 +20,7 @@ package headers
 import java.time.{ZoneId, ZonedDateTime}
 import org.http4s.laws.discipline.ArbitraryInstances._
 
-class DateSuite extends MHeaderLaws {
+class DateSuite extends HeaderLaws {
   checkAll("Date", headerLaws(Date))
 
   val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))

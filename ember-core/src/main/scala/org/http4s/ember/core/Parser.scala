@@ -18,26 +18,28 @@ package org.http4s.ember.core
 
 import cats._
 import cats.effect.{MonadThrow => _, _}
-import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.{Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._
+import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
-import scala.concurrent.duration.FiniteDuration
-import org.typelevel.ci.CIString
 
 private[ember] object Parser {
 
   object HeaderP {
 
-    def parseHeaders[F[_]: MonadThrow](
-        s: Stream[F, Byte],
+    def parseHeaders[F[_]](
+        head: Array[Byte],
+        read: F[Option[Chunk[Byte]]],
         maxHeaderLength: Int,
-        acc: Option[ParseHeadersIncomplete])
-        : Pull[F, Nothing, (v2.Headers, Boolean, Option[Long], Stream[F, Byte])] =
-      s.pull.uncons.flatMap {
-        case Some((chunk, tl)) =>
+        acc: Option[ParseHeadersIncomplete])(implicit
+        F: MonadThrow[F]): F[(v2.Headers, Boolean, Option[Long], Array[Byte])] = {
+      // TODO: improve this
+      val nextChunk = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
+      nextChunk.flatMap {
+        case Some(chunk) =>
           val nextArr: Array[Byte] = acc match {
             case None => chunk.toArray
             case Some(last) => combineArrays(last.bv, chunk.toArray)
@@ -58,12 +60,13 @@ private[ember] object Parser {
           }
           result match {
             case ParseHeadersCompleted(headers, rest, chunked, length) =>
-              Pull.pure((headers, chunked, length, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
-            case p @ ParseHeadersError(_) => Pull.raiseError[F](p)
+              F.pure((headers, chunked, length, rest))
+            case p @ ParseHeadersError(_) => F.raiseError(p)
             case p @ ParseHeadersIncomplete(_, _, _, _, _, _, _, _) =>
-              if (nextArr.size <= maxHeaderLength) parseHeaders(tl, maxHeaderLength, p.some)
+              if (nextArr.size <= maxHeaderLength)
+                parseHeaders(Array.emptyByteArray, read, maxHeaderLength, p.some)
               else
-                Pull.raiseError[F](
+                F.raiseError(
                   ParseHeadersError(
                     new Throwable(
                       s"Parse Headers Exceeded Max Content-Length current size: ${nextArr.size}, only allow ${maxHeaderLength}")
@@ -71,9 +74,10 @@ private[ember] object Parser {
                 )
           }
         case None =>
-          Pull.raiseError[F](
-            ParseHeadersError(new Throwable("Reached Ended of Stream Looking for Headers")))
+          F.raiseError(
+            ParseHeadersError(new Throwable("Reached End of Stream Looking for Headers")))
       }
+    }
 
     private val colon: Byte = ':'.toByte
     private val cr: Byte = '\r'.toByte
@@ -137,36 +141,38 @@ private[ember] object Parser {
               state = 1 // set state to check for header value
               name = new String(bv, start, idx - start) // extract name string
               start = idx + 1 // advance past colon for next start
-              if ((bv.size >= idx + 1) && (bv(idx + 1) == space)) {
+
+              // TODO: This if clause may not be necessary since the header value parser trims
+              if ((bv.size > idx + 1 && bv(idx + 1) == space)) {
                 start += 1 // if colon is followed by space advance again
                 idx += 1 // double advance index here to skip the space
               }
               // double CRLF condition - Termination of headers
-            } else if (current == cr && (idx + 1 < bv.size) && (bv(idx + 1) == lf)) {
-              idx += 1 // double advance to drop cr AND lf
+            } else if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
               complete = true // completed terminate loop
             }
           case 1 => // HeaderValue
             val current = bv(idx)
             // If crlf is next we have completed the header value
-            if (current == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
-              val hValue = new String(bv, start, idx - start) // extract header value
+            if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
+              // extract header value, trim leading and trailing whitespace
+              val hValue = new String(bv, start, idx - start - 1).trim
 
               val hName = name // copy var to val
               name = null // set name back to null
               val newHeader = v2.Header.Raw(CIString(hName), hValue) // create header
-              if (hName.equalsIgnoreCase(contentLengthS)) // Check if this is content-length.
+              if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
                 try contentLength = hValue.toLong.some
                 catch {
                   case scala.util.control.NonFatal(e) =>
                     throwable = e
                     complete = true
                 }
-
-              if (hName.equalsIgnoreCase(transferEncodingS)) // Check if this is Transfer-encoding
+              } else if (hName
+                  .equalsIgnoreCase(transferEncodingS)) { // Check if this is Transfer-encoding
                 chunked = hValue.contains(chunkedS)
-              start = idx + 2 // Next Start is after the CRLF
-              idx += 1 // Double advance to skip CRLF
+              }
+              start = idx + 1 // Next Start is after the CRLF
               headers += newHeader // Add Header
               state = 0 // Go back to Looking for HeaderName or Termination
             }
@@ -196,27 +202,29 @@ private[ember] object Parser {
 
       val emptyStreamError = ParsePreludeError("Cannot Parse Empty Stream", None, None, None, None)
 
-      def parsePrelude[F[_]: MonadThrow](
-          s: Stream[F, Byte],
+      def parsePrelude[F[_]](
+          head: Array[Byte],
+          read: F[Option[Chunk[Byte]]],
           maxHeaderLength: Int,
-          acc: Option[ParsePreludeIncomlete] = None)
-          : Pull[F, Nothing, (Method, Uri, HttpVersion, Stream[F, Byte])] =
-        s.pull.uncons.flatMap {
-          case Some((chunk, tl)) =>
+          acc: Option[ParsePreludeIncomplete] = None)(implicit
+          F: MonadThrow[F]): F[(Method, Uri, HttpVersion, Array[Byte])] = {
+        val nextChunk = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
+
+        nextChunk.flatMap {
+          case Some(chunk) =>
             val next: Array[Byte] = acc match {
               case None => chunk.toArray
               case Some(ic) => combineArrays(ic.bv, chunk.toArray)
             }
             ReqPrelude.preludeInSection(next) match {
               case ParsePreludeComplete(m, u, h, rest) =>
-                val out = if (rest.isEmpty) tl else Stream.chunk(Chunk.Bytes(rest)) ++ tl
-                Pull.pure((m, u, h, out))
-              case t @ ParsePreludeError(_, _, _, _, _) => Pull.raiseError[F](t)
-              case p @ ParsePreludeIncomlete(_, _, method, uri, httpVersion) =>
+                F.pure((m, u, h, rest))
+              case t @ ParsePreludeError(_, _, _, _, _) => F.raiseError(t)
+              case p @ ParsePreludeIncomplete(_, _, method, uri, httpVersion) =>
                 if (next.size <= maxHeaderLength)
-                  parsePrelude(tl, maxHeaderLength, p.some)
+                  parsePrelude(Array.emptyByteArray, read, maxHeaderLength, p.some)
                 else
-                  Pull.raiseError[F](
+                  F.raiseError(
                     ParsePreludeError(
                       "Reached Max Header Length Looking for Request Prelude",
                       None,
@@ -226,10 +234,10 @@ private[ember] object Parser {
             }
           case None =>
             acc match {
-              case None => Pull.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.bv.isEmpty => Pull.raiseError(emptyStreamError)
+              case None => F.raiseError(emptyStreamError)
+              case Some(incomplete) if incomplete.bv.isEmpty => F.raiseError(emptyStreamError)
               case Some(incomplete) =>
-                Pull.raiseError(
+                F.raiseError(
                   ParsePreludeError(
                     s"Unexpected EOF - $incomplete",
                     None,
@@ -238,6 +246,7 @@ private[ember] object Parser {
                     incomplete.httpVersion))
             }
         }
+      }
 
       // sealed trait ParsePreludeState
       // 0 case object GetMethod extends ParsePreludeState
@@ -259,7 +268,7 @@ private[ember] object Parser {
             caused.orNull
           )
           with ParsePreludeResult
-      final case class ParsePreludeIncomlete(
+      final case class ParsePreludeIncomplete(
           idx: Int,
           bv: Array[Byte],
           // buffer: String,
@@ -319,8 +328,8 @@ private[ember] object Parser {
                 state = 2
               }
             case 2 =>
-              if (value == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
-                HttpVersion.fromString(new String(bv, start, idx - start)) match {
+              if (value == lf && (idx > 0 && bv(idx - 1) == cr)) {
+                HttpVersion.fromString(new String(bv, start, idx - start - 1)) match {
                   case Left(e) =>
                     throwable = e
                     complete = true
@@ -328,7 +337,6 @@ private[ember] object Parser {
                     httpVersion = h
                 }
                 complete = true
-                idx += 1 // Double Advance
               }
           }
           idx += 1
@@ -345,115 +353,119 @@ private[ember] object Parser {
         else if (method != null && uri != null && httpVersion != null)
           ParsePreludeComplete(method, uri, httpVersion, bv.drop(idx))
         else
-          ParsePreludeIncomlete(idx, bv, Option(method), Option(uri), Option(httpVersion))
+          ParsePreludeIncomplete(idx, bv, Option(method), Option(uri), Option(httpVersion))
       }
     }
 
-    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
-        s: Stream[F, Byte]): F[(Request[F], Stream[F, Byte])] =
-      Deferred[F, v2.Headers].flatMap { trailers =>
-        val baseStream = ReqPrelude
-          .parsePrelude[F](s, maxHeaderLength, None)
-          .flatMap { case (method, uri, httpVersion, rest) =>
-            HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
-              case (headers, chunked, contentLength, rest) =>
-                val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
-                  method = method,
-                  uri = uri,
-                  httpVersion = httpVersion,
-                  headers = headers
-                )
-                val req: org.http4s.Request[F] =
-                  if (chunked)
-                    baseReq
-                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                      .withBodyStream(
-                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
-                  else
-                    baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+    def parser[F[_]](maxHeaderLength: Int)(
+        head: Array[Byte],
+        read: F[Option[Chunk[Byte]]]
+    )(implicit F: Concurrent[F]): F[(Request[F], F[Option[Array[Byte]]])] =
+      ReqPrelude
+        .parsePrelude[F](head, read, maxHeaderLength, None)
+        .flatMap { case (method, uri, httpVersion, bytes) =>
+          HeaderP.parseHeaders(bytes, read, maxHeaderLength, None).flatMap {
+            case (headers, chunked, contentLength, bytes) =>
+              val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
+                method = method,
+                uri = uri,
+                httpVersion = httpVersion,
+                headers = headers
+              )
 
-                Pull.output1((req, rest))
-            }
+              if (chunked) {
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, v2.Headers]).map {
+                  case (rest, trailers) =>
+                    (
+                      baseReq
+                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                        .withBodyStream(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                      rest.get)
+                }
+              } else {
+                Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
+                  case (bodyStream, drain) =>
+                    (baseReq.withBodyStream(bodyStream), drain)
+                }
+              }
           }
-          .stream
-          .take(1)
-
-        val action = baseStream.compile.lastOrError
-        timeout match {
-          case None => action
-          case Some(timeout) => Concurrent.timeout(action, timeout)
         }
-      }
   }
 
   object Response {
 
-    def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
-        s: Stream[F, Byte]
-    ): F[(Response[F], Stream[F, Byte])] =
-      Deferred[F, v2.Headers].flatMap { trailers =>
-        val base = RespPrelude
-          .parsePrelude(s, maxHeaderLength, None)
-          .flatMap { case (httpVersion, status, s) =>
-            HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
-              case (headers, chunked, contentLength, rest) =>
-                val baseResp = org.http4s.Response[F](
-                  httpVersion = httpVersion,
-                  status = status,
-                  headers = headers
-                )
-                val resp: org.http4s.Response[F] =
-                  if (chunked)
-                    baseResp
-                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                      .withBodyStream(
-                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
-                  else
-                    baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
-                Pull.output1((resp, rest))
-            }
-          }
-          .stream
-          .take(1)
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(
+        head: Array[Byte],
+        read: F[Option[Chunk[Byte]]]
+    ): F[(Response[F], F[Option[Array[Byte]]])] =
+      RespPrelude
+        .parsePrelude(head, read, maxHeaderLength, None)
+        .flatMap { case (httpVersion, status, bytes) =>
+          HeaderP.parseHeaders(bytes, read, maxHeaderLength, None).flatMap {
+            case (headers, chunked, contentLength, bytes) =>
+              val baseResp = org.http4s.Response[F](
+                httpVersion = httpVersion,
+                status = status,
+                headers = headers
+              )
 
-        val action = base.compile.lastOrError
-        timeout.fold(action)(duration => Concurrent.timeout(action, duration))
-      }
+              if (chunked) {
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, v2.Headers]).map {
+                  case (rest, trailers) =>
+                    (
+                      baseResp
+                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                        .withBodyStream(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                      rest.get)
+                }
+              } else {
+                Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
+                  case (bodyStream, drain) =>
+                    (baseResp.withBodyStream(bodyStream), drain)
+                }
+              }
+          }
+        }
 
     object RespPrelude {
 
       val emptyStreamError = RespPreludeError("Cannot Parse Empty Stream", None)
 
-      def parsePrelude[F[_]: MonadThrow](
-          s: Stream[F, Byte],
+      def parsePrelude[F[_]](
+          head: Array[Byte],
+          read: F[Option[Chunk[Byte]]],
           maxHeaderLength: Int,
-          acc: Option[Array[Byte]] = None)
-          : Pull[F, Nothing, (HttpVersion, Status, Stream[F, Byte])] =
-        s.pull.uncons.flatMap {
-          case Some((chunk, tl)) =>
+          acc: Option[Array[Byte]] = None)(implicit
+          F: MonadThrow[F]): F[(HttpVersion, Status, Array[Byte])] = {
+        val pull = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
+
+        pull.flatMap {
+          case Some(chunk) =>
             val next: Array[Byte] = acc match {
               case None => chunk.toArray
               case Some(remains) => combineArrays(remains, chunk.toArray)
             }
             preludeInSection(next) match {
               case RespPreludeComplete(httpVersion, status, rest) =>
-                Pull.pure((httpVersion, status, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
-              case t @ RespPreludeError(_, _) => Pull.raiseError[F](t)
+                (httpVersion, status, rest).pure[F]
+              case t @ RespPreludeError(_, _) => F.raiseError(t)
               case RespPreludeIncomplete =>
                 if (next.size <= maxHeaderLength)
-                  parsePrelude(tl, maxHeaderLength, next.some)
+                  parsePrelude(Array.emptyByteArray, read, maxHeaderLength, next.some)
                 else
-                  Pull.raiseError[F](
+                  F.raiseError(
                     RespPreludeError(
                       "Reached Max Header Length Looking for Response Prelude",
                       None))
             }
           case None =>
             acc match {
-              case None => Pull.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.isEmpty => Pull.raiseError(emptyStreamError)
+              case None => F.raiseError(emptyStreamError)
+              case Some(incomplete) if incomplete.isEmpty => F.raiseError(emptyStreamError)
               case Some(_) =>
-                Pull.raiseError[F](
+                F.raiseError(
                   RespPreludeError(
                     "Unexpectedly Reached Ended of Stream Looking for Response Prelude",
                     None)
@@ -461,6 +473,7 @@ private[ember] object Parser {
             }
 
         }
+      }
 
       private val space = ' '.toByte
       private val cr: Byte = '\r'.toByte
@@ -513,8 +526,8 @@ private[ember] object Parser {
                 start = idx + 1
               }
             case 2 =>
-              if (value == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
-                val reason = new String(bv, start, idx - start)
+              if (value == lf && (idx > 0 && bv(idx - 1) == cr)) {
+                val reason = new String(bv, start, idx - start - 1)
                 try {
                   val codeInt = codeS.toInt
                   Status.fromIntAndReason(codeInt, reason) match {
@@ -523,7 +536,6 @@ private[ember] object Parser {
                     case Right(s) =>
                       status = s
                       complete = true
-                      idx += 1 // Double Advance
                   }
                 } catch {
                   case scala.util.control.NonFatal(e) =>
@@ -541,6 +553,56 @@ private[ember] object Parser {
         else RespPreludeIncomplete
       }
     }
+  }
+
+  object Body {
+    def parseFixedBody[F[_]: Concurrent](
+        contentLength: Long,
+        head: Array[Byte],
+        read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Option[Array[Byte]]])] =
+      if (contentLength > 0) {
+        if (head.length >= contentLength) {
+          val (body, rest) = head.splitAt(contentLength.toInt)
+          (Stream.chunk(Chunk.bytes(body)).covary[F], (Some(rest): Option[Array[Byte]]).pure[F])
+            .pure[F]
+        } else {
+          val unread = contentLength - head.length
+          Ref.of[F, Either[Long, Array[Byte]]](Left(unread)).map { state =>
+            val bodyStream = Stream.eval(state.get).flatMap {
+              case Right(_) =>
+                Stream.raiseError(new Throwable("Body has already been completely read"))
+              case Left(remaining) =>
+                readStream(read).chunks
+                  .evalMapAccumulate(remaining) { case (r, chunk) =>
+                    if (chunk.size >= r) {
+                      val (rest, after) = chunk.splitAt(r.toInt)
+                      state.set(Right(after.toArray)).as((0L, rest))
+                    } else {
+                      val r2 = r - chunk.size
+                      state.set(Left(r2)).as((r2, chunk))
+                    }
+                  }
+                  .takeThrough(_._1 > 0)
+                  .flatMap(t => Stream.chunk(t._2))
+            }
+
+            // If the remaining bytes for the body have not yet been read, close the connection.
+            // followup: Check if there are bytes immediately available without blocking
+            val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
+
+            (Stream.chunk(Chunk.bytes(head)) ++ bodyStream, drain)
+          }
+        }
+      } else {
+        (EmptyBody.covary[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
+      }
+
+    private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
+      Stream.eval(read).flatMap {
+        case Some(bytes) =>
+          Stream.chunk(bytes) ++ readStream(read)
+        case None => Stream.empty
+      }
   }
 
   private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {
