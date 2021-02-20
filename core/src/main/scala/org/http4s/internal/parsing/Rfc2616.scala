@@ -99,7 +99,7 @@ private[http4s] object Rfc2616 {
     /* rfc1123-date = wkday "," SP date1 SP time SP "GMT" */
     ((wkday <* string(", ")) ~ (date1 <* sp) ~ (time <* string(" GMT"))).map {
       case ((wkday, ((day, month), year)), ((hour, min), sec)) =>
-        Rfc1123Date(wkday, year, month, day, hour, min, sec)
+        Rfc1123Date(wkday, day, month, year, hour, min, sec)
     }
   }
 }
