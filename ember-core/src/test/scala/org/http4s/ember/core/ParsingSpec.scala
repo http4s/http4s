@@ -27,6 +27,8 @@ import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
 import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires
+import org.typelevel.ci.CIString
+
 
 class ParsingSpec extends Http4sSuite {
   object Helpers {
@@ -95,7 +97,7 @@ class ParsingSpec extends Http4sSuite {
     val expected = Request[IO](
       Method.GET,
       Uri.unsafeFromString("www.google.com"),
-      headers = Headers.of(org.http4s.headers.Host("www.google.com"))
+      headers = v2.Headers(org.http4s.headers.Host("www.google.com"))
     )
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -264,7 +266,7 @@ class ParsingSpec extends Http4sSuite {
           body <- resp.body.through(text.utf8Decode).compile.string
           trailers <- resp.trailerHeaders
         } yield (body == "MozillaDeveloperNetwork").&&(
-          trailers.get(Expires).isDefined
+          trailers.get[Expires].isDefined
         )
       }
       .assert
@@ -285,9 +287,9 @@ class ParsingSpec extends Http4sSuite {
     }
 
     assert(
-      headers.toList == List(
-        Header("Content-Type", "text/plain; charset=UTF-8"),
-        Header("Content-Length", "11"))
+      headers.headers == List(
+        Header.Raw(CIString("Content-Type"), "text/plain; charset=UTF-8"),
+        Header.Raw(CIString("Content-Length"), "11"))
     )
     assert(
       rest.isEmpty
@@ -322,13 +324,13 @@ class ParsingSpec extends Http4sSuite {
       .stream
       .compile
       .lastOrError
-      .map(_.toList)
+      .map(_.headers)
 
     headers.assertEquals(
       List(
-        Header("Content-Type", "text/plain"),
-        Header("Transfer-Encoding", "chunked"),
-        Header("Trailer", "Expires")
+        v2.Header.Raw(CIString("Content-Type"), "text/plain"),
+        v2.Header.Raw(CIString("Transfer-Encoding"), "chunked"),
+        v2.Header.Raw(CIString("Trailer"), "Expires")
       ))
   }
 

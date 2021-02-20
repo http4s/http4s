@@ -25,6 +25,7 @@ import org.http4s._
 import scala.annotation.switch
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
+import org.typelevel.ci.CIString
 
 private[ember] object Parser {
 
@@ -34,7 +35,7 @@ private[ember] object Parser {
         s: Stream[F, Byte],
         maxHeaderLength: Int,
         acc: Option[ParseHeadersIncomplete])
-        : Pull[F, Nothing, (Headers, Boolean, Option[Long], Stream[F, Byte])] =
+        : Pull[F, Nothing, (v2.Headers, Boolean, Option[Long], Stream[F, Byte])] =
       s.pull.uncons.flatMap {
         case Some((chunk, tl)) =>
           val nextArr: Array[Byte] = acc match {
@@ -89,14 +90,14 @@ private[ember] object Parser {
           cause)
         with ParseHeaderResult
     final case class ParseHeadersCompleted(
-        headers: Headers,
+        headers: v2.Headers,
         rest: Array[Byte],
         chunked: Boolean,
         length: Option[Long])
         extends ParseHeaderResult
     final case class ParseHeadersIncomplete(
         bv: Array[Byte],
-        accHeaders: List[Header],
+        accHeaders: List[v2.Header.Raw],
         idx: Int,
         state: Byte,
         name: Option[String],
@@ -109,7 +110,7 @@ private[ember] object Parser {
         bv: Array[Byte],
         initIndex: Int = 0,
         initState: Byte = 0, //HeaderNameOrPostCRLF,
-        initHeaders: List[Header] = List.empty,
+        initHeaders: List[v2.Header.Raw] = List.empty,
         initChunked: Boolean = false,
         initContentLength: Option[Long] = None,
         initName: Option[String] = None,
@@ -153,7 +154,7 @@ private[ember] object Parser {
 
               val hName = name // copy var to val
               name = null // set name back to null
-              val newHeader = Header(hName, hValue) // create header
+              val newHeader = v2.Header.Raw(CIString(hName), hValue) // create header
               if (hName.equalsIgnoreCase(contentLengthS)) // Check if this is content-length.
                 try contentLength = hValue.toLong.some
                 catch {
@@ -175,7 +176,7 @@ private[ember] object Parser {
 
       if (throwable != null) ParseHeadersError(throwable)
       else if (complete)
-        ParseHeadersCompleted(Headers(headers.toList), bv.drop(idx), chunked, contentLength)
+        ParseHeadersCompleted(v2.Headers(headers.toList), bv.drop(idx), chunked, contentLength)
       else
         ParseHeadersIncomplete(
           bv,
@@ -350,7 +351,7 @@ private[ember] object Parser {
 
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         s: Stream[F, Byte]): F[(Request[F], Stream[F, Byte])] =
-      Deferred[F, Headers].flatMap { trailers =>
+      Deferred[F, v2.Headers].flatMap { trailers =>
         val baseStream = ReqPrelude
           .parsePrelude[F](s, maxHeaderLength, None)
           .flatMap { case (method, uri, httpVersion, rest) =>
@@ -390,7 +391,7 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent: Timer](maxHeaderLength: Int, timeout: Option[FiniteDuration])(
         s: Stream[F, Byte]
     ): F[(Response[F], Stream[F, Byte])] =
-      Deferred[F, Headers].flatMap { trailers =>
+      Deferred[F, v2.Headers].flatMap { trailers =>
         val base = RespPrelude
           .parsePrelude(s, maxHeaderLength, None)
           .flatMap { case (httpVersion, status, s) =>

@@ -16,7 +16,7 @@ import cats.effect.concurrent.Deferred
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
-import org.http4s.Headers
+import org.http4s.v2
 
 import scala.util.control.NonFatal
 
@@ -26,7 +26,7 @@ private[ember] object ChunkedEncoding {
     * decodes from the HTTP chunked encoding. After last chunk this terminates. Allows to specify max header size, after which this terminates
     * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
     */
-  def decode[F[_]](maxChunkHeaderSize: Int, trailers: Deferred[F, Headers])(implicit
+  def decode[F[_]](maxChunkHeaderSize: Int, trailers: Deferred[F, v2.Headers])(implicit
       F: MonadThrow[F]): Pipe[F, Byte, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
@@ -84,13 +84,13 @@ private[ember] object ChunkedEncoding {
 
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
-  )(s: Stream[F, Byte]): Pull[F, Nothing, Headers] =
+  )(s: Stream[F, Byte]): Pull[F, Nothing, v2.Headers] =
     s.pull.uncons.flatMap {
-      case None => Pull.pure(Headers.empty)
+      case None => Pull.pure(v2.Headers.empty)
       case Some((chunk, tl)) =>
         if (chunk.isEmpty) parseTrailers(maxHeaderSize)(tl)
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
-          Pull.pure(Headers.empty)
+          Pull.pure(v2.Headers.empty)
         else
           Parser.HeaderP.parseHeaders(Stream.chunk(chunk) ++ tl, maxHeaderSize, None).map {
             case (headers, _, _, _) =>
