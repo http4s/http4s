@@ -23,7 +23,7 @@ ThisBuild / githubWorkflowBuild := Seq(
         List("unusedCompileDependenciesTest"),
         name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3M3'")), // todo disable on dotty for now
       WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"), cond = Some(s"matrix.scala != '$scala_3M3'"))
     )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
