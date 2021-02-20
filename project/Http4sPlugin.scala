@@ -94,6 +94,8 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/ResponseCookie.scala",
           "src/main/scala/org/http4s/TransferCoding.scala",
           "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/dsl/impl/Path.scala",
+          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
           "src/main/scala/org/http4s/internal/CharPredicate.scala",
           "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
           "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
@@ -110,15 +112,10 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
           "src/main/scala/org/http4s/play/Parser.scala",
           "src/main/scala/org/http4s/util/UrlCoding.scala",
-          "src/main/scala/org/http4s/dsl/impl/Path.scala",
-          "src/test/scala/org/http4s/dsl/PathSpec.scala",
-          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
-          "src/main/scala/org/http4s/testing/ErrorReportingUtils.scala",
-          "src/main/scala/org/http4s/testing/IOMatchers.scala",
-          "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
           "src/test/scala/org/http4s/Http4sSpec.scala",
+          "src/test/scala/org/http4s/UriSpec.scala",
+          "src/test/scala/org/http4s/dsl/PathSpec.scala",
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
-          "src/test/scala/org/http4s/UriSpec.scala"
         )
       },
 
@@ -280,7 +277,7 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.12.2"
     val blaze = "0.15.0-M1"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.0.0-RC2"
+    val caseInsensitive = "1.0.0"
     val cats = "2.4.2"
     val catsEffect = "3.0.0-M5"
     val catsParse = "0.3.1"
@@ -297,8 +294,7 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.4.0-M1"
     val logback = "1.2.3"
     val log4cats = "2.0.0-M1"
-    val log4s = "1.10.0-M4"
-    val mockito = "3.5.15"
+    val log4s = "1.10.0-M5"
     val munit = "0.7.18"
     val munitCatsEffect = "0.13.0"
     val munitDiscipline = "1.0.6"

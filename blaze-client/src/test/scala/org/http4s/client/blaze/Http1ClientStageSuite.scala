@@ -137,7 +137,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     getSubmission(req, resp, tail)
   }
 
-  dispatcher.test("Run a basic request") { dispatcher =>
+  dispatcher.test("Run a basic request".flaky) { dispatcher =>
     getSubmission(FooRequest, resp, dispatcher).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
       assertEquals(statusLine, "GET / HTTP/1.1")
