@@ -94,6 +94,8 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/ResponseCookie.scala",
           "src/main/scala/org/http4s/TransferCoding.scala",
           "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/dsl/impl/Path.scala",
+          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
           "src/main/scala/org/http4s/internal/CharPredicate.scala",
           "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
           "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
@@ -110,15 +112,10 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
           "src/main/scala/org/http4s/play/Parser.scala",
           "src/main/scala/org/http4s/util/UrlCoding.scala",
-          "src/main/scala/org/http4s/dsl/impl/Path.scala",
-          "src/test/scala/org/http4s/dsl/PathSpec.scala",
-          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
-          "src/main/scala/org/http4s/testing/ErrorReportingUtils.scala",
-          "src/main/scala/org/http4s/testing/IOMatchers.scala",
-          "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
           "src/test/scala/org/http4s/Http4sSpec.scala",
+          "src/test/scala/org/http4s/UriSpec.scala",
+          "src/test/scala/org/http4s/dsl/PathSpec.scala",
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
-          "src/test/scala/org/http4s/UriSpec.scala"
         )
       },
 
@@ -280,10 +277,9 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.12.2"
     val blaze = "0.15.0-M1"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.0.0-RC2"
+    val caseInsensitive = "1.0.0"
     val cats = "2.4.2"
     val catsEffect = "3.0.0-RC2"
-    val catsEffectTesting = "1.0.0-M1"
     val catsParse = "0.3.1"
     val circe = "0.14.0-M3"
     val cryptobits = "1.3"
@@ -298,8 +294,7 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.4.0-RC1"
     val logback = "1.2.3"
     val log4cats = "2.0.0-M2"
-    val log4s = "1.10.0-M4"
-    val mockito = "3.5.15"
+    val log4s = "1.10.0-M5"
     val munit = "0.7.18"
     val munitCatsEffect = "0.13.1"
     val munitDiscipline = "1.0.6"
@@ -332,9 +327,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val caseInsensitiveTesting           = "org.typelevel"          %% "case-insensitive-testing"  % V.caseInsensitive
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
+  lazy val catsEffectStd                    = "org.typelevel"          %% "cats-effect-std"           % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
   lazy val catsEffectTestkit                = "org.typelevel"          %% "cats-effect-testkit"       % V.catsEffect
-  lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % V.catsEffectTesting
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
   lazy val catsParse                        = "org.typelevel"          %% "cats-parse"                % V.catsParse
   lazy val circeCore                        = "io.circe"               %% "circe-core"                % V.circe
