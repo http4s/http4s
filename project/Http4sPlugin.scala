@@ -95,6 +95,8 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/ResponseCookie.scala",
           "src/main/scala/org/http4s/TransferCoding.scala",
           "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/dsl/impl/Path.scala",
+          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
           "src/main/scala/org/http4s/internal/CharPredicate.scala",
           "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
           "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
@@ -111,15 +113,10 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
           "src/main/scala/org/http4s/play/Parser.scala",
           "src/main/scala/org/http4s/util/UrlCoding.scala",
-          "src/main/scala/org/http4s/dsl/impl/Path.scala",
-          "src/test/scala/org/http4s/dsl/PathSpec.scala",
-          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
-          "src/main/scala/org/http4s/testing/ErrorReportingUtils.scala",
-          "src/main/scala/org/http4s/testing/IOMatchers.scala",
-          "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
           "src/test/scala/org/http4s/Http4sSpec.scala",
+          "src/test/scala/org/http4s/UriSpec.scala",
+          "src/test/scala/org/http4s/dsl/PathSpec.scala",
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
-          "src/test/scala/org/http4s/UriSpec.scala"
         )
       },
 
@@ -278,7 +275,7 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.12.2"
     val blaze = "0.15.0-M1"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.0.0-RC2"
+    val caseInsensitive = "1.0.0"
     val cats = "2.4.2"
     val catsEffect = "2.3.3"
     val catsEffectTesting = "0.5.1"
@@ -295,8 +292,8 @@ object Http4sPlugin extends AutoPlugin {
     val jetty = "9.4.36.v20210114"
     val keypool = "0.3.0"
     val logback = "1.2.3"
-    val log4cats = "1.2.0-RC3"
-    val log4s = "1.10.0-M4"
+    val log4cats = "1.2.0"
+    val log4s = "1.10.0-M5"
     val munit = "0.7.18"
     val munitCatsEffect = "0.13.1"
     val munitDiscipline = "1.0.6"
@@ -317,7 +314,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.43"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.0-M14"
+    val vault = "2.1.0"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
