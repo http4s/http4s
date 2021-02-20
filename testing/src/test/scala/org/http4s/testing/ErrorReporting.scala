@@ -7,11 +7,13 @@
  * Copyright (c) 2017-2018 The Typelevel Cats-effect Project Developers
  */
 
-package org.http4s.testing
+package org.http4s
+package testing
+
 import java.io.{ByteArrayOutputStream, PrintStream}
 import cats.syntax.all._
 import cats.Monad
-import org.http4s.{Headers, MessageFailure, Request, Response, Status}
+import org.http4s.{MessageFailure, Request, Response, Status, v2}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.typelevel.ci.CIString
 import scala.util.control.NonFatal
@@ -75,10 +77,9 @@ object ErrorReporting {
           Response(
             Status.InternalServerError,
             req.httpVersion,
-            Headers(
-              Connection(CIString("close")) ::
-                `Content-Length`.zero ::
-                Nil
+            v2.Headers(
+              Connection(CIString("close")),
+              `Content-Length`.zero
             )))
     }
 
