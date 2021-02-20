@@ -40,17 +40,17 @@ object GZip {
     }
 
   private def addHeaders[F[_]](req: Request[F]): Request[F] =
-    req.headers.get(`Accept-Encoding`) match {
+    req.headers.get[`Accept-Encoding`] match {
       case Some(_) =>
         req
       case _ =>
         req.withHeaders(
-          req.headers ++ Headers.of(Header(`Accept-Encoding`.name.toString, supportedCompressions)))
+          req.headers ++ v2.Headers(Header.Raw(`Accept-Encoding`.name.toString, supportedCompressions)))
     }
 
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
       F: Sync[F]): Response[F] =
-    response.headers.get(`Content-Encoding`) match {
+    response.headers.get[`Content-Encoding`] match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =

@@ -44,7 +44,7 @@ object Retry {
               logger.info(
                 s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
               dispose >> F.pure(
-                nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
+                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`]))
             case None =>
               F.pure(Resource.make(F.pure(response))(_ => dispose))
           }
@@ -65,7 +65,7 @@ object Retry {
       })
 
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
-      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+      val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
       val uri = request.uri.renderString
       val method = request.method
       s"method=$method uri=$uri headers=$headers"

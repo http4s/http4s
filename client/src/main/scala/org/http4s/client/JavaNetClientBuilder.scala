@@ -124,7 +124,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             case h: Header.Parsed =>
               // Appease 2.13.4's exhaustiveness checker
               conn.setRequestProperty(h.name.toString, h.value)
-            case Header.Raw(name, value) =>
+            case v2.Header.Raw(name, value, _) =>
               // Appease 2.13.4's exhaustiveness checker
               conn.setRequestProperty(name.toString, value)
           })
@@ -153,11 +153,11 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       code <- F.delay(conn.getResponseCode)
       status <- F.fromEither(Status.fromInt(code))
       headers <- F.delay(
-        Headers(
+        v2.Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
-            .toList
+            .toList: _*
         ))
     } yield Response(status = status, headers = headers, body = readBody(conn))
 
