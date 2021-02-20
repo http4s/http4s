@@ -49,19 +49,16 @@ trait Header[A, T <: Header.Type] {
 object Header {
   case class Raw(name: CIString, value: String, recurring: Boolean = true)
   object Raw {
-    implicit val showForRawHeaders: Show[Raw] =
-      h => s"${h.name.show}: ${h.value}"
+    implicit lazy val catsInstancesForHttp4sHeaderRaw: Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] {
+      def show(h: Raw): String = s"${h.name.show}: ${h.value}"
+      def hash(h: Raw): Int = h.hashCode
 
-    implicit val hashForRawHeaders: Hash[Raw] =
-      Hash.fromUniversalHashCode[Raw]
+      def compare(x: Raw, y: Raw): Int =
+        x.name.compare(y.name) match {
+          case 0 => x.value.compare(y.value)
+          case c => c
+        }
 
-    implicit lazy val orderForRawHeaders: Order[Raw] =
-      Order.whenEqual(
-        Order.by(_.name),
-        Order.by(_.value)
-      )
-
-    implicit val rendererForRawHeaders: Renderer[Raw] = new Renderer[Raw] {
       def render(writer: Writer, h: Raw): writer.type =
         writer << h.name << ':' << ' ' << h.value
     }
@@ -252,6 +249,8 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
   override def toString: String =
     this.show
+
+  def ++(those: Headers): Headers = Headers(headers ++ those.headers)
 }
 object Headers {
   val empty = Headers(List.empty[Header.Raw])

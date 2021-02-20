@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.headers
+package org.http4s
+package headers
 
 import cats.effect.IO
-import org.http4s.{Headers, Request, Uri}
 import org.http4s.laws.discipline.ArbitraryInstances._
 
 class RefererSuite extends HeaderLaws {
@@ -46,9 +46,9 @@ class RefererSuite extends HeaderLaws {
 
   test("should be extractable") {
     val referer = Referer(getUri("http://localhost:8080"))
-    val request = Request[IO](headers = Headers.of(referer))
+    val request = Request[IO](headers = v2.Headers(referer))
 
-    val extracted = request.headers.get(Referer)
+    val extracted = request.headers.get[Referer]
     assertEquals(extracted, Some(referer))
   }
 }

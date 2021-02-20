@@ -20,9 +20,8 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.comcast.ip4s.{Port, SocketAddress}
 import fs2.Pure
-import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
+import org.http4s.headers.{Authorization, `Content-Type`, Cookie, `X-Forwarded-For`}
 import org.http4s.syntax.all._
-import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
@@ -61,7 +60,7 @@ class MessageSuite extends Http4sSuite {
     val forwardedValues =
       NonEmptyList.of(Some(ipv4"192.168.1.1".address), Some(ipv4"192.168.1.2".address))
     val r = Request()
-      .withHeaders(Headers.of(`X-Forwarded-For`(forwardedValues)))
+      .withHeaders(v2.Headers(`X-Forwarded-For`(forwardedValues)))
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
     assertEquals(r.from, forwardedValues.head)
   }
@@ -78,7 +77,7 @@ class MessageSuite extends Http4sSuite {
       Request(Method.GET)
         .addCookie(RequestCookie("token", "value"))
         .headers
-        .get(CIString("Cookie"))
+        .get[Cookie]
         .map(_.value),
       Some("token=value"))
   }
@@ -90,7 +89,7 @@ class MessageSuite extends Http4sSuite {
         .addCookie(RequestCookie("token1", "value1"))
         .addCookie(RequestCookie("token2", "value2"))
         .headers
-        .get(CIString("Cookie"))
+        .get[Cookie]
         .map(_.value),
       Some("token1=value1; token2=value2")
     )
@@ -101,7 +100,7 @@ class MessageSuite extends Http4sSuite {
       Request(Method.GET)
         .addCookie("token", "value")
         .headers
-        .get(CIString("Cookie"))
+        .get[Cookie]
         .map(_.value),
       Some("token=value"))
   }
@@ -112,7 +111,7 @@ class MessageSuite extends Http4sSuite {
         .addCookie("token1", "value1")
         .addCookie("token2", "value2")
         .headers
-        .get(CIString("Cookie"))
+        .get[Cookie]
         .map(_.value),
       Some("token1=value1; token2=value2")
     )
@@ -157,25 +156,25 @@ class MessageSuite extends Http4sSuite {
   }
 
   test("cookies should parse discrete HTTP/1 Cookie header(s) into corresponding RequestCookies") {
-    val cookies = Header("Cookie", "test1=value1; test2=value2; test3=value3")
-    val request = Request(Method.GET, headers = Headers.of(cookies))
+    val cookies = "Cookie" -> "test1=value1; test2=value2; test3=value3"
+    val request = Request(Method.GET, headers = v2.Headers(cookies))
     assertEquals(request.cookies, cookieList)
   }
 
   test("cookies should parse discrete HTTP/2 Cookie header(s) into corresponding RequestCookies") {
-    val cookies = Headers.of(
-      Header("Cookie", "test1=value1"),
-      Header("Cookie", "test2=value2"),
-      Header("Cookie", "test3=value3"))
+    val cookies = v2.Headers(
+      "Cookie" -> "test1=value1",
+      "Cookie" -> "test2=value2",
+      "Cookie" -> "test3=value3")
     val request = Request(Method.GET, headers = cookies)
     assertEquals(request.cookies, cookieList)
   }
 
   test(
     "cookies should parse HTTP/1 and HTTP/2 Cookie headers on a single request into corresponding RequestCookies") {
-    val cookies = Headers.of(
-      Header("Cookie", "test1=value1; test2=value2"), // HTTP/1 style
-      Header("Cookie", "test3=value3")
+    val cookies = v2.Headers(
+      "Cookie" -> "test1=value1; test2=value2", // HTTP/1 style
+      "Cookie" -> "test3=value3"
     ) // HTTP/2 style (separate headers for separate cookies)
     val request = Request(Method.GET, headers = cookies)
     assertEquals(request.cookies, cookieList)
@@ -223,7 +222,7 @@ class MessageSuite extends Http4sSuite {
   test("asCurl should build cURL representation with headers") {
     assertEquals(
       request
-        .withHeaders(Header("k1", "v1"), Header("k2", "v2"))
+        .withHeaders("k1" -> "v1", "k2" -> "v2")
         .asCurl(),
       "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'")
   }
@@ -232,7 +231,7 @@ class MessageSuite extends Http4sSuite {
     assertEquals(
       request
         .withHeaders(
-          Header("Cookie", "k3=v3; k4=v4"),
+          "Cookie" -> "k3=v3; k4=v4",
           Authorization(BasicCredentials("user", "pass")))
         .asCurl(),
       "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
@@ -243,8 +242,8 @@ class MessageSuite extends Http4sSuite {
     assertEquals(
       request
         .withHeaders(
-          Header("Cookie", "k3=v3; k4=v4"),
-          Header("k5", "v5"),
+          "Cookie" -> "k3=v3; k4=v4",
+          "k5" -> "v5",
           Authorization(BasicCredentials("user", "pass")))
         .asCurl(_ => false),
       "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
@@ -254,7 +253,7 @@ class MessageSuite extends Http4sSuite {
   test("asCurl should escape quotation marks in header") {
     assertEquals(
       request
-        .withHeaders(Header("k6", "'v6'"), Header("'k7'", "v7"))
+        .withHeaders("k6" -> "'v6'", "'k7'" -> "v7")
         .asCurl(),
       s"""curl -X GET 'http://localhost:1234/foo' -H 'k6: '\\''v6'\\''' -H ''\\''k7'\\'': v7'"""
     )
@@ -263,7 +262,7 @@ class MessageSuite extends Http4sSuite {
   test(
     "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMismatch") {
     val req =
-      Request[IO](headers = Headers.of(`Content-Type`(MediaType.application.`octet-stream`)))
+      Request[IO](headers = v2.Headers(`Content-Type`(MediaType.application.`octet-stream`)))
     val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)
   }

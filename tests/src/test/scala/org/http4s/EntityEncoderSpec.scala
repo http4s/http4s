@@ -38,7 +38,7 @@ class EntityEncoderSpec extends Http4sSuite {
     }
 
     test("EntityEncoder should render streams with chunked transfer encoding") {
-      EntityEncoder[IO, Stream[IO, String]].headers.get(`Transfer-Encoding`) match {
+      EntityEncoder[IO, Stream[IO, String]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) => assert(coding.hasChunked)
         case _ => fail("Match failed")
       }
@@ -49,7 +49,7 @@ class EntityEncoderSpec extends Http4sSuite {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => Entity.empty)
-      implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get(`Transfer-Encoding`) match {
+      implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) =>
           assertEquals(coding, `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked))
         case _ => fail("Match failed")
@@ -62,7 +62,7 @@ class EntityEncoderSpec extends Http4sSuite {
       implicit val FooEncoder =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
           Entity.empty)
-      EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) match {
+      EntityEncoder[IO, Stream[IO, Foo]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) =>
           assertEquals(coding, `Transfer-Encoding`(TransferCoding.chunked))
         case _ => fail("Match failed")
@@ -71,7 +71,7 @@ class EntityEncoderSpec extends Http4sSuite {
 
     test("EntityEncoder should render entity bodies with chunked transfer encoding") {
       assert(
-        EntityEncoder[IO, EntityBody[IO]].headers.get(`Transfer-Encoding`) == Some(
+        EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`] == Some(
           `Transfer-Encoding`(TransferCoding.chunked)))
     }
 
@@ -151,7 +151,7 @@ class EntityEncoderSpec extends Http4sSuite {
       }
 
     implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[IO, A]] =
-      Eq.by[EntityEncoder[IO, A], (Headers, A => Entity[IO])] { enc =>
+      Eq.by[EntityEncoder[IO, A], (v2.Headers, A => Entity[IO])] { enc =>
         (enc.headers, enc.toEntity)
       }
 

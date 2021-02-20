@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.data.NonEmptyList
 import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
@@ -23,23 +24,22 @@ import org.typelevel.ci.CIString
 
 class HeadersSpec extends Http4sSuite {
   val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw(CIString("raw-header"), "Raw value")
+  val raw = v2.Header.Raw(CIString("raw-header"), "Raw value")
 
-  val base = Headers.of(clength.toRaw, raw)
+  val base = v2.Headers(clength, raw)
 
   test("Headers should Not find a header that isn't there") {
-    assertEquals(base.get(`Content-Base`), None)
+    assertEquals(base.get[`Content-Type`], None)
   }
 
   test("Headers should Find an existing header and return its parsed form") {
-    assertEquals(base.get(`Content-Length`), Some(clength))
-    assertEquals(base.get(CIString("raw-header")), Some(raw))
+    assertEquals(base.get[`Content-Length`], Some(clength))
+    assertEquals(base.get(CIString("raw-header")), Some(NonEmptyList.of(raw)))
   }
 
   test("Headers should Replaces headers") {
     val newlen = `Content-Length`.zero
-    assertEquals(base.put(newlen).get(newlen.key), Some(newlen))
-    assertEquals(base.put(newlen.toRaw).get(newlen.key), Some(newlen))
+    assertEquals(base.put(newlen).get[`Content-Length`], Some(newlen))
   }
 
   test("Headers should also find headers created raw") {
@@ -83,10 +83,10 @@ class HeadersSpec extends Http4sSuite {
   // }
 
   test("Headers should Preserve original headers when processing") {
-    val rawAuth = Header("Authorization", "test this")
+    val rawAuth = v2.Header.Raw(CIString("Authorization"), "test this")
 
     // Mapping to strings because Header equality is based on the *parsed* version
-    assert((Headers.of(rawAuth) ++ base).toList.map(_.toString).contains(rawAuth.toString))
+    assert((v2.Headers(rawAuth) ++ base).headers.map(_.toString).contains(rawAuth.toString))
   }
 
   test("Headers should hash the same when constructed with the same contents") {
@@ -103,6 +103,6 @@ class HeadersSpec extends Http4sSuite {
     assert(h3.equals(h5))
   }
 
-  checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
-  checkAll("Order[Headers]", OrderTests[Headers].order)
+  checkAll("Monoid[Headers]", MonoidTests[v2.Headers].monoid)
+  checkAll("Order[Headers]", OrderTests[v2.Headers].order)
 }
