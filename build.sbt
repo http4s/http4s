@@ -15,15 +15,15 @@ ThisBuild / publishFullName   := "Ross A. Baker"
 // todo remove once salafmt properly supports scala3
 ThisBuild / githubWorkflowBuild := Seq(
       WorkflowStep
-        .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3M3'")),
+        .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'")),
       WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
       WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
       WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
       WorkflowStep.Sbt(
         List("unusedCompileDependenciesTest"),
-        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3M3'")), // todo disable on dotty for now
+        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'")), // todo disable on dotty for now
       WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"), cond = Some(s"matrix.scala != '$scala_3M3'"))
+      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'"))
     )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(

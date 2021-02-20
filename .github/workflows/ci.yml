@@ -57,7 +57,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        if: matrix.scala != '3.0.0-M3'
+        if: matrix.scala != '3.0.0-M3' && matrix.scala != '3.0.0-RC1'
         run: sbt ++${{ matrix.scala }} scalafmtCheckAll
 
       - name: Check headers
@@ -70,14 +70,14 @@ jobs:
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
       - name: Check unused compile dependencies
-        if: matrix.scala != '3.0.0-M3'
+        if: matrix.scala != '3.0.0-M3' && matrix.scala != '3.0.0-RC1'
         run: sbt ++${{ matrix.scala }} unusedCompileDependenciesTest
 
       - name: Run tests
         run: sbt ++${{ matrix.scala }} test
 
       - name: Build docs
-        if: matrix.scala != '3.0.0-M3'
+        if: matrix.scala != '3.0.0-M3' && matrix.scala != '3.0.0-RC1'
         run: sbt ++${{ matrix.scala }} doc
 
   publish:
