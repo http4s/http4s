@@ -112,20 +112,26 @@ object Header {
     def values: List[Header.Raw]
   }
   object ToRaw {
-    implicit def rawToRaw(h: Header.Raw): Header.ToRaw = new Header.ToRaw {
-      val values = List(h)
-    }
+    trait Primitive
 
-    implicit def keyValuesToRaw(kv: (String, String)): Header.ToRaw = new Header.ToRaw {
-      val values = List(Header.Raw(CIString(kv._1), kv._2))
-    }
+    implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = h
 
-    implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw =
-      new Header.ToRaw {
+    implicit def rawToRaw(h: Header.Raw): Header.ToRaw with Primitive =
+      new Header.ToRaw with Primitive {
+        val values = List(h)
+      }
+
+    implicit def keyValuesToRaw(kv: (String, String)): Header.ToRaw with Primitive =
+      new Header.ToRaw with Primitive {
+        val values = List(Header.Raw(CIString(kv._1), kv._2))
+      }
+
+    implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw with Primitive =
+      new Header.ToRaw with Primitive {
         val values = List(Header.Raw(H.name, H.value(h)))
       }
 
-    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw): Header.ToRaw = new Header.ToRaw {
+    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
   }
@@ -224,6 +230,8 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     if (in.isEmpty) this
     else if (this.headers.isEmpty) Headers(in: _*)
     else Headers(headers, in.toList)
+
+
 
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
@@ -364,5 +372,19 @@ object Examples {
 
   // scala> Examples.c
   // val res2: Option[NonEmptyList[SetCookie]] = Some(NonEmptyList(SetCookie(cookie1,a cookie), SetCookie(cookie2,another cookie)))
+
+  val hs2 = Headers(
+    Bar(NonEmptyList.one("one")),
+    Foo("two"),
+    SetCookie("cookie1", "a cookie"),
+    Bar(NonEmptyList.one("three")),
+    SetCookie("cookie2", "another cookie"),
+    "a" -> "b",
+    Option("a" -> "c"),
+    List("a" -> "c"),
+    List(SetCookie("cookie3", "cookie three"))
+    // ,
+    // Option(List("a" -> "c")) // correctly fails to compile
+  )
 
 }
