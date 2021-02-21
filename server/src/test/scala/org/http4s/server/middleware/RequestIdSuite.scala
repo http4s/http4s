@@ -28,7 +28,7 @@ class RequestIdSuite extends Http4sSuite {
   private def testService(headerKey: CIString = CIString("X-Request-ID")) =
     HttpRoutes.of[IO] {
       case req @ GET -> Root / "request" =>
-        Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.value)}")
+        Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.head.value)}")
       case req @ GET -> Root / "attribute" =>
         Ok(
           show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}")
@@ -40,11 +40,11 @@ class RequestIdSuite extends Http4sSuite {
   private def requestIdFromHeaders(
       resp: Response[IO],
       headerKey: CIString = CIString("X-Request-ID")) =
-    resp.headers.get(headerKey).fold("None")(_.value)
+    resp.headers.get(headerKey).fold("None")(_.head.value)
 
   test("propagate X-Request-ID header from request to response") {
     val req =
-      Request[IO](uri = uri"/request", headers = Headers.of(Header("X-Request-ID", "123")))
+      Request[IO](uri = uri"/request", headers = v2.Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(testService())
       .orNotFound(req)
@@ -80,7 +80,7 @@ class RequestIdSuite extends Http4sSuite {
   test("propagate custom request id header from request to response") {
     val req = Request[IO](
       uri = uri"/request",
-      headers = Headers.of(Header("X-Request-ID", "123"), Header("X-Correlation-ID", "abc")))
+      headers = v2.Headers("X-Request-ID" -> "123", "X-Correlation-ID" -> "abc"))
     RequestId
       .httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID")))
       .orNotFound(req)
@@ -95,7 +95,7 @@ class RequestIdSuite extends Http4sSuite {
 
   test("generate custom request id header when unset") {
     val req =
-      Request[IO](uri = uri"/request", headers = Headers.of(Header("X-Request-ID", "123")))
+      Request[IO](uri = uri"/request", headers = v2.Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID")))
       .orNotFound(req)
@@ -125,7 +125,7 @@ class RequestIdSuite extends Http4sSuite {
 
   test("include requestId attribute with request and response") {
     val req =
-      Request[IO](uri = uri"/attribute", headers = Headers.of(Header("X-Request-ID", "123")))
+      Request[IO](uri = uri"/attribute", headers = v2.Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(testService())
       .orNotFound(req)

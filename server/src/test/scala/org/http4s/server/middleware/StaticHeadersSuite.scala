@@ -34,7 +34,7 @@ class StaticHeadersSuite extends Http4sSuite {
     val resp = StaticHeaders.`no-cache`(testService).orNotFound(req)
 
     resp
-      .map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache"))
+      .map(_.headers.headers.map(_.toString).contains("Cache-Control: no-cache"))
       .assert
   }
 }
