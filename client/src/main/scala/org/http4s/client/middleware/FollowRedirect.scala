@@ -99,7 +99,8 @@ object FollowRedirect {
         redirects: Int,
         hotswap: Hotswap[F, Response[F]]): F[Response[F]] =
       hotswap.swap(client.run(req)).flatMap { resp =>
-        (methodForRedirect(req, resp), resp.headers.get(Location)) match {
+        val l: Option[Location] = resp.headers.get(Location)
+        (methodForRedirect(req, resp), l) match {
           case (Some(method), Some(loc)) if redirects < maxRedirects =>
             val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
             redirectLoop(nextReq, redirects + 1, hotswap)
