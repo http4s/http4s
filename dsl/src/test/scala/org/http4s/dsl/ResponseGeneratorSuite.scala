@@ -124,14 +124,14 @@ class ResponseGeneratorSuite extends Http4sSuite {
 
   test("MovedPermanently() generates expected headers without body") {
     val location = Location(Uri.unsafeFromString("http://foo"))
-    val resp = MovedPermanently(location)(Accept(MediaRange.`audio/*`))
+    val resp = MovedPermanently(location, (), Accept(MediaRange.`audio/*`))
     resp
       .map(_.headers.headers)
       .assertEquals(
         v2.Headers(
-          `Content-Length`.zero,
           location,
-          Accept(MediaRange.`audio/*`)
+          Accept(MediaRange.`audio/*`),
+          `Content-Length`.zero,
         ).headers)
   }
 
