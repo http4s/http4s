@@ -124,10 +124,17 @@ object Header {
       new Header.ToRaw with Primitive {
         val values = List(Header.Raw(CIString(kv._1), kv._2))
       }
-    implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw with Primitive =
+
+    implicit def modelledSingleHeadersToRaw[H](h: H)(implicit H: Header[H, Single]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
-        val values = List(Header.Raw(H.name, H.value(h)))
+        val values = List(Header.Raw(H.name, H.value(h), recurring = false))
       }
+
+    implicit def modelledRecurringHeadersToRaw[H](h: H)(implicit H: Header[H, Recurring]): Header.ToRaw with Primitive =
+      new Header.ToRaw with Primitive {
+        val values = List(Header.Raw(H.name, H.value(h), recurring = true))
+      }
+
 
     implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
@@ -271,12 +278,12 @@ object Headers {
       val acc = MutSet.empty[CIString]
       val res = ListBuffer.empty[Header.Raw]
 
-      headers.foldMap(_.values).foreach { h =>
+      headers.foldMap(_.values).reverse.foreach { h =>
         if (h.recurring || acc.add(h.name))
           res += h
       }
 
-      new Headers(res.toList)
+      new Headers(res.toList.reverse)
     }
   }
 
