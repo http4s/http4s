@@ -83,7 +83,7 @@ class MessageSuite extends Http4sSuite {
   }
 
   test(
-    "support cookies should contain a single Cookie header when multiple explicit cookies are added") {
+    "support cookies should contain a Cookie header when multiple explicit cookies are added") {
     assertEquals(
       Request(Method.GET)
         .addCookie(RequestCookie("token1", "value1"))
@@ -95,7 +95,7 @@ class MessageSuite extends Http4sSuite {
     )
   }
 
-  test("support cookies should contain a Cookie header when a name/value pair is added") {
+  test("support cookies should contain Cookie header(s) when a name/value pair is added") {
     assertEquals(
       Request(Method.GET)
         .addCookie("token", "value")
@@ -105,7 +105,7 @@ class MessageSuite extends Http4sSuite {
       Some("token=value"))
   }
 
-  test("support cookies should contain a single Cookie header when name/value pairs are added") {
+  test("support cookies should contain Cookie header(s) when name/value pairs are added") {
     assertEquals(
       Request(Method.GET)
         .addCookie("token1", "value1")
@@ -193,7 +193,7 @@ class MessageSuite extends Http4sSuite {
       Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
     assertEquals(
       request.toString,
-      "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
+      "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>, Cookie: <REDACTED>))")
   }
 
   test("covary should disallow unrelated effects") {
