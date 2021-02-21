@@ -25,6 +25,8 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.4"
   val scala_212 = "2.12.13"
+  val scala_3M3 = "3.0.0-M3"
+  val scala_3RC1 = "3.0.0-RC1"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -305,7 +307,6 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.3"
     val scalacheckEffect = "0.7.1"
-    val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.3"
     val scalaXml = "2.0.0-M5"
     val scodecBits = "1.1.24"

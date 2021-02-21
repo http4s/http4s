@@ -68,14 +68,10 @@ class MediaTypeSuite extends Http4sSuite {
   }
 
   test("MediaType should reject invalid literals") {
-    assertNoDiff(
+    assert(
       compileErrors {
         """mediaType"not valid""""
-      },
-      """|error: invalid MediaType
-              |mediaType"not valid"
-              |^
-              |""".stripMargin
+      }.nonEmpty
     )
   }
 

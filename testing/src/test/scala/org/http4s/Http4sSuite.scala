@@ -56,7 +56,7 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
 
 object Http4sSuite {
   val TestBlocker: Blocker =
-    Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
+    Blocker.liftExecutorService(newBlockingPool("http4s-suite-blocking"))
 
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-suite", timeout = true))
