@@ -19,10 +19,9 @@ package org.http4s
 package server
 package middleware
 
-import org.http4s.{Header, Http, Request, Response}
 import cats.{FlatMap, ~>}
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, OptionT}
+import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.{IO, Sync}
 import cats.syntax.all._
 import org.typelevel.ci.CIString
@@ -47,9 +46,9 @@ object RequestId {
   )(http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
-        header <- req.headers.get(headerName) match {
-          case None => G.delay(Header.Raw(headerName, UUID.randomUUID().toString()))
-          case Some(header) => G.pure[Header](header)
+        header <- req.headers.get(headerName).map(_.head) match {
+          case None => G.delay(v2.Header.Raw(headerName, UUID.randomUUID().toString(), recurring = false))
+          case Some(header) => G.pure(header)
         }
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
@@ -64,8 +63,8 @@ object RequestId {
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
         header <- fk(req.headers.get(headerName) match {
-          case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
-          case Some(header) => F.pure[Header](header)
+          case None => genReqId.map(reqId => v2.Header.Raw(headerName, reqId.show))
+          case Some(NonEmptyList(header, _)) => F.pure(header)
         })
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))

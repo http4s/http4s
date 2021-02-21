@@ -47,8 +47,19 @@ trait Header[A, T <: Header.Type] {
   def parse(headerValue: String): Either[ParseFailure, A]
 }
 object Header {
-  case class Raw(name: CIString, value: String, recurring: Boolean = true)
+  class Raw(val name: CIString, val value: String, val recurring: Boolean) {
+    override def equals(that: Any) = that match {
+      case that: Raw => this.name == that.name && this.value == that.value
+      case _ => false
+    }
+    // TODO use something more efficient
+    override def hashCode: Int = (name, value).##
+  }
+
   object Raw {
+    def apply(name: CIString, value: String, recurring: Boolean = true) =
+      new Raw(name, value, recurring)
+
     implicit lazy val catsInstancesForHttp4sHeaderRaw: Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] {
       def show(h: Raw): String = s"${h.name.show}: ${h.value}"
       def hash(h: Raw): Int = h.hashCode

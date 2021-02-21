@@ -19,11 +19,12 @@ package server
 package middleware
 
 import cats.{Applicative, Monad}
-import cats.syntax.all._
+import cats.data.NonEmptyList
 import cats.data.Kleisli
 import org.http4s.Status.MovedPermanently
 import org.http4s.Uri.{Authority, RegName, Scheme}
-import org.http4s.headers.{Host, Location, `Content-Type`, `X-Forwarded-Proto`}
+import org.http4s.headers.{Host, Location, `Content-Type`}
+import org.typelevel.ci.CIString
 
 import org.log4s.getLogger
 
@@ -38,14 +39,14 @@ object HttpsRedirect {
 
   def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
-      (req.headers.get(`X-Forwarded-Proto`), req.headers.get(Host)) match {
-        case (Some(proto), Some(host)) if Scheme.fromString(proto.value).contains(Scheme.http) =>
+      (req.headers.get(CIString("X-Forwarded-Proto")), req.headers.get[Host]) match {
+        case (Some(NonEmptyList(proto, _)), Some(host)) if Scheme.fromString(proto.value).contains(Scheme.http) =>
           logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host")
           val authority = Authority(host = RegName(host.value))
           val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))
-          val headers = Headers(Location(location) :: `Content-Type`(MediaType.text.xml) :: Nil)
+          val headers = v2.Headers(Location(location), `Content-Type`(MediaType.text.xml))
           val response = Response[G](status = MovedPermanently, headers = headers)
-          response.pure[F]
+          F.pure(response)
 
         case _ =>
           http(req)
