@@ -30,7 +30,7 @@ import org.http4s.server._
 class AsyncHttp4sServlet[F[_]](
     service: HttpApp[F],
     asyncTimeout: Duration = Duration.Inf,
-    private[this] var servletIo: ServletIo[F],
+    servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     dispatcher: Dispatcher[F])(implicit F: Async[F])
     extends Http4sServlet[F](service, servletIo, dispatcher) {
