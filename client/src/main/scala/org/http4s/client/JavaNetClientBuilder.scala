@@ -26,6 +26,7 @@ import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.typelevel.ci.CIString
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, blocking}
 
@@ -156,8 +157,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         v2.Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
-            .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
-            .toList: _*
+            .flatMap { case (k, vs) => vs.asScala.map(v2.Header.Raw(CIString(k), _)) }
+            .toList
         ))
     } yield Response(status = status, headers = headers, body = readBody(conn))
 

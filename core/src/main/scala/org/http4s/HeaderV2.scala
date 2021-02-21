@@ -60,6 +60,9 @@ object Header {
     def apply(name: CIString, value: String, recurring: Boolean = true) =
       new Raw(name, value, recurring)
 
+    def unapply(raw: Raw): Option[(CIString, String, Boolean)] =
+      Some(raw.name, raw.value, raw.recurring)
+
     implicit lazy val catsInstancesForHttp4sHeaderRaw: Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] {
       def show(h: Raw): String = s"${h.name.show}: ${h.value}"
       def hash(h: Raw): Int = h.hashCode

@@ -37,13 +37,13 @@ trait Http4sClientDsl[F[_]] {
 class MethodOps[F[_]](private val method: Method) extends AnyVal {
 
   /** Make a [[org.http4s.Request]] using this [[Method]] */
-  final def apply(uri: Uri, headers: Header*): Request[F] =
-    Request(method, uri, headers = v2.Headers(headers.toList))
+  final def apply(uri: Uri, headers: v2.Header.ToRaw*): Request[F] =
+    Request(method, uri, headers = v2.Headers(headers: _*))
 
   /** Make a [[org.http4s.Request]] using this Method */
-  final def apply[A](body: A, uri: Uri, headers: Header*)(implicit
+  final def apply[A](body: A, uri: Uri, headers: v2.Header.ToRaw*)(implicit
       w: EntityEncoder[F, A]): Request[F] = {
-    val h = w.headers ++ v2.Headers(headers.toList)
+    val h = w.headers ++ v2.Headers(headers: _*)
     val entity = w.toEntity(body)
     val newHeaders = entity.length
       .map { l =>
