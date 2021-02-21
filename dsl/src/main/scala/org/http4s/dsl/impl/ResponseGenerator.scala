@@ -83,11 +83,14 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   */
 trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGenerator[F, G] {
   @deprecated("Use `apply(Location(location))` instead", "0.18.0-M2")
-  def apply(location: Uri)(implicit F: Applicative[F]): F[Response[G]] =
+  def apply(uri: Uri)(implicit F: Applicative[F]): F[Response[G]] =
+    apply(Location(uri))
+
+  def apply(location: Location)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(
       Response[G](
         status = status,
-        headers = v2.Headers(`Content-Length`.zero, Location(location))))
+        headers = v2.Headers(`Content-Length`.zero, location)))
 
   def apply[A](location: Location, body: A, headers: v2.Header.ToRaw*)(implicit
       F: Applicative[F],

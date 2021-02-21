@@ -120,13 +120,13 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
-    val hs = rec.headers.toList
+    val hs = rec.headers.headers
     for {
       _ <- IO(rec.status).assertEquals(expected.status)
       body <- rec.body.compile.to(Array)
       expBody <- expected.body.compile.to(Array)
       _ <- IO(body).map(Arrays.equals(_, expBody)).assert
-      _ <- IO(expected.headers.forall(h => hs.exists(_ == h))).assert
+      _ <- IO(expected.headers.headers.forall(h => hs.exists(_ == h))).assert
       _ <- IO(rec.httpVersion).assertEquals(expected.httpVersion)
     } yield true
   }
