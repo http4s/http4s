@@ -149,7 +149,6 @@ object Header {
         val values = List(Header.Raw(H.name, H.value(h), recurring = true))
       }
 
-
     implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
