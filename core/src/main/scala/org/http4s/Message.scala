@@ -306,7 +306,7 @@ final class Request[F[_]](
         .redactSensitive(redactHeadersWhen)
         .headers
         .map { header =>
-          s"-H '${escapeQuotationMarks(header.toString)}'"
+          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
         }
         .mkString(" ")
     )
