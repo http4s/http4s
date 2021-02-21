@@ -54,6 +54,8 @@ object Header {
     }
     // TODO use something more efficient
     override def hashCode: Int = (name, value).##
+
+    override def toString = s"$name: $value"
   }
 
   object Raw {
