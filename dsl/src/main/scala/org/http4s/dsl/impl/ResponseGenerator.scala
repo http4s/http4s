@@ -90,7 +90,7 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
         headers = v2.Headers(`Content-Length`.zero, Location(location))))
 
   // TODO if Location and headers are in the same parameter list, call site doesn't compile
-  def apply(location: Location)(headers: v2.Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
+  def apply(location: Location, headers: v2.Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(
       Response[G](status, headers = v2.Headers(`Content-Length`.zero, location, headers.toList)))
 
