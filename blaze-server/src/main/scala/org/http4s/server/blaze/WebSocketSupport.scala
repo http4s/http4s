@@ -33,7 +33,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit def F: ConcurrentEffect[F]
+  protected implicit val F: ConcurrentEffect[F]
 
   override protected def renderResponse(
       req: Request[F],
