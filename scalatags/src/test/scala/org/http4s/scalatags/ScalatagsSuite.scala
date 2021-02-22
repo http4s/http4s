@@ -47,6 +47,7 @@ class ScalatagsSuite extends Http4sSuite {
   }
 
   test("TypedTag encoder should render the body") {
+    implicit val cs: Charset = Charset.`UTF-8`
     val resp = Response[IO](Ok).withEntity(testBody())
     EntityDecoder
       .text[IO]

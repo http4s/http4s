@@ -136,7 +136,8 @@ private[server] object ServerHelpers {
       durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration => parse.timeout(duration))
 
     for {
-      (req, drain) <- parseWithHeaderTimeout
+      tmp <- parseWithHeaderTimeout
+      (req, drain) = tmp
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)

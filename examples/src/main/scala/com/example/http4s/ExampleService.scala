@@ -30,7 +30,8 @@ import org.http4s.syntax.all._
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
-import org.http4s.twirl._
+// disabled until twirl supports dotty
+// import org.http4s.twirl._
 import org.http4s._
 import scala.concurrent.duration._
 
@@ -47,8 +48,10 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
   def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =
     HttpRoutes.of[F] {
       case GET -> Root =>
+        // disabled until twirl supports dotty
         // Supports Play Framework template -- see src/main/twirl.
-        Ok(html.index())
+        // Ok(html.index())
+        Ok("Hello World")
 
       case _ -> Root =>
         // The default route result is NotFound. Sometimes MethodNotAllowed is more appropriate.
@@ -88,14 +91,18 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
         Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.plain)))
 
       case GET -> Root / "echo" =>
-        Ok(html.submissionForm("echo data"))
+        // disabled until twirl supports dotty
+        // Ok(html.submissionForm("echo data"))
+        Ok("Hello World")
 
       case req @ POST -> Root / "echo2" =>
         // Even more useful, the body can be transformed in the response
         Ok(req.body.drop(6), `Content-Type`(MediaType.text.plain))
 
       case GET -> Root / "echo2" =>
-        Ok(html.submissionForm("echo data"))
+        // disabled until twirl supports dotty
+        // Ok(html.submissionForm("echo data"))
+        Ok("Hello World")
 
       case req @ POST -> Root / "sum" =>
         // EntityDecoders allow turning the body into something useful
@@ -114,7 +121,9 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
           }
 
       case GET -> Root / "sum" =>
-        Ok(html.submissionForm("sum"))
+        // disabled until twirl supports dotty
+        // Ok(html.submissionForm("sum"))
+        Ok("Hello World")
 
       ///////////////////////////////////////////////////////////////
       ////////////////////// Blaze examples /////////////////////////
@@ -143,7 +152,9 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
       ///////////////////////////////////////////////////////////////
       //////////////// Form encoding example ////////////////////////
       case GET -> Root / "form-encoded" =>
-        Ok(html.formEncoded())
+        // disabled until twirl supports dotty
+        // Ok(html.formEncoded())
+        Ok("Hello World")
 
       case req @ POST -> Root / "form-encoded" =>
         // EntityDecoders return an F[A] which is easy to sequence
@@ -169,7 +180,9 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
       ///////////////////////////////////////////////////////////////
       //////////////////////// Multi Part //////////////////////////
       case GET -> Root / "form" =>
-        Ok(html.form())
+        // disabled until twirl supports dotty
+        // Ok(html.form())
+        Ok("Hello World")
 
       case req @ POST -> Root / "multipart" =>
         req.decode[Multipart[F]] { m =>

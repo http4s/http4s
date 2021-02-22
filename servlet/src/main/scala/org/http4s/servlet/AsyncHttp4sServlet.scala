@@ -29,7 +29,7 @@ import scala.concurrent.duration.Duration
 class AsyncHttp4sServlet[F[_]](
     service: HttpApp[F],
     asyncTimeout: Duration = Duration.Inf,
-    private[this] var servletIo: ServletIo[F],
+    servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
     extends Http4sServlet[F](service, servletIo) {
   private val asyncTimeoutMillis =

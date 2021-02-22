@@ -20,7 +20,7 @@ class TraversalSpecItsNotYouItsMe
 
 import org.scalacheck.effect.PropF
 import cats.syntax.all._
-import cats.effect.{Concurrent, IO}
+import cats.effect.{Concurrent, ContextShift, IO}
 import fs2._
 import fs2.concurrent.Queue
 import org.http4s._
@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext
 
 // FIXME Restore after #3935 is worked out
 class TraversalSpec extends Http4sSuite {
-  implicit val CS = IO.contextShift(ExecutionContext.global)
+  implicit val CS: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
   object Helpers {
     def taking[F[_]: Concurrent, A](stream: Stream[F, A]): F[F[Option[Chunk[A]]]] =
