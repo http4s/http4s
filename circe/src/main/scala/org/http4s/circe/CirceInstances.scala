@@ -103,8 +103,8 @@ trait CirceInstances extends JawnInstances {
       decoder
         .decodeJson(json)
         .fold(
-          failure => DecodeResult.failure(decodeErrorHandler(json, NonEmptyList.one(failure))),
-          DecodeResult.success(_)
+          failure => DecodeResult.failureT(decodeErrorHandler(json, NonEmptyList.one(failure))),
+          DecodeResult.successT(_)
         )
     }
 
@@ -118,8 +118,8 @@ trait CirceInstances extends JawnInstances {
       decoder
         .decodeAccumulating(json.hcursor)
         .fold(
-          failures => DecodeResult.failure(jsonDecodeError(json, failures)),
-          DecodeResult.success(_)
+          failures => DecodeResult.failureT(jsonDecodeError(json, failures)),
+          DecodeResult.successT(_)
         )
     }
 

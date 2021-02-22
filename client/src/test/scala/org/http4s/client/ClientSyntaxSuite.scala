@@ -233,7 +233,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test("Client should ggcombine entity decoder media types correctly") {
     // This is more of an EntityDecoder spec
     val edec =
-      EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.success("foo!"))
+      EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.successT("foo!"))
     client
       .expect(Request[IO](GET, uri"http://www.foo.com/echoheaders"))(
         EntityDecoder.text[IO].orElse(edec))
