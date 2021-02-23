@@ -29,17 +29,9 @@ object DecodeResult {
   def successT[F[_], A](a: A)(implicit F: Applicative[F]): DecodeResult[F, A] =
     EitherT.rightT[F, DecodeFailure](a)
 
-  @deprecated("replaced by successT", "0.21.20")
-  def success[F[_], A](a: A)(implicit F: Applicative[F]): DecodeResult[F, A] =
-    successT(a)
-
   def failure[F[_], A](fe: F[DecodeFailure])(implicit F: Functor[F]): DecodeResult[F, A] =
     EitherT.left[A](fe)
 
   def failureT[F[_], A](e: DecodeFailure)(implicit F: Applicative[F]): DecodeResult[F, A] =
     EitherT.leftT[F, A](e)
-
-  @deprecated("replaced by failureT", "0.21.20")
-  def failure[F[_], A](e: DecodeFailure)(implicit F: Applicative[F]): DecodeResult[F, A] =
-    failureT(e)
 }
