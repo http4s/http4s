@@ -213,7 +213,7 @@ final class Request[F[_]](
     val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     val headers: Headers = Headers.empty,
-    val entity: Entity[F] = Entity.Empty(),
+    val entity: Entity[F] = Entity.empty[F],
     val attributes: Vault = Vault.empty
 ) extends Message[F]
     with Product
@@ -471,7 +471,7 @@ object Request {
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      entity: Entity[F] = Entity.Empty[F](),
+      entity: Entity[F] = Entity.empty[F],
       attributes: Vault = Vault.empty
   ): Request[F] =
     new Request[F](

@@ -43,7 +43,7 @@ object Part {
     "0.18.12"
   )
   def empty[F[_]]: Part[F] =
-    Part(Headers.empty, Entity.Empty[F]())
+    Part(Headers.empty, Entity.empty)
 
   def formData[F[_]](name: String, value: String, headers: Header*): Part[F] =
     Part(

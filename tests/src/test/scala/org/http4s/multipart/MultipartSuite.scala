@@ -186,7 +186,7 @@ I am a big moose
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO]())
 
-  def testPart[F[_]] = Part[F](Headers.empty, Entity.Empty[F](): Entity[F])
+  def testPart[F[_]] = Part[F](Headers.empty, Entity.empty[F])
 
   // todo compiles on dotty
   test("Part.covary should disallow unrelated effects".ignore) {
