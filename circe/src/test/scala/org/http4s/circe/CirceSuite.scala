@@ -208,7 +208,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
           .withEntity(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
           .pure[IO]
       }
-      .map(_.body)
+      .map(_.entity.body)
     body
       .flatMap(getBody)
       .map(bytes => new String(bytes, StandardCharsets.UTF_8))
