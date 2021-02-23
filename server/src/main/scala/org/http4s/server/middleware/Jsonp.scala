@@ -20,12 +20,16 @@ package middleware
 
 import cats.{Applicative, Functor}
 import cats.data.Kleisli
-import fs2.Stream._
+import fs2.Stream
 import fs2.Chunk
 import java.nio.charset.StandardCharsets
 import cats.syntax.all._
 import org.http4s.headers._
 import org.log4s.getLogger
+import org.http4s.Entity.Strict
+import org.http4s.Entity.TrustMe
+import org.http4s.Entity.Chunked
+import org.http4s.Entity.Empty
 
 /** Middleware to support wrapping json responses in jsonp.
   *
@@ -65,13 +69,14 @@ object Jsonp {
   private def jsonp[F[_]: Functor](resp: Response[F], callback: String) = {
     val begin = beginJsonp(callback)
     val end = EndJsonp
-    val jsonpBody = chunk(begin) ++ resp.body ++ chunk(end)
-    val newLengthHeaderOption = resp.headers.get(`Content-Length`).flatMap { old =>
-      old.modify(_ + begin.size + end.size)
+    val ent: Entity[F] = resp.entity match {
+      case Strict(chunk) => Strict(Chunk.concat(begin :: chunk :: end :: Nil))
+      case TrustMe(body, size) => TrustMe(Stream.chunk(begin) ++ body ++ Stream.chunk(end), size + begin.size + end.size)
+      case c@Chunked(_) => c
+      case e@Empty() => e
     }
     resp
-      .copy(body = jsonpBody)
-      .transformHeaders(h => Headers(h.toList ++ newLengthHeaderOption.toList))
+      .copy(entity = ent)
       .withContentType(`Content-Type`(MediaType.application.javascript))
   }
 

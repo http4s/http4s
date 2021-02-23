@@ -24,6 +24,10 @@ import cats.data.Kleisli
 import cats.syntax.all._
 import fs2.Stream
 import cats.effect.Concurrent
+import org.http4s.Entity.Strict
+import org.http4s.Entity.TrustMe
+import org.http4s.Entity.Chunked
+import org.http4s.Entity.Empty
 
 /** Handles HEAD requests as a GET without a body.
   *
@@ -45,5 +49,10 @@ object DefaultHead {
     apply(httpRoutes)
 
   private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
-    response.copy(body = response.body.interruptWhen[G](Stream(true)).drain)
+    response.copy(entity = response.entity match {
+      case Strict(chunk) => TrustMe(Stream.empty, chunk.size.toLong)
+      case TrustMe(body, size) => TrustMe(body.interruptWhen[G](Stream(true)).drain, size)
+      case Chunked(body) => Chunked(body.interruptWhen[G](Stream(true)).drain)
+      case e@Empty() => e
+    })
 }

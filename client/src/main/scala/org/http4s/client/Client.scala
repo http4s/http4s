@@ -27,6 +27,10 @@ import java.io.IOException
 import org.http4s.headers.Host
 import org.http4s.syntax.kleisli._
 import scala.util.control.NoStackTrace
+import org.http4s.Entity.Strict
+import org.http4s.Entity.TrustMe
+import org.http4s.Entity.Chunked
+import org.http4s.Entity.Empty
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
 trait Client[F[_]] {
@@ -223,7 +227,15 @@ object Client {
           Resource
             .eval(app(req0))
             .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
-            .map(resp => resp.copy(body = go(resp.body).stream))
+            .map{resp => 
+              val ent = resp.entity match {
+                case Strict(chunk) => Entity.trustMe(go(Stream.chunk(chunk)).stream, chunk.size.toLong)
+                case TrustMe(body, size) => Entity.trustMe(go(body).stream, size)
+                case Chunked(body) => Entity.chunked(go(body).stream)
+                case Empty() => Entity.trustMe(go(Stream.empty).stream, 0L)
+              }
+              resp.copy(entity = ent)
+            }
         }
       }
     }

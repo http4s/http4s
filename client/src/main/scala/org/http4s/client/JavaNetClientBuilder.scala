@@ -146,7 +146,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
             .toList
         ))
-    } yield Response(status = status, headers = headers, body = readBody(conn))
+      l = headers.get(org.http4s.headers.`Content-Length`).map(_.length)
+    } yield Response(status = status, headers = headers.removePayloadHeaders, entity = l.fold(Entity.chunked(readBody(conn)))(l => Entity.trustMe(readBody(conn), l)))
 
   private def timeoutMillis(d: Duration): Int =
     d match {

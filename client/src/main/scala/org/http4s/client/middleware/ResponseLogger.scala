@@ -25,6 +25,10 @@ import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
 import org.typelevel.ci.CIString
 import org.log4s.getLogger
+import org.http4s.Entity.Strict
+import org.http4s.Entity.TrustMe
+import org.http4s.Entity.Chunked
+import org.http4s.Entity.Empty
 
 /** Simple middleware for logging responses as they are processed
   */
@@ -77,12 +81,12 @@ object ResponseLogger {
       client.run(req).flatMap { response =>
         if (!logBody)
           Resource.eval(logMessage(response) *> F.delay(response))
-        else
-          Resource.suspend {
+        else {
+          val streamed = Resource.suspend {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
               Resource.make(
                 F.pure(
-                  response.copy(body = response.body
+                  response.copy(entity = response.entity.body
                     // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                     .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))))
                 )) { _ =>
@@ -98,6 +102,14 @@ object ResponseLogger {
               }
             }
           }
+          response.entity match {
+            case Strict(chunk) => Resource.liftF(logMessage(response)).as(response)
+            case TrustMe(body, size) => streamed
+            case Chunked(body) => streamed
+            case Empty() => Resource.liftF(logMessage(response)).as(response)
+          }
+        }
+
       }
     }
 

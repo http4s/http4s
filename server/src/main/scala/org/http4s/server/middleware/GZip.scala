@@ -90,7 +90,7 @@ object GZip {
     resp
       .removeHeader(`Content-Length`)
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-      .copy(body = b)
+      .copy(entity = Entity.chunked(b))
   }
 
   private val GZIP_MAGIC_NUMBER = 0x8b1f
