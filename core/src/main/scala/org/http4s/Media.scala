@@ -53,7 +53,7 @@ trait Media[F[_]] {
     headers.get(`Content-Type`)
 
   final def contentLength: Option[Long] =
-    headers.get(`Content-Length`).map(_.length)
+    entity.length
 
   final def charset: Option[Charset] =
     contentType.flatMap(_.charset)

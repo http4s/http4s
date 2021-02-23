@@ -77,7 +77,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @return a new message with the new body
     */
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
-    change(entity = w.toEntity(b))
+    change(entity = w.toEntity(b)).putHeaders(w.headers.toList:_*)
   }
 
   // General header methods

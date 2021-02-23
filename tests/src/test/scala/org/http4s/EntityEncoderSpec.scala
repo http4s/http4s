@@ -37,6 +37,7 @@ class EntityEncoderSpec extends Http4sSuite {
       writeToString(helloWorld).assertEquals("helloworld")
     }
 
+/*Invalid With New Model What do we want to do about them?
     test("EntityEncoder should render streams with chunked transfer encoding") {
       EntityEncoder[IO, Stream[IO, String]].headers.get(`Transfer-Encoding`) match {
         case Some(coding: `Transfer-Encoding`) => assert(coding.hasChunked)
@@ -51,12 +52,11 @@ class EntityEncoderSpec extends Http4sSuite {
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => Entity.Empty[IO]())
       implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get(`Transfer-Encoding`) match {
         case Some(coding: `Transfer-Encoding`) =>
-          assertEquals(coding, `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked))
+          assertEquals(coding, `Transfer-Encoding`(TransferCoding.gzip))
         case _ => fail("Match failed")
       }
     }
 
-/* Invalid With New Model What do we want to do about them?
     test(
       "EntityEncoder should render streams with chunked transfer encoding without duplicating chunked transfer encoding") {
       trait Foo

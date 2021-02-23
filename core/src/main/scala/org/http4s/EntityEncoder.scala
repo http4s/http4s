@@ -79,8 +79,7 @@ object EntityEncoder {
 
   /** Create a new [[EntityEncoder]] */
   def encodeBy[F[_], A](hs: Header*)(f: A => Entity[F]): EntityEncoder[F, A] = {
-    val hdrs = if (hs.nonEmpty) Headers(hs.toList) else Headers.empty
-    encodeBy(hdrs)(f)
+    encodeBy(Headers(hs.toList))(f)
   }
 
   /** Create a new [[EntityEncoder]]
@@ -91,7 +90,6 @@ object EntityEncoder {
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
       Entity.Strict(c)
-      // Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
@@ -104,7 +102,7 @@ object EntityEncoder {
 
   def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
-      def toEntity(a: A): Entity[F] = Entity.Empty()
+      def toEntity(a: A): Entity[F] = Entity.empty[F]
       def headers: Headers = Headers.empty
     }
 
@@ -116,15 +114,10 @@ object EntityEncoder {
       W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
-        Entity.Chunked(a.flatMap(W.toEntity(_).body))
+        Entity.chunked(a.flatMap(W.toEntity(_).body))
 
       override def headers: Headers =
-        W.headers.get(`Transfer-Encoding`) match {
-          case Some(transferCoding) if transferCoding.hasChunked =>
-            W.headers
-          case _ =>
-            W.headers.put(`Transfer-Encoding`(TransferCoding.chunked))
-        }
+        Headers.empty
     }
 
   implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
@@ -221,7 +214,7 @@ object EntityEncoder {
     }
 
   implicit def serverSentEventEncoder[F[_]]: EntityEncoder[F, EventStream[F]] =
-    entityBodyEncoder[F]
-      .contramap[EventStream[F]](_.through(ServerSentEvent.encoder))
-      .withContentType(`Content-Type`(MediaType.`text/event-stream`))
+    EntityEncoder.encodeBy(`Content-Type`(MediaType.`text/event-stream`)){e : EventStream[F] => 
+      Entity.chunked[F](e.through(ServerSentEvent.encoder))
+    }
 }

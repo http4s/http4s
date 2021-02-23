@@ -104,7 +104,7 @@ object StaticFile {
                   Response(
                     headers = headers,
                     entity = {
-                      val body =readInputStream[F](F.pure(inputStream), DefaultBufferSize)
+                      val body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
                       if (len >= 0) Entity.TrustMe(body, len)
                       else Entity.Chunked(body)
                     }

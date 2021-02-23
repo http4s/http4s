@@ -51,7 +51,10 @@ object Entity {
     def translate[G[_]](fk: F ~> G): Entity[G] = Empty()
   }
 
-  def empty[F[_]] = Empty[F]()
+  def strict[F[_]](chunk: Chunk[Byte]): Entity[F] = Strict(chunk)
+  def trustMe[F[_]](body: Stream[F, Byte], size: Long): Entity[F] = TrustMe(body, size)
+  def chunked[F[_]](body: Stream[F, Byte]): Entity[F] = Chunked(body)
+  def empty[F[_]]: Entity[F] = Empty[F]()
 
   implicit def encoder[F[_]]: EntityEncoder[F, Entity[F]] = EntityEncoder.encodeBy()(identity)
 
