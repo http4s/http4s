@@ -258,7 +258,7 @@ object MultipartParser {
           if (r == streamEmpty)
             Pull.raiseError[F](MalformedMessageBodyFailure("Part not terminated properly"))
           else
-            Pull.output1(Part[F](hdrs, l)) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
+            Pull.output1(Part[F](hdrs, Entity.Chunked(l))) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
               case (hdrStream, remaining) =>
                 if (hdrStream == streamEmpty) //Empty returned if it worked fine
                   Pull.done
@@ -693,8 +693,8 @@ object MultipartParser {
       path: Option[Path]
   )(implicit files: Files[F]): Part[F] =
     path match {
-      case Some(p) => Part(hdrs, body.onFinalizeWeak(files.delete(p)))
-      case None => Part(hdrs, body)
+      case Some(p) => Part(hdrs, Entity.Chunked(body.onFinalizeWeak(files.delete(p))))
+      case None => Part(hdrs, Entity.Chunked(body))
     }
 
   /** Split the stream on `values`, but when

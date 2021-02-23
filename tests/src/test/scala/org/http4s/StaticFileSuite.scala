@@ -187,7 +187,7 @@ class StaticFileSuite extends Http4sSuite {
             // Length is only 1 byte
             assertEquals(r.flatMap(_.headers.get(`Content-Length`).map(_.length)), Some(1L))
             // get the Body to check the actual size
-            r.map(_.body.compile.toVector.map(_.length)).traverse(_.assertEquals(1))
+            r.map(_.entity.body.compile.toVector.map(_.length)).traverse(_.assertEquals(1))
           }
           .void
       }
@@ -226,7 +226,7 @@ class StaticFileSuite extends Http4sSuite {
             r.flatMap(_.headers.get(`Content-Length`).map(_.length)),
             Some(fileSize.toLong - 1L))
           // get the Body to check the actual size
-          r.map(_.body.compile.toVector)
+          r.map(_.entity.body.compile.toVector)
             .map { body =>
               body.map(_.length).assertEquals(fileSize - 1) *>
                 // Verify the context
@@ -250,7 +250,7 @@ class StaticFileSuite extends Http4sSuite {
     val s = StaticFile
       .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
       .value
-      .map(_.fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body))
+      .map(_.fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.entity.body))
     // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
     // saves chunks, which are mutated by naive usage of readInputStream.
     // This ensures that we're making a defensive copy of the bytes for

@@ -21,8 +21,7 @@ import cats.data.NonEmptyList
 import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
 import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
-import fs2.{Pure, Stream}
-import fs2.text.utf8Encode
+import fs2.Pure
 import java.io.File
 import org.http4s.headers._
 import org.log4s.getLogger
@@ -30,6 +29,7 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import scala.util.hashing.MurmurHash3
+import java.nio.charset.StandardCharsets
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
@@ -41,13 +41,13 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def headers: Headers
 
-  def body: EntityBody[F]
+  def entity: Entity[F]
 
   def attributes: Vault
 
   protected def change(
       httpVersion: HttpVersion = httpVersion,
-      body: EntityBody[F] = body,
+      entity: Entity[F] = entity,
       headers: Headers = headers,
       attributes: Vault = attributes): Self
 
@@ -77,34 +77,8 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @return a new message with the new body
     */
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
-    val entity = w.toEntity(b)
-    val hs = entity.length match {
-      case Some(l) =>
-        `Content-Length`
-          .fromLong(l)
-          .fold[Headers](
-            _ => {
-              Message.logger.warn(s"Attempt to provide a negative content length of $l")
-              w.headers
-            },
-            cl => Headers(cl :: w.headers.toList))
-      case None => w.headers
-    }
-    change(body = entity.body, headers = headers ++ hs)
+    change(entity = w.toEntity(b))
   }
-
-  /** Sets the entity body without affecting headers such as `Transfer-Encoding`
-    * or `Content-Length`. Most use cases are better served by [[withEntity]],
-    * which uses an [[EntityEncoder]] to maintain the headers.
-    */
-  def withBodyStream(body: EntityBody[F]): Self =
-    change(body = body)
-
-  /** Set an empty entity body on this message, and remove all payload headers
-    * that make no sense with an empty body.
-    */
-  def withEmptyBody: Self =
-    withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
 
   // General header methods
 
@@ -220,7 +194,7 @@ final class Request[F[_]](
     val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     val headers: Headers = Headers.empty,
-    val body: EntityBody[F] = EmptyBody,
+    val entity: Entity[F] = Entity.Empty(),
     val attributes: Vault = Vault.empty
 ) extends Message[F]
     with Product
@@ -234,7 +208,7 @@ final class Request[F[_]](
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
+      entity: Entity[F] = this.entity,
       attributes: Vault = this.attributes
   ): Request[F] =
     Request(
@@ -242,7 +216,7 @@ final class Request[F[_]](
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes
     )
 
@@ -252,7 +226,7 @@ final class Request[F[_]](
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body.translate(f),
+      entity = entity.translate(f),
       attributes = attributes
     )
 
@@ -264,13 +238,13 @@ final class Request[F[_]](
 
   override protected def change(
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      entity: Entity[F],
       headers: Headers,
       attributes: Vault
   ): Self =
     copy(
       httpVersion = httpVersion,
-      body = body,
+      entity = entity,
       headers = headers,
       attributes = attributes
     )
@@ -448,7 +422,7 @@ final class Request[F[_]](
           (this.uri == that.uri) &&
           (this.httpVersion == that.httpVersion) &&
           (this.headers == that.headers) &&
-          (this.body == that.body) &&
+          (this.entity == that.entity) &&
           (this.attributes == that.attributes)
       case _ => false
     })
@@ -463,7 +437,7 @@ final class Request[F[_]](
       case 1 => uri
       case 2 => httpVersion
       case 3 => headers
-      case 4 => body
+      case 4 => entity
       case 5 => attributes
       case _ => throw new IndexOutOfBoundsException()
     }
@@ -478,7 +452,7 @@ object Request {
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      body: EntityBody[F] = EmptyBody,
+      entity: Entity[F] = Entity.Empty[F](),
       attributes: Vault = Vault.empty
   ): Request[F] =
     new Request[F](
@@ -486,12 +460,12 @@ object Request {
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes
     )
 
   def unapply[F[_]](
-      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, Entity[F], Vault)] =
     message match {
       case request: Request[F] =>
         Some(
@@ -500,7 +474,7 @@ object Request {
             request.uri,
             request.httpVersion,
             request.headers,
-            request.body,
+            request.entity,
             request.attributes))
       case _ => None
     }
@@ -522,7 +496,7 @@ object Request {
   *
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
-  * @param body EntityBody[F] representing the possible body of the response
+  * @param entity EntityBody[F] representing the possible body of the response and associated information
   * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
@@ -531,7 +505,7 @@ final case class Response[F[_]](
     status: Status = Status.Ok,
     httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     headers: Headers = Headers.empty,
-    body: EntityBody[F] = EmptyBody,
+    entity: Entity[F] = Entity.empty[F],
     attributes: Vault = Vault.empty)
     extends Message[F] {
   type SelfF[F0[_]] = Response[F0]
@@ -541,7 +515,7 @@ final case class Response[F[_]](
       status = status,
       httpVersion = httpVersion,
       headers = headers,
-      body = body.translate(f),
+      entity = entity.translate(f),
       attributes = attributes
     )
 
@@ -550,13 +524,13 @@ final case class Response[F[_]](
 
   override protected def change(
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      entity: Entity[F],
       headers: Headers,
       attributes: Vault
   ): Self =
     copy(
       httpVersion = httpVersion,
-      body = body,
+      entity = entity,
       headers = headers,
       attributes = attributes
     )
@@ -594,17 +568,18 @@ object Response {
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
-      body = Stream("Not found").through(utf8Encode),
+      entity = Entity.Strict(
+        fs2.Chunk.array( "Not found".getBytes(StandardCharsets.UTF_8))
+      ),
       headers = Headers(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`) :: `Content-Length`.unsafeFromLong(
-          9L) :: Nil)
+        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`) :: Nil)
     )
 
-  def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
+  def notFound[F[_]]: Response[F] = pureNotFound.covary[F]
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
-      encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
+      encoder: EntityEncoder[F, String]): F[Response[F]] = 
+        Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 
   def timeout[F[_]]: Response[F] =
     Response[F](Status.ServiceUnavailable).withEntity("Response timed out")

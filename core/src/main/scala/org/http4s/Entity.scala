@@ -17,12 +17,14 @@
 package org.http4s
 
 import fs2.{Stream, Chunk}
-import cats.Monoid
+import cats._
 import cats.syntax.all._
 
 sealed trait Entity[F[_]]{
   def body: Stream[F, Byte]
   def length: Option[Long]
+  def translate[G[_]](fk: F ~> G): Entity[G]
+  def covary[G[x] >: F[x]]: Entity[G] = translate[G](cats.arrow.FunctionK.id[F].widen[G]) 
 }
 
 object Entity {
@@ -30,21 +32,28 @@ object Entity {
   case class Strict[F[_]](chunk: Chunk[Byte]) extends Entity[F]{
     def body: Stream[F, Byte] = Stream.chunk(chunk)
     def length: Option[Long] = chunk.size.toLong.some
+    def translate[G[_]](fk: F ~> G): Entity[G] = Strict(chunk)
   }
 
   case class TrustMe[F[_]](body: Stream[F, Byte], size: Long) extends Entity[F]{
     def length: Option[Long] = size.some
+    def translate[G[_]](fk: F ~> G): Entity[G] = TrustMe(body.translate(fk), size)
   }
 
   case class Chunked[F[_]](body: Stream[F, Byte]) extends Entity[F]{
     def length: Option[Long] = None
+    def translate[G[_]](fk: F ~> G): Entity[G] = Chunked(body.translate(fk))
   }
 
   case class Empty[F[_]]() extends Entity[F]{
     def body: Stream[fs2.Pure,Byte] = Stream.empty
     def length: Option[Long] = Some(0L)
+    def translate[G[_]](fk: F ~> G): Entity[G] = Empty()
   }
 
+  def empty[F[_]] = Empty[F]()
+
+  implicit def encoder[F[_]]: EntityEncoder[F, Entity[F]] = EntityEncoder.encodeBy()(identity)
 
   implicit def http4sMonoidForEntity[F[_]]: Monoid[Entity[F]] =
     new Monoid[Entity[F]] {

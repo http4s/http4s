@@ -189,7 +189,7 @@ object EntityDecoder {
 
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
+    DecodeResult.success(m.entity.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
 
   @deprecated(
     "Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText",
@@ -209,7 +209,7 @@ object EntityDecoder {
   def error[F[_], T](t: Throwable)(implicit F: Concurrent[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(m.body.compile.drain *> F.raiseError(t))
+        DecodeResult(m.entity.body.compile.drain *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 
@@ -237,13 +237,13 @@ object EntityDecoder {
   def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val pipe = Files[F].writeAll(file.toPath)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+      DecodeResult.success(msg.entity.body.through(pipe).compile.drain).map(_ => file)
     }
 
   def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val pipe = Files[F].writeAll(file.toPath)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+      DecodeResult.success(msg.entity.body.through(pipe).compile.drain).map(_ => file)
     }
 
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
@@ -259,6 +259,6 @@ object EntityDecoder {
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.compile.drain)
+      DecodeResult.success(msg.entity.body.drain.compile.drain)
     }
 }

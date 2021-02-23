@@ -28,7 +28,7 @@ private[http4s] object MultipartDecoder {
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
-            msg.body
+            msg.entity.body
               .through(MultipartParser.parseToPartsStream[F](Boundary(boundary)))
               .compile
               .toVector
@@ -80,7 +80,8 @@ private[http4s] object MultipartDecoder {
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
-            msg.body
+            msg.entity
+              .body
               .through(
                 MultipartParser.parseToPartsStreamedFile[F](
                   Boundary(boundary),

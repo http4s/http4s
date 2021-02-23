@@ -34,8 +34,8 @@ class MultipartSuite extends Http4sSuite {
     Eq.instance[Part[IO]] { case (a, b) =>
       a.headers === b.headers && {
         for {
-          abv <- a.body.compile.toVector
-          bbv <- b.body.compile.toVector
+          abv <- a.entity.body.compile.toVector
+          bbv <- b.entity.body.compile.toVector
         } yield abv === bbv
       }.unsafeRunSync()
     }
@@ -55,9 +55,8 @@ class MultipartSuite extends Http4sSuite {
         val field2 = Part.formData[IO]("field2", "Text_Field_2")
         val multipart = Multipart(Vector(field1, field2))
         val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-        val body = entity.body
         val request =
-          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+          Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value
 
@@ -69,9 +68,8 @@ class MultipartSuite extends Http4sSuite {
         val multipart = Multipart[IO](Vector(field1))
 
         val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-        val body = entity.body
         val request =
-          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+          Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value
 
@@ -88,9 +86,9 @@ class MultipartSuite extends Http4sSuite {
         val multipart = Multipart[IO](Vector(field1, field2))
 
         val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-        val body = entity.body
+
         val request =
-          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+          Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value
@@ -123,7 +121,7 @@ Content-Type: application/pdf
         val request = Request[IO](
           method = Method.POST,
           uri = url,
-          body = Stream.emit(body).covary[IO].through(text.utf8Encode),
+          entity = Entity.Chunked(Stream.emit(body).covary[IO].through(text.utf8Encode)),
           headers = header)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
@@ -151,7 +149,7 @@ I am a big moose
         val request = Request[IO](
           method = Method.POST,
           uri = url,
-          body = Stream.emit(body).through(text.utf8Encode),
+          entity = Entity.Chunked(Stream.emit(body).through(text.utf8Encode)),
           headers = header)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value.map(_.isRight)
@@ -162,7 +160,8 @@ I am a big moose
       test(s"Multipart form data $name should extract name properly if it is present") {
         val part = Part(
           Headers.of(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
-          Stream.empty.covary[IO])
+          Entity.empty[Pure]
+        )
         assertEquals(part.name, Some("Rich Homie Quan"))
       }
 
@@ -170,7 +169,7 @@ I am a big moose
         val part = Part(
           Headers.of(
             `Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
-          Stream.empty.covary[IO]
+          Entity.empty[Pure]
         )
         assertEquals(part.filename, Some("file.txt"))
       }
@@ -178,7 +177,7 @@ I am a big moose
       test(
         s"Multipart form data $name should include chunked transfer encoding header so that body is streamed by client") {
         val multipart = Multipart(Vector())
-        val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
+        val request = Request[Pure](method = Method.POST, uri = url, headers = multipart.headers)
         assert(request.isChunked)
       }
     }
@@ -187,7 +186,7 @@ I am a big moose
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO]())
 
-  def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
+  def testPart[F[_]] = Part[F](Headers.empty, Entity.Empty[F](): Entity[F])
 
   // todo compiles on dotty
   test("Part.covary should disallow unrelated effects".ignore) {

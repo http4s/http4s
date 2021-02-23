@@ -405,7 +405,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-    route(req.withBodyStream(chunk(Chunk.array(binData))))
+    route(req.withEntity(Entity.Strict[IO](Chunk.array(binData)) : Entity[IO]))
 
   test("A File EntityDecoder should write a text file from a byte string") {
     Resource
@@ -436,7 +436,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
         response.flatMap { response =>
           assertEquals(response.status, Status.Ok)
-          response.body.compile.toVector
+          response.entity.body.compile.toVector
             .map(_.toArray)
             .map(Arrays.equals(_, "Hello".getBytes))
             .assert *>
@@ -457,7 +457,7 @@ class EntityDecoderSuite extends Http4sSuite {
   test("binary EntityDecoder should concat Chunks") {
     val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
     val body = chunk(Chunk.array(d1)) ++ chunk(Chunk.array(d2))
-    val msg = Request[IO](body = body)
+    val msg = Request[IO](entity = Entity.Chunked(body)) // May not be correct
     val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
     EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
   }

@@ -29,7 +29,7 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
   def entityCodecRoundTrip(a: A): IsEq[F[Either[DecodeFailure, A]]] =
     (for {
       entity <- F.pure(encoder.toEntity(a))
-      message = Request(body = entity.body, headers = encoder.headers)
+      message = Request(entity = entity, headers = encoder.headers)
       a0 <- decoder.decode(message, strict = true).value
     } yield a0) <-> F.pure(Right(a))
 }

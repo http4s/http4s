@@ -22,7 +22,7 @@ import fs2.text.utf8Decode
 import org.http4s.headers._
 
 trait Media[F[_]] {
-  def body: EntityBody[F]
+  def entity: Entity[F]
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
@@ -33,9 +33,9 @@ trait Media[F[_]] {
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
-        body.through(utf8Decode)
+        entity.body.through(utf8Decode)
       case cs =>
-        body.through(util.decode(cs))
+        entity.body.through(util.decode(cs))
     }
 
   final def bodyText(implicit
@@ -44,9 +44,9 @@ trait Media[F[_]] {
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
-        body.through(utf8Decode)
+        entity.body.through(utf8Decode)
       case cs =>
-        body.through(internal.decode(cs))
+        entity.body.through(internal.decode(cs))
     }
 
   final def contentType: Option[`Content-Type`] =
@@ -82,9 +82,9 @@ trait Media[F[_]] {
 }
 
 object Media {
-  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
+  def apply[F[_]](b: Entity[F], h: Headers): Media[F] =
     new Media[F] {
-      def body = b
+      def entity = b
 
       def headers: Headers = h
 
