@@ -227,9 +227,10 @@ object Client {
           Resource
             .eval(app(req0))
             .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
-            .map{resp => 
+            .map { resp =>
               val ent = resp.entity match {
-                case Strict(chunk) => Entity.trustMe(go(Stream.chunk(chunk)).stream, chunk.size.toLong)
+                case Strict(chunk) =>
+                  Entity.trustMe(go(Stream.chunk(chunk)).stream, chunk.size.toLong)
                 case TrustMe(body, size) => Entity.trustMe(go(body).stream, size)
                 case Chunked(body) => Entity.chunked(go(body).stream)
                 case Empty() => Entity.trustMe(go(Stream.empty).stream, 0L)

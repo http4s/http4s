@@ -564,9 +564,7 @@ private[ember] object Parser {
       if (contentLength > 0) {
         if (head.length >= contentLength) {
           val (body, rest) = head.splitAt(contentLength.toInt)
-          (
-            Entity.strict[F](Chunk.array(body)),
-            (Some(rest): Option[Array[Byte]]).pure[F])
+          (Entity.strict[F](Chunk.array(body)), (Some(rest): Option[Array[Byte]]).pure[F])
             .pure[F]
         } else {
           val unread = contentLength - head.length
@@ -593,7 +591,11 @@ private[ember] object Parser {
             // followup: Check if there are bytes immediately available without blocking
             val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
 
-            (Entity.trustMe(Stream.chunk(Chunk.byteVector(ByteVector(head))) ++ bodyStream, contentLength), drain)
+            (
+              Entity.trustMe(
+                Stream.chunk(Chunk.byteVector(ByteVector(head))) ++ bodyStream,
+                contentLength),
+              drain)
           }
         }
       } else {

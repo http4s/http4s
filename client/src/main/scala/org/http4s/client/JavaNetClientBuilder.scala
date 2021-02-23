@@ -147,7 +147,10 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .toList
         ))
       l = headers.get(org.http4s.headers.`Content-Length`).map(_.length)
-    } yield Response(status = status, headers = headers.removePayloadHeaders, entity = l.fold(Entity.chunked(readBody(conn)))(l => Entity.trustMe(readBody(conn), l)))
+    } yield Response(
+      status = status,
+      headers = headers.removePayloadHeaders,
+      entity = l.fold(Entity.chunked(readBody(conn)))(l => Entity.trustMe(readBody(conn), l)))
 
   private def timeoutMillis(d: Duration): Int =
     d match {

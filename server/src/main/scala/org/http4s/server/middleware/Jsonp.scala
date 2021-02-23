@@ -71,9 +71,10 @@ object Jsonp {
     val end = EndJsonp
     val ent: Entity[F] = resp.entity match {
       case Strict(chunk) => Strict(Chunk.concat(begin :: chunk :: end :: Nil))
-      case TrustMe(body, size) => TrustMe(Stream.chunk(begin) ++ body ++ Stream.chunk(end), size + begin.size + end.size)
-      case c@Chunked(_) => c
-      case e@Empty() => e
+      case TrustMe(body, size) =>
+        TrustMe(Stream.chunk(begin) ++ body ++ Stream.chunk(end), size + begin.size + end.size)
+      case c @ Chunked(_) => c
+      case e @ Empty() => e
     }
     resp
       .copy(entity = ent)

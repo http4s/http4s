@@ -53,6 +53,6 @@ object DefaultHead {
       case Strict(chunk) => TrustMe(Stream.empty, chunk.size.toLong)
       case TrustMe(body, size) => TrustMe(body.interruptWhen[G](Stream(true)).drain, size)
       case Chunked(body) => Chunked(body.interruptWhen[G](Stream(true)).drain)
-      case e@Empty() => e
+      case e @ Empty() => e
     })
 }
