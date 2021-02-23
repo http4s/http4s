@@ -43,6 +43,9 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def entity: Entity[F]
 
+  @deprecated("1.0.0-M17", "Use entity.body instead")
+  def body: EntityBody[F] = entity.body
+
   def attributes: Vault
 
   protected def change(
@@ -79,6 +82,21 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
     change(entity = w.toEntity(b)).putHeaders(w.headers.toList:_*)
   }
+
+  /** Sets the entity body without affecting headers such as `Transfer-Encoding`
+    * or `Content-Length`. Most use cases are better served by [[withEntity]],
+    * which uses an [[EntityEncoder]] to maintain the headers.
+    */
+  @deprecated("1.0.0-M17", "Entity is now opinionated and will not leave the above unaffected, use withEntity instead")
+  def withBodyStream(body: EntityBody[F]): Self =
+    change(entity = Entity.chunked(body))
+
+  /** Set an empty entity body on this message, and remove all payload headers
+    * that make no sense with an empty body.
+    */
+  @deprecated("1.0.0-M17", "Entity is now encoded directly, use withEntity(Entity.empty) instead")
+  def withEmptyBody: Self =
+    change(entity = Entity.empty).transformHeaders(_.removePayloadHeaders)
 
   // General header methods
 

@@ -32,7 +32,7 @@ object Entity {
   case class Strict[F[_]](chunk: Chunk[Byte]) extends Entity[F]{
     def body: Stream[F, Byte] = Stream.chunk(chunk)
     def length: Option[Long] = chunk.size.toLong.some
-    def translate[G[_]](fk: F ~> G): Entity[G] = Strict(chunk)
+    def translate[G[_]](fk: F ~> G): Entity[G] = this.asInstanceOf[Strict[G]]
   }
 
   case class TrustMe[F[_]](body: Stream[F, Byte], size: Long) extends Entity[F]{
@@ -48,13 +48,14 @@ object Entity {
   case class Empty[F[_]]() extends Entity[F]{
     def body: Stream[fs2.Pure,Byte] = Stream.empty
     def length: Option[Long] = Some(0L)
-    def translate[G[_]](fk: F ~> G): Entity[G] = Empty()
+    def translate[G[_]](fk: F ~> G): Entity[G] = empty[G]
   }
 
   def strict[F[_]](chunk: Chunk[Byte]): Entity[F] = Strict(chunk)
   def trustMe[F[_]](body: Stream[F, Byte], size: Long): Entity[F] = TrustMe(body, size)
   def chunked[F[_]](body: Stream[F, Byte]): Entity[F] = Chunked(body)
-  def empty[F[_]]: Entity[F] = Empty[F]()
+  private val internalEmpty = Empty[fs2.Pure]()
+  def empty[F[_]]: Entity[F] = internalEmpty.asInstanceOf[Empty[F]]
 
   implicit def encoder[F[_]]: EntityEncoder[F, Entity[F]] = EntityEncoder.encodeBy()(identity)
 
