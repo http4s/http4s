@@ -80,8 +80,7 @@ private[http4s] object MultipartDecoder {
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
-            msg.entity
-              .body
+            msg.entity.body
               .through(
                 MultipartParser.parseToPartsStreamedFile[F](
                   Boundary(boundary),

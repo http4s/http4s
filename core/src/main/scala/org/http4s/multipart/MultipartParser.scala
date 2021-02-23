@@ -258,12 +258,14 @@ object MultipartParser {
           if (r == streamEmpty)
             Pull.raiseError[F](MalformedMessageBodyFailure("Part not terminated properly"))
           else
-            Pull.output1(Part[F](hdrs, Entity.Chunked(l))) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
-              case (hdrStream, remaining) =>
-                if (hdrStream == streamEmpty) //Empty returned if it worked fine
-                  Pull.done
-                else
-                  tailrecParts[F](b, hdrStream, remaining, expectedBytes, limit)
+            Pull.output1(Part[F](hdrs, Entity.Chunked(l))) >> splitOrFinish(
+              DoubleCRLFBytesN,
+              r,
+              limit).flatMap { case (hdrStream, remaining) =>
+              if (hdrStream == streamEmpty) //Empty returned if it worked fine
+                Pull.done
+              else
+                tailrecParts[F](b, hdrStream, remaining, expectedBytes, limit)
             }
         }
       }

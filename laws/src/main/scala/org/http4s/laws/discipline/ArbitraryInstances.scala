@@ -801,7 +801,8 @@ private[http4s] trait ArbitraryInstances {
       for {
         body <- http4sTestingGenForPureByteStream
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield length.fold[Entity[F]](Entity.Chunked(body.covary[F]))(_ => Entity.Strict(body.compile.to(fs2.Chunk)))
+      } yield length.fold[Entity[F]](Entity.Chunked(body.covary[F]))(_ =>
+        Entity.Strict(body.compile.to(fs2.Chunk)))
     })
 
   implicit def http4sTestingCogenForEntity[F[_]](implicit

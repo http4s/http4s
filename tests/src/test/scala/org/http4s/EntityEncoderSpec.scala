@@ -37,7 +37,7 @@ class EntityEncoderSpec extends Http4sSuite {
       writeToString(helloWorld).assertEquals("helloworld")
     }
 
-/*Invalid With New Model What do we want to do about them?
+    /*Invalid With New Model What do we want to do about them?
     test("EntityEncoder should render streams with chunked transfer encoding") {
       EntityEncoder[IO, Stream[IO, String]].headers.get(`Transfer-Encoding`) match {
         case Some(coding: `Transfer-Encoding`) => assert(coding.hasChunked)
@@ -75,7 +75,7 @@ class EntityEncoderSpec extends Http4sSuite {
         EntityEncoder[IO, EntityBody[IO]].headers.get(`Transfer-Encoding`) == Some(
           `Transfer-Encoding`(TransferCoding.chunked)))
     }
-*/
+     */
 
     test("EntityEncoder should render files") {
       val tmpFile = File.createTempFile("http4s-test-", ".txt")

@@ -405,7 +405,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-    route(req.withEntity(Entity.Strict[IO](Chunk.array(binData)) : Entity[IO]))
+    route(req.withEntity(Entity.Strict[IO](Chunk.array(binData)): Entity[IO]))
 
   test("A File EntityDecoder should write a text file from a byte string") {
     Resource

@@ -79,15 +79,16 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
-    change(entity = w.toEntity(b)).putHeaders(w.headers.toList:_*)
-  }
+  def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self =
+    change(entity = w.toEntity(b)).putHeaders(w.headers.toList: _*)
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
-  @deprecated("1.0.0-M17", "Entity is now opinionated and will not leave the above unaffected, use withEntity instead")
+  @deprecated(
+    "1.0.0-M17",
+    "Entity is now opinionated and will not leave the above unaffected, use withEntity instead")
   def withBodyStream(body: EntityBody[F]): Self =
     change(entity = Entity.chunked(body))
 
@@ -587,17 +588,16 @@ object Response {
     Response(
       Status.NotFound,
       entity = Entity.Strict(
-        fs2.Chunk.array( "Not found".getBytes(StandardCharsets.UTF_8))
+        fs2.Chunk.array("Not found".getBytes(StandardCharsets.UTF_8))
       ),
-      headers = Headers(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`) :: Nil)
+      headers = Headers(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`) :: Nil)
     )
 
   def notFound[F[_]]: Response[F] = pureNotFound.covary[F]
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
-      encoder: EntityEncoder[F, String]): F[Response[F]] = 
-        Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
+      encoder: EntityEncoder[F, String]): F[Response[F]] =
+    Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 
   def timeout[F[_]]: Response[F] =
     Response[F](Status.ServiceUnavailable).withEntity("Response timed out")

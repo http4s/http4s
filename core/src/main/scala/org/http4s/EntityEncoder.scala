@@ -78,9 +78,8 @@ object EntityEncoder {
     }
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: Header*)(f: A => Entity[F]): EntityEncoder[F, A] = {
+  def encodeBy[F[_], A](hs: Header*)(f: A => Entity[F]): EntityEncoder[F, A] =
     encodeBy(Headers(hs.toList))(f)
-  }
 
   /** Create a new [[EntityEncoder]]
     *
@@ -214,7 +213,7 @@ object EntityEncoder {
     }
 
   implicit def serverSentEventEncoder[F[_]]: EntityEncoder[F, EventStream[F]] =
-    EntityEncoder.encodeBy(`Content-Type`(MediaType.`text/event-stream`)){e : EventStream[F] => 
+    EntityEncoder.encodeBy(`Content-Type`(MediaType.`text/event-stream`)) { e: EventStream[F] =>
       Entity.chunked[F](e.through(ServerSentEvent.encoder))
     }
 }

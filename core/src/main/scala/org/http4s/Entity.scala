@@ -16,37 +16,37 @@
 
 package org.http4s
 
-import fs2.{Stream, Chunk}
+import fs2.{Chunk, Stream}
 import cats._
 import cats.syntax.all._
 
-sealed trait Entity[F[_]]{
+sealed trait Entity[F[_]] {
   def body: Stream[F, Byte]
   def length: Option[Long]
   def translate[G[_]](fk: F ~> G): Entity[G]
-  def covary[G[x] >: F[x]]: Entity[G] = translate[G](cats.arrow.FunctionK.id[F].widen[G]) 
+  def covary[G[x] >: F[x]]: Entity[G] = translate[G](cats.arrow.FunctionK.id[F].widen[G])
 }
 
 object Entity {
 
-  case class Strict[F[_]](chunk: Chunk[Byte]) extends Entity[F]{
+  case class Strict[F[_]](chunk: Chunk[Byte]) extends Entity[F] {
     def body: Stream[F, Byte] = Stream.chunk(chunk)
     def length: Option[Long] = chunk.size.toLong.some
     def translate[G[_]](fk: F ~> G): Entity[G] = this.asInstanceOf[Strict[G]]
   }
 
-  case class TrustMe[F[_]](body: Stream[F, Byte], size: Long) extends Entity[F]{
+  case class TrustMe[F[_]](body: Stream[F, Byte], size: Long) extends Entity[F] {
     def length: Option[Long] = size.some
     def translate[G[_]](fk: F ~> G): Entity[G] = TrustMe(body.translate(fk), size)
   }
 
-  case class Chunked[F[_]](body: Stream[F, Byte]) extends Entity[F]{
+  case class Chunked[F[_]](body: Stream[F, Byte]) extends Entity[F] {
     def length: Option[Long] = None
     def translate[G[_]](fk: F ~> G): Entity[G] = Chunked(body.translate(fk))
   }
 
-  case class Empty[F[_]]() extends Entity[F]{
-    def body: Stream[fs2.Pure,Byte] = Stream.empty
+  case class Empty[F[_]]() extends Entity[F] {
+    def body: Stream[fs2.Pure, Byte] = Stream.empty
     def length: Option[Long] = Some(0L)
     def translate[G[_]](fk: F ~> G): Entity[G] = empty[G]
   }
@@ -67,8 +67,10 @@ object Entity {
         case (Chunked(body), a2) => Chunked(body ++ a2.body)
         case (a1, Chunked(body)) => Chunked(a1.body ++ body)
         case (Strict(c1), Strict(c2)) => Strict(c1 ++ c2)
-        case (Strict(chunk), TrustMe(s2, size2)) => TrustMe(Stream.chunk(chunk) ++ s2, chunk.size.toLong + size2)
-        case (TrustMe(s1, size1), Strict(chunk)) => TrustMe(s1 ++ Stream.chunk(chunk), size1 + chunk.size.toLong) 
+        case (Strict(chunk), TrustMe(s2, size2)) =>
+          TrustMe(Stream.chunk(chunk) ++ s2, chunk.size.toLong + size2)
+        case (TrustMe(s1, size1), Strict(chunk)) =>
+          TrustMe(s1 ++ Stream.chunk(chunk), size1 + chunk.size.toLong)
         case (TrustMe(s1, size1), TrustMe(s2, size2)) => TrustMe(s1 ++ s2, size1 + size2)
       }
       val empty: Entity[F] =

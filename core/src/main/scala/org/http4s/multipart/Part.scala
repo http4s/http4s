@@ -52,16 +52,16 @@ object Part {
     )
 
   def fileData[F[_]: Files](name: String, file: File, headers: Header*): Part[F] =
-    fileData(name, file.getName, Entity.Chunked(Files[F].readAll(file.toPath, ChunkSize)), headers: _*)
+    fileData(
+      name,
+      file.getName,
+      Entity.Chunked(Files[F].readAll(file.toPath, ChunkSize)),
+      headers: _*)
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
 
-  def fileData[F[_]](
-      name: String,
-      filename: String,
-      entity: Entity[F],
-      headers: Header*): Part[F] =
+  def fileData[F[_]](name: String, filename: String, entity: Entity[F], headers: Header*): Part[F] =
     Part(
       Headers(
         `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) ::

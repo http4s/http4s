@@ -222,9 +222,7 @@ class StaticFileSuite extends Http4sSuite {
         .value
         .flatMap { r =>
           // Length of the body must match
-          assertEquals(
-            r.flatMap(_.contentLength),
-            Some(fileSize.toLong - 1L))
+          assertEquals(r.flatMap(_.contentLength), Some(fileSize.toLong - 1L))
           // get the Body to check the actual size
           r.map(_.entity.body.compile.toVector)
             .map { body =>
