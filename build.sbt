@@ -5,7 +5,7 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, scala_3M3)
+ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
 ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
@@ -15,15 +15,15 @@ ThisBuild / publishFullName   := "Ross A. Baker"
 // todo remove once salafmt properly supports scala3
 ThisBuild / githubWorkflowBuild := Seq(
       WorkflowStep
-        .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'")),
+        .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
       WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
       WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
       WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
       WorkflowStep.Sbt(
         List("unusedCompileDependenciesTest"),
-        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'")), // todo disable on dotty for now
+        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
       WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'"))
+      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"), cond = Some(s"matrix.scala != '$scala_3'"))
     )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
@@ -46,8 +46,7 @@ enablePlugins(SonatypeCiReleasePlugin)
 versionIntroduced := Map(
   // There is, and will hopefully not be, an 0.22.0. But this hushes
   // MiMa for now while we bootstrap Dotty support.
-  "3.0.0-M2" -> "0.22.0",
-  "3.0.0-M3" -> "0.22.0",
+  "3.0.0-RC1" -> "0.22.0",
 )
 
 lazy val modules: List[ProjectReference] = List(
