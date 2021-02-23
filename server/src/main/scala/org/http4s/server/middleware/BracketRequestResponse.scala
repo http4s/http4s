@@ -24,6 +24,10 @@ import org.http4s._
 import org.http4s.server._
 import cats.effect.kernel.Resource.ExitCase
 import cats.Applicative
+import org.http4s.Entity.Strict
+import org.http4s.Entity.TrustMe
+import org.http4s.Entity.Chunked
+import org.http4s.Entity.Empty
 
 /** Middelwares which allow for bracketing on a Request/Response, including
   * the completion of the Response body stream.
@@ -123,9 +127,23 @@ object BracketRequestResponse {
             bracketRoutes(contextRequest)
               .foldF(release(contextRequest.context, None, Outcome.succeeded(F.unit)) *> F.pure(
                 None: Option[Response[F]]))(contextResponse =>
-                F.pure(Some(contextResponse.response.copy(body =
-                  contextResponse.response.body.onFinalizeCaseWeak(ec =>
-                    release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ec)))))))
+                  contextResponse.response.entity match {
+                    case Strict(_) => 
+                      release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ExitCase.Succeeded)) 
+                        .as(contextResponse.response.some)
+                    case TrustMe(body, size) =>
+                      contextResponse.response.copy(
+                        entity = Entity.trustMe(body.onFinalizeCaseWeak(ec =>
+                        release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ec))), size)
+                      ).some.pure[F]
+                    case Chunked(body) => F.pure(Some(contextResponse.response.copy(entity =
+                      Entity.chunked(body.onFinalizeCaseWeak(ec =>
+                        release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ec)))))))
+                    case Empty() =>
+                      release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ExitCase.Succeeded)) 
+                        .as(contextResponse.response.some)
+                  }
+                )
               .guaranteeCase { (oc: Outcome[F, Throwable, Option[Response[F]]]) =>
                 oc match {
                   case Outcome.Succeeded(_) =>
@@ -179,9 +197,25 @@ object BracketRequestResponse {
         acquire.flatMap((a: A) =>
           contextService
             .run(ContextRequest(a, request))
-            .map(response =>
-              response.copy(body =
-                response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))))
+            .flatMap { response =>
+              val entity: F[Entity[F]] = {
+                response.entity match {
+                  case s @ Strict(_) => release(a, exitCaseToOutcome(ExitCase.Succeeded)).as(s)
+                  case e @ Empty() => release(a, exitCaseToOutcome(ExitCase.Succeeded)).as(e)
+                  case TrustMe(body, size) =>
+                    Entity
+                      .trustMe(
+                        body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec))),
+                        size)
+                      .pure[F]
+                  case Chunked(body) =>
+                    Entity
+                      .chunked(body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec))))
+                      .pure[F]
+                }
+              }
+              entity.map(entity => response.copy(entity = entity))
+            }
             .guaranteeCase { (oc: Outcome[F, Throwable, Response[F]]) =>
               oc match {
                 case Outcome.Succeeded(_) =>

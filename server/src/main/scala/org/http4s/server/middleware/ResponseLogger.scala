@@ -27,6 +27,10 @@ import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+import org.http4s.Entity.Strict
+import org.http4s.Entity.TrustMe
+import org.http4s.Entity.Chunked
+import org.http4s.Entity.Empty
 
 /** Simple middleware for logging responses as they are processed
   */
@@ -71,26 +75,55 @@ object ResponseLogger {
     Kleisli[G, A, Response[F]] { req =>
       http(req)
         .flatMap { response =>
-          val out =
+          val out: F[Response[F]] =
             if (!logBody)
               logMessage(response)
                 .as(response)
-            else
-              F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
-                val newBody = Stream
-                  .eval(vec.get)
-                  .flatMap(v => Stream.emits(v).covary[F])
-                  .flatMap(c => Stream.chunk(c).covary[F])
+            else {
+              response.entity match {
+                case Strict(_) =>
+                  logMessage(response)
+                    .as(response)
+                case Empty() => logMessage(response).as(response)
+                case TrustMe(body, size) =>
+                  F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
+                    val newBody = Stream
+                      .eval(vec.get)
+                      .flatMap(v => Stream.emits(v).covary[F])
+                      .flatMap(c => Stream.chunk(c).covary[F])
 
-                response.copy(
-                  body = response.body
-                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                    .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-                    .onFinalizeWeak {
-                      logMessage(response.withBodyStream(newBody))
-                    }
-                )
+                    response.copy(
+                      entity = Entity.TrustMe(
+                        body
+                          // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                          .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
+                          .onFinalizeWeak {
+                            logMessage(response.withBodyStream(newBody))
+                          },
+                        size
+                      )
+                    )
+                  }
+                case Chunked(body) =>
+                  F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
+                    val newBody = Stream
+                      .eval(vec.get)
+                      .flatMap(v => Stream.emits(v).covary[F])
+                      .flatMap(c => Stream.chunk(c).covary[F])
+
+                    response.copy(
+                      entity = Entity.chunked(
+                        body
+                          // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                          .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
+                          .onFinalizeWeak {
+                            logMessage(response.withBodyStream(newBody))
+                          }
+                      )
+                    )
+                  }
               }
+            }
           fk(out)
         }
         .guaranteeCase { (oc: Outcome[G, _, Response[F]]) =>

@@ -82,32 +82,52 @@ object ResponseLogger {
         if (!logBody)
           Resource.eval(logMessage(response) *> F.delay(response))
         else {
-          // val streamed = Resource.suspend {
-          //   Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
-          //     Resource.make(
-          //       F.pure(
-          //         response.copy(entity = response.entity.body
-          //           // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-          //           .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))))
-          //       )) { _ =>
-          //       val newBody = Stream
-          //         .eval(vec.get)
-          //         .flatMap(v => Stream.emits(v).covary[F])
-          //         .flatMap(c => Stream.chunk(c).covary[F])
-          //       logMessage(response.withBodyStream(newBody)).attempt
-          //         .flatMap {
-          //           case Left(t) => F.delay(logger.error(t)("Error logging response body"))
-          //           case Right(()) => F.unit
-          //         }
-          //     }
-          //   }
-          // }
           response.entity match {
-            case TrustMe(body, size) => streamed
-            case Chunked(body) => streamed
-            case Strict(_) => Resource.liftF(logMessage(response)).as(response)
+            case TrustMe(body, size) =>
+              Resource.suspend {
+                Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+                  Resource.make {
+                    F.pure(
+                      response.copy(entity = Entity.trustMe(
+                        body.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))),
+                        size)))
+                  } { _ =>
+                    val newBody = Stream
+                      .eval(vec.get)
+                      .flatMap(v => Stream.emits(v).covary[F])
+                      .flatMap(c => Stream.chunk(c).covary[F])
+                    logMessage(response.withEntity(Entity.trustMe(newBody, size))).attempt
+                      .flatMap {
+                        case Left(t) => F.delay(logger.error(t)("Error logging response body"))
+                        case Right(()) => F.unit
+                      }
+                  }
+                }
+              }
+            case Chunked(body) =>
+              Resource.suspend {
+                Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+                  Resource.make(
+                    F.pure(
+                      response.copy(entity = Entity.chunked(body
+                        // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                        .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))))
+                    )) { _ =>
+                    val newBody = Stream
+                      .eval(vec.get)
+                      .flatMap(v => Stream.emits(v).covary[F])
+                      .flatMap(c => Stream.chunk(c).covary[F])
+                    logMessage(response.withEntity(Entity.chunked(newBody))).attempt
+                      .flatMap {
+                        case Left(t) => F.delay(logger.error(t)("Error logging response body"))
+                        case Right(()) => F.unit
+                      }
+                  }
+                }
+              }
+            case Strict(_) => Resource.eval(logMessage(response)).as(response)
 
-            case Empty() => Resource.liftF(logMessage(response)).as(response)
+            case Empty() => Resource.eval(logMessage(response)).as(response)
           }
         }
 
