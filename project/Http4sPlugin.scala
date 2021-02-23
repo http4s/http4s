@@ -301,7 +301,7 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.59.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
-    val playJson = "2.10.0-RC1"
+    val playJson = "2.10.0-RC2"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
