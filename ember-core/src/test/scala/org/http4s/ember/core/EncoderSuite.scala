@@ -61,8 +61,8 @@ class EncoderSuite extends Http4sSuite {
     val expected =
       """POST / HTTP/1.1
       |Host: www.google.com
-      |Content-Length: 12
       |Content-Type: text/plain; charset=UTF-8
+      |Content-Length: 12
       |
       |Hello World!""".stripMargin
 
@@ -139,8 +139,8 @@ class EncoderSuite extends Http4sSuite {
 
     val expected =
       """HTTP/1.1 404 Not Found
-      |Content-Length: 9
       |Content-Type: text/plain; charset=UTF-8
+      |Content-Length: 9
       |
       |Not Found""".stripMargin
 

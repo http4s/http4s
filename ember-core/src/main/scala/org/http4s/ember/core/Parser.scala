@@ -380,14 +380,14 @@ private[ember] object Parser {
                     (
                       baseReq
                         .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                        .withEntity(Entity.chunked(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest))),
                       rest.get)
                 }
               } else {
-                Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
-                  case (bodyStream, drain) =>
-                    (baseReq.withBodyStream(bodyStream), drain)
+                val size = contentLength.getOrElse(0L)
+                Body.parseFixedBody(size, bytes, read).map { case (bodyStream, drain) =>
+                  (baseReq.withEntity(Entity.trustMe(bodyStream, size)), drain)
                 }
               }
           }
@@ -417,14 +417,15 @@ private[ember] object Parser {
                     (
                       baseResp
                         .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                        .withEntity(Entity.chunked(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest))),
                       rest.get)
                 }
               } else {
+                val length = contentLength.getOrElse(0L)
                 Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
                   case (bodyStream, drain) =>
-                    (baseResp.withBodyStream(bodyStream), drain)
+                    (baseResp.withEntity(Entity.trustMe(bodyStream, length)), drain)
                 }
               }
           }

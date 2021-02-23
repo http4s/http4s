@@ -120,8 +120,8 @@ class ParsingSpec extends Http4sSuite {
     result.map(_.headers).assertEquals(expected.headers)
     for {
       r <- result
-      a <- r.body.compile.toVector
-      b <- expected.body.compile.toVector
+      a <- r.entity.body.compile.toVector
+      b <- expected.entity.body.compile.toVector
     } yield assertEquals(a, b)
   }
 
@@ -146,8 +146,8 @@ class ParsingSpec extends Http4sSuite {
     result.map(_.headers).assertEquals(expected.headers)
     for {
       r <- result
-      a <- r.body.compile.toVector
-      b <- expected.body.compile.toVector
+      a <- r.entity.body.compile.toVector
+      b <- expected.entity.body.compile.toVector
     } yield assertEquals(a, b)
   }
 
@@ -195,7 +195,7 @@ class ParsingSpec extends Http4sSuite {
             // I don't follow what the rig is testing vs this.
           ) //(logger)
           .flatMap { case (resp, _) =>
-            resp.body.through(text.utf8Decode).compile.string
+            resp.entity.body.through(text.utf8Decode).compile.string
           }
     } yield parsed == "{}").assert
   }
@@ -220,7 +220,7 @@ class ParsingSpec extends Http4sSuite {
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Request.parser[IO](Int.MaxValue)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.entity.body.through(text.utf8Decode).compile.string
       rest <- Stream
         .eval(result._2)
         .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
@@ -259,7 +259,7 @@ class ParsingSpec extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](Stream.chunk(Chunk.byteVector(baseBv)))
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.entity.body.through(text.utf8Decode).compile.string
     } yield body.size > 0).assert
   }
 
@@ -289,7 +289,7 @@ class ParsingSpec extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](byteStream)
       resp <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- resp._1.body.through(text.utf8Decode).compile.string
+      body <- resp._1.entity.body.through(text.utf8Decode).compile.string
     } yield body == "MozillaDeveloperNetwork").assert
   }
 
@@ -320,7 +320,7 @@ class ParsingSpec extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.entity.body.through(text.utf8Decode).compile.string
       trailers <- result._1.trailerHeaders
     } yield body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined).assert
   }
@@ -344,7 +344,7 @@ class ParsingSpec extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.entity.body.through(text.utf8Decode).compile.string
       rest <- Stream
         .eval(result._2)
         .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
@@ -469,11 +469,11 @@ class ParsingSpec extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](byteStream)
       resp1 <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body1 <- resp1._1.body.through(fs2.text.utf8Decode).compile.string
+      body1 <- resp1._1.entity.body.through(fs2.text.utf8Decode).compile.string
       drained <- resp1._2
       resp2 <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(drained.get, take)
-      body2 <- resp2._1.body.through(fs2.text.utf8Decode).compile.string
+      body2 <- resp2._1.entity.body.through(fs2.text.utf8Decode).compile.string
     } yield body1 == "hello" && body2 == "world").assert
   }
 
