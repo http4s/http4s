@@ -288,7 +288,7 @@ object Headers {
   implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
     def empty: Headers = Headers.empty
     def combine(xa: Headers, xb: Headers): Headers =
-      Headers(xa.headers ++ xb.headers)
+      xa ++ xb
   }
 
   private val PayloadHeaderKeys = Set(
