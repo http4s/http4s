@@ -54,6 +54,8 @@ private[ember] object Encoder {
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
         stringBuilder
+          .append(h.name)
+          .append(": ")
           .append(h.value)
           .append(CRLF)
         ()
@@ -113,6 +115,8 @@ private[ember] object Encoder {
       // Apply each header followed by a CRLF
       req.headers.foreach { h =>
         stringBuilder
+          .append(h.name)
+          .append(": ")
           .append(h.value)
           .append(CRLF)
         ()

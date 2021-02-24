@@ -372,10 +372,11 @@ class ParsingSpec extends Http4sSuite {
       case _ => ???
     }
 
-    assert(
-      headers.headers == List(
-        Header.Raw(CIString("Content-Type"), "text/plain; charset=UTF-8"),
-        Header.Raw(CIString("Content-Length"), "11"))
+    assertEquals(
+      headers.headers,
+      List(
+        v2.Header.Raw(CIString("Content-Type"), "text/plain; charset=UTF-8"),
+        v2.Header.Raw(CIString("Content-Length"), "11"))
     )
     assert(
       rest.isEmpty
