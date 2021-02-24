@@ -166,7 +166,7 @@ private[server] object ServerHelpers {
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
     val reqHasClose = req.headers.headers.exists {
-      case v2.Header.Raw(name, values, _) =>
+      case v2.Header.Raw(name, values) =>
         // TODO This will do weird shit in the odd case that close is
         // not a single, lowercase word
         name == connectionCi && values.contains(closeCi.toString)

@@ -47,7 +47,7 @@ trait Header[A, T <: Header.Type] {
   def parse(headerValue: String): Either[ParseFailure, A]
 }
 object Header {
-  final case class Raw(val name: CIString, val value: String, val recurring: Boolean = true)
+  final case class Raw(val name: CIString, val value: String)
 
   object Raw {
     implicit lazy val catsInstancesForHttp4sHeaderRaw: Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] {
@@ -126,14 +126,9 @@ object Header {
         val values = List(Header.Raw(CIString(kv._1), kv._2))
       }
 
-    implicit def modelledSingleHeadersToRaw[H](h: H)(implicit H: Header[H, Single]): Header.ToRaw with Primitive =
+    implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
-        val values = List(Header.Raw(H.name, H.value(h), recurring = false))
-      }
-
-    implicit def modelledRecurringHeadersToRaw[H](h: H)(implicit H: Header[H, Recurring]): Header.ToRaw with Primitive =
-      new Header.ToRaw with Primitive {
-        val values = List(Header.Raw(H.name, H.value(h), recurring = true))
+        val values = List(Header.Raw(H.name, H.value(h)))
       }
 
     implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
@@ -177,7 +172,7 @@ object Header {
         type F[B] = B
 
         def toRaw(a: A): Header.Raw =
-          Header.Raw(h.name, h.value(a), recurring = false)
+          Header.Raw(h.name, h.value(a))
 
         def from(headers: List[Header.Raw]): Option[A] =
           headers.collectFirst(Function.unlift(fromRaw(_)))
@@ -244,7 +239,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     }
 
   def add[H: Header[*, Header.Recurring]](h: H): Headers =
-    Headers(this.headers ++ Header.ToRaw.modelledRecurringHeadersToRaw(h).values)
+    Headers(this.headers ++ Header.ToRaw.modelledHeadersToRaw(h).values)
 
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
