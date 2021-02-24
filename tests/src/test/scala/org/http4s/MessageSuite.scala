@@ -193,7 +193,7 @@ class MessageSuite extends Http4sSuite {
       Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
     assertEquals(
       request.toString,
-      "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>, Cookie: <REDACTED>))")
+      "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
   }
 
   // todo compiles on dotty

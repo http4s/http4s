@@ -21,7 +21,7 @@ import cats.{Hash, Monoid, Order, Semigroup, Show, Foldable}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
-import scala.collection.mutable.{ListBuffer, Set => MutSet}
+import scala.collection.mutable
 import org.http4s.util.{Renderer, Writer}
 
 /** Typeclass representing an HTTP header, which all the http4s
@@ -232,9 +232,19 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     * @return a new [[Headers]] containing the sum of the initial and input headers
     */
   def put(in: Header.ToRaw*): Headers =
-    if (in.isEmpty) this
-    else if (this.headers.isEmpty) Headers(in: _*)
-    else Headers(headers, in.toList)
+    this ++ Headers(in.values)
+
+  def ++(those: Headers): Headers =
+    if (those.headers.isEmpty) this
+    else if (this.headers.isEmpty) those
+    else {
+      val thoseNames = mutable.Set.empty[CIString]
+      those.headers.foreach(h => thoseNames.add(h.name))
+      Headers(headers.filterNot(h => thoseNames.contains(h.name)) ++ those.headers)
+    }
+
+  def add[H: Header[*, Header.Recurring]](h: H): Headers =
+    Headers(this.headers ++ Header.ToRaw.modelledRecurringHeadersToRaw(h).values)
 
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
@@ -257,8 +267,6 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
   override def toString: String =
     this.show
-
-  def ++(those: Headers): Headers = Headers(headers ++ those.headers)
 }
 object Headers {
   val empty = Headers(List.empty[Header.Raw])
@@ -270,22 +278,9 @@ object Headers {
     * - A (name, value) pair of `String`
     * - A `Header.Raw`
     * - A `Foldable` (`List`, `Option`, etc) of the above.
-    * Deduplicates non-recurring headers.
     */
-  def apply(headers: Header.ToRaw*): Headers = {
-    if (headers.isEmpty) new Headers(List.empty)
-    else {
-      val acc = MutSet.empty[CIString]
-      val res = ListBuffer.empty[Header.Raw]
-
-      headers.foldMap(_.values).reverse.foreach { h =>
-        if (h.recurring || acc.add(h.name))
-          res += h
-      }
-
-      new Headers(res.toList.reverse)
-    }
-  }
+  def apply(headers: Header.ToRaw*): Headers =
+    new Headers(headers.values)
 
   implicit val headersShow: Show[Headers] =
     _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")

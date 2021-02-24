@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.{Applicative, Functor, Monad, ~>}
+import cats.data.NonEmptyList
 import cats.syntax.all._
 import cats.effect.{IO, Sync}
 import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
@@ -350,7 +351,13 @@ final class Request[F[_]](
 
   /** Add a Cookie header for the provided [[org.http4s.headers.Cookie]] */
   def addCookie(cookie: RequestCookie): Self =
-    putHeaders(Cookie(cookie))
+    putHeaders {
+      headers
+        .get[Cookie]
+        .fold(Cookie(NonEmptyList.of(cookie))) { preExistingCookie =>
+          Cookie(preExistingCookie.values.append(cookie))
+        }
+    }
 
   /** Add a Cookie header with the provided values */
   def addCookie(name: String, content: String): Self =
@@ -551,7 +558,7 @@ final case class Response[F[_]](
 
   /** Add a Set-Cookie header for the provided [[ResponseCookie]] */
   def addCookie(cookie: ResponseCookie): Self =
-    putHeaders(`Set-Cookie`(cookie))
+    transformHeaders(_.add(`Set-Cookie`(cookie)))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Self =

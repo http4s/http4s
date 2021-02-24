@@ -123,7 +123,7 @@ object EntityEncoder {
           case Some(transferCoding) if transferCoding.hasChunked =>
             W.headers
           case _ =>
-            W.headers.put(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]))
+            W.headers.add(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]))
         }
     }
 
