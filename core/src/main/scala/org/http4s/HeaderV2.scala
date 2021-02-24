@@ -47,7 +47,9 @@ trait Header[A, T <: Header.Type] {
   def parse(headerValue: String): Either[ParseFailure, A]
 }
 object Header {
-  final case class Raw(val name: CIString, val value: String)
+  final case class Raw(val name: CIString, val value: String) {
+    override def toString: String = s"${name}: ${value}"
+  }
 
   object Raw {
     implicit lazy val catsInstancesForHttp4sHeaderRaw: Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] {

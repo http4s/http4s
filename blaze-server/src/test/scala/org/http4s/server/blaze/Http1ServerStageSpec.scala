@@ -485,8 +485,8 @@ class Http1ServerStageSpec extends Http4sSuite {
   tickWheel.test("Http1ServerStage: routes should Handle trailing headers") { tw =>
     (runRequest(tw, Seq(req("foo")), routes2).result).map { buff =>
       val results = dropDate(ResponseParser.parseBuffer(buff))
-      assert(results._1 == Ok)
-      assert(results._3 == "Foo: Bar")
+      assertEquals(results._1, Ok)
+      assertEquals(results._3, "Foo: Bar")
     }
   }
 
