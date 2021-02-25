@@ -29,8 +29,7 @@ trait KleisliSyntax {
 }
 
 trait KleisliSyntaxBinCompat0 {
-  implicit def http4sKleisliHttpRoutesSyntax[F[_]](
-      routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
+  implicit def http4sKleisliHttpRoutesSyntax[F[_]](routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
     new KleisliHttpRoutesOps[F](routes)
 
   implicit def http4sKleisliHttpAppSyntax[F[_]: Sync](app: HttpApp[F]): KleisliHttpAppOps[F] =

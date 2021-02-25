@@ -28,9 +28,7 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceServiceBuilder[F[_]](
-      basePath: String,
-      blocker: Blocker): ResourceServiceBuilder[F] =
+  def resourceServiceBuilder[F[_]](basePath: String, blocker: Blocker): ResourceServiceBuilder[F] =
     ResourceServiceBuilder[F](basePath, blocker)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
