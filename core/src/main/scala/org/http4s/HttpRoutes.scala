@@ -75,8 +75,8 @@ object HttpRoutes {
     * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def of[F[_]: Defer: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
-    Kleisli(req => OptionT(Defer[F].defer(pf.lift(req).sequence)))
+  def of[F[_]: Monad](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
+    Kleisli(req => OptionT(Applicative[F].unit >> pf.lift(req).sequence))
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
     * partial function is not suspended in `F`, unlike [[of]]. This allows for less
