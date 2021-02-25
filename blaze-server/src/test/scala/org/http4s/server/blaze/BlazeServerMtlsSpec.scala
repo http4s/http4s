@@ -17,7 +17,7 @@
 package org.http4s.server.blaze
 
 import cats.effect.{IO, Resource}
-import fs2.io.tls.TLSParameters
+import fs2.io.net.tls.TLSParameters
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore

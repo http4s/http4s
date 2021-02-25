@@ -17,10 +17,10 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.effect.kernel.Clock
+import cats.effect.kernel.{Clock, Temporal}
 import cats.syntax.all._
 import fs2._
-import fs2.io.tcp.Socket
+import fs2.io.net.Socket
 import scala.concurrent.duration._
 import java.time.Instant
 
@@ -51,7 +51,7 @@ private[ember] object Util {
       chunkSize: Int
   )(implicit F: ApplicativeThrow[F], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
-      socket.reads(chunkSize, None)
+      socket.reads
     def whenMayTimeout(remains: FiniteDuration): Stream[F, Byte] =
       if (remains <= 0.millis)
         streamCurrentTimeMillis(C)
@@ -62,7 +62,7 @@ private[ember] object Util {
       else
         for {
           start <- streamCurrentTimeMillis(C)
-          read <- Stream.eval(socket.read(chunkSize, Some(remains))) //  Each Read Yields
+          read <- Stream.eval(socket.read(chunkSize)) //  Each Read Yields
           end <- streamCurrentTimeMillis(C)
           out <- read.fold[Stream[F, Byte]](
             Stream.empty
@@ -84,5 +84,11 @@ private[ember] object Util {
     case f: FiniteDuration => Some(f)
     case _ => None
   }
+
+  def timeoutMaybe[F[_], A](fa: F[A], d: Duration)(implicit F: Temporal[F]): F[A] =
+    d match {
+      case fd: FiniteDuration => F.timeout(fa, fd)
+      case _ => fa
+    }
 
 }
