@@ -18,7 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Functor, Monad}
+import cats.Monad
 import cats.data.Kleisli
 import cats.effect.IO
 import cats.syntax.all._
@@ -28,10 +28,10 @@ import org.typelevel.vault._
 object PushSupport {
   private[this] val logger = getLogger
 
-  implicit def http4sPushOps[F[_]: Functor](response: Response[F]): PushOps[F] =
+  implicit def http4sPushOps[F[_]](response: Response[F]): PushOps[F] =
     new PushOps[F](response)
 
-  final class PushOps[F[_]: Functor](response: Response[F]) extends AnyRef {
+  final class PushOps[F[_]](response: Response[F]) extends AnyRef {
     def push(url: String, cascade: Boolean = true)(implicit req: Request[F]): Response[F] = {
       val newUrl = {
         val script = req.scriptName

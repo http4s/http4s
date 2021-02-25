@@ -28,7 +28,7 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceServiceBuilder[F[_]: Sync: ContextShift](
+  def resourceServiceBuilder[F[_]](
       basePath: String,
       blocker: Blocker): ResourceServiceBuilder[F] =
     ResourceServiceBuilder[F](basePath, blocker)
@@ -43,7 +43,7 @@ package object staticcontent {
     FileService(config)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
-  def webjarServiceBuilder[F[_]: Sync: ContextShift](blocker: Blocker): WebjarServiceBuilder[F] =
+  def webjarServiceBuilder[F[_]](blocker: Blocker): WebjarServiceBuilder[F] =
     WebjarServiceBuilder[F](blocker)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */

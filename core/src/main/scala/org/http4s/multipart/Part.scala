@@ -65,7 +65,7 @@ object Part {
       headers: Header*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), blocker, headers: _*)
 
-  def fileData[F[_]: Sync](
+  def fileData[F[_]](
       name: String,
       filename: String,
       entityBody: EntityBody[F],

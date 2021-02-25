@@ -23,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.4"
+  val scala_213 = "2.13.5"
   val scala_212 = "2.12.13"
   val scala_3M3 = "3.0.0-M3"
   val scala_3RC1 = "3.0.0-RC1"

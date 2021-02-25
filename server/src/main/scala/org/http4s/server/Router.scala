@@ -50,7 +50,7 @@ object Router {
         }
     }
 
-  private[server] def translate[F[_]: Functor](prefix: Uri.Path)(req: Request[F]): Request[F] = {
+  private[server] def translate[F[_]](prefix: Uri.Path)(req: Request[F]): Request[F] = {
     val newCaret = req.pathInfo.findSplit(prefix)
     val oldCaret = req.attributes.lookup(Request.Keys.PathInfoCaret)
     val resultCaret = oldCaret |+| newCaret

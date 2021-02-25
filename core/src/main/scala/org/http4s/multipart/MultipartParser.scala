@@ -95,7 +95,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteMatch[F[_]: Sync](
+  private def splitCompleteMatch[F[_]](
       middleChunked: Boolean,
       sti: Int,
       i: Int,
@@ -123,7 +123,7 @@ object MultipartParser {
     * Jose messed up hard like 5 patches ago and now it breaks bincompat to
     * remove.
     */
-  private def splitPartialMatch[F[_]: Sync](
+  private def splitPartialMatch[F[_]](
       middleChunked: Boolean,
       currState: Int,
       i: Int,
@@ -152,7 +152,7 @@ object MultipartParser {
     * incomplete match, or ignored (as such excluding the sequence
     * from the subsequent split stream).
     */
-  private[http4s] def splitOnChunk[F[_]: Sync](
+  private[http4s] def splitOnChunk[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
@@ -405,7 +405,7 @@ object MultipartParser {
     *
     * This method _always_ caps
     */
-  private def splitHalf[F[_]: Sync](
+  private def splitHalf[F[_]](
       values: Array[Byte],
       stream: Stream[F, Byte]): SplitStream[F] = {
     def go(
@@ -446,7 +446,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteLimited[F[_]: Sync](
+  private def splitCompleteLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       sti: Int,
@@ -484,7 +484,7 @@ object MultipartParser {
     * Else, if the whole block is a partial match,
     * add it to the carry over
     */
-  private[http4s] def splitPartialLimited[F[_]: Sync](
+  private[http4s] def splitPartialLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       currState: Int,
@@ -506,7 +506,7 @@ object MultipartParser {
       (currState, acc, carry ++ Stream.chunk(c), 0)
   }
 
-  private[http4s] def splitOnChunkLimited[F[_]: Sync](
+  private[http4s] def splitOnChunkLimited[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
