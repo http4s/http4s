@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.io._
+import java.util.Locale
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
@@ -120,13 +121,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
-    val hs = rec.headers.headers
+    // This isn't a generically safe normalization for all header, but
+    // it's close enough for our purposes
+    def normalizeHeaderValue(h: v2.Header.Raw) =
+      v2.Header.Raw(h.name, h.value.replace("; ", ";").toLowerCase(Locale.ROOT))
+
     for {
       _ <- IO(rec.status).assertEquals(expected.status)
       body <- rec.body.compile.to(Array)
       expBody <- expected.body.compile.to(Array)
       _ <- IO(body).map(Arrays.equals(_, expBody)).assert
-      _ <- IO(expected.headers.headers.forall(h => hs.exists(_ == h))).assert
+      headers = rec.headers.headers.map(normalizeHeaderValue)
+      expectedHeaders = expected.headers.headers.map(normalizeHeaderValue)
+      _ <- IO(expectedHeaders.diff(headers)).assertEquals(Nil)
       _ <- IO(rec.httpVersion).assertEquals(expected.httpVersion)
     } yield true
   }
