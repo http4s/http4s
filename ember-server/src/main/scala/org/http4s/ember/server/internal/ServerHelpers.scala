@@ -76,29 +76,27 @@ private[server] object ServerHelpers {
         .attempt
         .evalTap(e => ready.complete(e.map(_._1.toInetSocketAddress)))
         .rethrow
-        .map(_._2)
+        .flatMap(_._2)
 
-    val streams = server.flatMap { clients =>
-      clients
-        .interruptWhen(shutdown.signal.attempt)
-        .map { connect =>
-          shutdown.trackConnection >>
-            Stream
-              .resource(upgradeSocket(connect, tlsInfoOpt, logger))
-              .flatMap(
-                runConnection(
-                  _,
-                  logger,
-                  idleTimeout,
-                  receiveBufferSize,
-                  maxHeaderSize,
-                  requestHeaderReceiveTimeout,
-                  httpApp,
-                  errorHandler,
-                  onWriteFailure
-                ))
-        }
-    }
+    val streams = server
+      .interruptWhen(shutdown.signal.attempt)
+      .map { connect =>
+        shutdown.trackConnection >>
+          Stream
+            .resource(upgradeSocket(connect, tlsInfoOpt, logger))
+            .flatMap(
+              runConnection(
+                _,
+                logger,
+                idleTimeout,
+                receiveBufferSize,
+                maxHeaderSize,
+                requestHeaderReceiveTimeout,
+                httpApp,
+                errorHandler,
+                onWriteFailure
+              ))
+      }
 
     streams.parJoin(
       maxConcurrency
