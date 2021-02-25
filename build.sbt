@@ -46,7 +46,7 @@ enablePlugins(SonatypeCiReleasePlugin)
 versionIntroduced := Map(
   // There is, and will hopefully not be, an 0.22.0. But this hushes
   // MiMa for now while we bootstrap Dotty support.
-  "3.0.0-RC1" -> "0.22.0",
+  scala_3 -> "0.22.0",
 )
 
 lazy val modules: List[ProjectReference] = List(
