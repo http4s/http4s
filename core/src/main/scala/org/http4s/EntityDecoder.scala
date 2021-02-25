@@ -70,7 +70,7 @@ trait EntityDecoder[F[_], T] { self =>
       F: Monad[F]): EntityDecoder[F, T] =
     transformWith {
       case Left(e) => f(e)
-      case Right(r) => DecodeResult.success(r)
+      case Right(r) => DecodeResult.successT(r)
     }
 
   def bimap[T2](f: DecodeFailure => DecodeFailure, s: T => T2)(implicit
@@ -177,9 +177,9 @@ object EntityDecoder {
         if (strict)
           m.contentType match {
             case Some(c) if matchesMediaType(c.mediaType) => f(m)
-            case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
+            case Some(c) => DecodeResult.failureT(MediaTypeMismatch(c.mediaType, consumes))
             case None if matchesMediaType(UndefinedMediaType) => f(m)
-            case None => DecodeResult.failure(MediaTypeMissing(consumes))
+            case None => DecodeResult.failureT(MediaTypeMissing(consumes))
           }
         else
           f(m)
