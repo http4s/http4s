@@ -38,7 +38,7 @@ private[http4s] object MultipartDecoder {
               }
           }
         case None =>
-          DecodeResult.failure(
+          DecodeResult.failureT(
             InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
       }
     }
@@ -98,7 +98,7 @@ private[http4s] object MultipartDecoder {
               }
           }
         case None =>
-          DecodeResult.failure(
+          DecodeResult.failureT(
             InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
       }
     }
