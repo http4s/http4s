@@ -25,7 +25,7 @@ import cats.effect.std.Dispatcher
 
 class BlockingHttp4sServlet[F[_]](
     service: HttpApp[F],
-    var servletIo: ServletIo[F],
+    servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     dispatcher: Dispatcher[F])(implicit F: Async[F])
     extends Http4sServlet[F](service, servletIo, dispatcher) {
