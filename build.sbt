@@ -5,11 +5,41 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_212, scala_213)
+ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, scala_3M3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
 ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
+
+
+// todo remove once salafmt properly supports scala3
+ThisBuild / githubWorkflowBuild := Seq(
+      WorkflowStep
+        .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'")),
+      WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
+      WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
+      WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+      WorkflowStep.Sbt(
+        List("unusedCompileDependenciesTest"),
+        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'")), // todo disable on dotty for now
+      WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
+      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"), cond = Some(s"matrix.scala != '$scala_3M3' && matrix.scala != '$scala_3RC1'"))
+    )
+
+ThisBuild / githubWorkflowAddedJobs ++= Seq(
+  WorkflowJob(
+    "scalafix",
+    "Scalafix",
+    githubWorkflowJobSetup.value.toList ::: List(
+      WorkflowStep.Run(
+        List("cd scalafix", "sbt ci"),
+        name = Some("Scalafix tests"),
+        cond = Some(s"matrix.scala == '$scala_213'")
+      )
+    ),
+    scalas = crossScalaVersions.value.toList
+  ))
+
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -56,12 +86,7 @@ lazy val modules: List[ProjectReference] = List(
   examplesEmber,
   examplesJetty,
   examplesTomcat,
-  examplesWar,
-  scalafixInput,
-  scalafixOutput,
-  scalafixRules,
-  // TODO: broken on scalafix-0.9.24
-  // scalafixTests,
+  examplesWar
 )
 
 lazy val root = project.in(file("."))
@@ -486,11 +511,7 @@ lazy val docs = http4sProject("docs")
         examplesDocker,
         examplesJetty,
         examplesTomcat,
-        examplesWar,
-        scalafixInput,
-        scalafixOutput,
-        scalafixRules,
-        scalafixTests
+        examplesWar
       ),
     mdocIn := (sourceDirectory in Compile).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
@@ -556,10 +577,10 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime
     ),
-    TwirlKeys.templateImports := Nil,
+    // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
-  .enablePlugins(SbtTwirl)
+  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml/*, twirl*/)
+  // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .enablePlugins(AlpnBootPlugin)
@@ -628,89 +649,6 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
-lazy val scalafixSettings: Seq[Setting[_]] = Seq(
-  developers ++= List(
-    Developer(
-      "amarrella",
-      "Alessandro Marrella",
-      "hello@alessandromarrella.com",
-      url("https://alessandromarrella.com")
-    ),
-    Developer(
-      "satorg",
-      "Sergey Torgashov",
-      "satorg@gmail.com",
-      url("https://github.com/satorg")
-    ),
-  ),
-  addCompilerPlugin(scalafixSemanticdb),
-  scalacOptions += "-Yrangepos",
-  mimaPreviousArtifacts := Set.empty,
-  startYear := Some(2018)
-)
-
-lazy val scalafixRules = project
-  .in(file("scalafix/rules"))
-  .settings(scalafixSettings)
-  .settings(
-    moduleName := "http4s-scalafix",
-    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafix,
-  )
-  .enablePlugins(AutomateHeaderPlugin)
-
-lazy val scalafixInput = project
-  .in(file("scalafix/input"))
-  .settings(scalafixSettings)
-  .settings(
-    libraryDependencies ++= List(
-      "http4s-blaze-client",
-      "http4s-blaze-server",
-      "http4s-client",
-      "http4s-core",
-      "http4s-dsl",
-    ).map("org.http4s" %% _ % "0.21.18"),
-    // TODO: I think these are false positives
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
-    scalacOptions -= "-Xfatal-warnings",
-    scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) },
-    excludeFilter in headerSources := { _ => true },
-  )
-  // Syntax matters as much as semantics here.
-  .enablePlugins(NoPublishPlugin)
-  .disablePlugins(ScalafmtPlugin)
-
-lazy val scalafixOutput = project
-  .in(file("scalafix/output"))
-  .settings(scalafixSettings)
-  .settings(
-    skip in compile := true,
-    Compile / doc / sources := Nil,
-    excludeFilter in headerSources := { _ => true },
-  )
-  // Auto-formatting prevents the tests from passing
-  .enablePlugins(NoPublishPlugin)
-  .disablePlugins(ScalafmtPlugin)
-
-lazy val scalafixTests = project
-  .in(file("scalafix/tests"))
-  .settings(commonSettings)
-  .settings(scalafixSettings)
-  .settings(
-    skip in publish := true,
-    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafix % Test cross CrossVersion.full,
-    Compile / compile :=
-      (Compile / compile).dependsOn(scalafixInput / Compile / compile).value,
-    scalafixTestkitOutputSourceDirectories :=
-      (scalafixOutput / Compile / sourceDirectories).value,
-    scalafixTestkitInputSourceDirectories :=
-      (scalafixInput / Compile / sourceDirectories).value,
-    scalafixTestkitInputClasspath :=
-      (scalafixInput / Compile / fullClasspath).value,
-  )
-  .dependsOn(scalafixRules)
-  .enablePlugins(NoPublishPlugin)
-  .enablePlugins(ScalafixTestkitPlugin)
-  .enablePlugins(AutomateHeaderPlugin)
 
 def http4sProject(name: String) =
   Project(name, file(name))

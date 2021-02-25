@@ -12,12 +12,18 @@ inThisBuild(
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     scmInfo := Some(ScmInfo(url("https://github.com/http4s/http4s"), "git@github.com:http4s/http4s.git")),
     developers := List(
-      Developer(
-        "amarrella",
-        "Alessandro Marrella",
-        "hello@alessandromarrella.com",
-        url("https://alessandromarrella.com")
-      )
+        Developer(
+          "amarrella",
+          "Alessandro Marrella",
+          "hello@alessandromarrella.com",
+          url("https://alessandromarrella.com")
+        ),
+        Developer(
+          "satorg",
+          "Sergey Torgashov",
+          "satorg@gmail.com",
+          url("https://github.com/satorg")
+        )
     ),
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
@@ -40,15 +46,19 @@ lazy val rules = project.settings(
   moduleName := "http4s-scalafix",
   libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafixVersion
 )
+  .settings(scalafixSettings)
 
 lazy val input = project.settings(
-  skip in publish := true,
-  libraryDependencies ++= Seq(
-    "org.http4s" %% "http4s-blaze-client" % "0.18.21",
-    "org.http4s" %% "http4s-blaze-server" % "0.18.21",
-    "org.http4s" %% "http4s-dsl" % "0.18.21"
-  )
+    libraryDependencies ++= List(
+      "http4s-blaze-client",
+      "http4s-blaze-server",
+      "http4s-client",
+      "http4s-core",
+      "http4s-dsl",
+    ).map("org.http4s" %% _ % "0.21.18"),
+  skip in publish := true
 )
+  .settings(scalafixSettings)
 
 lazy val output = project.settings(
   skip in publish := true,
@@ -59,6 +69,7 @@ lazy val output = project.settings(
     "org.http4s" %% "http4s-dsl" % outputVersion
   )
 )
+  .settings(scalafixSettings)
 
 lazy val tests = project
   .settings(
@@ -73,7 +84,28 @@ lazy val tests = project
     scalafixTestkitInputClasspath :=
       (input / Compile / fullClasspath).value,
   )
+  .settings(scalafixSettings)
   .dependsOn(rules)
   .enablePlugins(ScalafixTestkitPlugin)
+
+lazy val scalafixSettings: Seq[Setting[_]] = Seq(
+  developers ++= List(
+    Developer(
+      "amarrella",
+      "Alessandro Marrella",
+      "hello@alessandromarrella.com",
+      url("https://alessandromarrella.com")
+    ),
+    Developer(
+      "satorg",
+      "Sergey Torgashov",
+      "satorg@gmail.com",
+      url("https://github.com/satorg")
+    ),
+  ),
+  addCompilerPlugin(scalafixSemanticdb),
+  scalacOptions += "-Yrangepos",
+  startYear := Some(2018)
+)
 
 addCommandAlias("ci", ";clean ;test")

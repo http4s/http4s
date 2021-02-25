@@ -33,7 +33,7 @@ import scala.util.{Failure, Success}
 import cats.effect.std.{Dispatcher, Semaphore}
 
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit def F: Async[F]
+  protected implicit val F: Async[F]
 
   protected implicit def dispatcher: Dispatcher[F]
 

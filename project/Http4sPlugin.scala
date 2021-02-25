@@ -25,6 +25,8 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.4"
   val scala_212 = "2.12.13"
+  val scala_3M3 = "3.0.0-M3"
+  val scala_3RC1 = "3.0.0-RC1"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -275,7 +277,7 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.2"
-    val blaze = "0.15.0-M1"
+    val blaze = "0.15.0-M2"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.0.0"
     val cats = "2.4.2"
@@ -301,13 +303,12 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.59.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
-    val playJson = "2.10.0-RC1"
+    val playJson = "2.10.0-RC2"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.3"
     val scalacheckEffect = "0.7.1"
-    val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.3"
     val scalaXml = "2.0.0-M5"
     val scodecBits = "1.1.24"
