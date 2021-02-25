@@ -22,9 +22,9 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.kernel.Resource
 import cats.syntax.all._
-import com.comcast.ip4s.{IpAddress, SocketAddress}
+import com.comcast.ip4s._
 import fs2.{Chunk, Stream}
-import fs2.io.net.Socket
+import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.ember.core.Util.timeoutMaybe
@@ -38,6 +38,7 @@ import org.typelevel.vault.Vault
 
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
+import java.net.InetSocketAddress
 
 private[server] object ServerHelpers {
 
@@ -51,10 +52,13 @@ private[server] object ServerHelpers {
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
   def server[F[_]](
-      serverResource: Resource[F, (SocketAddress[IpAddress], Stream[F, Socket[F]])],
+      host: Option[Host],
+      port: Port,
+      additionalSocketOptions: List[SocketOption],
+      sg: SocketGroup[F],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      ready: Deferred[F, Either[Throwable, Unit]],
+      ready: Deferred[F, Either[Throwable, InetSocketAddress]],
       shutdown: Shutdown[F],
       // Defaults
       errorHandler: Throwable => F[Response[F]],
@@ -66,36 +70,40 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F]
   )(implicit F: Temporal[F], N: Network[F]): Stream[F, Nothing] = {
-
-    val server: Stream[F, Socket[F]] =
+    val server =
       Stream
-        .resource(serverResource)
+        .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
         .attempt
-        .evalTap(e => ready.complete(e.void))
+        .evalTap(e => ready.complete(e.map(_._1.toInetSocketAddress)))
         .rethrow
-        .flatMap { case (_, clients) => clients }
+        .map(_._2)
 
-    val streams: Stream[F, Stream[F, Nothing]] = server
-      .interruptWhen(shutdown.signal.attempt)
-      .map { connect =>
-        shutdown.trackConnection >>
-          Stream
-            .resource(upgradeSocket(connect, tlsInfoOpt, logger))
-            .flatMap(
-              runConnection(
-                _,
-                logger,
-                idleTimeout,
-                receiveBufferSize,
-                maxHeaderSize,
-                requestHeaderReceiveTimeout,
-                httpApp,
-                errorHandler,
-                onWriteFailure
-              ))
-      }
+    val streams = server.flatMap { clients =>
+      clients
+        .interruptWhen(shutdown.signal.attempt)
+        .map { connect =>
+          shutdown.trackConnection >>
+            Stream
+              .resource(upgradeSocket(connect, tlsInfoOpt, logger))
+              .flatMap(
+                runConnection(
+                  _,
+                  logger,
+                  idleTimeout,
+                  receiveBufferSize,
+                  maxHeaderSize,
+                  requestHeaderReceiveTimeout,
+                  httpApp,
+                  errorHandler,
+                  onWriteFailure
+                ))
+        }
+    }
 
-    StreamForking.forking(streams, maxConcurrency)
+    streams.parJoin(
+      maxConcurrency
+    ) // TODO: replace with forking after we fix serverResource upstream
+    // StreamForking.forking(streams, maxConcurrency)
   }
 
   // private[internal] def reachedEndError[F[_]: Sync](

@@ -19,18 +19,17 @@ package org.http4s.ember.server
 import cats._
 import cats.syntax.all._
 import cats.effect._
-import com.comcast.ip4s.{Host, Port}
+import com.comcast.ip4s._
 import fs2.io.net.{Network, SocketGroup, SocketOption}
 import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.server.Server
+import java.net.InetSocketAddress
 
 import scala.concurrent.duration._
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
-
-import java.net.InetSocketAddress
 
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
@@ -125,14 +124,15 @@ final class EmberServerBuilder[F[_]: Async] private (
   def build: Resource[F, Server] =
     for {
       sg <- sgOpt.getOrElse(Network.forAsync[F]).pure[Resource[F, *]]
-      ready <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
+      ready <- Resource.eval(Deferred[F, Either[Throwable, InetSocketAddress]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      serverResource = sg.serverResource(host, Some(port), options = additionalSocketOptions)
-      server <- serverResource
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(
-            serverResource,
+            host,
+            port,
+            additionalSocketOptions,
+            sg,
             httpApp,
             tlsInfoOpt,
             ready,
@@ -150,10 +150,10 @@ final class EmberServerBuilder[F[_]: Async] private (
           .drain
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
-      _ <- Resource.eval(ready.get.rethrow)
-      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${server._1}"))
+      bindAddress <- Resource.eval(ready.get.rethrow)
+      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
     } yield new Server {
-      def address: InetSocketAddress = server._1.toInetSocketAddress
+      def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }
