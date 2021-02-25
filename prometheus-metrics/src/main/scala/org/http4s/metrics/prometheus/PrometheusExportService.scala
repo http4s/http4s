@@ -33,7 +33,7 @@ import org.http4s.Http4s._
  * with the CollectorRegistry that it is creating
  * metrics for, allowing custom metric registration.
  */
-final class PrometheusExportService[F[_]: Sync] private (
+final class PrometheusExportService[F[_]] private (
     val routes: HttpRoutes[F],
     val collectorRegistry: CollectorRegistry
 )

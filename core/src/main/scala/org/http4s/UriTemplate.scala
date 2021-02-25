@@ -54,7 +54,7 @@ final case class UriTemplate(
     */
   def expandFragment[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     if (fragment.isEmpty) this
-    else copy(fragment = expandFragmentN(fragment, name, String.valueOf(value)))
+    else copy(fragment = expandFragmentN(fragment, name, QueryParamEncoder[T].encode(value).value))
 
   /** Replaces any expansion type in `path` that matches the given `name`. If no
     * matching `expansion` could be found the same instance will be returned.

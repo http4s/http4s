@@ -16,7 +16,6 @@
 
 package org.http4s.ember.core
 
-import cats.effect._
 import fs2._
 import org.http4s._
 import org.http4s.headers.`Content-Length`
@@ -28,9 +27,7 @@ private[ember] object Encoder {
   private val CRLF = "\r\n"
   val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
 
-  def respToBytes[F[_]: Sync](
-      resp: Response[F],
-      writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+  def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = resp.isChunked
     // resp.status.isEntityAllowed TODO
     val initSection = {
@@ -75,7 +72,7 @@ private[ember] object Encoder {
   private val NoPayloadMethods: Set[Method] =
     Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
 
-  def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+  def reqToBytes[F[_]](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = req.isChunked
     val initSection = {
       var appliedContentLength = false
