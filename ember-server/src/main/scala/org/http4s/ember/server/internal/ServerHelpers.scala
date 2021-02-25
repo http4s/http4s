@@ -70,7 +70,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F]
   )(implicit F: Temporal[F], N: Network[F]): Stream[F, Nothing] = {
-    val server =
+    val server: Stream[F, Socket[F]] =
       Stream
         .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
         .attempt
@@ -78,7 +78,7 @@ private[server] object ServerHelpers {
         .rethrow
         .flatMap(_._2)
 
-    val streams = server
+    val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
         shutdown.trackConnection >>
