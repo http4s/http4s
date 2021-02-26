@@ -24,8 +24,7 @@ import org.http4s.{ApiVersion => _, _}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.multipart.Part
 
-class MultipartHttpEndpoint[F[_]: Concurrent](fileService: FileService[F])
-    extends Http4sDsl[F] {
+class MultipartHttpEndpoint[F[_]: Concurrent](fileService: FileService[F]) extends Http4sDsl[F] {
   val service: HttpRoutes[F] = HttpRoutes.of {
     case GET -> Root / ApiVersion / "multipart" =>
       Ok("Send a file (image, sound, etc) via POST Method")

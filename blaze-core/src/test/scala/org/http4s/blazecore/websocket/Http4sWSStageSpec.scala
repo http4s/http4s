@@ -88,13 +88,14 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
       } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)
   }
 
-  dispatcher.test("Http4sWSStage should reply with pong immediately after ping".flaky) { implicit d =>
-    for {
-      socket <- TestWebsocketStage()
-      _ <- socket.sendInbound(Ping())
-      p <- socket.pollOutbound(2).map(_.exists(_ == Pong()))
-      _ <- socket.sendInbound(Close())
-    } yield assert(p)
+  dispatcher.test("Http4sWSStage should reply with pong immediately after ping".flaky) {
+    implicit d =>
+      for {
+        socket <- TestWebsocketStage()
+        _ <- socket.sendInbound(Ping())
+        p <- socket.pollOutbound(2).map(_.exists(_ == Pong()))
+        _ <- socket.sendInbound(Close())
+      } yield assert(p)
   }
 
   dispatcher.test("Http4sWSStage should not write any more frames after close frame sent") {

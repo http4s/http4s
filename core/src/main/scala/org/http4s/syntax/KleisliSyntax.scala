@@ -27,8 +27,7 @@ trait KleisliSyntax {
       kleisli: Kleisli[OptionT[F, *], A, Response[F]]): KleisliResponseOps[F, A] =
     new KleisliResponseOps[F, A](kleisli)
 
-  implicit def http4sKleisliHttpRoutesSyntax[F[_]](
-      routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
+  implicit def http4sKleisliHttpRoutesSyntax[F[_]](routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
     new KleisliHttpRoutesOps[F](routes)
 
   implicit def http4sKleisliHttpAppSyntax[F[_]: Functor](app: HttpApp[F]): KleisliHttpAppOps[F] =

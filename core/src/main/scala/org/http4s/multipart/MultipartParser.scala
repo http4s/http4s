@@ -383,9 +383,7 @@ object MultipartParser {
     *
     * This method _always_ caps
     */
-  private def splitHalf[F[_]](
-      values: Array[Byte],
-      stream: Stream[F, Byte]): SplitStream[F] = {
+  private def splitHalf[F[_]](values: Array[Byte], stream: Stream[F, Byte]): SplitStream[F] = {
     def go(
         s: Stream[F, Byte],
         state: Int,
