@@ -89,7 +89,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
             },
             cl => v2.Headers(cl, w.headers.headers))
 
-
       case None => w.headers
     }
     change(body = entity.body, headers = headers.transform(_ ++ hs.headers))
@@ -193,9 +192,7 @@ object Message {
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
-    def TrailerHeaders[F[_]]: Key[F[v2.Headers]] = trailerHeaders.asInstanceOf[Key[F[v2.
-
-Headers]]]
+    def TrailerHeaders[F[_]]: Key[F[v2.Headers]] = trailerHeaders.asInstanceOf[Key[F[v2.Headers]]]
   }
 }
 
@@ -292,7 +289,8 @@ final class Request[F[_]](
     *
     * Supported cURL-Parameters are: -X, -H
     */
-  def asCurl(redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains): String = {
+  def asCurl(
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains): String = {
 
     /*
      * escapes characters that are used in the curl-command, such as '

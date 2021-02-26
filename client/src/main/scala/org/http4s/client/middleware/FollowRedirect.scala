@@ -70,7 +70,8 @@ object FollowRedirect {
 
       def stripSensitiveHeaders(req: Request[F]): Request[F] =
         if (req.uri.authority != nextUri.authority)
-          req.transformHeaders(hs => v2.Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name))))
+          req.transformHeaders(hs =>
+            v2.Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name))))
         else
           req
 

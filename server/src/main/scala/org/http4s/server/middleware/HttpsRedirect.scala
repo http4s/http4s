@@ -40,7 +40,8 @@ object HttpsRedirect {
   def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       (req.headers.get(CIString("X-Forwarded-Proto")), req.headers.get[Host]) match {
-        case (Some(NonEmptyList(proto, _)), Some(host)) if Scheme.fromString(proto.value).contains(Scheme.http) =>
+        case (Some(NonEmptyList(proto, _)), Some(host))
+            if Scheme.fromString(proto.value).contains(Scheme.http) =>
           logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host")
           val authority = Authority(host = RegName(host.value))
           val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))

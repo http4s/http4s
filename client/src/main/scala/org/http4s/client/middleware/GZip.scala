@@ -87,7 +87,7 @@ object GZip {
 
   private def nonCompressionHeader(header: v2.Header.Raw): Boolean =
     header.name != CIString("Content-Encoding") &&
-    header.name != CIString("Content-Length")
+      header.name != CIString("Content-Length")
 
   private object EmptyBodyException extends Throwable with NoStackTrace
 }

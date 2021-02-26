@@ -45,7 +45,7 @@ object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with He
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Content-Language`] =
-    (a, b) => `Content-Language`(a.values concatNel b.values)
+    (a, b) => `Content-Language`(a.values.concatNel(b.values))
 }
 
 //RFC - https://tools.ietf.org/html/rfc3282#page-2

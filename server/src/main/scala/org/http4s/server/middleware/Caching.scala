@@ -186,17 +186,15 @@ object Caching {
             HttpDate
               .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
               .liftTo[G]
-        } yield {
-          resp.putHeaders(
-            `Cache-Control`(
-              NonEmptyList.of(
-                isPublic.fold[CacheDirective](identity, identity),
-                CacheDirective.`max-age`(actualLifetime)
-              )),
-            HDate(now),
-            Expires(expires)
-          )
-        }
+        } yield resp.putHeaders(
+          `Cache-Control`(
+            NonEmptyList.of(
+              isPublic.fold[CacheDirective](identity, identity),
+              CacheDirective.`max-age`(actualLifetime)
+            )),
+          HDate(now),
+          Expires(expires)
+        )
 
     }
   }

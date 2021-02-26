@@ -39,7 +39,7 @@ object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Patch`] =
-    (a, b) => `Accept-Patch`(a.values concatNel b.values)
+    (a, b) => `Accept-Patch`(a.values.concatNel(b.values))
 }
 
 // see https://tools.ietf.org/html/rfc5789#section-3.1

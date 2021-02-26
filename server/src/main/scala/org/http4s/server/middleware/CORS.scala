@@ -83,7 +83,8 @@ object CORS {
             // TODO true is the only value here
             "Access-Control-Allow-Credentials" -> config.allowCredentials.toString,
             // TODO model me
-            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(acrm)(_.mkString("", ", ", "")),
+            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(acrm)(
+              _.mkString("", ", ", "")),
             // TODO model me
             "Access-Control-Allow-Origin" -> origin,
             // TODO model me
@@ -109,11 +110,14 @@ object CORS {
         req.method,
         req.headers.get(CIString("Origin")),
         req.headers.get(CIString("Access-Control-Request-Method"))) match {
-        case (OPTIONS, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _))) if allowCORS(origin, acrm) =>
+        case (OPTIONS, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _)))
+            if allowCORS(origin, acrm) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
           createOptionsResponse(origin, acrm).pure[F]
         case (_, Some(NonEmptyList(origin, _)), _) =>
-          if (allowCORS(origin, v2.Header.Raw(CIString("Access-Control-Request-Method"), req.method.renderString)))
+          if (allowCORS(
+              origin,
+              v2.Header.Raw(CIString("Access-Control-Request-Method"), req.method.renderString)))
             http(req).map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
               corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)

@@ -187,9 +187,8 @@ object AsyncHttpClient {
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
 
-  private def getHeaders(headers: HttpHeaders): v2.Headers = {
+  private def getHeaders(headers: HttpHeaders): v2.Headers =
     v2.Headers(headers.asScala.map { header =>
       header.getKey -> header.getValue
     }.toList)
-  }
 }

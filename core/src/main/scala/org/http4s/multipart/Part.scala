@@ -74,8 +74,7 @@ object Part {
       v2.Headers(
         `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)),
         "Content-Transfer-Encoding" -> "binary"
-      ).put(headers: _*)
-      ,
+      ).put(headers: _*),
       entityBody
     )
 

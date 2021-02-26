@@ -169,7 +169,7 @@ object FileService {
               }
               .value
           }
-          else nope
+        else nope
       case _ =>
         req.headers.get(CIString("Range")) match {
           case Some(_) =>

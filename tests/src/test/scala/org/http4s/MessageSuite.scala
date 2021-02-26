@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.comcast.ip4s.{Port, SocketAddress}
 import fs2.Pure
-import org.http4s.headers.{Authorization, `Content-Type`, Cookie, `X-Forwarded-For`}
+import org.http4s.headers.{Authorization, Cookie, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.syntax.all._
 import org.typelevel.vault._
 
@@ -82,8 +82,7 @@ class MessageSuite extends Http4sSuite {
       Some("token=value"))
   }
 
-  test(
-    "support cookies should contain a Cookie header when multiple explicit cookies are added") {
+  test("support cookies should contain a Cookie header when multiple explicit cookies are added") {
     assertEquals(
       Request(Method.GET)
         .addCookie(RequestCookie("token1", "value1"))
@@ -162,10 +161,8 @@ class MessageSuite extends Http4sSuite {
   }
 
   test("cookies should parse discrete HTTP/2 Cookie header(s) into corresponding RequestCookies") {
-    val cookies = v2.Headers(
-      "Cookie" -> "test1=value1",
-      "Cookie" -> "test2=value2",
-      "Cookie" -> "test3=value3")
+    val cookies =
+      v2.Headers("Cookie" -> "test1=value1", "Cookie" -> "test2=value2", "Cookie" -> "test3=value3")
     val request = Request(Method.GET, headers = cookies)
     assertEquals(request.cookies, cookieList)
   }
@@ -227,9 +224,7 @@ class MessageSuite extends Http4sSuite {
   test("asCurl should build cURL representation but redact sensitive information on default") {
     assertEquals(
       request
-        .withHeaders(
-          "Cookie" -> "k3=v3; k4=v4",
-          Authorization(BasicCredentials("user", "pass")))
+        .withHeaders("Cookie" -> "k3=v3; k4=v4", Authorization(BasicCredentials("user", "pass")))
         .asCurl(),
       "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
     )

@@ -41,7 +41,9 @@ class DefaultHeadSuite extends Http4sSuite {
 
   test("honor HEAD routes") {
     val req = Request[IO](Method.HEAD, uri = uri"/special")
-    app(req).map(_.headers.get(CIString("X-Handled-By")).map(_.head.value)).assertEquals(Some("HEAD"))
+    app(req)
+      .map(_.headers.get(CIString("X-Handled-By")).map(_.head.value))
+      .assertEquals(Some("HEAD"))
   }
 
   test("return truncated body of corresponding GET on fallthrough") {

@@ -366,7 +366,7 @@ object Forwarded
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =
-    (a, b) => Forwarded(a.values concatNel b.values)
+    (a, b) => Forwarded(a.values.concatNel(b.values))
 }
 
 final case class Forwarded(values: NonEmptyList[Forwarded.Element])

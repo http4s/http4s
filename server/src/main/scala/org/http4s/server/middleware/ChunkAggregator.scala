@@ -60,7 +60,7 @@ object ChunkAggregator {
               case v :: vs =>
                 hh += `Transfer-Encoding`(NonEmptyList(v, vs))
               case Nil =>
-                // do nothing
+              // do nothing
             }
           case Left(_) =>
             hh += h

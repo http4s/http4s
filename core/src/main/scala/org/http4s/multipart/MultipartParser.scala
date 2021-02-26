@@ -383,7 +383,8 @@ object MultipartParser {
           .map { string =>
             val ix = string.indexOf(':')
             if (ix >= 0)
-              headers.put(v2.Header.Raw(CIString(string.substring(0, ix)), string.substring(ix + 1).trim))
+              headers.put(
+                v2.Header.Raw(CIString(string.substring(0, ix)), string.substring(ix + 1).trim))
             else
               headers
           }

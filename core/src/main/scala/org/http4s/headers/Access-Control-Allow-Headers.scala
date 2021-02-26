@@ -40,8 +40,7 @@ object `Access-Control-Allow-Headers`
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Headers`] =
-    (a, b) => `Access-Control-Allow-Headers`(a.values concatNel b.values)
-
+    (a, b) => `Access-Control-Allow-Headers`(a.values.concatNel(b.values))
 
 }
 

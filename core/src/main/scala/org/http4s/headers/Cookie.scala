@@ -52,7 +52,7 @@ object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
-    (a, b) => Cookie(a.values concatNel b.values)
+    (a, b) => Cookie(a.values.concatNel(b.values))
 }
 
 final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.RecurringRenderable {

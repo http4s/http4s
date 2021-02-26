@@ -48,7 +48,7 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Language`] =
-    (a, b) => `Accept-Language`(a.values concatNel b.values)
+    (a, b) => `Accept-Language`(a.values.concatNel(b.values))
 }
 
 /** Request header used to indicate which natural language would be preferred for the response

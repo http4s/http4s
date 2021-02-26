@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.Semigroup
-import cats.data.{OptionT, NonEmptyList}
+import cats.data.{NonEmptyList, OptionT}
 import cats.effect.{Blocker, ContextShift, IO, Sync}
 import cats.syntax.all._
 import fs2.Stream
@@ -67,8 +67,7 @@ object StaticFile {
     gzUrl
       .flatMap { url =>
         fromURL(url, blocker, req).map {
-          _
-            .removeHeader[`Content-Type`]
+          _.removeHeader[`Content-Type`]
             .putHeaders(
               `Content-Encoding`(ContentCoding.gzip),
               nameToContentType(normalizedName) // Guess content type from the name without ".gz"

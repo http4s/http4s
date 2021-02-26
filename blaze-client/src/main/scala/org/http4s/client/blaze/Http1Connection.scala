@@ -391,7 +391,7 @@ private object Http1Connection {
     val uri = req.uri
     writer << req.method << ' ' << uri.toOriginForm << ' ' << req.httpVersion << "\r\n"
     if (getHttpMinor(req) == 1 &&
-        req.headers.get[Host].isEmpty) { // need to add the host header for HTTP/1.1
+      req.headers.get[Host].isEmpty) { // need to add the host header for HTTP/1.1
       uri.host match {
         case Some(host) =>
           writer << "Host: " << host.value

@@ -17,7 +17,7 @@
 package org.http4s
 package v2
 
-import cats.{Hash, Monoid, Order, Semigroup, Show, Foldable}
+import cats.{Foldable, Hash, Monoid, Order, Semigroup, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
@@ -52,7 +52,11 @@ object Header {
   }
 
   object Raw {
-    implicit lazy val catsInstancesForHttp4sHeaderRaw: Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] {
+    implicit lazy val catsInstancesForHttp4sHeaderRaw
+        : Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw]
+      with Hash[Raw]
+      with Show[Raw]
+      with Renderer[Raw] {
       def show(h: Raw): String = s"${h.name.show}: ${h.value}"
       def hash(h: Raw): Int = h.hashCode
 
@@ -114,7 +118,8 @@ object Header {
   object ToRaw {
     trait Primitive
 
-    implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = new Header.ToRaw with Primitive {
+    implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = new Header.ToRaw
+    with Primitive {
       val values = h.values
     }
 
@@ -128,17 +133,20 @@ object Header {
         val values = List(Header.Raw(CIString(kv._1), kv._2))
       }
 
-    implicit def modelledHeadersToRaw[H](h: H)(implicit H: Header[H, _]): Header.ToRaw with Primitive =
+    implicit def modelledHeadersToRaw[H](h: H)(implicit
+        H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
         val values = List(Header.Raw(H.name, H.value(h)))
       }
 
-    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit
+        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
 
     // Required for 2.12 to convert variadic args.
-    implicit def scalaCollectionSeqToRaw[H](h: collection.Seq[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+    implicit def scalaCollectionSeqToRaw[H](h: collection.Seq[H])(implicit
+        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
   }

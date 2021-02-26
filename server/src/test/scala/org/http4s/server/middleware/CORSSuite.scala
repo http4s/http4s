@@ -46,16 +46,12 @@ class CORSSuite extends Http4sSuite {
 
   def headerCheck(h: v2.Header.Raw): Boolean = h.name == CIString("Access-Control-Max-Age")
 
-  final def matchHeader(
-      hs: v2.Headers,
-      name: CIString,
-      expected: String): Boolean =
+  final def matchHeader(hs: v2.Headers, name: CIString, expected: String): Boolean =
     hs.get(name).fold(false)(_.exists(_.value === expected))
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = Uri.Path.fromString(path)), method = method).withHeaders(
-      "Origin" -> "http://allowed.com",
-      "Access-Control-Request-Method" -> "GET")
+    Request[IO](uri = Uri(path = Uri.Path.fromString(path)), method = method)
+      .withHeaders("Origin" -> "http://allowed.com", "Access-Control-Request-Method" -> "GET")
 
   test("Be omitted when unrequested") {
     val req = buildRequest("foo")
@@ -71,7 +67,8 @@ class CORSSuite extends Http4sSuite {
       .assert *>
       cors2
         .orNotFound(req)
-        .map(resp => matchHeader(resp.headers, CIString("Access-Control-Allow-Credentials"), "false"))
+        .map(resp =>
+          matchHeader(resp.headers, CIString("Access-Control-Allow-Credentials"), "false"))
         .assert
   }
 

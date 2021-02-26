@@ -57,7 +57,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Charset`] =
-    (a, b) => `Accept-Charset`(a.values concatNel b.values)
+    (a, b) => `Accept-Charset`(a.values.concatNel(b.values))
 }
 
 /** {{{

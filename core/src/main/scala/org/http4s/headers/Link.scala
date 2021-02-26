@@ -92,7 +92,7 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Link] =
-    (a, b) => Link(a.values concatNel b.values)
+    (a, b) => Link(a.values.concatNel(b.values))
 }
 
 final case class Link(values: NonEmptyList[LinkValue]) extends Header.RecurringRenderable {

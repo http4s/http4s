@@ -139,8 +139,7 @@ class CSRFSuite extends Http4sSuite {
     for {
       fromHeader <- check((ts, r) => r.putHeaders(hn -> ts))
       fromForm <- check((ts, r) => r.withEntity(UrlForm(hn -> ts)))
-      preferHeader <- check((ts, r) =>
-        r.withEntity(UrlForm(hn -> "bogus")).putHeaders(hn -> ts))
+      preferHeader <- check((ts, r) => r.withEntity(UrlForm(hn -> "bogus")).putHeaders(hn -> ts))
     } yield {
       assertEquals(fromHeader.status, Status.Ok)
       assertEquals(fromForm.status, Status.Ok)
@@ -215,9 +214,7 @@ class CSRFSuite extends Http4sSuite {
       res <- csrf.validate()(dummyRoutes)(
         csrf.embedInRequestCookie(
           Request[IO](POST)
-            .putHeaders(
-              headerName.toString -> unlift(token),
-              Referer(uri"http://localhost/lol")),
+            .putHeaders(headerName.toString -> unlift(token), Referer(uri"http://localhost/lol")),
           token)
       )
     } yield assertEquals(res.status, Status.Ok)

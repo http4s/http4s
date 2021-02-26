@@ -55,7 +55,7 @@ object `Proxy-Authenticate`
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Proxy-Authenticate`] =
-    (a, b) => `Proxy-Authenticate`(a.values concatNel b.values)
+    (a, b) => `Proxy-Authenticate`(a.values.concatNel(b.values))
 }
 
 /** {{{

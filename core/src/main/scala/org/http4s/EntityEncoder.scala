@@ -80,7 +80,7 @@ object EntityEncoder {
 
   /** Create a new [[EntityEncoder]] */
   def encodeBy[F[_], A](hs: v2.Header.ToRaw*)(f: A => Entity[F]): EntityEncoder[F, A] = {
-    val hdrs = if (hs.nonEmpty) v2.Headers(hs:_*) else v2.Headers.empty
+    val hdrs = if (hs.nonEmpty) v2.Headers(hs: _*) else v2.Headers.empty
     encodeBy(hdrs)(f)
   }
 

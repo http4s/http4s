@@ -345,7 +345,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
             reqMethod = PUT,
             overriddenMethod = Some(POST)) &&
             res.status === (Status.Ok) &&
-            res.headers.headers.exists(_ === v2.Header.Raw(CIString(varyHeader), s"$customHeader, $overrideHeader"))
+            res.headers.headers.exists(
+              _ === v2.Header.Raw(CIString(varyHeader), s"$customHeader, $overrideHeader"))
         )
     }
   }
@@ -365,7 +366,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
             msg = "resource deleted",
             reqMethod = DELETE,
             overriddenMethod = Some(POST)) && res.status === Status.Ok &&
-            res.headers.headers.exists(_ === v2.Header.Raw(CIString(varyHeader), s"$overrideHeader"))
+            res.headers.headers.exists(
+              _ === v2.Header.Raw(CIString(varyHeader), s"$overrideHeader"))
         )
     }.assert
   }

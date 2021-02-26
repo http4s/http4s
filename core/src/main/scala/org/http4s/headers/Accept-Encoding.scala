@@ -41,7 +41,7 @@ object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with Head
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Encoding`] =
-    (a, b) => `Accept-Encoding`(a.values concatNel b.values)
+    (a, b) => `Accept-Encoding`(a.values.concatNel(b.values))
 }
 
 final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])

@@ -18,7 +18,7 @@ package org.http4s.ember.core
 
 import fs2._
 import org.http4s._
-import org.http4s.headers.{`Content-Length`, Host}
+import org.http4s.headers.{Host, `Content-Length`}
 import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
@@ -41,8 +41,7 @@ private[ember] object Encoder {
         .append(resp.status.renderString)
         .append(CRLF)
 
-      resp
-        .headers
+      resp.headers
         .get[`Content-Length`]
         .foreach { _ =>
           appliedContentLength = true
@@ -102,8 +101,7 @@ private[ember] object Encoder {
             .append(CRLF)
         }
 
-      req
-        .headers
+      req.headers
         .get[`Content-Length`]
         .foreach { _ =>
           appliedContentLength = true

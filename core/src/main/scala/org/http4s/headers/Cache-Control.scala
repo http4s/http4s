@@ -73,7 +73,7 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Cache-Control`] =
-    (a, b) => `Cache-Control`(a.values concatNel b.values)
+    (a, b) => `Cache-Control`(a.values.concatNel(b.values))
 
 }
 

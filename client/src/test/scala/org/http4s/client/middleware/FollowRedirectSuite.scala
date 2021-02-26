@@ -45,7 +45,10 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
         Ok(
           req.body,
           "X-Original-Method" -> req.method.toString,
-          "X-Original-Content-Length" -> req.headers.get[`Content-Length`].fold(0L)(_.length).toString,
+          "X-Original-Content-Length" -> req.headers
+            .get[`Content-Length`]
+            .fold(0L)(_.length)
+            .toString,
           "X-Original-Authorization" -> req.headers.get[Authorization].fold("")(_.value)
         )
 

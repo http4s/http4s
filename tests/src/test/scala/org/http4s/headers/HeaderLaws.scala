@@ -38,7 +38,7 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
       },
       """matchHeader matches raw, valid values of same name""" -> forAll { (a: key.HeaderT) =>
         assertEquals(key.matchHeader(a.toRaw), Some(a))
-      },
+      }
       /*
       """matchHeader does not match other names""" -> forAll { (header: v2.Header.Raw) =>
         key.name != header.name ==> assert(key.matchHeader(header).isEmpty)

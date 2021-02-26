@@ -29,7 +29,7 @@ import java.time.Clock
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
-import org.http4s.headers.{`Content-Type`, Host, Referer, `X-Forwarded-For`}
+import org.http4s.headers.{Host, Referer, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
 import org.typelevel.ci.CIString
@@ -485,7 +485,8 @@ object CSRF {
   private[middleware] def cookieFromHeaders[F[_]](
       request: Request[F],
       cookieName: String): Option[RequestCookie] =
-    request.headers.get[HCookie]
+    request.headers
+      .get[HCookie]
       .flatMap(_.values.find(_.name == cookieName))
 
   /** A Constant-time string equality */

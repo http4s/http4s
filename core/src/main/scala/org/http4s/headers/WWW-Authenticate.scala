@@ -37,7 +37,7 @@ object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with He
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`WWW-Authenticate`] =
-    (a, b) => `WWW-Authenticate`(a.values concatNel b.values)
+    (a, b) => `WWW-Authenticate`(a.values.concatNel(b.values))
 }
 
 final case class `WWW-Authenticate`(values: NonEmptyList[Challenge])

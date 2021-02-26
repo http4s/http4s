@@ -87,7 +87,7 @@ class HeaderSuite extends munit.DisciplineSuite {
         h.renderedLength)
     }
   }
-  */
+   */
 
   test("Order instance for Header should be lawful") {
     checkAll("Order[Header]", OrderTests[v2.Header.Raw].order)

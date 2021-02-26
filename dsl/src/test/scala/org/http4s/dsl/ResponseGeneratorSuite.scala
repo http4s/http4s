@@ -131,7 +131,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
         v2.Headers(
           location,
           Accept(MediaRange.`audio/*`),
-          `Content-Length`.zero,
+          `Content-Length`.zero
         ).headers)
   }
 

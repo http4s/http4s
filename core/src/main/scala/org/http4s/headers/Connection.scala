@@ -41,7 +41,7 @@ object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurrin
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Connection] =
-    (a, b) => Connection(a.values concatNel b.values)
+    (a, b) => Connection(a.values.concatNel(b.values))
 }
 
 final case class Connection(values: NonEmptyList[CIString]) extends Header.Recurring {

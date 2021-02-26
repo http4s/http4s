@@ -30,7 +30,6 @@ import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires
 import org.typelevel.ci.CIString
 
-
 class ParsingSpec extends Http4sSuite {
   object Helpers {
     def stripLines(s: String): String = s.replace("\r\n", "\n")

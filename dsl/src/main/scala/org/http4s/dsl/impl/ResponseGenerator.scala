@@ -61,7 +61,7 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def liftG: FunctionK[G, F]
 
   def apply(headers: v2.Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response[G](status, headers = v2.Headers(`Content-Length`.zero,  headers.toList)))
+    F.pure(Response[G](status, headers = v2.Headers(`Content-Length`.zero, headers.toList)))
 
   def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
     F.flatMap(liftG(body))(apply[A](_))
@@ -87,10 +87,7 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
     apply(Location(uri))
 
   def apply(location: Location)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(
-      Response[G](
-        status = status,
-        headers = v2.Headers(`Content-Length`.zero, location)))
+    F.pure(Response[G](status = status, headers = v2.Headers(`Content-Length`.zero, location)))
 
   def apply[A](location: Location, body: A, headers: v2.Header.ToRaw*)(implicit
       F: Applicative[F],
@@ -114,8 +111,7 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
     F.pure(
       Response[G](
         status = status,
-        headers =
-          v2.Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
+        headers = v2.Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
       ))
 
   def apply(authenticate: `WWW-Authenticate`, headers: v2.Header.ToRaw*)(implicit
@@ -166,8 +162,7 @@ trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGe
     F.pure(
       Response[G](
         status = status,
-        headers =
-          v2.Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
+        headers = v2.Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
       ))
 
   def apply(authenticate: `Proxy-Authenticate`, headers: v2.Header.ToRaw*)(implicit
