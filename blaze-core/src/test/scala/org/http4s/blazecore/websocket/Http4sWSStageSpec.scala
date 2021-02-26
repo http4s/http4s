@@ -82,7 +82,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)
   }
 
-  test("Http4sWSStage should reply with pong immediately after ping") {
+  test("Http4sWSStage should reply with pong immediately after ping".flaky) {
     for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Ping())
@@ -112,7 +112,7 @@ class Http4sWSStageSpec extends Http4sSuite {
     } yield assert(p1 && p2)
   }
 
-  test("Http4sWSStage should not send two close frames ") {
+  test("Http4sWSStage should not send two close frames".flaky) {
     for {
       socket <- TestWebsocketStage()
       _ <- socket.sendWSOutbound(Close())

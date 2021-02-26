@@ -647,7 +647,6 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
-
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
