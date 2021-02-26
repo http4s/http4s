@@ -136,6 +136,11 @@ object Header {
     implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
+
+    // Required for 2.12 to convert variadic args.
+    implicit def scalaCollectionSeqToRaw[H](h: collection.Seq[H])(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+      val values = h.toList.foldMap(v => convert(v).values)
+    }
   }
 
   /** Abstracts over Single and Recurring Headers
