@@ -23,6 +23,7 @@ import org.typelevel.ci.CIString
 import scala.collection.mutable.ListBuffer
 
 /** A collection of HTTP Headers */
+@deprecated("Condemned", "LSUG")
 final class Headers private (private val headers: List[Header]) extends AnyVal {
   def toList: List[Header] = headers
 
@@ -141,6 +142,7 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
     Headers.headersShow.show(this)
 }
 
+@deprecated("Condemned", "LSUG")
 object Headers {
   val empty = apply(List.empty)
 
