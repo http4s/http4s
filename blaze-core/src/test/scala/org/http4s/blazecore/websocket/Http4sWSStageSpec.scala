@@ -81,7 +81,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)
   }
 
-  test("Http4sWSStage should reply with pong immediately after ping") {
+  test("Http4sWSStage should reply with pong immediately after ping".flaky) {
     for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Ping())
