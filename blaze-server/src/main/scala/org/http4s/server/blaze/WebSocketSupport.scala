@@ -35,7 +35,7 @@ import cats.effect.std.{Dispatcher, Semaphore}
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit val F: Async[F]
 
-  protected implicit def dispatcher: Dispatcher[F]
+  implicit val dispatcher: Dispatcher[F]
 
   override protected def renderResponse(
       req: Request[F],
