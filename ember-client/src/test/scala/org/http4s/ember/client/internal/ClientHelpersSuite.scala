@@ -31,7 +31,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), None)
       .map { req =>
-        req.headers.get(Date).isDefined
+        req.headers.get[Date].isDefined
       }
       .assert
   }
@@ -40,11 +40,11 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(
         Request[IO](
-          headers = Headers.of(Date(HttpDate.Epoch))
+          headers = v2.Headers(Date(HttpDate.Epoch))
         ),
         None)
       .map { req =>
-        req.headers.get(Date).map { case d: Date =>
+        req.headers.get[Date].map { case d: Date =>
           d.date
         }
       }
@@ -54,7 +54,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), None)
       .map { req =>
-        req.headers.get(Connection).map { case c: Connection =>
+        req.headers.get[Connection].map { case c: Connection =>
           c.hasKeepAlive
         }
       }
@@ -64,11 +64,11 @@ class ClientHelpersSuite extends Http4sSuite {
   test("Request Preprocessing should not add a connection header if already present") {
     ClientHelpers
       .preprocessRequest(
-        Request[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
+        Request[IO](headers = v2.Headers(Connection(NonEmptyList.of(CIString("close"))))),
         None
       )
       .map { req =>
-        req.headers.get(Connection).map { case c: Connection =>
+        req.headers.get[Connection].map { case c: Connection =>
           c.hasKeepAlive
         }
       }
@@ -79,7 +79,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), EmberClientBuilder.default[IO].userAgent)
       .map { req =>
-        req.headers.get(`User-Agent`).isDefined
+        req.headers.get[`User-Agent`].isDefined
       }
       .assert
   }
@@ -89,11 +89,11 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(
         Request[IO](
-          headers = Headers.of(`User-Agent`(ProductId(name, None)))
+          headers = v2.Headers(`User-Agent`(ProductId(name, None)))
         ),
         EmberClientBuilder.default[IO].userAgent)
       .map { req =>
-        req.headers.get(`User-Agent`).map { case e =>
+        req.headers.get[`User-Agent`].map { case e =>
           e.product.value
         }
       }
@@ -141,7 +141,7 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
+          Request[IO](headers = v2.Headers(Connection(NonEmptyList.of(CIString("close"))))),
           Response[IO](),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
@@ -160,7 +160,7 @@ class ClientHelpersSuite extends Http4sSuite {
       _ <- ClientHelpers
         .postProcessResponse[IO](
           Request[IO](),
-          Response[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
+          Response[IO](headers = v2.Headers(Connection(NonEmptyList.of(CIString("close"))))),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse

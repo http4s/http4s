@@ -44,11 +44,9 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       case req @ _ -> Root / "ok" =>
         Ok(
           req.body,
-          Header("X-Original-Method", req.method.toString),
-          Header(
-            "X-Original-Content-Length",
-            req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
-          Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
+          "X-Original-Method" -> req.method.toString,
+          "X-Original-Content-Length" -> req.headers.get[`Content-Length`].fold(0L)(_.length).toString,
+          "X-Original-Authorization" -> req.headers.get[Authorization].fold("")(_.value)
         )
 
       case _ -> Root / "different-authority" =>
@@ -74,7 +72,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     client
       .run(req)
       .use { case resp =>
-        resp.headers.get(CIString("X-Original-Content-Length")).map(_.value).pure[IO]
+        resp.headers.get(CIString("X-Original-Content-Length")).map(_.head.value).pure[IO]
       }
       .map(_.get)
       .assertEquals("0")
@@ -125,11 +123,11 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val req = PUT(
       "Don't expose mah secrets!",
       uri"http://localhost/different-authority",
-      Header("Authorization", "Bearer s3cr3t"))
+      "Authorization" -> "Bearer s3cr3t")
     client
       .run(req)
       .use { case resp =>
-        resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
+        resp.headers.get(CIString("X-Original-Authorization")).map(_.head.value).pure[IO]
       }
       .assertEquals(Some(""))
   }
@@ -138,11 +136,11 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val req = PUT(
       "You already know mah secrets!",
       uri"http://localhost/307",
-      Header("Authorization", "Bearer s3cr3t"))
+      "Authorization" -> "Bearer s3cr3t")
     client
       .run(req)
       .use { case resp =>
-        resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
+        resp.headers.get(CIString("X-Original-Authorization")).map(_.head.value).pure[IO]
       }
       .assertEquals(Some("Bearer s3cr3t"))
   }

@@ -21,6 +21,7 @@ import cats.parse.{Parser, Rfc5234}
 import org.http4s.util.{Renderer, Writer}
 import org.http4s.util.Renderable._
 import scala.concurrent.duration.FiniteDuration
+import org.typelevel.ci.CIString
 
 object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Singleton {
   private class RetryAfterImpl(retry: Either[HttpDate, Long]) extends `Retry-After`(retry)
@@ -54,6 +55,14 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
 
     httpDate.orElse(delaySeconds)
   }
+
+  implicit val headerInstance: v2.Header[`Retry-After`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Retry-After"),
+      _.retry,
+      ParseResult.fromParser(parser, "Invalid Retry-After header")
+    )
+
 }
 
 /** Response header, used by the server to indicate to the user-agent how long it has to wait before

@@ -41,7 +41,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
 
   def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
     Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
-      .map(_.removeHeader(`Content-Length`))
+      .map(_.removeHeader[`Content-Length`])
 
   def httpRoutes(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpRoutes[IO] =
     HttpRoutes.liftF(OptionT.liftF(response(body, transferCodings)))
@@ -87,7 +87,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
           _ === chunks.foldMap(_.toVector) &&
           (if (totalChunksSize > 0) {
              response.contentLength === Some(totalChunksSize.toLong) &&
-             response.headers.get(`Transfer-Encoding`).map(_.values) === NonEmptyList
+             response.headers.get[`Transfer-Encoding`].map(_.values) === NonEmptyList
                .fromList(transferCodings)
            } else true)
         }

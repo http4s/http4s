@@ -23,6 +23,7 @@ import cats.effect.IO
 import cats.syntax.all._
 import java.nio.file.Paths
 import org.http4s.Method.{GET, POST}
+import org.http4s.headers.`Accept-Encoding`
 import org.http4s.syntax.all._
 
 class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
@@ -144,7 +145,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     val req = Request[IO](
       GET,
       uri"/test-lib/1.0.0/testresource.txt",
-      headers = Headers(List(Header("Accept-Encoding", "gzip"))))
+      headers = v2.Headers(`Accept-Encoding`(ContentCoding.gzip)))
     val rb = runReq(req, routes = routes(preferGzipped = true))
 
     rb.flatMap { case (b, r) =>

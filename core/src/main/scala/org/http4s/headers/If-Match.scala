@@ -21,7 +21,9 @@ import cats.data.NonEmptyList
 import cats.parse._
 import cats.syntax.foldable._
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.Writer
+import org.http4s.util.{Writer}
+
+import org.typelevel.ci.CIString
 
 object `If-Match` extends HeaderKey.Internal[`If-Match`] with HeaderKey.Singleton {
 
@@ -40,6 +42,18 @@ object `If-Match` extends HeaderKey.Internal[`If-Match`] with HeaderKey.Singleto
     .orElse(Rfc7230.headerRep1(EntityTag.parser).map { tags =>
       `If-Match`(Some(tags))
     })
+
+  implicit val headerInstance: v2.Header[`If-Match`, v2.Header.Single] =
+    v2.Header.create(
+      CIString("If-Match"),
+      _.tags match {
+        case None => "*"
+        case Some(nel) => nel.mkString_("", ",", "")
+
+      },
+      ParseResult.fromParser(parser, "Invalid If-Match header")
+    )
+
 }
 
 /** Request header to make the request conditional on the current contents of the origin server

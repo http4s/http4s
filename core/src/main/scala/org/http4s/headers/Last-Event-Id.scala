@@ -22,6 +22,7 @@ import org.http4s
 import org.http4s.internal.CharPredicate
 import org.http4s.ServerSentEvent._
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 final case class `Last-Event-Id`(id: EventId) extends Header.Parsed {
   override def key: http4s.headers.`Last-Event-Id`.type = `Last-Event-Id`
@@ -36,4 +37,12 @@ object `Last-Event-Id` extends HeaderKey.Internal[`Last-Event-Id`] with HeaderKe
   private[http4s] val parser = Parser.charsWhile0(CharPredicate.All -- "\n\r").map { (id: String) =>
     `Last-Event-Id`(ServerSentEvent.EventId(id))
   }
+
+  implicit val headerInstance: v2.Header[`Last-Event-Id`, v2.Header.Single] =
+    v2.Header.create(
+      CIString("Last-Event-Id"),
+      _.id.value,
+      ParseResult.fromParser(parser, "Invalid Last-Event-Id header")
+    )
+
 }

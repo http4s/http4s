@@ -28,6 +28,8 @@ import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
 import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires
+import org.typelevel.ci.CIString
+
 
 class ParsingSpec extends Http4sSuite {
   object Helpers {
@@ -108,7 +110,7 @@ class ParsingSpec extends Http4sSuite {
     val expected = Request[IO](
       Method.GET,
       Uri.unsafeFromString("www.google.com"),
-      headers = Headers.of(org.http4s.headers.Host("www.google.com"))
+      headers = v2.Headers(org.http4s.headers.Host("www.google.com"))
     )
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -324,7 +326,7 @@ class ParsingSpec extends Http4sSuite {
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
       trailers <- result._1.trailerHeaders
-    } yield body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined).assert
+    } yield body == "MozillaDeveloperNetwork" && trailers.get[Expires].isDefined).assert
   }
 
   test(
@@ -370,10 +372,11 @@ class ParsingSpec extends Http4sSuite {
       case _ => ???
     }
 
-    assert(
-      headers.toList == List(
-        Header("Content-Type", "text/plain; charset=UTF-8"),
-        Header("Content-Length", "11"))
+    assertEquals(
+      headers.headers,
+      List(
+        v2.Header.Raw(CIString("Content-Type"), "text/plain; charset=UTF-8"),
+        v2.Header.Raw(CIString("Content-Length"), "11"))
     )
     assert(
       rest.isEmpty
@@ -404,13 +407,13 @@ class ParsingSpec extends Http4sSuite {
       headers <- Parser.HeaderP
         .parseHeaders(Array.emptyByteArray, take, defaultMaxHeaderLength, None)
         .map(_._1)
-    } yield headers.toList
+    } yield headers.headers
 
     result.assertEquals(
       List(
-        Header("Content-Type", "text/plain"),
-        Header("Transfer-Encoding", "chunked"),
-        Header("Trailer", "Expires")
+        v2.Header.Raw(CIString("Content-Type"), "text/plain"),
+        v2.Header.Raw(CIString("Transfer-Encoding"), "chunked"),
+        v2.Header.Raw(CIString("Trailer"), "Expires")
       ))
   }
 

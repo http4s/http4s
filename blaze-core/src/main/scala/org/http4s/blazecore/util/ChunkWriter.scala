@@ -44,16 +44,16 @@ private[util] object ChunkWriter {
     ByteBuffer.wrap(TransferEncodingChunkedBytes).asReadOnlyBuffer
   def TransferEncodingChunked = transferEncodingChunkedBuffer.duplicate()
 
-  def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
+  def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[v2.Headers])(implicit
       F: Effect[F],
       ec: ExecutionContext): Future[Boolean] = {
     val promise = Promise[Boolean]()
     val f = trailer.map { trailerHeaders =>
-      if (trailerHeaders.nonEmpty) {
+      if (!trailerHeaders.isEmpty) {
         val rr = new StringWriter(256)
         rr << "0\r\n" // Last chunk
         trailerHeaders.foreach { h =>
-          h.render(rr) << "\r\n"; ()
+          rr << h << "\r\n"; ()
         } // trailers
         rr << "\r\n" // end of chunks
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))

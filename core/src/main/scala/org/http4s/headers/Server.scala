@@ -17,7 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
   def apply(id: ProductId): Server =
@@ -31,6 +32,25 @@ object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         Server(product, tokens)
     }
+
+  implicit val headerInstance: v2.Header[Server, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Server"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.product
+            h.rest.foreach {
+              case p: ProductId => writer << ' ' << p
+              case ProductComment(c) => writer << ' ' << '(' << c << ')'
+            }
+            writer
+          }
+
+        },
+      ParseResult.fromParser(parser, "Invalid Server header")
+    )
+
 }
 
 /** Server header

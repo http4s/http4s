@@ -19,6 +19,9 @@ package headers
 import cats.parse.{Parser, Parser0 => P0}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
+import cats.syntax.all._
+import org.http4s.util.Renderer
+import org.typelevel.ci.CIString
 
 object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
   def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply((first +: more).toList)
@@ -50,6 +53,16 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
 
     acceptableRanges.map(headers.`Accept-Ranges`.apply)
   }
+
+  implicit val headerInstance: v2.Header[`Accept-Ranges`, v2.Header.Single] =
+    v2.Header.create(
+      CIString("Accept-Ranges"),
+      _.rangeUnits.toNel match {
+        case None => "none"
+        case Some(nel) => Renderer.renderString(nel)
+      },
+      ParseResult.fromParser(parser, "Invalid Accept-Ranges header")
+    )
 }
 
 final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])

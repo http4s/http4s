@@ -35,7 +35,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       case r if r.method == PUT && r.pathInfo == path"/put" =>
         Response[IO](Created).withEntity(r.body).pure[IO]
       case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
-        r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
+        r.headers.get[Accept].fold(IO.pure(Response[IO](BadRequest))) { m =>
           Response[IO](Ok).withEntity(m.toString).pure[IO]
         }
       case r if r.pathInfo == path"/status/500" =>

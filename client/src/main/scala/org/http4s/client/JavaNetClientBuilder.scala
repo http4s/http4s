@@ -26,6 +26,7 @@ import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.typelevel.ci.CIString
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, blocking}
 
@@ -119,13 +120,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
           _ <- F.delay(conn.setRequestMethod(req.method.renderString))
           _ <- F.delay(req.headers.foreach {
-            case Header(name, value) =>
-              conn.setRequestProperty(name.toString, value)
-            case h: Header.Parsed =>
-              // Appease 2.13.4's exhaustiveness checker
-              conn.setRequestProperty(h.name.toString, h.value)
-            case Header.Raw(name, value) =>
-              // Appease 2.13.4's exhaustiveness checker
+            case v2.Header.Raw(name, value) =>
               conn.setRequestProperty(name.toString, value)
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
@@ -153,10 +148,10 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       code <- F.delay(conn.getResponseCode)
       status <- F.fromEither(Status.fromInt(code))
       headers <- F.delay(
-        Headers(
+        v2.Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
-            .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
+            .flatMap { case (k, vs) => vs.asScala.map(v2.Header.Raw(CIString(k), _)) }
             .toList
         ))
     } yield Response(status = status, headers = headers, body = readBody(conn))

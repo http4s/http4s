@@ -20,8 +20,9 @@ package headers
 import cats.parse.{Parser, Rfc5234}
 import org.http4s.internal.CharPredicate
 import org.http4s.internal.parsing.{Rfc2616, Rfc3986, Rfc7230}
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci.CIString
 
 object `Content-Disposition`
     extends HeaderKey.Internal[`Content-Disposition`]
@@ -72,6 +73,20 @@ object `Content-Disposition`
         `Content-Disposition`(token, params.toMap)
     }
   }
+
+  implicit val headerInstance: v2.Header[`Content-Disposition`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Content-Disposition"),
+      v =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer.append(v.dispositionType)
+            v.parameters.foreach(p => writer << "; " << p._1 << "=\"" << p._2 << '"')
+            writer
+          }
+        },
+      ParseResult.fromParser(parser, "Invalid Content-Disposition header")
+    )
 }
 
 // see http://tools.ietf.org/html/rfc2183

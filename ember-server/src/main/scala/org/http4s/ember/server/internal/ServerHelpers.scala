@@ -165,10 +165,11 @@ private[server] object ServerHelpers {
   private[internal] def postProcessResponse[F[_]: Timer: Monad](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
-    val reqHasClose = req.headers.exists {
-      // We know this is raw because we have not parsed any headers in the underlying alg.
-      // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-      case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.toString)
+    val reqHasClose = req.headers.headers.exists {
+      case v2.Header.Raw(name, values) =>
+        // TODO This will do weird shit in the odd case that close is
+        // not a single, lowercase word
+        name == connectionCi && values.contains(closeCi.toString)
       case _ => false
     }
     val connection: Connection =
@@ -176,7 +177,7 @@ private[server] object ServerHelpers {
       else keepAlive
     for {
       date <- HttpDate.current[F].map(Date(_))
-    } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
+    } yield resp.withHeaders(v2.Headers(date, connection) ++ resp.headers)
   }
 
   private[internal] def runConnection[F[_]: Concurrent: Timer](
@@ -229,8 +230,8 @@ private[server] object ServerHelpers {
           case Left(_) => false
           case Right((req, resp)) =>
             !(
-              req.headers.get(Connection).exists(_.hasClose) ||
-                resp.headers.get(Connection).exists(_.hasClose)
+              req.headers.get[Connection].exists(_.hasClose) ||
+                resp.headers.get[Connection].exists(_.hasClose)
             )
         }
         .drain ++ Stream.eval_(socket.close)

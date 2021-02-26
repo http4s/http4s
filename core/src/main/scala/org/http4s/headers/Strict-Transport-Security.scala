@@ -20,7 +20,8 @@ package headers
 import cats.parse.{Parser, Parser0}
 import org.http4s.internal.parsing.Rfc7230.ows
 import org.http4s.parser.AdditionalRules
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -84,6 +85,23 @@ object `Strict-Transport-Security`
       }
     }
   }
+
+  implicit val headerInstance: v2.Header[`Strict-Transport-Security`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Strict-Transport-Security"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << "max-age=" << h.maxAge
+            if (h.includeSubDomains) writer << "; includeSubDomains"
+            if (h.preload) writer << "; preload"
+            writer
+          }
+
+        },
+      ParseResult.fromParser(parser, "Invalid Strict-Transport-Security header")
+    )
+
 }
 
 sealed abstract case class `Strict-Transport-Security`(

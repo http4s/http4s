@@ -89,12 +89,12 @@ class MultipartParserSuite extends Http4sSuite {
 
         val input = ruinDelims(unprocessedInput)
 
-        val expectedHeaders = Headers.of(
+        val expectedHeaders = v2.Headers(
           `Content-Disposition`(
             "form-data",
             Map("name" -> "upload", "filename" -> "integration.txt")),
           `Content-Type`(MediaType.application.`octet-stream`),
-          Header("Content-Transfer-Encoding", "binary")
+          "Content-Transfer-Encoding" -> "binary"
         )
 
         val expected = ruinDelims("""this is a test
@@ -107,7 +107,7 @@ class MultipartParserSuite extends Http4sSuite {
 
         for {
           multipartMaterialized <- results.compile.last.map(_.get)
-          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+          headers = multipartMaterialized.parts.foldLeft(v2.Headers.empty)(_ ++ _.headers)
           bodies = multipartMaterialized.parts
             .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
             .through(asciiDecode)
@@ -115,6 +115,8 @@ class MultipartParserSuite extends Http4sSuite {
             .foldMonoid
           result <- bodies.attempt
         } yield {
+          headers.headers.foreach(h => println(">> "+h))
+          expectedHeaders.headers.foreach(h => println("<< "+h))
           assertEquals(headers, expectedHeaders)
           assertEquals(result, Right(expected))
         }
@@ -139,12 +141,12 @@ class MultipartParserSuite extends Http4sSuite {
       val results =
         unspool(input, 15).through(multipartPipe(boundary))
 
-      val expectedHeaders = Headers.of(
+      val expectedHeaders = v2.Headers(
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        "Content-Transfer-Encoding" -> "binary"
       )
 
       val expected = ruinDelims("""this is a test
@@ -154,7 +156,7 @@ class MultipartParserSuite extends Http4sSuite {
 
       for {
         multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+        headers = multipartMaterialized.parts.foldLeft(v2.Headers.empty)(_ ++ _.headers)
         bodies =
           multipartMaterialized.parts
             .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
@@ -186,10 +188,10 @@ class MultipartParserSuite extends Http4sSuite {
         unspool(input, 15, StandardCharsets.UTF_8)
           .through(multipartPipe(boundary))
 
-      val expectedHeaders = Headers.of(
+      val expectedHeaders = v2.Headers(
         `Content-Disposition`("form-data", Map("name*" -> "http4s很棒", "filename*" -> "我老婆太漂亮.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        "Content-Transfer-Encoding" -> "binary"
       )
 
       val expected = ruinDelims("""this is a test
@@ -199,7 +201,7 @@ class MultipartParserSuite extends Http4sSuite {
 
       for {
         multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+        headers = multipartMaterialized.parts.foldLeft(v2.Headers.empty)(_ ++ _.headers)
         bodies =
           multipartMaterialized.parts
             .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
@@ -231,12 +233,11 @@ class MultipartParserSuite extends Http4sSuite {
         unspool(input, 15, StandardCharsets.UTF_8)
           .through(multipartPipe(boundary))
 
-      val expectedHeaders = Headers.of(
-        `Content-Disposition`(
-          "form-data",
-          Map("name*" -> "http4s withspace", "filename*" -> "我老婆太漂亮.txt")),
+      val expectedHeaders = v2.Headers(
+        // #4513 for why this isn't a modeled header
+        "Content-Disposition" -> """form-data; name*=UTF-8''http4s%20withspace; filename*="我老婆太漂亮.txt"""",
         `Content-Type`(MediaType.application.`octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        "Content-Transfer-Encoding" -> "binary"
       )
 
       val expected = ruinDelims("""this is a test
@@ -246,7 +247,7 @@ class MultipartParserSuite extends Http4sSuite {
 
       for {
         multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+        headers = multipartMaterialized.parts.foldLeft(v2.Headers.empty)(_ ++ _.headers)
         bodies =
           multipartMaterialized.parts
             .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
@@ -275,12 +276,12 @@ class MultipartParserSuite extends Http4sSuite {
 
       val input = ruinDelims(unprocessedInput)
 
-      val expectedHeaders = Headers.of(
+      val expectedHeaders = v2.Headers(
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        "Content-Transfer-Encoding" -> "binary"
       )
 
       val expected = ruinDelims("""this is a test
@@ -314,7 +315,7 @@ class MultipartParserSuite extends Http4sSuite {
 
       for {
         multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+        headers = multipartMaterialized.parts.foldLeft(v2.Headers.empty)(_ ++ _.headers)
         bodies = multipartMaterialized.parts
           .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
           .through(asciiDecode)
@@ -369,12 +370,12 @@ class MultipartParserSuite extends Http4sSuite {
         """.stripMargin)
       val end = "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--"
 
-      val expectedHeaders = Headers.of(
+      val expectedHeaders = v2.Headers(
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        "Content-Transfer-Encoding" -> "binary"
       )
 
       val crlf: Stream[IO, Byte] =
@@ -396,7 +397,7 @@ class MultipartParserSuite extends Http4sSuite {
 
       results.compile.last
         .map(_.get)
-        .map(_.parts.foldLeft(Headers.empty)(_ ++ _.headers))
+        .map(_.parts.foldLeft(v2.Headers.empty)(_ ++ _.headers))
         .assertEquals(expectedHeaders)
     }
 
@@ -416,12 +417,12 @@ class MultipartParserSuite extends Http4sSuite {
 
       val input = ruinDelims(unprocessedInput)
 
-      val expectedHeaders = Headers.of(
+      val expectedHeaders = v2.Headers(
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        "Content-Transfer-Encoding" -> "binary"
       )
 
       val expected = ruinDelims("""this is a test
@@ -432,7 +433,7 @@ class MultipartParserSuite extends Http4sSuite {
       val results = unspool(input).through(multipartPipe(boundary))
       for {
         multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+        headers = multipartMaterialized.parts.foldLeft(v2.Headers.empty)(_ ++ _.headers)
         bodies = multipartMaterialized.parts
           .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
           .through(asciiDecode)
@@ -569,14 +570,14 @@ class MultipartParserSuite extends Http4sSuite {
 
       results.compile.last
         .map(_.get)
-        .map(_.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers)))
+        .map(_.parts.foldLeft(List.empty[v2.Headers])((l, r) => l ::: List(r.headers)))
         .assertEquals(
           List(
-            Headers.of(
+            v2.Headers(
               `Content-Disposition`("form-data", Map("name" -> "field1")),
               `Content-Type`(MediaType.text.plain)
             ),
-            Headers.of(
+            v2.Headers(
               `Content-Disposition`("form-data", Map("name" -> "field2"))
             )
           )
@@ -614,7 +615,7 @@ class MultipartParserSuite extends Http4sSuite {
       } yield {
         assertEquals(
           firstPart.headers,
-          Headers.of(
+          v2.Headers(
             `Content-Disposition`("form-data", Map("name" -> "field1")),
             `Content-Type`(MediaType.text.plain)))
         assert(confirmedError.isInstanceOf[Left[_, _]])
@@ -706,10 +707,10 @@ class MultipartParserSuite extends Http4sSuite {
 
     results.compile.last
       .map(_.get)
-      .map(_.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers)))
+      .map(_.parts.foldLeft(List.empty[v2.Headers])((l, r) => l ::: List(r.headers)))
       .assertEquals(
         List(
-          Headers.of(
+          v2.Headers(
             `Content-Disposition`("form-data", Map("name" -> "field1")),
             `Content-Type`(MediaType.text.plain)
           )

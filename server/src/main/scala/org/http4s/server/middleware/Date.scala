@@ -35,7 +35,7 @@ object Date {
         resp <- k(a)
         header <-
           resp.headers
-            .get(HDate)
+            .get[HDate]
             .fold(
               HttpDate.current[G].map(HDate(_))
             )(_.pure[G])

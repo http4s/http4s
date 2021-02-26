@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230.headerRep1
 import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Accept] =
@@ -48,6 +49,16 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
 
     headerRep1(fullRange).map(xs => Accept(xs.head, xs.tail: _*))
   }
+
+  implicit val headerInstance: v2.Header[Accept, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Accept"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Accept header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Accept] =
+    (a, b) => Accept(a.values concatNel b.values)
 }
 
 final case class MediaRangeAndQValue(mediaRange: MediaRange, qValue: QValue = QValue.One)

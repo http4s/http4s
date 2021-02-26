@@ -47,9 +47,9 @@ class TraversalSpec extends Http4sSuite {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](req))
         end <- Parser.Request
           .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) //(logger)
-      } yield end._1.headers.toList
+      } yield end._1.headers.headers
 
-      res.assertEquals(req.headers.toList)
+      res.assertEquals(req.headers.headers)
     }
   }
 

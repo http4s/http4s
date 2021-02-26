@@ -30,7 +30,6 @@ import org.http4s.blazecore.{QueueTestHead, SeqTestHead}
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
 import org.http4s.syntax.all._
-import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class Http1ClientStageSuite extends Http4sSuite {
@@ -204,7 +203,7 @@ class Http1ClientStageSuite extends Http4sSuite {
 
   test("Use User-Agent header provided in Request".flaky) {
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-    val req = FooRequest.withHeaders(Header.Raw(CIString("User-Agent"), "myagent"))
+    val req = FooRequest.withHeaders(`User-Agent`(ProductId("myagent")))
 
     getSubmission(req, resp).map { case (request, response) =>
       val requestLines = request.split("\r\n").toList
@@ -273,20 +272,19 @@ class Http1ClientStageSuite extends Http4sSuite {
     val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
     test("Support trailer headers") {
-      val hs: IO[Headers] = bracketResponse(req, resp) { (response: Response[IO]) =>
+      val hs = bracketResponse(req, resp) { (response: Response[IO]) =>
         for {
           _ <- response.as[String]
           hs <- response.trailerHeaders
         } yield hs
       }
 
-      hs.map(_.toList.mkString).assertEquals("Foo: Bar")
+      hs.map(_.headers.mkString).assertEquals("Foo: Bar")
     }
 
     test("Fail to get trailers before they are complete") {
-      val hs: IO[Headers] = bracketResponse(req, resp) { (response: Response[IO]) =>
+      val hs = bracketResponse(req, resp) { (response: Response[IO]) =>
         for {
-          //body  <- response.as[String]
           hs <- response.trailerHeaders
         } yield hs
       }

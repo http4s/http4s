@@ -25,6 +25,7 @@ import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import org.http4s.headers._
+import org.typelevel.ci.CIString
 import scala.collection.mutable.ListBuffer
 
 object ChunkAggregator {
@@ -49,20 +50,26 @@ object ChunkAggregator {
 
   /* removes the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
    removes the `Content-Length` header, and leaves the other headers unchanged */
-  private[this] def removeChunkedTransferEncoding(len: Long)(headers: Headers): Headers = {
-    val hh: ListBuffer[Header] = ListBuffer.empty[Header]
-    headers.toList.foreach {
-      case e: `Transfer-Encoding` =>
-        e.values.filterNot(_ === TransferCoding.chunked) match {
-          case v :: vs =>
-            hh += `Transfer-Encoding`(NonEmptyList(v, vs))
-          case Nil => // do nothing
+  private[this] def removeChunkedTransferEncoding(len: Long)(headers: v2.Headers): v2.Headers = {
+    val hh: ListBuffer[v2.Header.ToRaw] = ListBuffer.empty[v2.Header.ToRaw]
+    headers.headers.foreach {
+      case h if h.name == CIString("Transfer-Encoding") =>
+        `Transfer-Encoding`.parse(h.value) match {
+          case Right(te) =>
+            te.values.filterNot(_ === TransferCoding.chunked) match {
+              case v :: vs =>
+                hh += `Transfer-Encoding`(NonEmptyList(v, vs))
+              case Nil =>
+                // do nothing
+            }
+          case Left(_) =>
+            hh += h
         }
-      case `Content-Length`(_) => // do nothing
+      case h if h.name == CIString("Content-Length") => // do nothing
       case header => hh += header
     }
     if (len > 0L)
       hh += `Content-Length`.unsafeFromLong(len)
-    Headers(hh.toList)
+    v2.Headers(hh.toList)
   }
 }

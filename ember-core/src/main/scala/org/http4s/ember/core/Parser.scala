@@ -22,6 +22,7 @@ import cats.effect.concurrent.{Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._
+import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
 
@@ -34,7 +35,7 @@ private[ember] object Parser {
         read: F[Option[Chunk[Byte]]],
         maxHeaderLength: Int,
         acc: Option[ParseHeadersIncomplete])(implicit
-        F: MonadThrow[F]): F[(Headers, Boolean, Option[Long], Array[Byte])] = {
+        F: MonadThrow[F]): F[(v2.Headers, Boolean, Option[Long], Array[Byte])] = {
       // TODO: improve this
       val nextChunk = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
       nextChunk.flatMap {
@@ -93,14 +94,14 @@ private[ember] object Parser {
           cause)
         with ParseHeaderResult
     final case class ParseHeadersCompleted(
-        headers: Headers,
+        headers: v2.Headers,
         rest: Array[Byte],
         chunked: Boolean,
         length: Option[Long])
         extends ParseHeaderResult
     final case class ParseHeadersIncomplete(
         bv: Array[Byte],
-        accHeaders: List[Header],
+        accHeaders: List[v2.Header.Raw],
         idx: Int,
         state: Byte,
         name: Option[String],
@@ -113,7 +114,7 @@ private[ember] object Parser {
         bv: Array[Byte],
         initIndex: Int = 0,
         initState: Byte = 0, //HeaderNameOrPostCRLF,
-        initHeaders: List[Header] = List.empty,
+        initHeaders: List[v2.Header.Raw] = List.empty,
         initChunked: Boolean = false,
         initContentLength: Option[Long] = None,
         initName: Option[String] = None,
@@ -159,7 +160,7 @@ private[ember] object Parser {
 
               val hName = name // copy var to val
               name = null // set name back to null
-              val newHeader = Header(hName, hValue) // create header
+              val newHeader = v2.Header.Raw(CIString(hName), hValue) // create header
               if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
                 try contentLength = hValue.toLong.some
                 catch {
@@ -181,7 +182,7 @@ private[ember] object Parser {
 
       if (throwable != null) ParseHeadersError(throwable)
       else if (complete)
-        ParseHeadersCompleted(Headers(headers.toList), bv.drop(idx), chunked, contentLength)
+        ParseHeadersCompleted(v2.Headers(headers.toList), bv.drop(idx), chunked, contentLength)
       else
         ParseHeadersIncomplete(
           bv,
@@ -373,7 +374,7 @@ private[ember] object Parser {
               )
 
               if (chunked) {
-                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, v2.Headers]).map {
                   case (rest, trailers) =>
                     (
                       baseReq
@@ -410,7 +411,7 @@ private[ember] object Parser {
               )
 
               if (chunked) {
-                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
+                Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, v2.Headers]).map {
                   case (rest, trailers) =>
                     (
                       baseResp

@@ -20,7 +20,8 @@ package headers
 import cats.Applicative
 import cats.parse.{Parser0, Rfc5234}
 import org.http4s.parser.ZipkinHeader
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object `X-B3-SpanId` extends HeaderKey.Internal[`X-B3-SpanId`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-SpanId`] =
@@ -32,6 +33,19 @@ object `X-B3-SpanId` extends HeaderKey.Internal[`X-B3-SpanId`] with HeaderKey.Si
       .string
       .map(ZipkinHeader.idStringToLong)
       .map(`X-B3-SpanId`.apply)
+
+  implicit val headerInstance: v2.Header[`X-B3-SpanId`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("X-B3-SpanId"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            xB3RenderValueImpl(writer, h.id)
+
+        },
+      ParseResult.fromParser(parser, "Invalid X-B3-SpanId header")
+    )
+
 }
 
 final case class `X-B3-SpanId`(id: Long) extends Header.Parsed {

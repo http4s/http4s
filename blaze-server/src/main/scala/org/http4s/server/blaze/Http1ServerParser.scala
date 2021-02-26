@@ -33,7 +33,7 @@ private[blaze] final class Http1ServerParser[F[_]](
   private var uri: String = _
   private var method: String = _
   private var minor: Int = -1
-  private val headers = new ListBuffer[Header]
+  private val headers = new ListBuffer[v2.Header.ToRaw]
 
   def minorVersion(): Int = minor
 
@@ -46,7 +46,7 @@ private[blaze] final class Http1ServerParser[F[_]](
   def collectMessage(
       body: EntityBody[F],
       attrs: Vault): Either[(ParseFailure, HttpVersion), Request[F]] = {
-    val h = Headers(headers.result())
+    val h = v2.Headers(headers.result())
     headers.clear()
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
 
@@ -54,12 +54,12 @@ private[blaze] final class Http1ServerParser[F[_]](
       if (minorVersion() == 1 && isChunked)
         attrs.insert(
           Message.Keys.TrailerHeaders[F],
-          F.suspend[Headers] {
+          F.suspend[v2.Headers] {
             if (!contentComplete())
               F.raiseError(
                 new IllegalStateException(
                   "Attempted to collect trailers before the body was complete."))
-            else F.pure(Headers(headers.result()))
+            else F.pure(v2.Headers(headers.result()))
           }
         )
       else attrs // Won't have trailers without a chunked body
@@ -90,7 +90,7 @@ private[blaze] final class Http1ServerParser[F[_]](
   /////////////////// Stateful methods for the HTTP parser ///////////////////
   override protected def headerComplete(name: String, value: String): Boolean = {
     logger.trace(s"Received header '$name: $value'")
-    headers += Header(name, value)
+    headers += name -> value
     false
   }
 

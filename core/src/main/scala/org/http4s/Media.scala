@@ -23,7 +23,7 @@ import org.http4s.headers._
 
 trait Media[F[_]] {
   def body: EntityBody[F]
-  def headers: Headers
+  def headers: v2.Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
   @deprecated(
@@ -50,10 +50,10 @@ trait Media[F[_]] {
     }
 
   final def contentType: Option[`Content-Type`] =
-    headers.get(`Content-Type`)
+    headers.get[`Content-Type`]
 
   final def contentLength: Option[Long] =
-    headers.get(`Content-Length`).map(_.length)
+    headers.get[`Content-Length`].map(_.length)
 
   final def charset: Option[Charset] =
     contentType.flatMap(_.charset)
@@ -82,11 +82,11 @@ trait Media[F[_]] {
 }
 
 object Media {
-  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
+  def apply[F[_]](b: EntityBody[F], h: v2.Headers): Media[F] =
     new Media[F] {
       def body = b
 
-      def headers: Headers = h
+      def headers: v2.Headers = h
 
       override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
     }

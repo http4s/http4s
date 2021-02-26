@@ -122,14 +122,14 @@ private[client] object ClientHelpers {
       req: Request[F],
       userAgent: Option[`User-Agent`]): F[Request[F]] = {
     val connection = req.headers
-      .get(Connection)
+      .get[Connection]
       .fold(Connection(NonEmptyList.of(CIString("keep-alive"))))(identity)
-    val userAgentHeader: Option[`User-Agent`] = req.headers.get(`User-Agent`).orElse(userAgent)
+    val userAgentHeader: Option[`User-Agent`] = req.headers.get[`User-Agent`].orElse(userAgent)
     for {
-      date <- req.headers.get(Date).fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
+      date <- req.headers.get[Date].fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
     } yield req
       .putHeaders(date, connection)
-      .putHeaders(userAgentHeader.toSeq: _*)
+      .putHeaders(userAgentHeader)
   }
 
   private[ember] def postProcessResponse[F[_]](
@@ -140,8 +140,8 @@ private[client] object ClientHelpers {
       canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
-        val requestClose = req.headers.get(Connection).exists(_.hasClose)
-        val responseClose = resp.headers.get(Connection).exists(_.hasClose)
+        val requestClose = req.headers.get[Connection].exists(_.hasClose)
+        val responseClose = resp.headers.get[Connection].exists(_.hasClose)
 
         if (requestClose || responseClose) F.unit
         else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)

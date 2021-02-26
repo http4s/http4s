@@ -21,6 +21,7 @@ import cats.parse.Parser
 import org.http4s
 import org.http4s.EntityTag.{Strong, Weakness, parser => entityTagParser}
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
 
@@ -39,6 +40,13 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
    */
   private[http4s] val parser: Parser[ETag] =
     entityTagParser.map(ETag.apply)
+
+  implicit val headerInstance: v2.Header[ETag, v2.Header.Single] =
+    v2.Header.create(
+      CIString("ETag"),
+      _.tag.toString,
+      ParseResult.fromParser(parser, "Invalid ETag header")
+    )
 }
 
 final case class ETag(tag: EntityTag) extends Header.Parsed {

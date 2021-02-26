@@ -25,7 +25,6 @@ import fs2._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
@@ -173,11 +172,11 @@ private final class Http1Connection[F[_]](
 
           // Side Effecting Code
           encodeRequestLine(req, rr)
-          Http1Stage.encodeHeaders(req.headers.toList, rr, isServer)
-          if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty)
+          Http1Stage.encodeHeaders(req.headers.headers, rr, isServer)
+          if (userAgent.nonEmpty && req.headers.get[`User-Agent`].isEmpty)
             rr << userAgent.get << "\r\n"
 
-          val mustClose: Boolean = H.Connection.from(req.headers) match {
+          val mustClose: Boolean = req.headers.get[Connection] match {
             case Some(conn) => checkCloseConnection(conn, rr)
             case None => getHttpMinor(req) == 0
           }
@@ -252,7 +251,7 @@ private final class Http1Connection[F[_]](
       readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
     else {
       // Get headers and determine if we need to close
-      val headers: Headers = parser.getHeaders()
+      val headers: v2.Headers = parser.getHeaders()
       val status: Status = parser.getStatus()
       val httpVersion: HttpVersion = parser.getHttpVersion()
 
@@ -267,7 +266,7 @@ private final class Http1Connection[F[_]](
         }
 
       def cleanup(): Unit =
-        if (closeOnFinish || headers.get(Connection).exists(_.hasClose)) {
+        if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
           logger.debug("Message body complete. Shutting down.")
           stageShutdown()
         } else {
@@ -287,9 +286,9 @@ private final class Http1Connection[F[_]](
         // to collect the trailers we need a cleanup helper and an effect in the attribute map
         val (trailerCleanup, attributes): (() => Unit, Vault) = {
           if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
-            val trailers = new AtomicReference(Headers.empty)
+            val trailers = new AtomicReference(v2.Headers.empty)
 
-            val attrs = Vault.empty.insert[F[Headers]](
+            val attrs = Vault.empty.insert[F[v2.Headers]](
               Message.Keys.TrailerHeaders[F],
               F.suspend {
                 if (parser.contentComplete()) F.pure(trailers.get())
@@ -347,20 +346,20 @@ private final class Http1Connection[F[_]](
     val minor: Int = getHttpMinor(req)
 
     // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
-    if (minor == 0 && `Content-Length`.from(req.headers).isEmpty) {
+    if (minor == 0 && req.headers.get[`Content-Length`].isEmpty) {
       logger.warn(s"Request $req is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
       validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
     }
     // Ensure we have a host header for HTTP/1.1
     else if (minor == 1 && req.uri.host.isEmpty) // this is unlikely if not impossible
-      if (Host.from(req.headers).isDefined) {
-        val host = Host.from(req.headers).get
+      if (req.headers.get[Host].isDefined) {
+        val host = req.headers.get[Host].get // TODO gross
         val newAuth = req.uri.authority match {
           case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
           case None => Authority(host = RegName(host.host), port = host.port)
         }
         validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
-      } else if (`Content-Length`.from(req.headers).nonEmpty) // translate to HTTP/1.0
+      } else if (req.headers.get[`Content-Length`].nonEmpty) // translate to HTTP/1.0
         validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
       else
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
@@ -391,9 +390,8 @@ private object Http1Connection {
   private def encodeRequestLine[F[_]](req: Request[F], writer: Writer): writer.type = {
     val uri = req.uri
     writer << req.method << ' ' << uri.toOriginForm << ' ' << req.httpVersion << "\r\n"
-    if (getHttpMinor(req) == 1 && Host
-        .from(req.headers)
-        .isEmpty) { // need to add the host header for HTTP/1.1
+    if (getHttpMinor(req) == 1 &&
+        req.headers.get[Host].isEmpty) { // need to add the host header for HTTP/1.1
       uri.host match {
         case Some(host) =>
           writer << "Host: " << host.value

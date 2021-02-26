@@ -17,6 +17,8 @@
 package org.http4s
 package headers
 
+import org.typelevel.ci.CIString
+
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.eq._
@@ -30,6 +32,16 @@ object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with Head
 
     headerRep1(ContentCoding.parser).map(xs => `Accept-Encoding`(xs.head, xs.tail: _*))
   }
+
+  implicit val headerInstance: v2.Header[`Accept-Encoding`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Accept-Encoding"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Accept-Encoding header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Encoding`] =
+    (a, b) => `Accept-Encoding`(a.values concatNel b.values)
 }
 
 final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])

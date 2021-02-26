@@ -20,8 +20,10 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230
+import org.typelevel.ci.CIString
 
 object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring {
+
   override def parse(s: String): ParseResult[`Accept-Language`] =
     ParseResult.fromParser(parser, "Invalid Accept-Language header")(s)
 
@@ -37,6 +39,16 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
 
     headerRep1(languageTag).map(tags => `Accept-Language`(tags.head, tags.tail: _*))
   }
+
+  implicit val headerInstance: v2.Header[`Accept-Language`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Accept-Language"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Accept-Language header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Language`] =
+    (a, b) => `Accept-Language`(a.values concatNel b.values)
 }
 
 /** Request header used to indicate which natural language would be preferred for the response

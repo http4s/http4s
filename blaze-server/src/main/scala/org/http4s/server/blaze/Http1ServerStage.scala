@@ -217,17 +217,17 @@ private[blaze] class Http1ServerStage[F[_]](
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 
-    Http1Stage.encodeHeaders(resp.headers.toList, rr, isServer = true)
+    Http1Stage.encodeHeaders(resp.headers.headers, rr, isServer = true)
 
-    val respTransferCoding = `Transfer-Encoding`.from(resp.headers)
-    val lengthHeader = `Content-Length`.from(resp.headers)
-    val respConn = Connection.from(resp.headers)
+    val respTransferCoding = resp.headers.get[`Transfer-Encoding`]
+    val lengthHeader = resp.headers.get[`Content-Length`]
+    val respConn = resp.headers.get[Connection]
 
     // Need to decide which encoder and if to close on finish
     val closeOnFinish = respConn
       .map(_.hasClose)
       .orElse {
-        Connection.from(req.headers).map(checkCloseConnection(_, rr))
+        req.headers.get[Connection].map(checkCloseConnection(_, rr))
       }
       .getOrElse(
         parser.minorVersion() == 0
