@@ -101,6 +101,9 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus"),
     // This doesn't really matter. It's only used in the mime generator.
     dependencyUpdatesFilter -= moduleFilter(name = "http4s-blaze-client"),
+    // We tried, and it was hard, so we quit. #4519
+    dependencyUpdatesFilter -= moduleFilter(name = "scala-library", revision = "2.13.5"),
+    dependencyUpdatesFilter -= moduleFilter(name = "scala-reflect", revision = "2.13.5"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
