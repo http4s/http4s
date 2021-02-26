@@ -11,6 +11,8 @@ ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
+// Temporary until the dust settles on headers
+ThisBuild / fatalWarningsInCI := false
 
 // todo remove once salafmt properly supports scala3
 ThisBuild / githubWorkflowBuild := Seq(
