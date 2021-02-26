@@ -231,7 +231,7 @@ object Client {
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
-  def liftKleisli[F[_]: MonadCancelThrow: cats.Defer, A](
+  def liftKleisli[F[_]: MonadCancelThrow, A](
       client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { (req: Request[Kleisli[F, A, *]]) =>
       Resource.eval(Kleisli.ask[F, A]).flatMap { a =>

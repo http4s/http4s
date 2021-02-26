@@ -17,7 +17,6 @@
 package org.http4s.ember.server.internal
 
 import cats._
-import fs2.io.net.Network
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.kernel.Resource
@@ -69,7 +68,7 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F]
-  )(implicit F: Temporal[F], N: Network[F]): Stream[F, Nothing] = {
+  )(implicit F: Temporal[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
         .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
@@ -114,7 +113,7 @@ private[server] object ServerHelpers {
   //     case Some(value) => Stream.chunk(value)
   //   }
 
-  private[internal] def upgradeSocket[F[_]: Concurrent: Network](
+  private[internal] def upgradeSocket[F[_]: Monad](
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       logger: Logger[F]
@@ -125,7 +124,7 @@ private[server] object ServerHelpers {
         .widen[Socket[F]]
     }
 
-  private[internal] def runApp[F[_]: Concurrent: Temporal](
+  private[internal] def runApp[F[_]: Temporal](
       head: Array[Byte],
       read: F[Option[Chunk[Byte]]],
       maxHeaderSize: Int,
@@ -148,7 +147,7 @@ private[server] object ServerHelpers {
     } yield (req, resp, rest)
   }
 
-  private[internal] def send[F[_]: Concurrent: Temporal](socket: Socket[F])(
+  private[internal] def send[F[_]: Temporal](socket: Socket[F])(
       request: Option[Request[F]],
       resp: Response[F],
       idleTimeout: Duration,
@@ -164,7 +163,7 @@ private[server] object ServerHelpers {
         case Right(()) => Applicative[F].unit
       }
 
-  private[internal] def postProcessResponse[F[_]: Temporal: Monad](
+  private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
     val reqHasClose = req.headers.exists {
@@ -181,7 +180,7 @@ private[server] object ServerHelpers {
     } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
   }
 
-  private[internal] def runConnection[F[_]: Concurrent: Temporal](
+  private[internal] def runConnection[F[_]: Temporal](
       socket: Socket[F],
       logger: Logger[F],
       idleTimeout: Duration,

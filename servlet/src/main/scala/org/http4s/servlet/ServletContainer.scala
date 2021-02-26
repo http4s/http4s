@@ -23,7 +23,7 @@ import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.http4s.server.ServerBuilder
 
-abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
+abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
   type Self <: ServletContainer[F]
 
   /** Mounts a servlet to the server.

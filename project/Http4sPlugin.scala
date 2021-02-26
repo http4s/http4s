@@ -23,10 +23,9 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.4"
+  val scala_213 = "2.13.5"
   val scala_212 = "2.12.13"
-  val scala_3M3 = "3.0.0-M3"
-  val scala_3RC1 = "3.0.0-RC1"
+  val scala_3 = "3.0.0-RC1"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -283,16 +282,16 @@ object Http4sPlugin extends AutoPlugin {
     val cats = "2.4.2"
     val catsEffect = "3.0.0-RC2"
     val catsParse = "0.3.1"
-    val circe = "0.14.0-M3"
+    val circe = "0.14.0-M4"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
-    val dropwizardMetrics = "4.1.17"
+    val dropwizardMetrics = "4.1.18"
     val fs2 = "3.0.0-M9"
     val ip4s = "3.0.0-RC2"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.1.0"
     val jawnFs2 = "2.0.0-RC2"
-    val jetty = "9.4.36.v20210114"
+    val jetty = "9.4.37.v20210219"
     val keypool = "0.4.0-RC1"
     val logback = "1.2.3"
     val log4cats = "2.0.0-RC1"
@@ -347,7 +346,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
-  lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s  
+  lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2

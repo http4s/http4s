@@ -40,7 +40,7 @@ class ParsingSpec extends Http4sSuite {
       } yield q.take
 
     // Only for Use with Text Requests
-    def parseRequestRig[F[_]: Concurrent: Temporal](s: String): F[Request[F]] = {
+    def parseRequestRig[F[_]: Concurrent](s: String): F[Request[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
@@ -52,7 +52,7 @@ class ParsingSpec extends Http4sSuite {
       }
     }
 
-    def parseResponseRig[F[_]: Concurrent: Temporal](s: String): Resource[F, Response[F]] = {
+    def parseResponseRig[F[_]: Concurrent](s: String): Resource[F, Response[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]

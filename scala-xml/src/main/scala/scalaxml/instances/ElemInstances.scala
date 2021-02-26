@@ -49,10 +49,10 @@ trait ElemInstances {
           new StringReader(
             new String(chunk.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
-        try DecodeResult.success[F, Elem](XML.loadXML(source, saxParser))
+        try DecodeResult.successT[F, Elem](XML.loadXML(source, saxParser))
         catch {
           case e: SAXParseException =>
-            DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
+            DecodeResult.failureT(MalformedMessageBodyFailure("Invalid XML", Some(e)))
           case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
         }
       }

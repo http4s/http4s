@@ -28,7 +28,7 @@ import munit.CatsEffectAssertions._
 
 trait LawAdapter {
 
-  def booleanPropF[F[_]: MonadThrow, A: Arbitrary: Shrink](
+  def booleanPropF[F[_]: MonadThrow, A](
       propLabel: String,
       prop: => Boolean): (String, PropF[F]) =
     propLabel -> PropF.boolean(prop)

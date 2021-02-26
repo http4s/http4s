@@ -18,7 +18,6 @@ package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
 import fs2.io.net._
-import fs2.io.net.Network
 import cats._
 import cats.data.NonEmptyList
 import cats.effect.{ApplicativeThrow => _, _}
@@ -40,7 +39,7 @@ import _root_.org.http4s.ember.core.Util.timeoutMaybe
 import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: Sync: Network](
+  def requestToSocketWithKey[F[_]: Sync](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       sg: SocketGroup[F],
@@ -55,7 +54,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Sync: Network](
+  def requestKeyToSocketWithKey[F[_]: Sync](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       sg: SocketGroup[F],
@@ -87,7 +86,7 @@ private[client] object ClientHelpers {
     case idn: IDN => extractHostname(idn.hostname)
   }
 
-  def request[F[_]: Async: Temporal](
+  def request[F[_]: Async](
       request: Request[F],
       connection: EmberConnection[F],
       chunkSize: Int,
