@@ -212,7 +212,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     "Http1ServerStage: routes should Do not send `Transfer-Encoding: identity` response") { tw =>
     val routes = HttpRoutes
       .of[IO] { case _ =>
-        val headers = Headers.of(H.`Transfer-Encoding`(TransferCoding.identity))
+        val headers = v2.Headers(H.`Transfer-Encoding`(TransferCoding.identity))
         IO.pure(
           Response[IO](headers = headers)
             .withEntity("hello world"))
@@ -484,14 +484,14 @@ class Http1ServerStageSpec extends Http4sSuite {
         for {
           _ <- req.body.compile.drain
           hs <- req.trailerHeaders
-          resp <- Ok(hs.toList.mkString)
+          resp <- Ok(hs.headers.mkString)
         } yield resp
 
       case req if req.pathInfo === path"/bar" =>
         for {
           // Don't run the body
           hs <- req.trailerHeaders
-          resp <- Ok(hs.toList.mkString)
+          resp <- Ok(hs.headers.mkString)
         } yield resp
     }
     .orNotFound
@@ -499,8 +499,8 @@ class Http1ServerStageSpec extends Http4sSuite {
   fixture.test("Http1ServerStage: routes should Handle trailing headers") { tw =>
     (runRequest(tw, Seq(req("foo")), routes2).result).map { buff =>
       val results = dropDate(ResponseParser.parseBuffer(buff))
-      assert(results._1 == Ok)
-      assert(results._3 == "Foo: Bar")
+      assertEquals(results._1, Ok)
+      assertEquals(results._3, "Foo: Bar")
     }
   }
 

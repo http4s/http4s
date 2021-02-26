@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.data.NonEmptyList
 import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
@@ -23,23 +24,22 @@ import org.typelevel.ci.CIString
 
 class HeadersSpec extends Http4sSuite {
   val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw(CIString("raw-header"), "Raw value")
+  val raw = v2.Header.Raw(CIString("raw-header"), "Raw value")
 
-  val base = Headers.of(clength.toRaw, raw)
+  val base = v2.Headers(clength, raw)
 
   test("Headers should Not find a header that isn't there") {
-    assertEquals(base.get(`Content-Base`), None)
+    assertEquals(base.get[`Content-Type`], None)
   }
 
   test("Headers should Find an existing header and return its parsed form") {
-    assert(base.get(`Content-Length`) == Some(clength))
-    assertEquals(base.get(CIString("raw-header")), Some(raw))
+    assertEquals(base.get[`Content-Length`], Some(clength))
+    assertEquals(base.get(CIString("raw-header")), Some(NonEmptyList.of(raw)))
   }
 
   test("Headers should Replaces headers") {
     val newlen = `Content-Length`.zero
-    assert(base.put(newlen).get(newlen.key) == Some(newlen))
-    assert(base.put(newlen.toRaw).get(newlen.key) == Some(newlen))
+    assertEquals(base.put(newlen).get[`Content-Length`], Some(newlen))
   }
 
   test("Headers should also find headers created raw") {
@@ -67,14 +67,15 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(hs.exists(_ == clength), true)
   }
 
+  // TODO this isn't really "raw headers" anymore
   test("Headers should Work with Raw headers (++)") {
     val foo = ContentCoding.unsafeFromString("foo")
     val bar = ContentCoding.unsafeFromString("bar")
-    val h1 = `Accept-Encoding`(foo).toRaw
-    val h2 = `Accept-Encoding`(bar).toRaw
-    val hs = Headers.of(clength.toRaw) ++ Headers.of(h1) ++ Headers.of(h2)
-    assert(hs.get(`Accept-Encoding`) == Some(`Accept-Encoding`(foo, bar)))
-    assertEquals(hs.exists(_ == clength), true)
+    val h1 = `Accept-Encoding`(foo)
+    val h2 = `Accept-Encoding`(bar)
+    val hs = v2.Headers(clength) ++ v2.Headers(h1) ++ v2.Headers(h2)
+    assertEquals(hs.get[`Accept-Encoding`], Some(`Accept-Encoding`(bar)))
+    assertEquals(hs.get[`Content-Length`], Some(clength))
   }
 
   // test("Headers should Avoid making copies if there are duplicate collections") {
@@ -83,10 +84,10 @@ class HeadersSpec extends Http4sSuite {
   // }
 
   test("Headers should Preserve original headers when processing") {
-    val rawAuth = Header("Authorization", "test this")
+    val rawAuth = v2.Header.Raw(CIString("Authorization"), "test this")
 
     // Mapping to strings because Header equality is based on the *parsed* version
-    assert((Headers.of(rawAuth) ++ base).toList.map(_.toString).contains(rawAuth.toString))
+    assert((v2.Headers(rawAuth) ++ base).headers.map(_.toString).contains(rawAuth.toString))
   }
 
   test("Headers should hash the same when constructed with the same contents") {
@@ -103,6 +104,6 @@ class HeadersSpec extends Http4sSuite {
     assert(h3.equals(h5))
   }
 
-  checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
-  checkAll("Order[Headers]", OrderTests[Headers].order)
+  checkAll("Monoid[Headers]", MonoidTests[v2.Headers].monoid)
+  checkAll("Order[Headers]", OrderTests[v2.Headers].order)
 }

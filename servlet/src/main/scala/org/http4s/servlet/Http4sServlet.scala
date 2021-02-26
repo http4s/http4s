@@ -24,11 +24,11 @@ import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import org.http4s._
-import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 abstract class Http4sServlet[F[_]](
@@ -77,7 +77,7 @@ abstract class Http4sServlet[F[_]](
     // a body and a status reason.  We sacrifice the status reason.
     F.delay {
       servletResponse.setStatus(response.status.code)
-      for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
+      for (header <- response.headers.headers if header.name != CIString("Transfer-Encoding"))
         servletResponse.addHeader(header.name.toString, header.value)
     }.attempt
       .flatMap {
@@ -158,11 +158,11 @@ abstract class Http4sServlet[F[_]](
       .getOrElse(-1)
   }
 
-  protected def toHeaders(req: HttpServletRequest): Headers = {
+  protected def toHeaders(req: HttpServletRequest): v2.Headers = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header(name, value)
-    Headers(headers.toList)
+    } yield name -> value
+    v2.Headers(headers.toList)
   }
 }

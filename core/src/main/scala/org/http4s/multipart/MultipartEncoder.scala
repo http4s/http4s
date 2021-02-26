@@ -24,7 +24,7 @@ import org.http4s.internal.ChunkWriter
 
 private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
   //TODO: Refactor encoders to create headers dependent on value.
-  def headers: Headers = Headers.empty
+  def headers: v2.Headers = v2.Headers.empty
 
   def toEntity(mp: Multipart[F]): Entity[F] =
     Entity(renderParts(mp.boundary)(mp.parts), None)
@@ -56,8 +56,8 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
   val encapsulationWithoutBody: Boundary => String = boundary =>
     s"${Boundary.CRLF}${dashBoundary(boundary)}${Boundary.CRLF}"
 
-  val renderHeaders: Headers => Chunk[Byte] = headers =>
-    headers
+  val renderHeaders: v2.Headers => Chunk[Byte] = headers =>
+    headers.headers
       .foldLeft(new ChunkWriter()) { (chunkWriter, header) =>
         chunkWriter
           .append(header)

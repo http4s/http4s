@@ -117,7 +117,7 @@ Content-Type: application/pdf
 
 ------WebKitFormBoundarycaZFo8IAKVROTEeD--
       """.replace("\n", "\r\n")
-        val header = Headers.of(
+        val header = v2.Headers(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
         val request = Request[IO](
@@ -145,7 +145,7 @@ I am a big moose
 --bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz--
 
       """.replace("\n", "\r\n")
-        val header = Headers.of(
+        val header = v2.Headers(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
         val request = Request[IO](
@@ -161,14 +161,14 @@ I am a big moose
 
       test(s"Multipart form data $name should extract name properly if it is present") {
         val part = Part(
-          Headers.of(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
+          v2.Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
           Stream.empty.covary[IO])
         assertEquals(part.name, Some("Rich Homie Quan"))
       }
 
       test(s"Multipart form data $name should extract filename property if it is present") {
         val part = Part(
-          Headers.of(
+          v2.Headers(
             `Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
           Stream.empty.covary[IO]
         )
@@ -187,7 +187,7 @@ I am a big moose
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO]())
 
-  def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
+  def testPart[F[_]] = Part[F](v2.Headers.empty, EmptyBody)
 
   // todo compiles on dotty
   test("Part.covary should disallow unrelated effects".ignore) {

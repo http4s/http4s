@@ -19,6 +19,7 @@ package headers
 
 import cats.parse.{Parser, Parser0}
 import org.http4s.util.{Renderer, Writer}
+import org.typelevel.ci.CIString
 
 object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Expires] =
@@ -37,6 +38,14 @@ object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
 
     httpDate.orElse(invalid).map(apply)
   }
+
+  implicit val headerInstance: v2.Header[Expires, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Expires"),
+      _.expirationDate,
+      ParseResult.fromParser(parser, "Invalid Expires header")
+    )
+
 }
 
 /** A Response header that _gives the date/time after which the response is considered stale_.

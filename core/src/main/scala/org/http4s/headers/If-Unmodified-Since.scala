@@ -19,6 +19,7 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.util.{Renderer, Writer}
+import org.typelevel.ci.CIString
 
 object `If-Unmodified-Since`
     extends HeaderKey.Internal[`If-Unmodified-Since`]
@@ -29,6 +30,14 @@ object `If-Unmodified-Since`
   /* `If-Modified-Since = HTTP-date` */
   private[http4s] val parser: Parser[`If-Unmodified-Since`] =
     HttpDate.parser.map(apply)
+
+  implicit val headerInstance: v2.Header[`If-Unmodified-Since`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("If-Unmodified-Since"),
+      _.date,
+      ParseResult.fromParser(parser, "Invalid If-Unmodified-Since header")
+    )
+
 }
 
 final case class `If-Unmodified-Since`(date: HttpDate) extends Header.Parsed {

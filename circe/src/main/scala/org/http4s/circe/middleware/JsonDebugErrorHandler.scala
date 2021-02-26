@@ -63,9 +63,8 @@ object JsonDebugErrorHandler {
             Response[G](
               Status.InternalServerError,
               req.httpVersion,
-              Headers(
-                Connection(CIString("close")) ::
-                  Nil
+              v2.Headers(
+                Connection(CIString("close"))
               ))
               .withEntity(JsonErrorHandlerResponse[G](req, t))
               .pure[F]
@@ -118,8 +117,7 @@ object JsonDebugErrorHandler {
           .dropNullValues,
         "headers" -> req.headers
           .redactSensitive(redactWhen)
-          .toList
-          .map(_.toRaw)
+          .headers
           .map { h =>
             Json.obj(
               "name" -> h.name.toString.asJson,

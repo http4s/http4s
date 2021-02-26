@@ -39,7 +39,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def httpVersion: HttpVersion
 
-  def headers: Headers
+  def headers: v2.Headers
 
   def body: EntityBody[F]
 
@@ -48,17 +48,17 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   protected def change(
       httpVersion: HttpVersion = httpVersion,
       body: EntityBody[F] = body,
-      headers: Headers = headers,
+      headers: v2.Headers = headers,
       attributes: Vault = attributes): Self
 
   def withHttpVersion(httpVersion: HttpVersion): Self =
     change(httpVersion = httpVersion)
 
-  def withHeaders(headers: Headers): Self =
+  def withHeaders(headers: v2.Headers): Self =
     change(headers = headers)
 
-  def withHeaders(headers: Header*): Self =
-    withHeaders(Headers(headers.toList))
+  def withHeaders(headers: v2.Header.ToRaw*): Self =
+    withHeaders(v2.Headers(headers: _*))
 
   def withAttributes(attributes: Vault): Self =
     change(attributes = attributes)
@@ -82,15 +82,16 @@ sealed trait Message[F[_]] extends Media[F] { self =>
       case Some(l) =>
         `Content-Length`
           .fromLong(l)
-          .fold[Headers](
+          .fold[v2.Headers](
             _ => {
               Message.logger.warn(s"Attempt to provide a negative content length of $l")
               w.headers
             },
-            cl => Headers(cl :: w.headers.toList))
+            cl => v2.Headers(cl, w.headers.headers))
+
       case None => w.headers
     }
-    change(body = entity.body, headers = headers ++ hs)
+    change(body = entity.body, headers = headers.transform(_ ++ hs.headers))
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
@@ -108,7 +109,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   // General header methods
 
-  def transformHeaders(f: Headers => Headers): Self =
+  def transformHeaders(f: v2.Headers => v2.Headers): Self =
     change(headers = f(headers))
 
   /** Keep headers that satisfy the predicate
@@ -116,29 +117,21 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @param f predicate
     * @return a new message object which has only headers that satisfy the predicate
     */
-  def filterHeaders(f: Header => Boolean): Self =
-    transformHeaders(_.filter(f))
+  def filterHeaders(f: v2.Header.Raw => Boolean): Self =
+    transformHeaders(_.transform(_.filter(f)))
 
-  def removeHeader(key: HeaderKey): Self =
-    filterHeaders(_.isNot(key))
+  def removeHeader(key: CIString): Self =
+    transformHeaders(_.transform(_.filterNot(_.name == key)))
+
+  def removeHeader[A](implicit h: v2.Header[A, _]): Self =
+    removeHeader(h.name)
 
   /** Add the provided headers to the existing headers, replacing those of the same header name
-    * The passed headers are assumed to contain no duplicate Singleton headers.
     */
-  def putHeaders(headers: Header*): Self =
+  def putHeaders(headers: v2.Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
 
-  /** Replace the existing headers with those provided */
-  @deprecated("Use withHeaders instead", "0.20.0-M2")
-  def replaceAllHeaders(headers: Headers): Self =
-    withHeaders(headers)
-
-  /** Replace the existing headers with those provided */
-  @deprecated("Use withHeaders instead", "0.20.0-M2")
-  def replaceAllHeaders(headers: Header*): Self =
-    withHeaders(headers: _*)
-
-  def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
+  def withTrailerHeaders(trailerHeaders: F[v2.Headers]): Self =
     withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
 
   def withoutTrailerHeaders: Self =
@@ -147,8 +140,8 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
     * F might not complete until the entire body has been consumed.
     */
-  def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
-    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
+  def trailerHeaders(implicit F: Applicative[F]): F[v2.Headers] =
+    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(v2.Headers.empty.pure[F])
 
   // Specific header methods
 
@@ -160,13 +153,13 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     putHeaders(contentType)
 
   def withoutContentType: Self =
-    filterHeaders(_.isNot(`Content-Type`))
+    removeHeader[`Content-Type`]
 
   def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
     contentTypeO.fold(withoutContentType)(withContentType)
 
   def isChunked: Boolean =
-    headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))
+    headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
 
   // Attribute methods
 
@@ -199,7 +192,7 @@ object Message {
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
-    def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]
+    def TrailerHeaders[F[_]]: Key[F[v2.Headers]] = trailerHeaders.asInstanceOf[Key[F[v2.Headers]]]
   }
 }
 
@@ -219,7 +212,7 @@ final class Request[F[_]](
     val method: Method = Method.GET,
     val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    val headers: Headers = Headers.empty,
+    val headers: v2.Headers = v2.Headers.empty,
     val body: EntityBody[F] = EmptyBody,
     val attributes: Vault = Vault.empty
 ) extends Message[F]
@@ -233,7 +226,7 @@ final class Request[F[_]](
       method: Method = this.method,
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
-      headers: Headers = this.headers,
+      headers: v2.Headers = this.headers,
       body: EntityBody[F] = this.body,
       attributes: Vault = this.attributes
   ): Request[F] =
@@ -265,7 +258,7 @@ final class Request[F[_]](
   override protected def change(
       httpVersion: HttpVersion,
       body: EntityBody[F],
-      headers: Headers,
+      headers: v2.Headers,
       attributes: Vault
   ): Self =
     copy(
@@ -296,7 +289,8 @@ final class Request[F[_]](
     *
     * Supported cURL-Parameters are: -X, -H
     */
-  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
+  def asCurl(
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains): String = {
 
     /*
      * escapes characters that are used in the curl-command, such as '
@@ -308,9 +302,9 @@ final class Request[F[_]](
       s"'${escapeQuotationMarks(uri.renderString)}'",
       headers
         .redactSensitive(redactHeadersWhen)
-        .toList
+        .headers
         .map { header =>
-          s"-H '${escapeQuotationMarks(header.toString)}'"
+          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
         }
         .mkString(" ")
     )
@@ -351,25 +345,24 @@ final class Request[F[_]](
     * headers formatted per HTTP/1 and HTTP/2, or even both at the same time.
     */
   def cookies: List[RequestCookie] =
-    headers.get(Cookie).fold(List.empty[RequestCookie])(_.values.toList)
+    headers.get[Cookie].fold(List.empty[RequestCookie])(_.values.toList)
 
   /** Add a Cookie header for the provided [[org.http4s.headers.Cookie]] */
   def addCookie(cookie: RequestCookie): Self =
-    headers
-      .get(Cookie)
-      .fold(putHeaders(Cookie(NonEmptyList.of(cookie)))) { preExistingCookie =>
-        removeHeader(Cookie).putHeaders(
-          Header(
-            Cookie.name.toString,
-            s"${preExistingCookie.value}; ${cookie.name}=${cookie.content}"))
-      }
+    putHeaders {
+      headers
+        .get[Cookie]
+        .fold(Cookie(NonEmptyList.of(cookie))) { preExistingCookie =>
+          Cookie(preExistingCookie.values.append(cookie))
+        }
+    }
 
   /** Add a Cookie header with the provided values */
   def addCookie(name: String, content: String): Self =
     addCookie(RequestCookie(name, content))
 
   def authType: Option[AuthScheme] =
-    headers.get(Authorization).map(_.credentials.authScheme)
+    headers.get[Authorization].map(_.credentials.authScheme)
 
   private def connectionInfo: Option[Connection] = attributes.lookup(Keys.ConnectionInfo)
 
@@ -379,7 +372,7 @@ final class Request[F[_]](
     */
   def from: Option[IpAddress] =
     headers
-      .get(`X-Forwarded-For`)
+      .get[`X-Forwarded-For`]
       .fold(remote.map(_.host))(_.values.head)
 
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
@@ -399,13 +392,13 @@ final class Request[F[_]](
     server
       .map(_.host)
       .orElse(uri.host.flatMap(_.toIpAddress))
-      .orElse(headers.get(Host).flatMap(h => IpAddress.fromString(h.host)))
+      .orElse(headers.get[Host].flatMap(h => IpAddress.fromString(h.host)))
 
   def serverPort: Option[Port] =
     server
       .map(_.port)
       .orElse(uri.port.flatMap(Port.fromInt))
-      .orElse(headers.get(Host).flatMap(_.port.flatMap(Port.fromInt)))
+      .orElse(headers.get[Host].flatMap(_.port.flatMap(Port.fromInt)))
 
   /** Whether the Request was received over a secure medium */
   def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
@@ -477,7 +470,7 @@ object Request {
       method: Method = Method.GET,
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-      headers: Headers = Headers.empty,
+      headers: v2.Headers = v2.Headers.empty,
       body: EntityBody[F] = EmptyBody,
       attributes: Vault = Vault.empty
   ): Request[F] =
@@ -491,7 +484,7 @@ object Request {
     )
 
   def unapply[F[_]](
-      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+      message: Message[F]): Option[(Method, Uri, HttpVersion, v2.Headers, EntityBody[F], Vault)] =
     message match {
       case request: Request[F] =>
         Some(
@@ -530,7 +523,7 @@ object Request {
 final case class Response[F[_]](
     status: Status = Status.Ok,
     httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: Headers = Headers.empty,
+    headers: v2.Headers = v2.Headers.empty,
     body: EntityBody[F] = EmptyBody,
     attributes: Vault = Vault.empty)
     extends Message[F] {
@@ -551,7 +544,7 @@ final case class Response[F[_]](
   override protected def change(
       httpVersion: HttpVersion,
       body: EntityBody[F],
-      headers: Headers,
+      headers: v2.Headers,
       attributes: Vault
   ): Self =
     copy(
@@ -563,7 +556,7 @@ final case class Response[F[_]](
 
   /** Add a Set-Cookie header for the provided [[ResponseCookie]] */
   def addCookie(cookie: ResponseCookie): Self =
-    putHeaders(`Set-Cookie`(cookie))
+    transformHeaders(_.add(`Set-Cookie`(cookie)))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Self =
@@ -584,7 +577,7 @@ final case class Response[F[_]](
     * deletion.
     */
   def cookies: List[ResponseCookie] =
-    `Set-Cookie`.from(headers).map(_.cookie)
+    headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
@@ -595,9 +588,10 @@ object Response {
     Response(
       Status.NotFound,
       body = Stream("Not found").through(utf8Encode),
-      headers = Headers(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`) :: `Content-Length`.unsafeFromLong(
-          9L) :: Nil)
+      headers = v2.Headers(
+        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+        `Content-Length`.unsafeFromLong(9L)
+      )
     )
 
   def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])

@@ -54,8 +54,7 @@ So far, there was no change. That's because an `Origin` header is required
 in the requests and it must include a scheme. This, of course, is the responsibility of the caller.
 
 ```scala mdoc
-val originHeader = Header("Origin", "https://somewhere.com")
-val corsRequest = request.putHeaders(originHeader)
+val corsRequest = request.putHeaders("Origin" -> "https://somewhere.com")
 
 corsService.orNotFound(corsRequest).unsafeRunSync()
 ```
@@ -73,9 +72,9 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```scala mdoc
-val googleGet = Request[IO](Method.GET, uri"/", headers = Headers.of(Header("Origin", "https://google.com")))
-val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers.of(Header("Origin", "https://yahoo.com")))
-val duckPost = Request[IO](Method.POST, uri"/", headers = Headers.of(Header("Origin", "https://duckduckgo.com")))
+val googleGet = Request[IO](Method.GET, uri"/", headers = v2.Headers("Origin" -> "https://google.com"))
+val yahooPut = Request[IO](Method.PUT, uri"/", headers = v2.Headers("Origin" -> "https://yahoo.com"))
+val duckPost = Request[IO](Method.POST, uri"/", headers = v2.Headers("Origin" -> "https://duckduckgo.com"))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`

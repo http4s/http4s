@@ -20,6 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7235
+import org.typelevel.ci.CIString
 
 object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with HeaderKey.Recurring {
   private[http4s] val parser: Parser[`WWW-Authenticate`] =
@@ -27,6 +28,16 @@ object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with He
 
   override def parse(s: String): ParseResult[`WWW-Authenticate`] =
     ParseResult.fromParser(parser, "Invalid WWW-Authenticate")(s)
+
+  implicit val headerInstance: v2.Header[`WWW-Authenticate`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("WWW-Authenticate"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid WWW-Authenticate header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`WWW-Authenticate`] =
+    (a, b) => `WWW-Authenticate`(a.values.concatNel(b.values))
 }
 
 final case class `WWW-Authenticate`(values: NonEmptyList[Challenge])

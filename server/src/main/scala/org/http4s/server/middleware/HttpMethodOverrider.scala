@@ -107,8 +107,10 @@ object HttpMethodOverrider {
           val updatedVaryHeader =
             resp.headers
               .get(varyHeaderName)
-              .map((h: Header) => Header(h.name.toString, s"${h.value}, ${headerName.toString}"))
-              .getOrElse(Header(varyHeaderName.toString, headerName.toString))
+              .map(_.head)
+              .map((h: v2.Header.Raw) =>
+                v2.Header.Raw(h.name, s"${h.value}, ${headerName.toString}"))
+              .getOrElse(v2.Header.Raw(varyHeaderName, headerName.toString))
 
           resp.withHeaders(resp.headers.put(updatedVaryHeader))
         case _ => resp
@@ -122,7 +124,8 @@ object HttpMethodOverrider {
 
     def getUnsafeOverrideMethod(req: Request[G]): F[Option[String]] =
       config.overrideStrategy match {
-        case HeaderOverrideStrategy(headerName) => F.pure(req.headers.get(headerName).map(_.value))
+        case HeaderOverrideStrategy(headerName) =>
+          F.pure(req.headers.get(headerName).map(_.head.value))
         case QueryOverrideStrategy(parameter) => F.pure(req.params.get(parameter))
         case FormOverrideStrategy(field, f) =>
           for {

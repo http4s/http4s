@@ -20,6 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
   def from(headers: Headers): List[`Set-Cookie`] =
@@ -39,6 +40,14 @@ object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
   /* set-cookie-header = "Set-Cookie:" SP set-cookie-string */
   private[http4s] val parser: Parser[`Set-Cookie`] =
     ResponseCookie.parser.map(`Set-Cookie`(_))
+
+  implicit val headerInstance: v2.Header[`Set-Cookie`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Set-Cookie"),
+      _.cookie,
+      ParseResult.fromParser(parser, "Invalid Set-Cookie header")
+    )
+
 }
 
 final case class `Set-Cookie`(cookie: ResponseCookie) extends Header.Parsed {

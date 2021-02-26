@@ -32,6 +32,16 @@ object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurrin
   private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
     Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
   }
+
+  implicit val headerInstance: v2.Header[Connection, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Connection"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Connection header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Connection] =
+    (a, b) => Connection(a.values.concatNel(b.values))
 }
 
 final case class Connection(values: NonEmptyList[CIString]) extends Header.Recurring {
@@ -39,6 +49,9 @@ final case class Connection(values: NonEmptyList[CIString]) extends Header.Recur
   type Value = CIString
   def hasClose: Boolean = values.contains_(CIString("close"))
   def hasKeepAlive: Boolean = values.contains_(CIString("keep-alive"))
-  override def renderValue(writer: Writer): writer.type =
-    writer.addStringNel(values.map(_.toString), ", ")
+  override def renderValue(writer: Writer): writer.type = {
+    writer.append(values.head.toString)
+    values.tail.foreach(s => writer.append(", ").append(s.toString))
+    writer
+  }
 }

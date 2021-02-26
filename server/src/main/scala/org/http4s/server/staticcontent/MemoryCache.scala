@@ -37,7 +37,7 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
       F: Concurrent[F]): F[Response[F]] =
     if (resp.status == Status.Ok)
       Option(cacheMap.get(uriPath)) match {
-        case Some(r) if r.headers.toList == resp.headers.toList =>
+        case Some(r) if r.headers.headers == resp.headers.headers =>
           logger.debug(s"Cache hit: $resp")
           F.pure(r)
 

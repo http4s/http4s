@@ -66,12 +66,12 @@ object Jsonp {
     val begin = beginJsonp(callback)
     val end = EndJsonp
     val jsonpBody = chunk(begin) ++ resp.body ++ chunk(end)
-    val newLengthHeaderOption = resp.headers.get(`Content-Length`).flatMap { old =>
+    val newLengthHeaderOption = resp.headers.get[`Content-Length`].flatMap { old =>
       old.modify(_ + begin.size + end.size)
     }
     resp
       .copy(body = jsonpBody)
-      .transformHeaders(h => Headers(h.toList ++ newLengthHeaderOption.toList))
+      .transformHeaders(_ ++ v2.Headers(newLengthHeaderOption))
       .withContentType(`Content-Type`(MediaType.application.javascript))
   }
 

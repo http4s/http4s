@@ -19,6 +19,7 @@ package headers
 
 import org.http4s.util.Writer
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci.CIString
 
 object `Content-Location` extends HeaderKey.Internal[`Content-Location`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Content-Location`] =
@@ -27,6 +28,13 @@ object `Content-Location` extends HeaderKey.Internal[`Content-Location`] with He
     .absoluteUri(StandardCharsets.ISO_8859_1)
     .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
     .map(`Content-Location`(_))
+
+  implicit val headerInstance: v2.Header[`Content-Location`, v2.Header.Single] =
+    v2.Header.create(
+      CIString("Content-Location"),
+      _.uri.toString,
+      ParseResult.fromParser(parser, "Invalid Content-Location header")
+    )
 }
 
 /** {{{

@@ -574,27 +574,16 @@ private[http4s] trait ArbitraryInstances {
       } yield `Transfer-Encoding`(codings)
     }
 
-  implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
+  implicit val http4sTestingArbitraryForRawHeader: Arbitrary[v2.Header.Raw] =
     Arbitrary {
       for {
         token <- genToken
         value <- genFieldValue
-      } yield Header.Raw(CIString(token), value)
+      } yield v2.Header.Raw(CIString(token), value)
     }
 
-  implicit val http4sTestingArbitraryForHeader: Arbitrary[Header] =
-    Arbitrary {
-      oneOf(
-        getArbitrary[`Accept-Charset`],
-        getArbitrary[Allow],
-        getArbitrary[`Content-Length`],
-        getArbitrary[Date],
-        getArbitrary[Header.Raw]
-      )
-    }
-
-  implicit val http4sTestingArbitraryForHeaders: Arbitrary[Headers] =
-    Arbitrary(listOf(getArbitrary[Header]).map(Headers(_)))
+  implicit val http4sTestingArbitraryForHeaders: Arbitrary[v2.Headers] =
+    Arbitrary(listOf(getArbitrary[v2.Header.Raw]).map(v2.Headers(_)))
 
   implicit val http4sTestingArbitraryForServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
@@ -815,7 +804,7 @@ private[http4s] trait ArbitraryInstances {
       CA: Cogen[A]): Arbitrary[EntityEncoder[F, A]] =
     Arbitrary(for {
       f <- getArbitrary[A => Entity[F]]
-      hs <- getArbitrary[Headers]
+      hs <- getArbitrary[v2.Headers]
     } yield EntityEncoder.encodeBy(hs)(f))
 
   implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](implicit
@@ -836,19 +825,19 @@ private[http4s] trait ArbitraryInstances {
       dispatcher: Dispatcher[F],
       testContext: TestContext
   ): Cogen[Media[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+    Cogen[(v2.Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
   implicit def http4sTestingCogenForMessage[F[_]](implicit
       F: Concurrent[F],
       dispatcher: Dispatcher[F],
       testContext: TestContext
   ): Cogen[Message[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+    Cogen[(v2.Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
-  implicit def http4sTestingCogenForHeaders: Cogen[Headers] =
-    Cogen[List[Header]].contramap(_.toList)
+  implicit def http4sTestingCogenForHeaders: Cogen[v2.Headers] =
+    Cogen[List[v2.Header.Raw]].contramap(_.headers)
 
-  implicit def http4sTestingCogenForHeader: Cogen[Header] =
+  implicit def http4sTestingCogenForHeader: Cogen[v2.Header.Raw] =
     Cogen[(CIString, String)].contramap(h => (h.name, h.value))
 
   implicit def http4sTestingArbitraryForDecodeFailure: Arbitrary[DecodeFailure] =
@@ -909,7 +898,7 @@ private[http4s] trait ArbitraryInstances {
         method <- getArbitrary[Method]
         uri <- getArbitrary[Uri]
         httpVersion <- getArbitrary[HttpVersion]
-        headers <- getArbitrary[Headers]
+        headers <- getArbitrary[v2.Headers]
         body <- http4sTestingGenForPureByteStream
       } yield try Request(method, uri, httpVersion, headers, body)
       catch {
@@ -935,7 +924,7 @@ private[http4s] trait ArbitraryInstances {
       for {
         status <- getArbitrary[Status]
         httpVersion <- getArbitrary[HttpVersion]
-        headers <- getArbitrary[Headers]
+        headers <- getArbitrary[v2.Headers]
         body <- http4sTestingGenForPureByteStream
       } yield Response(status, httpVersion, headers, body)
     }

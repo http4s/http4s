@@ -27,6 +27,7 @@ import org.http4s._
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import scala.util.Try
+import org.typelevel.ci.CIString
 
 object Forwarded
     extends HeaderKey.Internal[Forwarded]
@@ -357,6 +358,15 @@ object Forwarded
       .map(Forwarded.apply)
   }
 
+  implicit val headerInstance: v2.Header[Forwarded, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Forwarded"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Forwarded header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =
+    (a, b) => Forwarded(a.values.concatNel(b.values))
 }
 
 final case class Forwarded(values: NonEmptyList[Forwarded.Element])

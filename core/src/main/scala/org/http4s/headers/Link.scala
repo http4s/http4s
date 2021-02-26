@@ -22,6 +22,7 @@ import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token}
 
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci.CIString
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
 
@@ -82,6 +83,16 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
 
     headerRep1(linkValueWithAttr).map(links => Link(links.head, links.tail: _*))
   }
+
+  implicit val headerInstance: v2.Header[Link, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Link"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Link header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Link] =
+    (a, b) => Link(a.values.concatNel(b.values))
 }
 
 final case class Link(values: NonEmptyList[LinkValue]) extends Header.RecurringRenderable {

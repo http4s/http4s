@@ -35,10 +35,10 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(client: Client[F])(
-      implicit F: Temporal[F]): Client[F] = {
+      redactHeaderWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains)(
+      client: Client[F])(implicit F: Temporal[F]): Client[F] = {
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
-      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+      val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
       val uri = request.uri.renderString
       val method = request.method
       s"method=$method uri=$uri headers=$headers"
@@ -73,7 +73,7 @@ object Retry {
             case Some(duration) =>
               logger.info(
                 s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
-              nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`), hotswap)
+              nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
             case None =>
               F.pure(response)
           }

@@ -32,7 +32,7 @@ class MultipartHttpEndpoint[F[_]: Concurrent](fileService: FileService[F]) exten
     case req @ POST -> Root / ApiVersion / "multipart" =>
       req.decodeWith(multipart[F], strict = true) { response =>
         def filterFileTypes(part: Part[F]): Boolean =
-          part.headers.toList.exists(_.value.contains("filename"))
+          part.headers.headers.exists(_.value.contains("filename"))
 
         val stream = response.parts.filter(filterFileTypes).traverse(fileService.store)
 

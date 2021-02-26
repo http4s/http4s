@@ -31,7 +31,7 @@ class HttpsRedirectSuite extends Http4sSuite {
     Ok("pong")
   }
 
-  val reqHeaders = Headers.of(Header("X-Forwarded-Proto", "http"), Header("Host", "example.com"))
+  val reqHeaders = v2.Headers("X-Forwarded-Proto" -> "http", Host("example.com"))
   val req = Request[IO](method = GET, uri = Uri(path = Uri.Path.Root), headers = reqHeaders)
 
   test("redirect to https when 'X-Forwarded-Proto' is http") {
@@ -47,7 +47,7 @@ class HttpsRedirectSuite extends Http4sSuite {
             path = Uri.Path.Root,
             scheme = Some(Scheme.https),
             authority = Some(expectedAuthority)))
-      val expectedHeaders = Headers(expectedLocation :: `Content-Type`(MediaType.text.xml) :: Nil)
+      val expectedHeaders = v2.Headers(expectedLocation, `Content-Type`(MediaType.text.xml) :: Nil)
       app(req).map(_.status).assertEquals(Status.MovedPermanently) *>
         app(req).map(_.headers).assertEquals(expectedHeaders)
     }

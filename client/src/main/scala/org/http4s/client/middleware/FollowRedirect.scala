@@ -71,7 +71,8 @@ object FollowRedirect {
 
       def stripSensitiveHeaders(req: Request[F]): Request[F] =
         if (req.uri.authority != nextUri.authority)
-          req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
+          req.transformHeaders(hs =>
+            v2.Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name))))
         else
           req
 
@@ -99,7 +100,7 @@ object FollowRedirect {
         redirects: Int,
         hotswap: Hotswap[F, Response[F]]): F[Response[F]] =
       hotswap.swap(client.run(req)).flatMap { resp =>
-        val l: Option[Location] = resp.headers.get(Location)
+        val l: Option[Location] = resp.headers.get[Location]
         (methodForRedirect(req, resp), l) match {
           case (Some(method), Some(loc)) if redirects < maxRedirects =>
             val nextReq = nextRequest(req, loc.uri, method, resp.cookies)

@@ -32,16 +32,18 @@ class DefaultHeadSuite extends Http4sSuite {
       Ok("hello")
 
     case GET -> Root / "special" =>
-      Ok(Header("X-Handled-By", "GET"))
+      Ok().map(_.putHeaders("X-Handled-By" -> "GET"))
 
     case HEAD -> Root / "special" =>
-      Ok(Header("X-Handled-By", "HEAD"))
+      Ok().map(_.putHeaders("X-Handled-By" -> "HEAD"))
   }
   val app = DefaultHead(httpRoutes).orNotFound
 
   test("honor HEAD routes") {
     val req = Request[IO](Method.HEAD, uri = uri"/special")
-    app(req).map(_.headers.get(CIString("X-Handled-By")).map(_.value)).assertEquals(Some("HEAD"))
+    app(req)
+      .map(_.headers.get(CIString("X-Handled-By")).map(_.head.value))
+      .assertEquals(Some("HEAD"))
   }
 
   test("return truncated body of corresponding GET on fallthrough") {

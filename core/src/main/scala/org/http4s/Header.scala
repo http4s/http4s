@@ -20,6 +20,7 @@ import scala.util.hashing.MurmurHash3
 /** Abstract representation o the HTTP header
   * @see org.http4s.HeaderKey
   */
+@deprecated("Condemned", "LSUG")
 sealed trait Header extends Renderable with Product {
   import Header.Raw
 
@@ -65,6 +66,7 @@ sealed trait Header extends Renderable with Product {
     render(new HeaderLengthCountingWriter).length + 2
 }
 
+@deprecated("Condemned", "LSUG")
 object Header {
   def unapply(header: Header): Option[(CIString, String)] =
     Some((header.name, header.value))
@@ -78,6 +80,7 @@ object Header {
     * @param name case-insensitive string used to identify the header
     * @param value String representation of the header value
     */
+  @deprecated("Condemned", "LSUG")
   final case class Raw(name: CIString, override val value: String) extends Header {
     private[this] var _parsed: Header = null
     final override def parsed: Header = {
@@ -89,6 +92,7 @@ object Header {
   }
 
   /** A Header that is already parsed from its String representation. */
+  @deprecated("Condemned", "LSUG")
   trait Parsed extends Header {
     def key: HeaderKey
     def name: CIString = key.name
@@ -102,12 +106,14 @@ object Header {
     * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
     * of the message, by appending each subsequent field-value to the first, each separated by a comma.
     */
+  @deprecated("Condemned", "LSUG")
   trait Recurring extends Parsed {
     type Value
     def values: NonEmptyList[Value]
   }
 
   /** Simple helper trait that provides a default way of rendering the value */
+  @deprecated("Condemned", "LSUG")
   trait RecurringRenderable extends Recurring {
     type Value <: Renderable
     override def renderValue(writer: Writer): writer.type = {
@@ -118,6 +124,7 @@ object Header {
   }
 
   /** Helper trait that provides a default way of rendering the value provided a Renderer */
+  @deprecated("Condemned", "LSUG")
   trait RecurringRenderer extends Recurring {
     type Value
     implicit def renderer: Renderer[Value]

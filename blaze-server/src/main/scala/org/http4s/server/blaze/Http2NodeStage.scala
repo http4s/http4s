@@ -25,15 +25,13 @@ import fs2._
 import fs2.Stream._
 import java.util.Locale
 import java.util.concurrent.TimeoutException
-import org.http4s.{Headers => HHeaders, Method => HMethod}
-import org.http4s.Header.Raw
+import org.http4s.{Method => HMethod}
 import org.http4s.blaze.http.{HeaderNames, Headers}
 import org.http4s.blaze.http.http2._
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.{End, Http2Writer}
-import org.typelevel.ci.CIString
 import org.typelevel.vault._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
@@ -157,7 +155,7 @@ private class Http2NodeStage[F[_]](
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {
-    val headers = new ListBuffer[Header]
+    val headers = new ListBuffer[v2.Header.ToRaw]
     var method: HMethod = null
     var scheme: String = null
     var path: Uri = null
@@ -216,7 +214,7 @@ private class Http2NodeStage[F[_]](
               error += s"HTTP/2.0 forbids TE header values other than 'trailers'. "
           // ignore otherwise
 
-          case (k, v) => headers += Raw(CIString(k), v)
+          case (k, v) => headers += k -> v
         }
     }
 
@@ -227,7 +225,7 @@ private class Http2NodeStage[F[_]](
       closePipeline(Some(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
     else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
-      val hs = HHeaders(headers.result())
+      val hs = v2.Headers(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {

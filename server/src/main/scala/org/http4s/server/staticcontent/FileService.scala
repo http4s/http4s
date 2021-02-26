@@ -28,6 +28,7 @@ import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success, Try}
 
@@ -131,8 +132,16 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(implicit
-      F: Async[F]): F[Option[Response[F]]] =
-    req.headers.get(Range) match {
+      F: Async[F]): F[Option[Response[F]]] = {
+    def nope: F[Option[Response[F]]] = F.delay(file.length()).map { size =>
+      Some(
+        Response[F](
+          status = Status.RangeNotSatisfiable,
+          headers = v2.Headers
+            .apply(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
+    }
+
+    req.headers.get[Range] match {
       case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
         if (validRange(s, e, file.length))
           F.defer {
@@ -143,20 +152,21 @@ object FileService {
             StaticFile
               .fromFile(file, start, end + 1, config.bufferSize, Some(req), StaticFile.calcETag)
               .map { resp =>
-                val hs: Headers = resp.headers
+                val hs = resp.headers
                   .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
                 resp.copy(status = Status.PartialContent, headers = hs)
               }
               .value
           }
-        else
-          F.delay(file.length()).map { size =>
-            Some(
-              Response[F](
-                status = Status.RangeNotSatisfiable,
-                headers = Headers
-                  .of(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
-          }
-      case _ => F.pure(None)
+        else nope
+      case _ =>
+        req.headers.get(CIString("Range")) match {
+          case Some(_) =>
+            // It exists, but it didn't parse
+            nope
+          case None =>
+            F.pure(None)
+        }
     }
+  }
 }

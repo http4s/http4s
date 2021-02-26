@@ -19,6 +19,7 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.util.{Renderer, Writer}
+import org.typelevel.ci.CIString
 
 object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Last-Modified`] =
@@ -27,6 +28,14 @@ object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKe
   /* `Last-Modified = HTTP-date` */
   private[http4s] val parser: Parser[`Last-Modified`] =
     HttpDate.parser.map(apply)
+
+  implicit val headerInstance: v2.Header[`Last-Modified`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Last-Modified"),
+      _.date,
+      ParseResult.fromParser(parser, "Invalid Last-Modified header")
+    )
+
 }
 
 /** Response header that indicates the time at which the server believes the

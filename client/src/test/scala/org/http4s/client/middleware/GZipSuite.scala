@@ -36,8 +36,8 @@ class GZipSuite extends Http4sSuite {
     gzipClient
       .get(uri"/gziptest") { response =>
         assert(response.status == Status.Ok)
-        assert(response.headers.get(`Content-Encoding`).isEmpty)
-        assert(response.headers.get(`Content-Length`).isEmpty)
+        assert(response.headers.get[`Content-Encoding`].isEmpty)
+        assert(response.headers.get[`Content-Length`].isEmpty)
 
         response.as[String]
       }
@@ -52,8 +52,8 @@ class GZipSuite extends Http4sSuite {
       .run(request)
       .use { response =>
         assert(response.status == Status.Ok)
-        assert(response.headers.get(`Content-Encoding`).isEmpty)
-        assert(response.headers.get(`Content-Length`).isEmpty)
+        assert(response.headers.get[`Content-Encoding`].isEmpty)
+        assert(response.headers.get[`Content-Length`].isEmpty)
 
         response.as[String]
       }

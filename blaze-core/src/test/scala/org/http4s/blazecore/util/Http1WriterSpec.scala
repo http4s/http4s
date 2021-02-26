@@ -30,6 +30,8 @@ import cats.effect.std.Dispatcher
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
 import org.http4s.testing.DispatcherIOFixture
+import org.typelevel.ci.CIString
+import scala.concurrent.{ExecutionContext, Future}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
@@ -125,15 +127,15 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
   runNonChunkedTests(
     "CachingChunkWriter",
     implicit dispatcher =>
-      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false))
+      tail => new CachingChunkWriter[IO](tail, IO.pure(v2.Headers.empty), 1024 * 1024, false))
 
   runNonChunkedTests(
     "CachingStaticWriter",
     implicit dispatcher =>
-      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false))
+      tail => new CachingChunkWriter[IO](tail, IO.pure(v2.Headers.empty), 1024 * 1024, false))
 
   def builder(tail: TailStage[ByteBuffer])(implicit D: Dispatcher[IO]): FlushingChunkWriter[IO] =
-    new FlushingChunkWriter[IO](tail, IO.pure(Headers.empty))
+    new FlushingChunkWriter[IO](tail, IO.pure(v2.Headers.empty))
 
   dispatcher.test("FlushingChunkWriter should Write a strict chunk") { implicit d =>
     // n.b. in the scalaz-stream version, we could introspect the
@@ -307,7 +309,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     def builderWithTrailer(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
       new FlushingChunkWriter[IO](
         tail,
-        IO.pure(Headers.of(Header("X-Trailer", "trailer header value"))))
+        IO.pure(v2.Headers(v2.Header.Raw(CIString("X-Trailer"), "trailer header value"))))
 
     val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
 

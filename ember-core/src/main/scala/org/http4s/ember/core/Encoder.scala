@@ -18,7 +18,7 @@ package org.http4s.ember.core
 
 import fs2._
 import org.http4s._
-import org.http4s.headers.`Content-Length`
+import org.http4s.headers.{Host, `Content-Length`}
 import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
@@ -41,13 +41,18 @@ private[ember] object Encoder {
         .append(resp.status.renderString)
         .append(CRLF)
 
+      resp.headers
+        .get[`Content-Length`]
+        .foreach { _ =>
+          appliedContentLength = true
+        }
+
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
-        if (h.is(`Content-Length`)) appliedContentLength = true
-        else ()
-
         stringBuilder
-          .append(h.renderString)
+          .append(h.name)
+          .append(": ")
+          .append(h.value)
           .append(CRLF)
         ()
       }
@@ -88,7 +93,7 @@ private[ember] object Encoder {
         .append(CRLF)
 
       // Host From Uri Becomes Header if not already present in headers
-      if (org.http4s.headers.Host.from(req.headers).isEmpty)
+      if (req.headers.get[Host].isEmpty)
         req.uri.authority.foreach { auth =>
           stringBuilder
             .append("Host: ")
@@ -96,13 +101,18 @@ private[ember] object Encoder {
             .append(CRLF)
         }
 
+      req.headers
+        .get[`Content-Length`]
+        .foreach { _ =>
+          appliedContentLength = true
+        }
+
       // Apply each header followed by a CRLF
       req.headers.foreach { h =>
-        if (h.is(`Content-Length`)) appliedContentLength = true
-        else ()
-
         stringBuilder
-          .append(h.renderString)
+          .append(h.name)
+          .append(": ")
+          .append(h.value)
           .append(CRLF)
         ()
       }

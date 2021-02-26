@@ -22,6 +22,7 @@ import cats.syntax.foldable._
 import cats.parse._
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 /** {{{
   *  The "If-None-Match" header field makes the request method conditional
@@ -50,6 +51,16 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
     .orElse(Rfc7230.headerRep1(EntityTag.parser).map { tags =>
       `If-None-Match`(Some(tags))
     })
+
+  implicit val headerInstance: v2.Header[`If-None-Match`, v2.Header.Single] =
+    v2.Header.create(
+      CIString("If-None-Match"),
+      _.tags match {
+        case None => "*"
+        case Some(tags) => tags.mkString_("", ",", "")
+      },
+      ParseResult.fromParser(parser, "Invalid If-None-Match header")
+    )
 }
 
 final case class `If-None-Match`(tags: Option[NonEmptyList[EntityTag]]) extends Header.Parsed {

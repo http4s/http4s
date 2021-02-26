@@ -19,8 +19,9 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc3986
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
 import scala.util.Try
+import org.typelevel.ci.CIString
 
 object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
@@ -37,6 +38,19 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
       Host(host.value, port)
     }
   }
+  implicit val headerInstance: v2.Header[Host, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Host"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer.append(h.host)
+            if (h.port.isDefined) writer << ':' << h.port.get
+            writer
+          }
+        },
+      ParseResult.fromParser(parser, "Invalid Host header")
+    )
 }
 
 /** A Request header, that provides the host and port informatio

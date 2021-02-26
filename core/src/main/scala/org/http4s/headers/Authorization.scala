@@ -19,6 +19,7 @@ package headers
 
 import org.http4s.util.Writer
 import cats.parse._
+import org.typelevel.ci.CIString
 
 object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton {
   //https://tools.ietf.org/html/rfc7235#section-4.2
@@ -32,6 +33,14 @@ object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Si
 
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
+
+  implicit val headerInstance: v2.Header[Authorization, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Authorization"),
+      _.credentials,
+      ParseResult.fromParser(parser, "Invalid Authorization")
+    )
+
 }
 
 final case class Authorization(credentials: Credentials) extends Header.Parsed {

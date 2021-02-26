@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.CharsetRange.{Atom, `*`}
+import org.typelevel.ci.CIString
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Charset`] =
@@ -47,6 +48,16 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
 
     headerRep1(charsetRange).map(xs => `Accept-Charset`(xs.head, xs.tail: _*))
   }
+
+  implicit val headerInstance: v2.Header[`Accept-Charset`, v2.Header.Recurring] =
+    v2.Header.createRendered(
+      CIString("Accept-Charset"),
+      _.values,
+      ParseResult.fromParser(parser, "Invalid Accept-Charset header")
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Charset`] =
+    (a, b) => `Accept-Charset`(a.values.concatNel(b.values))
 }
 
 /** {{{

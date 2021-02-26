@@ -21,6 +21,7 @@ import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderer, Writer}
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Try
+import org.typelevel.ci.CIString
 
 object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   private class AgeImpl(age: Long) extends Age(age)
@@ -40,6 +41,13 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Age] =
     ParseResult.fromParser(parser, "Invalid Age header")(s)
   private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
+
+  implicit val headerInstance: v2.Header[Age, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Age"),
+      _.age,
+      ParseResult.fromParser(parser, "Invalid Age header")
+    )
 }
 
 /** Constructs an Age header.

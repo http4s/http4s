@@ -178,7 +178,7 @@ object AsyncHttpClient {
       request: Request[F],
       dispatcher: Dispatcher[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
-    for (h <- request.headers.toList)
+    for (h <- request.headers.headers)
       headers.add(h.name.toString, h.value)
     new RequestBuilder(request.method.renderString)
       .setUrl(request.uri.renderString)
@@ -204,8 +204,8 @@ object AsyncHttpClient {
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
 
-  private def getHeaders(headers: HttpHeaders): Headers =
-    Headers(headers.asScala.map { header =>
-      Header(header.getKey, header.getValue)
+  private def getHeaders(headers: HttpHeaders): v2.Headers =
+    v2.Headers(headers.asScala.map { header =>
+      header.getKey -> header.getValue
     }.toList)
 }

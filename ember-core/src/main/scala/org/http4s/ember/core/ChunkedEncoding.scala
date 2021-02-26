@@ -16,7 +16,7 @@ import cats.effect.kernel.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
-import org.http4s.Headers
+import org.http4s.v2
 
 import scala.util.control.NonFatal
 
@@ -30,7 +30,7 @@ private[ember] object ChunkedEncoding {
       head: Array[Byte],
       read: F[Option[Chunk[Byte]]],
       maxChunkHeaderSize: Int,
-      trailers: Deferred[F, Headers],
+      trailers: Deferred[F, v2.Headers],
       rest: Ref[F, Option[Array[Byte]]])(implicit F: MonadThrow[F]): Stream[F, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
@@ -96,16 +96,16 @@ private[ember] object ChunkedEncoding {
 
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
-  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(Headers, Array[Byte])] = {
+  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(v2.Headers, Array[Byte])] = {
     val uncons =
       if (head.nonEmpty) (Some(Chunk.byteVector(ByteVector(head))): Option[Chunk[Byte]]).pure[F]
       else read
     uncons.flatMap {
-      case None => (Headers.empty, Array.emptyByteArray).pure[F]
+      case None => (v2.Headers.empty, Array.emptyByteArray).pure[F]
       case Some(chunk) =>
         if (chunk.isEmpty) parseTrailers(maxHeaderSize)(Array.emptyByteArray, read)
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
-          (Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
+          (v2.Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
         else
           Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map {
             case (headers, _, _, bytes) =>

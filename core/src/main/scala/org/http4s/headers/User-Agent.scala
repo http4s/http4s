@@ -17,7 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 
 object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
   def apply(id: ProductId): `User-Agent` =
@@ -31,6 +32,25 @@ object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Sing
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         `User-Agent`(product, tokens)
     }
+
+  implicit val headerInstance: v2.Header[`User-Agent`, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("User-Agent"),
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.product
+            h.rest.foreach {
+              case p: ProductId => writer << ' ' << p
+              case ProductComment(c) => writer << ' ' << '(' << c << ')'
+            }
+            writer
+          }
+
+        },
+      ParseResult.fromParser(parser, "Invalid User-Agent header")
+    )
+
 }
 
 /** User-Agent header

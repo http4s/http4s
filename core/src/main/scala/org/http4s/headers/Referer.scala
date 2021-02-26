@@ -19,6 +19,7 @@ package headers
 
 import org.http4s.util.Writer
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci.CIString
 
 object Referer extends HeaderKey.Internal[Referer] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Referer] =
@@ -27,6 +28,14 @@ object Referer extends HeaderKey.Internal[Referer] with HeaderKey.Singleton {
     .absoluteUri(StandardCharsets.ISO_8859_1)
     .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
     .map(Referer(_))
+
+  implicit val headerInstance: v2.Header[Referer, v2.Header.Single] =
+    v2.Header.createRendered(
+      CIString("Referer"),
+      _.uri,
+      ParseResult.fromParser(parser, "Invalid Referer header")
+    )
+
 }
 
 final case class Referer(uri: Uri) extends Header.Parsed {

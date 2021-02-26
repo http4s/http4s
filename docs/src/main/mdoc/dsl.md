@@ -151,7 +151,7 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand:
 
 ```scala mdoc
-Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync().headers
+Ok("Ok response.", "X-Auth-Token" -> "value").unsafeRunSync().headers
 ```
 
 ### Cookies

@@ -48,11 +48,11 @@ object Caching {
   def `no-store-response`[G[_]]: PartiallyAppliedNoStoreCache[G] =
     new PartiallyAppliedNoStoreCache[G] {
       def apply[F[_]](resp: Response[F])(implicit G: Temporal[G]): G[Response[F]] =
-        HttpDate.current[G].map(now => resp.putHeaders(HDate(now) :: noStoreStaticHeaders: _*))
+        HttpDate.current[G].map(now => resp.putHeaders(HDate(now)).putHeaders(noStoreStaticHeaders))
     }
 
   // These never change, so don't recreate them each time.
-  private val noStoreStaticHeaders = List(
+  private val noStoreStaticHeaders: List[v2.Header.ToRaw] = List(
     `Cache-Control`(
       NonEmptyList.of[CacheDirective](
         CacheDirective.`no-store`,
@@ -61,7 +61,7 @@ object Caching {
         CacheDirective.`max-age`(0.seconds)
       )
     ),
-    Header("Pragma", "no-cache"),
+    "Pragma" -> "no-cache",
     Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
   )
 
@@ -184,18 +184,15 @@ object Caching {
             HttpDate
               .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
               .liftTo[G]
-        } yield {
-          val headers = List(
-            `Cache-Control`(
-              NonEmptyList.of(
-                isPublic.fold[CacheDirective](identity, identity),
-                CacheDirective.`max-age`(actualLifetime)
-              )),
-            HDate(now),
-            Expires(expires)
-          )
-          resp.putHeaders(headers: _*)
-        }
+        } yield resp.putHeaders(
+          `Cache-Control`(
+            NonEmptyList.of(
+              isPublic.fold[CacheDirective](identity, identity),
+              CacheDirective.`max-age`(actualLifetime)
+            )),
+          HDate(now),
+          Expires(expires)
+        )
 
     }
   }

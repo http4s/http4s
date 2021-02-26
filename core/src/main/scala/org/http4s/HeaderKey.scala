@@ -22,6 +22,7 @@ import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
+@deprecated("Condemned", "LSUG")
 sealed trait HeaderKey {
   type HeaderT <: Header
 
@@ -35,6 +36,7 @@ sealed trait HeaderKey {
   def parse(s: String): ParseResult[HeaderT]
 }
 
+@deprecated("Condemned", "LSUG")
 object HeaderKey {
   sealed trait Extractable extends HeaderKey {
     def from(headers: Headers): Option[HeaderT]
@@ -43,6 +45,7 @@ object HeaderKey {
 
   /** Represents a Header that should not be repeated.
     */
+  @deprecated("Condemned", "LSUG")
   trait Singleton extends Extractable {
     final def from(headers: Headers): Option[HeaderT] =
       headers.collectFirst(Function.unlift(matchHeader))
@@ -51,6 +54,7 @@ object HeaderKey {
   /** Represents a header key whose multiple headers can be combined by joining
     * their values with a comma.  See RFC 2616, Section 4.2.
     */
+  @deprecated("Condemned", "LSUG")
   trait Recurring extends Extractable {
     type HeaderT <: Header.Recurring
 
@@ -83,6 +87,7 @@ object HeaderKey {
     }
   }
 
+  @deprecated("Condemned", "LSUG")
   private[http4s] abstract class Internal[T <: Header: ClassTag] extends HeaderKey {
     type HeaderT = T
     val name = CIString(
@@ -105,6 +110,7 @@ object HeaderKey {
       }
   }
 
+  @deprecated("Condemned", "LSUG")
   private[http4s] trait StringKey extends Singleton {
     type HeaderT = Header
     override def matchHeader(header: Header): Option[HeaderT] =
@@ -112,6 +118,7 @@ object HeaderKey {
       else None
   }
 
+  @deprecated("Condemned", "LSUG")
   private[http4s] trait Default extends Internal[Header] with StringKey {
     override type HeaderT = Header
 
