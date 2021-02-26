@@ -67,14 +67,15 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(hs.exists(_ == clength), true)
   }
 
+  // TODO this isn't really "raw headers" anymore
   test("Headers should Work with Raw headers (++)") {
     val foo = ContentCoding.unsafeFromString("foo")
     val bar = ContentCoding.unsafeFromString("bar")
-    val h1 = `Accept-Encoding`(foo).toRaw
-    val h2 = `Accept-Encoding`(bar).toRaw
-    val hs = Headers.of(clength.toRaw) ++ Headers.of(h1) ++ Headers.of(h2)
-    assertEquals(hs.get(`Accept-Encoding`), Some(`Accept-Encoding`(foo, bar)))
-    assertEquals(hs.exists(_ == clength), true)
+    val h1 = `Accept-Encoding`(foo)
+    val h2 = `Accept-Encoding`(bar)
+    val hs = v2.Headers(clength) ++ v2.Headers(h1) ++ v2.Headers(h2)
+    assertEquals(hs.get[`Accept-Encoding`], Some(`Accept-Encoding`(bar)))
+    assertEquals(hs.get[`Content-Length`], Some(clength))
   }
 
   // test("Headers should Avoid making copies if there are duplicate collections") {

@@ -59,7 +59,7 @@ class EntityEncoderSpec extends Http4sSuite {
     test(
       "EntityEncoder should render streams with chunked transfer encoding without duplicating chunked transfer encoding") {
       trait Foo
-      implicit val FooEncoder =
+      implicit val FooEncoder: EntityEncoder[IO, Foo] =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
           Entity.empty)
       EntityEncoder[IO, Stream[IO, Foo]].headers.get[`Transfer-Encoding`] match {
