@@ -49,7 +49,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .flatMapR(_ => DecodeResult.success[IO, String]("bar"))
+          .flatMapR(_ => DecodeResult.successT[IO, String]("bar"))
           .decode(r, strict = false)
       }
       .value
@@ -62,7 +62,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
           .decode(r, strict = false)
       }
       .value
@@ -75,7 +75,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
           .handleError(_ => "SAVED")
           .decode(r, strict = false)
       }
@@ -89,8 +89,8 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
-          .handleErrorWith(_ => DecodeResult.success[IO, String]("SAVED"))
+          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
+          .handleErrorWith(_ => DecodeResult.successT[IO, String]("SAVED"))
           .decode(r, strict = false)
       }
       .value
@@ -103,9 +103,9 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
           .handleErrorWith(_ =>
-            DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")))
+            DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("double bummer")))
           .decode(r, strict = false)
       }
       .value
@@ -131,7 +131,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
           .bimap(_ => MalformedMessageBodyFailure("double bummer"), identity)
           .decode(r, strict = false)
       }
@@ -145,7 +145,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .transformWith(_ => DecodeResult.success[IO, String]("TRANSFORMED"))
+          .transformWith(_ => DecodeResult.successT[IO, String]("TRANSFORMED"))
           .decode(r, strict = false)
       }
       .value
@@ -158,10 +158,10 @@ class EntityDecoderSuite extends Http4sSuite {
       .flatMap { r =>
         EntityDecoder
           .text[IO]
-          .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
           .biflatMap(
-            _ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")),
-            s => DecodeResult.success[IO, String](s)
+            _ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("double bummer")),
+            s => DecodeResult.successT[IO, String](s)
           )
           .decode(r, strict = false)
       }
@@ -171,27 +171,27 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val nonMatchingDecoder: EntityDecoder[IO, String] =
     EntityDecoder.decodeBy(MediaRange.`video/*`) { _ =>
-      DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
+      DecodeResult.failureT(MalformedMessageBodyFailure("Nope."))
     }
 
   val decoder1: EntityDecoder[IO, Int] =
     EntityDecoder.decodeBy(`application/gnutar`) { _ =>
-      DecodeResult.success(1)
+      DecodeResult.successT(1)
     }
 
   val decoder2: EntityDecoder[IO, Int] =
     EntityDecoder.decodeBy(`application/excel`) { _ =>
-      DecodeResult.success(2)
+      DecodeResult.successT(2)
     }
 
   val failDecoder: EntityDecoder[IO, Int] =
     EntityDecoder.decodeBy(`application/soap+xml`) { _ =>
-      DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
+      DecodeResult.failureT(MalformedMessageBodyFailure("Nope."))
     }
 
   test("Check the validity of a message body") {
     val decoder = EntityDecoder.decodeBy[IO, String](MediaType.text.plain) { _ =>
-      DecodeResult.failure(InvalidMessageBodyFailure("Nope."))
+      DecodeResult.failureT(InvalidMessageBodyFailure("Nope."))
     }
 
     decoder
@@ -296,7 +296,7 @@ class EntityDecoderSuite extends Http4sSuite {
       Request[IO](headers = v2.Headers(`Content-Type`(`text/x-h`)))
     val reqNoMediaType = Request[IO]()
     val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) { _ =>
-      DecodeResult.success(3)
+      DecodeResult.successT(3)
     }
     (decoder1 <+> catchAllDecoder)
       .decode(reqSomeOtherMediaType, strict = true)

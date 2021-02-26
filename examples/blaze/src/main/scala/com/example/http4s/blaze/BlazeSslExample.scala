@@ -32,7 +32,7 @@ object BlazeSslExampleApp {
   def context[F[_]: Sync] =
     ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
 
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: F[BlazeServerBuilder[F]] =
+  def builder[F[_]: ConcurrentEffect: Timer]: F[BlazeServerBuilder[F]] =
     context.map { sslContext =>
       BlazeServerBuilder[F](global)
         .bindHttp(8443)

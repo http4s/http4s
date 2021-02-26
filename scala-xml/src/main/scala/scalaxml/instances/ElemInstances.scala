@@ -55,7 +55,7 @@ trait ElemInstances {
           F.delay(XML.loadXML(source, saxParser)).attempt
         ).leftFlatMap {
           case e: SAXParseException =>
-            DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
+            DecodeResult.failureT(MalformedMessageBodyFailure("Invalid XML", Some(e)))
           case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
         }
       }

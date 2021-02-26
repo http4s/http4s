@@ -39,7 +39,7 @@ import _root_.org.http4s.ember.core.Util.durationToFinite
 
 private[client] object ClientHelpers {
 
-  def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
+  def requestToSocketWithKey[F[_]: Concurrent: ContextShift](
       request: Request[F],
       tlsContextOpt: Option[TLSContext],
       sg: SocketGroup,
@@ -54,7 +54,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
+  def requestKeyToSocketWithKey[F[_]: Concurrent: ContextShift](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext],
       sg: SocketGroup,
@@ -80,7 +80,7 @@ private[client] object ClientHelpers {
       }
     } yield RequestKeySocket(socket, requestKey)
 
-  def request[F[_]: Concurrent: ContextShift: Timer](
+  def request[F[_]: Concurrent: Timer](
       request: Request[F],
       connection: EmberConnection[F],
       chunkSize: Int,
