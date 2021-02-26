@@ -57,7 +57,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        if: matrix.scala != '3.0.0-M3' && matrix.scala != '3.0.0-RC1'
+        if: matrix.scala != '3.0.0-M3' && matrix.scala != '3.0.0-RC1' && false
         run: sbt ++${{ matrix.scala }} scalafmtCheckAll
 
       - name: Check headers
