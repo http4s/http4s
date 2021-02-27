@@ -53,11 +53,11 @@ class Http1ServerStageSpec extends Http4sSuite {
     new String(a)
   }
 
-  def parseAndDropDate(buff: ByteBuffer): (Status, Set[Header], String) =
+  def parseAndDropDate(buff: ByteBuffer): (Status, v2.Headers, String) =
     dropDate(ResponseParser.apply(buff))
 
-  def dropDate(resp: (Status, Set[Header], String)): (Status, Set[Header], String) = {
-    val hds = resp._2.filter(_.name != Date.name)
+  def dropDate(resp: (Status, v2.Headers, String)): (Status, v2.Headers, String) = {
+    val hds = v2.Headers(resp._2.headers.filter(_.name != Date.name))
     (resp._1, hds, resp._3)
   }
 
@@ -151,8 +151,8 @@ class Http1ServerStageSpec extends Http4sSuite {
     runRequest(tw, List(path), exceptionService).result
       .map(parseAndDropDate)
       .map { case (s, h, r) =>
-        val close = h.exists { h =>
-          h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
+        val close = h.headers.exists { h =>
+          h.name == CIString("connection") && h.value == "close"
         }
         (s, close, r)
       }
@@ -215,7 +215,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       assert(str.contains("hello world"))
 
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      assert(!hdrs.exists(_.name == `Transfer-Encoding`.name))
+      assert(!hdrs.headers.exists(_.name == `Transfer-Encoding`.name))
     }
   }
 
@@ -236,8 +236,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       (runRequest(tw, Seq(req), routes).result).map { buf =>
         val (status, hs, body) = ResponseParser.parseBuffer(buf)
 
-        val hss = Headers(hs.toList)
-        assert(`Content-Length`.from(hss).isDefined == false)
+        val hss = v2.Headers(hs.headers)
+        assert(hss.get[`Content-Length`].isDefined == false)
         assert(body == "")
         assert(status == Status.NotModified)
       }
@@ -256,7 +256,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     (runRequest(tw, Seq(req1), routes).result).map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      assert(hdrs.exists(_.name == Date.name))
+      assert(hdrs.headers.exists(_.name == Date.name))
     }
   }
 
@@ -275,7 +275,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
 
-      assert(hdrs.find(_.name == Date.name) == Some(dateHeader))
+      assert(hdrs.headers.find(_.name == Date.name) == Some(dateHeader))
     }
   }
 
