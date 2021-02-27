@@ -89,7 +89,6 @@ object HttpHeaderParser {
     addParser_(CIString("ACCEPT"), Accept.parse)
     addParser_(CIString("ACCEPT-CHARSET"), `Accept-Charset`.parse)
     addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
-    addParser_(CIString("ACCEPT-LANGUAGE"), `Accept-Language`.parse)
     addParser_(CIString("ACCEPT-PATCH"), `Accept-Patch`.parse)
     addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
     addParser_(
