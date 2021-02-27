@@ -25,18 +25,20 @@ import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSuite {
   test("parse Accept-Patch") {
+    def parse(value: String) = `Accept-Patch`.parse(value)
+
     val header =
       `Accept-Patch`(
         NonEmptyList.of(new MediaType("text", "example", extensions = Map("charset" -> "utf-8"))))
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(parse(header.value), Right(header))
     val multipleMediaTypes =
       `Accept-Patch`(
         NonEmptyList
           .of(new MediaType("application", "example"), new MediaType("text", "example")))
-    assertEquals(HttpHeaderParser.parseHeader(multipleMediaTypes.toRaw), Right(multipleMediaTypes))
+    assertEquals(parse(multipleMediaTypes.value), Right(multipleMediaTypes))
 
-    val bad = Header(header.name.toString, "foo; bar")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+    val bad = Header("Accept-Patch", "foo; bar")
+    assert(parse(bad.value).isLeft)
   }
 
   test("parse Access-Control-Allow-Headers") {
