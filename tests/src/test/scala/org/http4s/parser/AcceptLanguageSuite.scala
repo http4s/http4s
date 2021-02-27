@@ -21,7 +21,7 @@ import org.http4s.headers.`Accept-Language`
 import org.http4s.syntax.all._
 import org.http4s.util.Renderer
 
-class AcceptLanguageSuite extends Http4sSuite  {
+class AcceptLanguageSuite extends Http4sSuite {
 
   def parse(value: String): `Accept-Language` =
     `Accept-Language`.parse(value).toOption.get
