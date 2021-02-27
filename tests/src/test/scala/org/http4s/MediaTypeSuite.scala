@@ -63,7 +63,6 @@ class MediaTypeSuite extends Http4sSuite {
     val raw = Header(
       "Accept",
       """text/csv;charset=UTF-8;columnDelimiter=" "; rowDelimiter=";"; quoteChar='; escapeChar="\\"""")
-    assert(raw.parsed.isInstanceOf[headers.Accept])
     assertEquals(Header("Accept", raw.parsed.value).parsed, raw.parsed)
   }
 

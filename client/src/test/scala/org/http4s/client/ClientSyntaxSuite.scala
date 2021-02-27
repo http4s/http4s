@@ -36,7 +36,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
         Response[IO](Created).withEntity(r.body).pure[IO]
       case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
         r.headers.get[Accept].fold(IO.pure(Response[IO](BadRequest))) { m =>
-          Response[IO](Ok).withEntity(m.toString).pure[IO]
+          Response[IO](Ok).withEntity(m.renderString).pure[IO]
         }
       case r if r.pathInfo == path"/status/500" =>
         Response[IO](InternalServerError).withEntity("Oops").pure[IO]

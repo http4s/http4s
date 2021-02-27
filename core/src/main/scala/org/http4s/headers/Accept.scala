@@ -20,11 +20,14 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230.headerRep1
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.{Renderable, Renderer, Writer}
 import org.typelevel.ci.CIString
 
-object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Accept] =
+object Accept {
+  def apply(head: MediaRangeAndQValue, tail: MediaRangeAndQValue*): `Accept` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[Accept] =
     ParseResult.fromParser(parser, "Invalid Accept header")(s)
 
   private[http4s] val parser: Parser[Accept] = {
@@ -75,8 +78,12 @@ object MediaRangeAndQValue {
     MediaRangeAndQValue(mediaRange, QValue.One)
 }
 
-final case class Accept(values: NonEmptyList[MediaRangeAndQValue])
-    extends Header.RecurringRenderable {
+final case class Accept(values: NonEmptyList[MediaRangeAndQValue]) {
+
+  def value: String = Renderer.renderString(values)
+
+  def renderString: String = s"Accept: $value"
+
   def key: Accept.type = Accept
   type Value = MediaRangeAndQValue
 }
