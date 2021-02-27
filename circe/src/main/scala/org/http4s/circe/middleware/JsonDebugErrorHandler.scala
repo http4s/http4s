@@ -34,7 +34,7 @@ object JsonDebugErrorHandler {
   // Can be parametric on my other PR is merged.
   def apply[F[_]: Sync, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
+      redactWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains
   ): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       import cats.syntax.applicative._
