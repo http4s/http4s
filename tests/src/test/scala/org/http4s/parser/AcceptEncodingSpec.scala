@@ -20,9 +20,9 @@ package parser
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.syntax.all._
 
-class AcceptEncodingSpec extends Http4sSuite with HeaderParserHelper[`Accept-Encoding`] {
-  def hparse(value: String): ParseResult[`Accept-Encoding`] =
-    `Accept-Encoding`.parse(value)
+class AcceptEncodingSpec extends Http4sSuite {
+  def parse(value: String): `Accept-Encoding` =
+    `Accept-Encoding`.parse(value).toOption.get
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
   val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.5"))
