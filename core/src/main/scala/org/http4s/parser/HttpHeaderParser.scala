@@ -97,7 +97,6 @@ object HttpHeaderParser {
       `Access-Control-Allow-Credentials`.parse)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `Access-Control-Allow-Headers`.parse)
     addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `Access-Control-Expose-Headers`.parse)
-    addParser_(CIString("AGE"), Age.parse)
     addParser_(CIString("ALLOW"), Allow.parse)
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
     addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
