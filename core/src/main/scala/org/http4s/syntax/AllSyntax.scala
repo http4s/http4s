@@ -22,4 +22,9 @@ abstract class AllSyntaxBinCompat
     with KleisliSyntaxBinCompat0
     with KleisliSyntaxBinCompat1
 
-trait AllSyntax extends AnyRef with KleisliSyntax with StringSyntax with LiteralsSyntax with HeaderSyntax
+trait AllSyntax
+    extends AnyRef
+    with KleisliSyntax
+    with StringSyntax
+    with LiteralsSyntax
+    with HeaderSyntax

@@ -86,7 +86,6 @@ object HttpHeaderParser {
   }
 
   private def gatherBuiltIn(): Unit = {
-    addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
     addParser_(
       CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"),
       `Access-Control-Allow-Credentials`.parse)
