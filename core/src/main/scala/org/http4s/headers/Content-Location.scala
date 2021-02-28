@@ -21,8 +21,8 @@ import org.http4s.util.Writer
 import java.nio.charset.StandardCharsets
 import org.typelevel.ci.CIString
 
-object `Content-Location`  {
-   def parse(s: String): ParseResult[`Content-Location`] =
+object `Content-Location` {
+  def parse(s: String): ParseResult[`Content-Location`] =
     ParseResult.fromParser(parser, "Invalid Content-Location")(s)
   private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
@@ -44,7 +44,7 @@ object `Content-Location`  {
   * }}}
   * [[https://tools.ietf.org/html/rfc7231#section-3.1.4.2 RFC-7231 Section 3.1.4.2]]
   */
-final case class `Content-Location`(uri: Uri)  {
+final case class `Content-Location`(uri: Uri) {
   def key: `Content-Location`.type = `Content-Location`
   def value: String = uri.toString
   def renderValue(writer: Writer): writer.type = writer << uri.toString

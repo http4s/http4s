@@ -23,7 +23,6 @@ import org.http4s.headers._
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
-
 class SimpleHeadersSpec extends Http4sSuite {
   test("parse Accept-Patch") {
     def parse(value: String) = `Accept-Patch`.parse(value)

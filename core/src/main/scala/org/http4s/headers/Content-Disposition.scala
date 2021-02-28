@@ -24,7 +24,6 @@ import org.http4s.util.{Renderable, Writer}
 import java.nio.charset.StandardCharsets
 import org.typelevel.ci.CIString
 
-
 object `Content-Disposition` {
   def parse(s: String): ParseResult[`Content-Disposition`] =
     ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
