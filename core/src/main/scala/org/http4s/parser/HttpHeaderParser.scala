@@ -109,7 +109,6 @@ object HttpHeaderParser {
     addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
     addParser_(CIString("LAST-EVENT-ID"), `Last-Event-Id`.parse)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
-    addParser_(CIString("LINK"), Link.parse)
     addParser_(CIString("LOCATION"), Location.parse)
     addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
     addParser_(CIString("ORIGIN"), Origin.parse)
