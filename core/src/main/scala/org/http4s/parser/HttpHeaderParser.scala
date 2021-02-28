@@ -95,7 +95,6 @@ object HttpHeaderParser {
     addParser_(CIString("AGE"), Age.parse)
     addParser_(CIString("ALLOW"), Allow.parse)
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
-    addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
     addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
     addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
