@@ -120,7 +120,6 @@ object HttpHeaderParser {
     addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `Strict-Transport-Security`.parse)
     addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
     addParser_(CIString("USER-AGENT"), `User-Agent`.parse)
-    addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)
     addParser_(CIString("X-B3-FLAGS"), `X-B3-Flags`.parse)
     addParser_(CIString("X-B3-PARENTSPANID"), `X-B3-ParentSpanId`.parse)
     addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
