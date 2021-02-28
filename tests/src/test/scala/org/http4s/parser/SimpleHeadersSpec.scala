@@ -20,6 +20,7 @@ package parser
 import cats.data.NonEmptyList
 import com.comcast.ip4s._
 import org.http4s.headers._
+import org.http4s.v2
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
@@ -42,9 +43,7 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("parse Access-Control-Allow-Headers") {
-    val parse = org.http4s.v2.Header[`Access-Control-Allow-Headers`].parse(_)
 
-    val headerValue = "Accept, Expires, X-Custom-Header, *"
     val header = `Access-Control-Allow-Headers`(
       NonEmptyList.of(
         CIString("Accept"),
@@ -54,10 +53,10 @@ class SimpleHeadersSpec extends Http4sSuite {
       )
     )
 
-    assertEquals(parse(headerValue), Right(header))
+    assertEquals(`Access-Control-Allow-Headers`.parse(toRaw(header).value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
-    assert(parse(invalidHeaderValue).isLeft)
+    assert(`Access-Control-Allow-Headers`.parse(invalidHeaderValue).isLeft)
   }
 
   test("parse Access-Control-Expose-Headers") {
@@ -77,7 +76,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("parse Connection") {
     val header = Connection(CIString("closed"))
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(Connection.parse(toRaw(header).value), Right(header))
   }
 
   test("SimpleHeaders should parse Content-Length") {
@@ -276,5 +275,8 @@ class SimpleHeadersSpec extends Http4sSuite {
     val bad2 = Header("x-forwarded-for", "256.56.56.56")
     assert(HttpHeaderParser.parseHeader(bad2).isLeft)
   }
+
+  private def toRaw[H: v2.Header.Select](h: H): v2.Header.Raw =
+    implicitly[v2.Header.Select[H]].toRaw(h)
 
 }
