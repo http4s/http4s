@@ -258,22 +258,22 @@ class SimpleHeadersSpec extends Http4sSuite {
   test("SimpleHeaders should parse X-Forwarded-For") {
     // ipv4
     val header2 = `X-Forwarded-For`(NonEmptyList.of(Some(ipv4"127.0.0.1")))
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(`X-Forwarded-For`.parse(toRaw(header2).value), Right(header2))
 
     // ipv6
     val header3 = `X-Forwarded-For`(
       NonEmptyList.of(Some(ipv6"::1"), Some(ipv6"2001:0db8:85a3:0000:0000:8a2e:0370:7334")))
-    assertEquals(HttpHeaderParser.parseHeader(header3.toRaw), Right(header3))
+    assertEquals(`X-Forwarded-For`.parse(toRaw(header3).value), Right(header3))
 
     // "unknown"
     val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
-    assertEquals(HttpHeaderParser.parseHeader(header4.toRaw), Right(header4))
+    assertEquals(`X-Forwarded-For`.parse(toRaw(header4).value), Right(header4))
 
-    val bad = Header("x-forwarded-for", "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+    val bad = "foo"
+    assert(`X-Forwarded-For`.parse(bad).isLeft)
 
-    val bad2 = Header("x-forwarded-for", "256.56.56.56")
-    assert(HttpHeaderParser.parseHeader(bad2).isLeft)
+    val bad2 = "256.56.56.56"
+    assert(`X-Forwarded-For`.parse(bad2).isLeft)
   }
 
   private def toRaw[H: v2.Header.Select](h: H): v2.Header.Raw =

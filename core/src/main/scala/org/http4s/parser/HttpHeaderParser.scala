@@ -125,6 +125,5 @@ object HttpHeaderParser {
     addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
     addParser_(CIString("X-B3-SPANID"), `X-B3-SpanId`.parse)
     addParser_(CIString("X-B3-TRACEID"), `X-B3-TraceId`.parse)
-    addParser_(CIString("X-FORWARDED-FOR"), `X-Forwarded-For`.parse)
   }
 }
