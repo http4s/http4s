@@ -42,6 +42,9 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("parse Access-Control-Allow-Headers") {
+    val parse = org.http4s.v2.Header[`Access-Control-Allow-Headers`].parse(_)
+
+    val headerValue = "Accept, Expires, X-Custom-Header, *"
     val header = `Access-Control-Allow-Headers`(
       NonEmptyList.of(
         CIString("Accept"),
@@ -50,10 +53,11 @@ class SimpleHeadersSpec extends Http4sSuite {
         CIString("*")
       )
     )
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
 
-    val invalidHeader = Header(header.name.toString, "(non-token-name), non[&token]name")
-    assert(HttpHeaderParser.parseHeader(invalidHeader).isLeft)
+    assertEquals(parse(headerValue), Right(header))
+
+    val invalidHeaderValue = "(non-token-name), non[&token]name"
+    assert(parse(invalidHeaderValue).isLeft)
   }
 
   test("parse Access-Control-Expose-Headers") {
