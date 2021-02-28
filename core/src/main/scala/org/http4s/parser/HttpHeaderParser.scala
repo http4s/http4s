@@ -89,7 +89,6 @@ object HttpHeaderParser {
     addParser_(
       CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"),
       `Access-Control-Allow-Credentials`.parse)
-    addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
     addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)

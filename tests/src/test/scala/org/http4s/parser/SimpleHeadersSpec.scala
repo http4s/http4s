@@ -20,6 +20,7 @@ package parser
 import cats.data.NonEmptyList
 import com.comcast.ip4s._
 import org.http4s.headers._
+import org.http4s.syntax.header._
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
@@ -79,7 +80,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("parse Connection") {
     val header = Connection(CIString("closed"))
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(Connection.parse(header.value), Right(header))
   }
 
   test("Parse Content-Length") {

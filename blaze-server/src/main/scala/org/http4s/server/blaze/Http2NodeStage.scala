@@ -246,7 +246,7 @@ private class Http2NodeStage[F[_]](
       // this information is conveyed by other means.
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
       if (h.name != headers.`Transfer-Encoding`.name &&
-        h.name != headers.Connection.name) {
+        h.name != v2.Header[headers.Connection].name) {
         hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }
