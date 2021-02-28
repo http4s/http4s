@@ -41,13 +41,15 @@ trait HeaderV2ParserHelper[H] {
 
   // Also checks to make sure whitespace doesn't effect the outcome
   protected def parse[T <: v2.Header.Type](value: String)(implicit i: v2.Header[H, T]): H = {
-    val a =
-      hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
+    val a = parseOnly(value)
     val b =
       hparse(value.replace(" ", "")).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
     assert(a == b, "Whitespace resulted in different headers")
     a
   }
+
+  protected def parseOnly[T <: v2.Header.Type](value: String)(implicit i: v2.Header[H, T]): H =
+    hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
 
   def value[T <: v2.Header.Type](h: H)(implicit header: v2.Header[H, T]): String =
     header.value(h)

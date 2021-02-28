@@ -112,7 +112,6 @@ object HttpHeaderParser {
     addParser_(CIString("LOCATION"), Location.parse)
     addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
     addParser_(CIString("ORIGIN"), Origin.parse)
-    addParser_(CIString("PROXY-AUTHENTICATE"), `Proxy-Authenticate`.parse)
     addParser_(CIString("RANGE"), Range.parse)
     addParser_(CIString("REFERER"), Referer.parse)
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
