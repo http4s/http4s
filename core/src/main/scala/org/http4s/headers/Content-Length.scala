@@ -28,20 +28,16 @@ import org.typelevel.ci.CIString
   *
   * @param length the length
   */
-sealed abstract case class `Content-Length`(length: Long) extends Header.Parsed {
-  override def key: `Content-Length`.type = `Content-Length`
-  override def renderValue(writer: Writer): writer.type = writer.append(length)
+final case class `Content-Length`(length: Long) {
   def modify(f: Long => Long): Option[`Content-Length`] =
     `Content-Length`.fromLong(f(length)).toOption
 }
 
-object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton {
-  private class ContentLengthImpl(length: Long) extends `Content-Length`(length)
-
-  val zero: `Content-Length` = new ContentLengthImpl(0)
+object `Content-Length` {
+  val zero: `Content-Length` = apply(0)
 
   def fromLong(length: Long): ParseResult[`Content-Length`] =
-    if (length >= 0L) ParseResult.success(new ContentLengthImpl(length))
+    if (length >= 0L) ParseResult.success(apply(length))
     else ParseResult.fail("Invalid Content-Length", length.toString)
 
   def unsafeFromLong(length: Long): `Content-Length` =

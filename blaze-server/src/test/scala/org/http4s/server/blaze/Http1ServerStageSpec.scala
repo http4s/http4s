@@ -31,6 +31,7 @@ import org.http4s.blaze.pipeline.Command.Connected
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
+import org.http4s.syntax.header._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
@@ -121,7 +122,7 @@ class Http1ServerStageSpec extends Http4sSuite {
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
             .split("\r\n\r\n")(0)}\n") { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
-            .map(parseAndDropDate)
+            .map((parseAndDropDate _).andThen(normalize))
             .map(assertEquals(_, (status, headers, resp)))
 
         }
@@ -130,7 +131,7 @@ class Http1ServerStageSpec extends Http4sSuite {
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
             .split("\r\n\r\n")(0)}\n") { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
-            .map(parseAndDropDate)
+            .map((parseAndDropDate _).andThen(normalize))
             .map(assertEquals(_, (status, headers, resp)))
 
         }
@@ -235,9 +236,9 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(req), routes).result).map { buf =>
         val (status, hs, body) = ResponseParser.parseBuffer(buf)
-
-        val hss = Headers(hs.toList)
-        assert(`Content-Length`.from(hss).isDefined == false)
+        hs.foreach { h =>
+          assert(`Content-Length`.parse(h.value).isLeft)
+        }
         assert(body == "")
         assert(status == Status.NotModified)
       }
@@ -294,7 +295,9 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12), routes).result).map { buff =>
         // Both responses must succeed
-        assert(parseAndDropDate(buff) == ((Ok, Set(H.`Content-Length`.unsafeFromLong(4)), "done")))
+        assertEquals(
+          normalize(parseAndDropDate(buff)),
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).renderString), "done"))
       }
   }
 
@@ -315,14 +318,16 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12), routes).result).map { buff =>
         // Both responses must succeed
-        assert(
-          parseAndDropDate(buff) == (
-            (
-              Ok,
-              Set(
-                H.`Content-Length`.unsafeFromLong(8 + 4),
-                H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)),
-              "Result: done")))
+        assertEquals(
+          normalize(parseAndDropDate(buff)),
+          (
+            Ok,
+            Set(
+              H.`Content-Length`.unsafeFromLong(8 + 4).renderString,
+              H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).renderString
+            ),
+            "Result: done")
+        )
       }
   }
 
@@ -341,11 +346,12 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
-          H.`Content-Length`.unsafeFromLong(3))
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).renderString,
+          H.`Content-Length`.unsafeFromLong(3).renderString
+        )
         // Both responses must succeed
-        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
-        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
+        assertEquals(normalize(dropDate(ResponseParser.parseBuffer(buff))), (Ok, hs, "foo"))
+        assertEquals(normalize(dropDate(ResponseParser.parseBuffer(buff))), (Ok, hs, "foo"))
       }
   }
 
@@ -366,11 +372,12 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
-          H.`Content-Length`.unsafeFromLong(3))
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).renderString,
+          H.`Content-Length`.unsafeFromLong(3).renderString
+        )
         // Both responses must succeed
-        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
-        assert(buff.remaining() == 0)
+        assertEquals(normalize(dropDate(ResponseParser.parseBuffer(buff))), (Ok, hs, "foo"))
+        assertEquals(buff.remaining(), 0)
       }
   }
 
@@ -390,11 +397,12 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
-          H.`Content-Length`.unsafeFromLong(3))
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).renderString,
+          H.`Content-Length`.unsafeFromLong(3).renderString
+        )
         // Both responses must succeed
-        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
-        assert(dropDate(ResponseParser.parseBuffer(buff)) == ((Ok, hs, "foo")))
+        assertEquals(normalize(dropDate(ResponseParser.parseBuffer(buff))), (Ok, hs, "foo"))
+        assertEquals(normalize(dropDate(ResponseParser.parseBuffer(buff))), (Ok, hs, "foo"))
       }
   }
 
@@ -413,18 +421,13 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(req1 + req2), routes).result).map { buff =>
         // Both responses must succeed
-        assert(
-          dropDate(ResponseParser.parseBuffer(buff)) == (
-            (
-              Ok,
-              Set(H.`Content-Length`.unsafeFromLong(4)),
-              "done")))
-        assert(
-          dropDate(ResponseParser.parseBuffer(buff)) == (
-            (
-              Ok,
-              Set(H.`Content-Length`.unsafeFromLong(5)),
-              "total")))
+        assertEquals(
+          normalize(dropDate(ResponseParser.parseBuffer(buff))),
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).renderString), "done")
+        )
+        assertEquals(
+          normalize(dropDate(ResponseParser.parseBuffer(buff))),
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(5).renderString), "total"))
       }
   }
 
@@ -442,18 +445,12 @@ class Http1ServerStageSpec extends Http4sSuite {
 
     (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
       // Both responses must succeed
-      assert(
-        dropDate(ResponseParser.parseBuffer(buff)) == (
-          (
-            Ok,
-            Set(H.`Content-Length`.unsafeFromLong(4)),
-            "done")))
-      assert(
-        dropDate(ResponseParser.parseBuffer(buff)) == (
-          (
-            Ok,
-            Set(H.`Content-Length`.unsafeFromLong(5)),
-            "total")))
+      assertEquals(
+        normalize(dropDate(ResponseParser.parseBuffer(buff))),
+        (Ok, Set(H.`Content-Length`.unsafeFromLong(4).renderString), "done"))
+      assertEquals(
+        normalize(dropDate(ResponseParser.parseBuffer(buff))),
+        (Ok, Set(H.`Content-Length`.unsafeFromLong(5).renderString), "total"))
     }
   }
 
@@ -523,5 +520,12 @@ class Http1ServerStageSpec extends Http4sSuite {
     head.result.map { _ =>
       assert(head.closeCauses == Seq(None))
     }
+  }
+
+  /** Temporary workaround to compare old Header and v2 header
+    */
+  private def normalize(old: (Status, Set[Header], String)): (Status, Set[String], String) = {
+    val (status, headers, s) = old
+    (status, headers.map(_.renderString), s)
   }
 }

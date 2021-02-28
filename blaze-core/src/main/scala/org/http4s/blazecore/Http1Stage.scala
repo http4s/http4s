@@ -298,7 +298,7 @@ object Http1Stage {
   def encodeHeaders(headers: Iterable[v2.Header.Raw], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
     headers.foreach { h =>
-      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
+      if (h.name != `Transfer-Encoding`.name && h.name != v2.Header[`Content-Length`].name) {
         if (isServer && h.name == Date.name) dateEncoded = true
         rr << h << "\r\n"
       }

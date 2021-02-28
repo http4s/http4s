@@ -80,12 +80,9 @@ class SimpleHeadersSpec extends Http4sSuite {
     assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
   }
 
-  test("SimpleHeaders should parse Content-Length") {
-    val header = `Content-Length`.unsafeFromLong(4)
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
-
-    val bad = Header(header.name.toString, "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+  test("Parse Content-Length") {
+    assertEquals(`Content-Length`.parse("4"), Right(`Content-Length`.unsafeFromLong(4)))
+    assert(`Content-Length`.parse("foo").isLeft)
   }
 
   test("SimpleHeaders should parse Content-Encoding") {

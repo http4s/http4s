@@ -99,7 +99,6 @@ object HttpHeaderParser {
     addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
     addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
-    addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
     addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
     addParser_(CIString("COOKIE"), Cookie.parse)
