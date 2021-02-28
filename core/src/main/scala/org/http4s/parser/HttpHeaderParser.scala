@@ -102,7 +102,6 @@ object HttpHeaderParser {
     addParser_(CIString("DATE"), Date.parse)
     addParser_(CIString("ETAG"), ETag.parse)
     addParser_(CIString("EXPIRES"), Expires.parse)
-    addParser_(CIString("FORWARDED"), Forwarded.parse)
     addParser_(CIString("HOST"), Host.parse)
     addParser_(CIString("IF-MATCH"), `If-Match`.parse)
     addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
