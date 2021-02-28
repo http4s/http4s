@@ -89,7 +89,6 @@ object HttpHeaderParser {
     addParser_(
       CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"),
       `Access-Control-Allow-Credentials`.parse)
-    addParser_(CIString("COOKIE"), Cookie.parse)
     addParser_(CIString("DATE"), Date.parse)
     addParser_(CIString("ETAG"), ETag.parse)
     addParser_(CIString("EXPIRES"), Expires.parse)

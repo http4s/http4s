@@ -43,11 +43,11 @@ class HeadersSpec extends Http4sSuite {
   }
 
   test("Headers should also find headers created raw") {
-    val headers = Headers.of(
-      org.http4s.headers.`Cookie`(RequestCookie("foo", "bar")),
-      Header("Cookie", RequestCookie("baz", "quux").toString)
+    val headers = v2.Headers(
+      `Cookie`(RequestCookie("foo", "bar")),
+      `Cookie`(RequestCookie("baz", "quux"))
     )
-    assertEquals(headers.get(org.http4s.headers.Cookie).map(_.values.length), Some(2))
+    assertEquals(headers.get[Cookie].map(_.values.length), Some(2))
   }
 
   test(
