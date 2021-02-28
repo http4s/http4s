@@ -24,10 +24,9 @@ import org.http4s.util.{Renderable, Writer}
 import java.nio.charset.StandardCharsets
 import org.typelevel.ci.CIString
 
-object `Content-Disposition`
-    extends HeaderKey.Internal[`Content-Disposition`]
-    with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`Content-Disposition`] =
+
+object `Content-Disposition` {
+  def parse(s: String): ParseResult[`Content-Disposition`] =
     ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
 
   private[http4s] val parser = {
@@ -90,11 +89,10 @@ object `Content-Disposition`
 }
 
 // see http://tools.ietf.org/html/rfc2183
-final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String])
-    extends Header.Parsed {
-  override def key: `Content-Disposition`.type = `Content-Disposition`
-  override lazy val value = super.value
-  override def renderValue(writer: Writer): writer.type = {
+final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) {
+  def key: `Content-Disposition`.type = `Content-Disposition`
+  lazy val value = v2.Header[`Content-Disposition`].value(this)
+  def renderValue(writer: Writer): writer.type = {
     writer.append(dispositionType)
     parameters.foreach(p => writer << "; " << p._1 << "=\"" << p._2 << '"')
     writer
