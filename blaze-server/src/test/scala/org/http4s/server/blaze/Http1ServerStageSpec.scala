@@ -31,7 +31,6 @@ import org.http4s.blaze.pipeline.Command.Connected
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
-import org.http4s.syntax.header._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._

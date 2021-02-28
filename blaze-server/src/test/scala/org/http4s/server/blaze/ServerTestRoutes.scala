@@ -24,7 +24,6 @@ import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.implicits._
-import org.http4s.syntax.header._
 import org.typelevel.ci.CIString
 
 object ServerTestRoutes extends Http4sDsl[IO] {
