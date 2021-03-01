@@ -125,7 +125,6 @@ object HttpHeaderParser {
     addParser_(CIString("SERVER"), Server.parse)
     addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
     addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)
-    addParser_(CIString("X-B3-PARENTSPANID"), `X-B3-ParentSpanId`.parse)
     addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
     addParser_(CIString("X-B3-SPANID"), `X-B3-SpanId`.parse)
     addParser_(CIString("X-B3-TRACEID"), `X-B3-TraceId`.parse)
