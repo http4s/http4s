@@ -64,9 +64,9 @@ class ContentLengthSuite extends HeaderLaws {
     forAll { (l: Long) =>
       (l >= 0) ==> {
         `Content-Length`
-            .fromLong(l)
-            .map(_.value)
-            .flatMap(`Content-Length`.parse) ==
+          .fromLong(l)
+          .map(_.value)
+          .flatMap(`Content-Length`.parse) ==
           `Content-Length`.fromLong(l)
       }
     }

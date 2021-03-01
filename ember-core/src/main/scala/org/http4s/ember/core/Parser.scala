@@ -168,7 +168,7 @@ private[ember] object Parser {
                   complete = true
               }
             } else if (hName
-              .equalsIgnoreCase(transferEncodingS)) { // Check if this is Transfer-encoding
+                .equalsIgnoreCase(transferEncodingS)) { // Check if this is Transfer-encoding
               chunked = hValue.contains(chunkedS)
             }
             start = idx + 1 // Next Start is after the CRLF
