@@ -25,14 +25,14 @@ class ContentLengthSuite extends HeaderLaws {
   test("fromLong should reject negative lengths") {
     forAll { (length: Long) =>
       length < 0 ==> {
-        assert(`Content-Length`.fromLong(length).isLeft)
+        `Content-Length`.fromLong(length).isLeft
       }
     }
   }
   test("fromLong should accept non-negative lengths") {
     forAll { (length: Long) =>
       length >= 0 ==> {
-        assertEquals(`Content-Length`.fromLong(length).map(_.length), Right(length))
+        `Content-Length`.fromLong(length).map(_.length) == Right(length)
       }
     }
   }
@@ -40,7 +40,7 @@ class ContentLengthSuite extends HeaderLaws {
   test("fromString should reject negative lengths") {
     forAll { (length: Long) =>
       length < 0 ==> {
-        assert(`Content-Length`.parse(length.toString).isLeft)
+        `Content-Length`.parse(length.toString).isLeft
       }
     }
   }
@@ -48,7 +48,7 @@ class ContentLengthSuite extends HeaderLaws {
   test("fromString should reject non-numeric strings") {
     forAll { (s: String) =>
       !s.matches("[0-9]+") ==> {
-        assert(`Content-Length`.parse(s).isLeft)
+        `Content-Length`.parse(s).isLeft
       }
     }
   }
@@ -56,19 +56,18 @@ class ContentLengthSuite extends HeaderLaws {
   test("fromString should be consistent with apply") {
     forAll { (length: Long) =>
       length >= 0 ==> {
-        assertEquals(`Content-Length`.parse(length.toString), `Content-Length`.fromLong(length))
+        `Content-Length`.parse(length.toString) == `Content-Length`.fromLong(length)
       }
     }
   }
   test("fromString should roundtrip") {
     forAll { (l: Long) =>
       (l >= 0) ==> {
-        assertEquals(
-          `Content-Length`
+        `Content-Length`
             .fromLong(l)
             .map(_.value)
-            .flatMap(`Content-Length`.parse),
-          `Content-Length`.fromLong(l))
+            .flatMap(`Content-Length`.parse) ==
+          `Content-Length`.fromLong(l)
       }
     }
   }
@@ -76,16 +75,14 @@ class ContentLengthSuite extends HeaderLaws {
   test("modify should update the length if positive") {
     forAll { (length: Long) =>
       length >= 0 ==> {
-        assertEquals(
-          `Content-Length`.zero.modify(_ + length),
-          `Content-Length`.fromLong(length).toOption)
+        `Content-Length`.zero.modify(_ + length) == `Content-Length`.fromLong(length).toOption
       }
     }
   }
   test("modify should fail to update if the result is negative") {
     forAll { (length: Long) =>
       length > 0 ==> {
-        assert(`Content-Length`.zero.modify(_ - length).isEmpty)
+        `Content-Length`.zero.modify(_ - length).isEmpty
       }
     }
   }

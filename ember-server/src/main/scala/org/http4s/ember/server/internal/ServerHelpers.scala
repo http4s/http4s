@@ -170,7 +170,6 @@ private[server] object ServerHelpers {
         // TODO This will do weird shit in the odd case that close is
         // not a single, lowercase word
         name == connectionCi && values.contains(closeCi.toString)
-      case _ => false
     }
     val connection: Connection =
       if (reqHasClose) close
