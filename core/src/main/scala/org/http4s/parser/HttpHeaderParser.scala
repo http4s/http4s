@@ -124,7 +124,6 @@ object HttpHeaderParser {
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), Server.parse)
     addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
-    addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `Strict-Transport-Security`.parse)
     addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
     addParser_(CIString("USER-AGENT"), `User-Agent`.parse)
     addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)
