@@ -103,7 +103,9 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("SimpleHeaders should parse Date") { // mills are lost, get rid of them
     val header = Date(HttpDate.Epoch)
-    assertEquals(Date.parse("0"), Right(header))
+    val stringRepr = "Thu, 01 Jan 1970 00:00:00 GMT"
+    assertEquals(Date(HttpDate.Epoch).value, stringRepr)
+    assertEquals(Date.parse(stringRepr), Right(header))
 
     assert(Date.parse("foo").isLeft)
   }
