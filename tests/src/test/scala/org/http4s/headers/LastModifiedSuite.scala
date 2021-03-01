@@ -25,7 +25,7 @@ class LastModifiedSuite extends Http4sSuite {
 
   test("parse Last-Modified") {
     assertEquals(
-      `Last-Modified`.parse("Tue, 15 Nov 1994 12:45:26 GMT"),
+      v2.Header[`Last-Modified`].parse("Tue, 15 Nov 1994 12:45:26 GMT"),
       Right(`Last-Modified`(rfc7232Example)))
   }
 }

@@ -86,7 +86,6 @@ object HttpHeaderParser {
   }
 
   private def gatherBuiltIn(): Unit = {
-    addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LOCATION"), Location.parse)
     addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
     addParser_(CIString("ORIGIN"), Origin.parse)
