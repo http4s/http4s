@@ -275,7 +275,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
 
-      assert(hdrs.find(_.name == v2.Header[Date].name).contains(dateHeader))
+      val result = hdrs.find(_.name == v2.Header[Date].name).map(_.value)
+      assertEquals(result, Some(dateHeader.value))
     }
   }
 
