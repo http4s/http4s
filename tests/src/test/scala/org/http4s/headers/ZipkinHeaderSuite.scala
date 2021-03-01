@@ -85,13 +85,13 @@ class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
   }
 
   test("sampled parses false when 0") {
-    assertEquals(`X-B3-Sampled`.parse("0"), Right(`X-B3-Sampled`(false)))
+    assertEquals(Header[`X-B3-Sampled`].parse("0"), Right(`X-B3-Sampled`(false)))
   }
   test("sampled parses true when 1") {
-    assertEquals(`X-B3-Sampled`.parse("1"), Right(`X-B3-Sampled`(true)))
+    assertEquals(Header[`X-B3-Sampled`].parse("1"), Right(`X-B3-Sampled`(true)))
   }
   test("sampled no parse when not 0 or 1") {
-    assert(`X-B3-Sampled`.parse("01").isLeft)
+    assert(Header[`X-B3-Sampled`].parse("01").isLeft)
   }
 
   // The parsing logic is the same for all ids.

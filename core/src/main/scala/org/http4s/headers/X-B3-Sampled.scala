@@ -17,18 +17,17 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
 import cats.parse.{Parser, Rfc5234}
+import org.http4s.v2.Header
 import org.typelevel.ci.CIString
 
-object `X-B3-Sampled` extends HeaderKey.Internal[`X-B3-Sampled`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`X-B3-Sampled`] =
-    ParseResult.fromParser(parser, "Invalid X-B3-Sampled header")(s)
+object `X-B3-Sampled` {
+
   private[http4s] val parser: Parser[`X-B3-Sampled`] =
     Rfc5234.bit.map(s => `X-B3-Sampled`(s == '1'))
 
-  implicit val headerInstance: v2.Header[`X-B3-Sampled`, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: Header[`X-B3-Sampled`, Header.Single] =
+    Header.create(
       CIString("X-B3-Sampled"),
       v => if (v.sampled) "1" else "0",
       ParseResult.fromParser(parser, "Invalid X-B3-Sampled header")
@@ -36,11 +35,4 @@ object `X-B3-Sampled` extends HeaderKey.Internal[`X-B3-Sampled`] with HeaderKey.
 
 }
 
-final case class `X-B3-Sampled`(sampled: Boolean) extends Header.Parsed {
-  override def key: `X-B3-Sampled`.type = `X-B3-Sampled`
-
-  override def renderValue(writer: Writer): writer.type = {
-    val b: String = if (sampled) "1" else "0"
-    writer.append(b)
-  }
-}
+final case class `X-B3-Sampled`(sampled: Boolean)
