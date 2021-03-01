@@ -97,30 +97,32 @@ class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
   // The parsing logic is the same for all ids.
   test("id no parse when less than 16 chars") {
     val not16Chars = "abcd1234"
-    assert(`X-B3-TraceId`.parse(not16Chars).isLeft)
+    assert(Header[`X-B3-TraceId`].parse(not16Chars).isLeft)
   }
   test("id no parse when more than 16 but less than 32 chars") {
     val not16Or32Chars = "abcd1234a"
-    assert(`X-B3-TraceId`.parse(not16Or32Chars).isLeft)
+    assert(Header[`X-B3-TraceId`].parse(not16Or32Chars).isLeft)
   }
   test("id no parse when more than 32 chars") {
     val not16Or32Chars = "2abcd1234a1493b12"
-    assert(`X-B3-TraceId`.parse(not16Or32Chars).isLeft)
+    assert(Header[`X-B3-TraceId`].parse(not16Or32Chars).isLeft)
   }
   test("id no parse when contains non-hex char") {
     val containsZ = "abcd1z34abcd1234"
-    assert(`X-B3-TraceId`.parse(containsZ).isLeft)
+    assert(Header[`X-B3-TraceId`].parse(containsZ).isLeft)
   }
 
   test("id parses a Long when contains 16-char case-insensitive hex string") {
     val long = 2159330025234698493L
     val hexString = "1dF77B37a2f310fD"
-    assertEquals(`X-B3-TraceId`.parse(hexString), Right(`X-B3-TraceId`(long, None)))
+    assertEquals(Header[`X-B3-TraceId`].parse(hexString), Right(`X-B3-TraceId`(long, None)))
   }
   test("id parses a two Longs when contains 32-char case-insensitive hex string") {
     val msbLong = 2159330025234698493L
     val lsbLong = 7000848103853419616L
     val hexString = "1dF77B37a2f310fD6128024224a66C60"
-    assertEquals(`X-B3-TraceId`.parse(hexString), Right(`X-B3-TraceId`(msbLong, Some(lsbLong))))
+    assertEquals(
+      Header[`X-B3-TraceId`].parse(hexString),
+      Right(`X-B3-TraceId`(msbLong, Some(lsbLong))))
   }
 }
