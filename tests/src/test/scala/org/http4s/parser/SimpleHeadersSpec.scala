@@ -102,34 +102,26 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("SimpleHeaders should parse Date") { // mills are lost, get rid of them
-    val header = Date(HttpDate.Epoch).toRaw.parsed
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    val header = Date(HttpDate.Epoch)
+    assertEquals(Date.parse("0"), Right(header))
 
-    val bad = Header(header.name.toString, "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+    assert(Date.parse("foo").isLeft)
   }
 
   test("SimpleHeaders should parse Host") {
     val header1 = headers.Host("foo", Some(5))
-    assertEquals(HttpHeaderParser.parseHeader(header1.toRaw), Right(header1))
+    assertEquals(headers.Host.parse("foo:5"), Right(header1))
 
     val header2 = headers.Host("foo", None)
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(headers.Host.parse("foo"), Right(header2))
 
-    val bad = Header(header1.name.toString, "foo:bar")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+    assert(headers.Host.parse("foo:bar").isLeft)
   }
 
   test("parse Access-Control-Allow-Credentials") {
-    val header = `Access-Control-Allow-Credentials`().toRaw.parsed
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
-
-    val bad = Header(header.name.toString, "false")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
-
+    assert(`Access-Control-Allow-Credentials`.parse("false").isLeft)
     // it is case sensitive
-    val bad2 = Header(header.name.toString, "True")
-    assert(HttpHeaderParser.parseHeader(bad2).isLeft)
+    assert(`Access-Control-Allow-Credentials`.parse("True").isLeft)
   }
 
   test("SimpleHeaders should parse Last-Modified") {
@@ -140,22 +132,14 @@ class SimpleHeadersSpec extends Http4sSuite {
     assert(HttpHeaderParser.parseHeader(bad).isLeft)
   }
 
-  test("SimpleHeaders should parse If-Modified-Since") {
-    val header = `If-Modified-Since`(HttpDate.Epoch).toRaw.parsed
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
-
-    val bad = Header(header.name.toString, "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
-  }
-
   test("SimpleHeaders should parse ETag") {
     assertEquals(ETag.EntityTag("hash", Weak).toString(), "W/\"hash\"")
     assertEquals(ETag.EntityTag("hash", Strong).toString(), "\"hash\"")
 
-    val headers = Seq(ETag("hash"), ETag("hash", Weak))
+    val headers = Seq("\"hash\"", "W/\"hash\"")
 
     headers.foreach { header =>
-      assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+      assertEquals(ETag.parse(header).map(_.value), Right(header))
     }
   }
 
@@ -168,7 +152,7 @@ class SimpleHeadersSpec extends Http4sSuite {
       `If-None-Match`.`*`
     )
     headers.foreach { header =>
-      assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+      assertEquals(`If-None-Match`.parse(header.value), Right(header))
     }
   }
 

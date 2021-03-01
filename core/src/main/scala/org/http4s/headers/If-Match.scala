@@ -21,19 +21,18 @@ import cats.data.NonEmptyList
 import cats.parse._
 import cats.syntax.foldable._
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Writer}
 
 import org.typelevel.ci.CIString
 
-object `If-Match` extends HeaderKey.Internal[`If-Match`] with HeaderKey.Singleton {
+object `If-Match` {
 
   /** Match any existing entity */
-  val `*` = `If-Match`(None)
+  val `*`: `If-Match` = `If-Match`(None)
 
   def apply(first: EntityTag, rest: EntityTag*): `If-Match` =
     `If-Match`(Some(NonEmptyList.of(first, rest: _*)))
 
-  override def parse(s: String): ParseResult[`If-Match`] =
+  def parse(s: String): ParseResult[`If-Match`] =
     ParseResult.fromParser(parser, "Invalid If-Match header")(s)
 
   private[http4s] val parser = Parser
@@ -61,12 +60,10 @@ object `If-Match` extends HeaderKey.Internal[`If-Match`] with HeaderKey.Singleto
   *
   * [[https://tools.ietf.org/html/rfc7232#section-3.1 RFC-7232 Section 3.1]]
   */
-final case class `If-Match`(tags: Option[NonEmptyList[EntityTag]]) extends Header.Parsed {
-  override def key: `If-Match`.type = `If-Match`
-  override def value: String =
+final case class `If-Match`(tags: Option[NonEmptyList[EntityTag]]) {
+  def value: String =
     tags match {
       case None => "*"
       case Some(tags) => tags.mkString_("", ",", "")
     }
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
 }

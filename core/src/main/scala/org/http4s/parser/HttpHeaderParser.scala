@@ -88,9 +88,6 @@ object HttpHeaderParser {
   private def gatherBuiltIn(): Unit = {
     addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
     addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
-    addParser_(
-      CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"),
-      `Access-Control-Allow-Credentials`.parse)
     addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `Access-Control-Expose-Headers`.parse)
     addParser_(CIString("AGE"), Age.parse)
     addParser_(CIString("ALLOW"), Allow.parse)
@@ -103,16 +100,7 @@ object HttpHeaderParser {
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
     addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
     addParser_(CIString("COOKIE"), Cookie.parse)
-    addParser_(CIString("DATE"), Date.parse)
-    addParser_(CIString("ETAG"), ETag.parse)
-    addParser_(CIString("EXPIRES"), Expires.parse)
     addParser_(CIString("FORWARDED"), Forwarded.parse)
-    addParser_(CIString("HOST"), Host.parse)
-    addParser_(CIString("IF-MATCH"), `If-Match`.parse)
-    addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
-    addParser_(CIString("IF-NONE-MATCH"), `If-None-Match`.parse)
-    addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
-    addParser_(CIString("LAST-EVENT-ID"), `Last-Event-Id`.parse)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LINK"), Link.parse)
     addParser_(CIString("LOCATION"), Location.parse)

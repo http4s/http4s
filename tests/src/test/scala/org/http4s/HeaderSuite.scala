@@ -43,12 +43,6 @@ class HeaderSuite extends munit.DisciplineSuite {
 
     assert(h1 == h2)
     assert(h2 == h1)
-
-    val h3 = Date(HttpDate.Epoch).toRaw.parsed
-    val h4 = h3.toRaw
-
-    assertEquals(h3, h4)
-    assert(h4 == h3)
   }
 
   test("Headers should not equal same raw headers") {
