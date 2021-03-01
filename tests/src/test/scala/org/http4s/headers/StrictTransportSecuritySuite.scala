@@ -24,7 +24,7 @@ import scala.concurrent.duration._
 class StrictTransportSecuritySuite extends HeaderLaws {
   //checkAll("StrictTransportSecurity", headerLaws(`Strict-Transport-Security`))
 
-  // Temporal class providing methods which will be replaced by syntax later on
+  // TODO Temporal class providing methods which will be replaced by syntax later on
   implicit class TemporalSyntax(header: org.http4s.headers.`Strict-Transport-Security`) {
     def value: String = Header[`Strict-Transport-Security`].value(header)
     def renderString: String = {

@@ -184,10 +184,10 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("SimpleHeaders should parse Transfer-Encoding") {
     val header = `Transfer-Encoding`(TransferCoding.chunked)
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(v2.Header[`Transfer-Encoding`].parse(header.value), Right(header))
 
     val header2 = `Transfer-Encoding`(TransferCoding.compress)
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(v2.Header[`Transfer-Encoding`].parse(header2.value), Right(header2))
   }
 
   test("SimpleHeaders should parse User-Agent") {
