@@ -67,7 +67,7 @@ object Host {
   */
 final case class Host(host: String, port: Option[Int] = None) {
   def value: String = port match {
-    case Some(p) => s"host:$p"
+    case Some(p) => s"$host:$p"
     case None => host
   }
 }
