@@ -92,11 +92,11 @@ class HeadersSpec extends Http4sSuite {
   }
 
   test("Headers should hash the same when constructed with the same contents") {
-    val h1 = Headers.of(Header("Test-Header", "Value"))
-    val h2 = Headers.of(Header("Test-Header", "Value"))
-    val h3 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
-    val h4 = Headers(List(Header("TestHeader", "other value"), Header("Test-Header", "Value")))
-    val h5 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
+    val h1 = v2.Headers("Test-Header" -> "Value")
+    val h2 = v2.Headers("Test-Header" -> "Value")
+    val h3 = v2.Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
+    val h4 = v2.Headers("TestHeader" -> "other value", "Test-Header" -> "Value")
+    val h5 = v2.Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
     assertEquals(h1.hashCode(), h2.hashCode())
     assert(h1.equals(h2))
     assert(h2.equals(h1))
