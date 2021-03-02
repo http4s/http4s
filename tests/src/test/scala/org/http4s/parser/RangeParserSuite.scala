@@ -33,7 +33,7 @@ class RangeParserSuite extends Http4sSuite {
     )
 
     headers.foreach { header =>
-      assertEquals(Range.parse(header.value), Right(header))
+      assertEquals(v2.Header[Range].parse(header.value), Right(header))
     }
   }
 
