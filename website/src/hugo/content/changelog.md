@@ -90,10 +90,6 @@ it.
 * scala-xml-2.0.0-M5
 * vault-2.1.7
 
-### Breaking changes
-
-* [#4371](https://github.com/http4s/http4s/pull/4371): Replace jawn-play with an internal copy of the facade to work around `withDottyCompat` issues.
-
 # v0.21.20 (2021-03-02)
 
 ## http4s-core
