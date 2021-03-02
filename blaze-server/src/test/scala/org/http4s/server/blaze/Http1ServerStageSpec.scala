@@ -57,7 +57,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     dropDate(ResponseParser.apply(buff))
 
   def dropDate(resp: (Status, Set[Header], String)): (Status, Set[Header], String) = {
-    val hds = resp._2.filter(_.name != Date.name)
+    val hds = resp._2.filter(_.name != v2.Header[Date].name)
     (resp._1, hds, resp._3)
   }
 
@@ -237,7 +237,7 @@ class Http1ServerStageSpec extends Http4sSuite {
         val (status, hs, body) = ResponseParser.parseBuffer(buf)
 
         val hss = Headers(hs.toList)
-        assert(`Content-Length`.from(hss).isDefined == false)
+        assert(!`Content-Length`.from(hss).isDefined)
         assert(body == "")
         assert(status == Status.NotModified)
       }
@@ -256,7 +256,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     (runRequest(tw, Seq(req1), routes).result).map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      assert(hdrs.exists(_.name == Date.name))
+      assert(hdrs.exists(_.name == v2.Header[Date].name))
     }
   }
 
@@ -275,7 +275,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
 
-      assert(hdrs.find(_.name == Date.name) == Some(dateHeader))
+      val result = hdrs.find(_.name == v2.Header[Date].name).map(_.value)
+      assertEquals(result, Some(dateHeader.value))
     }
   }
 

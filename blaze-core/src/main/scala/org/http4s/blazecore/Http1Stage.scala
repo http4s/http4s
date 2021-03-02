@@ -297,15 +297,16 @@ object Http1Stage {
     */
   def encodeHeaders(headers: Iterable[v2.Header.Raw], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
+    val dateName = v2.Header[Date].name
     headers.foreach { h =>
       if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
-        if (isServer && h.name == Date.name) dateEncoded = true
+        if (isServer && h.name == dateName) dateEncoded = true
         rr << h << "\r\n"
       }
     }
 
     if (isServer && !dateEncoded)
-      rr << Date.name << ": " << currentDate << "\r\n"
+      rr << dateName << ": " << currentDate << "\r\n"
     ()
   }
 
