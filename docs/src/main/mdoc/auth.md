@@ -202,6 +202,7 @@ way that your [SPA] understands. Retrieve the header value in the `authUser`
 function.
 
 ```scala mdoc:silent:nest
+import org.http4s.syntax.header._
 import org.http4s.headers.Authorization
 
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>

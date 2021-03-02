@@ -17,18 +17,17 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
 import cats.parse._
 import org.typelevel.ci.CIString
 
-object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton {
+object Authorization {
   //https://tools.ietf.org/html/rfc7235#section-4.2
   private[http4s] val parser: Parser[Authorization] = {
     import org.http4s.internal.parsing.Rfc7235.credentials
     credentials.map(Authorization(_))
   }
 
-  override def parse(s: String): ParseResult[Authorization] =
+  def parse(s: String): ParseResult[Authorization] =
     ParseResult.fromParser(parser, "Invalid Authorization")(s)
 
   def apply(basic: BasicCredentials): Authorization =
@@ -40,10 +39,6 @@ object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Si
       _.credentials,
       ParseResult.fromParser(parser, "Invalid Authorization")
     )
-
 }
 
-final case class Authorization(credentials: Credentials) extends Header.Parsed {
-  override def key: `Authorization`.type = `Authorization`
-  override def renderValue(writer: Writer): writer.type = credentials.render(writer)
-}
+final case class Authorization(credentials: Credentials)

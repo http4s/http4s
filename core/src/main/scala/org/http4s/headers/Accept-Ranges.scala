@@ -18,17 +18,16 @@ package org.http4s
 package headers
 import cats.parse.{Parser, Parser0 => P0}
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.Writer
 import cats.syntax.all._
 import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
-object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
+object `Accept-Ranges` {
   def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply((first +: more).toList)
   def bytes: `Accept-Ranges` = apply(RangeUnit.Bytes)
   def none: `Accept-Ranges` = apply(Nil)
 
-  override def parse(s: String): ParseResult[`Accept-Ranges`] =
+  def parse(s: String): ParseResult[`Accept-Ranges`] =
     ParseResult.fromParser(parser, "Accept-Ranges header")(s)
 
   /* https://tools.ietf.org/html/rfc7233#appendix-C */
@@ -66,13 +65,3 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
 }
 
 final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])
-    extends Header.Parsed {
-  def key: `Accept-Ranges`.type = `Accept-Ranges`
-  def renderValue(writer: Writer): writer.type =
-    if (rangeUnits.isEmpty) writer.append("none")
-    else {
-      writer.append(rangeUnits.head)
-      rangeUnits.tail.foreach(r => writer.append(", ").append(r))
-      writer
-    }
-}
