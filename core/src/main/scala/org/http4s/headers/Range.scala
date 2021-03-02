@@ -25,7 +25,7 @@ import org.typelevel.ci.CIString
 
 // See https://tools.ietf.org/html/rfc7233
 
-object Range  {
+object Range {
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
     Range(unit, NonEmptyList.of(r1, rs: _*))
 
@@ -103,4 +103,3 @@ object Range  {
 }
 
 final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange])
-
