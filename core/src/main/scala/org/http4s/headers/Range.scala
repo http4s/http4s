@@ -25,7 +25,7 @@ import org.typelevel.ci.CIString
 
 // See https://tools.ietf.org/html/rfc7233
 
-object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
+object Range {
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
     Range(unit, NonEmptyList.of(r1, rs: _*))
 
@@ -52,11 +52,6 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
       writer
     }
   }
-
-  override def parse(s: String): ParseResult[Range] =
-    parser.parseAll(s).left.map { e =>
-      ParseFailure("Invalid Range header", e.toString)
-    }
 
   val parser: P0[Range] = {
     // https://tools.ietf.org/html/rfc7233#section-3.1
@@ -108,11 +103,3 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
 }
 
 final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange])
-    extends Header.Parsed {
-  override def key: Range.type = Range
-  override def renderValue(writer: Writer): writer.type = {
-    writer << unit << '=' << ranges.head
-    ranges.tail.foreach(writer << ',' << _)
-    writer
-  }
-}
