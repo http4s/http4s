@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.syntax.header._
 import org.typelevel.ci.CIString
 
 class HeadersSpec extends Http4sSuite {
@@ -58,15 +59,13 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(hs.headers.head, clength)
   }
 
-//  test("Headers should Allow multiple Set-Cookie headers") {
-//    val h1 = `Set-Cookie`(ResponseCookie("foo1", "bar1")).toRaw
-//    val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2")).toRaw
-//    val hs = Headers.of(clength) ++ Headers.of(h1) ++ Headers.of(h2)
-//    assertEquals(
-//      hs.toList.count(_.parsed match { case `Set-Cookie`(_) => true; case _ => false }),
-//      2)
-//    assertEquals(hs.exists(_ == clength), true)
-//  }
+  test("Headers should Allow multiple Set-Cookie headers") {
+    val h1 = `Set-Cookie`(ResponseCookie("foo1", "bar1"))
+    val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2"))
+    val hs = v2.Headers(clength) ++ v2.Headers(h1, h2)
+    assertEquals(hs.headers.count(_.name == `Set-Cookie`.name), 2)
+    assertEquals(hs.headers.exists(_ == clength.toRaw), true)
+  }
 
   // TODO this isn't really "raw headers" anymore
   test("Headers should Work with Raw headers (++)") {
@@ -79,11 +78,6 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(hs.get[`Content-Length`], Some(clength))
   }
 
-  // test("Headers should Avoid making copies if there are duplicate collections") {
-  //   assertEquals(base ++ Headers.empty eq base, true)
-  //   assertEquals(Headers.empty ++ base eq base, true)
-  // }
-
   test("Headers should Preserve original headers when processing") {
     val rawAuth = v2.Header.Raw(CIString("Authorization"), "test this")
 
@@ -92,11 +86,11 @@ class HeadersSpec extends Http4sSuite {
   }
 
   test("Headers should hash the same when constructed with the same contents") {
-    val h1 = Headers.of(Header("Test-Header", "Value"))
-    val h2 = Headers.of(Header("Test-Header", "Value"))
-    val h3 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
-    val h4 = Headers(List(Header("TestHeader", "other value"), Header("Test-Header", "Value")))
-    val h5 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
+    val h1 = v2.Headers("Test-Header" -> "Value")
+    val h2 = v2.Headers("Test-Header" -> "Value")
+    val h3 = v2.Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
+    val h4 = v2.Headers("TestHeader" -> "other value", "Test-Header" -> "Value")
+    val h5 = v2.Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
     assertEquals(h1.hashCode(), h2.hashCode())
     assert(h1.equals(h2))
     assert(h2.equals(h1))
