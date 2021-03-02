@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import com.comcast.ip4s._
 import org.http4s.headers._
 import org.http4s.EntityTag.{Strong, Weak}
+import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSuite {
@@ -170,25 +171,33 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("SimpleHeaders should parse Transfer-Encoding") {
     val header = `Transfer-Encoding`(TransferCoding.chunked)
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(v2.Header[`Transfer-Encoding`].parse(header.value), Right(header))
 
     val header2 = `Transfer-Encoding`(TransferCoding.compress)
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(v2.Header[`Transfer-Encoding`].parse(header2.value), Right(header2))
+  }
+
+  // Temporal class providing methods which will be replaced by syntax later on
+  implicit class TemporalSyntax[A](header: A)(implicit e: v2.Header[A, v2.Header.Single]) {
+    def value: String = v2.Header[A].value(header)
   }
 
   test("SimpleHeaders should parse User-Agent") {
     val header = `User-Agent`(ProductId("foo", Some("bar")), List(ProductId("foo")))
     assertEquals(header.value, "foo/bar foo")
 
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(v2.Header[`User-Agent`].parse(header.value), Right(header))
 
     val header2 =
       `User-Agent`(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
     assertEquals(header2.value, "foo bar/biz (blah)")
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(v2.Header[`User-Agent`].parse(header2.value), Right(header2))
 
     val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
-    val parsed = HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr))
+
+    val headerraw = v2.Header.Raw(`User-Agent`.name, headerstr)
+
+    val parsed = v2.Header[`User-Agent`].parse(headerraw.value)
     assertEquals(
       parsed,
       Right(

@@ -112,15 +112,7 @@ object HttpHeaderParser {
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), Server.parse)
     addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
-    addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `Strict-Transport-Security`.parse)
-    addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
-    addParser_(CIString("USER-AGENT"), `User-Agent`.parse)
     addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)
-    addParser_(CIString("X-B3-FLAGS"), `X-B3-Flags`.parse)
-    addParser_(CIString("X-B3-PARENTSPANID"), `X-B3-ParentSpanId`.parse)
-    addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
-    addParser_(CIString("X-B3-SPANID"), `X-B3-SpanId`.parse)
-    addParser_(CIString("X-B3-TRACEID"), `X-B3-TraceId`.parse)
     addParser_(CIString("X-FORWARDED-FOR"), `X-Forwarded-For`.parse)
   }
 }
