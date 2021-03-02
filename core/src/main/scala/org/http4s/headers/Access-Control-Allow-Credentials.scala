@@ -30,7 +30,7 @@ object `Access-Control-Allow-Credentials` {
     v2.Header.create(
       CIString("Access-Control-Allow-Credentials"),
       _.value,
-      ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Credentials header")
+      parse
     )
 }
 
