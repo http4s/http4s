@@ -22,7 +22,6 @@ import com.comcast.ip4s._
 import org.http4s.headers._
 import org.http4s.v2
 import org.http4s.EntityTag.{Strong, Weak}
-import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSuite {
@@ -80,17 +79,14 @@ class SimpleHeadersSpec extends Http4sSuite {
     assertEquals(Connection.parse(toRaw(header).value), Right(header))
   }
 
-  test("SimpleHeaders should parse Content-Length") {
-    val header = `Content-Length`.unsafeFromLong(4)
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
-
-    val bad = Header(header.name.toString, "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+  test("Parse Content-Length") {
+    assertEquals(`Content-Length`.parse("4"), Right(`Content-Length`.unsafeFromLong(4)))
+    assert(`Content-Length`.parse("foo").isLeft)
   }
 
   test("SimpleHeaders should parse Content-Encoding") {
     val header = `Content-Encoding`(ContentCoding.`pack200-gzip`)
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(`Content-Encoding`.parse(header.value), Right(header))
   }
 
   test("SimpleHeaders should parse Content-Disposition") {

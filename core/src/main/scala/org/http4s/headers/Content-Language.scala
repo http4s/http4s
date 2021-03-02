@@ -27,9 +27,6 @@ object `Content-Language` {
     apply(NonEmptyList(head, tail.toList))
 
   def parse(s: String): ParseResult[`Content-Language`] =
-    parseResult(s)
-
-  private[http4s] def parseResult(s: String): ParseResult[`Content-Language`] =
     ParseResult.fromParser(parser, "Invalid Content-Language header")(s)
 
   private[http4s] val parser: Parser[headers.`Content-Language`] = {
@@ -47,7 +44,7 @@ object `Content-Language` {
     v2.Header.createRendered(
       CIString("Content-Language"),
       _.values,
-      parseResult
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Content-Language`] =

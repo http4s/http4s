@@ -88,12 +88,4 @@ object `Content-Disposition` {
 }
 
 // see http://tools.ietf.org/html/rfc2183
-final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) {
-  def key: `Content-Disposition`.type = `Content-Disposition`
-  lazy val value = v2.Header[`Content-Disposition`].value(this)
-  def renderValue(writer: Writer): writer.type = {
-    writer.append(dispositionType)
-    parameters.foreach(p => writer << "; " << p._1 << "=\"" << p._2 << '"')
-    writer
-  }
-}
+final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String])

@@ -86,16 +86,6 @@ object HttpHeaderParser {
   }
 
   private def gatherBuiltIn(): Unit = {
-    addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
-    addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
-    addParser_(CIString("AGE"), Age.parse)
-    addParser_(CIString("ALLOW"), Allow.parse)
-    addParser_(CIString("AUTHORIZATION"), Authorization.parse)
-    addParser_(CIString("CONNECTION"), Connection.parse)
-    addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
-    addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
-    addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
-    addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LOCATION"), Location.parse)
     addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)

@@ -24,13 +24,10 @@ import org.http4s.v2.Header
 import org.typelevel.ci.CIString
 
 object Cookie {
-
-  def apply(head: RequestCookie, tail: RequestCookie*): Cookie =
+  def apply(head: RequestCookie, tail: RequestCookie*): `Cookie` =
     apply(NonEmptyList(head, tail.toList))
 
-  def parse(s: String): ParseResult[Cookie] = parseResult(s)
-
-  private[http4s] def parseResult(s: String): ParseResult[Cookie] =
+  def parse(s: String): ParseResult[Cookie] =
     ParseResult.fromParser(parser, "Invalid Cookie header")(s)
 
   private[http4s] val parser: Parser[Cookie] = {
@@ -55,18 +52,11 @@ object Cookie {
           def render(writer: Writer): writer.type =
             writer.addNel(h.values, sep = "; ")
         },
-      parseResult
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
     (a, b) => Cookie(a.values.concatNel(b.values))
 }
 
-final case class Cookie(values: NonEmptyList[RequestCookie]) {
-  val value = Header[Cookie].value(this)
-  def renderValue(writer: Writer): writer.type = {
-    values.head.render(writer)
-    values.tail.foreach(writer << "; " << _)
-    writer
-  }
-}
+final case class Cookie(values: NonEmptyList[RequestCookie])

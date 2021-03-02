@@ -18,7 +18,6 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Content-Location`
-import v2.Header.ToRaw._
 
 class ContentLocationHeaderSpec extends Http4sSuite {
 

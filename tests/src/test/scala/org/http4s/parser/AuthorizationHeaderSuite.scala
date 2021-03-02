@@ -19,6 +19,7 @@ package parser
 
 import cats.data.NonEmptyList
 import org.http4s.headers.Authorization
+import org.http4s.syntax.header._
 import org.typelevel.ci.CIString
 
 class AuthorizationHeaderSuite extends munit.FunSuite {

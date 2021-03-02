@@ -18,14 +18,14 @@ package org.http4s
 package headers
 
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
-object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
+object Allow {
   def apply(ms: Method*): Allow = Allow(ms.toSet)
 
-  override def parse(s: String): ParseResult[Allow] =
+  def parse(s: String): ParseResult[Allow] =
     ParseResult.fromParser(parser, "Invalid Allow")(s)
+
   private[http4s] val parser = Rfc7230
     .headerRep1(Rfc7230.token.mapFilter(s => Method.fromString(s).toOption))
     .map(_.toList)
@@ -46,8 +46,4 @@ object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
   *
   * [[https://tools.ietf.org/html/rfc7231#section-7.4.1 RFC-7231 Section 7.4.1 Allow]]
   */
-final case class Allow(methods: Set[Method]) extends Header.Parsed {
-  override def key: Allow.type = Allow
-  override def renderValue(writer: Writer): writer.type =
-    writer.addSet[Method](methods)
-}
+final case class Allow(methods: Set[Method])

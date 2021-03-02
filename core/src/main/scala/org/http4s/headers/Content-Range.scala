@@ -23,7 +23,7 @@ import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
 
-object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKey.Singleton {
+object `Content-Range` {
   def apply(range: Range.SubRange, length: Option[Long] = None): `Content-Range` =
     `Content-Range`(RangeUnit.Bytes, range, length)
 
@@ -32,7 +32,7 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
   def apply(start: Long): `Content-Range` =
     apply(Range.SubRange(start, None), None)
 
-  override def parse(s: String): ParseResult[`Content-Range`] =
+  def parse(s: String): ParseResult[`Content-Range`] =
     parser.parseAll(s).left.map { e =>
       ParseFailure("Invalid Content-Range header", e.toString)
     }
@@ -83,14 +83,3 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])
-    extends Header.Parsed {
-  override def key: `Content-Range`.type = `Content-Range`
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << unit << ' ' << range << '/'
-    length match {
-      case Some(l) => writer << l
-      case None => writer << '*'
-    }
-  }
-}

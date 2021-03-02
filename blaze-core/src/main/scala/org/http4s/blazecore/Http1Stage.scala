@@ -31,6 +31,7 @@ import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blazecore.util._
 import org.http4s.headers._
+import org.http4s.syntax.header._
 import org.http4s.util.{Renderer, StringWriter, Writer}
 
 import scala.concurrent.{ExecutionContext, Future}

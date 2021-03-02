@@ -27,11 +27,11 @@ import org.http4s.parser.{AdditionalRules}
 import scala.concurrent.duration._
 
 object `Cache-Control` {
-
   def apply(head: CacheDirective, tail: CacheDirective*): `Cache-Control` =
     apply(NonEmptyList(head, tail.toList))
 
-  def parse(s: String): ParseResult[`Cache-Control`] = parseResult(s)
+  def parse(s: String): ParseResult[`Cache-Control`] =
+    ParseResult.fromParser(parser, "Invalid Cache-Control header")(s)
 
   private[http4s] val FieldNames: Parser[NonEmptyList[String]] =
     Rfc7230.quotedString.repSep(Rfc7230.listSep)
@@ -66,9 +66,6 @@ object `Cache-Control` {
         }) :: Nil
     )
 
-  private[http4s] def parseResult(s: String): ParseResult[`Cache-Control`] =
-    ParseResult.fromParser(parser, "Invalid Cache-Control header")(s)
-
   private[http4s] val parser: Parser[`Cache-Control`] =
     CacheDirective.repSep(Rfc7230.listSep).map(`Cache-Control`(_))
 
@@ -76,7 +73,7 @@ object `Cache-Control` {
     v2.Header.createRendered(
       CIString("Cache-Control"),
       _.values,
-      parseResult
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Cache-Control`] =
