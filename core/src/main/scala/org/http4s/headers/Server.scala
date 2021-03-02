@@ -20,12 +20,12 @@ package headers
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
 
-object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
-  def apply(id: ProductId): Server =
-    new Server(id, Nil)
+object Server {
 
-  override def parse(s: String): ParseResult[Server] =
-    ParseResult.fromParser(parser, "Invalid Server header")(s)
+  def apply(id: ProductId, tail: ProductIdOrComment*): Server =
+    apply(id, tail.toList)
+
+  def parse(s: String): ParseResult[Server] = headerInstance.parse(s)
 
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
@@ -51,21 +51,11 @@ object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
       ParseResult.fromParser(parser, "Invalid Server header")
     )
 
+  val name = headerInstance.name
+
 }
 
 /** Server header
   * https://tools.ietf.org/html/rfc7231#section-7.4.2
   */
-final case class Server(product: ProductId, rest: List[ProductIdOrComment]) extends Header.Parsed {
-  def key: Server.type = Server
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << product
-    rest.foreach {
-      case p: ProductId => writer << ' ' << p
-      case ProductComment(c) => writer << ' ' << '(' << c << ')'
-    }
-    writer
-  }
-
-}
+final case class Server(product: ProductId, rest: List[ProductIdOrComment])
