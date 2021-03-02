@@ -18,12 +18,20 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
+import org.typelevel.ci.CIString
 
 object `Access-Control-Allow-Credentials` {
   def parse(s: String): ParseResult[`Access-Control-Allow-Credentials`] =
     ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Credentials header")(s)
 
   private[http4s] val parser = Parser.string("true").as(`Access-Control-Allow-Credentials`())
+
+  implicit val headerInstance: v2.Header[`Access-Control-Allow-Credentials`, v2.Header.Single] =
+    v2.Header.create(
+      CIString("Access-Control-Allow-Credentials"),
+      _.value,
+      ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Credentials header")
+    )
 }
 
 // https://fetch.spec.whatwg.org/#http-access-control-allow-credentials
