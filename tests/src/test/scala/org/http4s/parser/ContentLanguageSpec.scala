@@ -18,13 +18,9 @@ package org.http4s
 
 package parser
 
-import org.http4s.syntax.header._
 import org.http4s.headers.`Content-Language`
 
-class ContentLanguageSpec extends Http4sSuite {
-
-  def parse(value: String): ParseResult[`Content-Language`] =
-    `Content-Language`.parse(value)
+class ContentLanguageSpec extends Http4sSuite with HeaderV2ParserHelper[`Content-Language`] {
 
   val en = `Content-Language`(LanguageTag("en"))
   val en_IN = `Content-Language`(LanguageTag("en", "IN"))
@@ -33,17 +29,17 @@ class ContentLanguageSpec extends Http4sSuite {
     `Content-Language`(LanguageTag("en"), LanguageTag("fr"), LanguageTag("da"), LanguageTag("id"))
 
   test("Content-Language should Give correct value") {
-    assertEquals(en.value, "en")
-    assertEquals(en_IN.value, "en-IN")
-    assertEquals(en_IN_en_US.value, "en-IN, en-US")
-    assertEquals(multi_lang.value, "en, fr, da, id")
+    assertEquals(value(en), "en")
+    assertEquals(value(en_IN), "en-IN")
+    assertEquals(value(en_IN_en_US), "en-IN, en-US")
+    assertEquals(value(multi_lang), "en, fr, da, id")
   }
 
   test("Content-Language should Parse Properly") {
-    assertEquals(parse(en.value), Right(en))
-    assertEquals(parse(en_IN.value), Right(en_IN))
-    assertEquals(parse(en_IN_en_US.value), Right(en_IN_en_US))
-    assertEquals(parse(multi_lang.value), Right(multi_lang))
+    assertEquals(roundTrip(en), en)
+    assertEquals(roundTrip(en_IN), en_IN)
+    assertEquals(roundTrip(en_IN_en_US), en_IN_en_US)
+    assertEquals(roundTrip(multi_lang), multi_lang)
   }
 
 }

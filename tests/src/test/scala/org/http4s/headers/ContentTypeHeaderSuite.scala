@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.laws.discipline.ArbitraryInstances._
+// import org.http4s.laws.discipline.ArbitraryInstances._
 
 class ContentTypeHeaderSuite extends HeaderLaws {
 //  checkAll("Content-Type", headerLaws(`Content-Type`))

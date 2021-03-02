@@ -43,9 +43,9 @@ class HeadersSpec extends Http4sSuite {
   }
 
   test("Headers should also find headers created raw") {
-    val headers = v2.Headers(
-      `Cookie`(RequestCookie("foo", "bar")),
-      `Cookie`(RequestCookie("baz", "quux"))
+    val headers: v2.Headers = v2.Headers(
+      Cookie(RequestCookie("foo", "bar")),
+      v2.Header.Raw(CIString("Cookie"), RequestCookie("baz", "quux").toString)
     )
     assertEquals(headers.get[Cookie].map(_.values.length), Some(2))
   }

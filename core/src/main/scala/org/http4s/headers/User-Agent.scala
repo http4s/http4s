@@ -17,15 +17,14 @@
 package org.http4s
 package headers
 
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.{Renderable, Renderer, Writer}
+import org.http4s.v2.Header
 import org.typelevel.ci.CIString
 
-object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
-  def apply(id: ProductId): `User-Agent` =
-    new `User-Agent`(id, Nil)
+object `User-Agent` {
 
-  override def parse(s: String): ParseResult[`User-Agent`] =
-    ParseResult.fromParser(parser, "Invalid User-Agent header")(s)
+  def apply(id: ProductId, tail: ProductIdOrComment*): `User-Agent` =
+    apply(id, tail.toList)
 
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
@@ -33,8 +32,8 @@ object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Sing
         `User-Agent`(product, tokens)
     }
 
-  implicit val headerInstance: v2.Header[`User-Agent`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`User-Agent`, Header.Single] =
+    Header.createRendered(
       CIString("User-Agent"),
       h =>
         new Renderable {
@@ -51,21 +50,16 @@ object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Sing
       ParseResult.fromParser(parser, "Invalid User-Agent header")
     )
 
+  val name = headerInstance.name
+
+  implicit def convert(implicit select: v2.Header.Select[`User-Agent`]): Renderer[`User-Agent`] =
+    new Renderer[`User-Agent`] {
+      override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
+    }
+
 }
 
 /** User-Agent header
   * [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
   */
 final case class `User-Agent`(product: ProductId, rest: List[ProductIdOrComment])
-    extends Header.Parsed {
-  def key: `User-Agent`.type = `User-Agent`
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << product
-    rest.foreach {
-      case p: ProductId => writer << ' ' << p
-      case ProductComment(c) => writer << ' ' << '(' << c << ')'
-    }
-    writer
-  }
-}

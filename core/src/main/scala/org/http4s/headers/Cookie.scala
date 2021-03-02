@@ -20,6 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.util.{Renderable, Writer}
+import org.http4s.v2.Header
 import org.typelevel.ci.CIString
 
 object Cookie {
@@ -43,15 +44,15 @@ object Cookie {
     cookieString <* char(';').?
   }
 
-  implicit val headerInstance: v2.Header[Cookie, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Cookie, Header.Recurring] =
+    Header.createRendered(
       CIString("Cookie"),
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =
             writer.addNel(h.values, sep = "; ")
         },
-      ParseResult.fromParser(parser, "Invalid Cookie header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =

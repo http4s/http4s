@@ -20,7 +20,7 @@ package parser
 import cats.data.NonEmptyList
 import com.comcast.ip4s._
 import org.http4s.headers._
-import org.http4s.syntax.header._
+import org.http4s.v2
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
@@ -43,9 +43,7 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("parse Access-Control-Allow-Headers") {
-    val parse = org.http4s.v2.Header[`Access-Control-Allow-Headers`].parse(_)
 
-    val headerValue = "Accept, Expires, X-Custom-Header, *"
     val header = `Access-Control-Allow-Headers`(
       NonEmptyList.of(
         CIString("Accept"),
@@ -55,10 +53,10 @@ class SimpleHeadersSpec extends Http4sSuite {
       )
     )
 
-    assertEquals(parse(headerValue), Right(header))
+    assertEquals(`Access-Control-Allow-Headers`.parse(toRaw(header).value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
-    assert(parse(invalidHeaderValue).isLeft)
+    assert(`Access-Control-Allow-Headers`.parse(invalidHeaderValue).isLeft)
   }
 
   test("parse Access-Control-Expose-Headers") {
@@ -70,17 +68,15 @@ class SimpleHeadersSpec extends Http4sSuite {
         CIString("*")
       )
     )
-    assertEquals(
-      `Access-Control-Expose-Headers`.parse(header.value),
-      Right(header)
-    )
+    assertEquals(`Access-Control-Expose-Headers`.parse(toRaw(header).value), Right(header))
 
-    assert(`Access-Control-Expose-Headers`.parse("(non-token-name), non[&token]name").isLeft)
+    val invalidHeaderValue = "(non-token-name), non[&token]name"
+    assert(`Access-Control-Expose-Headers`.parse(invalidHeaderValue).isLeft)
   }
 
   test("parse Connection") {
     val header = Connection(CIString("closed"))
-    assertEquals(Connection.parse(header.value), Right(header))
+    assertEquals(Connection.parse(toRaw(header).value), Right(header))
   }
 
   test("Parse Content-Length") {
@@ -102,34 +98,28 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("SimpleHeaders should parse Date") { // mills are lost, get rid of them
-    val header = Date(HttpDate.Epoch).toRaw.parsed
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    val header = Date(HttpDate.Epoch)
+    val stringRepr = "Thu, 01 Jan 1970 00:00:00 GMT"
+    assertEquals(Date(HttpDate.Epoch).value, stringRepr)
+    assertEquals(Date.parse(stringRepr), Right(header))
 
-    val bad = Header(header.name.toString, "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+    assert(Date.parse("foo").isLeft)
   }
 
   test("SimpleHeaders should parse Host") {
     val header1 = headers.Host("foo", Some(5))
-    assertEquals(HttpHeaderParser.parseHeader(header1.toRaw), Right(header1))
+    assertEquals(headers.Host.parse("foo:5"), Right(header1))
 
     val header2 = headers.Host("foo", None)
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(headers.Host.parse("foo"), Right(header2))
 
-    val bad = Header(header1.name.toString, "foo:bar")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+    assert(headers.Host.parse("foo:bar").isLeft)
   }
 
   test("parse Access-Control-Allow-Credentials") {
-    val header = `Access-Control-Allow-Credentials`().toRaw.parsed
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
-
-    val bad = Header(header.name.toString, "false")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
-
+    assert(`Access-Control-Allow-Credentials`.parse("false").isLeft)
     // it is case sensitive
-    val bad2 = Header(header.name.toString, "True")
-    assert(HttpHeaderParser.parseHeader(bad2).isLeft)
+    assert(`Access-Control-Allow-Credentials`.parse("True").isLeft)
   }
 
   test("SimpleHeaders should parse Last-Modified") {
@@ -140,22 +130,14 @@ class SimpleHeadersSpec extends Http4sSuite {
     assert(HttpHeaderParser.parseHeader(bad).isLeft)
   }
 
-  test("SimpleHeaders should parse If-Modified-Since") {
-    val header = `If-Modified-Since`(HttpDate.Epoch).toRaw.parsed
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
-
-    val bad = Header(header.name.toString, "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
-  }
-
   test("SimpleHeaders should parse ETag") {
     assertEquals(ETag.EntityTag("hash", Weak).toString(), "W/\"hash\"")
     assertEquals(ETag.EntityTag("hash", Strong).toString(), "\"hash\"")
 
-    val headers = Seq(ETag("hash"), ETag("hash", Weak))
+    val headers = Seq("\"hash\"", "W/\"hash\"")
 
     headers.foreach { header =>
-      assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+      assertEquals(ETag.parse(header).map(_.value), Right(header))
     }
   }
 
@@ -168,7 +150,7 @@ class SimpleHeadersSpec extends Http4sSuite {
       `If-None-Match`.`*`
     )
     headers.foreach { header =>
-      assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+      assertEquals(`If-None-Match`.parse(header.value), Right(header))
     }
   }
 
@@ -184,25 +166,33 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("SimpleHeaders should parse Transfer-Encoding") {
     val header = `Transfer-Encoding`(TransferCoding.chunked)
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(v2.Header[`Transfer-Encoding`].parse(header.value), Right(header))
 
     val header2 = `Transfer-Encoding`(TransferCoding.compress)
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(v2.Header[`Transfer-Encoding`].parse(header2.value), Right(header2))
+  }
+
+  // Temporal class providing methods which will be replaced by syntax later on
+  implicit class TemporalSyntax[A](header: A)(implicit e: v2.Header[A, v2.Header.Single]) {
+    def value: String = v2.Header[A].value(header)
   }
 
   test("SimpleHeaders should parse User-Agent") {
     val header = `User-Agent`(ProductId("foo", Some("bar")), List(ProductId("foo")))
     assertEquals(header.value, "foo/bar foo")
 
-    assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+    assertEquals(v2.Header[`User-Agent`].parse(header.value), Right(header))
 
     val header2 =
       `User-Agent`(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
     assertEquals(header2.value, "foo bar/biz (blah)")
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(v2.Header[`User-Agent`].parse(header2.value), Right(header2))
 
     val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
-    val parsed = HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr))
+
+    val headerraw = v2.Header.Raw(`User-Agent`.name, headerstr)
+
+    val parsed = v2.Header[`User-Agent`].parse(headerraw.value)
     assertEquals(
       parsed,
       Right(
@@ -259,22 +249,25 @@ class SimpleHeadersSpec extends Http4sSuite {
   test("SimpleHeaders should parse X-Forwarded-For") {
     // ipv4
     val header2 = `X-Forwarded-For`(NonEmptyList.of(Some(ipv4"127.0.0.1")))
-    assertEquals(HttpHeaderParser.parseHeader(header2.toRaw), Right(header2))
+    assertEquals(`X-Forwarded-For`.parse(toRaw(header2).value), Right(header2))
 
     // ipv6
     val header3 = `X-Forwarded-For`(
       NonEmptyList.of(Some(ipv6"::1"), Some(ipv6"2001:0db8:85a3:0000:0000:8a2e:0370:7334")))
-    assertEquals(HttpHeaderParser.parseHeader(header3.toRaw), Right(header3))
+    assertEquals(`X-Forwarded-For`.parse(toRaw(header3).value), Right(header3))
 
     // "unknown"
     val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
-    assertEquals(HttpHeaderParser.parseHeader(header4.toRaw), Right(header4))
+    assertEquals(`X-Forwarded-For`.parse(toRaw(header4).value), Right(header4))
 
-    val bad = Header("x-forwarded-for", "foo")
-    assert(HttpHeaderParser.parseHeader(bad).isLeft)
+    val bad = "foo"
+    assert(`X-Forwarded-For`.parse(bad).isLeft)
 
-    val bad2 = Header("x-forwarded-for", "256.56.56.56")
-    assert(HttpHeaderParser.parseHeader(bad2).isLeft)
+    val bad2 = "256.56.56.56"
+    assert(`X-Forwarded-For`.parse(bad2).isLeft)
   }
+
+  private def toRaw[H: v2.Header.Select](h: H): v2.Header.Raw =
+    implicitly[v2.Header.Select[H]].toRaw(h)
 
 }

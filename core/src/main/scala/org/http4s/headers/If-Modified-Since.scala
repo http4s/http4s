@@ -18,13 +18,11 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.{Renderer, Writer}
+import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
-object `If-Modified-Since`
-    extends HeaderKey.Internal[`If-Modified-Since`]
-    with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`If-Modified-Since`] =
+object `If-Modified-Since` {
+  def parse(s: String): ParseResult[`If-Modified-Since`] =
     ParseResult.fromParser(parser, "Invalid If-Modified-Since header")(s)
 
   /* `If-Modified-Since = HTTP-date` */
@@ -48,8 +46,6 @@ object `If-Modified-Since`
   *
   * [[https://tools.ietf.org/html/rfc7232#section-3.3 RFC-7232]]
   */
-final case class `If-Modified-Since`(date: HttpDate) extends Header.Parsed {
-  override def key: `If-Modified-Since`.type = `If-Modified-Since`
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
+final case class `If-Modified-Since`(date: HttpDate) {
+  def value: String = Renderer.renderString(date)
 }

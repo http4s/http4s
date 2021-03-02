@@ -18,10 +18,14 @@ package org.http4s
 package headers
 
 import org.typelevel.ci.CIString
+import org.http4s.v2.Header
 import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
 
 object `Access-Control-Expose-Headers` {
+
+  def apply(head: CIString, tail: CIString*): `Access-Control-Expose-Headers` =
+    apply(NonEmptyList(head, tail.toList))
 
   def parse(s: String): ParseResult[`Access-Control-Expose-Headers`] =
     ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers header")(s)
@@ -29,11 +33,11 @@ object `Access-Control-Expose-Headers` {
   private[http4s] val parser =
     Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
 
-  implicit val headerInstance: v2.Header[`Access-Control-Expose-Headers`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Access-Control-Expose-Headers`, Header.Recurring] =
+    Header.createRendered(
       CIString("Access-Control-Expose-Headers"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Access-Control-Expose-Headers header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Expose-Headers`] =

@@ -18,11 +18,11 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.{Renderer, Writer}
+import org.http4s.util.{Renderer}
 import org.typelevel.ci.CIString
 
-object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[Date] =
+object Date {
+  def parse(s: String): ParseResult[Date] =
     ParseResult.fromParser(parser, "Invalid Date header")(s)
 
   /* `Date = HTTP-date` */
@@ -37,8 +37,6 @@ object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
     )
 }
 
-final case class Date(date: HttpDate) extends Header.Parsed {
-  def key: Date.type = Date
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
+final case class Date(date: HttpDate) {
+  def value: String = Renderer.renderString(date)
 }

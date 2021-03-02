@@ -19,6 +19,7 @@ package org.http4s.headers
 import cats.data.NonEmptyList
 import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
 import org.http4s.util.Renderer
+import org.http4s.v2.Header
 import org.scalacheck.Prop._
 
 class ForwardedRenderersSuite extends munit.ScalaCheckSuite with ForwardedArbitraryInstances {
@@ -92,7 +93,8 @@ class ForwardedRenderersSuite extends munit.ScalaCheckSuite with ForwardedArbitr
     val headerInit = Forwarded.name.toString + ": "
 
     forAll { (fwd: Forwarded) =>
-      val rendered = Renderer.renderString(fwd)
+      val raw = implicitly[Header.Select[Forwarded]].toRaw(fwd)
+      val rendered = Renderer.renderString(raw)
       assert(rendered.startsWith(headerInit))
 
       assertEquals(Forwarded.parse(rendered.drop(headerInit.length)), Right(fwd))

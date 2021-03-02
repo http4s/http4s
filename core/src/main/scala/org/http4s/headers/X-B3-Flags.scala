@@ -22,9 +22,7 @@ import cats.parse.Numbers
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
 
-object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`X-B3-Flags`] =
-    ParseResult.fromParser(parser, "Invalid X-B3-Flags header")(s)
+object `X-B3-Flags` {
 
   private[http4s] val parser: Parser0[`X-B3-Flags`] =
     Numbers.digits
@@ -83,9 +81,4 @@ object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Sing
 
 }
 
-final case class `X-B3-Flags`(flags: Set[`X-B3-Flags`.Flag]) extends Header.Parsed {
-  override def key: `X-B3-Flags`.type = `X-B3-Flags`
-
-  override def renderValue(writer: Writer): writer.type =
-    writer.append(flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
-}
+final case class `X-B3-Flags`(flags: Set[`X-B3-Flags`.Flag])

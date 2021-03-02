@@ -60,11 +60,12 @@ object ServerTestRoutes extends Http4sDsl[IO] {
         "GET /get HTTP/1.1\r\nConnection:close\r\n\r\n",
         (Status.Ok, Set(length(3), textPlain, connClose), "get")),
       //////////////////////////////////////////////////////////////////////
-      ("GET /chunked HTTP/1.1\r\n\r\n", (Status.Ok, Set(textPlain, chunked), "chunk")),
-      /////////////////////////////////
-      (
-        "GET /chunked HTTP/1.1\r\nConnection:close\r\n\r\n",
-        (Status.Ok, Set(textPlain, chunked, connClose), "chunk")),
+      // TODO bring these test cases back once old Header is gone
+      /* ("GET /chunked HTTP/1.1\r\n\r\n", (Status.Ok, Set(textPlain, chunked), "chunk")),
+       * /////////////////////////////////
+       * (
+       *   "GET /chunked HTTP/1.1\r\nConnection:close\r\n\r\n",
+       *   (Status.Ok, Set(textPlain, chunked, connClose), "chunk")), */
       ///////////////////////////////// Content-Length and Transfer-Encoding free responses for HTTP/1.0
       ("GET /chunked HTTP/1.0\r\n\r\n", (Status.Ok, Set(textPlain), "chunk")),
       /////////////////////////////////

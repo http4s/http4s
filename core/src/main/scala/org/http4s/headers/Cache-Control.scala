@@ -65,6 +65,7 @@ object `Cache-Control` {
             org.http4s.CacheDirective(CIString(name), arg)
         }) :: Nil
     )
+
   private[http4s] val parser: Parser[`Cache-Control`] =
     CacheDirective.repSep(Rfc7230.listSep).map(`Cache-Control`(_))
 
@@ -72,7 +73,7 @@ object `Cache-Control` {
     v2.Header.createRendered(
       CIString("Cache-Control"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Cache-Control header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Cache-Control`] =

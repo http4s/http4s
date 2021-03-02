@@ -18,7 +18,7 @@ package org.http4s.headers
 
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.syntax.header._
-import org.http4s.laws.discipline.ArbitraryInstances._
+// import org.http4s.laws.discipline.ArbitraryInstances._
 import org.scalacheck.Prop._
 import scala.concurrent.duration._
 
@@ -60,7 +60,7 @@ class AgeSuite extends HeaderLaws {
   test("parse should roundtrip") {
     forAll { (l: Long) =>
       (l >= 0) ==> {
-        assertEquals(Age.fromLong(l).map(_.value).flatMap(Age.parse), Age.fromLong(l))
+        Age.fromLong(l).map(_.value).flatMap(Age.parse) == Age.fromLong(l)
       }
     }
   }

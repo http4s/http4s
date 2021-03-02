@@ -36,22 +36,25 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7235
+import org.http4s.v2.Header
 import org.typelevel.ci.CIString
 
-object `Proxy-Authenticate`
-    extends HeaderKey.Internal[`Proxy-Authenticate`]
-    with HeaderKey.Recurring {
+object `Proxy-Authenticate` {
+
+  def apply(head: Challenge, tail: Challenge*): `Proxy-Authenticate` =
+    apply(NonEmptyList(head, tail.toList))
+
   private[http4s] val parser: Parser[`Proxy-Authenticate`] =
     Rfc7235.challenges.map(`Proxy-Authenticate`.apply)
 
-  override def parse(s: String): ParseResult[`Proxy-Authenticate`] =
-    ParseResult.fromParser(parser, "Invalid Proxy-Authenticate")(s)
+  def parse(s: String): ParseResult[`Proxy-Authenticate`] =
+    ParseResult.fromParser(parser, "Invalid Proxy-Authenticate header")(s)
 
-  implicit val headerInstance: v2.Header[`Proxy-Authenticate`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Proxy-Authenticate`, Header.Recurring] =
+    Header.createRendered(
       CIString("Proxy-Authenticate"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Proxy-Authenticate header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Proxy-Authenticate`] =
@@ -66,7 +69,3 @@ object `Proxy-Authenticate`
   * From [[https://tools.ietf.org/html/rfc7235#section-4.3 RFC-7235]]
   */
 final case class `Proxy-Authenticate`(values: NonEmptyList[Challenge])
-    extends Header.RecurringRenderable {
-  override def key: `Proxy-Authenticate`.type = `Proxy-Authenticate`
-  type Value = Challenge
-}
