@@ -8,7 +8,9 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M17 (2021-03-02)
+# v1.0.0-M18 (2021-03-02)
+
+Includes changes from v0.22.0-M4.
 
 ## http4s-core
 
@@ -44,7 +46,13 @@ it.
 * log4cats-2.0.0-RC1
 * vault-3.0.0-RC2
 
+~~# v1.0.0-M17 (2021-03-02)~~
+
+Missed the forward merges from 0.22.0-M4. Proceed directly to 1.0.0-M18.
+
 # v0.22.0-M4 (2021-03-02)
+
+Includes changes from v0.21.19 and v0.21.20.
 
 ## http4s-core
 
@@ -53,7 +61,50 @@ it.
 * [#4242](https://github.com/http4s/http4s/pull/4242): Replace internal models of IPv4, IPv6, `java.net.InetAddress`, and `java.net.SocketAddress` with ip4s.  This affects the URI authority, various headers, and message attributes that refer to IP addresses and hostnames.
 * [#4352](https://github.com/http4s/http4s/pull/4352): Remove deprecated `Header.Recurring.GetT` and ``Header.get(`Set-Cookie`)``.
 * [#4364](https://github.com/http4s/http4s/pull/4364): Remove deprecated `AsyncSyntax` and `NonEmpyListSyntax`. These were unrelated to HTTP.
-* [#4407](https://github.com/http4s/http4s/pull/4407): Relax constraint on `EntityEncoder.fileEncoder` from `Effect` to `Sync`. This should be source-compatible.
+* [#4407](https://github.com/http4s/http4s/pull/4407): Relax constraint on `EntityEncoder.fileEncoder` from `Effect` to `Sync`. This is source compatible.
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Sync` constraints on `MultipartParser`, `Part`, and `KleisliSyntax`. This is source compatible.
+
+## http4s-laws
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Arbitrary` and `Shrink` constraints on `LawAdapter#booleanPropF`. This is source compatible.
+
+## http4s-server
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Functor` constraints in `HSTS`, `Jsonp`, `PushSupport`, `TranslateUri`, and `UriTranslation` middlewares. Drop unused `Sync` and `ContextShift` constraints in `staticcontent` package. These are source compatible.
+
+## http4s-server
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Async` constraint in `ServletContainer`. Drop unused `ContextShift` in `ServletContextSyntax`. These are source compatible.
+
+## http4s-async-http-client
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Sync` constraint on `AsyncHttpClientStats`. This is source compatible.
+
+## http4s-prometheus
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Sync` constraint on `PrometheusExportService`. This is source compatible.
+
+## http4s-argonaut
+
+### Removal
+
+* [#4409](https://github.com/http4s/http4s/pull/4409): http4s-argonaut is no longer published
+
+## http4s-json4s
+
+### Removal
+
+* [#4410](https://github.com/http4s/http4s/pull/4410): http4s-json4s, http4s-json4s-native, and http4s-json4s-jackson are no longer published
 
 ## http4s-play-json
 
@@ -69,15 +120,54 @@ it.
 
 ## Dependencies
 
-* blaze-0.15.0-M1 (new)
-* ip4s-2.0.0-M1
+* blaze-0.15.0-M2
+* case-insensitive-1.0.0
+* cats-parse-0.3.1
+* circe-0.14.0-M4
+* ip4s-2.0.0-RC1
+* jawn-1.1.0
 * jawn-play (dropped)
-* play-json-2.10.0-RC1
-* scala-xml-2.0.0-M4
+* keypool-0.3.0
+* log4cats-1.2.0
+* log4s-1.0.0-M5
+* play-json-2.10.0-RC2
+* scala-xml-2.0.0-M5
+* vault-2.1.7
 
-### Breaking changes
+# v0.21.20 (2021-03-02)
 
-* [#4371](https://github.com/http4s/http4s/pull/4371): Replace jawn-play with an internal copy of the facade to work around `withDottyCompat` issues.
+## http4s-core
+
+### Enhancements
+
+* [#4479](https://github.com/http4s/http4s/pull/4479): Add a `Hash[QValue]` instance
+* [#4512](https://github.com/http4s/http4s/pull/4512): Add `DecodeResult.successT` and `DecodeResult.failureT`, consistent with `EitherT`.  Deprecate the overloaded versions they replace.
+
+### Deprecations
+
+* [#4444](https://github.com/http4s/http4s/pull/4444): Deprecate the `RequestCookieJar` in favor of the `CookieJar` middleware 
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#4429](https://github.com/http4s/http4s/pull/4429), [#4466](https://github.com/http4s/http4s/pull/4466): Fix a few corner cases in the parser with respect to chunk boundaries
+
+## http4s-servlet
+
+### Enhancements
+
+* [#4544](https://github.com/http4s/http4s/pull/4544): Remove redundant calculation and insertion of request attributes into the Vault
+
+## Dependency upgrades
+
+* cats-2.4.1
+* cats-effect-2.3.2
+* dropwizard-metrics-4.1.18
+* fs2-2.5.3
+* jetty-9.4.38
+* json4s-3.6.11
+* scalacheck-1.15.3
 
 # v0.21.19 (2021-02-13)
 
