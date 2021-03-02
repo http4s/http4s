@@ -25,7 +25,10 @@ object Server {
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
 
-  def parse(s: String): ParseResult[Server] = headerInstance.parse(s)
+  val name = CIString("Server")
+
+  def parse(s: String): ParseResult[Server] =
+    ParseResult.fromParser(parser, "Invalid Server header")(s)
 
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
@@ -35,7 +38,7 @@ object Server {
 
   implicit val headerInstance: v2.Header[Server, v2.Header.Single] =
     v2.Header.createRendered(
-      CIString("Server"),
+      name,
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {
@@ -46,12 +49,9 @@ object Server {
             }
             writer
           }
-
         },
-      ParseResult.fromParser(parser, "Invalid Server header")
+      parse
     )
-
-  val name = headerInstance.name
 
 }
 

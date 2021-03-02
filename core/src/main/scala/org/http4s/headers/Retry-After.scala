@@ -40,7 +40,8 @@ object `Retry-After` {
   def unsafeFromDuration(retry: FiniteDuration): `Retry-After` =
     fromLong(retry.toSeconds).fold(throw _, identity)
 
-  def parse(s: String): ParseResult[`Retry-After`] = headerInstance.parse(s)
+  def parse(s: String): ParseResult[`Retry-After`] =
+    ParseResult.fromParser(parser, "Invalid Retry-After header")(s)
 
   /* `Retry-After = HTTP-date / delay-seconds` */
   private[http4s] val parser: Parser[`Retry-After`] = {
@@ -58,7 +59,7 @@ object `Retry-After` {
     v2.Header.createRendered(
       CIString("Retry-After"),
       _.retry,
-      ParseResult.fromParser(parser, "Invalid Retry-After header")
+      parse
     )
 
 }

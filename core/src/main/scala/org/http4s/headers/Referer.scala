@@ -22,7 +22,8 @@ import org.typelevel.ci.CIString
 
 object Referer {
 
-  def parse(s: String): ParseResult[Referer] = headerInstance.parse(s)
+  def parse(s: String): ParseResult[Referer] =
+    ParseResult.fromParser(parser, "Invalid Referer header")(s)
 
   private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
@@ -33,7 +34,7 @@ object Referer {
     v2.Header.createRendered(
       CIString("Referer"),
       _.uri,
-      ParseResult.fromParser(parser, "Invalid Referer header")
+      parse
     )
 
 }
