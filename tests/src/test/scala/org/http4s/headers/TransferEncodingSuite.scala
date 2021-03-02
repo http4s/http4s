@@ -25,7 +25,7 @@ import org.scalacheck.Prop.forAll
 import org.http4s.laws.discipline.ArbitraryInstances._
 
 class TransferEncodingSuite extends HeaderLaws {
-  //checkAll("TransferEncoding", headerLaws(`Transfer-Encoding`))
+  checkAll("TransferEncoding", headerLaws[`Transfer-Encoding`])
 
   // TODO Temporal class providing methods which will be replaced by syntax later on
   implicit class TemporalSyntax(header: `Transfer-Encoding`) {

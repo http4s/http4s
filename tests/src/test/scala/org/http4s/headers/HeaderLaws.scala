@@ -20,8 +20,10 @@ package headers
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
 import org.typelevel.discipline.Laws
+import org.http4s.syntax.header._
 
 trait HeaderLaws extends munit.DisciplineSuite with Laws {
+  //To remove once all the headers are migrated to new model
   def headerLaws(key: HeaderKey)(implicit
       arbHeader: Arbitrary[key.HeaderT]
   ): RuleSet =
@@ -44,5 +46,29 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
         key.name != header.name ==> assert(key.matchHeader(header).isEmpty)
       }
        */
+    )
+
+  def headerLaws[A](implicit
+      arbHeader: Arbitrary[A],
+      header: v2.Header[A, _],
+      select: v2.Header.Select[A]): RuleSet =
+    new SimpleRuleSet(
+      "header",
+      """parse(a.value) == right(a)"""" -> forAll { (a: A) =>
+        assertEquals(header.parse(a.value), Right(a))
+      },
+      """renderString == "name: value"""" -> forAll { (a: A) =>
+        assertEquals(a.renderString, s"${a.name}: ${a.value}")
+      },
+      """header matches itself""" -> forAll { (a: A) =>
+        assertEquals(v2.Headers(a.toRaw).get[A].get.asInstanceOf[A], a)
+      },
+      """header does not match arbitrary name""" -> forAll { (a: A, noise: String) =>
+        noise.nonEmpty ==> {
+          val malformedName = a.name.toString + noise
+          val properValue = a.value
+          assert(v2.Headers((malformedName, properValue)).get[A].isEmpty)
+        }
+      }
     )
 }
