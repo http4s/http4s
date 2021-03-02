@@ -18,12 +18,9 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.{Renderer, Writer}
 import org.typelevel.ci.CIString
 
-object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`Last-Modified`] =
-    ParseResult.fromParser(parser, "Last-Modified header")(s)
+object `Last-Modified` {
 
   /* `Last-Modified = HTTP-date` */
   private[http4s] val parser: Parser[`Last-Modified`] =
@@ -43,8 +40,4 @@ object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKe
   *
   * [[https://tools.ietf.org/html/rfc7232#section-2.3 RFC-7232]]
   */
-final case class `Last-Modified`(date: HttpDate) extends Header.Parsed {
-  override def key: `Last-Modified`.type = `Last-Modified`
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class `Last-Modified`(date: HttpDate)

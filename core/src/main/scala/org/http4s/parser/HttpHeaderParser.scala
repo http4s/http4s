@@ -85,11 +85,5 @@ object HttpHeaderParser {
     assert(results.forall(_.isRight))
   }
 
-  private def gatherBuiltIn(): Unit = {
-    addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
-    addParser_(CIString("LOCATION"), Location.parse)
-    addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
-    addParser_(CIString("ORIGIN"), Origin.parse)
-    addParser_(CIString("RANGE"), Range.parse)
-  }
+  private def gatherBuiltIn(): Unit = {}
 }
