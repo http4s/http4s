@@ -85,6 +85,5 @@ object HttpHeaderParser {
     assert(results.forall(_.isRight))
   }
 
-  private def gatherBuiltIn(): Unit = {
-  }
+  private def gatherBuiltIn(): Unit = {}
 }
