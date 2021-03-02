@@ -23,10 +23,10 @@ import org.http4s.util.{Renderable, Writer}
 import scala.util.Try
 import org.typelevel.ci.CIString
 
-object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
+object Host {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
 
-  override def parse(s: String): ParseResult[Host] =
+  def parse(s: String): ParseResult[Host] =
     ParseResult.fromParser(parser, "Invalid Host")(s)
 
   private[http4s] val parser = {
@@ -53,7 +53,7 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
     )
 }
 
-/** A Request header, that provides the host and port informatio
+/** A Request header, that provides the host and port information
   * {{{
   *   The "Host" header field in a request provides the host and port
   *   information from the target URI, enabling the origin server to
@@ -65,11 +65,9 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   *
   * [[https://tools.ietf.org/html/rfc7230#section-5.4 RFC-7230 Section 5.4]]
   */
-final case class Host(host: String, port: Option[Int] = None) extends Header.Parsed {
-  def key: Host.type = Host
-  def renderValue(writer: Writer): writer.type = {
-    writer.append(host)
-    if (port.isDefined) writer << ':' << port.get
-    writer
+final case class Host(host: String, port: Option[Int] = None) {
+  def value: String = port match {
+    case Some(p) => s"$host:$p"
+    case None => host
   }
 }

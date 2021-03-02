@@ -23,9 +23,9 @@ import org.http4s.internal.parsing.Rfc7230.headerRep1
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
 
-object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Accept] =
-    ParseResult.fromParser(parser, "Invalid Accept header")(s)
+object Accept {
+  def apply(head: MediaRangeAndQValue, tail: MediaRangeAndQValue*): Accept =
+    apply(NonEmptyList(head, tail.toList))
 
   private[http4s] val parser: Parser[Accept] = {
     val acceptParams =
@@ -76,7 +76,3 @@ object MediaRangeAndQValue {
 }
 
 final case class Accept(values: NonEmptyList[MediaRangeAndQValue])
-    extends Header.RecurringRenderable {
-  def key: Accept.type = Accept
-  type Value = MediaRangeAndQValue
-}

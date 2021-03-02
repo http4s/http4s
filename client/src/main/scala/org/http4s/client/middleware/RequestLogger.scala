@@ -36,7 +36,7 @@ object RequestLogger {
   def apply[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     impl(client, logBody) { request =>
@@ -50,7 +50,7 @@ object RequestLogger {
   def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { request =>
@@ -108,7 +108,7 @@ object RequestLogger {
   def colored[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       color: String = defaultRequestColor,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F])(implicit F: Async[F]): Client[F] =

@@ -23,9 +23,11 @@ import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci.CIString
 
-object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.Recurring {
+object `Accept-Patch` {
+  def apply(head: MediaType, tail: MediaType*): `Accept-Patch` =
+    apply(NonEmptyList(head, tail.toList))
 
-  override def parse(s: String): ParseResult[`Accept-Patch`] =
+  def parse(s: String): ParseResult[`Accept-Patch`] =
     ParseResult.fromParser(parser, "Invalid Accept-Patch header")(s)
 
   private[http4s] val parser =
@@ -43,12 +45,7 @@ object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.
 }
 
 // see https://tools.ietf.org/html/rfc5789#section-3.1
-final case class `Accept-Patch` private (values: NonEmptyList[MediaType])
-    extends Header.RecurringRenderer {
-
-  type Value = MediaType
-  val renderer = Renderer[MediaType]
-
-  override def key: `Accept-Patch`.type = `Accept-Patch`
-
+final case class `Accept-Patch`(values: NonEmptyList[MediaType]) {
+  def renderString: String = s"Accept-Patch: $value"
+  def value: String = Renderer.renderString(values)
 }

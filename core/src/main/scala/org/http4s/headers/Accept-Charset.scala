@@ -21,10 +21,14 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.CharsetRange.{Atom, `*`}
+import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
-object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[`Accept-Charset`] =
+object `Accept-Charset` {
+  def apply(head: CharsetRange, tail: CharsetRange*): `Accept-Charset` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`Accept-Charset`] =
     ParseResult.fromParser(parser, "Invalid Accept-Charset header")(s)
 
   private[http4s] val parser: Parser[`Accept-Charset`] = {
@@ -68,8 +72,12 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
   *
   * From [http//tools.ietf.org/html/rfc7231#section-5.3.3 RFC-7231].
   */
-final case class `Accept-Charset`(values: NonEmptyList[CharsetRange])
-    extends Header.RecurringRenderable {
+final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) {
+
+  def value: String = Renderer.renderString(values)
+
+  def renderString: String = s"Accept-Charset: $value"
+
   def key: `Accept-Charset`.type = `Accept-Charset`
   type Value = CharsetRange
 

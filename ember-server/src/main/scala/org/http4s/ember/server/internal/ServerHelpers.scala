@@ -166,12 +166,10 @@ private[server] object ServerHelpers {
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
-    val reqHasClose = req.headers.headers.exists {
-      case v2.Header.Raw(name, values) =>
-        // TODO This will do weird shit in the odd case that close is
-        // not a single, lowercase word
-        name == connectionCi && values.contains(closeCi.toString)
-      case _ => false
+    val reqHasClose = req.headers.headers.exists { case v2.Header.Raw(name, values) =>
+      // TODO This will do weird shit in the odd case that close is
+      // not a single, lowercase word
+      name == connectionCi && values.contains(closeCi.toString)
     }
     val connection: Connection =
       if (reqHasClose) close

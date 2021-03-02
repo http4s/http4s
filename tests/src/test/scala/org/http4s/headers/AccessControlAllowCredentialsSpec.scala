@@ -20,5 +20,5 @@ package headers
 import org.http4s.laws.discipline.arbitrary._
 
 class AccessControlAllowCredentialsSpec extends HeaderLaws {
-  checkAll("Access-Control-Allow-Credentials", headerLaws(`Access-Control-Allow-Credentials`))
+  // checkAll("Access-Control-Allow-Credentials", headerLaws(`Access-Control-Allow-Credentials`))
 }

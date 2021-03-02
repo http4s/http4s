@@ -54,7 +54,7 @@ object ChunkAggregator {
     val hh: ListBuffer[v2.Header.ToRaw] = ListBuffer.empty[v2.Header.ToRaw]
     headers.headers.foreach {
       case h if h.name == CIString("Transfer-Encoding") =>
-        `Transfer-Encoding`.parse(h.value) match {
+        v2.Header[`Transfer-Encoding`].parse(h.value) match {
           case Right(te) =>
             te.values.filterNot(_ === TransferCoding.chunked) match {
               case v :: vs =>

@@ -37,7 +37,7 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(implicit
       G: MonadCancelThrow[G],
       F: Async[F]): Kleisli[G, A, Response[F]] =
@@ -106,7 +106,7 @@ object ResponseLogger {
   def httpApp[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
       httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
@@ -114,7 +114,7 @@ object ResponseLogger {
   def httpAppLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
       httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     impl[F, F, A](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
@@ -123,7 +123,7 @@ object ResponseLogger {
   def httpRoutes[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
       httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
@@ -131,7 +131,7 @@ object ResponseLogger {
   def httpRoutesLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
       httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     impl[OptionT[F, *], F, A](

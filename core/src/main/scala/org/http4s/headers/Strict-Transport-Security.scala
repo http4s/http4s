@@ -21,15 +21,14 @@ import cats.parse.{Parser, Parser0}
 import org.http4s.internal.parsing.Rfc7230.ows
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderable, Writer}
+import org.http4s.v2.Header
 import org.typelevel.ci.CIString
 
 import scala.concurrent.duration.FiniteDuration
 
 /** Defined by http://tools.ietf.org/html/rfc6797
   */
-object `Strict-Transport-Security`
-    extends HeaderKey.Internal[`Strict-Transport-Security`]
-    with HeaderKey.Singleton {
+object `Strict-Transport-Security` {
   private[headers] class StrictTransportSecurityImpl(
       maxAge: Long,
       includeSubDomains: Boolean,
@@ -86,8 +85,8 @@ object `Strict-Transport-Security`
     }
   }
 
-  implicit val headerInstance: v2.Header[`Strict-Transport-Security`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Strict-Transport-Security`, Header.Single] =
+    Header.createRendered(
       CIString("Strict-Transport-Security"),
       h =>
         new Renderable {
@@ -107,17 +106,7 @@ object `Strict-Transport-Security`
 sealed abstract case class `Strict-Transport-Security`(
     maxAge: Long,
     includeSubDomains: Boolean = true,
-    preload: Boolean = false)
-    extends Header.Parsed {
-  override def key: `Strict-Transport-Security`.type = `Strict-Transport-Security`
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << "max-age=" << maxAge
-    if (includeSubDomains) writer << "; includeSubDomains"
-    if (preload) writer << "; preload"
-    writer
-  }
-
+    preload: Boolean = false) {
   def withIncludeSubDomains(includeSubDomains: Boolean): `Strict-Transport-Security` =
     new `Strict-Transport-Security`.StrictTransportSecurityImpl(
       this.maxAge,
