@@ -88,9 +88,6 @@ object HttpHeaderParser {
   private def gatherBuiltIn(): Unit = {
     addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
     addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
-    addParser_(
-      CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"),
-      `Access-Control-Allow-Credentials`.parse)
     addParser_(CIString("AGE"), Age.parse)
     addParser_(CIString("ALLOW"), Allow.parse)
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
@@ -99,15 +96,6 @@ object HttpHeaderParser {
     addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
     addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
-    addParser_(CIString("DATE"), Date.parse)
-    addParser_(CIString("ETAG"), ETag.parse)
-    addParser_(CIString("EXPIRES"), Expires.parse)
-    addParser_(CIString("HOST"), Host.parse)
-    addParser_(CIString("IF-MATCH"), `If-Match`.parse)
-    addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
-    addParser_(CIString("IF-NONE-MATCH"), `If-None-Match`.parse)
-    addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
-    addParser_(CIString("LAST-EVENT-ID"), `Last-Event-Id`.parse)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LOCATION"), Location.parse)
     addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
@@ -117,13 +105,5 @@ object HttpHeaderParser {
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), Server.parse)
     addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
-    addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `Strict-Transport-Security`.parse)
-    addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
-    addParser_(CIString("USER-AGENT"), `User-Agent`.parse)
-    addParser_(CIString("X-B3-FLAGS"), `X-B3-Flags`.parse)
-    addParser_(CIString("X-B3-PARENTSPANID"), `X-B3-ParentSpanId`.parse)
-    addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
-    addParser_(CIString("X-B3-SPANID"), `X-B3-SpanId`.parse)
-    addParser_(CIString("X-B3-TRACEID"), `X-B3-TraceId`.parse)
   }
 }

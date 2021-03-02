@@ -44,8 +44,8 @@ private[http4s] trait ForwardedArbitraryInstances
   implicit val http4sTestingArbitraryForForwardedNodeName: Arbitrary[Node.Name] =
     Arbitrary(
       Gen.oneOf(
-        Arbitrary.arbitrary[ip4s.Ipv4Address].map(Node.Name.Ipv4),
-        Arbitrary.arbitrary[ip4s.Ipv6Address].map(Node.Name.Ipv6),
+        Arbitrary.arbitrary[ip4s.Ipv4Address].map(Node.Name.Ipv4.apply),
+        Arbitrary.arbitrary[ip4s.Ipv6Address].map(Node.Name.Ipv6.apply),
         Arbitrary.arbitrary[Node.Obfuscated],
         Gen.const(Node.Name.Unknown)
       ) :| "Node.Name")

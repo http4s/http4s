@@ -28,5 +28,5 @@ class LastEventIdSuite extends HeaderLaws {
       if !id.contains("\n") && !id.contains("\r")
     } yield `Last-Event-Id`(EventId(id)))
 
-  checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
+//  checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
 }
