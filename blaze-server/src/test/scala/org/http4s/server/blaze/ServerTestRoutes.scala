@@ -28,13 +28,13 @@ import org.typelevel.ci.CIString
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   //TODO: bring back well-typed value once all headers are moved to new model
-  val textPlain: String = `Content-Type`(MediaType.text.plain, `UTF-8`).renderString
-  val connClose = Connection(CIString("close")).renderString
-  val connKeep = Connection(CIString("keep-alive")).renderString
-  val chunked = `Transfer-Encoding`(TransferCoding.chunked).renderString
+  val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw
+  val connClose = Connection(CIString("close")).toRaw
+  val connKeep = Connection(CIString("keep-alive")).toRaw
+  val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw
 
-  def length(l: Long): String = `Content-Length`.unsafeFromLong(l).renderString
-  def testRequestResults: Seq[(String, (Status, Set[String], String))] =
+  def length(l: Long) = `Content-Length`.unsafeFromLong(l).toRaw
+  def testRequestResults: Seq[(String, (Status, Set[v2.Header.Raw], String))] =
     Seq(
       ("GET /get HTTP/1.0\r\n\r\n", (Status.Ok, Set(length(3), textPlain), "get")),
       /////////////////////////////////
@@ -59,13 +59,11 @@ object ServerTestRoutes extends Http4sDsl[IO] {
       (
         "GET /get HTTP/1.1\r\nConnection:close\r\n\r\n",
         (Status.Ok, Set(length(3), textPlain, connClose), "get")),
-      //////////////////////////////////////////////////////////////////////
-      // TODO bring these test cases back once old Header is gone
-      /* ("GET /chunked HTTP/1.1\r\n\r\n", (Status.Ok, Set(textPlain, chunked), "chunk")),
-       * /////////////////////////////////
-       * (
-       *   "GET /chunked HTTP/1.1\r\nConnection:close\r\n\r\n",
-       *   (Status.Ok, Set(textPlain, chunked, connClose), "chunk")), */
+      ("GET /chunked HTTP/1.1\r\n\r\n", (Status.Ok, Set(textPlain, chunked), "chunk")),
+      /////////////////////////////////
+      (
+        "GET /chunked HTTP/1.1\r\nConnection:close\r\n\r\n",
+        (Status.Ok, Set(textPlain, chunked, connClose), "chunk")),
       ///////////////////////////////// Content-Length and Transfer-Encoding free responses for HTTP/1.0
       ("GET /chunked HTTP/1.0\r\n\r\n", (Status.Ok, Set(textPlain), "chunk")),
       /////////////////////////////////

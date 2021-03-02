@@ -37,38 +37,6 @@ class HeaderSuite extends munit.DisciplineSuite {
     assert(!(h2 == h1))
   }
 
-  test("Headers should equal same raw headers".ignore) {
-    val h1 = `Content-Length`.unsafeFromLong(44)
-    val h2 = Header("Content-Length", "44")
-
-    assert(h1 == h2)
-    assert(h2 == h1)
-  }
-
-  test("Headers should not equal same raw headers") {
-    val h1 = `Content-Length`.unsafeFromLong(4)
-    val h2 = Header("Content-Length", "5")
-
-    assert(!(h1 == h2))
-    assert(!(h2 == h1))
-  }
-
-  test("Headers should equate raw to same raw headers") {
-    val h1 = Header("Content-Length", "4")
-    val h2 = Header("Content-Length", "4")
-
-    assertEquals(h1, h2)
-    assertEquals(h2, h1)
-  }
-
-  test("Headers should not equate raw to same raw headers") {
-    val h1 = Header("Content-Length", "4")
-    val h2 = Header("Content-Length", "5")
-
-    assert(!(h1 == h2))
-    assert(!(h2 == h1))
-  }
-
   /*
   test("rendered length should is rendered length including \\r\\n") {
     forAll { (h: v2.Header.Raw) =>
