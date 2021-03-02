@@ -78,7 +78,7 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
       this.headers.foreach { orig =>
         orig.parsed match {
           case _: Header.Recurring => acc += orig
-          case _: `Set-Cookie` => acc += orig
+          // case _: `Set-Cookie` => acc += orig
           case h if !hs.exists(_.name == h.name) => acc += orig
           case _ => // NOOP, drop non recurring header that already exists
         }
