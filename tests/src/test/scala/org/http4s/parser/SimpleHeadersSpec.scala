@@ -23,7 +23,6 @@ import org.http4s.headers._
 import org.http4s.v2
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
-import org.http4s.syntax.header
 
 class SimpleHeadersSpec extends Http4sSuite {
   test("parse Accept-Patch") {
@@ -129,7 +128,7 @@ class SimpleHeadersSpec extends Http4sSuite {
     val stringRepr = "Thu, 01 Jan 1970 00:00:00 GMT"
     assertEquals(header.value, stringRepr)
     assertEquals(v2.Header[`Last-Modified`].parse(stringRepr), Right(header))
-    
+
     assert(v2.Header[`Last-Modified`].parse("foo").isLeft)
   }
 
@@ -163,7 +162,7 @@ class SimpleHeadersSpec extends Http4sSuite {
       `Max-Forwards`.unsafeFromLong(100)
     )
     headers.foreach { header =>
-      assertEquals(HttpHeaderParser.parseHeader(header.toRaw), Right(header))
+      assertEquals(v2.Header[`Max-Forwards`].parse(header.value), Right(header))
     }
   }
 
