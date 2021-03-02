@@ -22,20 +22,9 @@ import cats.parse.Parser
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
-object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
-  def from(headers: Headers): List[`Set-Cookie`] =
-    headers.toList.map(matchHeader).collect { case Some(h) =>
-      h
-    }
+object `Set-Cookie` {
 
-  def unapply(headers: Headers): Option[NonEmptyList[`Set-Cookie`]] =
-    from(headers) match {
-      case Nil => None
-      case h :: t => Some(NonEmptyList(h, t))
-    }
-
-  override def parse(s: String): ParseResult[`Set-Cookie`] =
-    ParseResult.fromParser(parser, "Invalid Set-Cookie header")(s)
+  def parse(s: String): ParseResult[`Set-Cookie`] = headerInstance.parse(s)
 
   /* set-cookie-header = "Set-Cookie:" SP set-cookie-string */
   private[http4s] val parser: Parser[`Set-Cookie`] =
@@ -50,7 +39,4 @@ object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
 
 }
 
-final case class `Set-Cookie`(cookie: ResponseCookie) extends Header.Parsed {
-  override def key: `Set-Cookie`.type = `Set-Cookie`
-  override def renderValue(writer: Writer): writer.type = cookie.render(writer)
-}
+final case class `Set-Cookie`(cookie: ResponseCookie)

@@ -91,6 +91,5 @@ object HttpHeaderParser {
     addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
     addParser_(CIString("ORIGIN"), Origin.parse)
     addParser_(CIString("RANGE"), Range.parse)
-    addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
   }
 }
