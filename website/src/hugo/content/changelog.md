@@ -17,7 +17,50 @@ it.
 * [#4242](https://github.com/http4s/http4s/pull/4242): Replace internal models of IPv4, IPv6, `java.net.InetAddress`, and `java.net.SocketAddress` with ip4s.  This affects the URI authority, various headers, and message attributes that refer to IP addresses and hostnames.
 * [#4352](https://github.com/http4s/http4s/pull/4352): Remove deprecated `Header.Recurring.GetT` and ``Header.get(`Set-Cookie`)``.
 * [#4364](https://github.com/http4s/http4s/pull/4364): Remove deprecated `AsyncSyntax` and `NonEmpyListSyntax`. These were unrelated to HTTP.
-* [#4407](https://github.com/http4s/http4s/pull/4407): Relax constraint on `EntityEncoder.fileEncoder` from `Effect` to `Sync`. This should be source-compatible.
+* [#4407](https://github.com/http4s/http4s/pull/4407): Relax constraint on `EntityEncoder.fileEncoder` from `Effect` to `Sync`. This is source compatible.
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Sync` constraints on `MultipartParser`, `Part`, and `KleisliSyntax`. This is source compatible.
+
+## http4s-laws
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Arbitrary` and `Shrink` constraints on `LawAdapter#booleanPropF`. This is source compatible.
+
+## http4s-server
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Functor` constraints in `HSTS`, `Jsonp`, `PushSupport`, `TranslateUri`, and `UriTranslation` middlewares. Drop unused `Sync` and `ContextShift` constraints in `staticcontent` package. These are source compatible.
+
+## http4s-server
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Async` constraint in `ServletContainer`. Drop unused `ContextShift` in `ServletContextSyntax`. These are source compatible.
+
+## http4s-async-http-client
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Sync` constraint on `AsyncHttpClientStats`. This is source compatible.
+
+## http4s-prometheus
+
+### Breaking changes
+
+* [#4519](https://github.com/http4s/http4s/pull/4519): Drop unused `Sync` constraint on `PrometheusExportService`. This is source compatible.
+
+## http4s-argonaut
+
+### Removal
+
+* [#4409](https://github.com/http4s/http4s/pull/4409): http4s-argonaut is no longer published
+
+## http4s-json4s
+
+### Removal
+
+* [#4410](https://github.com/http4s/http4s/pull/4410): http4s-json4s, http4s-json4s-native, and http4s-json4s-jackson are no longer published
 
 ## http4s-play-json
 
@@ -33,11 +76,19 @@ it.
 
 ## Dependencies
 
-* blaze-0.15.0-M1 (new)
-* ip4s-2.0.0-M1
+* blaze-0.15.0-M2
+* case-insensitive-1.0.0
+* cats-parse-0.3.1
+* circe-0.14.0-M4
+* ip4s-2.0.0-RC1
+* jawn-1.1.0
 * jawn-play (dropped)
-* play-json-2.10.0-RC1
-* scala-xml-2.0.0-M4
+* keypool-0.3.0
+* log4cats-1.2.0
+* log4s-1.0.0-M5
+* play-json-2.10.0-RC2
+* scala-xml-2.0.0-M5
+* vault-2.1.7
 
 ### Breaking changes
 
