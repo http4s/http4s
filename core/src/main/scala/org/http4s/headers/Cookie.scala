@@ -20,10 +20,14 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.util.{Renderable, Writer}
+import org.http4s.v2.Header
 import org.typelevel.ci.CIString
 
-object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Cookie] =
+object Cookie {
+  def apply(head: RequestCookie, tail: RequestCookie*): `Cookie` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[Cookie] =
     ParseResult.fromParser(parser, "Invalid Cookie header")(s)
 
   private[http4s] val parser: Parser[Cookie] = {
@@ -40,27 +44,19 @@ object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
     cookieString <* char(';').?
   }
 
-  implicit val headerInstance: v2.Header[Cookie, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Cookie, Header.Recurring] =
+    Header.createRendered(
       CIString("Cookie"),
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =
             writer.addNel(h.values, sep = "; ")
         },
-      ParseResult.fromParser(parser, "Invalid Cookie header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
     (a, b) => Cookie(a.values.concatNel(b.values))
 }
 
-final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.RecurringRenderable {
-  override def key: Cookie.type = Cookie
-  type Value = RequestCookie
-  override def renderValue(writer: Writer): writer.type = {
-    values.head.render(writer)
-    values.tail.foreach(writer << "; " << _)
-    writer
-  }
-}
+final case class Cookie(values: NonEmptyList[RequestCookie])

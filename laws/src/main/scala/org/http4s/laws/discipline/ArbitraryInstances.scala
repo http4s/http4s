@@ -334,7 +334,7 @@ private[http4s] trait ArbitraryInstances {
         contentCodingsWithQ = contentCodings.zip(qValues).map { case (coding, q) =>
           coding.withQValue(q)
         }
-      } yield `Accept-Encoding`(contentCodingsWithQ.head, contentCodingsWithQ.tail: _*)
+      } yield `Accept-Encoding`(NonEmptyList.fromListUnsafe(contentCodingsWithQ.toList))
     }
 
   implicit val http4sTestingArbitraryForContentEncoding: Arbitrary[`Content-Encoding`] =

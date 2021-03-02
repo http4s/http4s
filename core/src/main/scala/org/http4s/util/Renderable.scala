@@ -17,10 +17,13 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
+import org.http4s.v2
+
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import org.typelevel.ci.CIString
+
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
@@ -92,6 +95,11 @@ object Renderer {
     new Renderer[Set[T]] {
       override def render(writer: Writer, values: Set[T]): writer.type =
         writer.addSet(values)
+    }
+
+  implicit def headerSelectRenderer[A](implicit select: v2.Header.Select[A]): Renderer[A] =
+    new Renderer[A] {
+      override def render(writer: Writer, t: A): writer.type = writer << select.toRaw(t)
     }
 }
 

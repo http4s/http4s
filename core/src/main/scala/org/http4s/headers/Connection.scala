@@ -20,13 +20,15 @@ package headers
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
-import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
 // values should be case insensitive
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
-object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Connection] =
+object Connection {
+  def apply(head: CIString, tail: CIString*): `Connection` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[Connection] =
     ParseResult.fromParser(parser, "Invalid Connection header")(s)
 
   private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
@@ -44,14 +46,7 @@ object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurrin
     (a, b) => Connection(a.values.concatNel(b.values))
 }
 
-final case class Connection(values: NonEmptyList[CIString]) extends Header.Recurring {
-  override def key: Connection.type = Connection
-  type Value = CIString
+final case class Connection(values: NonEmptyList[CIString]) {
   def hasClose: Boolean = values.contains_(CIString("close"))
   def hasKeepAlive: Boolean = values.contains_(CIString("keep-alive"))
-  override def renderValue(writer: Writer): writer.type = {
-    writer.append(values.head.toString)
-    values.tail.foreach(s => writer.append(", ").append(s.toString))
-    writer
-  }
 }

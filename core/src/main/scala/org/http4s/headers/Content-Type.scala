@@ -21,12 +21,12 @@ import cats.parse.Parser
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
 
-object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
+object `Content-Type` {
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` =
     apply(mediaType, Some(charset))
   def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
 
-  override def parse(s: String): ParseResult[`Content-Type`] =
+  def parse(s: String): ParseResult[`Content-Type`] =
     ParseResult.fromParser(parser, "Invalid Content-Type header")(s)
 
   private[http4s] val parser: Parser[`Content-Type`] =
@@ -75,15 +75,7 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
   *
   * [[https://tools.ietf.org/html/rfc7231#section-3.1.1.5 RFC-7231]]
   */
-final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset])
-    extends Header.Parsed {
-  override def key: `Content-Type`.type = `Content-Type`
-  override def renderValue(writer: Writer): writer.type =
-    charset match {
-      case Some(cs) => writer << mediaType << "; charset=" << cs
-      case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, mediaType)
-    }
-
+final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset]) {
   def withMediaType(mediaType: MediaType): `Content-Type` =
     if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
   def withCharset(charset: Charset): `Content-Type` =

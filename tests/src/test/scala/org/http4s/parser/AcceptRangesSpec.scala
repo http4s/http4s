@@ -18,10 +18,11 @@ package org.http4s
 package parser
 
 import org.http4s.RangeUnit
+import org.http4s.syntax.header._
 import org.http4s.headers.`Accept-Ranges`
 
-class AcceptRangesSpec extends Http4sSuite with HeaderParserHelper[`Accept-Ranges`] {
-  def hparse(value: String) = `Accept-Ranges`.parse(value)
+class AcceptRangesSpec extends Http4sSuite {
+  def parse(value: String): ParseResult[`Accept-Ranges`] = `Accept-Ranges`.parse(value)
 
   val ranges = List(
     `Accept-Ranges`.bytes,
@@ -40,7 +41,7 @@ class AcceptRangesSpec extends Http4sSuite with HeaderParserHelper[`Accept-Range
 
   test("Accept-Ranges header should Parse correctly") {
     ranges.foreach { r =>
-      assertEquals(parse(r.value), r)
+      assertEquals(parse(r.value), Right(r))
     }
   }
 

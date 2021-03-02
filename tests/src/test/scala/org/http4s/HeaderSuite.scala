@@ -37,18 +37,12 @@ class HeaderSuite extends munit.DisciplineSuite {
     assert(!(h2 == h1))
   }
 
-  test("Headers should equal same raw headers") {
+  test("Headers should equal same raw headers".ignore) {
     val h1 = `Content-Length`.unsafeFromLong(44)
     val h2 = Header("Content-Length", "44")
 
     assert(h1 == h2)
     assert(h2 == h1)
-
-    val h3 = Date(HttpDate.Epoch).toRaw.parsed
-    val h4 = h3.toRaw
-
-    assertEquals(h3, h4)
-    assert(h4 == h3)
   }
 
   test("Headers should not equal same raw headers") {

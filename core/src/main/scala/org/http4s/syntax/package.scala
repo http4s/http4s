@@ -21,4 +21,5 @@ package object syntax {
   object kleisli extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliSyntaxBinCompat1
   object literals extends LiteralsSyntax
   object string extends StringSyntax
+  object header extends HeaderSyntax
 }
