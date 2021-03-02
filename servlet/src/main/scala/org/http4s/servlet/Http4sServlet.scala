@@ -126,20 +126,6 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
                 .asInstanceOf[Array[X509Certificate]]))
             .mapN(SecureSession.apply)
         )
-        .insert(Request.Keys.ServerSoftware, serverSoftware)
-        .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
-        .insert(
-          ServerRequestKeys.SecureSession,
-          (
-            Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
-            Option(
-              req
-                .getAttribute("javax.servlet.request.X509Certificate")
-                .asInstanceOf[Array[X509Certificate]]))
-            .mapN(SecureSession.apply)
-        )
     )
 
   private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {

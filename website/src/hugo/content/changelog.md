@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.0-M4
+# v0.22.0-M4 (2021-03-02)
 
 ## http4s-core
 
@@ -93,6 +93,42 @@ it.
 ### Breaking changes
 
 * [#4371](https://github.com/http4s/http4s/pull/4371): Replace jawn-play with an internal copy of the facade to work around `withDottyCompat` issues.
+
+# v0.21.20 (2021-03-02)
+
+## http4s-core
+
+### Enhancements
+
+* [#4479](https://github.com/http4s/http4s/pull/4479): Add a `Hash[QValue]` instance
+* [#4512](https://github.com/http4s/http4s/pull/4512): Add `DecodeResult.successT` and `DecodeResult.failureT`, consistent with `EitherT`.  Deprecate the overloaded versions they replace.
+
+### Deprecations
+
+* [#4444](https://github.com/http4s/http4s/pull/4444): Deprecate the `RequestCookieJar` in favor of the `CookieJar` middleware 
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#4429](https://github.com/http4s/http4s/pull/4429), [#4466](https://github.com/http4s/http4s/pull/4466): Fix a few corner cases in the parser with respect to chunk boundaries
+
+## http4s-servlet
+
+### Enhancements
+
+* [#4544](https://github.com/http4s/http4s/pull/4544): Remove redundant calculation and insertion of request attributes into the Vault
+
+## Dependency upgrades
+
+* cats-2.4.1
+* cats-effect-2.3.2
+* dropwizard-metrics-4.1.18
+* fs2-2.5.3
+* jetty-9.4.38
+* json4s-3.6.11
+* scalacheck-1.15.3
+>>>>>>> series/0.21
 
 # v0.21.19 (2021-02-13)
 
