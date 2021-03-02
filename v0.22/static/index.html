@@ -147,7 +147,7 @@ You can create a <code>Resource[F, Blocker]</code> by calling <code>Blocker[F]</
 creating and disposing of an underlying thread pool. You can also create your
 own by lifting an execution context or an executor service.</p>
 
-<p>For now, we will lift an executor service, since using <code>Resource</code> in a <code>tut</code>
+<p>For now, we will lift an executor service, since using <code>Resource</code> in a <a href="https://scalameta.org/mdoc/">mdoc</a>
 example is not feasible.</p>
 
 <pre><code class="language-scala">import java.util.concurrent._
@@ -190,7 +190,7 @@ deliver them from there. For example, for all resources in the classpath under <
 
 <pre><code class="language-scala">val routes = resourceServiceBuilder[IO](&quot;/assets&quot;, blocker).toRoutes
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$9557/1584130188@47632cc9
+//   org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$9557/2130572038@4b2a62d8
 // )
 </code></pre>
 
@@ -205,7 +205,7 @@ val routes = HttpRoutes.of[IO] {
     static(path, blocker, request)
 }
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8082/2106142127@2a0a0193
+//   org.http4s.HttpRoutes$$$Lambda$8040/1973102785@9448103
 // )
 </code></pre>
 
@@ -231,7 +231,7 @@ def isJsAsset(asset: WebjarAsset): Boolean =
 
 val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker).withWebjarAssetFilter(isJsAsset).toRoutes
 // webjars: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$9559/35894703@5d85469a
+//   org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$9559/764473396@4d373c11
 // )
 </code></pre>
 

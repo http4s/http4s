@@ -93,7 +93,7 @@ and calling it with http4s&rsquo; client.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.13.4&quot; // Also supports 2.12.x
 
-val http4sVersion = &quot;0.22.0-M1&quot;
+val http4sVersion = &quot;0.22.0-M4&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -108,7 +108,7 @@ libraryDependencies ++= Seq(
 // scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)
 </code></pre>
 
-<p>This tutorial is compiled as part of the build using <a href="https://github.com/tpolecat/tut">tut</a>.  Each page
+<p>This tutorial is compiled as part of the build using <a href="https://scalameta.org/mdoc/">mdoc</a>.  Each page
 is its own REPL session.  If you copy and paste code samples starting
 from the top, you should be able to follow along in a REPL.</p>
 
@@ -154,7 +154,7 @@ greet.</p>
     Ok(s&quot;Hello, $name.&quot;)
 }
 // helloWorldService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8082/2106142127@49a83432
+//   org.http4s.HttpRoutes$$$Lambda$8040/1973102785@5488f93a
 // )
 </code></pre>
 
@@ -187,7 +187,7 @@ val tweetService = HttpRoutes.of[IO] {
     getTweet(tweetId).flatMap(Ok(_))
 }
 // tweetService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8082/2106142127@40c74050
+//   org.http4s.HttpRoutes$$$Lambda$8040/1973102785@5eda6102
 // )
 </code></pre>
 
@@ -215,14 +215,14 @@ import org.http4s.server.Router
 
 <pre><code class="language-scala">val services = tweetService &lt;+&gt; helloWorldService
 // services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.KleisliSemigroupK$$Lambda$8083/742551856@1ca0cadb
+//   cats.data.KleisliSemigroupK$$Lambda$8041/715556473@743ba106
 // )
 val httpApp = Router(&quot;/&quot; -&gt; helloWorldService, &quot;/api&quot; -&gt; services).orNotFound
 // httpApp: cats.data.Kleisli[IO, Request[IO], Response[IO]] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$8321/169960064@6139a96b
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$8292/1885656262@35fb2632
 // )
 val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;).withHttpApp(httpApp)
-// serverBuilder: BlazeServerBuilder[IO] = org.http4s.server.blaze.BlazeServerBuilder@69b818da
+// serverBuilder: BlazeServerBuilder[IO] = org.http4s.server.blaze.BlazeServerBuilder@2629589e
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -235,7 +235,7 @@ associates the specified routes with this http server instance.</p>
 // fiber: Fiber[IO, Nothing] = Tuple(
 //   Bind(
 //     Async(
-//       cats.effect.internals.IOAsync$$$Lambda$8075/219523078@1387107d,
+//       cats.effect.internals.IOAsync$$$Lambda$8033/1041003725@2bf6ff28,
 //       false,
 //       StackTrace(
 //         List(

@@ -88,7 +88,7 @@
 
 <h2 id="add-the-json-support-module-s">Add the JSON support module(s)</h2>
 
-<p>http4s-core does not include JSON support, but integration with three
+<p>http4s-core does not include JSON support, but integration with some
 popular Scala JSON libraries are supported as modules.</p>
 
 <h3 id="circe">Circe</h3>
@@ -96,43 +96,18 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;0.22.0-M1&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;0.22.0-M4&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.0-M3&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.0-M4&quot;,
   // Optional for string interpolation to JSON model
-  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.14.0-M3&quot;
+  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.14.0-M4&quot;
 )
 
 addCompilerPlugin(&quot;org.scalamacros&quot; % &quot;paradise&quot; % &quot;2.1.0&quot; cross CrossVersion.full)
 </code></pre>
-
-<h3 id="argonaut">Argonaut</h3>
-
-<p>Circe is a fork of argonaut, another popular JSON library in the Scala
-community.  The functionality is similar:</p>
-
-<pre><code class="language-scala">libraryDependencies += Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % http4sVersion,
-  // Optional for auto-derivation of JSON codecs
-  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M6&quot;
-)
-</code></pre>
-
-<h3 id="json4s">Json4s</h3>
-
-<p>Json4s is less functionally pure than Circe or Argonaut, but older and
-integrated with many Scala libraries.  It comes with two backends.
-You should pick one of these dependencies:</p>
-
-<pre><code class="language-scala">libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % http4sVersion
-libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % http4sVersion
-</code></pre>
-
-<p>There is no extra codec derivation library for json4s, as it generally
-bases its codecs on runtime reflection.</p>
 
 <h2 id="sending-raw-json">Sending raw JSON</h2>
 
@@ -177,7 +152,7 @@ val greeting = hello(&quot;world&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@41b15901
+//   org.typelevel.vault.Vault@d634493
 // )
 </code></pre>
 
@@ -194,7 +169,7 @@ useful on client requests:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 16),
 //   Stream(..),
-//   org.typelevel.vault.Vault@3a1b0694
+//   org.typelevel.vault.Vault@347d3da4
 // )
 </code></pre>
 
@@ -230,7 +205,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { (hello: Hello) =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@fa209d2
+// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@7f199514
 
 Hello(&quot;Alice&quot;).asJson
 // res4: Json = JObject(object[hello -&gt; &quot;Alice&quot;])
@@ -256,7 +231,7 @@ and responses for our case classes:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@735b6330
+//   org.typelevel.vault.Vault@73a7b771
 // )
 POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 // res7: Request[IO] = (
@@ -265,7 +240,7 @@ POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 14),
 //   Stream(..),
-//   org.typelevel.vault.Vault@b287c82
+//   org.typelevel.vault.Vault@3bb0346a
 // )
 </code></pre>
 
@@ -307,7 +282,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@1fe7c5b8
+// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@42011ff5
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res11: User = User(&quot;Alice&quot;)
 
