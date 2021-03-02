@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
 /** {{{
@@ -28,18 +27,12 @@ import org.typelevel.ci.CIString
   *
   *  From [[https://tools.ietf.org/html/rfc7235#section-4.4 RFC-7235]]
   */
-object `Proxy-Authorization`
-    extends HeaderKey.Internal[`Proxy-Authorization`]
-    with HeaderKey.Singleton {
+object `Proxy-Authorization` {
   //https://tools.ietf.org/html/rfc7235#section-4.2
   private[http4s] val parser: Parser[`Proxy-Authorization`] = {
     import org.http4s.internal.parsing.Rfc7235.credentials
     credentials.map(`Proxy-Authorization`(_))
   }
-
-  override def parse(s: String): ParseResult[`Proxy-Authorization`] =
-    ParseResult.fromParser(parser, "Invalid Proxy-Authorization")(s)
-
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
 
@@ -52,7 +45,4 @@ object `Proxy-Authorization`
 
 }
 
-final case class `Proxy-Authorization`(credentials: Credentials) extends Header.Parsed {
-  override def key: `Proxy-Authorization`.type = `Proxy-Authorization`
-  override def renderValue(writer: Writer): writer.type = credentials.render(writer)
-}
+final case class `Proxy-Authorization`(credentials: Credentials)
