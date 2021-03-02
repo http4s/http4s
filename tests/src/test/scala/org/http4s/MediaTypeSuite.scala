@@ -16,11 +16,11 @@
 
 package org.http4s
 
-import org.http4s.syntax.all._
 import cats.syntax.show._
 import cats.kernel.laws.discipline.EqTests
 import org.http4s.laws.discipline.ArbitraryInstances._
 import org.http4s.laws.discipline.HttpCodecTests
+import org.http4s.syntax.all._
 
 class MediaTypeSuite extends Http4sSuite {
   checkAll("Eq[MediaType]", EqTests[MediaType].eqv)
@@ -57,13 +57,6 @@ class MediaTypeSuite extends Http4sSuite {
         .withExtensions(Map("foo" -> "\""))
         .show,
       """text/html; foo="\""""")
-  }
-
-  test("MediaType should Do a round trip through the Accept header") {
-    val raw = Header(
-      "Accept",
-      """text/csv;charset=UTF-8;columnDelimiter=" "; rowDelimiter=";"; quoteChar='; escapeChar="\\"""")
-    assertEquals(Header("Accept", raw.parsed.value).parsed, raw.parsed)
   }
 
   test("MediaType should reject invalid literals") {

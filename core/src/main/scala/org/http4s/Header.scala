@@ -82,12 +82,7 @@ object Header {
     */
   @deprecated("Condemned", "LSUG")
   final case class Raw(name: CIString, override val value: String) extends Header {
-    private[this] var _parsed: Header = null
-    final override def parsed: Header = {
-      if (_parsed == null)
-        _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
-      _parsed
-    }
+    final override def parsed: Header = null // I told you it was condemned
     override def renderValue(writer: Writer): writer.type = writer.append(value)
   }
 
