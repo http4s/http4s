@@ -19,7 +19,7 @@ package parser
 
 import org.http4s.headers.`WWW-Authenticate`
 
-class WwwAuthenticateHeaderSpec extends Http4sSuite with HeaderV2ParserHelper[`WWW-Authenticate`] {
+class WwwAuthenticateHeaderSpec extends Http4sSuite with HeaderParserHelper[`WWW-Authenticate`] {
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")

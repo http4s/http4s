@@ -21,7 +21,7 @@ import org.http4s.headers._
 
 class ProxyAuthenticateHeaderSuite
     extends munit.FunSuite
-    with HeaderV2ParserHelper[`Proxy-Authenticate`] {
+    with HeaderParserHelper[`Proxy-Authenticate`] {
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")

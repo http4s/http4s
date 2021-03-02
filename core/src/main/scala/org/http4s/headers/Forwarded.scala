@@ -359,9 +359,11 @@ object Forwarded extends ForwardedRenderers {
       .map(Forwarded.apply)
   }
 
+  val name = CIString("Forwarded")
+
   implicit val headerInstance: Header[Forwarded, Header.Recurring] =
     Header.createRendered(
-      CIString("Forwarded"),
+      name,
       _.values,
       ParseResult.fromParser(parser, "Invalid Forwarded header")
     )
@@ -369,7 +371,6 @@ object Forwarded extends ForwardedRenderers {
   implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =
     (a, b) => Forwarded(a.values.concatNel(b.values))
 
-  val name = headerInstance.name
 }
 
 final case class Forwarded(values: NonEmptyList[Forwarded.Element])

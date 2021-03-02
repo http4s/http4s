@@ -24,6 +24,9 @@ import org.typelevel.ci.CIString
 
 object `X-B3-Flags` {
 
+  def parse(s: String): ParseResult[`X-B3-Flags`] =
+    ParseResult.fromParser(parser, "Invalid X-B3-Flags header")(s)
+
   private[http4s] val parser: Parser0[`X-B3-Flags`] =
     Numbers.digits
       .mapFilter { str =>
@@ -76,7 +79,7 @@ object `X-B3-Flags` {
             writer.append(h.flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
 
         },
-      ParseResult.fromParser(parser, "Invalid X-B3-Flags header")
+      parse
     )
 
 }

@@ -19,7 +19,7 @@ package headers
 
 import cats.syntax.all._
 // import org.http4s.laws.discipline.ArbitraryInstances._
-import org.http4s.v2.Header
+import org.http4s.syntax.header._
 
 class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
   /* checkAll("X-B3-Sampled", headerLaws(`X-B3-Sampled`))
@@ -30,41 +30,34 @@ class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
 
   import `X-B3-Flags`.Flag
   test("flags no parse when arbitrary string") {
-    assert(Header[`X-B3-Flags`].parse("asdf").isLeft)
+    assert(`X-B3-Flags`.parse("asdf").isLeft)
   }
   test("flags no parse when negative") {
-    assert(Header[`X-B3-Flags`].parse("-1").isLeft)
+    assert(`X-B3-Flags`.parse("-1").isLeft)
   }
 
   test("flags parses no flags when 0") {
     val noFlags = "0"
-    assertEquals(Header[`X-B3-Flags`].parse(noFlags), Right(`X-B3-Flags`(Set.empty)))
+    assertEquals(`X-B3-Flags`.parse(noFlags), Right(`X-B3-Flags`(Set.empty)))
   }
   test("flags parses 'debug' flag") {
     val debugFlag = "1"
-    assertEquals(Header[`X-B3-Flags`].parse(debugFlag), Right(`X-B3-Flags`(Set(Flag.Debug))))
+    assertEquals(`X-B3-Flags`.parse(debugFlag), Right(`X-B3-Flags`(Set(Flag.Debug))))
   }
   test("flags parses 'sampling set' flag") {
     val samplingSetFlag = "2"
-    assertEquals(
-      Header[`X-B3-Flags`].parse(samplingSetFlag),
-      Right(`X-B3-Flags`(Set(Flag.SamplingSet))))
+    assertEquals(`X-B3-Flags`.parse(samplingSetFlag), Right(`X-B3-Flags`(Set(Flag.SamplingSet))))
   }
   test("flags parses 'sampled' flag") {
     val sampledFlag = "4"
-    assertEquals(Header[`X-B3-Flags`].parse(sampledFlag), Right(`X-B3-Flags`(Set(Flag.Sampled))))
+    assertEquals(`X-B3-Flags`.parse(sampledFlag), Right(`X-B3-Flags`(Set(Flag.Sampled))))
   }
   test("flags parses multiple flags") {
     val sampledAndDebugFlag = "5"
-    val result = Header[`X-B3-Flags`].parse(sampledAndDebugFlag)
+    val result = `X-B3-Flags`.parse(sampledAndDebugFlag)
     assert(result.isRight)
     assert(result.valueOr(throw _).flags.exists(_ == Flag.Sampled))
     assert(result.valueOr(throw _).flags.exists(_ == Flag.Debug))
-  }
-
-  // Temporal class providing methods which will be replaced by syntax later on
-  implicit class TemporalSyntax[A](header: A)(implicit e: v2.Header[A, v2.Header.Single]) {
-    def value: String = v2.Header[A].value(header)
   }
 
   test("flags renders when no flags") {
@@ -85,44 +78,42 @@ class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
   }
 
   test("sampled parses false when 0") {
-    assertEquals(Header[`X-B3-Sampled`].parse("0"), Right(`X-B3-Sampled`(false)))
+    assertEquals(`X-B3-Sampled`.parse("0"), Right(`X-B3-Sampled`(false)))
   }
   test("sampled parses true when 1") {
-    assertEquals(Header[`X-B3-Sampled`].parse("1"), Right(`X-B3-Sampled`(true)))
+    assertEquals(`X-B3-Sampled`.parse("1"), Right(`X-B3-Sampled`(true)))
   }
   test("sampled no parse when not 0 or 1") {
-    assert(Header[`X-B3-Sampled`].parse("01").isLeft)
+    assert(`X-B3-Sampled`.parse("01").isLeft)
   }
 
   // The parsing logic is the same for all ids.
   test("id no parse when less than 16 chars") {
     val not16Chars = "abcd1234"
-    assert(Header[`X-B3-TraceId`].parse(not16Chars).isLeft)
+    assert(`X-B3-TraceId`.parse(not16Chars).isLeft)
   }
   test("id no parse when more than 16 but less than 32 chars") {
     val not16Or32Chars = "abcd1234a"
-    assert(Header[`X-B3-TraceId`].parse(not16Or32Chars).isLeft)
+    assert(`X-B3-TraceId`.parse(not16Or32Chars).isLeft)
   }
   test("id no parse when more than 32 chars") {
     val not16Or32Chars = "2abcd1234a1493b12"
-    assert(Header[`X-B3-TraceId`].parse(not16Or32Chars).isLeft)
+    assert(`X-B3-TraceId`.parse(not16Or32Chars).isLeft)
   }
   test("id no parse when contains non-hex char") {
     val containsZ = "abcd1z34abcd1234"
-    assert(Header[`X-B3-TraceId`].parse(containsZ).isLeft)
+    assert(`X-B3-TraceId`.parse(containsZ).isLeft)
   }
 
   test("id parses a Long when contains 16-char case-insensitive hex string") {
     val long = 2159330025234698493L
     val hexString = "1dF77B37a2f310fD"
-    assertEquals(Header[`X-B3-TraceId`].parse(hexString), Right(`X-B3-TraceId`(long, None)))
+    assertEquals(`X-B3-TraceId`.parse(hexString), Right(`X-B3-TraceId`(long, None)))
   }
   test("id parses a two Longs when contains 32-char case-insensitive hex string") {
     val msbLong = 2159330025234698493L
     val lsbLong = 7000848103853419616L
     val hexString = "1dF77B37a2f310fD6128024224a66C60"
-    assertEquals(
-      Header[`X-B3-TraceId`].parse(hexString),
-      Right(`X-B3-TraceId`(msbLong, Some(lsbLong))))
+    assertEquals(`X-B3-TraceId`.parse(hexString), Right(`X-B3-TraceId`(msbLong, Some(lsbLong))))
   }
 }

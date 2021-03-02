@@ -26,6 +26,11 @@ object `User-Agent` {
   def apply(id: ProductId, tail: ProductIdOrComment*): `User-Agent` =
     apply(id, tail.toList)
 
+  val name = CIString("User-Agent")
+
+  def parse(s: String): ParseResult[`User-Agent`] =
+    ParseResult.fromParser(parser, "Invalid User-Agent header")(s)
+
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
@@ -34,7 +39,7 @@ object `User-Agent` {
 
   implicit val headerInstance: Header[`User-Agent`, Header.Single] =
     Header.createRendered(
-      CIString("User-Agent"),
+      name,
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {
@@ -47,10 +52,8 @@ object `User-Agent` {
           }
 
         },
-      ParseResult.fromParser(parser, "Invalid User-Agent header")
+      parse
     )
-
-  val name = headerInstance.name
 
   implicit def convert(implicit select: v2.Header.Select[`User-Agent`]): Renderer[`User-Agent`] =
     new Renderer[`User-Agent`] {

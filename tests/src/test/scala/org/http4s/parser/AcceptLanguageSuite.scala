@@ -20,7 +20,7 @@ package parser
 import org.http4s.headers.`Accept-Language`
 import org.http4s.syntax.all._
 
-class AcceptLanguageSuite extends Http4sSuite with HeaderV2ParserHelper[`Accept-Language`] {
+class AcceptLanguageSuite extends Http4sSuite with HeaderParserHelper[`Accept-Language`] {
 
   val en = `Accept-Language`(LanguageTag("en"))
   val fr = `Accept-Language`(LanguageTag("fr"))

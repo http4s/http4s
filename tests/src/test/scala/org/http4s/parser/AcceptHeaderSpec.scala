@@ -22,13 +22,8 @@ import org.http4s.MediaRange._
 import org.http4s.MediaType._
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.syntax.all._
-import org.http4s.v2.Header
 
-class AcceptHeaderSpec extends Http4sSuite {
-
-  def parse(value: String): Accept = Header[Accept].parse(value).toOption.get
-
-  def roundTrip(accept: Accept): Accept = parse(Header[Accept].value(accept))
+class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
 
   val `audio/mod`: MediaType =
     new MediaType("audio", "mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))

@@ -28,6 +28,9 @@ import org.typelevel.ci.CIString
 
 object `X-B3-TraceId` {
 
+  def parse(s: String): ParseResult[`X-B3-TraceId`] =
+    ParseResult.fromParser(parser, "Invalid X-B3-TraceId header")(s)
+
   private[http4s] val parser: Parser0[`X-B3-TraceId`] = {
     val hexValue = Applicative[Parser0].replicateA(16, Rfc5234.hexdig).map { s =>
       ZipkinHeader.idStringToLong(s.mkString(""))
@@ -44,7 +47,7 @@ object `X-B3-TraceId` {
             xB3RenderValueImpl(writer, h.idMostSigBits, h.idLeastSigBits)
 
         },
-      ParseResult.fromParser(parser, "Invalid X-B3-TraceId header")
+      parse
     )
 
 }
