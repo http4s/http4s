@@ -54,7 +54,7 @@ class SimpleHeadersSpec extends Http4sSuite {
       )
     )
 
-    assertEquals(`Access-Control-Allow-Headers`.parse(toRaw(header).value), Right(header))
+    assertEquals(`Access-Control-Allow-Headers`.parse(header.toRaw.value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
     assert(`Access-Control-Allow-Headers`.parse(invalidHeaderValue).isLeft)
@@ -69,7 +69,7 @@ class SimpleHeadersSpec extends Http4sSuite {
         CIString("*")
       )
     )
-    assertEquals(`Access-Control-Expose-Headers`.parse(toRaw(header).value), Right(header))
+    assertEquals(`Access-Control-Expose-Headers`.parse(header.toRaw.value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
     assert(`Access-Control-Expose-Headers`.parse(invalidHeaderValue).isLeft)
@@ -77,7 +77,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("parse Connection") {
     val header = Connection(CIString("closed"))
-    assertEquals(Connection.parse(toRaw(header).value), Right(header))
+    assertEquals(Connection.parse(header.toRaw.value), Right(header))
   }
 
   test("Parse Content-Length") {
@@ -167,28 +167,28 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("SimpleHeaders should parse Transfer-Encoding") {
     val header = `Transfer-Encoding`(TransferCoding.chunked)
-    assertEquals(v2.Header[`Transfer-Encoding`].parse(header.value), Right(header))
+    assertEquals(`Transfer-Encoding`.parse(header.value), Right(header))
 
     val header2 = `Transfer-Encoding`(TransferCoding.compress)
-    assertEquals(v2.Header[`Transfer-Encoding`].parse(header2.value), Right(header2))
+    assertEquals(`Transfer-Encoding`.parse(header2.value), Right(header2))
   }
 
   test("SimpleHeaders should parse User-Agent") {
     val header = `User-Agent`(ProductId("foo", Some("bar")), List(ProductId("foo")))
     assertEquals(header.value, "foo/bar foo")
 
-    assertEquals(v2.Header[`User-Agent`].parse(header.value), Right(header))
+    assertEquals(`User-Agent`.parse(header.value), Right(header))
 
     val header2 =
       `User-Agent`(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
     assertEquals(header2.value, "foo bar/biz (blah)")
-    assertEquals(v2.Header[`User-Agent`].parse(header2.value), Right(header2))
+    assertEquals(`User-Agent`.parse(header2.value), Right(header2))
 
     val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
 
     val headerraw = v2.Header.Raw(`User-Agent`.name, headerstr)
 
-    val parsed = v2.Header[`User-Agent`].parse(headerraw.value)
+    val parsed = `User-Agent`.parse(headerraw.value)
     assertEquals(
       parsed,
       Right(
@@ -245,16 +245,16 @@ class SimpleHeadersSpec extends Http4sSuite {
   test("SimpleHeaders should parse X-Forwarded-For") {
     // ipv4
     val header2 = `X-Forwarded-For`(NonEmptyList.of(Some(ipv4"127.0.0.1")))
-    assertEquals(`X-Forwarded-For`.parse(toRaw(header2).value), Right(header2))
+    assertEquals(`X-Forwarded-For`.parse(header2.toRaw.value), Right(header2))
 
     // ipv6
     val header3 = `X-Forwarded-For`(
       NonEmptyList.of(Some(ipv6"::1"), Some(ipv6"2001:0db8:85a3:0000:0000:8a2e:0370:7334")))
-    assertEquals(`X-Forwarded-For`.parse(toRaw(header3).value), Right(header3))
+    assertEquals(`X-Forwarded-For`.parse(header3.toRaw.value), Right(header3))
 
     // "unknown"
     val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
-    assertEquals(`X-Forwarded-For`.parse(toRaw(header4).value), Right(header4))
+    assertEquals(`X-Forwarded-For`.parse(header4.toRaw.value), Right(header4))
 
     val bad = "foo"
     assert(`X-Forwarded-For`.parse(bad).isLeft)
@@ -262,8 +262,5 @@ class SimpleHeadersSpec extends Http4sSuite {
     val bad2 = "256.56.56.56"
     assert(`X-Forwarded-For`.parse(bad2).isLeft)
   }
-
-  private def toRaw[H: v2.Header.Select](h: H): v2.Header.Raw =
-    implicitly[v2.Header.Select[H]].toRaw(h)
 
 }

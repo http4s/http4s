@@ -19,21 +19,12 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
-import org.http4s.util.Renderer
-import org.http4s.v2.Header
+import org.http4s.syntax.header._
 import org.scalacheck.Prop.forAll
 import org.http4s.laws.discipline.ArbitraryInstances._
 
 class TransferEncodingSuite extends HeaderLaws {
   checkAll("TransferEncoding", headerLaws[`Transfer-Encoding`])
-
-  // TODO Temporal class providing methods which will be replaced by syntax later on
-  implicit class TemporalSyntax(header: `Transfer-Encoding`) {
-    def renderString: String = {
-      val raw = implicitly[Header.Select[`Transfer-Encoding`]].toRaw(header)
-      Renderer.renderString(raw)
-    }
-  }
 
   test("render should include all the encodings") {
     assertEquals(
@@ -46,15 +37,15 @@ class TransferEncodingSuite extends HeaderLaws {
 
   test("parse should accept single codings") {
     assertEquals(
-      v2.Header[`Transfer-Encoding`].parse("chunked").map(_.values),
+      `Transfer-Encoding`.parse("chunked").map(_.values),
       Right(NonEmptyList.one(TransferCoding.chunked)))
   }
   test("parse should accept multiple codings") {
     assertEquals(
-      v2.Header[`Transfer-Encoding`].parse("chunked, gzip").map(_.values),
+      `Transfer-Encoding`.parse("chunked, gzip").map(_.values),
       Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)))
     assertEquals(
-      v2.Header[`Transfer-Encoding`].parse("chunked,gzip").map(_.values),
+      `Transfer-Encoding`.parse("chunked,gzip").map(_.values),
       Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)))
   }
 

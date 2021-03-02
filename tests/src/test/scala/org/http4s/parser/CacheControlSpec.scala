@@ -22,7 +22,7 @@ import org.http4s.CacheDirective._
 import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
-class CacheControlSpec extends Http4sSuite with HeaderV2ParserHelper[`Cache-Control`] {
+class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Control`] {
 
   // Default values
   val valueless = List(

@@ -45,6 +45,4 @@ object `WWW-Authenticate` {
     (a, b) => `WWW-Authenticate`(a.values.concatNel(b.values))
 }
 
-final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) {
-  val value = Header[`WWW-Authenticate`].value(this)
-}
+final case class `WWW-Authenticate`(values: NonEmptyList[Challenge])

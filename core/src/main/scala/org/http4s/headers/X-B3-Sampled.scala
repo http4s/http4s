@@ -23,6 +23,9 @@ import org.typelevel.ci.CIString
 
 object `X-B3-Sampled` {
 
+  def parse(s: String): ParseResult[`X-B3-Sampled`] =
+    ParseResult.fromParser(parser, "Invalid X-B3-Sampled header")(s)
+
   private[http4s] val parser: Parser[`X-B3-Sampled`] =
     Rfc5234.bit.map(s => `X-B3-Sampled`(s == '1'))
 
@@ -30,7 +33,7 @@ object `X-B3-Sampled` {
     Header.create(
       CIString("X-B3-Sampled"),
       v => if (v.sampled) "1" else "0",
-      ParseResult.fromParser(parser, "Invalid X-B3-Sampled header")
+      parse
     )
 
 }

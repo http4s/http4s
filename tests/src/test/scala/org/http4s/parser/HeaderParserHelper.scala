@@ -16,31 +16,17 @@
 
 package org.http4s.parser
 
-import org.http4s.{Header, ParseResult}
-import org.http4s.v2
+import org.http4s.ParseResult
+import org.http4s.v2.Header
+import org.http4s.syntax.header._
 
-@deprecated("Condemned", "LSUG")
-trait HeaderParserHelper[H <: Header] {
-  def hparse(value: String): ParseResult[H]
+trait HeaderParserHelper[H] {
 
-  // Also checks to make sure whitespace doesn't effect the outcome
-  protected def parse(value: String): H = {
-    val a =
-      hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
-    val b =
-      hparse(value.replace(" ", "")).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
-    assert(a == b, "Whitespace resulted in different headers")
-    a
-  }
-}
-
-trait HeaderV2ParserHelper[H] {
-
-  protected def roundTrip[T <: v2.Header.Type](h: H)(implicit header: v2.Header[H, T]): H =
-    parse(value(h))
+  protected def roundTrip[T <: Header.Type](h: H)(implicit header: Header[H, T]): H =
+    parse(h.value)
 
   // Also checks to make sure whitespace doesn't effect the outcome
-  protected def parse[T <: v2.Header.Type](value: String)(implicit i: v2.Header[H, T]): H = {
+  protected def parse[T <: Header.Type](value: String)(implicit i: Header[H, T]): H = {
     val a = parseOnly(value)
     val b =
       hparse(value.replace(" ", "")).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
@@ -48,14 +34,11 @@ trait HeaderV2ParserHelper[H] {
     a
   }
 
-  protected def parseOnly[T <: v2.Header.Type](value: String)(implicit i: v2.Header[H, T]): H =
+  protected def parseOnly[T <: Header.Type](value: String)(implicit i: Header[H, T]): H =
     hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
 
-  def value[T <: v2.Header.Type](h: H)(implicit header: v2.Header[H, T]): String =
-    header.value(h)
-
-  private def hparse[T <: v2.Header.Type](value: String)(implicit
-      header: v2.Header[H, T]): ParseResult[H] =
+  private def hparse[T <: Header.Type](value: String)(implicit
+      header: Header[H, T]): ParseResult[H] =
     header.parse(value)
 
 }

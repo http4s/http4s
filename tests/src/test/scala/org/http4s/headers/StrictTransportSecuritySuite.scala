@@ -17,22 +17,12 @@
 package org.http4s.headers
 
 import org.http4s.ParseFailure
-import org.http4s.util.Renderer
-import org.http4s.v2.Header
+import org.http4s.syntax.header._
 import scala.concurrent.duration._
 import org.http4s.laws.discipline.ArbitraryInstances._
 
 class StrictTransportSecuritySuite extends HeaderLaws {
   checkAll("StrictTransportSecurity", headerLaws[`Strict-Transport-Security`])
-
-  // TODO Temporal class providing methods which will be replaced by syntax later on
-  implicit class TemporalSyntax(header: org.http4s.headers.`Strict-Transport-Security`) {
-    def value: String = Header[`Strict-Transport-Security`].value(header)
-    def renderString: String = {
-      val raw = implicitly[Header.Select[`Strict-Transport-Security`]].toRaw(header)
-      Renderer.renderString(raw)
-    }
-  }
 
   test("fromLong should support positive max age in seconds") {
     assertEquals(
