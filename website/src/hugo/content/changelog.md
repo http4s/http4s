@@ -8,19 +8,43 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M17
+# v1.0.0-M17 (2021-03-02)
 
 ## http4s-core
 
+### Breaking changes
+
+* [#4516](https://github.com/http4s/http4s/pull/4516): Replace `Defer: Applicative` constraint with `Monad` in `HttpRoutes.of` and `ContextRoutes.of`.  This should be source compatible for nearly all users.  Users who can't abide this constraint can use `.strict`, at the cost of efficiency in combinining routes.
+
 ### Enhancements
 
-* [#4337](https://github.com/http4s/http4s/pull/4337): Optimize multipart parser for the fact that pull can't return empty chunks
+* [#4351](https://github.com/http4s/http4s/pull/4351): Optimize multipart parser for the fact that pull can't return empty chunks
+* [#4485](https://github.com/http4s/http4s/pull/4485): Drop dependency to `cats-effect-std`. There are no hard dependencies on `cats.effect.IO` outside the tests.
+
+## http4s-blaze-core
+
+### Enhancements
+
+* [#4425](https://github.com/http4s/http4s/pull/4425): Optimize entity body writer
+
+## http4s-ember-server
+
+### Breaking changes
+
+* [#4471](https://github.com/http4s/http4s/pull/4471): `EmberServerBuilder` takes an ip4s `Option[Host]` and `Port` in its config instead of `String` and `Int`.
+* [#4515](https://github.com/http4s/http4s/pull/4515): Temporarily revert the graceful shutdown until a new version of FS2 suports it.
 
 ### Dependency updates
 
-* ip4s-3.0.0-M1
+* cats-effect-3.0.0-RC2
+* fs2-3.0.0-M9
+* jawn-fs2-2.0.0-RC3
+* ip4s-3.0.0-RC2
+* keypool-0.4.0-RC2
+* log4cats-2.0.0-RC1
+* vault-3.0.0-RC2
 
-# v0.22.0-M4
+# v0.22.0-M4 (2021-03-02)
 
 ## http4s-core
 
