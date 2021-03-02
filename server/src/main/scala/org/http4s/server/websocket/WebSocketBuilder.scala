@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.server.websocket
+package org.http4s
+package server.websocket
 
 import cats.Applicative
 import cats.syntax.all._
@@ -26,7 +27,6 @@ import org.http4s.websocket.{
   WebSocketFrame,
   WebSocketSeparatePipe
 }
-import org.http4s.{Headers, Response, Status}
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
@@ -37,7 +37,7 @@ import org.http4s.{Headers, Response, Status}
   *                           default: BadRequest
   */
 final case class WebSocketBuilder[F[_]: Applicative](
-    headers: Headers,
+    headers: v2.Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
@@ -132,7 +132,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
 object WebSocketBuilder {
   def apply[F[_]: Applicative]: WebSocketBuilder[F] =
     new WebSocketBuilder[F](
-      headers = Headers.empty,
+      headers = v2.Headers.empty,
       onNonWebSocketRequest =
         Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
       onHandshakeFailure =
