@@ -23,7 +23,7 @@ import org.http4s.v2.Header
 
 class LinkSuite extends HeaderLaws {
   // FIXME Uri does not round trip properly: https://github.com/http4s/http4s/issues/1651
-  // checkAll(name = "Link", headerLaws(Link))
+  // checkAll(name = "Link", headerLaws[Link])
 
   test("parse should accept format RFC 5988") {
     val link = """</feed>; rel="alternate"; type="text/*"; title="main"; rev="previous""""
