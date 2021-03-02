@@ -25,6 +25,11 @@ object `Access-Control-Allow-Headers` {
   def apply(head: CIString, tail: CIString*): `Access-Control-Allow-Headers` =
     apply(NonEmptyList(head, tail.toList))
 
+  def parse(s: String): ParseResult[`Access-Control-Allow-Headers`] = parseResult(s)
+
+  private[http4s] def parseResult(s: String): ParseResult[`Access-Control-Allow-Headers`] =
+    ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers headers")(s)
+
   private[http4s] val parser =
     Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Allow-Headers`(_))
 
@@ -32,7 +37,7 @@ object `Access-Control-Allow-Headers` {
     v2.Header.createRendered(
       CIString("Access-Control-Allow-Headers"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers headers")
+      parseResult
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Headers`] =
