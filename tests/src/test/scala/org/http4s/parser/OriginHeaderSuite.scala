@@ -29,62 +29,62 @@ class OriginHeaderSuite extends munit.FunSuite {
   val hostString2 = "https://127.0.0.1"
 
   test("Origin value method should Render a host with a port number") {
-    val origin = Origin.HostList(NonEmptyList.of(host1))
+    val origin: Origin = Origin.HostList(NonEmptyList.of(host1))
     assertEquals(origin.value, hostString1)
   }
 
   test("Origin value method should Render a host without a port number") {
-    val origin = Origin.HostList(NonEmptyList.of(host2))
+    val origin: Origin = Origin.HostList(NonEmptyList.of(host2))
     assertEquals(origin.value, hostString2)
   }
 
   test("Origin value method should Render a list of multiple hosts") {
-    val origin = Origin.HostList(NonEmptyList.of(host1, host2))
+    val origin: Origin = Origin.HostList(NonEmptyList.of(host1, host2))
     assertEquals(origin.value, s"$hostString1 $hostString2")
   }
 
   test("Origin value method should Render an empty origin") {
-    val origin = Origin.Null
+    val origin: Origin = Origin.Null
     assertEquals(origin.value, "null")
   }
 
   test("OriginHeader parser should Parse a host with a port number") {
     val text = hostString1
     val origin = Origin.HostList(NonEmptyList.of(host1))
-    val headers = Headers.of(Header("Origin", text))
-    val extracted = headers.get(Origin)
+    val headers = v2.Headers(("Origin", text))
+    val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
 
   test("OriginHeader parser should Parse a host without a port number") {
     val text = hostString2
     val origin = Origin.HostList(NonEmptyList.of(host2))
-    val headers = Headers.of(Header("Origin", text))
-    val extracted = headers.get(Origin)
+    val headers = v2.Headers(("Origin", text))
+    val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
 
   test("OriginHeader parser should Parse a list of multiple hosts") {
     val text = s"$hostString1 $hostString2"
     val origin = Origin.HostList(NonEmptyList.of(host1, host2))
-    val headers = Headers.of(Header("Origin", text))
-    val extracted = headers.get(Origin)
+    val headers = v2.Headers(("Origin", text))
+    val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
 
   test("OriginHeader parser should Parse an empty origin") {
     val text = ""
     val origin = Origin.Null
-    val headers = Headers.of(Header("Origin", text))
-    val extracted = headers.get(Origin)
+    val headers = v2.Headers(("Origin", text))
+    val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
 
   test("OriginHeader parser should Parse a 'null' origin") {
     val text = "null"
     val origin = Origin.Null
-    val headers = Headers.of(Header("Origin", text))
-    val extracted = headers.get(Origin)
+    val headers = v2.Headers(("Origin", text))
+    val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
 }
