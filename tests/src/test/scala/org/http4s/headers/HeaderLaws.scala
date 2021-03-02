@@ -23,31 +23,6 @@ import org.typelevel.discipline.Laws
 import org.http4s.syntax.header._
 
 trait HeaderLaws extends munit.DisciplineSuite with Laws {
-  //To remove once all the headers are migrated to new model
-  def headerLaws(key: HeaderKey)(implicit
-      arbHeader: Arbitrary[key.HeaderT]
-  ): RuleSet =
-    new SimpleRuleSet(
-      "header",
-      """parse(a.value) == right(a)"""" -> forAll { (a: key.HeaderT) =>
-        assertEquals(key.parse(a.value), Right(a))
-      },
-      """renderString == "name: value"""" -> forAll { (a: key.HeaderT) =>
-        assertEquals(a.renderString, s"${key.name}: ${a.value}")
-      },
-      """matchHeader matches parsed values""" -> forAll { (a: key.HeaderT) =>
-        assertEquals(key.matchHeader(a), Some(a))
-      },
-      """matchHeader matches raw, valid values of same name""" -> forAll { (a: key.HeaderT) =>
-        assertEquals(key.matchHeader(a.toRaw), Some(a))
-      }
-      /*
-      """matchHeader does not match other names""" -> forAll { (header: v2.Header.Raw) =>
-        key.name != header.name ==> assert(key.matchHeader(header).isEmpty)
-      }
-       */
-    )
-
   def headerLaws[A](implicit
       arbHeader: Arbitrary[A],
       header: v2.Header[A, _],
