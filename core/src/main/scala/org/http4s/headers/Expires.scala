@@ -39,8 +39,8 @@ object Expires {
     httpDate.orElse(invalid).map(apply)
   }
 
-  implicit val headerInstance: v2.Header[Expires, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Expires, Header.Single] =
+    Header.createRendered(
       CIString("Expires"),
       _.expirationDate,
       ParseResult.fromParser(parser, "Invalid Expires header")

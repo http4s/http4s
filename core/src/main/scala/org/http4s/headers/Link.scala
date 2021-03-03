@@ -22,7 +22,7 @@ import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token}
 
 import java.nio.charset.StandardCharsets
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.typelevel.ci.CIString
 
 object Link {

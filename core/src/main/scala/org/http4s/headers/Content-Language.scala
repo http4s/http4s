@@ -40,8 +40,8 @@ object `Content-Language` {
     }
   }
 
-  implicit val headerInstance: v2.Header[`Content-Language`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Content-Language`, Header.Recurring] =
+    Header.createRendered(
       CIString("Content-Language"),
       _.values,
       parse

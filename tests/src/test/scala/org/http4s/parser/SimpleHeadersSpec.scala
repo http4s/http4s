@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import com.comcast.ip4s._
 import org.http4s.headers._
 import org.http4s.syntax.header._
-import org.http4s.v2
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
@@ -39,8 +38,7 @@ class SimpleHeadersSpec extends Http4sSuite {
           .of(new MediaType("application", "example"), new MediaType("text", "example")))
     assertEquals(parse(multipleMediaTypes.value), Right(multipleMediaTypes))
 
-    val bad = Header("Accept-Patch", "foo; bar")
-    assert(parse(bad.value).isLeft)
+    assert(parse("foo; bar").isLeft)
   }
 
   test("parse Access-Control-Allow-Headers") {
@@ -128,9 +126,9 @@ class SimpleHeadersSpec extends Http4sSuite {
     val header = `Last-Modified`(HttpDate.Epoch)
     val stringRepr = "Thu, 01 Jan 1970 00:00:00 GMT"
     assertEquals(header.value, stringRepr)
-    assertEquals(v2.Header[`Last-Modified`].parse(stringRepr), Right(header))
+    assertEquals(Header[`Last-Modified`].parse(stringRepr), Right(header))
 
-    assert(v2.Header[`Last-Modified`].parse("foo").isLeft)
+    assert(Header[`Last-Modified`].parse("foo").isLeft)
   }
 
   test("SimpleHeaders should parse ETag") {
@@ -163,7 +161,7 @@ class SimpleHeadersSpec extends Http4sSuite {
       `Max-Forwards`.unsafeFromLong(100)
     )
     headers.foreach { header =>
-      assertEquals(v2.Header[`Max-Forwards`].parse(header.value), Right(header))
+      assertEquals(Header[`Max-Forwards`].parse(header.value), Right(header))
     }
   }
 
@@ -188,7 +186,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
 
-    val headerraw = v2.Header.Raw(`User-Agent`.name, headerstr)
+    val headerraw = Header.Raw(`User-Agent`.name, headerstr)
 
     val parsed = `User-Agent`.parse(headerraw.value)
     assertEquals(
@@ -220,7 +218,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val headerstr = "nginx/1.14.0 (Ubuntu)"
     assertEquals(
-      Server.parse(Header.Raw(Server.name, headerstr).value),
+      Server.parse(headerstr),
       Right(
         Server(
           ProductId("nginx", Some("1.14.0")),
@@ -232,7 +230,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val headerstr2 = "CERN/3.0 libwww/2.17"
     assertEquals(
-      Server.parse(Header.Raw(Server.name, headerstr2).value),
+      Server.parse(headerstr2),
       Right(
         Server(
           ProductId("CERN", Some("3.0")),

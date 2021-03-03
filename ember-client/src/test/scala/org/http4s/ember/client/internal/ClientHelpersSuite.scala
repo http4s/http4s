@@ -39,7 +39,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(
         Request[IO](
-          headers = v2.Headers(Date(HttpDate.Epoch))
+          headers = Headers(Date(HttpDate.Epoch))
         ),
         None)
       .map { req =>
@@ -63,7 +63,7 @@ class ClientHelpersSuite extends Http4sSuite {
   test("Request Preprocessing should not add a connection header if already present") {
     ClientHelpers
       .preprocessRequest(
-        Request[IO](headers = v2.Headers(Connection(NonEmptyList.of(CIString("close"))))),
+        Request[IO](headers = Headers(Connection(NonEmptyList.of(CIString("close"))))),
         None
       )
       .map { req =>
@@ -88,7 +88,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(
         Request[IO](
-          headers = v2.Headers(`User-Agent`(ProductId(name, None)))
+          headers = Headers(`User-Agent`(ProductId(name, None)))
         ),
         EmberClientBuilder.default[IO].userAgent)
       .map { req =>
@@ -140,7 +140,7 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](headers = v2.Headers(Connection(NonEmptyList.of(CIString("close"))))),
+          Request[IO](headers = Headers(Connection(NonEmptyList.of(CIString("close"))))),
           Response[IO](),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
@@ -159,7 +159,7 @@ class ClientHelpersSuite extends Http4sSuite {
       _ <- ClientHelpers
         .postProcessResponse[IO](
           Request[IO](),
-          Response[IO](headers = v2.Headers(Connection(NonEmptyList.of(CIString("close"))))),
+          Response[IO](headers = Headers(Connection(NonEmptyList.of(CIString("close"))))),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse

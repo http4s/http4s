@@ -26,7 +26,7 @@ import java.util.Locale
 import org.http4s._
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
-import org.http4s.v2.Header
+import org.http4s.Header
 import scala.util.Try
 import org.typelevel.ci.CIString
 

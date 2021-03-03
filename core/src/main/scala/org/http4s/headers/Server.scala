@@ -36,8 +36,8 @@ object Server {
         Server(product, tokens)
     }
 
-  implicit val headerInstance: v2.Header[Server, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Server, Header.Single] =
+    Header.createRendered(
       name,
       h =>
         new Renderable {

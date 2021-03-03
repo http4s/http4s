@@ -17,7 +17,7 @@
 package org.http4s.parser
 
 import org.http4s.ParseResult
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.http4s.syntax.header._
 
 trait HeaderParserHelper[H] {

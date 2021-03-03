@@ -48,7 +48,7 @@ object ResponseTiming {
         before <- getTime
         resp <- http(req)
         after <- getTime
-        header = v2.Header.Raw(headerName, s"${after - before}")
+        header = Header.Raw(headerName, s"${after - before}")
       } yield resp.putHeaders(header)
     }
 }

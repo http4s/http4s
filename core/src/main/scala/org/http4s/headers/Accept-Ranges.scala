@@ -53,8 +53,8 @@ object `Accept-Ranges` {
     acceptableRanges.map(headers.`Accept-Ranges`.apply)
   }
 
-  implicit val headerInstance: v2.Header[`Accept-Ranges`, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: Header[`Accept-Ranges`, Header.Single] =
+    Header.create(
       CIString("Accept-Ranges"),
       _.rangeUnits.toNel match {
         case None => "none"

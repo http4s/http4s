@@ -39,8 +39,8 @@ object Age {
     ParseResult.fromParser(parser, "Invalid Age header")(s)
   private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
 
-  implicit val headerInstance: v2.Header[Age, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Age, Header.Single] =
+    Header.createRendered(
       CIString("Age"),
       _.age,
       ParseResult.fromParser(parser, "Invalid Age header")

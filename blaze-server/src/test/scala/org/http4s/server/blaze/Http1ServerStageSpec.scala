@@ -68,11 +68,11 @@ class Http1ServerStageSpec extends Http4sSuite {
     new String(a)
   }
 
-  def parseAndDropDate(buff: ByteBuffer): (Status, Set[v2.Header.Raw], String) =
+  def parseAndDropDate(buff: ByteBuffer): (Status, Set[Header.Raw], String) =
     dropDate(ResponseParser.apply(buff))
 
-  def dropDate(resp: (Status, Set[v2.Header.Raw], String)): (Status, Set[v2.Header.Raw], String) = {
-    val hds = resp._2.filter(_.name != v2.Header[Date].name)
+  def dropDate(resp: (Status, Set[Header.Raw], String)): (Status, Set[Header.Raw], String) = {
+    val hds = resp._2.filter(_.name != Header[Date].name)
     (resp._1, hds, resp._3)
   }
 
@@ -212,7 +212,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     "Http1ServerStage: routes should Do not send `Transfer-Encoding: identity` response") { tw =>
     val routes = HttpRoutes
       .of[IO] { case _ =>
-        val headers = v2.Headers(H.`Transfer-Encoding`(TransferCoding.identity))
+        val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
         IO.pure(
           Response[IO](headers = headers)
             .withEntity("hello world"))
@@ -270,7 +270,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     (runRequest(tw, Seq(req1), routes).result).map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      assert(hdrs.exists(_.name == v2.Header[Date].name))
+      assert(hdrs.exists(_.name == Header[Date].name))
     }
   }
 
@@ -289,7 +289,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
 
-      val result = hdrs.find(_.name == v2.Header[Date].name).map(_.value)
+      val result = hdrs.find(_.name == Header[Date].name).map(_.value)
       assertEquals(result, Some(dateHeader.value))
     }
   }

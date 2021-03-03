@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.typelevel.ci.CIString
-import org.http4s.v2.Header
+import org.http4s.Header
 import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
 

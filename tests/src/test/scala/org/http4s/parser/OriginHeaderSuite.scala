@@ -51,7 +51,7 @@ class OriginHeaderSuite extends munit.FunSuite {
   test("OriginHeader parser should Parse a host with a port number") {
     val text = hostString1
     val origin = Origin.HostList(NonEmptyList.of(host1))
-    val headers = v2.Headers(("Origin", text))
+    val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
@@ -59,7 +59,7 @@ class OriginHeaderSuite extends munit.FunSuite {
   test("OriginHeader parser should Parse a host without a port number") {
     val text = hostString2
     val origin = Origin.HostList(NonEmptyList.of(host2))
-    val headers = v2.Headers(("Origin", text))
+    val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
@@ -67,7 +67,7 @@ class OriginHeaderSuite extends munit.FunSuite {
   test("OriginHeader parser should Parse a list of multiple hosts") {
     val text = s"$hostString1 $hostString2"
     val origin = Origin.HostList(NonEmptyList.of(host1, host2))
-    val headers = v2.Headers(("Origin", text))
+    val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
@@ -75,7 +75,7 @@ class OriginHeaderSuite extends munit.FunSuite {
   test("OriginHeader parser should Parse an empty origin") {
     val text = ""
     val origin = Origin.Null
-    val headers = v2.Headers(("Origin", text))
+    val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
@@ -83,7 +83,7 @@ class OriginHeaderSuite extends munit.FunSuite {
   test("OriginHeader parser should Parse a 'null' origin") {
     val text = "null"
     val origin = Origin.Null
-    val headers = v2.Headers(("Origin", text))
+    val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }

@@ -17,26 +17,8 @@
 package org.http4s
 package headers
 
-import java.nio.charset.StandardCharsets
-import org.typelevel.ci.CIString
+import org.http4s.laws.discipline.ArbitraryInstances._
 
-object Referer {
-
-  def parse(s: String): ParseResult[Referer] =
-    ParseResult.fromParser(parser, "Invalid Referer header")(s)
-
-  private[http4s] val parser = Uri.Parser
-    .absoluteUri(StandardCharsets.ISO_8859_1)
-    .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
-    .map(Referer(_))
-
-  implicit val headerInstance: Header[Referer, Header.Single] =
-    Header.createRendered(
-      CIString("Referer"),
-      _.uri,
-      parse
-    )
-
+class AcceptSuite extends HeaderLaws {
+  checkAll("Accept", headerLaws[Accept])
 }
-
-final case class Referer(uri: Uri)

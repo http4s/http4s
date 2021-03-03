@@ -34,7 +34,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
   val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw
 
   def length(l: Long) = `Content-Length`.unsafeFromLong(l).toRaw
-  def testRequestResults: Seq[(String, (Status, Set[v2.Header.Raw], String))] =
+  def testRequestResults: Seq[(String, (Status, Set[Header.Raw], String))] =
     Seq(
       ("GET /get HTTP/1.0\r\n\r\n", (Status.Ok, Set(length(3), textPlain), "get")),
       /////////////////////////////////

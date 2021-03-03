@@ -21,7 +21,7 @@ import cats.Applicative
 import cats.parse.{Parser0, Rfc5234}
 import org.http4s.parser.ZipkinHeader
 import org.http4s.util.{Renderable, Writer}
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.typelevel.ci.CIString
 
 object `X-B3-SpanId` {

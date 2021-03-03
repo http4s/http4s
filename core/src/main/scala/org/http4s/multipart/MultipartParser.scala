@@ -353,8 +353,8 @@ object MultipartParser {
   /** Take the stream of headers separated by
     * double CRLF bytes and return the headers
     */
-  private def parseHeaders[F[_]: Concurrent](strim: Stream[F, Byte]): F[v2.Headers] = {
-    def tailrecParse(s: Stream[F, Byte], headers: v2.Headers): Pull[F, v2.Headers, Unit] =
+  private def parseHeaders[F[_]: Concurrent](strim: Stream[F, Byte]): F[Headers] = {
+    def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap { case (l, r) =>
         l.through(fs2.text.utf8Decode[F])
           .fold("")(_ ++ _)
@@ -362,7 +362,7 @@ object MultipartParser {
             val ix = string.indexOf(':')
             if (ix >= 0)
               headers.put(
-                v2.Header.Raw(CIString(string.substring(0, ix)), string.substring(ix + 1).trim))
+                Header.Raw(CIString(string.substring(0, ix)), string.substring(ix + 1).trim))
             else
               headers
           }
@@ -375,7 +375,7 @@ object MultipartParser {
         }
       }
 
-    tailrecParse(strim, v2.Headers.empty).stream.compile.foldMonoid
+    tailrecParse(strim, Headers.empty).stream.compile.foldMonoid
   }
 
   /** Spit our `Stream[F, Byte]` into two halves.
@@ -687,7 +687,7 @@ object MultipartParser {
       }
 
   private[this] def makePart[F[_]: Applicative](
-      hdrs: v2.Headers,
+      hdrs: Headers,
       body: Stream[F, Byte],
       path: Option[Path]
   )(implicit files: Files[F]): Part[F] =

@@ -120,8 +120,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
     // This isn't a generically safe normalization for all header, but
     // it's close enough for our purposes
-    def normalizeHeaderValue(h: v2.Header.Raw) =
-      v2.Header.Raw(h.name, h.value.replace("; ", ";").toLowerCase(Locale.ROOT))
+    def normalizeHeaderValue(h: Header.Raw) =
+      Header.Raw(h.name, h.value.replace("; ", ";").toLowerCase(Locale.ROOT))
 
     for {
       _ <- IO(rec.status).assertEquals(expected.status)

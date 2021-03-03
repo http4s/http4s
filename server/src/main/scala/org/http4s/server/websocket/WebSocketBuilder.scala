@@ -37,7 +37,7 @@ import org.http4s.websocket.{
   *                           default: BadRequest
   */
 final case class WebSocketBuilder[F[_]: Applicative](
-    headers: v2.Headers,
+    headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
@@ -132,7 +132,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
 object WebSocketBuilder {
   def apply[F[_]: Applicative]: WebSocketBuilder[F] =
     new WebSocketBuilder[F](
-      headers = v2.Headers.empty,
+      headers = Headers.empty,
       onNonWebSocketRequest =
         Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
       onHandshakeFailure =

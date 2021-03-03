@@ -46,7 +46,7 @@ private[util] object ChunkWriter {
     ByteBuffer.wrap(TransferEncodingChunkedBytes).asReadOnlyBuffer
   def TransferEncodingChunked = transferEncodingChunkedBuffer.duplicate()
 
-  def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[v2.Headers])(implicit
+  def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
       F: Async[F],
       ec: ExecutionContext,
       dispatcher: Dispatcher[F]): Future[Boolean] = {

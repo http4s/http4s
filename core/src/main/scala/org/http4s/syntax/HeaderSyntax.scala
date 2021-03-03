@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.http4s.syntax
+package org.http4s
+package syntax
 
 import org.http4s.util.Renderer
-import org.http4s.v2
 import org.typelevel.ci.CIString
 
 trait HeaderSyntax {
-  implicit def http4sHeaderSyntax[A](a: A)(implicit header: v2.Header[A, _]): HeaderOps[A] =
+  implicit def http4sHeaderSyntax[A](a: A)(implicit header: Header[A, _]): HeaderOps[A] =
     new HeaderOps(a, header)
 
-  implicit def http4sSelectSyntax[A](a: A)(implicit select: v2.Header.Select[A]): SelectOps[A] =
+  implicit def http4sSelectSyntax[A](a: A)(implicit select: Header.Select[A]): SelectOps[A] =
     new SelectOps(a)
 }
 
-final class HeaderOps[A](val a: A, header: v2.Header[A, _]) {
+final class HeaderOps[A](val a: A, header: Header[A, _]) {
   def value: String = header.value(a)
   def name: CIString = header.name
 }
 
-final class SelectOps[A](val a: A)(implicit ev: v2.Header.Select[A]) {
-  def toRaw: v2.Header.Raw = ev.toRaw(a)
+final class SelectOps[A](val a: A)(implicit ev: Header.Select[A]) {
+  def toRaw: Header.Raw = ev.toRaw(a)
   def renderString: String = Renderer.renderString(a)
 }

@@ -52,7 +52,7 @@ object Caching {
     }
 
   // These never change, so don't recreate them each time.
-  private val noStoreStaticHeaders: List[v2.Header.ToRaw] = List(
+  private val noStoreStaticHeaders: List[Header.ToRaw] = List(
     `Cache-Control`(
       NonEmptyList.of[CacheDirective](
         CacheDirective.`no-store`,

@@ -36,8 +36,8 @@ object `Accept-Encoding` {
     headerRep1(ContentCoding.parser).map(xs => apply(xs))
   }
 
-  implicit val headerInstance: v2.Header[`Accept-Encoding`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Accept-Encoding`, Header.Recurring] =
+    Header.createRendered(
       CIString("Accept-Encoding"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept-Encoding header")

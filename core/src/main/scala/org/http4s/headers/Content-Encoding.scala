@@ -25,8 +25,8 @@ object `Content-Encoding` {
 
   private[http4s] val parser = ContentCoding.parser.map(`Content-Encoding`(_))
 
-  implicit val headerInstance: v2.Header[`Content-Encoding`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Content-Encoding`, Header.Single] =
+    Header.createRendered(
       CIString("Content-Encoding"),
       _.contentCoding,
       ParseResult.fromParser(parser, "Invalid Content-Encoding header")

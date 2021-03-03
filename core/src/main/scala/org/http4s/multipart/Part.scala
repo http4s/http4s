@@ -26,7 +26,7 @@ import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 
-final case class Part[F[_]](headers: v2.Headers, body: Stream[F, Byte]) extends Media[F] {
+final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get("name"))
   def filename: Option[String] =
     headers.get[`Content-Disposition`].flatMap(_.parameters.get("filename"))
@@ -44,26 +44,26 @@ object Part {
     "0.18.12"
   )
   def empty[F[_]]: Part[F] =
-    Part(v2.Headers.empty, EmptyBody)
+    Part(Headers.empty, EmptyBody)
 
-  def formData[F[_]](name: String, value: String, headers: v2.Header.ToRaw*): Part[F] =
+  def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
-      v2.Headers(`Content-Disposition`("form-data", Map("name" -> name))).put(headers: _*),
+      Headers(`Content-Disposition`("form-data", Map("name" -> name))).put(headers: _*),
       Stream.emit(value).through(utf8Encode))
 
-  def fileData[F[_]: Files](name: String, file: File, headers: v2.Header.ToRaw*): Part[F] =
+  def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
     fileData(name, file.getName, Files[F].readAll(file.toPath, ChunkSize), headers: _*)
 
-  def fileData[F[_]: Sync](name: String, resource: URL, headers: v2.Header.ToRaw*): Part[F] =
+  def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
 
   def fileData[F[_]](
       name: String,
       filename: String,
       entityBody: EntityBody[F],
-      headers: v2.Header.ToRaw*): Part[F] =
+      headers: Header.ToRaw*): Part[F] =
     Part(
-      v2.Headers(
+      Headers(
         `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)),
         "Content-Transfer-Encoding" -> "binary"
       ).put(headers: _*),
@@ -78,6 +78,6 @@ object Part {
       name: String,
       filename: String,
       in: => InputStream,
-      headers: v2.Header.ToRaw*)(implicit F: Sync[F]): Part[F] =
+      headers: Header.ToRaw*)(implicit F: Sync[F]): Part[F] =
     fileData(name, filename, readInputStream(F.delay(in), ChunkSize), headers: _*)
 }

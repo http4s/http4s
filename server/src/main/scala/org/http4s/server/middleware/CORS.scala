@@ -44,7 +44,7 @@ final case class CORSConfig(
 object CORS {
   private[CORS] val logger = getLogger
 
-  val defaultVaryHeader = v2.Header.Raw(CIString("Vary"), "Origin,Access-Control-Request-Method")
+  val defaultVaryHeader = Header.Raw(CIString("Vary"), "Origin,Access-Control-Request-Method")
 
   def DefaultCORSConfig =
     CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
@@ -58,7 +58,7 @@ object CORS {
       F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
-      def createOptionsResponse(origin: v2.Header.Raw, acrm: v2.Header.Raw): Response[G] =
+      def createOptionsResponse(origin: Header.Raw, acrm: Header.Raw): Response[G] =
         corsHeaders(origin.value, acrm.value, isPreflight = true)(Response())
 
       def methodBasedHeader(isPreflight: Boolean) =
@@ -92,7 +92,7 @@ object CORS {
           )
       }
 
-      def allowCORS(origin: v2.Header.Raw, acrm: v2.Header.Raw): Boolean =
+      def allowCORS(origin: Header.Raw, acrm: Header.Raw): Boolean =
         (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
           case (true, true, _, _) => true
           case (true, false, _, acrm) =>
@@ -103,8 +103,8 @@ object CORS {
               config.allowedOrigins(origin)
         }
 
-      def headerFromStrings(headerName: String, values: Set[String]): v2.Header.Raw =
-        v2.Header.Raw(CIString(headerName), values.mkString("", ", ", ""))
+      def headerFromStrings(headerName: String, values: Set[String]): Header.Raw =
+        Header.Raw(CIString(headerName), values.mkString("", ", ", ""))
 
       (
         req.method,
@@ -117,7 +117,7 @@ object CORS {
         case (_, Some(NonEmptyList(origin, _)), _) =>
           if (allowCORS(
               origin,
-              v2.Header.Raw(CIString("Access-Control-Request-Method"), req.method.renderString)))
+              Header.Raw(CIString("Access-Control-Request-Method"), req.method.renderString)))
             http(req).map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
               corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)

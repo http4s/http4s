@@ -26,8 +26,8 @@ object `Access-Control-Allow-Credentials` {
 
   private[http4s] val parser = Parser.string("true").as(`Access-Control-Allow-Credentials`())
 
-  implicit val headerInstance: v2.Header[`Access-Control-Allow-Credentials`, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: Header[`Access-Control-Allow-Credentials`, Header.Single] =
+    Header.create(
       CIString("Access-Control-Allow-Credentials"),
       _.value,
       parse
