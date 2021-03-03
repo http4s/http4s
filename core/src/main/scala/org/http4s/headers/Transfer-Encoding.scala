@@ -29,20 +29,24 @@ object `Transfer-Encoding` {
   def apply(head: TransferCoding, tail: TransferCoding*): `Transfer-Encoding` =
     apply(NonEmptyList(head, tail.toList))
 
+  val name = CIString("Transfer-Encoding")
+
+  def parse(s: String): ParseResult[`Transfer-Encoding`] =
+    ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")(s)
+
   private[http4s] val parser: Parser[`Transfer-Encoding`] =
     Rfc7230.headerRep1(TransferCoding.parser).map(apply)
 
   implicit val headerInstance: Header[`Transfer-Encoding`, Header.Recurring] =
     Header.createRendered(
-      CIString("Transfer-Encoding"),
+      name,
       _.values,
-      ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Transfer-Encoding`] =
     (a, b) => `Transfer-Encoding`(a.values.concatNel(b.values))
 
-  def name = headerInstance.name
 }
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) {

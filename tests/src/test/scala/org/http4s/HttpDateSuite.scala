@@ -20,7 +20,7 @@ import cats.effect.IO
 import java.time.{Month, ZoneOffset, ZonedDateTime}
 
 class HttpDateSuite extends Http4sSuite {
-  test("current should be within a second of Instant.now") {
+  test("current should be within a second of Instant.now".flaky) {
     for {
       current <- HttpDate.current[IO]
       now <- IO(HttpDate.unsafeFromInstant(java.time.Instant.now))

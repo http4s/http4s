@@ -57,7 +57,7 @@ object `Accept-Charset` {
     v2.Header.createRendered(
       CIString("Accept-Charset"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Accept-Charset header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Charset`] =

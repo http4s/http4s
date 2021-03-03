@@ -57,12 +57,6 @@ object `X-Forwarded-For` {
 }
 
 final case class `X-Forwarded-For`(values: NonEmptyList[Option[IpAddress]]) {
-  def renderValue(writer: Writer): writer.type = {
-    values.head.fold(writer.append("unknown"))(i => writer.append(i.toString))
-    values.tail.foreach(append(writer, _))
-    writer
-  }
-
   @inline
   private def append(w: Writer, add: Option[IpAddress]): w.type = {
     w.append(", ")

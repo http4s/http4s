@@ -27,6 +27,9 @@ object Accept {
   def apply(head: MediaRangeAndQValue, tail: MediaRangeAndQValue*): Accept =
     apply(NonEmptyList(head, tail.toList))
 
+  def parse(s: String): ParseResult[Accept] =
+    ParseResult.fromParser(parser, "Invalid Accept header")(s)
+
   private[http4s] val parser: Parser[Accept] = {
     val acceptParams =
       (QValue.parser ~ MediaRange.mediaTypeExtensionParser.rep0).map { case (qValue, ext) =>
@@ -54,7 +57,7 @@ object Accept {
     v2.Header.createRendered(
       CIString("Accept"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Accept header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Accept] =
