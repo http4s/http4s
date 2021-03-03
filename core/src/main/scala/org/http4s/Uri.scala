@@ -422,7 +422,7 @@ object Uri extends UriPlatform {
     // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
     //   Some((path.segments, path.absolute, path.endsWithSlash))
 
-    @deprecated(message = "Use unsafeFromString instead", since = "0.22.0-M5")
+    @deprecated(message = "Use unsafeFromString instead", since = "0.22.0-M6")
     def fromString(fromPath: String): Path =
       unsafeFromString(fromPath)
 
