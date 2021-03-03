@@ -148,8 +148,10 @@ class EntityEncoderSpec extends Http4sSuite {
       }
 
     // todo this is needed for scala 2.12, remove once we no longer support it
-    implicit def contravariant : Contravariant[EntityEncoder[Id, *]] = EntityEncoder.entityEncoderContravariant[Id]
-    implicit def es[A : org.scalacheck.Cogen] : Arbitrary[EntityEncoder[Id, A]] = http4sTestingArbitraryForEntityEncoder[Id, A]
+    implicit def contravariant: Contravariant[EntityEncoder[Id, *]] =
+      EntityEncoder.entityEncoderContravariant[Id]
+    implicit def arb[A: org.scalacheck.Cogen]: Arbitrary[EntityEncoder[Id, A]] =
+      http4sTestingArbitraryForEntityEncoder[Id, A]
 
     checkAll(
       "Contravariant[EntityEncoder[F, *]]",
