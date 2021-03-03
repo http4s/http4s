@@ -19,7 +19,7 @@ package com.examples.http4s
 import cats.Semigroup
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.{Header => _, Headers => _, _}
+import org.http4s._
 import org.http4s.v2._
 import org.typelevel.ci.CIString
 
