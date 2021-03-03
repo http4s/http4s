@@ -25,9 +25,6 @@ import org.http4s.syntax.all._
 import org.typelevel.ci.CIString
 
 class HeaderEchoSuite extends Http4sSuite {
-  object someHeaderKey extends HeaderKey.Default
-  object anotherHeaderKey extends HeaderKey.Default
-
   val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
     Ok("request response")
   }
