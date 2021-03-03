@@ -23,7 +23,7 @@ import org.http4s.headers._
 
 trait Media[F[_]] {
   def body: EntityBody[F]
-  def headers: v2.Headers
+  def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
   @deprecated(
@@ -82,11 +82,11 @@ trait Media[F[_]] {
 }
 
 object Media {
-  def apply[F[_]](b: EntityBody[F], h: v2.Headers): Media[F] =
+  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
     new Media[F] {
       def body = b
 
-      def headers: v2.Headers = h
+      def headers: Headers = h
 
       override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
     }

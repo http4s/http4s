@@ -138,7 +138,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Try to serve pre-gzipped content if asked to") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource.txt").yolo,
-      headers = v2.Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
@@ -153,7 +153,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource2.txt").yolo,
-      headers = v2.Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 

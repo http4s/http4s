@@ -108,9 +108,8 @@ object HttpMethodOverrider {
             resp.headers
               .get(varyHeaderName)
               .map(_.head)
-              .map((h: v2.Header.Raw) =>
-                v2.Header.Raw(h.name, s"${h.value}, ${headerName.toString}"))
-              .getOrElse(v2.Header.Raw(varyHeaderName, headerName.toString))
+              .map((h: Header.Raw) => Header.Raw(h.name, s"${h.value}, ${headerName.toString}"))
+              .getOrElse(Header.Raw(varyHeaderName, headerName.toString))
 
           resp.withHeaders(resp.headers.put(updatedVaryHeader))
         case _ => resp

@@ -47,7 +47,7 @@ class RefererSuite extends HeaderLaws {
 
   test("should be extractable") {
     val referer = Referer(getUri("http://localhost:8080"))
-    val request = Request[IO](headers = v2.Headers(referer))
+    val request = Request[IO](headers = Headers(referer))
 
     val extracted = request.headers.get[Referer]
     assertEquals(extracted, Some(referer))

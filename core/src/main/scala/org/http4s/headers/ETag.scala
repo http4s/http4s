@@ -40,8 +40,8 @@ object ETag {
   private[http4s] val parser: Parser[ETag] =
     entityTagParser.map(ETag.apply)
 
-  implicit val headerInstance: v2.Header[ETag, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: Header[ETag, Header.Single] =
+    Header.create(
       CIString("ETag"),
       _.tag.toString,
       ParseResult.fromParser(parser, "Invalid ETag header")

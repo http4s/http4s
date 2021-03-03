@@ -34,8 +34,8 @@ object `Last-Event-Id` {
     `Last-Event-Id`(ServerSentEvent.EventId(id))
   }
 
-  implicit val headerInstance: v2.Header[`Last-Event-Id`, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: Header[`Last-Event-Id`, Header.Single] =
+    Header.create(
       CIString("Last-Event-Id"),
       _.value,
       ParseResult.fromParser(parser, "Invalid Last-Event-Id header")

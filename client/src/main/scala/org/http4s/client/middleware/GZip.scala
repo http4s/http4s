@@ -22,7 +22,7 @@ import cats.data.NonEmptyList
 import cats.effect.Async
 import fs2.{Pipe, Pull, Stream}
 import fs2.compression.DeflateParams
-import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
+import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import org.typelevel.ci.CIString
 import scala.util.control.NoStackTrace
 
@@ -86,7 +86,7 @@ object GZip {
         case error => Stream.raiseError(error)
       }
 
-  private def nonCompressionHeader(header: v2.Header.Raw): Boolean =
+  private def nonCompressionHeader(header: Header.Raw): Boolean =
     header.name != CIString("Content-Encoding") &&
       header.name != CIString("Content-Length")
 

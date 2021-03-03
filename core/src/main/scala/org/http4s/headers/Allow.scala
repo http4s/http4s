@@ -33,8 +33,8 @@ object Allow {
     .map(_.getOrElse(Nil))
     .map(ms => Allow(ms.toSet))
 
-  implicit val headerInstance: v2.Header[Allow, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Allow, Header.Single] =
+    Header.createRendered(
       CIString("Allow"),
       _.methods,
       ParseResult.fromParser(parser, "Invalid Allow")

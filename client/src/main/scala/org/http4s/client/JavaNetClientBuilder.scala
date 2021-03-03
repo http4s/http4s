@@ -105,7 +105,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
           _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
           _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-          _ <- F.delay(req.headers.foreach { case v2.Header.Raw(name, value) =>
+          _ <- F.delay(req.headers.foreach { case Header.Raw(name, value) =>
             conn.setRequestProperty(name.toString, value)
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
@@ -134,10 +134,10 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       code <- F.blocking(conn.getResponseCode)
       status <- F.fromEither(Status.fromInt(code))
       headers <- F.blocking(
-        v2.Headers(
+        Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
-            .flatMap { case (k, vs) => vs.asScala.map(v2.Header.Raw(CIString(k), _)) }
+            .flatMap { case (k, vs) => vs.asScala.map(Header.Raw(CIString(k), _)) }
             .toList
         ))
     } yield Response(status = status, headers = headers, body = readBody(conn))

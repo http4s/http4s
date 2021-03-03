@@ -22,7 +22,7 @@ import cats.parse._
 import com.comcast.ip4s.IpAddress
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import org.http4s.util.{Renderable, Writer}
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.typelevel.ci.CIString
 
 object `X-Forwarded-For` {

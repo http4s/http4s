@@ -53,8 +53,8 @@ object `Accept-Charset` {
     headerRep1(charsetRange).map(xs => `Accept-Charset`(xs.head, xs.tail: _*))
   }
 
-  implicit val headerInstance: v2.Header[`Accept-Charset`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Accept-Charset`, Header.Recurring] =
+    Header.createRendered(
       CIString("Accept-Charset"),
       _.values,
       parse

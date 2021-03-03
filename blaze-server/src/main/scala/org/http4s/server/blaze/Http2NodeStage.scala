@@ -155,7 +155,7 @@ private class Http2NodeStage[F[_]](
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {
-    val headers = new ListBuffer[v2.Header.ToRaw]
+    val headers = new ListBuffer[Header.ToRaw]
     var method: HMethod = null
     var scheme: String = null
     var path: Uri = null
@@ -225,7 +225,7 @@ private class Http2NodeStage[F[_]](
       closePipeline(Some(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
     else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
-      val hs = v2.Headers(headers.result())
+      val hs = Headers(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
@@ -257,7 +257,7 @@ private class Http2NodeStage[F[_]](
       // this information is conveyed by other means.
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
       if (h.name != headers.`Transfer-Encoding`.name &&
-        h.name != v2.Header[headers.Connection].name) {
+        h.name != Header[headers.Connection].name) {
         hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }

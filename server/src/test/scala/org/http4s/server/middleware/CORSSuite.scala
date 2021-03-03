@@ -44,9 +44,9 @@ class CORSSuite extends Http4sSuite {
     )
   )
 
-  def headerCheck(h: v2.Header.Raw): Boolean = h.name == CIString("Access-Control-Max-Age")
+  def headerCheck(h: Header.Raw): Boolean = h.name == CIString("Access-Control-Max-Age")
 
-  final def matchHeader(hs: v2.Headers, name: CIString, expected: String): Boolean =
+  final def matchHeader(hs: Headers, name: CIString, expected: String): Boolean =
     hs.get(name).fold(false)(_.exists(_.value === expected))
 
   def buildRequest(path: String, method: Method = GET) =

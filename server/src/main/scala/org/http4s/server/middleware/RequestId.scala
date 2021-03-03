@@ -47,7 +47,7 @@ object RequestId {
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
         header <- req.headers.get(headerName).map(_.head) match {
-          case None => G.delay(v2.Header.Raw(headerName, UUID.randomUUID().toString()))
+          case None => G.delay(Header.Raw(headerName, UUID.randomUUID().toString()))
           case Some(header) => G.pure(header)
         }
         reqId = header.value
@@ -63,7 +63,7 @@ object RequestId {
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
         header <- fk(req.headers.get(headerName) match {
-          case None => genReqId.map(reqId => v2.Header.Raw(headerName, reqId.show))
+          case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
           case Some(NonEmptyList(header, _)) => F.pure(header)
         })
         reqId = header.value

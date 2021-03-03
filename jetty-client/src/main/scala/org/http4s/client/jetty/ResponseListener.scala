@@ -73,8 +73,8 @@ private[jetty] final case class ResponseListener[F[_]](
       case _ => HttpVersion.`HTTP/1.1`
     }
 
-  private def getHeaders(headers: HttpFields): v2.Headers =
-    v2.Headers(headers.asScala.map(h => h.getName -> h.getValue).toList)
+  private def getHeaders(headers: HttpFields): Headers =
+    Headers(headers.asScala.map(h => h.getName -> h.getValue).toList)
 
   override def onContent(
       response: JettyResponse,

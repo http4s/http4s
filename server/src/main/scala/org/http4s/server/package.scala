@@ -161,7 +161,7 @@ package object server {
           Response(
             Status.InternalServerError,
             req.httpVersion,
-            v2.Headers(
+            Headers(
               Connection(CIString("close")),
               `Content-Length`.zero
             )))

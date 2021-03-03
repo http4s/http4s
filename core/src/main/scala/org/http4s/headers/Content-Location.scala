@@ -29,8 +29,8 @@ object `Content-Location` {
     .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
     .map(`Content-Location`(_))
 
-  implicit val headerInstance: v2.Header[`Content-Location`, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: Header[`Content-Location`, Header.Single] =
+    Header.create(
       CIString("Content-Location"),
       _.uri.toString,
       ParseResult.fromParser(parser, "Invalid Content-Location header")

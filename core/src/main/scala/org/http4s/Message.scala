@@ -39,7 +39,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def httpVersion: HttpVersion
 
-  def headers: v2.Headers
+  def headers: Headers
 
   def body: EntityBody[F]
 
@@ -48,17 +48,17 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   protected def change(
       httpVersion: HttpVersion = httpVersion,
       body: EntityBody[F] = body,
-      headers: v2.Headers = headers,
+      headers: Headers = headers,
       attributes: Vault = attributes): Self
 
   def withHttpVersion(httpVersion: HttpVersion): Self =
     change(httpVersion = httpVersion)
 
-  def withHeaders(headers: v2.Headers): Self =
+  def withHeaders(headers: Headers): Self =
     change(headers = headers)
 
-  def withHeaders(headers: v2.Header.ToRaw*): Self =
-    withHeaders(v2.Headers(headers: _*))
+  def withHeaders(headers: Header.ToRaw*): Self =
+    withHeaders(Headers(headers: _*))
 
   def withAttributes(attributes: Vault): Self =
     change(attributes = attributes)
@@ -82,12 +82,12 @@ sealed trait Message[F[_]] extends Media[F] { self =>
       case Some(l) =>
         `Content-Length`
           .fromLong(l)
-          .fold[v2.Headers](
+          .fold[Headers](
             _ => {
               Message.logger.warn(s"Attempt to provide a negative content length of $l")
               w.headers
             },
-            cl => v2.Headers(cl, w.headers.headers))
+            cl => Headers(cl, w.headers.headers))
 
       case None => w.headers
     }
@@ -109,7 +109,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   // General header methods
 
-  def transformHeaders(f: v2.Headers => v2.Headers): Self =
+  def transformHeaders(f: Headers => Headers): Self =
     change(headers = f(headers))
 
   /** Keep headers that satisfy the predicate
@@ -117,21 +117,21 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @param f predicate
     * @return a new message object which has only headers that satisfy the predicate
     */
-  def filterHeaders(f: v2.Header.Raw => Boolean): Self =
+  def filterHeaders(f: Header.Raw => Boolean): Self =
     transformHeaders(_.transform(_.filter(f)))
 
   def removeHeader(key: CIString): Self =
     transformHeaders(_.transform(_.filterNot(_.name == key)))
 
-  def removeHeader[A](implicit h: v2.Header[A, _]): Self =
+  def removeHeader[A](implicit h: Header[A, _]): Self =
     removeHeader(h.name)
 
   /** Add the provided headers to the existing headers, replacing those of the same header name
     */
-  def putHeaders(headers: v2.Header.ToRaw*): Self =
+  def putHeaders(headers: Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
 
-  def withTrailerHeaders(trailerHeaders: F[v2.Headers]): Self =
+  def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
     withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
 
   def withoutTrailerHeaders: Self =
@@ -140,8 +140,8 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
     * F might not complete until the entire body has been consumed.
     */
-  def trailerHeaders(implicit F: Applicative[F]): F[v2.Headers] =
-    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(v2.Headers.empty.pure[F])
+  def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
+    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
 
   // Specific header methods
 
@@ -192,7 +192,7 @@ object Message {
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
-    def TrailerHeaders[F[_]]: Key[F[v2.Headers]] = trailerHeaders.asInstanceOf[Key[F[v2.Headers]]]
+    def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]
   }
 }
 
@@ -212,7 +212,7 @@ final class Request[F[_]](
     val method: Method = Method.GET,
     val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    val headers: v2.Headers = v2.Headers.empty,
+    val headers: Headers = Headers.empty,
     val body: EntityBody[F] = EmptyBody,
     val attributes: Vault = Vault.empty
 ) extends Message[F]
@@ -226,7 +226,7 @@ final class Request[F[_]](
       method: Method = this.method,
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
-      headers: v2.Headers = this.headers,
+      headers: Headers = this.headers,
       body: EntityBody[F] = this.body,
       attributes: Vault = this.attributes
   ): Request[F] =
@@ -258,7 +258,7 @@ final class Request[F[_]](
   override protected def change(
       httpVersion: HttpVersion,
       body: EntityBody[F],
-      headers: v2.Headers,
+      headers: Headers,
       attributes: Vault
   ): Self =
     copy(
@@ -289,8 +289,7 @@ final class Request[F[_]](
     *
     * Supported cURL-Parameters are: -X, -H
     */
-  def asCurl(
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains): String = {
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
 
     /*
      * escapes characters that are used in the curl-command, such as '
@@ -470,7 +469,7 @@ object Request {
       method: Method = Method.GET,
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-      headers: v2.Headers = v2.Headers.empty,
+      headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,
       attributes: Vault = Vault.empty
   ): Request[F] =
@@ -484,7 +483,7 @@ object Request {
     )
 
   def unapply[F[_]](
-      message: Message[F]): Option[(Method, Uri, HttpVersion, v2.Headers, EntityBody[F], Vault)] =
+      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
     message match {
       case request: Request[F] =>
         Some(
@@ -523,7 +522,7 @@ object Request {
 final case class Response[F[_]](
     status: Status = Status.Ok,
     httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: v2.Headers = v2.Headers.empty,
+    headers: Headers = Headers.empty,
     body: EntityBody[F] = EmptyBody,
     attributes: Vault = Vault.empty)
     extends Message[F] {
@@ -544,7 +543,7 @@ final case class Response[F[_]](
   override protected def change(
       httpVersion: HttpVersion,
       body: EntityBody[F],
-      headers: v2.Headers,
+      headers: Headers,
       attributes: Vault
   ): Self =
     copy(
@@ -588,7 +587,7 @@ object Response {
     Response(
       Status.NotFound,
       body = Stream("Not found").through(utf8Encode),
-      headers = v2.Headers(
+      headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L)
       )

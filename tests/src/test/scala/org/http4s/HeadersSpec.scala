@@ -25,9 +25,9 @@ import org.typelevel.ci.CIString
 
 class HeadersSpec extends Http4sSuite {
   val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = v2.Header.Raw(CIString("raw-header"), "Raw value")
+  val raw = Header.Raw(CIString("raw-header"), "Raw value")
 
-  val base = v2.Headers(clength, raw)
+  val base = Headers(clength, raw)
 
   test("Headers should Not find a header that isn't there") {
     assertEquals(base.get[`Content-Type`], None)
@@ -44,17 +44,17 @@ class HeadersSpec extends Http4sSuite {
   }
 
   test("Headers should also find headers created raw") {
-    val headers: v2.Headers = v2.Headers(
+    val headers: Headers = Headers(
       Cookie(RequestCookie("foo", "bar")),
-      v2.Header.Raw(CIString("Cookie"), RequestCookie("baz", "quux").toString)
+      Header.Raw(CIString("Cookie"), RequestCookie("baz", "quux").toString)
     )
     assertEquals(headers.get[Cookie].map(_.values.length), Some(2))
   }
 
   test(
     "Headers should Remove duplicate headers which are not of type Recurring on concatenation (++)") {
-    val clength = v2.Header.Raw(CIString("Content-Length"), "4")
-    val hs = v2.Headers(clength) ++ v2.Headers(clength)
+    val clength = Header.Raw(CIString("Content-Length"), "4")
+    val hs = Headers(clength) ++ Headers(clength)
     assertEquals(hs.headers.length, 1)
     assertEquals(hs.headers.head, clength)
   }
@@ -62,7 +62,7 @@ class HeadersSpec extends Http4sSuite {
   test("Headers should Allow multiple Set-Cookie headers") {
     val h1 = `Set-Cookie`(ResponseCookie("foo1", "bar1"))
     val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2"))
-    val hs = v2.Headers(clength) ++ v2.Headers(h1, h2)
+    val hs = Headers(clength) ++ Headers(h1, h2)
     assertEquals(hs.headers.count(_.name == `Set-Cookie`.name), 2)
     assertEquals(hs.headers.exists(_ == clength.toRaw), true)
   }
@@ -73,24 +73,24 @@ class HeadersSpec extends Http4sSuite {
     val bar = ContentCoding.unsafeFromString("bar")
     val h1 = `Accept-Encoding`(foo)
     val h2 = `Accept-Encoding`(bar)
-    val hs = v2.Headers(clength) ++ v2.Headers(h1) ++ v2.Headers(h2)
+    val hs = Headers(clength) ++ Headers(h1) ++ Headers(h2)
     assertEquals(hs.get[`Accept-Encoding`], Some(`Accept-Encoding`(bar)))
     assertEquals(hs.get[`Content-Length`], Some(clength))
   }
 
   test("Headers should Preserve original headers when processing") {
-    val rawAuth = v2.Header.Raw(CIString("Authorization"), "test this")
+    val rawAuth = Header.Raw(CIString("Authorization"), "test this")
 
     // Mapping to strings because Header equality is based on the *parsed* version
-    assert((v2.Headers(rawAuth) ++ base).headers.map(_.toString).contains(rawAuth.toString))
+    assert((Headers(rawAuth) ++ base).headers.map(_.toString).contains(rawAuth.toString))
   }
 
   test("Headers should hash the same when constructed with the same contents") {
-    val h1 = v2.Headers("Test-Header" -> "Value")
-    val h2 = v2.Headers("Test-Header" -> "Value")
-    val h3 = v2.Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
-    val h4 = v2.Headers("TestHeader" -> "other value", "Test-Header" -> "Value")
-    val h5 = v2.Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
+    val h1 = Headers("Test-Header" -> "Value")
+    val h2 = Headers("Test-Header" -> "Value")
+    val h3 = Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
+    val h4 = Headers("TestHeader" -> "other value", "Test-Header" -> "Value")
+    val h5 = Headers("Test-Header" -> "Value", "TestHeader" -> "other value")
     assertEquals(h1.hashCode(), h2.hashCode())
     assert(h1.equals(h2))
     assert(h2.equals(h1))
@@ -99,6 +99,6 @@ class HeadersSpec extends Http4sSuite {
     assert(h3.equals(h5))
   }
 
-  checkAll("Monoid[Headers]", MonoidTests[v2.Headers].monoid)
-  checkAll("Order[Headers]", OrderTests[v2.Headers].order)
+  checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
+  checkAll("Order[Headers]", OrderTests[Headers].order)
 }

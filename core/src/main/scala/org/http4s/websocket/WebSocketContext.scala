@@ -19,5 +19,5 @@ package websocket
 
 final case class WebSocketContext[F[_]](
     webSocket: WebSocket[F],
-    headers: v2.Headers,
+    headers: Headers,
     failureResponse: F[Response[F]])

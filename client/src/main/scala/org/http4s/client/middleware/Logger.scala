@@ -28,7 +28,7 @@ object Logger {
   def apply[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
@@ -40,7 +40,7 @@ object Logger {
   def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     ResponseLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
@@ -52,7 +52,7 @@ object Logger {
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains)(
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
@@ -60,7 +60,7 @@ object Logger {
   def colored[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       requestColor: String = RequestLogger.defaultRequestColor,
       responseColor: Response[F] => String = ResponseLogger.defaultResponseColor _,
       logAction: Option[String => F[Unit]] = None

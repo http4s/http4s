@@ -37,7 +37,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(http: Http[G, F])(implicit
       F: Async[F],
@@ -118,7 +118,7 @@ object RequestLogger {
   def httpApp[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
@@ -126,7 +126,7 @@ object RequestLogger {
   def httpRoutes[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
@@ -134,7 +134,7 @@ object RequestLogger {
   def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
@@ -142,7 +142,7 @@ object RequestLogger {
   def httpRoutesLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = v2.Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     impl[OptionT[F, *], F](

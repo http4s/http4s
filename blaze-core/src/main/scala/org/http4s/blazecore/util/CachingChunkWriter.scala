@@ -32,7 +32,7 @@ import scala.concurrent._
 
 private[http4s] class CachingChunkWriter[F[_]](
     pipe: TailStage[ByteBuffer],
-    trailer: F[v2.Headers],
+    trailer: F[Headers],
     bufferMaxSize: Int,
     omitEmptyContentLength: Boolean)(implicit
     protected val F: Async[F],

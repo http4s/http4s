@@ -42,8 +42,8 @@ object `Max-Forwards` {
 
   private[http4s] val parser = AdditionalRules.NonNegativeLong.mapFilter(l => fromLong(l).toOption)
 
-  implicit val headerInstance: v2.Header[`Max-Forwards`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Max-Forwards`, Header.Single] =
+    Header.createRendered(
       CIString("Max-Forwards"),
       _.count,
       ParseResult.fromParser(parser, "Invalid Max-Forwards header")

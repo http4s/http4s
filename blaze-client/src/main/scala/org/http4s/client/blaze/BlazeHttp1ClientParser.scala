@@ -34,7 +34,7 @@ private[blaze] final class BlazeHttp1ClientParser(
       2 * 1024,
       maxChunkSize,
       parserMode == ParserMode.Lenient) {
-  private val headers = new ListBuffer[v2.Header.Raw]
+  private val headers = new ListBuffer[Header.Raw]
   private var status: Status = _
   private var httpVersion: HttpVersion = _
 
@@ -51,10 +51,10 @@ private[blaze] final class BlazeHttp1ClientParser(
 
   def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
-  def getHeaders(): v2.Headers =
-    if (headers.isEmpty) v2.Headers.empty
+  def getHeaders(): Headers =
+    if (headers.isEmpty) Headers.empty
     else {
-      val hs = v2.Headers(headers.result())
+      val hs = Headers(headers.result())
       headers.clear() // clear so we can accumulate trailing headers
       hs
     }
@@ -83,7 +83,7 @@ private[blaze] final class BlazeHttp1ClientParser(
   }
 
   override protected def headerComplete(name: String, value: String): Boolean = {
-    headers += v2.Header.Raw(CIString(name), value)
+    headers += Header.Raw(CIString(name), value)
     false
   }
 }

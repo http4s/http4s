@@ -26,8 +26,8 @@ object `Last-Modified` {
   private[http4s] val parser: Parser[`Last-Modified`] =
     HttpDate.parser.map(apply)
 
-  implicit val headerInstance: v2.Header[`Last-Modified`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Last-Modified`, Header.Single] =
+    Header.createRendered(
       CIString("Last-Modified"),
       _.date,
       ParseResult.fromParser(parser, "Invalid Last-Modified header")

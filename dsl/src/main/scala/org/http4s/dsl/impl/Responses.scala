@@ -200,8 +200,8 @@ object Responses {
   final class ResetContentOps[F[_], G[_]](val status: ResetContent.type)
       extends AnyVal
       with EmptyResponseGenerator[F, G] {
-    override def apply(headers: v2.Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
-      F.pure(Response(ResetContent, headers = v2.Headers(`Content-Length`.zero, headers.toList)))
+    override def apply(headers: Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
+      F.pure(Response(ResetContent, headers = Headers(`Content-Length`.zero, headers.toList)))
   }
   // TODO helpers for Content-Range and multipart/byteranges
   final class PartialContentOps[F[_], G[_]](val status: PartialContent.type, val liftG: G ~> F)

@@ -53,8 +53,8 @@ object Accept {
     headerRep1(fullRange).map(xs => Accept(xs.head, xs.tail: _*))
   }
 
-  implicit val headerInstance: v2.Header[Accept, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Accept, Header.Recurring] =
+    Header.createRendered(
       CIString("Accept"),
       _.values,
       parse

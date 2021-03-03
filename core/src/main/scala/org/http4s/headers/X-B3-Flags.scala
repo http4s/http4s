@@ -70,8 +70,8 @@ object `X-B3-Flags` {
     `X-B3-Flags`(flags)
   }
 
-  implicit val headerInstance: v2.Header[`X-B3-Flags`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`X-B3-Flags`, Header.Single] =
+    Header.createRendered(
       CIString("X-B3-Flags"),
       h =>
         new Renderable {
