@@ -20,12 +20,10 @@ import cats._
 import cats.effect.IO
 import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
 import cats.laws.discipline.eq._
-import cats.laws.discipline.arbitrary._
 import fs2._
 import java.io._
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
-import org.http4s.laws.discipline.arbitrary._
 
 class EntityEncoderSpec extends Http4sSuite {
   {
