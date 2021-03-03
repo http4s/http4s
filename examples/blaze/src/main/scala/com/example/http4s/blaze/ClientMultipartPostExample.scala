@@ -37,7 +37,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     val url = Uri(
       scheme = Some(Scheme.http),
       authority = Some(Authority(host = RegName("ptscom"))),
-      path = Uri.Path.fromString("/t/http4s/post"))
+      path = Uri.Path.unsafeFromString("/t/http4s/post"))
 
     val multipart = Multipart[IO](
       Vector(

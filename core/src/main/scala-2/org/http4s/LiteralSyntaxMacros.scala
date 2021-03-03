@@ -34,7 +34,7 @@ object LiteralSyntaxMacros {
       args,
       "Uri.Path",
       _ => true,
-      s => c.universe.reify(Uri.Path.fromString(s.splice)))
+      s => c.universe.reify(Uri.Path.unsafeFromString(s.splice)))
 
   def schemeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Scheme] =
     singlePartInterpolator(c)(

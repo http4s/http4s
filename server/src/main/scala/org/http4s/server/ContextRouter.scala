@@ -38,7 +38,7 @@ object ContextRouter {
       mappings: (String, ContextRoutes[A, F])*
   )(default: ContextRoutes[A, F]): ContextRoutes[A, F] =
     mappings.sortBy(_._1.length).foldLeft(default) { case (acc, (prefix, routes)) =>
-      val prefixSegments = Uri.Path.fromString(prefix)
+      val prefixSegments = Uri.Path.unsafeFromString(prefix)
       if (prefixSegments.isEmpty) routes <+> acc
       else
         Kleisli { req =>

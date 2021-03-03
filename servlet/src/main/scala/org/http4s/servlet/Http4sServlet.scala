@@ -131,8 +131,8 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
   private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
     val pathInfo =
       Uri.Path
-        .fromString(req.getContextPath)
-        .concat(Uri.Path.fromString(req.getServletPath))
+        .unsafeFromString(req.getContextPath)
+        .concat(Uri.Path.unsafeFromString(req.getServletPath))
     uri.path
       .findSplit(pathInfo)
       .getOrElse(-1)

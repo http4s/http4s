@@ -48,7 +48,7 @@ final case class Uri(
     * @param path the path string to replace
     */
   @deprecated("Use {withPath(Uri.Path)} instead", "0.22.0-M1")
-  def withPath(path: String): Uri = copy(path = Uri.Path.fromString(path))
+  def withPath(path: String): Uri = copy(path = Uri.Path.unsafeFromString(path))
 
   def withPath(path: Uri.Path): Uri = copy(path = path)
 
@@ -335,19 +335,19 @@ object Uri extends UriPlatform {
 
     def startsWith(path: Path): Boolean = segments.startsWith(path.segments)
 
-    def startsWithString(path: String): Boolean = startsWith(Path.fromString(path))
+    def startsWithString(path: String): Boolean = startsWith(Path.unsafeFromString(path))
 
     @deprecated("Misnamed, use findSplit(prefix) instead", since = "0.22.0-M1")
     def indexOf(prefix: Path): Option[Int] = findSplit(prefix)
 
     @deprecated("Misnamed, use findSplitOfString(prefix) instead", since = "0.22.0-M1")
-    def indexOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
+    def indexOfString(path: String): Option[Int] = findSplit(Path.unsafeFromString(path))
 
     def findSplit(prefix: Path): Option[Int] =
       if (prefix.isEmpty) None
       else if (startsWith(prefix)) Some(prefix.segments.size)
       else None
-    def findSplitOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
+    def findSplitOfString(path: String): Option[Int] = findSplit(Path.unsafeFromString(path))
 
     def splitAt(idx: Int): (Path, Path) =
       if (idx < 0) (if (absolute) Path.Root else Path.empty, this)
@@ -422,7 +422,11 @@ object Uri extends UriPlatform {
     // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
     //   Some((path.segments, path.absolute, path.endsWithSlash))
 
+    @deprecated(message = "Use unsafeFromString instead", since = "0.22.0-M5")
     def fromString(fromPath: String): Path =
+      unsafeFromString(fromPath)
+
+    def unsafeFromString(fromPath: String): Path =
       fromPath match {
         case "" => empty
         case "/" => Root
@@ -824,7 +828,7 @@ object Uri extends UriPlatform {
 
     // 3.  Finally, the output buffer is returned as the result of
     //     remove_dot_segments.
-    Uri.Path.fromString(out.toString)
+    Uri.Path.unsafeFromString(out.toString)
   }
 
   // Helper functions for removeDotSegments

@@ -113,7 +113,7 @@ class UriParserSuite extends Http4sSuite {
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "mailto:John.Doe@example.com",
-          Uri(Some(scheme"mailto"), path = Uri.Path.fromString("John.Doe@example.com")))
+          Uri(Some(scheme"mailto"), path = Uri.Path.unsafeFromString("John.Doe@example.com")))
       )
 
       check(absoluteUris)
@@ -192,7 +192,7 @@ class UriParserSuite extends Http4sSuite {
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "mailto:John.Doe@example.com",
-          Uri(Some(scheme"mailto"), path = Uri.Path.fromString("John.Doe@example.com")))
+          Uri(Some(scheme"mailto"), path = Uri.Path.unsafeFromString("John.Doe@example.com")))
       )
 
       check(absoluteUris)
