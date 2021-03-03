@@ -77,7 +77,6 @@ jobs:
         run: sbt ++${{ matrix.scala }} test
 
       - name: Build docs
-        if: matrix.scala != '3.0.0-RC1'
         run: sbt ++${{ matrix.scala }} doc
 
   publish:

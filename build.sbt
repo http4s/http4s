@@ -11,9 +11,6 @@ ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
-// Temporary until the dust settles on headers
-ThisBuild / fatalWarningsInCI := false
-
 ThisBuild / githubWorkflowBuild := Seq(
       // todo remove once salafmt properly supports scala3
       WorkflowStep
@@ -25,7 +22,7 @@ ThisBuild / githubWorkflowBuild := Seq(
         List("unusedCompileDependenciesTest"),
         name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
       WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"), cond = Some(s"matrix.scala != '$scala_3'"))
+      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
     )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(

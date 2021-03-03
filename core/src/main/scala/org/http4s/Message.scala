@@ -445,7 +445,10 @@ final class Request[F[_]](
       case _ => false
     })
 
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Request[F]]
+  def canEqual(that: Any): Boolean = that match {
+    case _: Request[_] => true
+    case _ => false
+  }
 
   def productArity: Int = 6
 
