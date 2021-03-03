@@ -31,7 +31,7 @@ import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
 import org.http4s.testing.DispatcherIOFixture
 import org.typelevel.ci.CIString
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 
 class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
