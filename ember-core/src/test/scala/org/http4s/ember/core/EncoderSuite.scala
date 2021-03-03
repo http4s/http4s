@@ -73,7 +73,7 @@ class EncoderSuite extends Http4sSuite {
     val req = Request[IO](
       Method.GET,
       Uri.unsafeFromString("http://www.google.com"),
-      headers = v2.Headers("foo" -> "bar")
+      headers = Headers("foo" -> "bar")
     )
     val expected =
       """GET / HTTP/1.1
@@ -101,7 +101,7 @@ class EncoderSuite extends Http4sSuite {
     val req = Request[IO](
       Method.GET,
       Uri.unsafeFromString("https://www.example.com/"),
-      headers = v2.Headers(headers.Host("example.org", Some(8080)))
+      headers = Headers(headers.Host("example.org", Some(8080)))
     )
     val expected =
       """GET / HTTP/1.1

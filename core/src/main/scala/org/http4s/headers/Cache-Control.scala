@@ -69,8 +69,8 @@ object `Cache-Control` {
   private[http4s] val parser: Parser[`Cache-Control`] =
     CacheDirective.repSep(Rfc7230.listSep).map(`Cache-Control`(_))
 
-  implicit val headerInstance: v2.Header[`Cache-Control`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Cache-Control`, Header.Recurring] =
+    Header.createRendered(
       CIString("Cache-Control"),
       _.values,
       parse

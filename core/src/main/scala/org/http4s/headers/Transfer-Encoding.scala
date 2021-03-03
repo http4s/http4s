@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.typelevel.ci.CIString
 
 object `Transfer-Encoding` {

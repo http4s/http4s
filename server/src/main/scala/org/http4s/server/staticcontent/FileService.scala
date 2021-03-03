@@ -141,7 +141,7 @@ object FileService {
       Some(
         Response[F](
           status = Status.RangeNotSatisfiable,
-          headers = v2.Headers
+          headers = Headers
             .apply(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
     }
 

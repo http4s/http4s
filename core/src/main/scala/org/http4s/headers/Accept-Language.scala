@@ -43,8 +43,8 @@ object `Accept-Language` {
     headerRep1(languageTag).map(tags => `Accept-Language`(tags.head, tags.tail: _*))
   }
 
-  implicit val headerInstance: v2.Header[`Accept-Language`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Accept-Language`, Header.Recurring] =
+    Header.createRendered(
       CIString("Accept-Language"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept-Language header")

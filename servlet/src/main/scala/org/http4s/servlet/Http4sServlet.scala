@@ -138,11 +138,11 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       .getOrElse(-1)
   }
 
-  protected def toHeaders(req: HttpServletRequest): v2.Headers = {
+  protected def toHeaders(req: HttpServletRequest): Headers = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
     } yield name -> value
-    v2.Headers(headers.toList)
+    Headers(headers.toList)
   }
 }

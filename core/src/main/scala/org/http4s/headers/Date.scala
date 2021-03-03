@@ -29,8 +29,8 @@ object Date {
   private[http4s] val parser: Parser[`Date`] =
     HttpDate.parser.map(apply)
 
-  implicit val headerInstance: v2.Header[Date, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Date, Header.Single] =
+    Header.createRendered(
       CIString("Date"),
       _.date,
       ParseResult.fromParser(parser, "Invalid Date header")

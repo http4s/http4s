@@ -36,7 +36,7 @@ Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
 ```scala mdoc
-def myMiddle(service: HttpRoutes[IO], header: v2.Header.ToRaw): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
+def myMiddle(service: HttpRoutes[IO], header: Header.ToRaw): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
@@ -87,13 +87,13 @@ it as an `object` and use the `apply` method.
 
 ```scala mdoc
 object MyMiddle {
-  def addHeader(resp: Response[IO], header: v2.Header.ToRaw) =
+  def addHeader(resp: Response[IO], header: Header.ToRaw) =
     resp match {
       case Status.Successful(resp) => resp.putHeaders(header)
       case resp => resp
     }
 
-  def apply(service: HttpRoutes[IO], header: v2.Header.ToRaw) =
+  def apply(service: HttpRoutes[IO], header: Header.ToRaw) =
     service.map(addHeader(_, header))
 }
 

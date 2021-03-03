@@ -39,7 +39,7 @@ class HeaderSuite extends munit.DisciplineSuite {
 
   /*
   test("rendered length should is rendered length including \\r\\n") {
-    forAll { (h: v2.Header.Raw) =>
+    forAll { (h: Header.Raw) =>
       assertEquals(
         h.render(new StringWriter << "\r\n")
           .result
@@ -52,6 +52,6 @@ class HeaderSuite extends munit.DisciplineSuite {
    */
 
   test("Order instance for Header should be lawful") {
-    checkAll("Order[Header]", OrderTests[v2.Header.Raw].order)
+    checkAll("Order[Header]", OrderTests[Header.Raw].order)
   }
 }

@@ -1,146 +1,196 @@
-/*
- * Copyright 2013-2020 http4s.org
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- * Based on https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/HttpHeader.scala
- * Copyright (C) 2011-2012 spray.io
- * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team
- */
-
 package org.http4s
 
-import cats.{Order, Show}
+import cats.{Foldable, Hash, Order, Semigroup, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.util._
 import org.typelevel.ci.CIString
-import scala.util.hashing.MurmurHash3
+import org.http4s.util.{Renderer, Writer}
 
-/** Abstract representation o the HTTP header
-  * @see org.http4s.HeaderKey
+/** Typeclass representing an HTTP header, which all the http4s
+  * default headers satisfy.
+  * You can add modelled headers by providing an implicit instance of
+  * `Header[YourModelledHeader]`
   */
-@deprecated("Condemned", "LSUG")
-sealed trait Header extends Renderable with Product {
-  import Header.Raw
+trait Header[A, T <: Header.Type] {
 
+  /** Name of the header. Not case sensitive.
+    */
   def name: CIString
 
-  def parsed: Header
+  /** Value of the header, which is represented as a String.
+    * Will be a comma separated String for headers with multiple values.
+    */
+  def value(a: A): String
 
-  def renderValue(writer: Writer): writer.type
-
-  def value: String = {
-    val w = new StringWriter
-    renderValue(w).result
-  }
-
-  def is(key: HeaderKey): Boolean = key.matchHeader(this).isDefined
-
-  def isNot(key: HeaderKey): Boolean = !is(key)
-
-  override def toString: String = name.toString + ": " + value
-
-  def toRaw: Raw = Raw(name, value)
-
-  final def render(writer: Writer): writer.type = {
-    writer << name << ':' << ' '
-    renderValue(writer)
-  }
-
-  final override def hashCode(): Int =
-    MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
-
-  final override def equals(that: Any): Boolean =
-    that match {
-      case h: AnyRef if this eq h => true
-      case h: Header =>
-        (name == h.name) &&
-          (parsed.productArity == h.parsed.productArity) &&
-          (parsed.productIterator.sameElements(h.parsed.productIterator))
-      case _ => false
-    }
-
-  /** Length of the rendered header, including name and final '\r\n' */
-  def renderedLength: Long =
-    render(new HeaderLengthCountingWriter).length + 2
+  /** Parses the header from its String representation.
+    * Could be a comma separated String in case of a Header with
+    * multiple values.
+    */
+  def parse(headerValue: String): Either[ParseFailure, A]
 }
 
-@deprecated("Condemned", "LSUG")
 object Header {
-  def unapply(header: Header): Option[(CIString, String)] =
-    Some((header.name, header.value))
-
-  def apply(name: String, value: String): Raw = Raw(CIString(name), value)
-
-  /** Raw representation of the Header
-    *
-    * This can be considered the simplest representation where the header is specified as the product of
-    * a key and a value
-    * @param name case-insensitive string used to identify the header
-    * @param value String representation of the header value
-    */
-  @deprecated("Condemned", "LSUG")
-  final case class Raw(name: CIString, override val value: String) extends Header {
-    final override def parsed: Header = null // I told you it was condemned
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
+  final case class Raw(val name: CIString, val value: String) {
+    override def toString: String = s"${name}: ${value}"
   }
 
-  /** A Header that is already parsed from its String representation. */
-  @deprecated("Condemned", "LSUG")
-  trait Parsed extends Header {
-    def key: HeaderKey
-    def name: CIString = key.name
-    def parsed: this.type = this
-  }
+  object Raw {
+    implicit lazy val catsInstancesForHttp4sHeaderRaw
+        : Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw]
+      with Hash[Raw]
+      with Show[Raw]
+      with Renderer[Raw] {
+      def show(h: Raw): String = s"${h.name.show}: ${h.value}"
+      def hash(h: Raw): Int = h.hashCode
 
-  /** A recurring header that satisfies this clause of the Spec:
-    *
-    * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
-    * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
-    * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
-    * of the message, by appending each subsequent field-value to the first, each separated by a comma.
-    */
-  @deprecated("Condemned", "LSUG")
-  trait Recurring extends Parsed {
-    type Value
-    def values: NonEmptyList[Value]
-  }
+      def compare(x: Raw, y: Raw): Int =
+        x.name.compare(y.name) match {
+          case 0 => x.value.compare(y.value)
+          case c => c
+        }
 
-  /** Simple helper trait that provides a default way of rendering the value */
-  @deprecated("Condemned", "LSUG")
-  trait RecurringRenderable extends Recurring {
-    type Value <: Renderable
-    override def renderValue(writer: Writer): writer.type = {
-      values.head.render(writer)
-      values.tail.foreach(writer << ", " << _)
-      writer
+      def render(writer: Writer, h: Raw): writer.type =
+        writer << h.name << ':' << ' ' << h.value
     }
   }
 
-  /** Helper trait that provides a default way of rendering the value provided a Renderer */
-  @deprecated("Condemned", "LSUG")
-  trait RecurringRenderer extends Recurring {
-    type Value
-    implicit def renderer: Renderer[Value]
-    override def renderValue(writer: Writer): writer.type = {
-      renderer.render(writer, values.head)
-      values.tail.foreach(writer << ", " << Renderer.renderString(_))
-      writer
+  /** Classifies modelled headers into `Single` headers, which can only
+    * appear once, and `Recurring` headers, which can appear multiple
+    * times.
+    */
+  sealed trait Type
+  case class Single() extends Type
+  case class Recurring() extends Type
+
+  def apply[A](implicit ev: Header[A, _]): ev.type = ev
+
+  def create[A, T <: Header.Type](
+      name_ : CIString,
+      value_ : A => String,
+      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+    def name = name_
+    def value(a: A) = value_(a)
+    def parse(s: String) = parse_(s)
+  }
+
+  def createRendered[A, T <: Header.Type, B: Renderer](
+      name_ : CIString,
+      value_ : A => B,
+      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+    def name = name_
+    def value(a: A) = Renderer.renderString(value_(a))
+    def parse(s: String) = parse_(s)
+  }
+
+  /** Target for implicit conversions to Header.Raw from modelled
+    * headers and key-value pairs.
+    *
+    * A method taking variadic `ToRaw` arguments will allow taking
+    * heteregenous arguments, provided they are either:
+    *
+    * - A value of type `A`  which has a `Header[A]` in scope
+    * - A (name, value) pair of `String`, which is treated as a `Recurring` header
+    * - A `Header.Raw`
+    * - A `Foldable` (`List`, `Option`, etc) of the above.
+    *
+    * @see [[org.http4s.Headers$.apply]]
+    */
+  sealed trait ToRaw {
+    def values: List[Header.Raw]
+  }
+  object ToRaw {
+    trait Primitive
+
+    implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = new Header.ToRaw
+    with Primitive {
+      val values = h.values
     }
-  }
 
-  implicit val HeaderShow: Show[Header] = Show.show[Header] {
-    _.toString
-  }
-
-  implicit lazy val HeaderOrder: Order[Header] =
-    Order.from { case (a, b) =>
-      val nameComparison: Int = a.name.compare(b.name)
-      if (nameComparison === 0) {
-        a.value.compare(b.value)
-      } else {
-        nameComparison
+    implicit def rawToRaw(h: Header.Raw): Header.ToRaw with Primitive =
+      new Header.ToRaw with Primitive {
+        val values = List(h)
       }
+
+    implicit def keyValuesToRaw(kv: (String, String)): Header.ToRaw with Primitive =
+      new Header.ToRaw with Primitive {
+        val values = List(Header.Raw(CIString(kv._1), kv._2))
+      }
+
+    implicit def modelledHeadersToRaw[H](h: H)(implicit
+        H: Header[H, _]): Header.ToRaw with Primitive =
+      new Header.ToRaw with Primitive {
+        val values = List(Header.Raw(H.name, H.value(h)))
+      }
+
+    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit
+        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+      val values = h.toList.foldMap(v => convert(v).values)
     }
+
+    // Required for 2.12 to convert variadic args.
+    implicit def scalaCollectionSeqToRaw[H](h: collection.Seq[H])(implicit
+        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+      val values = h.toList.foldMap(v => convert(v).values)
+    }
+  }
+
+  /** Abstracts over Single and Recurring Headers
+    */
+  sealed trait Select[A] {
+    type F[_]
+
+    /** Transform this header into a [[Header.Raw]]
+      */
+    def toRaw(a: A): Header.Raw
+
+    /** Selects this header from a list of [[Header.Raw]]
+      */
+    def from(headers: List[Header.Raw]): Option[F[A]]
+  }
+  trait LowPrio {
+    implicit def recurringHeadersNoMerge[A](implicit
+        h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B] } =
+      new Select[A] {
+        type F[B] = NonEmptyList[B]
+
+        def toRaw(a: A): Header.Raw =
+          Header.Raw(h.name, h.value(a))
+
+        def from(headers: List[Header.Raw]): Option[NonEmptyList[A]] =
+          headers.collect(Function.unlift(Select.fromRaw(_))).toNel
+      }
+  }
+  object Select extends LowPrio {
+    def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[A] =
+      (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value).toOption
+
+    implicit def singleHeaders[A](implicit
+        h: Header[A, Header.Single]): Select[A] { type F[B] = B } =
+      new Select[A] {
+        type F[B] = B
+
+        def toRaw(a: A): Header.Raw =
+          Header.Raw(h.name, h.value(a))
+
+        def from(headers: List[Header.Raw]): Option[A] =
+          headers.collectFirst(Function.unlift(fromRaw(_)))
+      }
+
+    implicit def recurringHeadersWithMerge[A: Semigroup](implicit
+        h: Header[A, Header.Recurring]): Select[A] { type F[B] = B } =
+      new Select[A] {
+        type F[B] = B
+
+        def toRaw(a: A): Header.Raw =
+          Header.Raw(h.name, h.value(a))
+
+        def from(headers: List[Header.Raw]): Option[A] =
+          headers.foldLeft(Option.empty[A]) { (a, raw) =>
+            fromRaw(raw) match {
+              case Some(aa) => a |+| aa.some
+              case None => a
+            }
+          }
+      }
+  }
 }

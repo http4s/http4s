@@ -8,7 +8,8 @@
  * See licenses/LICENSE_fs2-http
  */
 
-package org.http4s.ember.core
+package org.http4s
+package ember.core
 
 import cats._
 import cats.syntax.all._
@@ -16,7 +17,6 @@ import cats.effect.concurrent.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
-import org.http4s.v2
 
 import scala.util.control.NonFatal
 
@@ -30,7 +30,7 @@ private[ember] object ChunkedEncoding {
       head: Array[Byte],
       read: F[Option[Chunk[Byte]]],
       maxChunkHeaderSize: Int,
-      trailers: Deferred[F, v2.Headers],
+      trailers: Deferred[F, Headers],
       rest: Ref[F, Option[Array[Byte]]])(implicit F: MonadThrow[F]): Stream[F, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
@@ -94,15 +94,15 @@ private[ember] object ChunkedEncoding {
 
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
-  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(v2.Headers, Array[Byte])] = {
+  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(Headers, Array[Byte])] = {
     val nextChunk =
       if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
     nextChunk.flatMap {
-      case None => (v2.Headers.empty, Array.emptyByteArray).pure[F]
+      case None => (Headers.empty, Array.emptyByteArray).pure[F]
       case Some(chunk) =>
         if (chunk.isEmpty) parseTrailers(maxHeaderSize)(Array.emptyByteArray, read)
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
-          (v2.Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
+          (Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
         else
           Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map {
             case (headers, _, _, bytes) =>

@@ -30,8 +30,8 @@ object `Set-Cookie` {
   private[http4s] val parser: Parser[`Set-Cookie`] =
     ResponseCookie.parser.map(`Set-Cookie`(_))
 
-  implicit val headerInstance: v2.Header[`Set-Cookie`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Set-Cookie`, Header.Recurring] =
+    Header.createRendered(
       name,
       _.cookie,
       parse

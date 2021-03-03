@@ -60,7 +60,7 @@ class MessageSuite extends Http4sSuite {
     val forwardedValues =
       NonEmptyList.of(Some(ipv4"192.168.1.1".address), Some(ipv4"192.168.1.2".address))
     val r = Request()
-      .withHeaders(v2.Headers(`X-Forwarded-For`(forwardedValues)))
+      .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
     assertEquals(r.from, forwardedValues.head)
   }
@@ -156,20 +156,20 @@ class MessageSuite extends Http4sSuite {
 
   test("cookies should parse discrete HTTP/1 Cookie header(s) into corresponding RequestCookies") {
     val cookies = "Cookie" -> "test1=value1; test2=value2; test3=value3"
-    val request = Request(Method.GET, headers = v2.Headers(cookies))
+    val request = Request(Method.GET, headers = Headers(cookies))
     assertEquals(request.cookies, cookieList)
   }
 
   test("cookies should parse discrete HTTP/2 Cookie header(s) into corresponding RequestCookies") {
     val cookies =
-      v2.Headers("Cookie" -> "test1=value1", "Cookie" -> "test2=value2", "Cookie" -> "test3=value3")
+      Headers("Cookie" -> "test1=value1", "Cookie" -> "test2=value2", "Cookie" -> "test3=value3")
     val request = Request(Method.GET, headers = cookies)
     assertEquals(request.cookies, cookieList)
   }
 
   test(
     "cookies should parse HTTP/1 and HTTP/2 Cookie headers on a single request into corresponding RequestCookies") {
-    val cookies = v2.Headers(
+    val cookies = Headers(
       "Cookie" -> "test1=value1; test2=value2", // HTTP/1 style
       "Cookie" -> "test3=value3"
     ) // HTTP/2 style (separate headers for separate cookies)
@@ -254,7 +254,7 @@ class MessageSuite extends Http4sSuite {
   test(
     "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMismatch") {
     val req =
-      Request[IO](headers = v2.Headers(`Content-Type`(MediaType.application.`octet-stream`)))
+      Request[IO](headers = Headers(`Content-Type`(MediaType.application.`octet-stream`)))
     val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)
   }

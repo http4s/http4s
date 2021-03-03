@@ -94,7 +94,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       connectionHeader: Option[Connection],
       bodyEncoding: Option[`Transfer-Encoding`],
       lengthHeader: Option[`Content-Length`],
-      trailer: F[v2.Headers],
+      trailer: F[Headers],
       rr: StringWriter,
       minor: Int,
       closeOnFinish: Boolean,
@@ -296,9 +296,9 @@ object Http1Stage {
     *
     * Note: this method is very niche but useful for both server and client.
     */
-  def encodeHeaders(headers: Iterable[v2.Header.Raw], rr: Writer, isServer: Boolean): Unit = {
+  def encodeHeaders(headers: Iterable[Header.Raw], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
-    val dateName = v2.Header[Date].name
+    val dateName = Header[Date].name
     headers.foreach { h =>
       if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
         if (isServer && h.name == dateName) dateEncoded = true

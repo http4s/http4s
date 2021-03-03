@@ -38,8 +38,8 @@ object Host {
       Host(host.value, port)
     }
   }
-  implicit val headerInstance: v2.Header[Host, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Host, Header.Single] =
+    Header.createRendered(
       CIString("Host"),
       h =>
         new Renderable {

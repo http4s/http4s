@@ -136,8 +136,8 @@ sealed abstract class OkHttpBuilder[F[_]] private (
       }
     }
 
-  private def getHeaders(response: OKResponse): v2.Headers =
-    v2.Headers(response.headers().names().asScala.toList.flatMap { k =>
+  private def getHeaders(response: OKResponse): Headers =
+    Headers(response.headers().names().asScala.toList.flatMap { k =>
       response.headers().values(k).asScala.map(k -> _)
     })
 

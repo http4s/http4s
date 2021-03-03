@@ -72,8 +72,8 @@ object Origin {
     nullHost.orElse(singleHost.repSep(char(' ')).map(hosts => Origin.HostList(hosts)))
   }
 
-  implicit val headerInstance: v2.Header[`Origin`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Origin`, Header.Single] =
+    Header.createRendered(
       CIString("Origin"),
       v =>
         new Renderable {

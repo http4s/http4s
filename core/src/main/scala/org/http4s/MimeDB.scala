@@ -2424,22 +2424,22 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.ims.imsccv1p2", Compressible, NotBinary)
       lazy val `vnd.ims.imsccv1p3`: MediaType =
         new MediaType("application", "vnd.ims.imsccv1p3", Compressible, NotBinary)
-      lazy val `vnd.ims.lis.v2.result+json`: MediaType =
-        new MediaType("application", "vnd.ims.lis.v2.result+json", Compressible, NotBinary)
-      lazy val `vnd.ims.lti.v2.toolconsumerprofile+json`: MediaType = new MediaType(
+      lazy val `vnd.ims.lis.result+json`: MediaType =
+        new MediaType("application", "vnd.ims.lis.result+json", Compressible, NotBinary)
+      lazy val `vnd.ims.lti.toolconsumerprofile+json`: MediaType = new MediaType(
         "application",
-        "vnd.ims.lti.v2.toolconsumerprofile+json",
+        "vnd.ims.lti.toolconsumerprofile+json",
         Compressible,
         NotBinary)
-      lazy val `vnd.ims.lti.v2.toolproxy+json`: MediaType =
-        new MediaType("application", "vnd.ims.lti.v2.toolproxy+json", Compressible, NotBinary)
-      lazy val `vnd.ims.lti.v2.toolproxy.id+json`: MediaType =
-        new MediaType("application", "vnd.ims.lti.v2.toolproxy.id+json", Compressible, NotBinary)
-      lazy val `vnd.ims.lti.v2.toolsettings+json`: MediaType =
-        new MediaType("application", "vnd.ims.lti.v2.toolsettings+json", Compressible, NotBinary)
-      lazy val `vnd.ims.lti.v2.toolsettings.simple+json`: MediaType = new MediaType(
+      lazy val `vnd.ims.lti.toolproxy+json`: MediaType =
+        new MediaType("application", "vnd.ims.lti.toolproxy+json", Compressible, NotBinary)
+      lazy val `vnd.ims.lti.toolproxy.id+json`: MediaType =
+        new MediaType("application", "vnd.ims.lti.toolproxy.id+json", Compressible, NotBinary)
+      lazy val `vnd.ims.lti.toolsettings+json`: MediaType =
+        new MediaType("application", "vnd.ims.lti.toolsettings+json", Compressible, NotBinary)
+      lazy val `vnd.ims.lti.toolsettings.simple+json`: MediaType = new MediaType(
         "application",
-        "vnd.ims.lti.v2.toolsettings.simple+json",
+        "vnd.ims.lti.toolsettings.simple+json",
         Compressible,
         NotBinary)
       lazy val `vnd.informedcontrol.rms+xml`: MediaType =
@@ -3206,12 +3206,12 @@ private[http4s] trait MimeDB {
         `vnd.ims.imsccv1p1`,
         `vnd.ims.imsccv1p2`,
         `vnd.ims.imsccv1p3`,
-        `vnd.ims.lis.v2.result+json`,
-        `vnd.ims.lti.v2.toolconsumerprofile+json`,
-        `vnd.ims.lti.v2.toolproxy+json`,
-        `vnd.ims.lti.v2.toolproxy.id+json`,
-        `vnd.ims.lti.v2.toolsettings+json`,
-        `vnd.ims.lti.v2.toolsettings.simple+json`,
+        `vnd.ims.lis.result+json`,
+        `vnd.ims.lti.toolconsumerprofile+json`,
+        `vnd.ims.lti.toolproxy+json`,
+        `vnd.ims.lti.toolproxy.id+json`,
+        `vnd.ims.lti.toolsettings+json`,
+        `vnd.ims.lti.toolsettings.simple+json`,
         `vnd.informedcontrol.rms+xml`,
         `vnd.informix-visionary`,
         `vnd.infotech.project`,
@@ -5968,7 +5968,7 @@ private[http4s] trait MimeDB {
     lazy val `gsm-efr`: MediaType = new MediaType("audio", "gsm-efr", Compressible, Binary)
     lazy val `gsm-hr-08`: MediaType = new MediaType("audio", "gsm-hr-08", Compressible, Binary)
     lazy val `ilbc`: MediaType = new MediaType("audio", "ilbc", Compressible, Binary)
-    lazy val `ip-mr_v2.5`: MediaType = new MediaType("audio", "ip-mr_v2.5", Compressible, Binary)
+    lazy val `ip-mr_5`: MediaType = new MediaType("audio", "ip-mr_5", Compressible, Binary)
     lazy val `isac`: MediaType = new MediaType("audio", "isac", Compressible, Binary)
     lazy val `l16`: MediaType = new MediaType("audio", "l16", Compressible, Binary)
     lazy val `l20`: MediaType = new MediaType("audio", "l20", Compressible, Binary)
@@ -6215,7 +6215,7 @@ private[http4s] trait MimeDB {
       `gsm-efr`,
       `gsm-hr-08`,
       `ilbc`,
-      `ip-mr_v2.5`,
+      `ip-mr_5`,
       `isac`,
       `l16`,
       `l20`,

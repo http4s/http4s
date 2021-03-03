@@ -27,7 +27,7 @@ trait Http4sClientDsl[F[_]] {
 
   implicit def http4sHeadersDecoder[T](implicit
       F: Applicative[F],
-      decoder: EntityDecoder[F, T]): EntityDecoder[F, (v2.Headers, T)] = {
+      decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
     val s = decoder.consumes.toList
     EntityDecoder.decodeBy(s.head, s.tail: _*)(resp =>
       decoder.decode(resp, strict = true).map(t => (resp.headers, t)))
@@ -37,13 +37,13 @@ trait Http4sClientDsl[F[_]] {
 class MethodOps[F[_]](private val method: Method) extends AnyVal {
 
   /** Make a [[org.http4s.Request]] using this [[Method]] */
-  final def apply(uri: Uri, headers: v2.Header.ToRaw*): Request[F] =
-    Request(method, uri, headers = v2.Headers(headers: _*))
+  final def apply(uri: Uri, headers: Header.ToRaw*): Request[F] =
+    Request(method, uri, headers = Headers(headers: _*))
 
   /** Make a [[org.http4s.Request]] using this Method */
-  final def apply[A](body: A, uri: Uri, headers: v2.Header.ToRaw*)(implicit
+  final def apply[A](body: A, uri: Uri, headers: Header.ToRaw*)(implicit
       w: EntityEncoder[F, A]): Request[F] = {
-    val h = w.headers ++ v2.Headers(headers: _*)
+    val h = w.headers ++ Headers(headers: _*)
     val entity = w.toEntity(body)
     val newHeaders = entity.length
       .map { l =>

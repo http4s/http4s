@@ -49,8 +49,8 @@ object `Content-Length` {
 
   val name: CIString = CIString("Content-Length")
 
-  implicit val headerInstance: v2.Header[`Content-Length`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Content-Length`, Header.Single] =
+    Header.createRendered(
       name,
       _.length,
       ParseResult.fromParser(parser, "Invalid Content-Length header")

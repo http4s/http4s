@@ -85,7 +85,7 @@ object GZip {
         case error => Stream.raiseError(error)
       }
 
-  private def nonCompressionHeader(header: v2.Header.Raw): Boolean =
+  private def nonCompressionHeader(header: Header.Raw): Boolean =
     header.name != CIString("Content-Encoding") &&
       header.name != CIString("Content-Length")
 

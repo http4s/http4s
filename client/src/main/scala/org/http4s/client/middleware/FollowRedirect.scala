@@ -54,7 +54,7 @@ import org.typelevel.vault._
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
-      sensitiveHeaderFilter: CIString => Boolean = v2.Headers.SensitiveHeaders)(client: Client[F])(
+      sensitiveHeaderFilter: CIString => Boolean = Headers.SensitiveHeaders)(client: Client[F])(
       implicit F: Concurrent[F]): Client[F] = {
     def nextRequest(
         req: Request[F],
@@ -71,7 +71,7 @@ object FollowRedirect {
       def stripSensitiveHeaders(req: Request[F]): Request[F] =
         if (req.uri.authority != nextUri.authority)
           req.transformHeaders(hs =>
-            v2.Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name))))
+            Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name))))
         else
           req
 

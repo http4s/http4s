@@ -50,8 +50,8 @@ object `Content-Type` {
         `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
     }
 
-  implicit val headerInstance: v2.Header[`Content-Type`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Content-Type`, Header.Single] =
+    Header.createRendered(
       CIString("Content-Type"),
       h =>
         new Renderable {

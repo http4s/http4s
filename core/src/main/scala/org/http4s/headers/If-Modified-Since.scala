@@ -29,8 +29,8 @@ object `If-Modified-Since` {
   private[http4s] val parser: Parser[`If-Modified-Since`] =
     HttpDate.parser.map(apply)
 
-  implicit val headerInstance: v2.Header[`If-Modified-Since`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`If-Modified-Since`, Header.Single] =
+    Header.createRendered(
       CIString("If-Modified-Since"),
       _.date,
       ParseResult.fromParser(parser, "Invalid If-Modified-Since header")

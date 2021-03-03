@@ -42,8 +42,8 @@ object `If-Match` {
       `If-Match`(Some(tags))
     })
 
-  implicit val headerInstance: v2.Header[`If-Match`, v2.Header.Single] =
-    v2.Header.create(
+  implicit val headerInstance: Header[`If-Match`, Header.Single] =
+    Header.create(
       CIString("If-Match"),
       _.tags match {
         case None => "*"

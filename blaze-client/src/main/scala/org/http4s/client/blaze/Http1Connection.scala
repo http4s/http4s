@@ -251,7 +251,7 @@ private final class Http1Connection[F[_]](
       readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
     else {
       // Get headers and determine if we need to close
-      val headers: v2.Headers = parser.getHeaders()
+      val headers: Headers = parser.getHeaders()
       val status: Status = parser.getStatus()
       val httpVersion: HttpVersion = parser.getHttpVersion()
 
@@ -286,9 +286,9 @@ private final class Http1Connection[F[_]](
         // to collect the trailers we need a cleanup helper and an effect in the attribute map
         val (trailerCleanup, attributes): (() => Unit, Vault) = {
           if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
-            val trailers = new AtomicReference(v2.Headers.empty)
+            val trailers = new AtomicReference(Headers.empty)
 
-            val attrs = Vault.empty.insert[F[v2.Headers]](
+            val attrs = Vault.empty.insert[F[Headers]](
               Message.Keys.TrailerHeaders[F],
               F.suspend {
                 if (parser.contentComplete()) F.pure(trailers.get())

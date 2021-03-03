@@ -33,8 +33,8 @@ object Authorization {
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
 
-  implicit val headerInstance: v2.Header[Authorization, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Authorization, Header.Single] =
+    Header.createRendered(
       CIString("Authorization"),
       _.credentials,
       ParseResult.fromParser(parser, "Invalid Authorization")

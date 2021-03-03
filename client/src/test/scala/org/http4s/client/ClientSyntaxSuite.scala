@@ -27,7 +27,7 @@ import org.http4s.syntax.all._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
 import org.http4s.util.Renderer
-import org.http4s.v2.Header
+import org.http4s.Header
 
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val app = HttpRoutes

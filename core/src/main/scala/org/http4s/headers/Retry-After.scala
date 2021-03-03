@@ -55,8 +55,8 @@ object `Retry-After` {
     httpDate.orElse(delaySeconds)
   }
 
-  implicit val headerInstance: v2.Header[`Retry-After`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Retry-After`, Header.Single] =
+    Header.createRendered(
       CIString("Retry-After"),
       _.retry,
       parse
