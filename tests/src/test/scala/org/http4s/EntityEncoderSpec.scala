@@ -16,19 +16,16 @@
 
 package org.http4s
 
-import cats.Eq
+import cats._
 import cats.effect.IO
-import cats.syntax.all._
 import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
 import cats.laws.discipline.eq._
 import cats.laws.discipline.arbitrary._
 import fs2._
 import java.io._
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeoutException
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
-import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSuite {
   {
@@ -138,25 +135,18 @@ class EntityEncoderSpec extends Http4sSuite {
   }
 
   {
-    implicit val throwableEq: Eq[Throwable] =
-      Eq.fromUniversalEquals
-
-    implicit def entityEq: Eq[Entity[IO]] =
-      Eq.by[Entity[IO], Either[Throwable, (Option[Long], Vector[Byte])]] { entity =>
-        entity.body.compile.toVector
-          .map(bytes => (entity.length, bytes))
-          .attempt
-          .unsafeRunTimed(1.second)
-          .getOrElse(throw new TimeoutException)
+    implicit def entityEq: Eq[Entity[Id]] =
+      Eq.by[Entity[Id], (Option[Long], Vector[Byte])] { entity =>
+        (entity.length, entity.body.compile.toVector)
       }
 
-    implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[IO, A]] =
-      Eq.by[EntityEncoder[IO, A], (Headers, A => Entity[IO])] { enc =>
+    implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[Id, A]] =
+      Eq.by[EntityEncoder[Id, A], (Headers, A => Entity[Id])] { enc =>
         (enc.headers, enc.toEntity)
       }
 
     checkAll(
       "Contravariant[EntityEncoder[F, *]]",
-      ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt])
+      ContravariantTests[EntityEncoder[Id, *]].contravariant[MiniInt, MiniInt, MiniInt])
   }
 }

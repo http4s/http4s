@@ -1,6 +1,6 @@
 -Dfile.encoding=UTF8
 -Xms1G
--Xmx4G
+-Xmx2G
 -XX:ReservedCodeCacheSize=250M
 -XX:+TieredCompilation
 -XX:+UseParallelGC
