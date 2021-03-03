@@ -19,7 +19,6 @@ package parser
 
 import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
-import scala.annotation.switch
 import scala.collection.immutable.BitSet
 import scala.collection.mutable.Builder
 import scala.io.Codec
@@ -91,7 +90,7 @@ private[http4s] class QueryParser(
     // begin iterating through the chars
     while (error == null && input.hasRemaining) {
       val c = input.get()
-      (c: @switch) match {
+      c match {
         case '&' => endPair()
 
         case ';' if colonSeparators => endPair()
