@@ -23,7 +23,7 @@ import org.http4s.laws.discipline.ArbitraryInstances._
 import scala.concurrent.duration._
 
 class RetryAfterSuite extends HeaderLaws {
-  //checkAll("Retry-After", headerLaws(`Retry-After`))
+  checkAll("Retry-After", headerLaws[`Retry-After`])
 
   val gmtDate: ZonedDateTime = ZonedDateTime.of(1999, 12, 31, 23, 59, 59, 0, ZoneId.of("GMT"))
 

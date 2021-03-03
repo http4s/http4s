@@ -21,6 +21,7 @@ import cats.parse.Parser
 import org.typelevel.ci.CIString
 
 object `Set-Cookie` {
+  val name = CIString("Set-Cookie")
 
   def parse(s: String): ParseResult[`Set-Cookie`] =
     ParseResult.fromParser(parser, "Invalid Set-Cookie header")(s)
@@ -31,7 +32,7 @@ object `Set-Cookie` {
 
   implicit val headerInstance: v2.Header[`Set-Cookie`, v2.Header.Recurring] =
     v2.Header.createRendered(
-      CIString("Set-Cookie"),
+      name,
       _.cookie,
       parse
     )
