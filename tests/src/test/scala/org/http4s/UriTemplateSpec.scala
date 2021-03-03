@@ -458,13 +458,13 @@ class UriTemplateSpec extends Http4sSuite {
     test("UriTemplate.toUriIfPossible should convert /? to Uri") {
       assertEquals(
         UriTemplate(query = List(ParamElm("", Nil)), fragment = Nil).toUriIfPossible.get,
-        Uri(query = Query.fromString("")))
+        Uri(query = Query.unsafeFromString("")))
     }
     test("UriTemplate.toUriIfPossible should convert /?# to Uri") {
       val fragment = List(FragmentElm(""))
       assertEquals(
         UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toUriIfPossible.get,
-        Uri(query = Query.fromString(""), fragment = Some("")))
+        Uri(query = Query.unsafeFromString(""), fragment = Some("")))
     }
     test("UriTemplate.toUriIfPossible should convert /# to Uri") {
       val fragment = List(FragmentElm(""))
@@ -502,7 +502,7 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/foo", Query.fromString("bar=baz")))
+        Uri(scheme, authority, path"/foo", Query.unsafeFromString("bar=baz")))
     }
     test("UriTemplate.toUriIfPossible should convert http://www.foo.com/foo?bar=baz to Uri") {
       val scheme = Some(Scheme.http)
@@ -513,7 +513,7 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/foo", Query.fromString("bar=baz")))
+        Uri(scheme, authority, path"/foo", Query.unsafeFromString("bar=baz")))
     }
     test("UriTemplate.toUriIfPossible should convert http://www.foo.com:80 to Uri") {
       val scheme = Some(Scheme.http)
@@ -547,7 +547,7 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamElm("", Nil))
       assertEquals(
         UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get,
-        Uri(scheme, authority, Uri.Path.empty, Query.fromString("")))
+        Uri(scheme, authority, Uri.Path.empty, Query.unsafeFromString("")))
       assertEquals(
         UriTemplate(scheme, authority, Nil, Nil).toUriIfPossible.get,
         Uri(scheme, authority, Uri.Path.empty, Query.empty))
@@ -562,7 +562,7 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/c", Query.fromString("GB=object&Class=one")))
+        Uri(scheme, authority, path"/c", Query.unsafeFromString("GB=object&Class=one")))
     }
     test(
       "UriTemplate.toUriIfPossible should convert http://[2001:db8::7]/c?GB=object&Class=one to Uri") {
@@ -574,7 +574,7 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/c", Query.fromString("GB=object&Class=one")))
+        Uri(scheme, authority, path"/c", Query.unsafeFromString("GB=object&Class=one")))
     }
     test(
       "UriTemplate.toUriIfPossible should convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344] to Uri") {
@@ -609,7 +609,12 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/some/path", Query.fromString("param1=5&param-without-value")))
+        Uri(
+          scheme,
+          authority,
+          path"/some/path",
+          Query.unsafeFromString("param1=5&param-without-value"))
+      )
     }
     test(
       "UriTemplate.toUriIfPossible should convert http://username:password@some.example.com/some/path?param1=5&param-without-value#sec-1.2 to Uri") {
@@ -626,7 +631,7 @@ class UriTemplateSpec extends Http4sSuite {
           scheme,
           authority,
           path"/some/path",
-          Query.fromString("param1=5&param-without-value"),
+          Query.unsafeFromString("param1=5&param-without-value"),
           Some("sec-1.2"))
       )
     }
