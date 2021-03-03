@@ -39,8 +39,7 @@ class SimpleHeadersSpec extends Http4sSuite {
           .of(new MediaType("application", "example"), new MediaType("text", "example")))
     assertEquals(parse(multipleMediaTypes.value), Right(multipleMediaTypes))
 
-    val bad = Header("Accept-Patch", "foo; bar")
-    assert(parse(bad.value).isLeft)
+    assert(parse("foo; bar").isLeft)
   }
 
   test("parse Access-Control-Allow-Headers") {
@@ -220,7 +219,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val headerstr = "nginx/1.14.0 (Ubuntu)"
     assertEquals(
-      Server.parse(Header.Raw(Server.name, headerstr).value),
+      Server.parse(headerstr),
       Right(
         Server(
           ProductId("nginx", Some("1.14.0")),
@@ -232,7 +231,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val headerstr2 = "CERN/3.0 libwww/2.17"
     assertEquals(
-      Server.parse(Header.Raw(Server.name, headerstr2).value),
+      Server.parse(headerstr2),
       Right(
         Server(
           ProductId("CERN", Some("3.0")),
