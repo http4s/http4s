@@ -400,7 +400,11 @@ object UriTemplate {
       case UriTemplate(s, a, p, q, Nil) =>
         Uri(s, a, Uri.Path.unsafeFromString(renderPath(p)), buildQuery(q))
       case UriTemplate(s, a, p, Nil, f) =>
-        Uri(s, a, Uri.Path.unsafeFromString(renderPath(p)), fragment = Some(renderFragmentIdentifier(f)))
+        Uri(
+          s,
+          a,
+          Uri.Path.unsafeFromString(renderPath(p)),
+          fragment = Some(renderFragmentIdentifier(f)))
       case UriTemplate(s, a, p, q, f) =>
         Uri(
           s,

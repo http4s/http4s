@@ -262,7 +262,8 @@ class UriSpec extends Http4sSuite {
           Some(Scheme.http),
           Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
           Uri.Path.unsafeFromString("/c"),
-          Query.fromPairs("GB" -> "object", "Class" -> "one")).toString,
+          Query.fromPairs("GB" -> "object", "Class" -> "one")
+        ).toString,
         "http://192.168.1.1:80/c?GB=object&Class=one"
       )
     }
@@ -318,7 +319,9 @@ class UriSpec extends Http4sSuite {
 
     test("Uri toString should render email address") {
       assertEquals(
-        Uri(Some(scheme"mailto"), path = Uri.Path.unsafeFromString("John.Doe@example.com")).toString,
+        Uri(
+          Some(scheme"mailto"),
+          path = Uri.Path.unsafeFromString("John.Doe@example.com")).toString,
         "mailto:John.Doe@example.com")
     }
 
