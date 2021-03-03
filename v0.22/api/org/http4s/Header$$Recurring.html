@@ -119,32 +119,40 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="Header$$Parsed.html" title="A Header that is already parsed from its String representation."></a>
-                        <a href="Header$$Parsed.html" title="A Header that is already parsed from its String representation.">Parsed</a>
+                        <a class="trait" href="Header$$LowPrio.html" title=""></a>
+                        <a href="Header$$LowPrio.html" title="">LowPrio</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Header$$Raw$.html" title=""></a>
+                        <a class="class" href="Header$$Raw.html" title=""></a>
+                        <a href="Header$$Raw.html" title="">Raw</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="class" href="Header$$Raw.html" title="Raw representation of the Header"></a>
-                        <a href="Header$$Raw.html" title="Raw representation of the Header">Raw</a>
+                        <a class="class" href="" title=""></a>
+                        <a href="" title="">Recurring</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Header$$Select$.html" title=""></a>
+                        <a class="trait" href="Header$$Select.html" title="Abstracts over Single and Recurring Headers"></a>
+                        <a href="Header$$Select.html" title="Abstracts over Single and Recurring Headers">Select</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="" title="A recurring header that satisfies this clause of the Spec:"></a>
-                        <a href="" title="A recurring header that satisfies this clause of the Spec:">Recurring</a>
+                        <a class="class" href="Header$$Single.html" title=""></a>
+                        <a href="Header$$Single.html" title="">Single</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Header$$ToRaw$.html" title=""></a>
+                        <a class="trait" href="Header$$ToRaw.html" title="Target for implicit conversions to Header.Raw from modelled headers and key-value pairs."></a>
+                        <a href="Header$$ToRaw.html" title="Target for implicit conversions to Header.Raw from modelled headers and key-value pairs.">ToRaw</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="Header$$RecurringRenderable.html" title="Simple helper trait that provides a default way of rendering the value"></a>
-                        <a href="Header$$RecurringRenderable.html" title="Simple helper trait that provides a default way of rendering the value">RecurringRenderable</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="trait" href="Header$$RecurringRenderer.html" title="Helper trait that provides a default way of rendering the value provided a Renderer"></a>
-                        <a href="Header$$RecurringRenderer.html" title="Helper trait that provides a default way of rendering the value provided a Renderer">RecurringRenderer</a>
+                        <a class="trait" href="Header$$Type.html" title="Classifies modelled headers into Single headers, which can only appear once, and Recurring headers, which can appear multiple times."></a>
+                        <a href="Header$$Type.html" title="Classifies modelled headers into Single headers, which can only appear once, and Recurring headers, which can appear multiple times.">Type</a>
                       </li>
               </ul>
             </div>
           </div>
           <div id="content">
-            <body class="trait type">
+            <body class="class type">
       <div id="definition">
-        <div class="big-circle trait">t</div>
+        <div class="big-circle class">c</div>
         <p id="owner"><a href="../index.html" class="extype" name="org">org</a>.<a href="index.html" class="extype" name="org.http4s">http4s</a>.<a href="Header$.html" class="extype" name="org.http4s.Header">Header</a></p>
         <h1>Recurring<span class="permalink">
       <a href="../../org/http4s/Header$$Recurring.html" title="Permalink">
@@ -157,29 +165,20 @@
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Recurring</span><span class="result"> extends <a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a></span>
+        <span class="name">Recurring</span><span class="params">()</span><span class="result"> extends <a href="Header$$Type.html" class="extype" name="org.http4s.Header.Type">Type</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A recurring header that satisfies this clause of the Spec:</p><p>Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
-field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
-to combine the multiple header fields into one &quot;field-name: field-value&quot; pair, without changing the semantics
-of the message, by appending each subsequent field-value to the first, each separated by a comma.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M4/core/src/main/scala/org/http4s/Header.scala" target="_blank">Header.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/Header.scala" target="_blank">Header.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a>, <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">
-              Known Subclasses
-            </span>
-            <div class="subClasses hiddenContent"><a href="Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a>, <a href="Header$$RecurringRenderer.html" class="extype" name="org.http4s.Header.RecurringRenderer">RecurringRenderer</a>, <a href="headers/Accept.html" class="extype" name="org.http4s.headers.Accept">Accept</a>, <a href="headers/Accept$minusCharset.html" class="extype" name="org.http4s.headers.Accept-Charset">Accept-Charset</a>, <a href="headers/Accept$minusEncoding.html" class="extype" name="org.http4s.headers.Accept-Encoding">Accept-Encoding</a>, <a href="headers/Accept$minusLanguage.html" class="extype" name="org.http4s.headers.Accept-Language">Accept-Language</a>, <a href="headers/Accept$minusPatch.html" class="extype" name="org.http4s.headers.Accept-Patch">Accept-Patch</a>, <a href="headers/Access$minusControl$minusAllow$minusHeaders.html" class="extype" name="org.http4s.headers.Access-Control-Allow-Headers">Access-Control-Allow-Headers</a>, <a href="headers/Access$minusControl$minusExpose$minusHeaders.html" class="extype" name="org.http4s.headers.Access-Control-Expose-Headers">Access-Control-Expose-Headers</a>, <a href="headers/Cache$minusControl.html" class="extype" name="org.http4s.headers.Cache-Control">Cache-Control</a>, <a href="headers/Connection.html" class="extype" name="org.http4s.headers.Connection">Connection</a>, <a href="headers/Content$minusLanguage.html" class="extype" name="org.http4s.headers.Content-Language">Content-Language</a>, <a href="headers/Cookie.html" class="extype" name="org.http4s.headers.Cookie">Cookie</a>, <a href="headers/Forwarded.html" class="extype" name="org.http4s.headers.Forwarded">Forwarded</a>, <a href="headers/Link.html" class="extype" name="org.http4s.headers.Link">Link</a>, <a href="headers/Proxy$minusAuthenticate.html" class="extype" name="org.http4s.headers.Proxy-Authenticate">Proxy-Authenticate</a>, <a href="headers/Transfer$minusEncoding.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>, <a href="headers/WWW$minusAuthenticate.html" class="extype" name="org.http4s.headers.WWW-Authenticate">WWW-Authenticate</a>, <a href="headers/X$minusForwarded$minusFor.html" class="extype" name="org.http4s.headers.X-Forwarded-For">X-Forwarded-For</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="Header$$Type.html" class="extype" name="org.http4s.Header.Type">Type</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -204,7 +203,7 @@ of the message, by appending each subsequent field-value to the first, each sepa
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.Header.Recurring"><span>Recurring</span></li><li class="in" name="org.http4s.Header.Parsed"><span>Parsed</span></li><li class="in" name="org.http4s.Header"><span>Header</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.Header.Recurring"><span>Recurring</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.Header.Type"><span>Type</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -222,132 +221,33 @@ of the message, by appending each subsequent field-value to the first, each sepa
 
       <div id="template">
         <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="org.http4s.Header.Recurring#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():org.http4s.Header.Recurring"></a><a id="&lt;init&gt;:Recurring"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Header$$Recurring.html#&lt;init&gt;():org.http4s.Header.Recurring" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Recurring</span><span class="params">()</span>
+      </span>
+      
+      
+    </li></ol>
+            </div>
+
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.Header.Recurring.Value" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Value"></a><a id="Value:Value"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#Value" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Value</span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
+        
 
         <div class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="scala.Equals#canEqual" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="canEqual(that:Any):Boolean"></a><a id="canEqual(Any):Boolean"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#canEqual(that:Any):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">canEqual</span><span class="params">(<span name="that">that: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Equals</dd></dl></div>
-    </li><li name="org.http4s.Header.Parsed#key" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="key:org.http4s.HeaderKey"></a><a id="key:HeaderKey"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#key:org.http4s.HeaderKey" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">key</span><span class="result">: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a></dd></dl></div>
-    </li><li name="scala.Product#productArity" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="productArity:Int"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#productArity:Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">productArity</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
-    </li><li name="scala.Product#productElement" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="productElement(n:Int):Any"></a><a id="productElement(Int):Any"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#productElement(n:Int):Any" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">productElement</span><span class="params">(<span name="n">n: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
-    </li><li name="org.http4s.Header#renderValue" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="renderValue(writer:org.http4s.util.Writer):writer.type"></a><a id="renderValue(Writer):writer.type"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#renderValue(writer:org.http4s.util.Writer):writer.type" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">renderValue</span><span class="params">(<span name="writer">writer: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.Header.renderValue.writer">writer</span>.type</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
-    </li><li name="org.http4s.Header.Recurring#values" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="values:cats.data.NonEmptyList[Recurring.this.Value]"></a><a id="values:NonEmptyList[Value]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#values:cats.data.NonEmptyList[Recurring.this.Value]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">values</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="#Value" class="extmbr" name="org.http4s.Header.Recurring.Value">Value</a>]</span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
-
-        <div class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol>
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
@@ -453,22 +353,6 @@ of the message, by appending each subsequent field-value to the first, each sepa
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.Header#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(that:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#equals(that:Any):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="that">that: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a> → Equals → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -510,38 +394,6 @@ of the message, by appending each subsequent field-value to the first, each sepa
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Header#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#hashCode():Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Header#is" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="is(key:org.http4s.HeaderKey):Boolean"></a><a id="is(HeaderKey):Boolean"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#is(key:org.http4s.HeaderKey):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">is</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -558,38 +410,6 @@ of the message, by appending each subsequent field-value to the first, each sepa
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.Header#isNot" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="isNot(key:org.http4s.HeaderKey):Boolean"></a><a id="isNot(HeaderKey):Boolean"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#isNot(key:org.http4s.HeaderKey):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">isNot</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
-    </li><li name="org.http4s.Header.Parsed#name" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="name:org.typelevel.ci.CIString"></a><a id="name:CIString"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#name:org.typelevel.ci.CIString" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">name</span><span class="result">: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> → <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -644,102 +464,6 @@ of the message, by appending each subsequent field-value to the first, each sepa
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Header.Parsed#parsed" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="parsed:Parsed.this.type"></a><a id="parsed:Recurring.this.type"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#parsed:Parsed.this.type" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">parsed</span><span class="result">: <a href="" class="extype" name="org.http4s.Header.Recurring">Recurring</a>.this.type</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> → <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
-    </li><li name="scala.Product#productIterator" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="productIterator:Iterator[Any]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#productIterator:Iterator[Any]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">productIterator</span><span class="result">: <span class="extype" name="scala.Iterator">Iterator</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
-    </li><li name="scala.Product#productPrefix" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="productPrefix:String"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#productPrefix:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">productPrefix</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
-    </li><li name="org.http4s.Header#render" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="render(writer:org.http4s.util.Writer):writer.type"></a><a id="render(Writer):writer.type"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#render(writer:org.http4s.util.Writer):writer.type" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">render</span><span class="params">(<span name="writer">writer: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.Header.render.writer">writer</span>.type</span>
-      </span>
-      
-      <p class="shortcomment cmt">Base method for rendering this object efficiently</p><div class="fullcomment"><div class="comment cmt"><p>Base method for rendering this object efficiently</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
-    </li><li name="org.http4s.util.Renderable#renderString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="renderString:String"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#renderString:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">renderString</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <p class="shortcomment cmt">Generates a String rendering of this object</p><div class="fullcomment"><div class="comment cmt"><p>Generates a String rendering of this object</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
-    </li><li name="org.http4s.Header#renderedLength" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="renderedLength:Long"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#renderedLength:Long" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">renderedLength</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Length of the rendered header, including name and final '\r\n'</p><div class="fullcomment"><div class="comment cmt"><p>Length of the rendered header, including name and final '\r\n'</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -756,54 +480,6 @@ of the message, by appending each subsequent field-value to the first, each sepa
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.Header#toRaw" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toRaw:org.http4s.Header.Raw"></a><a id="toRaw:Raw"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#toRaw:org.http4s.Header.Raw" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toRaw</span><span class="result">: <a href="Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
-    </li><li name="org.http4s.Header#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#toString():String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Header#value" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="value:String"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Header$$Recurring.html#value:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">value</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -882,16 +558,16 @@ of the message, by appending each subsequent field-value to the first, each sepa
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.Header.Parsed">
-              <h3>Inherited from <a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a></h3>
-            </div><div class="parent" name="org.http4s.Header">
-              <h3>Inherited from <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></h3>
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
-            </div><div class="parent" name="org.http4s.util.Renderable">
-              <h3>Inherited from <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
+            </div><div class="parent" name="org.http4s.Header.Type">
+              <h3>Inherited from <a href="Header$$Type.html" class="extype" name="org.http4s.Header.Type">Type</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

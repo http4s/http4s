@@ -175,7 +175,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Efficiently accumulate <a href="Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> representations</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M4/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Efficiently accumulate <a href="Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> representations</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -289,9 +289,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;&lt;[T](r:T)(implicitevidence$3:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="&lt;&lt;[T](T)(Renderer[T]):Writer.this.type"></a>
+      <a id="&lt;&lt;[T](r:T)(implicitevidence$6:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="&lt;&lt;[T](T)(Renderer[T]):Writer.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/Writer.html#&lt;&lt;[T](r:T)(implicitevidence$3:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/Writer.html#&lt;&lt;[T](r:T)(implicitevidence$6:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -448,10 +448,26 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.util.Writer#addNel" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="addNel[T](s:cats.data.NonEmptyList[T],sep:String,start:String,end:String)(implicitevidence$4:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="addNel[T](NonEmptyList[T],String,String,String)(Renderer[T]):Writer.this.type"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/Writer.html#addNel[T](s:cats.data.NonEmptyList[T],sep:String,start:String,end:String)(implicitevidence$4:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">addNel</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="s">s: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<span class="extype" name="org.http4s.util.Writer.addNel.T">T</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;, &quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.addNel.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Writer">Writer</a>.this.type</span>
+      </span>
+      
+      
     </li><li name="org.http4s.util.Writer#addSet" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addSet[T](s:scala.collection.Set[T],sep:String,start:String,end:String)(implicitevidence$2:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="addSet[T](Set[T],String,String,String)(Renderer[T]):Writer.this.type"></a>
+      <a id="addSet[T](s:scala.collection.Set[T],sep:String,start:String,end:String)(implicitevidence$5:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="addSet[T](Set[T],String,String,String)(Renderer[T]):Writer.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/Writer.html#addSet[T](s:scala.collection.Set[T],sep:String,start:String,end:String)(implicitevidence$2:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/Writer.html#addSet[T](s:scala.collection.Set[T],sep:String,start:String,end:String)(implicitevidence$5:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -460,23 +476,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addSet</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="s">s: <a href="https://www.scala-lang.org/api/2.12.13/scala/collection/Set.html#scala.collection.Set" class="extype" name="scala.collection.Set">Set</a>[<span class="extype" name="org.http4s.util.Writer.addSet.T">T</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.addSet.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Writer">Writer</a>.this.type</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.util.Writer#addStringNel" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addStringNel(s:cats.data.NonEmptyList[String],sep:String,start:String,end:String):Writer.this.type"></a><a id="addStringNel(NonEmptyList[String],String,String,String):Writer.this.type"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/util/Writer.html#addStringNel(s:cats.data.NonEmptyList[String],sep:String,start:String,end:String):Writer.this.type" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addStringNel</span><span class="params">(<span name="s">s: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Writer">Writer</a>.this.type</span>
+        <span class="name">addSet</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="s">s: <a href="https://www.scala-lang.org/api/2.12.13/scala/collection/Set.html#scala.collection.Set" class="extype" name="scala.collection.Set">Set</a>[<span class="extype" name="org.http4s.util.Writer.addSet.T">T</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;, &quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.addSet.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Writer">Writer</a>.this.type</span>
       </span>
       
       

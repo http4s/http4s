@@ -116,7 +116,7 @@ import org.http4s.implicits._
 <p>Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.</p>
 
-<pre><code class="language-scala">def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =&gt;
+<pre><code class="language-scala">def myMiddle(service: HttpRoutes[IO], header: Header.ToRaw): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =&gt;
   service(req).map {
     case Status.Successful(resp) =&gt;
       resp.putHeaders(header)
@@ -143,7 +143,7 @@ we need to call <code>unsafeRunSync</code> on the result of the function to extr
     Ok()
 }
 // service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8040/1973102785@5620ee72
+//   org.http4s.HttpRoutes$$$Lambda$8043/556663423@5eae910d
 // )
 
 val goodRequest = Request[IO](Method.GET, uri&quot;/&quot;)
@@ -153,7 +153,7 @@ val goodRequest = Request[IO](Method.GET, uri&quot;/&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@beca0e4
+//   org.typelevel.vault.Vault@584e86f8
 // )
 val badRequest = Request[IO](Method.GET, uri&quot;/bad&quot;)
 // badRequest: Request[IO] = (
@@ -162,7 +162,7 @@ val badRequest = Request[IO](Method.GET, uri&quot;/bad&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@34ae38f4
+//   org.typelevel.vault.Vault@377f9d40
 // )
 
 service.orNotFound(goodRequest).unsafeRunSync()
@@ -171,7 +171,7 @@ service.orNotFound(goodRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@45694ed6
+//   org.typelevel.vault.Vault@13cfca06
 // )
 service.orNotFound(badRequest).unsafeRunSync()
 // res1: Response[IO] = Response(
@@ -179,13 +179,13 @@ service.orNotFound(badRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@146b7b77
+//   org.typelevel.vault.Vault@39c3178b
 // )
 </code></pre>
 
 <p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
 
-<pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
+<pre><code class="language-scala">val wrappedService = myMiddle(service, &quot;SomeKey&quot; -&gt; &quot;SomeValue&quot;);
 // wrappedService: HttpRoutes[IO] = Kleisli(&lt;function1&gt;);
 
 wrappedService.orNotFound(goodRequest).unsafeRunSync()
@@ -194,7 +194,7 @@ wrappedService.orNotFound(goodRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, SomeKey: SomeValue),
 //   Stream(..),
-//   org.typelevel.vault.Vault@7aee029e
+//   org.typelevel.vault.Vault@15162f0d
 // )
 wrappedService.orNotFound(badRequest).unsafeRunSync()
 // res3: Response[IO] = Response(
@@ -202,7 +202,7 @@ wrappedService.orNotFound(badRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@3f42ecaf
+//   org.typelevel.vault.Vault@5ec83572
 // )
 </code></pre>
 
@@ -212,19 +212,19 @@ wrappedService.orNotFound(badRequest).unsafeRunSync()
 it as an <code>object</code> and use the <code>apply</code> method.</p>
 
 <pre><code class="language-scala">object MyMiddle {
-  def addHeader(resp: Response[IO], header: Header) =
+  def addHeader(resp: Response[IO], header: Header.ToRaw) =
     resp match {
       case Status.Successful(resp) =&gt; resp.putHeaders(header)
       case resp =&gt; resp
     }
 
-  def apply(service: HttpRoutes[IO], header: Header) =
+  def apply(service: HttpRoutes[IO], header: Header.ToRaw) =
     service.map(addHeader(_, header))
 }
 
-val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
+val newService = MyMiddle(service, &quot;SomeKey&quot; -&gt; &quot;SomeValue&quot;)
 // newService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.Kleisli$$Lambda$9273/2049159240@30d20a6f
+//   cats.data.Kleisli$$Lambda$9267/1115248878@333a4b57
 // )
 
 newService.orNotFound(goodRequest).unsafeRunSync()
@@ -233,7 +233,7 @@ newService.orNotFound(goodRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, SomeKey: SomeValue),
 //   Stream(..),
-//   org.typelevel.vault.Vault@7fad6fc1
+//   org.typelevel.vault.Vault@12646df4
 // )
 newService.orNotFound(badRequest).unsafeRunSync()
 // res5: Response[IO] = Response(
@@ -241,7 +241,7 @@ newService.orNotFound(badRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@75dd6858
+//   org.typelevel.vault.Vault@362e56f2
 // )
 </code></pre>
 
@@ -267,12 +267,12 @@ You can also wrap a single service in multiple layers of middleware. For example
     Ok()
 }
 // apiService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8040/1973102785@5dd2c5d8
+//   org.http4s.HttpRoutes$$$Lambda$8043/556663423@29d286e0
 // )
 
-val aggregateService = apiService &lt;+&gt; MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
+val aggregateService = apiService &lt;+&gt; MyMiddle(service, &quot;SomeKey&quot; -&gt; &quot;SomeValue&quot;)
 // aggregateService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.KleisliSemigroupK$$Lambda$8041/715556473@7d732d7f
+//   cats.data.KleisliSemigroupK$$Lambda$8044/1477321876@48d3107e
 // )
 
 val apiRequest = Request[IO](Method.GET, uri&quot;/api&quot;)
@@ -282,7 +282,7 @@ val apiRequest = Request[IO](Method.GET, uri&quot;/api&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@69b48677
+//   org.typelevel.vault.Vault@7969df5d
 // )
 
 aggregateService.orNotFound(goodRequest).unsafeRunSync()
@@ -291,7 +291,7 @@ aggregateService.orNotFound(goodRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, SomeKey: SomeValue),
 //   Stream(..),
-//   org.typelevel.vault.Vault@7735acb1
+//   org.typelevel.vault.Vault@3d349f44
 // )
 aggregateService.orNotFound(apiRequest).unsafeRunSync()
 // res7: Response[IO] = Response(
@@ -299,7 +299,7 @@ aggregateService.orNotFound(apiRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@3c824b8a
+//   org.typelevel.vault.Vault@6cfb84
 // )
 </code></pre>
 
@@ -349,13 +349,13 @@ import com.codahale.metrics.SharedMetricRegistries
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@58fe91b0
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@50ec5b17
 val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
-// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@7ac03ecf
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@2720eda6
 
 val meteredRoutes = Metrics[IO](Dropwizard(registry, &quot;server&quot;))(apiService)
 // meteredRoutes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.middleware.BracketRequestResponse$$$Lambda$9500/1314797474@153433e6
+//   org.http4s.server.middleware.BracketRequestResponse$$$Lambda$9496/230628628@67c8f560
 // )
 </code></pre>
 
@@ -380,7 +380,7 @@ import org.http4s.server.middleware.Metrics
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@4f3e55d5
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@7e9f9862
 
 val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   for {
@@ -397,9 +397,9 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
 //       Map(
 //         Map(
 //           Delay(
-//             org.http4s.metrics.prometheus.Prometheus$$$Lambda$8845/83231322@475fe667
+//             org.http4s.metrics.prometheus.Prometheus$$$Lambda$8826/952679410@10bd1b71
 //           ),
-//           cats.effect.Resource$$$Lambda$8334/1252155622@614e89a3,
+//           cats.effect.Resource$$$Lambda$8342/2072952294@19c8fcee,
 //           StackTrace(
 //             List(
 //               cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -444,7 +444,7 @@ import org.typelevel.ci.CIString
 
 val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
   case req =&gt;
-    val reqId = req.headers.get(CIString(&quot;X-Request-ID&quot;)).fold(&quot;null&quot;)(_.value)
+    val reqId = req.headers.get(CIString(&quot;X-Request-ID&quot;)).fold(&quot;null&quot;)(_.head.value)
     // use request id to correlate logs with the request
     IO(println(s&quot;request received, cid=$reqId&quot;)) *&gt; Ok()
 })
@@ -456,20 +456,20 @@ extracted from the header, or the generated request id.</p>
 
 <pre><code class="language-scala">// generated request id can be correlated with logs
 val resp = responseIO.unsafeRunSync()
-// request received, cid=8235935c-a681-42e8-93bf-9e8d147b4234
+// request received, cid=06cea0c8-d46d-4a1b-bbce-5dac3e63f36f
 // resp: Response[IO] = Response(
 //   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(Content-Length: 0, X-Request-ID: 8235935c-a681-42e8-93bf-9e8d147b4234),
+//   Headers(Content-Length: 0, X-Request-ID: 06cea0c8-d46d-4a1b-bbce-5dac3e63f36f),
 //   Stream(..),
-//   org.typelevel.vault.Vault@4d11e72b
+//   org.typelevel.vault.Vault@2bce3823
 // )
 // X-Request-ID header added to response
 resp.headers
-// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 8235935c-a681-42e8-93bf-9e8d147b4234)
+// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 06cea0c8-d46d-4a1b-bbce-5dac3e63f36f)
 // the request id is also available using attributes
 resp.attributes.lookup(RequestId.requestIdAttrKey)
-// res9: Option[String] = Some(&quot;8235935c-a681-42e8-93bf-9e8d147b4234&quot;)
+// res9: Option[String] = Some(&quot;06cea0c8-d46d-4a1b-bbce-5dac3e63f36f&quot;)
 </code></pre>
 
         </div>

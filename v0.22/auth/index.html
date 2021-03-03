@@ -255,10 +255,12 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
 
 <p>Now that the cookie is set, we can retrieve it again in the <code>authUser</code>.</p>
 
-<pre><code class="language-scala">def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id =&gt; IO(???))
+<pre><code class="language-scala">import org.http4s.headers.Cookie
+
+def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id =&gt; IO(???))
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
-    header &lt;- headers.Cookie.from(request.headers).toRight(&quot;Cookie parsing error&quot;)
+    header &lt;- request.headers.get[Cookie].toRight(&quot;Cookie parsing error&quot;)
     cookie &lt;- header.values.toList.find(_.name == &quot;authcookie&quot;).toRight(&quot;Couldn't find the authcookie&quot;)
     token &lt;- crypto.validateSignedToken(cookie.content).toRight(&quot;Cookie invalid&quot;)
     message &lt;- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
@@ -273,11 +275,12 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
 way that your <a href="https://en.wikipedia.org/wiki/Single-page_application">SPA</a> understands. Retrieve the header value in the <code>authUser</code>
 function.</p>
 
-<pre><code class="language-scala">import org.http4s.headers.Authorization
+<pre><code class="language-scala">import org.http4s.syntax.header._
+import org.http4s.headers.Authorization
 
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
-    header &lt;- request.headers.get(Authorization).toRight(&quot;Couldn't find an Authorization header&quot;)
+    header &lt;- request.headers.get[Authorization].toRight(&quot;Couldn't find an Authorization header&quot;)
     token &lt;- crypto.validateSignedToken(header.value).toRight(&quot;Invalid token&quot;)
     message &lt;- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
   } yield message

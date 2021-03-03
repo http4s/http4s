@@ -300,22 +300,6 @@ buffered to a temp file.</p><p>- It's a bit handwavy around character sets.  Thi
 horribly wrong if you're not UTF-8.</p><p>- This module is lightly tested, and its API should be considered
 experimental.</p><p>Enter this package at your own risk, but we'd love the feedback.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
-    </li><li name="org.http4s.parser" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="parser"></a><a id="parser:parser"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/parser/index.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="parser/index.html"><span class="name">parser</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.play" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="play"></a><a id="play:play"></a>
       <span class="permalink">
@@ -554,12 +538,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="HasQValue.html" title="">HasQValue</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="Header$.html" title=""></a>
-                        <a class="trait" href="Header.html" title="Abstract representation o the HTTP header"></a>
-                        <a href="Header.html" title="Abstract representation o the HTTP header">Header</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="HeaderKey$.html" title=""></a>
-                        <a class="trait" href="HeaderKey.html" title=""></a>
-                        <a href="HeaderKey.html" title="">HeaderKey</a>
+                        <a class="trait" href="Header.html" title="Typeclass representing an HTTP header, which all the http4s default headers satisfy."></a>
+                        <a href="Header.html" title="Typeclass representing an HTTP header, which all the http4s default headers satisfy.">Header</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="Headers$.html" title=""></a>
                         <a class="class" href="Headers.html" title="A collection of HTTP Headers"></a>
@@ -837,11 +817,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use org.http4s.implicits._ instead</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M4/core/src/main/scala/org/http4s/Http4s.scala" target="_blank">Http4s.scala</a></dd></dl><div class="toggleContainer block">
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use org.http4s.implicits._ instead</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/Http4s.scala" target="_blank">Http4s.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="Http4s.html" class="extype" name="org.http4s.Http4s">Http4s</a>, <a href="syntax/AllSyntax.html" class="extype" name="org.http4s.syntax.AllSyntax">AllSyntax</a>, <a href="syntax/LiteralsSyntax.html" class="extype" name="org.http4s.syntax.LiteralsSyntax">LiteralsSyntax</a>, <a href="syntax/StringSyntax.html" class="extype" name="org.http4s.syntax.StringSyntax">StringSyntax</a>, <a href="syntax/KleisliSyntax.html" class="extype" name="org.http4s.syntax.KleisliSyntax">KleisliSyntax</a>, <a href="Http4sFunctions.html" class="extype" name="org.http4s.Http4sFunctions">Http4sFunctions</a>, <a href="Http4sInstances.html" class="extype" name="org.http4s.Http4sInstances">Http4sInstances</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="Http4s.html" class="extype" name="org.http4s.Http4s">Http4s</a>, <a href="syntax/AllSyntax.html" class="extype" name="org.http4s.syntax.AllSyntax">AllSyntax</a>, <a href="syntax/HeaderSyntax.html" class="extype" name="org.http4s.syntax.HeaderSyntax">HeaderSyntax</a>, <a href="syntax/LiteralsSyntax.html" class="extype" name="org.http4s.syntax.LiteralsSyntax">LiteralsSyntax</a>, <a href="syntax/StringSyntax.html" class="extype" name="org.http4s.syntax.StringSyntax">StringSyntax</a>, <a href="syntax/KleisliSyntax.html" class="extype" name="org.http4s.syntax.KleisliSyntax">KleisliSyntax</a>, <a href="Http4sFunctions.html" class="extype" name="org.http4s.Http4sFunctions">Http4sFunctions</a>, <a href="Http4sInstances.html" class="extype" name="org.http4s.Http4sInstances">Http4sInstances</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -867,7 +847,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.Http4s"><span>Http4s</span></li><li class="in" name="org.http4s.Http4s"><span>Http4s</span></li><li class="in" name="org.http4s.syntax.AllSyntax"><span>AllSyntax</span></li><li class="in" name="org.http4s.syntax.LiteralsSyntax"><span>LiteralsSyntax</span></li><li class="in" name="org.http4s.syntax.StringSyntax"><span>StringSyntax</span></li><li class="in" name="org.http4s.syntax.KleisliSyntax"><span>KleisliSyntax</span></li><li class="in" name="org.http4s.Http4sFunctions"><span>Http4sFunctions</span></li><li class="in" name="org.http4s.Http4sInstances"><span>Http4sInstances</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.Http4s"><span>Http4s</span></li><li class="in" name="org.http4s.Http4s"><span>Http4s</span></li><li class="in" name="org.http4s.syntax.AllSyntax"><span>AllSyntax</span></li><li class="in" name="org.http4s.syntax.HeaderSyntax"><span>HeaderSyntax</span></li><li class="in" name="org.http4s.syntax.LiteralsSyntax"><span>LiteralsSyntax</span></li><li class="in" name="org.http4s.syntax.StringSyntax"><span>StringSyntax</span></li><li class="in" name="org.http4s.syntax.KleisliSyntax"><span>KleisliSyntax</span></li><li class="in" name="org.http4s.Http4sFunctions"><span>Http4sFunctions</span></li><li class="in" name="org.http4s.Http4sInstances"><span>Http4sInstances</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -1074,6 +1054,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.syntax.HeaderSyntax#http4sHeaderSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sHeaderSyntax[A](a:A)(implicitheader:org.http4s.Header[A,_]):org.http4s.syntax.HeaderOps[A]"></a><a id="http4sHeaderSyntax[A](A)(Header[A,_]):HeaderOps[A]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Http4s$.html#http4sHeaderSyntax[A](a:A)(implicitheader:org.http4s.Header[A,_]):org.http4s.syntax.HeaderOps[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sHeaderSyntax</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.syntax.HeaderSyntax.http4sHeaderSyntax.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>[<span class="extype" name="org.http4s.syntax.HeaderSyntax.http4sHeaderSyntax.A">A</span>, _]</span>)</span><span class="result">: <a href="syntax/HeaderOps.html" class="extype" name="org.http4s.syntax.HeaderOps">HeaderOps</a>[<span class="extype" name="org.http4s.syntax.HeaderSyntax.http4sHeaderSyntax.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="syntax/HeaderSyntax.html" class="extype" name="org.http4s.syntax.HeaderSyntax">HeaderSyntax</a></dd></dl></div>
     </li><li name="org.http4s.syntax.KleisliSyntax#http4sKleisliResponseSyntaxOptionT" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sKleisliResponseSyntaxOptionT[F[_],A](kleisli:cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],A,org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.syntax.KleisliResponseOps[F,A]"></a><a id="http4sKleisliResponseSyntaxOptionT[F[_],A](Kleisli[[β$0$]OptionT[F,β$0$],A,Response[F]])(Functor[F]):KleisliResponseOps[F,A]"></a>
       <span class="permalink">
@@ -1106,6 +1102,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="syntax/LiteralsSyntax.html" class="extype" name="org.http4s.syntax.LiteralsSyntax">LiteralsSyntax</a></dd></dl></div>
+    </li><li name="org.http4s.syntax.HeaderSyntax#http4sSelectSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sSelectSyntax[A](a:A)(implicitselect:org.http4s.Header.Select[A]):org.http4s.syntax.SelectOps[A]"></a><a id="http4sSelectSyntax[A](A)(Select[A]):SelectOps[A]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Http4s$.html#http4sSelectSyntax[A](a:A)(implicitselect:org.http4s.Header.Select[A]):org.http4s.syntax.SelectOps[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sSelectSyntax</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.syntax.HeaderSyntax.http4sSelectSyntax.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="select">select: <a href="Header$$Select.html" class="extype" name="org.http4s.Header.Select">Select</a>[<span class="extype" name="org.http4s.syntax.HeaderSyntax.http4sSelectSyntax.A">A</span>]</span>)</span><span class="result">: <a href="syntax/SelectOps.html" class="extype" name="org.http4s.syntax.SelectOps">SelectOps</a>[<span class="extype" name="org.http4s.syntax.HeaderSyntax.http4sSelectSyntax.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="syntax/HeaderSyntax.html" class="extype" name="org.http4s.syntax.HeaderSyntax">HeaderSyntax</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -1312,6 +1324,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               <h3>Inherited from <a href="Http4s.html" class="extype" name="org.http4s.Http4s">Http4s</a></h3>
             </div><div class="parent" name="org.http4s.syntax.AllSyntax">
               <h3>Inherited from <a href="syntax/AllSyntax.html" class="extype" name="org.http4s.syntax.AllSyntax">AllSyntax</a></h3>
+            </div><div class="parent" name="org.http4s.syntax.HeaderSyntax">
+              <h3>Inherited from <a href="syntax/HeaderSyntax.html" class="extype" name="org.http4s.syntax.HeaderSyntax">HeaderSyntax</a></h3>
             </div><div class="parent" name="org.http4s.syntax.LiteralsSyntax">
               <h3>Inherited from <a href="syntax/LiteralsSyntax.html" class="extype" name="org.http4s.syntax.LiteralsSyntax">LiteralsSyntax</a></h3>
             </div><div class="parent" name="org.http4s.syntax.StringSyntax">

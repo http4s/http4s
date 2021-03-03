@@ -300,22 +300,6 @@ buffered to a temp file.</p><p>- It's a bit handwavy around character sets.  Thi
 horribly wrong if you're not UTF-8.</p><p>- This module is lightly tested, and its API should be considered
 experimental.</p><p>Enter this package at your own risk, but we'd love the feedback.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
-    </li><li name="org.http4s.parser" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="parser"></a><a id="parser:parser"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/parser/index.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="parser/index.html"><span class="name">parser</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.play" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="play"></a><a id="play:play"></a>
       <span class="permalink">
@@ -554,12 +538,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="HasQValue.html" title="">HasQValue</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="Header$.html" title=""></a>
-                        <a class="trait" href="Header.html" title="Abstract representation o the HTTP header"></a>
-                        <a href="Header.html" title="Abstract representation o the HTTP header">Header</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="HeaderKey$.html" title=""></a>
-                        <a class="trait" href="HeaderKey.html" title=""></a>
-                        <a href="HeaderKey.html" title="">HeaderKey</a>
+                        <a class="trait" href="Header.html" title="Typeclass representing an HTTP header, which all the http4s default headers satisfy."></a>
+                        <a href="Header.html" title="Typeclass representing an HTTP header, which all the http4s default headers satisfy.">Header</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="Headers$.html" title=""></a>
                         <a class="class" href="Headers.html" title="A collection of HTTP Headers"></a>
@@ -834,7 +814,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M4/core/src/main/scala/org/http4s/EntityEncoder.scala" target="_blank">EntityEncoder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/EntityEncoder.scala" target="_blank">EntityEncoder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1060,9 +1040,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       
     </li><li name="org.http4s.EntityEncoder#encodeBy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="encodeBy[F[_],A](hs:org.http4s.Header*)(f:A=&gt;org.http4s.Entity[F]):org.http4s.EntityEncoder[F,A]"></a><a id="encodeBy[F[_],A](Header*)((A)⇒Entity[F]):EntityEncoder[F,A]"></a>
+      <a id="encodeBy[F[_],A](hs:org.http4s.Header.ToRaw*)(f:A=&gt;org.http4s.Entity[F]):org.http4s.EntityEncoder[F,A]"></a><a id="encodeBy[F[_],A](ToRaw*)((A)⇒Entity[F]):EntityEncoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoder$.html#encodeBy[F[_],A](hs:org.http4s.Header*)(f:A=&gt;org.http4s.Entity[F]):org.http4s.EntityEncoder[F,A]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoder$.html#encodeBy[F[_],A](hs:org.http4s.Header.ToRaw*)(f:A=&gt;org.http4s.Entity[F]):org.http4s.EntityEncoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1071,7 +1051,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">encodeBy</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="hs">hs: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.EntityEncoder.encodeBy.A">A</span>) ⇒ <a href="Entity.html" class="extype" name="org.http4s.Entity">Entity</a>[<span class="extype" name="org.http4s.EntityEncoder.encodeBy.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoder.encodeBy.F">F</span>, <span class="extype" name="org.http4s.EntityEncoder.encodeBy.A">A</span>]</span>
+        <span class="name">encodeBy</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="hs">hs: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a>*</span>)</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.EntityEncoder.encodeBy.A">A</span>) ⇒ <a href="Entity.html" class="extype" name="org.http4s.Entity">Entity</a>[<span class="extype" name="org.http4s.EntityEncoder.encodeBy.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoder.encodeBy.F">F</span>, <span class="extype" name="org.http4s.EntityEncoder.encodeBy.A">A</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Create a new <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a></p>
@@ -1401,9 +1381,9 @@ the content length without running the stream.
       
       <p class="shortcomment cmt">Encodes a value from its Show instance.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist.</p></div></div>
     </li><li name="org.http4s.EntityEncoder#simple" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="simple[F[_],A](hs:org.http4s.Header*)(toChunk:A=&gt;fs2.Chunk[Byte]):org.http4s.EntityEncoder[F,A]"></a><a id="simple[F[_],A](Header*)((A)⇒Chunk[Byte]):EntityEncoder[F,A]"></a>
+      <a id="simple[F[_],A](hs:org.http4s.Header.ToRaw*)(toChunk:A=&gt;fs2.Chunk[Byte]):org.http4s.EntityEncoder[F,A]"></a><a id="simple[F[_],A](ToRaw*)((A)⇒Chunk[Byte]):EntityEncoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoder$.html#simple[F[_],A](hs:org.http4s.Header*)(toChunk:A=&gt;fs2.Chunk[Byte]):org.http4s.EntityEncoder[F,A]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoder$.html#simple[F[_],A](hs:org.http4s.Header.ToRaw*)(toChunk:A=&gt;fs2.Chunk[Byte]):org.http4s.EntityEncoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1412,7 +1392,7 @@ the content length without running the stream.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">simple</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="hs">hs: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span name="toChunk">toChunk: (<span class="extype" name="org.http4s.EntityEncoder.simple.A">A</span>) ⇒ <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.3/fs2-core_2.12-2.5.3-javadoc.jar/!/fs2/Chunk.html#fs2.Chunk" class="extype" name="fs2.Chunk">Chunk</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoder.simple.F">F</span>, <span class="extype" name="org.http4s.EntityEncoder.simple.A">A</span>]</span>
+        <span class="name">simple</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="hs">hs: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a>*</span>)</span><span class="params">(<span name="toChunk">toChunk: (<span class="extype" name="org.http4s.EntityEncoder.simple.A">A</span>) ⇒ <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.3/fs2-core_2.12-2.5.3-javadoc.jar/!/fs2/Chunk.html#fs2.Chunk" class="extype" name="fs2.Chunk">Chunk</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoder.simple.F">F</span>, <span class="extype" name="org.http4s.EntityEncoder.simple.A">A</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Create a new <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a></p><div class="fullcomment"><div class="comment cmt"><p>Create a new <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a></p><p>This constructor is a helper for types that can be serialized synchronously, for example a String.

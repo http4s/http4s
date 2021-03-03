@@ -101,10 +101,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org">org</a></dd></dl></div>
-    </li><li name="org.http4s.HeaderKey" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HeaderKey"></a><a id="HeaderKey:HeaderKey"></a>
+    </li><li name="org.http4s.Header" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Header"></a><a id="Header:Header"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$.html" title="Permalink">
+      <a href="../../org/http4s/Header$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -113,61 +113,74 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="HeaderKey$.html"><span class="name">HeaderKey</span></a>
+        <a title="" href="Header$.html"><span class="name">Header</span></a>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="" title=""></a>
-                        <a href="" title="">Extractable</a>
+                        <a class="trait" href="Header$$LowPrio.html" title=""></a>
+                        <a href="Header$$LowPrio.html" title="">LowPrio</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Header$$Raw$.html" title=""></a>
+                        <a class="class" href="Header$$Raw.html" title=""></a>
+                        <a href="Header$$Raw.html" title="">Raw</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="HeaderKey$$Recurring.html" title="Represents a header key whose multiple headers can be combined by joining their values with a comma."></a>
-                        <a href="HeaderKey$$Recurring.html" title="Represents a header key whose multiple headers can be combined by joining their values with a comma.">Recurring</a>
+                        <a class="class" href="Header$$Recurring.html" title=""></a>
+                        <a href="Header$$Recurring.html" title="">Recurring</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Header$$Select$.html" title=""></a>
+                        <a class="trait" href="Header$$Select.html" title="Abstracts over Single and Recurring Headers"></a>
+                        <a href="Header$$Select.html" title="Abstracts over Single and Recurring Headers">Select</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="HeaderKey$$Singleton.html" title="Represents a Header that should not be repeated."></a>
-                        <a href="HeaderKey$$Singleton.html" title="Represents a Header that should not be repeated.">Singleton</a>
+                        <a class="class" href="Header$$Single.html" title=""></a>
+                        <a href="Header$$Single.html" title="">Single</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="" title=""></a>
+                        <a class="trait" href="Header$$ToRaw.html" title="Target for implicit conversions to Header.Raw from modelled headers and key-value pairs."></a>
+                        <a href="Header$$ToRaw.html" title="Target for implicit conversions to Header.Raw from modelled headers and key-value pairs.">ToRaw</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="Header$$Type.html" title="Classifies modelled headers into Single headers, which can only appear once, and Recurring headers, which can appear multiple times."></a>
+                        <a href="Header$$Type.html" title="Classifies modelled headers into Single headers, which can only appear once, and Recurring headers, which can appear multiple times.">Type</a>
                       </li>
               </ul>
             </div>
           </div>
           <div id="content">
-            <body class="trait type">
+            <body class="object value">
       <div id="definition">
-        <div class="big-circle trait">t</div>
-        <p id="owner"><a href="../index.html" class="extype" name="org">org</a>.<a href="index.html" class="extype" name="org.http4s">http4s</a>.<a href="HeaderKey$.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></p>
-        <h1>Extractable<span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html" title="Permalink">
+        <a href="Header$$ToRaw.html" title="See companion trait"><div class="big-circle object-companion-trait">o</div></a>
+        <p id="owner"><a href="../index.html" class="extype" name="org">org</a>.<a href="index.html" class="extype" name="org.http4s">http4s</a>.<a href="Header$.html" class="extype" name="org.http4s.Header">Header</a></p>
+        <h1><a href="Header$$ToRaw.html" title="See companion trait">ToRaw</a><span class="permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"></span></h3>
+        <h3><span class="morelinks"><div>
+            Companion <a href="Header$$ToRaw.html" title="See companion trait">trait ToRaw</a>
+          </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
+        <span class="modifier"></span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Extractable</span><span class="result"> extends <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>
+        <span class="name">ToRaw</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M4/core/src/main/scala/org/http4s/HeaderKey.scala" target="_blank">HeaderKey.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/Header.scala" target="_blank">Header.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">
-              Known Subclasses
-            </span>
-            <div class="subClasses hiddenContent"><a href="HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a>, <a href="HeaderKey$$Singleton.html" class="extype" name="org.http4s.HeaderKey.Singleton">Singleton</a>, <a href="headers/Accept$.html" class="extype" name="org.http4s.headers.Accept">Accept</a>, <a href="headers/Accept$minusCharset$.html" class="extype" name="org.http4s.headers.Accept-Charset">Accept-Charset</a>, <a href="headers/Accept$minusEncoding$.html" class="extype" name="org.http4s.headers.Accept-Encoding">Accept-Encoding</a>, <a href="headers/Accept$minusLanguage$.html" class="extype" name="org.http4s.headers.Accept-Language">Accept-Language</a>, <a href="headers/Accept$minusPatch$.html" class="extype" name="org.http4s.headers.Accept-Patch">Accept-Patch</a>, <a href="headers/Accept$minusRanges$.html" class="extype" name="org.http4s.headers.Accept-Ranges">Accept-Ranges</a>, <a href="headers/Access$minusControl$minusAllow$minusHeaders$.html" class="extype" name="org.http4s.headers.Access-Control-Allow-Headers">Access-Control-Allow-Headers</a>, <a href="headers/Access$minusControl$minusExpose$minusHeaders$.html" class="extype" name="org.http4s.headers.Access-Control-Expose-Headers">Access-Control-Expose-Headers</a>, <a href="headers/Age$.html" class="extype" name="org.http4s.headers.Age">Age</a>, <a href="headers/Allow$.html" class="extype" name="org.http4s.headers.Allow">Allow</a>, <a href="headers/Authorization$.html" class="extype" name="org.http4s.headers.Authorization">Authorization</a>, <a href="headers/Cache$minusControl$.html" class="extype" name="org.http4s.headers.Cache-Control">Cache-Control</a>, <a href="headers/Connection$.html" class="extype" name="org.http4s.headers.Connection">Connection</a>, <a href="headers/Content$minusDisposition$.html" class="extype" name="org.http4s.headers.Content-Disposition">Content-Disposition</a>, <a href="headers/Content$minusEncoding$.html" class="extype" name="org.http4s.headers.Content-Encoding">Content-Encoding</a>, <a href="headers/Content$minusLanguage$.html" class="extype" name="org.http4s.headers.Content-Language">Content-Language</a>, <a href="headers/Content$minusLength$.html" class="extype" name="org.http4s.headers.Content-Length">Content-Length</a>, <a href="headers/Content$minusLocation$.html" class="extype" name="org.http4s.headers.Content-Location">Content-Location</a>, <a href="headers/Content$minusRange$.html" class="extype" name="org.http4s.headers.Content-Range">Content-Range</a>, <a href="headers/Content$minusType$.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>, <a href="headers/Cookie$.html" class="extype" name="org.http4s.headers.Cookie">Cookie</a>, <a href="headers/Date$.html" class="extype" name="org.http4s.headers.Date">Date</a>, <a href="headers/ETag$.html" class="extype" name="org.http4s.headers.ETag">ETag</a>, <a href="headers/Expires$.html" class="extype" name="org.http4s.headers.Expires">Expires</a>, <a href="headers/Forwarded$.html" class="extype" name="org.http4s.headers.Forwarded">Forwarded</a>, <a href="headers/Host$.html" class="extype" name="org.http4s.headers.Host">Host</a>, <a href="headers/If$minusMatch$.html" class="extype" name="org.http4s.headers.If-Match">If-Match</a>, <a href="headers/If$minusModified$minusSince$.html" class="extype" name="org.http4s.headers.If-Modified-Since">If-Modified-Since</a>, <a href="headers/If$minusNone$minusMatch$.html" class="extype" name="org.http4s.headers.If-None-Match">If-None-Match</a>, <a href="headers/If$minusUnmodified$minusSince$.html" class="extype" name="org.http4s.headers.If-Unmodified-Since">If-Unmodified-Since</a>, <a href="headers/Last$minusEvent$minusId$.html" class="extype" name="org.http4s.headers.Last-Event-Id">Last-Event-Id</a>, <a href="headers/Last$minusModified$.html" class="extype" name="org.http4s.headers.Last-Modified">Last-Modified</a>, <a href="headers/Link$.html" class="extype" name="org.http4s.headers.Link">Link</a>, <a href="headers/Location$.html" class="extype" name="org.http4s.headers.Location">Location</a>, <a href="headers/Max$minusForwards$.html" class="extype" name="org.http4s.headers.Max-Forwards">Max-Forwards</a>, <a href="headers/Origin$.html" class="extype" name="org.http4s.headers.Origin">Origin</a>, <a href="headers/Proxy$minusAuthenticate$.html" class="extype" name="org.http4s.headers.Proxy-Authenticate">Proxy-Authenticate</a>, <a href="headers/Proxy$minusAuthorization$.html" class="extype" name="org.http4s.headers.Proxy-Authorization">Proxy-Authorization</a>, <a href="headers/Range$.html" class="extype" name="org.http4s.headers.Range">Range</a>, <a href="headers/Referer$.html" class="extype" name="org.http4s.headers.Referer">Referer</a>, <a href="headers/Retry$minusAfter$.html" class="extype" name="org.http4s.headers.Retry-After">Retry-After</a>, <a href="headers/Server$.html" class="extype" name="org.http4s.headers.Server">Server</a>, <a href="headers/Strict$minusTransport$minusSecurity$.html" class="extype" name="org.http4s.headers.Strict-Transport-Security">Strict-Transport-Security</a>, <a href="headers/Transfer$minusEncoding$.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>, <a href="headers/User$minusAgent$.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>, <a href="headers/WWW$minusAuthenticate$.html" class="extype" name="org.http4s.headers.WWW-Authenticate">WWW-Authenticate</a>, <a href="headers/X$minusB3$minusFlags$.html" class="extype" name="org.http4s.headers.X-B3-Flags">X-B3-Flags</a>, <a href="headers/X$minusB3$minusParentSpanId$.html" class="extype" name="org.http4s.headers.X-B3-ParentSpanId">X-B3-ParentSpanId</a>, <a href="headers/X$minusB3$minusSampled$.html" class="extype" name="org.http4s.headers.X-B3-Sampled">X-B3-Sampled</a>, <a href="headers/X$minusB3$minusSpanId$.html" class="extype" name="org.http4s.headers.X-B3-SpanId">X-B3-SpanId</a>, <a href="headers/X$minusB3$minusTraceId$.html" class="extype" name="org.http4s.headers.X-B3-TraceId">X-B3-TraceId</a>, <a href="headers/X$minusForwarded$minusFor$.html" class="extype" name="org.http4s.headers.X-Forwarded-For">X-Forwarded-For</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -192,7 +205,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.HeaderKey.Extractable"><span>Extractable</span></li><li class="in" name="org.http4s.HeaderKey"><span>HeaderKey</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.Header.ToRaw"><span>ToRaw</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -214,101 +227,34 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.HeaderKey.HeaderT" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="HeaderT&lt;:org.http4s.Header"></a><a id="HeaderT:HeaderT"></a>
+              <ol><li name="org.http4s.Header.ToRaw.Primitive" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PrimitiveextendsAnyRef"></a><a id="Primitive:Primitive"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#HeaderT&lt;:org.http4s.Header" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$$Primitive.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">type</span>
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">HeaderT</span><span class="result"> &lt;: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>
+        <a title="" href="Header$$ToRaw$$Primitive.html"><span class="name">Primitive</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
+      
     </li></ol>
             </div>
 
-        <div class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.HeaderKey.Extractable#from" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="from(headers:org.http4s.Headers):Option[Extractable.this.HeaderT]"></a><a id="from(Headers):Option[HeaderT]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#from(headers:org.http4s.Headers):Option[Extractable.this.HeaderT]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">from</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Extractable.HeaderT">HeaderT</a>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.HeaderKey#matchHeader" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="matchHeader(header:org.http4s.Header):Option[HeaderKey.this.HeaderT]"></a><a id="matchHeader(Header):Option[HeaderT]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#matchHeader(header:org.http4s.Header):Option[HeaderKey.this.HeaderT]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">matchHeader</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Extractable.HeaderT">HeaderT</a>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
-    </li><li name="org.http4s.HeaderKey#name" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="name:org.typelevel.ci.CIString"></a><a id="name:CIString"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#name:org.typelevel.ci.CIString" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">name</span><span class="result">: <span class="extype" name="org.typelevel.ci.CIString">CIString</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
-    </li><li name="org.http4s.HeaderKey#parse" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="parse(s:String):org.http4s.ParseResult[HeaderKey.this.HeaderT]"></a><a id="parse(String):ParseResult[HeaderT]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#parse(s:String):org.http4s.ParseResult[HeaderKey.this.HeaderT]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">parse</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Extractable.HeaderT">HeaderT</a>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
-    </li></ol>
-            </div>
+        
 
         <div class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol>
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -324,7 +270,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html###():Int" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -340,7 +286,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -356,7 +302,7 @@
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -372,7 +318,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#clone():Object" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -396,7 +342,7 @@
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -412,7 +358,7 @@
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -428,7 +374,7 @@
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#finalize():Unit" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -447,10 +393,26 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Header.ToRaw#foldablesToRaw" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="foldablesToRaw[F[_],H](h:F[H])(implicitevidence$2:cats.Foldable[F],implicitconvert:H=&gt;org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive):org.http4s.Header.ToRaw"></a><a id="foldablesToRaw[F[_],H](F[H])(Foldable[F],(H)⇒ToRawwithPrimitive):ToRaw"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#foldablesToRaw[F[_],H](h:F[H])(implicitevidence$2:cats.Foldable[F],implicitconvert:H=&gt;org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive):org.http4s.Header.ToRaw" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">foldablesToRaw</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="H">H</span>]</span><span class="params">(<span name="h">h: <span class="extype" name="org.http4s.Header.ToRaw.foldablesToRaw.F">F</span>[<span class="extype" name="org.http4s.Header.ToRaw.foldablesToRaw.H">H</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Foldable.html#cats.Foldable" class="extype" name="cats.Foldable">Foldable</a>[<span class="extype" name="org.http4s.Header.ToRaw.foldablesToRaw.F">F</span>]</span>, <span name="convert">convert: (<span class="extype" name="org.http4s.Header.ToRaw.foldablesToRaw.H">H</span>) ⇒ <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a> with <a href="Header$$ToRaw$$Primitive.html" class="extype" name="org.http4s.Header.ToRaw.Primitive">Primitive</a></span>)</span><span class="result">: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#getClass():Class[_]" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -469,7 +431,7 @@
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#hashCode():Int" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -485,10 +447,26 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Header.ToRaw#identityToRaw" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="identityToRaw(h:org.http4s.Header.ToRaw):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive"></a><a id="identityToRaw(ToRaw):ToRawwithPrimitive"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#identityToRaw(h:org.http4s.Header.ToRaw):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">identityToRaw</span><span class="params">(<span name="h">h: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a></span>)</span><span class="result">: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a> with <a href="Header$$ToRaw$$Primitive.html" class="extype" name="org.http4s.Header.ToRaw.Primitive">Primitive</a></span>
+      </span>
+      
+      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -501,10 +479,42 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.Header.ToRaw#keyValuesToRaw" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="keyValuesToRaw(kv:(String,String)):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive"></a><a id="keyValuesToRaw((String,String)):ToRawwithPrimitive"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#keyValuesToRaw(kv:(String,String)):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">keyValuesToRaw</span><span class="params">(<span name="kv">kv: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a> with <a href="Header$$ToRaw$$Primitive.html" class="extype" name="org.http4s.Header.ToRaw.Primitive">Primitive</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.Header.ToRaw#modelledHeadersToRaw" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="modelledHeadersToRaw[H](h:H)(implicitH:org.http4s.Header[H,_]):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive"></a><a id="modelledHeadersToRaw[H](H)(Header[H,_]):ToRawwithPrimitive"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#modelledHeadersToRaw[H](h:H)(implicitH:org.http4s.Header[H,_]):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">modelledHeadersToRaw</span><span class="tparams">[<span name="H">H</span>]</span><span class="params">(<span name="h">h: <span class="extype" name="org.http4s.Header.ToRaw.modelledHeadersToRaw.H">H</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="H">H: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>[<span class="extype" name="org.http4s.Header.ToRaw.modelledHeadersToRaw.H">H</span>, _]</span>)</span><span class="result">: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a> with <a href="Header$$ToRaw$$Primitive.html" class="extype" name="org.http4s.Header.ToRaw.Primitive">Primitive</a></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -520,7 +530,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#notify():Unit" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -539,7 +549,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#notifyAll():Unit" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -555,10 +565,42 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Header.ToRaw#rawToRaw" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rawToRaw(h:org.http4s.Header.Raw):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive"></a><a id="rawToRaw(Raw):ToRawwithPrimitive"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#rawToRaw(h:org.http4s.Header.Raw):org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rawToRaw</span><span class="params">(<span name="h">h: <a href="Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a></span>)</span><span class="result">: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a> with <a href="Header$$ToRaw$$Primitive.html" class="extype" name="org.http4s.Header.ToRaw.Primitive">Primitive</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.Header.ToRaw#scalaCollectionSeqToRaw" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="scalaCollectionSeqToRaw[H](h:Seq[H])(implicitconvert:H=&gt;org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive):org.http4s.Header.ToRaw"></a><a id="scalaCollectionSeqToRaw[H](Seq[H])((H)⇒ToRawwithPrimitive):ToRaw"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#scalaCollectionSeqToRaw[H](h:Seq[H])(implicitconvert:H=&gt;org.http4s.Header.ToRawwithorg.http4s.Header.ToRaw.Primitive):org.http4s.Header.ToRaw" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">scalaCollectionSeqToRaw</span><span class="tparams">[<span name="H">H</span>]</span><span class="params">(<span name="h">h: <a href="https://www.scala-lang.org/api/2.12.13/scala/collection/Seq.html#scala.collection.Seq" class="extype" name="scala.collection.Seq">Seq</a>[<span class="extype" name="org.http4s.Header.ToRaw.scalaCollectionSeqToRaw.H">H</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="convert">convert: (<span class="extype" name="org.http4s.Header.ToRaw.scalaCollectionSeqToRaw.H">H</span>) ⇒ <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a> with <a href="Header$$ToRaw$$Primitive.html" class="extype" name="org.http4s.Header.ToRaw.Primitive">Primitive</a></span>)</span><span class="result">: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -571,10 +613,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.HeaderKey#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#toString():String" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -583,46 +625,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.HeaderKey.Extractable#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="unapply(headers:org.http4s.Headers):Option[Extractable.this.HeaderT]"></a><a id="unapply(Headers):Option[HeaderT]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#unapply(headers:org.http4s.Headers):Option[Extractable.this.HeaderT]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">unapply</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Extractable.HeaderT">HeaderT</a>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.HeaderKey#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unapply(header:org.http4s.Header):Option[HeaderKey.this.HeaderT]"></a><a id="unapply(Header):Option[HeaderT]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#unapply(header:org.http4s.Header):Option[HeaderKey.this.HeaderT]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">unapply</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Extractable.HeaderT">HeaderT</a>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#wait():Unit" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -644,7 +654,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -666,7 +676,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/HeaderKey$$Extractable.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../org/http4s/Header$$ToRaw$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -697,9 +707,7 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.HeaderKey">
-              <h3>Inherited from <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
