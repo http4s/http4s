@@ -18,7 +18,6 @@ package org.http4s
 
 import cats.{Eval, Foldable, Monoid, Order, Show}
 import cats.syntax.all._
-import org.http4s.headers.`Set-Cookie`
 import org.typelevel.ci.CIString
 import scala.collection.mutable.ListBuffer
 
