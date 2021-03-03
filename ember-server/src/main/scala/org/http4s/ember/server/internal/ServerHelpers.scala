@@ -165,7 +165,7 @@ private[server] object ServerHelpers {
   private[internal] def postProcessResponse[F[_]: Timer: Monad](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
-    val reqHasClose = req.headers.headers.exists { case v2.Header.Raw(name, values) =>
+    val reqHasClose = req.headers.headers.exists { case Header.Raw(name, values) =>
       // TODO This will do weird shit in the odd case that close is
       // not a single, lowercase word
       name == connectionCi && values.contains(closeCi.toString)
@@ -175,7 +175,7 @@ private[server] object ServerHelpers {
       else keepAlive
     for {
       date <- HttpDate.current[F].map(Date(_))
-    } yield resp.withHeaders(v2.Headers(date, connection) ++ resp.headers)
+    } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
   }
 
   private[internal] def runConnection[F[_]: Concurrent: Timer](

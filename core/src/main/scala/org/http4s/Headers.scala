@@ -15,7 +15,6 @@
  */
 
 package org.http4s
-package v2
 
 import cats.{Monoid, Order, Show}
 import cats.data.NonEmptyList

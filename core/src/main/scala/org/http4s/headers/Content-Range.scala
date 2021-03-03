@@ -64,8 +64,8 @@ object `Content-Range` {
     byteContentRange
   }
 
-  implicit val headerInstance: v2.Header[`Content-Range`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Content-Range`, Header.Single] =
+    Header.createRendered(
       CIString("Content-Range"),
       h =>
         new Renderable {

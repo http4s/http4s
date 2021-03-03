@@ -38,8 +38,8 @@ object `X-B3-TraceId` {
     (hexValue, hexValue.?).mapN(`X-B3-TraceId`(_, _))
   }
 
-  implicit val headerInstance: v2.Header[`X-B3-TraceId`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`X-B3-TraceId`, Header.Single] =
+    Header.createRendered(
       CIString("X-B3-TraceId"),
       h =>
         new Renderable {

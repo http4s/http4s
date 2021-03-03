@@ -30,8 +30,8 @@ object Referer {
     .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
     .map(Referer(_))
 
-  implicit val headerInstance: v2.Header[Referer, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Referer, Header.Single] =
+    Header.createRendered(
       CIString("Referer"),
       _.uri,
       parse

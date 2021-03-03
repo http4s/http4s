@@ -35,8 +35,8 @@ object Connection {
     Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
   }
 
-  implicit val headerInstance: v2.Header[Connection, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Connection, Header.Recurring] =
+    Header.createRendered(
       CIString("Connection"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Connection header")

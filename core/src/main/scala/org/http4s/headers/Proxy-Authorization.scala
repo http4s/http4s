@@ -36,8 +36,8 @@ object `Proxy-Authorization` {
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
 
-  implicit val headerInstance: v2.Header[`Proxy-Authorization`, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Proxy-Authorization`, Header.Single] =
+    Header.createRendered(
       CIString("Proxy-Authorization"),
       _.credentials,
       ParseResult.fromParser(parser, "Invalid Proxy-Authorization header")

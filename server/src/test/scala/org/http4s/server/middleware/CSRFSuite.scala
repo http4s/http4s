@@ -85,7 +85,7 @@ class CSRFSuite extends Http4sSuite {
       _.withClock(testClock)
         .withCookieName(cookieName)
         .withOnFailure(
-          Response[IO](status = Status.SeeOther, headers = v2.Headers(Location(uri"/")))
+          Response[IO](status = Status.SeeOther, headers = Headers(Location(uri"/")))
             .removeCookie(cookieName)
         )
         .build)

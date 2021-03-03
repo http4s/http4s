@@ -13,7 +13,6 @@ package testing
 import java.io.{ByteArrayOutputStream, PrintStream}
 import cats.syntax.all._
 import cats.Monad
-import org.http4s.{MessageFailure, Request, Response, Status, v2}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.typelevel.ci.CIString
 import scala.util.control.NonFatal
@@ -77,7 +76,7 @@ object ErrorReporting {
           Response(
             Status.InternalServerError,
             req.httpVersion,
-            v2.Headers(
+            Headers(
               Connection(CIString("close")),
               `Content-Length`.zero
             )))

@@ -21,7 +21,7 @@ import cats.parse.{Parser, Parser0}
 import org.http4s.internal.parsing.Rfc7230.ows
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderable, Writer}
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.typelevel.ci.CIString
 
 import scala.concurrent.duration.FiniteDuration

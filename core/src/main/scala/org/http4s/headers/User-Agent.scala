@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.util.{Renderable, Renderer, Writer}
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.typelevel.ci.CIString
 
 object `User-Agent` {
@@ -55,7 +55,7 @@ object `User-Agent` {
       parse
     )
 
-  implicit def convert(implicit select: v2.Header.Select[`User-Agent`]): Renderer[`User-Agent`] =
+  implicit def convert(implicit select: Header.Select[`User-Agent`]): Renderer[`User-Agent`] =
     new Renderer[`User-Agent`] {
       override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
     }

@@ -86,7 +86,7 @@ class AuthenticationSuite extends Http4sSuite {
     test("BasicAuthentication should respond to a request with unknown username with 401") {
       val req = Request[IO](
         uri = uri"/",
-        headers = v2.Headers(Authorization(BasicCredentials("Wrong User", password))))
+        headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
       basicAuthedService.orNotFound(req).map { res =>
         assertEquals(res.status, Unauthorized)
         assertEquals(
@@ -98,7 +98,7 @@ class AuthenticationSuite extends Http4sSuite {
     test("BasicAuthentication should respond to a request with wrong password with 401") {
       val req = Request[IO](
         uri = uri"/",
-        headers = v2.Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
+        headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
       basicAuthedService.orNotFound(req).map { res =>
         assertEquals(res.status, Unauthorized)
         assertEquals(
@@ -110,7 +110,7 @@ class AuthenticationSuite extends Http4sSuite {
     test("BasicAuthentication should respond to a request with correct credentials") {
       val req = Request[IO](
         uri = uri"/",
-        headers = v2.Headers(Authorization(BasicCredentials(username, password))))
+        headers = Headers(Authorization(BasicCredentials(username, password))))
       basicAuthedService
         .orNotFound(req)
         .map(_.status)
@@ -184,7 +184,7 @@ class AuthenticationSuite extends Http4sSuite {
       )
       val header = Authorization(Credentials.AuthParams(CIString("Digest"), params))
 
-      val req2 = Request[IO](uri = uri"/", headers = v2.Headers(header))
+      val req2 = Request[IO](uri = uri"/", headers = Headers(header))
       digest(req2).flatMap { res2 =>
         if (withReplay) digest(req2).map(res3 => (res2, res3))
         else IO.pure((res2, null))
@@ -290,7 +290,7 @@ class AuthenticationSuite extends Http4sSuite {
         val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
         val header = Authorization(
           Credentials.AuthParams(CIString("Digest"), invalidParams.head, invalidParams.tail: _*))
-        val req = Request[IO](uri = uri"/", headers = v2.Headers(header))
+        val req = Request[IO](uri = uri"/", headers = Headers(header))
         digestAuthService.orNotFound(req).map(_.status)
       }
 

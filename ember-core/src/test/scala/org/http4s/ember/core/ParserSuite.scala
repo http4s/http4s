@@ -109,7 +109,7 @@ class ParsingSpec extends Http4sSuite {
     val expected = Request[IO](
       Method.GET,
       Uri.unsafeFromString("www.google.com"),
-      headers = v2.Headers(org.http4s.headers.Host("www.google.com"))
+      headers = Headers(org.http4s.headers.Host("www.google.com"))
     )
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -374,8 +374,8 @@ class ParsingSpec extends Http4sSuite {
     assertEquals(
       headers.headers,
       List(
-        v2.Header.Raw(CIString("Content-Type"), "text/plain; charset=UTF-8"),
-        v2.Header.Raw(CIString("Content-Length"), "11"))
+        Header.Raw(CIString("Content-Type"), "text/plain; charset=UTF-8"),
+        Header.Raw(CIString("Content-Length"), "11"))
     )
     assert(
       rest.isEmpty
@@ -410,9 +410,9 @@ class ParsingSpec extends Http4sSuite {
 
     result.assertEquals(
       List(
-        v2.Header.Raw(CIString("Content-Type"), "text/plain"),
-        v2.Header.Raw(CIString("Transfer-Encoding"), "chunked"),
-        v2.Header.Raw(CIString("Trailer"), "Expires")
+        Header.Raw(CIString("Content-Type"), "text/plain"),
+        Header.Raw(CIString("Transfer-Encoding"), "chunked"),
+        Header.Raw(CIString("Trailer"), "Expires")
       ))
   }
 

@@ -82,7 +82,7 @@ class ResponderSpec extends Http4sSuite {
         Host("foo"))
     assertEquals(wHeader.headers.headers.length, 3)
 
-    val newHeaders = wHeader.withHeaders(v2.Headers(Date(HttpDate.Epoch)))
+    val newHeaders = wHeader.withHeaders(Headers(Date(HttpDate.Epoch)))
     assertEquals(newHeaders.headers.headers.length, 1)
     assert(newHeaders.headers.get[Connection].isEmpty)
   }

@@ -86,8 +86,8 @@ object Range {
     byteRangesSpecifier
   }
 
-  implicit val headerInstance: v2.Header[Range, v2.Header.Single] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[Range, Header.Single] =
+    Header.createRendered(
       CIString("Range"),
       h =>
         new Renderable {

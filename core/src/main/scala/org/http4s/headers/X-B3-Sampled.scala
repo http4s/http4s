@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.{Parser, Rfc5234}
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.typelevel.ci.CIString
 
 object `X-B3-Sampled` {

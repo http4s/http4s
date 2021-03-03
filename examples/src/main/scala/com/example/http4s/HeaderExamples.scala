@@ -20,7 +20,7 @@ import cats.Semigroup
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s._
-import org.http4s.v2._
+import org.http4s._
 import org.typelevel.ci.CIString
 
 // TODO migrate to a proper mdoc. This is to keep it compiling.

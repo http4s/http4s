@@ -19,7 +19,7 @@ package org.http4s.headers
 import cats.data.NonEmptyList
 import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
 import org.http4s.util.Renderer
-import org.http4s.v2.Header
+import org.http4s.Header
 import org.scalacheck.Prop._
 
 class ForwardedRenderersSuite extends munit.ScalaCheckSuite with ForwardedArbitraryInstances {

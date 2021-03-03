@@ -33,8 +33,8 @@ object `Accept-Patch` {
   private[http4s] val parser =
     Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
 
-  implicit val headerInstance: v2.Header[`Accept-Patch`, v2.Header.Recurring] =
-    v2.Header.createRendered(
+  implicit val headerInstance: Header[`Accept-Patch`, Header.Recurring] =
+    Header.createRendered(
       CIString("Accept-Patch"),
       _.values,
       ParseResult.fromParser(parser, "Invalid Accept-Patch header")

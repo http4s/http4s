@@ -71,7 +71,7 @@ object Jsonp {
     }
     resp
       .copy(body = jsonpBody)
-      .transformHeaders(_ ++ v2.Headers(newLengthHeaderOption))
+      .transformHeaders(_ ++ Headers(newLengthHeaderOption))
       .withContentType(`Content-Type`(MediaType.application.javascript))
   }
 

@@ -50,8 +50,8 @@ object ChunkAggregator {
 
   /* removes the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
    removes the `Content-Length` header, and leaves the other headers unchanged */
-  private[this] def removeChunkedTransferEncoding(len: Long)(headers: v2.Headers): v2.Headers = {
-    val hh: ListBuffer[v2.Header.ToRaw] = ListBuffer.empty[v2.Header.ToRaw]
+  private[this] def removeChunkedTransferEncoding(len: Long)(headers: Headers): Headers = {
+    val hh: ListBuffer[Header.ToRaw] = ListBuffer.empty[Header.ToRaw]
     headers.headers.foreach {
       case h if h.name == CIString("Transfer-Encoding") =>
         `Transfer-Encoding`.parse(h.value) match {
@@ -70,6 +70,6 @@ object ChunkAggregator {
     }
     if (len > 0L)
       hh += `Content-Length`.unsafeFromLong(len)
-    v2.Headers(hh.toList)
+    Headers(hh.toList)
   }
 }

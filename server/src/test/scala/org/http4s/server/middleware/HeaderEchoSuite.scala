@@ -33,7 +33,7 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingSingleHeaderKey =
       Request[G](
         uri = uri"/request",
-        headers = v2.Headers("someheaderkey" -> "someheadervalue")
+        headers = Headers("someheaderkey" -> "someheadervalue")
       )
 
     (testee
@@ -55,9 +55,8 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingMultipleHeaderKeys =
       Request[IO](
         uri = uri"/request",
-        headers = v2.Headers(
-          "someheaderkey" -> "someheadervalue",
-          "anotherheaderkey" -> "anotherheadervalue"))
+        headers =
+          Headers("someheaderkey" -> "someheadervalue", "anotherheaderkey" -> "anotherheadervalue"))
     val headersToEcho =
       List(CIString("someheaderkey"), CIString("anotherheaderkey"))
     val testee = HeaderEcho(headersToEcho.contains(_))(testService)
@@ -78,7 +77,7 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingNotPresentHeaderKey =
       Request[IO](
         uri = uri"/request",
-        headers = v2.Headers("someunmatchedheader" -> "someunmatchedvalue"))
+        headers = Headers("someunmatchedheader" -> "someunmatchedvalue"))
 
     val testee = HeaderEcho(_ == CIString("someheaderkey"))(testService)
     testee

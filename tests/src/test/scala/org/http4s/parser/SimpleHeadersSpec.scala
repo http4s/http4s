@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import com.comcast.ip4s._
 import org.http4s.headers._
 import org.http4s.syntax.header._
-import org.http4s.v2
 import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
@@ -127,9 +126,9 @@ class SimpleHeadersSpec extends Http4sSuite {
     val header = `Last-Modified`(HttpDate.Epoch)
     val stringRepr = "Thu, 01 Jan 1970 00:00:00 GMT"
     assertEquals(header.value, stringRepr)
-    assertEquals(v2.Header[`Last-Modified`].parse(stringRepr), Right(header))
+    assertEquals(Header[`Last-Modified`].parse(stringRepr), Right(header))
 
-    assert(v2.Header[`Last-Modified`].parse("foo").isLeft)
+    assert(Header[`Last-Modified`].parse("foo").isLeft)
   }
 
   test("SimpleHeaders should parse ETag") {
@@ -162,7 +161,7 @@ class SimpleHeadersSpec extends Http4sSuite {
       `Max-Forwards`.unsafeFromLong(100)
     )
     headers.foreach { header =>
-      assertEquals(v2.Header[`Max-Forwards`].parse(header.value), Right(header))
+      assertEquals(Header[`Max-Forwards`].parse(header.value), Right(header))
     }
   }
 
@@ -187,7 +186,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
 
-    val headerraw = v2.Header.Raw(`User-Agent`.name, headerstr)
+    val headerraw = Header.Raw(`User-Agent`.name, headerstr)
 
     val parsed = `User-Agent`.parse(headerraw.value)
     assertEquals(

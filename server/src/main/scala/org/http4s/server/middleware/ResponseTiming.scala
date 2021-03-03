@@ -47,7 +47,7 @@ object ResponseTiming {
         before <- clock.monotonic(timeUnit)
         resp <- http(req)
         after <- clock.monotonic(timeUnit)
-        header = v2.Header.Raw(headerName, s"${after - before}")
+        header = Header.Raw(headerName, s"${after - before}")
       } yield resp.putHeaders(header)
     }
 }

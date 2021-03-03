@@ -25,8 +25,8 @@ import org.http4s.syntax.header._
 trait HeaderLaws extends munit.DisciplineSuite with Laws {
   def headerLaws[A](implicit
       arbHeader: Arbitrary[A],
-      header: v2.Header[A, _],
-      select: v2.Header.Select[A]): RuleSet =
+      header: Header[A, _],
+      select: Header.Select[A]): RuleSet =
     new SimpleRuleSet(
       "header",
       """parse(a.value) == right(a)"""" -> forAll { (a: A) =>
@@ -36,13 +36,13 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
         assertEquals(a.renderString, s"${a.name}: ${a.value}")
       },
       """header matches itself""" -> forAll { (a: A) =>
-        assertEquals(v2.Headers(a.toRaw).get[A].get.asInstanceOf[A], a)
+        assertEquals(Headers(a.toRaw).get[A].get.asInstanceOf[A], a)
       },
       """header does not match arbitrary name""" -> forAll { (a: A, noise: String) =>
         noise.nonEmpty ==> {
           val malformedName = a.name.toString + noise
           val properValue = a.value
-          assert(v2.Headers((malformedName, properValue)).get[A].isEmpty)
+          assert(Headers((malformedName, properValue)).get[A].isEmpty)
         }
       }
     )

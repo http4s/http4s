@@ -45,7 +45,7 @@ object HttpsRedirect {
           logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host")
           val authority = Authority(host = RegName(host.value))
           val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))
-          val headers = v2.Headers(Location(location), `Content-Type`(MediaType.text.xml))
+          val headers = Headers(Location(location), `Content-Type`(MediaType.text.xml))
           val response = Response[G](status = MovedPermanently, headers = headers)
           F.pure(response)
 

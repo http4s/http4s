@@ -151,7 +151,7 @@ class EntityEncoderSpec extends Http4sSuite {
       }
 
     implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[IO, A]] =
-      Eq.by[EntityEncoder[IO, A], (v2.Headers, A => Entity[IO])] { enc =>
+      Eq.by[EntityEncoder[IO, A], (Headers, A => Entity[IO])] { enc =>
         (enc.headers, enc.toEntity)
       }
 

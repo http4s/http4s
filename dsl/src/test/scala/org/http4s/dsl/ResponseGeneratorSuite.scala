@@ -128,7 +128,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
     resp
       .map(_.headers.headers)
       .assertEquals(
-        v2.Headers(
+        Headers(
           location,
           Accept(MediaRange.`audio/*`),
           `Content-Length`.zero
@@ -142,7 +142,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
     resp
       .map(_.headers.headers)
       .assertEquals(
-        v2.Headers(
+        Headers(
           `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
           location,
           Accept(MediaRange.`audio/*`),

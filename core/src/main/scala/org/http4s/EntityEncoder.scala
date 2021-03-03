@@ -42,13 +42,13 @@ trait EntityEncoder[F[_], A] { self =>
     * Examples of such headers would be Content-Type.
     * __NOTE:__ The Content-Length header will be generated from the resulting Entity and thus should not be added.
     */
-  def headers: v2.Headers
+  def headers: Headers
 
   /** Make a new [[EntityEncoder]] using this type as a foundation */
   def contramap[B](f: B => A): EntityEncoder[F, B] =
     new EntityEncoder[F, B] {
       override def toEntity(a: B): Entity[F] = self.toEntity(f(a))
-      override def headers: v2.Headers = self.headers
+      override def headers: Headers = self.headers
     }
 
   /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
@@ -61,7 +61,7 @@ trait EntityEncoder[F[_], A] { self =>
   def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
       override def toEntity(a: A): Entity[F] = self.toEntity(a)
-      override val headers: v2.Headers = self.headers.put(tpe)
+      override val headers: Headers = self.headers.put(tpe)
     }
 }
 
@@ -72,15 +72,15 @@ object EntityEncoder {
   def apply[F[_], A](implicit ev: EntityEncoder[F, A]): EntityEncoder[F, A] = ev
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: v2.Headers)(f: A => Entity[F]): EntityEncoder[F, A] =
+  def encodeBy[F[_], A](hs: Headers)(f: A => Entity[F]): EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
       override def toEntity(a: A): Entity[F] = f(a)
-      override def headers: v2.Headers = hs
+      override def headers: Headers = hs
     }
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: v2.Header.ToRaw*)(f: A => Entity[F]): EntityEncoder[F, A] = {
-    val hdrs = if (hs.nonEmpty) v2.Headers(hs: _*) else v2.Headers.empty
+  def encodeBy[F[_], A](hs: Header.ToRaw*)(f: A => Entity[F]): EntityEncoder[F, A] = {
+    val hdrs = if (hs.nonEmpty) Headers(hs: _*) else Headers.empty
     encodeBy(hdrs)(f)
   }
 
@@ -88,7 +88,7 @@ object EntityEncoder {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: v2.Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
+  def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
       Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
@@ -105,7 +105,7 @@ object EntityEncoder {
   def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
       def toEntity(a: A): Entity[F] = Entity.empty
-      def headers: v2.Headers = v2.Headers.empty
+      def headers: Headers = Headers.empty
     }
 
   /** A stream encoder is intended for streaming, and does not calculate its
@@ -118,7 +118,7 @@ object EntityEncoder {
       override def toEntity(a: Stream[F, A]): Entity[F] =
         Entity(a.flatMap(W.toEntity(_).body))
 
-      override def headers: v2.Headers =
+      override def headers: Headers =
         W.headers.get[`Transfer-Encoding`] match {
           case Some(transferCoding) if transferCoding.hasChunked =>
             W.headers

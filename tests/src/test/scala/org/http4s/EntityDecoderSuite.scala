@@ -195,9 +195,7 @@ class EntityDecoderSuite extends Http4sSuite {
     }
 
     decoder
-      .decode(
-        Request[IO](headers = v2.Headers(`Content-Type`(MediaType.text.plain))),
-        strict = true)
+      .decode(Request[IO](headers = Headers(`Content-Type`(MediaType.text.plain))), strict = true)
       .swap
       .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`))
       .map(_.status)
@@ -276,7 +274,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("decodeStrict should produce a MediaTypeMismatch if message has unsupported content type") {
     val tpe = MediaType.text.css
-    val req = Request[IO](headers = v2.Headers(`Content-Type`(tpe)))
+    val req = Request[IO](headers = Headers(`Content-Type`(tpe)))
     decoder1
       .decode(req, strict = true)
       .value
@@ -286,14 +284,14 @@ class EntityDecoderSuite extends Http4sSuite {
   test(
     "composing EntityDecoders with <+> A message with a MediaType that is not supported by any of the decoders will be attempted by the last decoder") {
     val reqMediaType = MediaType.application.`atom+xml`
-    val req = Request[IO](headers = v2.Headers(`Content-Type`(reqMediaType)))
+    val req = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
     (decoder1 <+> decoder2).decode(req, strict = false).value.assertEquals(Right(2))
   }
 
   test(
     "composing EntityDecoders with <+> A catch all decoder will always attempt to decode a message") {
     val reqSomeOtherMediaType =
-      Request[IO](headers = v2.Headers(`Content-Type`(`text/x-h`)))
+      Request[IO](headers = Headers(`Content-Type`(`text/x-h`)))
     val reqNoMediaType = Request[IO]()
     val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) { _ =>
       DecodeResult.successT(3)
@@ -317,7 +315,7 @@ class EntityDecoderSuite extends Http4sSuite {
     val reqMediaType = `text/x-h`
     val expectedMediaRanges = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
     val reqSomeOtherMediaType =
-      Request[IO](headers = v2.Headers(`Content-Type`(reqMediaType)))
+      Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
     (decoder1 <+> decoder2 <+> failDecoder)
       .decode(reqSomeOtherMediaType, strict = true)
       .value

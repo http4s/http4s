@@ -24,7 +24,7 @@ class ContentLocationHeaderSpec extends Http4sSuite {
   test("ContentLocationHeader parser can Parse a simple uri") {
     val s = "http://www.foo.com"
     val Right(uri) = Uri.fromString(s)
-    val hs = v2.Headers(("Content-Location", s))
+    val hs = Headers(("Content-Location", s))
 
     assert(hs.get[`Content-Location`] == Some(`Content-Location`(uri)))
   }
@@ -32,7 +32,7 @@ class ContentLocationHeaderSpec extends Http4sSuite {
   test("ContentLocationHeader parser can Parse a simple uri with a path but no authority") {
     val s = "http:/foo/bar"
     val Right(uri) = Uri.fromString(s)
-    val hs = v2.Headers((("Content-Location", s)))
+    val hs = Headers((("Content-Location", s)))
 
     assert(hs.get[`Content-Location`] == Some(`Content-Location`(uri)))
   }
@@ -40,7 +40,7 @@ class ContentLocationHeaderSpec extends Http4sSuite {
   test("ContentLocationHeader parser can Parse a relative reference") {
     val s = "/cats"
     val Right(uri) = Uri.fromString(s)
-    val hs = v2.Headers(v2.Header.ToRaw.keyValuesToRaw(("Content-Location", s)))
+    val hs = Headers(Header.ToRaw.keyValuesToRaw(("Content-Location", s)))
 
     assert(hs.get[`Content-Location`] == Some(`Content-Location`(uri)))
   }

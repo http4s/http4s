@@ -1,5 +1,4 @@
 package org.http4s
-package v2
 
 import cats.{Foldable, Hash, Order, Semigroup, Show}
 import cats.data.NonEmptyList
