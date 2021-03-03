@@ -142,11 +142,46 @@ it.</p>
 
 <p>Missed the forward merges from 0.22.0-M4. Proceed directly to 1.0.0-M18.</p>
 
+<h1 id="v0-22-0-m5">v0.22.0-M5</h1>
+
+<p>This is the first release with Scala 3 support.  Scala 3.0.0-RC1 is supported for all modules except http4s-boopickle, http4s-scalatags, and http4s-twirl.</p>
+
+<h2 id="http4s-core-1">http4s-core</h2>
+
+<h3 id="breaking">Breaking</h3>
+
+<h4 id="new-header-model">New header model</h4>
+
+<p>This release brings a new model for headers.  The model based on subtyping and general type projection used through http4s-0.21 is replaced by a <code>Header</code> typeclass.</p>
+
+<ul>
+<li>There is no longer a <code>Header.Parsed</code>.  All headers are stored in <code>Headers</code> as <code>Header.Raw</code>.</li>
+<li><code>Header.Raw</code> is no longer a subtype of <code>Header</code>.  <code>Header</code> is now a typeclass.</li>
+<li>New modeled headers can be registered simply by providing an instance of <code>Header</code>. The global registry, <code>HttpHeaderParser</code>, is gone.</li>
+<li><code>Headers</code> are created and <code>put</code> via a <code>Header.ToRaw</code> magnet pattern.  Instances of <code>ToRaw</code> include <code>Raw</code>, case classes with a <code>Header</code> instance, <code>(String, String)</code> tuples, and <code>Foldable[Header.ToRaw]</code>.  This makes it convenient to create headers from types that don&rsquo;t share a subtyping relationship, and preserves a feel mostly compatible with the old <code>Headers.of</code>.</li>
+<li><code>HeaderKey</code> is gone. To retrieve headers from the <code>Headers</code>, object, pass the type in <code>[]</code> instead of <code>()</code> (e.g., <code>headers.get[Location]</code>).</li>
+<li><code>from</code> no longer exists on the companion object of modeled headers.  Use the <code>get[X]</code> syntax.</li>
+<li><code>unapply</code> no longer exists on most companion objects of modeled headers.  This use dto be an alias to <code>from</code>.</li>
+<li>&ldquo;Parsed&rdquo; headers are no longer memoized, so calling <code>headers.get[X]</code> twice will reparse any header with a name matching <code>Header[X].name</code> a second time.  It is not believed that headers were parsed multiple times often in practice.  Headers are still not eagerly parsed, so performance is expected to remain about the same.</li>
+<li>The <code>Header</code> instance carries a phantom type, <code>Recurring</code> or <code>Single</code>.  This information replaces the old <code>HeaderKey.Recurring</code> and <code>HeaderKey.Singleton</code> marker classes, and is used to determine whether we return the first header or search for multiple headers.</li>
+<li>Given <code>h1: Headers</code> and <code>h2.Headers</code>, <code>h1.put(h2)</code> and <code>h1 ++ h2</code> now replace all headers in <code>h1</code> whose key appears in <code>h2</code>.  They previously replaced only singleton headers and appended recurring headers.  This behavior was surprising to users, and required the global registry.</li>
+<li>An <code>add</code> operation is added, which requires a value with a <code>HeaderKey.Recurring</code> instance.  This operation appends to any existing headers.</li>
+<li><code>Headers#toList</code> is gone, but <code>Headers#headers</code> returns a <code>List[Header.Raw]</code>. The name was changed to call attention to the fact that the type changed to raw headers.</li>
+</ul>
+
+<p>See <a href="https://github.com/http4s/http4s/pull/4415">#4415</a>, <a href="https://github.com/http4s/http4s/pull/4526">#4526</a>, <a href="https://github.com/http4s/http4s/pull/4536">#4536</a>, <a href="https://github.com/http4s/http4s/pull/4538">#4538</a>, <a href="https://github.com/http4s/http4s/pull/4537">#4537</a>, <a href="https://github.com/http4s/http4s/pull/5430">#5430</a>, <a href="https://github.com/http4s/http4s/pull/4540">#4540</a>, <a href="https://github.com/http4s/http4s/pull/4542">#4542</a>, <a href="https://github.com/http4s/http4s/pull/4543">#4543</a>, <a href="https://github.com/http4s/http4s/pull/4546">#4546</a>, <a href="https://github.com/http4s/http4s/pull/4549">#4549</a>, <a href="https://github.com/http4s/http4s/pull/4551">#4551</a>, <a href="https://github.com/http4s/http4s/pull/4545">#4545</a>, <a href="https://github.com/http4s/http4s/pull/4547">#4547</a>, <a href="https://github.com/http4s/http4s/pull/4552">#4552</a>, <a href="https://github.com/http4s/http4s/pull/4555">#4555</a>, <a href="https://github.com/http4s/http4s/pull/4560">#4560</a>, <a href="https://github.com/http4s/http4s/pull/4559">#4559</a>, <a href="https://github.com/http4s/http4s/pull/4556">#4556</a>, <a href="https://github.com/http4s/http4s/pull/4562">#4562</a>, <a href="https://github.com/http4s/http4s/pull/4558">#4558</a>, <a href="https://github.com/http4s/http4s/pull/4563">#4563</a>, <a href="https://github.com/http4s/http4s/pull/4564">#4564</a>, <a href="https://github.com/http4s/http4s/pull/4565">#4565</a>, <a href="https://github.com/http4s/http4s/pull/4566">#4566</a>, <a href="https://github.com/http4s/http4s/pull/4569">#4569</a>, <a href="https://github.com/http4s/http4s/pull/4571">#4571</a>, <a href="https://github.com/http4s/http4s/pull/4570">#4570</a>, <a href="https://github.com/http4s/http4s/pull/4568">#4568</a>, <a href="https://github.com/http4s/http4s/pull/4567">#4567</a>, <a href="https://github.com/http4s/http4s/pull/4537">#4537</a>, <a href="https://github.com/http4s/http4s/pull/4575">#4575</a>, <a href="https://github.com/http4s/http4s/pull/4576">#4576</a>.</p>
+
+<h4 id="other-changes">Other changes</h4>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/4554">#4554</a>: Remove deprecated <code>DecodeResult</code> methods</li>
+</ul>
+
 <h1 id="v0-22-0-m4-2021-03-02">v0.22.0-M4 (2021-03-02)</h1>
 
 <p>Includes changes from v0.21.19 and v0.21.20.</p>
 
-<h2 id="http4s-core-1">http4s-core</h2>
+<h2 id="http4s-core-2">http4s-core</h2>
 
 <h3 id="breaking-changes-2">Breaking changes</h3>
 
@@ -250,7 +285,7 @@ it.</p>
 
 <h1 id="v0-21-20-2021-03-02">v0.21.20 (2021-03-02)</h1>
 
-<h2 id="http4s-core-2">http4s-core</h2>
+<h2 id="http4s-core-3">http4s-core</h2>
 
 <h3 id="enhancements-2">Enhancements</h3>
 
@@ -295,7 +330,7 @@ it.</p>
 
 <h1 id="v0-21-19-2021-02-13">v0.21.19 (2021-02-13)</h1>
 
-<h2 id="http4s-core-3">http4s-core</h2>
+<h2 id="http4s-core-4">http4s-core</h2>
 
 <h3 id="deprecations-1">Deprecations</h3>
 
@@ -420,7 +455,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w">GHSA-xhv5-w9c5-2r2w</a>: Additionally to the fix in v0.21.17, drops support for NIO2.</li>
 </ul>
 
-<h2 id="http4s-core-4">http4s-core</h2>
+<h2 id="http4s-core-5">http4s-core</h2>
 
 <h3 id="enhancements-6">Enhancements</h3>
 
@@ -522,7 +557,7 @@ it.</p>
 
 <p>This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 development, please see the new 0.22.x series.  Everything in 0.22.0-M1, including the cats-parse port, is here.</p>
 
-<h2 id="http4s-core-5">http4s-core</h2>
+<h2 id="http4s-core-6">http4s-core</h2>
 
 <h3 id="breaking-changes-13">Breaking changes</h3>
 
@@ -763,7 +798,7 @@ it.</p>
 <li>Users who need a stable release should remain on the 0.21 series for now.</li>
 </ul>
 
-<h2 id="http4s-core-6">http4s-core</h2>
+<h2 id="http4s-core-7">http4s-core</h2>
 
 <h3 id="breaking-changes-33">Breaking changes</h3>
 
@@ -919,7 +954,7 @@ it.</p>
 
 <h1 id="v0-21-15-2020-12-31">v0.21.15 (2020-12-31)</h1>
 
-<h2 id="http4s-core-7">http4s-core</h2>
+<h2 id="http4s-core-8">http4s-core</h2>
 
 <h3 id="enhancements-14">Enhancements</h3>
 
@@ -980,7 +1015,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v1-0-0-m9-2020-12-12">v1.0.0-M9 (2020-12-12)</h1>
 
-<h2 id="http4s-core-8">http4s-core</h2>
+<h2 id="http4s-core-9">http4s-core</h2>
 
 <h3 id="breaking-changes-37">Breaking changes</h3>
 
@@ -996,7 +1031,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v0-21-14-2020-12-11">v0.21.14 (2020-12-11)</h1>
 
-<h2 id="http4s-core-9">http4s-core</h2>
+<h2 id="http4s-core-10">http4s-core</h2>
 
 <h3 id="bugfixes-10">Bugfixes</h3>
 
@@ -1085,7 +1120,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h2 id="bugfixes-14">Bugfixes</h2>
 
-<h3 id="http4s-core-10">http4s-core</h3>
+<h3 id="http4s-core-11">http4s-core</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3911">#3911</a>: Support raw query strings. Formerly, all query strings were stored as a vector of key-value pairs, which was lossy in the percent-encoding of sub-delimiter characters (e.g., &lsquo;+&rsquo; vs &lsquo;%2B&rsquo;).  Queries constructed with <code>.fromString</code> will be rendered as-is, for APIs that assign special meaning to sub-delimiters.</li>
@@ -1100,7 +1135,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h2 id="enhancements-20">Enhancements</h2>
 
-<h3 id="http4s-core-11">http4s-core</h3>
+<h3 id="http4s-core-12">http4s-core</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3902">#3902</a>: Add <code>Hash</code> and <code>BoundedEnumerable</code> instances for <code>HttpVersion</code></li>
@@ -1134,7 +1169,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h2 id="enhancements-21">Enhancements</h2>
 
-<h3 id="http4s-core-12">http4s-core</h3>
+<h3 id="http4s-core-13">http4s-core</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3864">#3864</a>: Cache a <code>Right</code> of the common <code>HttpVersion</code>s for its <code>ParseResult</code>.</li>
@@ -5430,7 +5465,7 @@ connections instead of maximum idle connections.</li>
 
 <h1 id="v0-6-0-2015-01-27">v0.6.0 (2015-01-27)</h1>
 
-<h2 id="http4s-core-13">http4s-core</h2>
+<h2 id="http4s-core-14">http4s-core</h2>
 
 <ul>
 <li>Remove ResponseBuilder in favor of Response companion.</li>
