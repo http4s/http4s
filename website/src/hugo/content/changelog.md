@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.0-M5
+# v0.22.0-M5 (2021-03-03)
 
 This is the first release with Scala 3 support.  Scala 3.0.0-RC1 is supported for all modules except http4s-boopickle, http4s-scalatags, and http4s-twirl.
 
@@ -33,11 +33,15 @@ This release brings a new model for headers.  The model based on subtyping and g
 * An `add` operation is added, which requires a value with a `HeaderKey.Recurring` instance.  This operation appends to any existing headers.
 * `Headers#toList` is gone, but `Headers#headers` returns a `List[Header.Raw]`. The name was changed to call attention to the fact that the type changed to raw headers.
 
-See [#4415](https://github.com/http4s/http4s/pull/4415), [#4526](https://github.com/http4s/http4s/pull/4526), [#4536](https://github.com/http4s/http4s/pull/4536), [#4538](https://github.com/http4s/http4s/pull/4538), [#4537](https://github.com/http4s/http4s/pull/4537), [#5430](https://github.com/http4s/http4s/pull/5430), [#4540](https://github.com/http4s/http4s/pull/4540), [#4542](https://github.com/http4s/http4s/pull/4542), [#4543](https://github.com/http4s/http4s/pull/4543), [#4546](https://github.com/http4s/http4s/pull/4546), [#4549](https://github.com/http4s/http4s/pull/4549), [#4551](https://github.com/http4s/http4s/pull/4551), [#4545](https://github.com/http4s/http4s/pull/4545), [#4547](https://github.com/http4s/http4s/pull/4547), [#4552](https://github.com/http4s/http4s/pull/4552), [#4555](https://github.com/http4s/http4s/pull/4555), [#4560](https://github.com/http4s/http4s/pull/4560), [#4559](https://github.com/http4s/http4s/pull/4559), [#4556](https://github.com/http4s/http4s/pull/4556), [#4562](https://github.com/http4s/http4s/pull/4562), [#4558](https://github.com/http4s/http4s/pull/4558), [#4563](https://github.com/http4s/http4s/pull/4563), [#4564](https://github.com/http4s/http4s/pull/4564), [#4565](https://github.com/http4s/http4s/pull/4565), [#4566](https://github.com/http4s/http4s/pull/4566), [#4569](https://github.com/http4s/http4s/pull/4569), [#4571](https://github.com/http4s/http4s/pull/4571), [#4570](https://github.com/http4s/http4s/pull/4570), [#4568](https://github.com/http4s/http4s/pull/4568), [#4567](https://github.com/http4s/http4s/pull/4567), [#4537](https://github.com/http4s/http4s/pull/4537), [#4575](https://github.com/http4s/http4s/pull/4575), [#4576](https://github.com/http4s/http4s/pull/4576).
+See [#4415](https://github.com/http4s/http4s/pull/4415), [#4526](https://github.com/http4s/http4s/pull/4526), [#4536](https://github.com/http4s/http4s/pull/4536), [#4538](https://github.com/http4s/http4s/pull/4538), [#4537](https://github.com/http4s/http4s/pull/4537), [#5430](https://github.com/http4s/http4s/pull/5430), [#4540](https://github.com/http4s/http4s/pull/4540), [#4542](https://github.com/http4s/http4s/pull/4542), [#4543](https://github.com/http4s/http4s/pull/4543), [#4546](https://github.com/http4s/http4s/pull/4546), [#4549](https://github.com/http4s/http4s/pull/4549), [#4551](https://github.com/http4s/http4s/pull/4551), [#4545](https://github.com/http4s/http4s/pull/4545), [#4547](https://github.com/http4s/http4s/pull/4547), [#4552](https://github.com/http4s/http4s/pull/4552), [#4555](https://github.com/http4s/http4s/pull/4555), [#4559](https://github.com/http4s/http4s/pull/4559), [#4556](https://github.com/http4s/http4s/pull/4556), [#4562](https://github.com/http4s/http4s/pull/4562), [#4558](https://github.com/http4s/http4s/pull/4558), [#4563](https://github.com/http4s/http4s/pull/4563), [#4564](https://github.com/http4s/http4s/pull/4564), [#4565](https://github.com/http4s/http4s/pull/4565), [#4566](https://github.com/http4s/http4s/pull/4566), [#4569](https://github.com/http4s/http4s/pull/4569), [#4571](https://github.com/http4s/http4s/pull/4571), [#4570](https://github.com/http4s/http4s/pull/4570), [#4568](https://github.com/http4s/http4s/pull/4568), [#4567](https://github.com/http4s/http4s/pull/4567), [#4537](https://github.com/http4s/http4s/pull/4537), [#4575](https://github.com/http4s/http4s/pull/4575), [#4576](https://github.com/http4s/http4s/pull/4576).
 
-#### Other changes
+#### Other breaking changes
 
 * [#4554](https://github.com/http4s/http4s/pull/4554): Remove deprecated `DecodeResult` methods
+
+#### Enhancements
+
+* [#4579](https://github.com/http4s/http4s/pull/4579): Regenerate MimeDB from the IANA registry
 
 # v0.22.0-M4 (2021-03-02)
 
