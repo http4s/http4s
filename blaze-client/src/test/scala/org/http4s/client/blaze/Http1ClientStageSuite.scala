@@ -280,7 +280,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
     dispatcher.test("Support trailer headers") { dispatcher =>
-      val hs: IO[v2.Headers] = bracketResponse(req, resp, dispatcher) { (response: Response[IO]) =>
+      val hs: IO[Headers] = bracketResponse(req, resp, dispatcher) { (response: Response[IO]) =>
         for {
           _ <- response.as[String]
           hs <- response.trailerHeaders
@@ -291,7 +291,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     }
 
     dispatcher.test("Fail to get trailers before they are complete") { dispatcher =>
-      val hs: IO[v2.Headers] = bracketResponse(req, resp, dispatcher) { (response: Response[IO]) =>
+      val hs: IO[Headers] = bracketResponse(req, resp, dispatcher) { (response: Response[IO]) =>
         for {
           hs <- response.trailerHeaders
         } yield hs
