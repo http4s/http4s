@@ -119,7 +119,7 @@ class BlazeServerSuite extends Http4sSuite {
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
     }
 
-  blazeServer.test("route requests on the service executor") { server =>
+  blazeServer.test("route requests on the service executor".flaky) { server =>
     get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
   }
 
