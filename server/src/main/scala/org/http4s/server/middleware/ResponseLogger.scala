@@ -93,12 +93,11 @@ object ResponseLogger {
               }
           fk(out)
         }
-        .guaranteeCase { (oc: Outcome[G, _, Response[F]]) =>
-          oc match {
-            case Outcome.Errored(t) => fk(log(s"service raised an error: ${t.getClass}"))
-            case Outcome.Canceled() => fk(log(s"service canceled response for request"))
-            case Outcome.Succeeded(_) => G.unit
-          }
+        .guaranteeCase {
+          case Outcome.Errored(t) => fk(log(s"service raised an error: ${t.getClass}"))
+          case Outcome.Canceled() => fk(log(s"service canceled response for request"))
+          case Outcome.Succeeded(_) => G.unit
+
         }
     }
   }
