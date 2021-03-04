@@ -59,7 +59,7 @@ object `Strict-Transport-Security` {
     fromLong(maxAge, includeSubDomains, preload).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Strict-Transport-Security`] =
-    ParseResult.fromParser(parser, "Invalid `Strict-Transport-Security` header")(s)
+    ParseResult.fromParser(parser, "Invalid Strict-Transport-Security header")(s)
 
   private[http4s] val parser: Parser0[`Strict-Transport-Security`] = {
     val maxAge: Parser[`Strict-Transport-Security`] =
@@ -98,7 +98,7 @@ object `Strict-Transport-Security` {
           }
 
         },
-      ParseResult.fromParser(parser, "Invalid Strict-Transport-Security header")
+      parse
     )
 
 }

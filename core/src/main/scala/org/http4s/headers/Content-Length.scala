@@ -53,7 +53,7 @@ object `Content-Length` {
     Header.createRendered(
       name,
       _.length,
-      ParseResult.fromParser(parser, "Invalid Content-Length header")
+      parse
     )
 
 }

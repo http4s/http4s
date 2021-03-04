@@ -28,7 +28,7 @@ object Authorization {
   }
 
   def parse(s: String): ParseResult[Authorization] =
-    ParseResult.fromParser(parser, "Invalid Authorization")(s)
+    ParseResult.fromParser(parser, "Invalid Authorization header")(s)
 
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
@@ -37,7 +37,7 @@ object Authorization {
     Header.createRendered(
       CIString("Authorization"),
       _.credentials,
-      ParseResult.fromParser(parser, "Invalid Authorization")
+      parse
     )
 }
 

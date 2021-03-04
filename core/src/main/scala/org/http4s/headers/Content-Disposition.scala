@@ -83,7 +83,7 @@ object `Content-Disposition` {
             writer
           }
         },
-      ParseResult.fromParser(parser, "Invalid Content-Disposition header")
+      parse
     )
 }
 

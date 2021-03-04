@@ -27,6 +27,7 @@ import java.io._
 import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
+import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.vault._
 

@@ -21,6 +21,10 @@ import java.nio.charset.StandardCharsets
 import org.typelevel.ci.CIString
 
 object Location {
+
+  def parse(s: String): ParseResult[Location] =
+    ParseResult.fromParser(parser, "Invalid Location header")(s)
+
   private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
     .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
@@ -30,7 +34,7 @@ object Location {
     Header.create(
       CIString("Location"),
       _.uri.toString,
-      ParseResult.fromParser(parser, "Invalid Location header")
+      parse
     )
 
 }

@@ -24,6 +24,7 @@ import cats.data.Kleisli
 import org.http4s.Status.MovedPermanently
 import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.http4s.headers.{Host, Location, `Content-Type`}
+import org.http4s.syntax.header._
 import org.typelevel.ci.CIString
 
 import org.log4s.getLogger

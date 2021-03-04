@@ -121,7 +121,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
     values.foreach { headerStr =>
       parse(headerStr) match {
         case Right(_) => fail("Expected parser failure")
-        case Left(e) => assertNoDiff(e.sanitized, "Invalid header")
+        case Left(e) => assertNoDiff(e.sanitized, "Invalid Forwarded header")
       }
     }
 
@@ -137,7 +137,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
     values.foreach { headerStr =>
       parse(headerStr) match {
         case Right(_) => fail("Expected parser failure")
-        case Left(e) => assertNoDiff(e.sanitized, "Invalid header")
+        case Left(e) => assertNoDiff(e.sanitized, "Invalid Forwarded header")
       }
     }
   }

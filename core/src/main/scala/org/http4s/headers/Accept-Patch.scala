@@ -18,7 +18,6 @@ package org.http4s
 
 package headers
 
-import org.http4s.util.Renderer
 import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci.CIString
@@ -37,7 +36,7 @@ object `Accept-Patch` {
     Header.createRendered(
       CIString("Accept-Patch"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Accept-Patch header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Patch`] =
@@ -45,7 +44,4 @@ object `Accept-Patch` {
 }
 
 // see https://tools.ietf.org/html/rfc5789#section-3.1
-final case class `Accept-Patch`(values: NonEmptyList[MediaType]) {
-  def renderString: String = s"Accept-Patch: $value"
-  def value: String = Renderer.renderString(values)
-}
+final case class `Accept-Patch`(values: NonEmptyList[MediaType])

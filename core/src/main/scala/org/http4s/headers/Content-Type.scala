@@ -61,7 +61,7 @@ object `Content-Type` {
               case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, h.mediaType)
             }
         },
-      ParseResult.fromParser(parser, "Invalid Content-Type header")
+      parse
     )
 
 }

@@ -29,7 +29,7 @@ object `Content-Encoding` {
     Header.createRendered(
       CIString("Content-Encoding"),
       _.contentCoding,
-      ParseResult.fromParser(parser, "Invalid Content-Encoding header")
+      parse
     )
 }
 
