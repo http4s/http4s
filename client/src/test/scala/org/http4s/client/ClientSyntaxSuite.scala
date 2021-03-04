@@ -95,8 +95,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     })
   }
 
-  // Blocked on: https://github.com/typelevel/cats-effect/issues/1535
-  test("Client should get disposes of the response on uncaught exception".ignore) {
+  test("Client should get disposes of the response on uncaught exception") {
     assertDisposes(_.get(req.uri) { _ =>
       sys.error("Don't do this at home, kids")
     })
@@ -114,8 +113,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     })
   }
 
-  // Blocked on: https://github.com/typelevel/cats-effect/issues/1535
-  test("Client should run disposes of the response on uncaught exception".ignore) {
+  test("Client should run disposes of the response on uncaught exception") {
     assertDisposes(_.run(req).use { _ =>
       sys.error("Don't do this at home, kids")
     })
