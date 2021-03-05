@@ -22,7 +22,8 @@ import cats.syntax.all._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.circe._
+import org.http4s.circe.syntax.all._
+import org.http4s.circe.implicits._
 import _root_.io.circe._
 import _root_.org.http4s.ember.server.EmberServerBuilder
 

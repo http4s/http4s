@@ -21,7 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.client._
-import org.http4s.circe._
+import org.http4s.circe.implicits._
 import org.http4s.implicits._
 
 import _root_.io.circe.Json
