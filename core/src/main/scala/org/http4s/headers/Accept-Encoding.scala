@@ -40,7 +40,7 @@ object `Accept-Encoding` {
     Header.createRendered(
       CIString("Accept-Encoding"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Accept-Encoding header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Encoding`] =

@@ -50,7 +50,7 @@ object `If-Match` {
         case Some(nel) => nel.mkString_("", ",", "")
 
       },
-      ParseResult.fromParser(parser, "Invalid If-Match header")
+      parse
     )
 
 }
@@ -60,10 +60,4 @@ object `If-Match` {
   *
   * [[https://tools.ietf.org/html/rfc7232#section-3.1 RFC-7232 Section 3.1]]
   */
-final case class `If-Match`(tags: Option[NonEmptyList[EntityTag]]) {
-  def value: String =
-    tags match {
-      case None => "*"
-      case Some(tags) => tags.mkString_("", ",", "")
-    }
-}
+final case class `If-Match`(tags: Option[NonEmptyList[EntityTag]])

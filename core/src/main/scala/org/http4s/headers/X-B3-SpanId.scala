@@ -26,6 +26,9 @@ import org.typelevel.ci.CIString
 
 object `X-B3-SpanId` {
 
+  def parse(s: String): ParseResult[`X-B3-SpanId`] =
+    ParseResult.fromParser(parser, "Invalid X-B3-SpanId header")(s)
+
   private[http4s] val parser: Parser0[`X-B3-SpanId`] =
     Applicative[Parser0]
       .replicateA(16, Rfc5234.hexdig)
@@ -42,7 +45,7 @@ object `X-B3-SpanId` {
             xB3RenderValueImpl(writer, h.id)
 
         },
-      ParseResult.fromParser(parser, "Invalid X-B3-SpanId header")
+      parse
     )
 
 }

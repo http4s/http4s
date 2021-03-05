@@ -39,7 +39,7 @@ object Connection {
     Header.createRendered(
       CIString("Connection"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Connection header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Connection] =

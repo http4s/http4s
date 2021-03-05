@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.CharsetRange.{Atom, `*`}
-import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
 object `Accept-Charset` {
@@ -73,13 +72,6 @@ object `Accept-Charset` {
   * From [http//tools.ietf.org/html/rfc7231#section-5.3.3 RFC-7231].
   */
 final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) {
-
-  def value: String = Renderer.renderString(values)
-
-  def renderString: String = s"Accept-Charset: $value"
-
-  def key: `Accept-Charset`.type = `Accept-Charset`
-  type Value = CharsetRange
 
   def qValue(charset: Charset): QValue = {
     def specific =

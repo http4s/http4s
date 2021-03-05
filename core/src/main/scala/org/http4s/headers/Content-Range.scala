@@ -33,9 +33,7 @@ object `Content-Range` {
     apply(Range.SubRange(start, None), None)
 
   def parse(s: String): ParseResult[`Content-Range`] =
-    parser.parseAll(s).left.map { e =>
-      ParseFailure("Invalid Content-Range header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid Content-Range header")(s)
 
   val parser: P[`Content-Range`] = {
 
@@ -77,7 +75,7 @@ object `Content-Range` {
             }
           }
         },
-      ParseResult.fromParser(parser, "Invalid Content-Range header")
+      parse
     )
 
 }

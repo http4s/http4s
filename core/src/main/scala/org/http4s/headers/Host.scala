@@ -27,7 +27,7 @@ object Host {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
 
   def parse(s: String): ParseResult[Host] =
-    ParseResult.fromParser(parser, "Invalid Host")(s)
+    ParseResult.fromParser(parser, "Invalid Host header")(s)
 
   private[http4s] val parser = {
     val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
@@ -49,7 +49,7 @@ object Host {
             writer
           }
         },
-      ParseResult.fromParser(parser, "Invalid Host header")
+      parse
     )
 }
 
@@ -65,9 +65,4 @@ object Host {
   *
   * [[https://tools.ietf.org/html/rfc7230#section-5.4 RFC-7230 Section 5.4]]
   */
-final case class Host(host: String, port: Option[Int] = None) {
-  def value: String = port match {
-    case Some(p) => s"$host:$p"
-    case None => host
-  }
-}
+final case class Host(host: String, port: Option[Int] = None)

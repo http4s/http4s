@@ -26,8 +26,6 @@ import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.syntax.all._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
-import org.http4s.util.Renderer
-import org.http4s.Header
 
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val app = HttpRoutes
@@ -38,8 +36,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
         Response[IO](Created).withEntity(r.body).pure[IO]
       case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
         r.headers.get[Accept].fold(IO.pure(Response[IO](BadRequest))) { m =>
-          val raw = implicitly[Header.Select[Accept]].toRaw(m)
-          Response[IO](Ok).withEntity(Renderer.renderString(raw)).pure[IO]
+          Response[IO](Ok).withEntity(m.renderString).pure[IO]
         }
       case r if r.pathInfo == path"/status/500" =>
         Response[IO](InternalServerError).withEntity("Oops").pure[IO]

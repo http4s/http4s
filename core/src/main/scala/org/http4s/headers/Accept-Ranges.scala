@@ -28,7 +28,7 @@ object `Accept-Ranges` {
   def none: `Accept-Ranges` = apply(Nil)
 
   def parse(s: String): ParseResult[`Accept-Ranges`] =
-    ParseResult.fromParser(parser, "Accept-Ranges header")(s)
+    ParseResult.fromParser(parser, "Invalid Accept-Ranges header")(s)
 
   /* https://tools.ietf.org/html/rfc7233#appendix-C */
   val parser: P0[`Accept-Ranges`] = {
@@ -60,7 +60,7 @@ object `Accept-Ranges` {
         case None => "none"
         case Some(nel) => Renderer.renderString(nel)
       },
-      ParseResult.fromParser(parser, "Invalid Accept-Ranges header")
+      parse
     )
 }
 

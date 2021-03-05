@@ -86,6 +86,9 @@ object Range {
     byteRangesSpecifier
   }
 
+  def parse(s: String): ParseResult[Range] =
+    ParseResult.fromParser(parser, "Invalid Range header")(s)
+
   implicit val headerInstance: Header[Range, Header.Single] =
     Header.createRendered(
       CIString("Range"),
@@ -97,7 +100,7 @@ object Range {
             writer
           }
         },
-      ParseResult.fromParser(parser, "Invalid Range header")
+      parse
     )
 
 }
