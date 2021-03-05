@@ -15,5 +15,9 @@
  */
 
 package org.http4s
+package play
 
-package object play extends PlayInstances
+package object instances {
+  object all extends AllInstances
+  object play extends PlayInstances
+}

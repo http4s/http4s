@@ -22,7 +22,7 @@ import cats.effect.IO
 import cats.effect.laws.util.TestContext
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
-import org.http4s.play._
+import org.http4s.play.implicits._
 import org.http4s.syntax.all._
 
 // Originally based on CirceSpec

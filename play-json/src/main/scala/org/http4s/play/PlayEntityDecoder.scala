@@ -19,6 +19,7 @@ package org.http4s.play
 import cats.effect.Sync
 import org.http4s.EntityDecoder
 import play.api.libs.json.Reads
+import org.http4s.play.implicits._
 
 /** Derive [[EntityDecoder]] if implicit [[play.api.libs.json.Reads]] is in
   * the scope without need to explicitly call `jsonOf`.
