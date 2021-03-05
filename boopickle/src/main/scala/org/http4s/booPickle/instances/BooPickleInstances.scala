@@ -16,6 +16,7 @@
 
 package org.http4s
 package booPickle
+package instances
 
 import boopickle.Default._
 import boopickle.Pickler
