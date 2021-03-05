@@ -21,7 +21,6 @@ import boopickle.Default._
 import cats.effect.IO
 import cats.Eq
 import cats.effect.laws.util.TestContext
-import cats.effect.laws.util.TestInstances._
 import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.MediaType
@@ -82,5 +81,5 @@ class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
     result.value.map(assertEquals(_, Right(Banana(10.0))))
   }
 
-  checkAll("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodec)
+  checkAllF("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodecF)
 }

@@ -20,7 +20,6 @@ package circe.test // Get out of circe package so we can import custom instances
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
-import cats.effect.laws.util.TestInstances._
 import cats.syntax.all._
 import fs2.Stream
 import io.circe._
@@ -201,7 +200,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     // From ArgonautSuite, which tests similar things:
     // TODO Urgh.  We need to make testing these smoother.
     // https://github.com/http4s/http4s/issues/157
-    def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync().toArray
+    def getBody(body: EntityBody[IO]): IO[Array[Byte]] = body.compile.to(Array)
     val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
     val body = req
       .decode { (json: Json) =>
@@ -210,7 +209,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
           .pure[IO]
       }
       .map(_.body)
-    body.map(b => new String(getBody(b), StandardCharsets.UTF_8)).assertEquals("157")
+    body.flatMap(getBody).map(b => new String(b, StandardCharsets.UTF_8)).assertEquals("157")
   }
 
   test("jsonOf should decode JSON from a Circe decoder") {
@@ -362,5 +361,5 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     }.assert
   }
 
-  checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
+  checkAllF("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodecF)
 }
