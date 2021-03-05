@@ -51,6 +51,4 @@ object `Transfer-Encoding` {
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) {
   def hasChunked: Boolean = values.exists(_ === TransferCoding.chunked)
-
-  def value: String = Header[`Transfer-Encoding`].value(this)
 }

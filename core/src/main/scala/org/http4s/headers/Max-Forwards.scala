@@ -40,13 +40,16 @@ object `Max-Forwards` {
   def unsafeFromLong(length: Long): `Max-Forwards` =
     fromLong(length).fold(throw _, identity)
 
+  def parse(s: String): ParseResult[`Max-Forwards`] =
+    ParseResult.fromParser(parser, "Invalid Max-Forwards header")(s)
+
   private[http4s] val parser = AdditionalRules.NonNegativeLong.mapFilter(l => fromLong(l).toOption)
 
   implicit val headerInstance: Header[`Max-Forwards`, Header.Single] =
     Header.createRendered(
       CIString("Max-Forwards"),
       _.count,
-      ParseResult.fromParser(parser, "Invalid Max-Forwards header")
+      parse
     )
 
 }

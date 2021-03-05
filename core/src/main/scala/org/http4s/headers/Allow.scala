@@ -24,7 +24,7 @@ object Allow {
   def apply(ms: Method*): Allow = Allow(ms.toSet)
 
   def parse(s: String): ParseResult[Allow] =
-    ParseResult.fromParser(parser, "Invalid Allow")(s)
+    ParseResult.fromParser(parser, "Invalid Allow header")(s)
 
   private[http4s] val parser = Rfc7230
     .headerRep1(Rfc7230.token.mapFilter(s => Method.fromString(s).toOption))
@@ -37,7 +37,7 @@ object Allow {
     Header.createRendered(
       CIString("Allow"),
       _.methods,
-      ParseResult.fromParser(parser, "Invalid Allow")
+      parse
     )
 }
 

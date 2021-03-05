@@ -18,8 +18,6 @@ package org.http4s
 package headers
 
 import org.http4s.syntax.all._
-import org.http4s.util.Renderer
-import org.http4s.Header
 
 class LinkSuite extends HeaderLaws {
   // FIXME Uri does not round trip properly: https://github.com/http4s/http4s/issues/1651
@@ -71,9 +69,6 @@ class LinkSuite extends HeaderLaws {
         `type` = Some(MediaRange.`text/*`)
       ))
 
-    val raw = implicitly[Header.Select[Link]].toRaw(links)
-    val rendered = Renderer.renderString(raw)
-
-    assertEquals(rendered, "Link: </feed>; rel=alternate; title=main; type=text/*")
+    assertEquals(links.renderString, "Link: </feed>; rel=alternate; title=main; type=text/*")
   }
 }

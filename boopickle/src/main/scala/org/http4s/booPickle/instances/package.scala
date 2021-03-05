@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.booPickle
 
-package object booPickle extends BooPickleInstances
+package object instances {
+  object all extends AllInstances
+  object booPickle extends BooPickleInstances
+}

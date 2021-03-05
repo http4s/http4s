@@ -19,6 +19,7 @@ package headers
 
 import java.time.{ZoneId, ZonedDateTime}
 import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.syntax.header._
 
 class ExpiresSuite extends HeaderLaws {
   checkAll("Expires", headerLaws[Expires])

@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
 object `If-Unmodified-Since` {
@@ -33,11 +32,9 @@ object `If-Unmodified-Since` {
     Header.createRendered(
       CIString("If-Unmodified-Since"),
       _.date,
-      ParseResult.fromParser(parser, "Invalid If-Unmodified-Since header")
+      parse
     )
 
 }
 
-final case class `If-Unmodified-Since`(date: HttpDate) {
-  def value: String = Renderer.renderString(date)
-}
+final case class `If-Unmodified-Since`(date: HttpDate)

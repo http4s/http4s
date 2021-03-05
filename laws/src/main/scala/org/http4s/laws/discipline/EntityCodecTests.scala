@@ -20,33 +20,11 @@ package discipline
 
 import cats.Eq
 import cats.effect._
-import cats.effect.std.Dispatcher
-import cats.laws.discipline._
-import org.scalacheck.{Arbitrary, Prop, Shrink}
+import org.scalacheck.{Arbitrary, Shrink}
 import org.scalacheck.effect.PropF
 
 trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
   def laws: EntityCodecLaws[F, A]
-
-  def entityCodec(implicit
-      arbitraryA: Arbitrary[A],
-      shrinkA: Shrink[A],
-      eqA: Eq[A],
-      eqFBoolean: Eq[F[Boolean]],
-      dispatcher: Dispatcher[F]
-  ): RuleSet = {
-
-    implicit def eqF[T](implicit eqT: Eq[T]): Eq[F[T]] =
-      Eq.by[F[T], T](f => dispatcher.unsafeRunSync(f))
-
-    new DefaultRuleSet(
-      name = "EntityCodec",
-      parent = Some(entityEncoder),
-      "roundTrip" -> Prop.forAll { (a: A) =>
-        laws.entityCodecRoundTrip(a)
-      }
-    )
-  }
 
   def entityCodecF(implicit
       arbitraryA: Arbitrary[A],

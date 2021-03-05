@@ -22,6 +22,9 @@ import org.typelevel.ci.CIString
 
 object `Last-Modified` {
 
+  def parse(s: String): ParseResult[`Last-Modified`] =
+    ParseResult.fromParser(parser, "Invalid Last-Modified header")(s)
+
   /* `Last-Modified = HTTP-date` */
   private[http4s] val parser: Parser[`Last-Modified`] =
     HttpDate.parser.map(apply)
@@ -30,7 +33,7 @@ object `Last-Modified` {
     Header.createRendered(
       CIString("Last-Modified"),
       _.date,
-      ParseResult.fromParser(parser, "Invalid Last-Modified header")
+      parse
     )
 
 }

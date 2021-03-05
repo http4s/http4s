@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.parse.{Parser, Parser0}
-import org.http4s.util.{Renderer}
 import org.typelevel.ci.CIString
 
 object Expires {
@@ -43,7 +42,7 @@ object Expires {
     Header.createRendered(
       CIString("Expires"),
       _.expirationDate,
-      ParseResult.fromParser(parser, "Invalid Expires header")
+      parse
     )
 
 }
@@ -59,6 +58,4 @@ object Expires {
   * @param expirationDate the date of expiration. The RFC has a warning, that using large values
   * can cause problems due to integer or clock overflows.
   */
-final case class Expires(expirationDate: HttpDate) {
-  val value = Renderer.renderString(expirationDate)
-}
+final case class Expires(expirationDate: HttpDate)

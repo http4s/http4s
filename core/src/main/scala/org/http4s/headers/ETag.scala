@@ -31,7 +31,7 @@ object ETag {
     ETag(http4s.EntityTag(tag, weakness))
 
   def parse(s: String): ParseResult[ETag] =
-    ParseResult.fromParser(parser, "ETag header")(s)
+    ParseResult.fromParser(parser, "Invalid ETag header")(s)
 
   /* `ETag = entity-tag`
    *
@@ -44,10 +44,8 @@ object ETag {
     Header.create(
       CIString("ETag"),
       _.tag.toString,
-      ParseResult.fromParser(parser, "Invalid ETag header")
+      parse
     )
 }
 
-final case class ETag(tag: EntityTag) {
-  def value: String = tag.toString()
-}
+final case class ETag(tag: EntityTag)

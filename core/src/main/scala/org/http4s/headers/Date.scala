@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.{Renderer}
 import org.typelevel.ci.CIString
 
 object Date {
@@ -33,10 +32,8 @@ object Date {
     Header.createRendered(
       CIString("Date"),
       _.date,
-      ParseResult.fromParser(parser, "Invalid Date header")
+      parse
     )
 }
 
-final case class Date(date: HttpDate) {
-  def value: String = Renderer.renderString(date)
-}
+final case class Date(date: HttpDate)

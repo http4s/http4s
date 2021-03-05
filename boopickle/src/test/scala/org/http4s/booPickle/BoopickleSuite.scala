@@ -26,8 +26,9 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.EntityCodecTests
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
+import org.http4s.booPickle.implicits._
 
-class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawSuite {
+class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()
 
   trait Fruit {

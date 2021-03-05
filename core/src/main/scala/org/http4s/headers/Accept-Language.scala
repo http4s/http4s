@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci.CIString
-import org.http4s.util.Renderer
 
 object `Accept-Language` {
   def apply(head: LanguageTag, tail: LanguageTag*): `Accept-Language` =
@@ -47,7 +46,7 @@ object `Accept-Language` {
     Header.createRendered(
       CIString("Accept-Language"),
       _.values,
-      ParseResult.fromParser(parser, "Invalid Accept-Language header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Language`] =
@@ -60,8 +59,6 @@ object `Accept-Language` {
   * [[https://tools.ietf.org/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]
   */
 final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) {
-
-  def value = Renderer.renderString(values)
 
   @deprecated("Has confusing semantics in the presence of splat. Do not use.", "0.16.1")
   def preferred: LanguageTag = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)

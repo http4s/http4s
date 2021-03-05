@@ -22,9 +22,7 @@ import org.http4s.internal.CharPredicate
 import org.http4s.ServerSentEvent._
 import org.typelevel.ci.CIString
 
-final case class `Last-Event-Id`(id: EventId) {
-  def value: String = id.value
-}
+final case class `Last-Event-Id`(id: EventId)
 
 object `Last-Event-Id` {
   def parse(s: String): ParseResult[`Last-Event-Id`] =
@@ -37,8 +35,8 @@ object `Last-Event-Id` {
   implicit val headerInstance: Header[`Last-Event-Id`, Header.Single] =
     Header.create(
       CIString("Last-Event-Id"),
-      _.value,
-      ParseResult.fromParser(parser, "Invalid Last-Event-Id header")
+      _.id.value,
+      parse
     )
 
 }

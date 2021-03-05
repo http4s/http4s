@@ -58,14 +58,8 @@ object `If-None-Match` {
         case None => "*"
         case Some(tags) => tags.mkString_("", ",", "")
       },
-      ParseResult.fromParser(parser, "Invalid If-None-Match header")
+      parse
     )
 }
 
-final case class `If-None-Match`(tags: Option[NonEmptyList[EntityTag]]) {
-  def value: String =
-    tags match {
-      case None => "*"
-      case Some(tags) => tags.mkString_("", ",", "")
-    }
-}
+final case class `If-None-Match`(tags: Option[NonEmptyList[EntityTag]])

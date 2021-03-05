@@ -286,9 +286,7 @@ object Forwarded extends ForwardedRenderers {
   }
 
   def parse(s: String): ParseResult[Forwarded] =
-    parser.parseAll(s).left.map { e =>
-      ParseFailure("Invalid header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid Forwarded header")(s)
 
   private val parser: P[Forwarded] = {
     // https://tools.ietf.org/html/rfc7239#section-4
@@ -365,7 +363,7 @@ object Forwarded extends ForwardedRenderers {
     Header.createRendered(
       name,
       _.values,
-      ParseResult.fromParser(parser, "Invalid Forwarded header")
+      parse
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =

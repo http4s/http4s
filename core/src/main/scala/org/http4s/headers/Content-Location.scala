@@ -22,7 +22,7 @@ import org.typelevel.ci.CIString
 
 object `Content-Location` {
   def parse(s: String): ParseResult[`Content-Location`] =
-    ParseResult.fromParser(parser, "Invalid Content-Location")(s)
+    ParseResult.fromParser(parser, "Invalid Content-Location header")(s)
 
   private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
@@ -33,7 +33,7 @@ object `Content-Location` {
     Header.create(
       CIString("Content-Location"),
       _.uri.toString,
-      ParseResult.fromParser(parser, "Invalid Content-Location header")
+      parse
     )
 }
 

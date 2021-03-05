@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2018 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,7 @@
  */
 
 package org.http4s
-package headers
+package booPickle
+package instances
 
-import org.typelevel.ci.CIString
-
-object `Content-Encoding` {
-  def parse(s: String): ParseResult[`Content-Encoding`] =
-    ParseResult.fromParser(parser, "Invalid Content-Encoding header")(s)
-
-  private[http4s] val parser = ContentCoding.parser.map(`Content-Encoding`(_))
-
-  implicit val headerInstance: Header[`Content-Encoding`, Header.Single] =
-    Header.createRendered(
-      CIString("Content-Encoding"),
-      _.contentCoding,
-      parse
-    )
-}
-
-final case class `Content-Encoding`(contentCoding: ContentCoding)
+trait AllInstances extends BooPickleInstances

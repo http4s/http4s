@@ -72,7 +72,10 @@ object Origin {
     nullHost.orElse(singleHost.repSep(char(' ')).map(hosts => Origin.HostList(hosts)))
   }
 
-  implicit val headerInstance: Header[`Origin`, Header.Single] =
+  def parse(s: String): ParseResult[Origin] =
+    ParseResult.fromParser(parser, "Invalid Origin header")(s)
+
+  implicit val headerInstance: Header[Origin, Header.Single] =
     Header.createRendered(
       CIString("Origin"),
       v =>
@@ -90,7 +93,7 @@ object Origin {
             }
 
         },
-      ParseResult.fromParser(parser, "Invalid Origin header")
+      parse
     )
 
 }
