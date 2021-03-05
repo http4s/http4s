@@ -21,6 +21,7 @@ import cats.effect.IO
 import io.circe.{Decoder, HCursor, Json}
 import io.circe.syntax._
 import org.http4s.{DecodeFailure, Http4sSuite, InvalidMessageBodyFailure, Response, Status}
+import org.http4s.circe.implicits._
 
 object CirceSensitiveDataEntityDecoderSpec {
 

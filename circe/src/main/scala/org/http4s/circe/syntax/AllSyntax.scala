@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-package org.http4s.circe
+package org.http4s.circe.syntax
 
-import io.circe.Encoder
-import org.http4s.EntityEncoder
-import org.http4s.circe.implicits._
-
-/** Derive [[EntityEncoder]] if implicit [[io.circe.Encoder]] is in the scope
-  * without need to explicitly call `jsonEncoderOf`.
-  */
-trait CirceEntityEncoder {
-  implicit def circeEntityEncoder[F[_], A: Encoder]: EntityEncoder[F, A] =
-    jsonEncoderOf[F, A]
-}
-
-object CirceEntityEncoder extends CirceEntityEncoder
+trait AllSyntax extends MessageSyntax

@@ -22,7 +22,7 @@ import io.circe._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.headers.Connection
-import org.http4s.circe._
+import org.http4s.circe.implicits._
 import org.typelevel.ci.CIString
 
 object JsonDebugErrorHandler {

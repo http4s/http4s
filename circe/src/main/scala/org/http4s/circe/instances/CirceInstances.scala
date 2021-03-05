@@ -16,6 +16,7 @@
 
 package org.http4s
 package circe
+package instances
 
 import java.nio.ByteBuffer
 
@@ -171,8 +172,6 @@ trait CirceInstances {
       Uri.fromString(str).leftMap(_ => "Uri")
     }
 
-  implicit final def toMessageSynax[F[_]](req: Message[F]): CirceInstances.MessageSyntax[F] =
-    new CirceInstances.MessageSyntax(req)
 }
 
 sealed abstract case class CirceInstancesBuilder private[circe] (
@@ -242,10 +241,10 @@ object CirceInstances {
 
   // These are lazy since they are used when initializing the `builder`!
 
-  private[circe] lazy val defaultCirceParseError: ParsingFailure => DecodeFailure =
+  private[instances] lazy val defaultCirceParseError: ParsingFailure => DecodeFailure =
     pe => MalformedMessageBodyFailure("Invalid JSON", Some(pe))
 
-  private[circe] lazy val defaultJsonDecodeError
+  private[instances] lazy val defaultJsonDecodeError
       : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
     jsonDecodeErrorHelper(json, _.toString, failures)
   }
@@ -309,17 +308,4 @@ object CirceInstances {
 
   // Extension methods.
 
-  private[circe] final class MessageSyntax[F[_]](private val req: Message[F]) extends AnyVal {
-    def asJson(implicit F: JsonDecoder[F]): F[Json] =
-      F.asJson(req)
-
-    def asJsonDecode[A](implicit F: JsonDecoder[F], decoder: Decoder[A]): F[A] =
-      F.asJsonDecode(req)
-
-    def decodeJson[A](implicit F: Sync[F], decoder: Decoder[A]): F[A] =
-      req.as(F, jsonOf[F, A])
-
-    def json(implicit F: Sync[F]): F[Json] =
-      req.as(F, jsonDecoder[F])
-  }
 }
