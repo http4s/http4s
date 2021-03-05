@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.jawn
 
-package object jawn extends JawnInstances
+package object instances {
+  object all extends AllInstances
+  object jawn extends JawnInstances
+}

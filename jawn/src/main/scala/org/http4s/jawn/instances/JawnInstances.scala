@@ -16,6 +16,7 @@
 
 package org.http4s
 package jawn
+package instances
 
 import cats.effect._
 import cats.syntax.all._
@@ -27,9 +28,9 @@ trait JawnInstances {
   def jawnDecoder[F[_]: Sync, J: Facade]: EntityDecoder[F, J] =
     EntityDecoder.decodeBy(MediaType.application.json)(jawnDecoderImpl[F, J])
 
-  protected def jawnParseExceptionMessage: ParseException => DecodeFailure =
+  private[http4s] def jawnParseExceptionMessage: ParseException => DecodeFailure =
     JawnInstances.defaultJawnParseExceptionMessage
-  protected def jawnEmptyBodyMessage: DecodeFailure =
+  private[http4s] def jawnEmptyBodyMessage: DecodeFailure =
     JawnInstances.defaultJawnEmptyBodyMessage
 
   // some decoders may reuse it and avoid extra content negotiation
