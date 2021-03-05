@@ -26,9 +26,9 @@ import org.http4s.{
   InvalidMessageBodyFailure,
   MediaType,
   Message,
-  Uri,
-  jawn
+  Uri
 }
+import org.http4s.jawn.implicits._
 import org.http4s.play.Parser.facade
 import play.api.libs.json._
 
@@ -45,7 +45,7 @@ trait PlayInstances {
     }
 
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JsValue] =
-    jawn.jawnDecoder[F, JsValue]
+    jawnDecoder[F, JsValue]
 
   def jsonEncoderOf[F[_], A: Writes]: EntityEncoder[F, A] =
     jsonEncoder[F].contramap[A](Json.toJson(_))

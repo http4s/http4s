@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.play
+package org.http4s.jawn
 
-import play.api.libs.json.Writes
-import org.http4s.EntityEncoder
-import org.http4s.play.implicits._
+import org.http4s.jawn.instances.AllInstances
 
-/** Derive [[EntityEncoder]] if implicit [[play.api.libs.json.Writes]] is in
-  * the scope without need to explicitly call `jsonEncoderOf`.
-  */
-trait PlayEntityEncoder {
-  implicit def playEntityEncoder[F[_], A: Writes]: EntityEncoder[F, A] =
-    jsonEncoderOf[F, A]
-}
-
-object PlayEntityEncoder extends PlayEntityEncoder
+object implicits extends AllInstances

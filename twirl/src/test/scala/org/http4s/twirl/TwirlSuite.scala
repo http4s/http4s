@@ -20,6 +20,7 @@ package twirl
 import cats.effect.IO
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+import org.http4s.twirl.implicits._
 import org.scalacheck.effect.PropF
 import org.scalacheck.{Arbitrary, Gen, Prop}
 import play.twirl.api.{Html, JavaScript, Txt, Xml}

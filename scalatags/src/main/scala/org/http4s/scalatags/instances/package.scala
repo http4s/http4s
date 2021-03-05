@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.http4s.play
+package org.http4s
+package scalatags
+package instances
 
-import play.api.libs.json.Writes
-import org.http4s.EntityEncoder
-import org.http4s.play.implicits._
-
-/** Derive [[EntityEncoder]] if implicit [[play.api.libs.json.Writes]] is in
-  * the scope without need to explicitly call `jsonEncoderOf`.
-  */
-trait PlayEntityEncoder {
-  implicit def playEntityEncoder[F[_], A: Writes]: EntityEncoder[F, A] =
-    jsonEncoderOf[F, A]
+package object instances {
+  object all extends AllInstances
+  object scalatags extends ScalatagsInstances
 }
-
-object PlayEntityEncoder extends PlayEntityEncoder

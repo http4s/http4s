@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2018 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,7 @@
  */
 
 package org.http4s
+package scalatags
+package instances
 
-package object jawn extends JawnInstances
+trait AllInstances extends ScalatagsInstances

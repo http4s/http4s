@@ -26,10 +26,11 @@ import fs2.{Chunk, Pull, Stream}
 import io.circe._
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
-import org.http4s.jawn.JawnInstances
+import org.http4s.jawn.implicits._
 import org.typelevel.jawn.ParseException
+import org.http4s.jawn.instances.JawnInstances
 
-trait CirceInstances extends JawnInstances {
+trait CirceInstances {
   protected val circeSupportParser =
     new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
 
@@ -44,7 +45,7 @@ trait CirceInstances extends JawnInstances {
     CirceInstances.defaultJsonDecodeError
 
   def jsonDecoderIncremental[F[_]: Sync]: EntityDecoder[F, Json] =
-    this.jawnDecoder[F, Json]
+    jawnDecoder[F, Json]
 
   def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
@@ -73,7 +74,7 @@ trait CirceInstances extends JawnInstances {
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
           jsonDecoderByteBufferImpl[F](msg)
-        case _ => this.jawnDecoderImpl[F, Json](msg)
+        case _ => jawnDecoderImpl[F, Json](msg)
       }
     }
 
@@ -229,9 +230,6 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
         self.jsonDecodeError
       override val circeParseExceptionMessage: ParsingFailure => DecodeFailure =
         self.circeParseExceptionMessage
-      override val jawnParseExceptionMessage: ParseException => DecodeFailure =
-        self.jawnParseExceptionMessage
-      override val jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage
     }
 }
 
