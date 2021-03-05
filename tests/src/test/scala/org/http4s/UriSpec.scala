@@ -224,7 +224,7 @@ class UriSpec extends Http4sSuite {
           Uri(
             Some(Scheme.http),
             Some(Authority(host = Ipv6Address.unsafeFromString(s))),
-            Uri.Path.fromString("/foo"),
+            Uri.Path.unsafeFromString("/foo"),
             Query.fromPairs("bar" -> "baz")).toString,
           s"http://[$s]/foo?bar=baz"
         )
@@ -236,7 +236,7 @@ class UriSpec extends Http4sSuite {
         Uri(
           Some(Scheme.http),
           Some(Authority(host = RegName(CIString("www.foo.com")))),
-          Uri.Path.fromString("/foo"),
+          Uri.Path.unsafeFromString("/foo"),
           Query.fromPairs("bar" -> "baz")).toString,
         "http://www.foo.com/foo?bar=baz"
       )
@@ -261,8 +261,9 @@ class UriSpec extends Http4sSuite {
         Uri(
           Some(Scheme.http),
           Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
-          Uri.Path.fromString("/c"),
-          Query.fromPairs("GB" -> "object", "Class" -> "one")).toString,
+          Uri.Path.unsafeFromString("/c"),
+          Query.fromPairs("GB" -> "object", "Class" -> "one")
+        ).toString,
         "http://192.168.1.1:80/c?GB=object&Class=one"
       )
     }
@@ -286,7 +287,7 @@ class UriSpec extends Http4sSuite {
         Uri(
           Some(Scheme.http),
           Some(Authority(host = ipv6"2001:db8::7")),
-          Uri.Path.fromString("/c"),
+          Uri.Path.unsafeFromString("/c"),
           Query.fromPairs("GB" -> "object", "Class" -> "one")).toString,
         "http://[2001:db8::7]/c?GB=object&Class=one"
       )
@@ -318,7 +319,9 @@ class UriSpec extends Http4sSuite {
 
     test("Uri toString should render email address") {
       assertEquals(
-        Uri(Some(scheme"mailto"), path = Uri.Path.fromString("John.Doe@example.com")).toString,
+        Uri(
+          Some(scheme"mailto"),
+          path = Uri.Path.unsafeFromString("John.Doe@example.com")).toString,
         "mailto:John.Doe@example.com")
     }
 
@@ -331,7 +334,7 @@ class UriSpec extends Http4sSuite {
               Some(UserInfo("username", Some("password"))),
               RegName("some.example.com"),
               None)),
-          Uri.Path.fromString("/"),
+          Uri.Path.unsafeFromString("/"),
           Query.empty,
           None
         ).toString,
@@ -348,7 +351,7 @@ class UriSpec extends Http4sSuite {
               Some(UserInfo("username", Some("password"))),
               RegName("some.example.com"),
               None)),
-          Uri.Path.fromString("/some/path"),
+          Uri.Path.unsafeFromString("/some/path"),
           Query.fromString("param1=5&param-without-value"),
           None
         ).toString,
@@ -359,7 +362,7 @@ class UriSpec extends Http4sSuite {
     test("Uri toString should render relative URI with empty query string") {
       assertEquals(
         Uri(
-          path = Uri.Path.fromString("/"),
+          path = Uri.Path.unsafeFromString("/"),
           query = Query.fromString(""),
           fragment = None).toString,
         "/?")
@@ -368,7 +371,7 @@ class UriSpec extends Http4sSuite {
     test("Uri toString should render relative URI with empty query string and fragment") {
       assertEquals(
         Uri(
-          path = Uri.Path.fromString("/"),
+          path = Uri.Path.unsafeFromString("/"),
           query = Query.fromString(""),
           fragment = Some("")).toString,
         "/?#")
@@ -388,14 +391,14 @@ class UriSpec extends Http4sSuite {
 
     test("Uri toString should render absolute path with fragment") {
       assertEquals(
-        Uri(path = Uri.Path.fromString("/foo/bar"), fragment = Some("an-anchor")).toString,
+        Uri(path = Uri.Path.unsafeFromString("/foo/bar"), fragment = Some("an-anchor")).toString,
         "/foo/bar#an-anchor")
     }
 
     test("Uri toString should render absolute path with parameters") {
       assertEquals(
         Uri(
-          path = Uri.Path.fromString("/foo/bar"),
+          path = Uri.Path.unsafeFromString("/foo/bar"),
           query = Query.fromString("foo=bar&ding=dong")).toString,
         "/foo/bar?foo=bar&ding=dong")
     }
@@ -403,7 +406,7 @@ class UriSpec extends Http4sSuite {
     test("Uri toString should render absolute path with parameters and fragment") {
       assertEquals(
         Uri(
-          path = Uri.Path.fromString("/foo/bar"),
+          path = Uri.Path.unsafeFromString("/foo/bar"),
           query = Query.fromString("foo=bar&ding=dong"),
           fragment = Some("an_anchor")).toString,
         "/foo/bar?foo=bar&ding=dong#an_anchor"
@@ -413,7 +416,7 @@ class UriSpec extends Http4sSuite {
     test("Uri toString should render absolute path with parameters and fragment") {
       assertEquals(
         Uri(
-          path = Uri.Path.fromString("/foo/bar"),
+          path = Uri.Path.unsafeFromString("/foo/bar"),
           query = Query.fromString("foo=bar&ding=dong"),
           fragment = Some("an_anchor")).toString,
         "/foo/bar?foo=bar&ding=dong#an_anchor"
@@ -421,28 +424,28 @@ class UriSpec extends Http4sSuite {
     }
 
     test("Uri toString should render absolute path without parameters") {
-      assertEquals(Uri(path = Uri.Path.fromString("/foo/bar")).toString, "/foo/bar")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("/foo/bar")).toString, "/foo/bar")
     }
 
     test("Uri toString should render absolute root path without parameters") {
-      assertEquals(Uri(path = Uri.Path.fromString("/")).toString, "/")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("/")).toString, "/")
     }
 
     test("Uri toString should render absolute path containing colon") {
-      assertEquals(Uri(path = Uri.Path.fromString("/foo:bar")).toString, "/foo:bar")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("/foo:bar")).toString, "/foo:bar")
     }
 
     test(
       "Uri toString should prefix relative path containing colon in the only segment with a ./") {
-      assertEquals(Uri(path = Uri.Path.fromString("foo:bar")).toString, "./foo:bar")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("foo:bar")).toString, "./foo:bar")
     }
 
     test("Uri toString should prefix relative path containing colon in first segment with a ./") {
-      assertEquals(Uri(path = Uri.Path.fromString("foo:bar/baz")).toString, "./foo:bar/baz")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("foo:bar/baz")).toString, "./foo:bar/baz")
     }
 
     test("Uri toString should not prefix relative path containing colon in later segment") {
-      assertEquals(Uri(path = Uri.Path.fromString("foo/bar:baz")).toString, "foo/bar:baz")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("foo/bar:baz")).toString, "foo/bar:baz")
     }
 
     test("Uri toString should render a query string with a single param") {
@@ -1047,7 +1050,7 @@ class UriSpec extends Http4sSuite {
     test("Uri relative resolution should correctly remove dot segments in other examples") {
       forAll(pathGen) { (input: String) =>
         val prefix = "/this/isa/prefix/"
-        val processed = Uri.removeDotSegments(Uri.Path.fromString(input)).renderString
+        val processed = Uri.removeDotSegments(Uri.Path.unsafeFromString(input)).renderString
         val path = Paths.get(prefix, processed).normalize
         assert(path.startsWith(Paths.get(prefix)))
         assert(!processed.contains("./"))

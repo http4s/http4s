@@ -50,7 +50,7 @@ class CORSSuite extends Http4sSuite {
     hs.get(name).fold(false)(_.exists(_.value === expected))
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = Uri.Path.fromString(path)), method = method)
+    Request[IO](uri = Uri(path = Uri.Path.unsafeFromString(path)), method = method)
       .withHeaders("Origin" -> "http://allowed.com", "Access-Control-Request-Method" -> "GET")
 
   test("Be omitted when unrequested") {
