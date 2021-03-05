@@ -15,5 +15,9 @@
  */
 
 package org.http4s
+package twirl
 
-package object twirl extends TwirlInstances
+package object instances {
+  object all extends AllInstances
+  object twirl extends TwirlInstances
+}
