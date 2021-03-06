@@ -17,18 +17,21 @@
 package org.http4s
 
 import cats.syntax.all._
-import java.nio.charset.{Charset => JCharset}
-import java.nio.charset.{
-  CharacterCodingException,
-  MalformedInputException,
-  UnmappableCharacterException
-}
 import fs2._
 import fs2.text.utf8Decode
 import org.http4s.internal.decode
 import org.http4s.laws.discipline.arbitrary._
-import java.nio.charset.StandardCharsets
 import org.scalacheck.Prop.{forAll, propBoolean}
+
+import java.nio.ByteBuffer
+import java.nio.charset.{
+  CodingErrorAction,
+  MalformedInputException,
+  StandardCharsets,
+  UnmappableCharacterException,
+  Charset => JCharset
+}
+import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {
   test("decode should be consistent with utf8Decode") {
@@ -140,16 +143,21 @@ class DecodeSpec extends Http4sSuite {
     })
   }
 
-  test("decode should either succeed or raise a CharacterCodingException") {
+  test("decode stream result should be consistent with nio's decode on full stream") {
     forAll { (bs: Array[Byte], cs: Charset) =>
+      val referenceDecoder = cs.nioCharset
+        .newDecoder()
+        // setting these to be consistent with our decoder's behavior
+        // note that java.nio.charset.Charset.decode and fs2's utf8Decode
+        // will replace character instead of raising exception
+        .onMalformedInput(CodingErrorAction.REPORT)
+        .onUnmappableCharacter(CodingErrorAction.REPORT)
+
+      val referenceResult = Try(referenceDecoder.decode(ByteBuffer.wrap(bs)).toString).toEither
       val source = Stream.emits(bs)
-      val decoded = source.through(decode[Fallible](cs)).compile.drain
-      decoded match {
-        case Left(_: CharacterCodingException) => true
-        case Right(_) => true
-        case _ => false
-      }
+      val decoded = source.through(decode[Fallible](cs)).compile.foldMonoid
+      // Ignoring the actual exception type
+      assertEquals(decoded.toOption, referenceResult.toOption)
     }
   }
-
 }
