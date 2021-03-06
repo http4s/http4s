@@ -106,4 +106,4 @@ If you're working with either [twirl] or [scalatags] you can use our bridges:
 [MediaType]: ../api/org/http4s/MediaType$
 [MediaRange]: ../api/org/http4s/MediaRange$
 [twirl]: https://github.com/playframework/twirl
-[scalatags]: http://www.lihaoyi.com/scalatags/
+[scalatags]: https://github.com/com-lihaoyi/scalatags
