@@ -59,17 +59,14 @@ trait PlayInstances {
       .withContentType(`Content-Type`(MediaType.application.json))
 
   implicit val writesUri: Writes[Uri] =
-    Writes.contravariantfunctorWrites.contramap[String, Uri](implicitly[Writes[String]], _.toString)
+    Writes.of[String].contramap(_.toString)
 
   implicit val readsUri: Reads[Uri] =
-    implicitly[Reads[String]].flatMap { str =>
+    Reads.of[String].flatMap { str =>
       Uri
         .fromString(str)
         .fold(
-          _ =>
-            new Reads[Uri] {
-              def reads(json: JsValue): JsResult[Uri] = JsError("Invalid uri")
-            },
+          _ => Reads(_ => JsError("Invalid uri")),
           Reads.pure(_)
         )
     }
