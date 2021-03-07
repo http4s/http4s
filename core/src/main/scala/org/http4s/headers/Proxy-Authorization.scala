@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 /** {{{
   *   The "Proxy-Authorization" header field allows the client to identify
@@ -41,7 +41,7 @@ object `Proxy-Authorization` {
 
   implicit val headerInstance: Header[`Proxy-Authorization`, Header.Single] =
     Header.createRendered(
-      CIString("Proxy-Authorization"),
+      ci"Proxy-Authorization",
       _.credentials,
       parse
     )

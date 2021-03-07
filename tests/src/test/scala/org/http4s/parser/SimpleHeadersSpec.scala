@@ -22,7 +22,7 @@ import com.comcast.ip4s._
 import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.http4s.EntityTag.{Strong, Weak}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class SimpleHeadersSpec extends Http4sSuite {
   test("parse Accept-Patch") {
@@ -45,10 +45,10 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val header = `Access-Control-Allow-Headers`(
       NonEmptyList.of(
-        CIString("Accept"),
-        CIString("Expires"),
-        CIString("X-Custom-Header"),
-        CIString("*")
+        ci"Accept",
+        ci"Expires",
+        ci"X-Custom-Header",
+        ci"*"
       )
     )
 
@@ -61,10 +61,10 @@ class SimpleHeadersSpec extends Http4sSuite {
   test("parse Access-Control-Expose-Headers") {
     val header = `Access-Control-Expose-Headers`(
       NonEmptyList.of(
-        CIString("Content-Length"),
-        CIString("Authorization"),
-        CIString("X-Custom-Header"),
-        CIString("*")
+        ci"Content-Length",
+        ci"Authorization",
+        ci"X-Custom-Header",
+        ci"*"
       )
     )
     assertEquals(`Access-Control-Expose-Headers`.parse(header.toRaw.value), Right(header))
@@ -74,7 +74,7 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("parse Connection") {
-    val header = Connection(CIString("closed"))
+    val header = Connection(ci"closed")
     assertEquals(Connection.parse(header.toRaw.value), Right(header))
   }
 

@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Date {
   def parse(s: String): ParseResult[Date] =
@@ -30,7 +30,7 @@ object Date {
 
   implicit val headerInstance: Header[Date, Header.Single] =
     Header.createRendered(
-      CIString("Date"),
+      ci"Date",
       _.date,
       parse
     )

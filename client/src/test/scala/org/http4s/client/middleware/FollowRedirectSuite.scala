@@ -26,7 +26,7 @@ import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.headers._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   private val loopCounter = new AtomicInteger(0)
@@ -75,7 +75,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     client
       .run(req)
       .use { case resp =>
-        resp.headers.get(CIString("X-Original-Content-Length")).map(_.head.value).pure[IO]
+        resp.headers.get(ci"X-Original-Content-Length").map(_.head.value).pure[IO]
       }
       .map(_.get)
       .assertEquals("0")
@@ -130,7 +130,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     client
       .run(req)
       .use { case resp =>
-        resp.headers.get(CIString("X-Original-Authorization")).map(_.head.value).pure[IO]
+        resp.headers.get(ci"X-Original-Authorization").map(_.head.value).pure[IO]
       }
       .assertEquals(Some(""))
   }
@@ -143,7 +143,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     client
       .run(req)
       .use { case resp =>
-        resp.headers.get(CIString("X-Original-Authorization")).map(_.head.value).pure[IO]
+        resp.headers.get(ci"X-Original-Authorization").map(_.head.value).pure[IO]
       }
       .assertEquals(Some("Bearer s3cr3t"))
   }

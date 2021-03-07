@@ -24,13 +24,13 @@ import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.implicits._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   //TODO: bring back well-typed value once all headers are moved to new model
   val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw
-  val connClose = Connection(CIString("close")).toRaw
-  val connKeep = Connection(CIString("keep-alive")).toRaw
+  val connClose = Connection(ci"close").toRaw
+  val connKeep = Connection(ci"keep-alive").toRaw
   val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw
 
   def length(l: Long) = `Content-Length`.unsafeFromLong(l).toRaw

@@ -22,7 +22,7 @@ import cats.parse.{Parser0, Rfc5234}
 import org.http4s.parser.ZipkinHeader
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `X-B3-SpanId` {
 
@@ -38,7 +38,7 @@ object `X-B3-SpanId` {
 
   implicit val headerInstance: Header[`X-B3-SpanId`, Header.Single] =
     Header.createRendered(
-      CIString("X-B3-SpanId"),
+      ci"X-B3-SpanId",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =

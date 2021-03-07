@@ -22,7 +22,7 @@ import org.http4s.internal.CharPredicate
 import org.http4s.internal.parsing.{Rfc2616, Rfc3986, Rfc7230}
 import org.http4s.util.{Renderable, Writer}
 import java.nio.charset.StandardCharsets
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Content-Disposition` {
   def parse(s: String): ParseResult[`Content-Disposition`] =
@@ -74,7 +74,7 @@ object `Content-Disposition` {
 
   implicit val headerInstance: Header[`Content-Disposition`, Header.Single] =
     Header.createRendered(
-      CIString("Content-Disposition"),
+      ci"Content-Disposition",
       v =>
         new Renderable {
           def render(writer: Writer): writer.type = {

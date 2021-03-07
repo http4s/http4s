@@ -23,7 +23,7 @@ import com.comcast.ip4s.IpAddress
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `X-Forwarded-For` {
 
@@ -42,7 +42,7 @@ object `X-Forwarded-For` {
 
   implicit val headerInstance: Header[`X-Forwarded-For`, Header.Single] =
     Header.createRendered(
-      CIString("X-Forwarded-For"),
+      ci"X-Forwarded-For",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {

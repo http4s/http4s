@@ -34,7 +34,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.vault._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -152,7 +152,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       .map(parseAndDropDate)
       .map { case (s, h, r) =>
         val close = h.exists { h =>
-          h.name == CIString("connection") && h.value == "close"
+          h.name == ci"connection" && h.value == "close"
         }
         (s, close, r)
       }

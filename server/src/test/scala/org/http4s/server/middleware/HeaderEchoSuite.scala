@@ -22,7 +22,7 @@ import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class HeaderEchoSuite extends Http4sSuite {
   val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
@@ -47,7 +47,7 @@ class HeaderEchoSuite extends Http4sSuite {
 
   test("echo a single header in addition to the defaults") {
     testSingleHeader(
-      HeaderEcho(_ === CIString("someheaderkey"))(testService).orNotFound
+      HeaderEcho(_ === ci"someheaderkey")(testService).orNotFound
     ).assert
   }
 
@@ -58,7 +58,7 @@ class HeaderEchoSuite extends Http4sSuite {
         headers =
           Headers("someheaderkey" -> "someheadervalue", "anotherheaderkey" -> "anotherheadervalue"))
     val headersToEcho =
-      List(CIString("someheaderkey"), CIString("anotherheaderkey"))
+      List(ci"someheaderkey", ci"anotherheaderkey")
     val testee = HeaderEcho(headersToEcho.contains(_))(testService)
 
     testee
@@ -79,7 +79,7 @@ class HeaderEchoSuite extends Http4sSuite {
         uri = uri"/request",
         headers = Headers("someunmatchedheader" -> "someunmatchedvalue"))
 
-    val testee = HeaderEcho(_ == CIString("someheaderkey"))(testService)
+    val testee = HeaderEcho(_ == ci"someheaderkey")(testService)
     testee
       .orNotFound(requestMatchingNotPresentHeaderKey)
       .map { r =>
@@ -94,12 +94,11 @@ class HeaderEchoSuite extends Http4sSuite {
   test("be created via the httpRoutes constructor") {
     testSingleHeader(
       HeaderEcho
-        .httpRoutes(_ == CIString("someheaderkey"))(testService)
+        .httpRoutes(_ == ci"someheaderkey")(testService)
         .orNotFound).assert
   }
 
   test("be created via the httpApps constructor") {
-    testSingleHeader(
-      HeaderEcho.httpApp(_ == CIString("someheaderkey"))(testService.orNotFound)).assert
+    testSingleHeader(HeaderEcho.httpApp(_ == ci"someheaderkey")(testService.orNotFound)).assert
   }
 }

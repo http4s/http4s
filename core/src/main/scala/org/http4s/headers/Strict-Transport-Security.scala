@@ -22,7 +22,7 @@ import org.http4s.internal.parsing.Rfc7230.ows
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -87,7 +87,7 @@ object `Strict-Transport-Security` {
 
   implicit val headerInstance: Header[`Strict-Transport-Security`, Header.Single] =
     Header.createRendered(
-      CIString("Strict-Transport-Security"),
+      ci"Strict-Transport-Security",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {

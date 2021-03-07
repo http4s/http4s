@@ -22,7 +22,7 @@ import cats.parse._
 import cats.syntax.foldable._
 import org.http4s.internal.parsing.Rfc7230
 
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `If-Match` {
 
@@ -44,7 +44,7 @@ object `If-Match` {
 
   implicit val headerInstance: Header[`If-Match`, Header.Single] =
     Header.create(
-      CIString("If-Match"),
+      ci"If-Match",
       _.tags match {
         case None => "*"
         case Some(nel) => nel.mkString_("", ",", "")

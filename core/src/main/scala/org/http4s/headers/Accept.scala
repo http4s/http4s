@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230.headerRep1
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Accept {
   def apply(head: MediaRangeAndQValue, tail: MediaRangeAndQValue*): Accept =
@@ -55,7 +55,7 @@ object Accept {
 
   implicit val headerInstance: Header[Accept, Header.Recurring] =
     Header.createRendered(
-      CIString("Accept"),
+      ci"Accept",
       _.values,
       parse
     )

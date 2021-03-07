@@ -14,7 +14,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import cats.syntax.all._
 import cats.Monad
 import org.http4s.headers.{Connection, `Content-Length`}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.util.control.NonFatal
 import java.net.URL
 import java.security.{
@@ -77,7 +77,7 @@ object ErrorReporting {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection(CIString("close")),
+              Connection(ci"close"),
               `Content-Length`.zero
             )))
     }

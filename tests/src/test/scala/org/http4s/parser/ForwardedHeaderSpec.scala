@@ -22,7 +22,7 @@ import cats.syntax.either._
 import org.http4s.headers.Forwarded
 import org.http4s.internal.bug
 import org.http4s.syntax.literals._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class ForwardedHeaderSpec extends Http4sSuite {
   import Forwarded.Element
@@ -158,7 +158,7 @@ object ForwardedHeaderSpec {
       uri.host match {
         case Some(ipv4: Uri.Ipv4Address) => Node.Name.Ipv4(ipv4.address)
         case Some(ipv6: Uri.Ipv6Address) => Node.Name.Ipv6(ipv6.address)
-        case Some(Uri.RegName(UnCIString("unknown"))) => Node.Name.Unknown
+        case Some(Uri.RegName(ci"unknown")) => Node.Name.Unknown
         case Some(Uri.RegName(UnCIString(ObfuscatedRe(obfuscatedName)))) =>
           Node.Obfuscated(obfuscatedName)
         case Some(other) => throw bug(s"not allowed as host for node: $other")

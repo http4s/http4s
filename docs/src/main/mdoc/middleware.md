@@ -234,7 +234,7 @@ import org.typelevel.ci.CIString
 
 val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
   case req =>
-    val reqId = req.headers.get(CIString("X-Request-ID")).fold("null")(_.head.value)
+    val reqId = req.headers.get(ci"X-Request-ID").fold("null")(_.head.value)
     // use request id to correlate logs with the request
     IO(println(s"request received, cid=$reqId")) *> Ok()
 })

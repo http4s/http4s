@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.{Numbers, Parser0 => P0, Parser => P}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 // See https://tools.ietf.org/html/rfc7233
 
@@ -91,7 +91,7 @@ object Range {
 
   implicit val headerInstance: Header[Range, Header.Single] =
     Header.createRendered(
-      CIString("Range"),
+      ci"Range",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {

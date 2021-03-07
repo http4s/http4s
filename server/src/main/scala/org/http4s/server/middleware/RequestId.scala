@@ -24,7 +24,7 @@ import cats.arrow.FunctionK
 import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.{IO, Sync}
 import cats.syntax.all._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.vault.Key
 import java.util.UUID
 
@@ -34,7 +34,7 @@ import java.util.UUID
   */
 object RequestId {
 
-  private[this] val requestIdHeader = CIString("X-Request-ID")
+  private[this] val requestIdHeader = ci"X-Request-ID"
 
   val requestIdAttrKey: Key[String] = Key.newKey[IO, String].unsafeRunSync()
 

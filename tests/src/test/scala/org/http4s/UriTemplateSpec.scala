@@ -19,7 +19,7 @@ package org.http4s
 import com.comcast.ip4s._
 import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
 import org.http4s.UriTemplate._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class UriTemplateSpec extends Http4sSuite {
   {
@@ -238,7 +238,7 @@ class UriTemplateSpec extends Http4sSuite {
     }
     test("UriTemplate should render http://www.foo.com:80") {
       val scheme = Some(Scheme.http)
-      val host = RegName(CIString("www.foo.com"))
+      val host = RegName(ci"www.foo.com")
       val authority = Some(Authority(host = host, port = Some(80)))
       val path = Nil
       val query = Nil
@@ -246,9 +246,7 @@ class UriTemplateSpec extends Http4sSuite {
     }
     test("UriTemplate should render http://www.foo.com") {
       assertEquals(
-        UriTemplate(
-          Some(Scheme.http),
-          Some(Authority(host = RegName(CIString("www.foo.com"))))).toString,
+        UriTemplate(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com")))).toString,
         "http://www.foo.com")
     }
     test("UriTemplate should render http://192.168.1.1") {
@@ -517,7 +515,7 @@ class UriTemplateSpec extends Http4sSuite {
     }
     test("UriTemplate.toUriIfPossible should convert http://www.foo.com:80 to Uri") {
       val scheme = Some(Scheme.http)
-      val host = RegName(CIString("www.foo.com"))
+      val host = RegName(ci"www.foo.com")
       val authority = Some(Authority(host = host, port = Some(80)))
       val path = Nil
       assertEquals(
@@ -526,12 +524,12 @@ class UriTemplateSpec extends Http4sSuite {
     }
     test("UriTemplate.toUriIfPossible should convert http://www.foo.com to Uri") {
       val scheme = Some(Scheme.http)
-      val host = RegName(CIString("www.foo.com"))
+      val host = RegName(ci"www.foo.com")
       val authority = Some(Authority(host = host))
       assertEquals(
         UriTemplate(
           Some(Scheme.http),
-          Some(Authority(host = RegName(CIString("www.foo.com"))))).toUriIfPossible.get,
+          Some(Authority(host = RegName(ci"www.foo.com")))).toUriIfPossible.get,
         Uri(scheme, authority))
     }
     test("UriTemplate.toUriIfPossible should convert http://192.168.1.1 to Uri") {

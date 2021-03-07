@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.internal.parsing.Rfc7230
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Allow {
   def apply(ms: Method*): Allow = Allow(ms.toSet)
@@ -35,7 +35,7 @@ object Allow {
 
   implicit val headerInstance: Header[Allow, Header.Single] =
     Header.createRendered(
-      CIString("Allow"),
+      ci"Allow",
       _.methods,
       parse
     )

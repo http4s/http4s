@@ -275,7 +275,7 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.12.2"
     val blaze = "0.15.0-M2"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.0.0"
+    val caseInsensitive = "1.1.0"
     val cats = "2.4.2"
     val catsEffect = "2.3.3"
     val catsParse = "0.3.1"

@@ -20,7 +20,7 @@ import cats.Semigroup
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 // TODO migrate to a proper mdoc. This is to keep it compiling.
 
@@ -29,13 +29,13 @@ object HeaderExamples {
   case class Foo(v: String)
   object Foo {
     implicit def headerFoo: Header[Foo, Header.Single] = new Header[Foo, Header.Single] {
-      def name = CIString("foo")
+      def name = ci"foo"
       def value(f: Foo) = f.v
       def parse(s: String) = Foo(s).asRight
     }
 
   }
-  def baz = Header.Raw(CIString("baz"), "bbb")
+  def baz = Header.Raw(ci"baz", "bbb")
 
   val myHeaders = Headers(
     Foo("hello"),
@@ -47,7 +47,7 @@ object HeaderExamples {
   object Bar {
     implicit val headerBar: Header[Bar, Header.Recurring] with Semigroup[Bar] =
       new Header[Bar, Header.Recurring] with Semigroup[Bar] {
-        def name = CIString("Bar")
+        def name = ci"Bar"
         def value(b: Bar) = b.v.toList.mkString(",")
         def parse(s: String) = Bar(NonEmptyList.one(s)).asRight
         def combine(a: Bar, b: Bar) = Bar(a.v |+| b.v)
@@ -58,7 +58,7 @@ object HeaderExamples {
   object SetCookie {
     implicit val headerCookie: Header[SetCookie, Header.Recurring] =
       new Header[SetCookie, Header.Recurring] {
-        def name = CIString("Set-Cookie")
+        def name = ci"Set-Cookie"
         def value(c: SetCookie) = s"${c.name}:${c.value}"
         def parse(s: String) =
           s.split(':').toList match {
