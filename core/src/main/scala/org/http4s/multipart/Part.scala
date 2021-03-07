@@ -27,9 +27,10 @@ import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
-  def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get("name"))
+  def name: Option[String] =
+    headers.get[`Content-Disposition`].flatMap(_.parameters.get("name").map(_.toString()))
   def filename: Option[String] =
-    headers.get[`Content-Disposition`].flatMap(_.parameters.get("filename"))
+    headers.get[`Content-Disposition`].flatMap(_.parameters.get("filename").map(_.toString()))
 
   override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }

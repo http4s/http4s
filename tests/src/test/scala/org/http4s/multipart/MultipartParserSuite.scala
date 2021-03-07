@@ -235,7 +235,10 @@ class MultipartParserSuite extends Http4sSuite {
 
       val expectedHeaders = Headers(
         // #4513 for why this isn't a modeled header
-        "Content-Disposition" -> """form-data; name*=UTF-8''http4s%20withspace; filename*="我老婆太漂亮.txt"""",
+        `Content-Disposition`(
+          "form-data",
+          Map("name*" -> Utf8String("http4s withspace"), "filename*" -> "我老婆太漂亮.txt")),
+        //"Content-Disposition" -> """form-data; name*=UTF-8''http4s%20withspace; filename*="我老婆太漂亮.txt"""",
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )

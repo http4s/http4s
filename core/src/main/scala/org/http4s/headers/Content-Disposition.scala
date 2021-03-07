@@ -45,29 +45,33 @@ object `Content-Disposition` {
     val valueChars = attrChar.orElse(pctEncoded).rep
     val language = Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0
     val charset = Parser.string("UTF-8").as(StandardCharsets.UTF_8)
-    val extValue = (Rfc5234.dquote *> Parser.charsWhile0(
-      CharPredicate.All -- '"') <* Rfc5234.dquote) | (charset ~ (Parser.string(
-      "'") *> language.? <* Parser.string("'")) ~ valueChars).map { case ((charset, _), values) =>
-      values
-        .map {
-          case EncodedChar(a: Char, b: Char) =>
-            val charByte = (Character.digit(a, 16) << 4) + Character.digit(b, 16)
-            new String(Array(charByte.toByte), charset)
-          case AsciiChar(a) => a.toString
-        }
-        .toList
-        .mkString
-    }
+    val extValue =
+      (Rfc5234.dquote *> Parser.charsWhile0(CharPredicate.All -- '"') <* Rfc5234.dquote)
+        .map((_, false)) | (charset ~ (Parser.string("'") *> language.? <* Parser.string(
+        "'")) ~ valueChars).map { case ((charset, _), values) =>
+        val bb = values
+          .map {
+            case EncodedChar(a: Char, b: Char) =>
+              val charByte = (Character.digit(a, 16) << 4) + Character.digit(b, 16)
+              new String(Array(charByte.toByte), charset)
+            case AsciiChar(a) => a.toString
+          }
+          .toList
+          .mkString
+
+        (bb, charset == StandardCharsets.UTF_8)
+      }
 
     val value = Rfc7230.token | Rfc7230.quotedString
 
     val parameter = for {
       tok <- Rfc7230.token <* Parser.string("=") <* Rfc7230.ows
-      v <- if (tok.endsWith("*")) extValue else value
-    } yield (tok, v)
+      v <- (if (tok.endsWith("*")) extValue else value.map((_, false)))
+      (value, isUtf8) = v
+    } yield (tok, if (isUtf8) Utf8String(value) else AsciiString(value))
 
     (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map {
-      case (token: String, params: List[(String, String)]) =>
+      case (token: String, params: List[(String, PtcEncodedString)]) =>
         `Content-Disposition`(token, params.toMap)
     }
   }
@@ -79,7 +83,7 @@ object `Content-Disposition` {
         new Renderable {
           def render(writer: Writer): writer.type = {
             writer.append(v.dispositionType)
-            v.parameters.foreach(p => writer << "; " << p._1 << "=\"" << p._2 << '"')
+            v.parameters.foreach(p => writer << "; " << p._1 << "=" << p._2)
             writer
           }
         },
@@ -87,5 +91,27 @@ object `Content-Disposition` {
     )
 }
 
+sealed trait PtcEncodedString extends Renderable {
+  def render(writer: Writer): writer.type =
+    this match {
+      case AsciiString(value) => writer << s""""$value""""
+      case Utf8String(value) => writer << "UTF-8''" << Uri.encode(value)
+
+    }
+  override def toString = this match {
+    case AsciiString(value) =>
+      value
+    case Utf8String(value) => s"UTF-8''${Uri.encode(value)}"
+  }
+}
+final case class AsciiString(s: String) extends PtcEncodedString
+final case class Utf8String(s: String) extends PtcEncodedString
+
+object PtcEncodedString {
+  implicit def fromString(s: String) = AsciiString(s)
+}
+
 // see http://tools.ietf.org/html/rfc2183
-final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String])
+final case class `Content-Disposition`(
+    dispositionType: String,
+    parameters: Map[String, PtcEncodedString])
