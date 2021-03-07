@@ -230,7 +230,7 @@ as to why this header is useful.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.RequestId
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
   case req =>
