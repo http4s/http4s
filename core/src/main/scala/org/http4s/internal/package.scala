@@ -30,12 +30,10 @@ import cats.effect.{Async, Concurrent, ConcurrentEffect, ContextShift, Effect, I
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
-import org.http4s.util.execution.direct
 import org.log4s.Logger
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.util.control.NoStackTrace
-import scala.util.{Failure, Success}
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
 
@@ -133,42 +131,6 @@ package object internal {
       case HexDecodeException => None
     }
   }
-
-  // Adapted from https://github.com/typelevel/cats-effect/issues/199#issuecomment-401273282
-  @deprecated(
-    "Replaced by cats.effect.Async.fromFuture. You will need a ContextShift[F].",
-    "0.21.4")
-  private[http4s] def fromFuture[F[_], A](f: F[Future[A]])(implicit F: Async[F]): F[A] =
-    f.flatMap { future =>
-      future.value match {
-        case Some(value) =>
-          F.fromTry(value)
-        case None =>
-          F.async { cb =>
-            future.onComplete {
-              case Success(a) => cb(Right(a))
-              case Failure(t) => cb(Left(t))
-            }(direct)
-          }
-      }
-    }
-
-  // Adapted from https://github.com/typelevel/cats-effect/issues/160#issue-306054982
-  @deprecated("Use `fromCompletionStage`", since = "0.21.3")
-  private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(implicit
-      F: Concurrent[F]): F[A] =
-    fcf.flatMap { cf =>
-      F.cancelable { cb =>
-        cf.handle[Unit]((result, err) =>
-          err match {
-            case null => cb(Right(result))
-            case _: CancellationException => ()
-            case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-            case ex => cb(Left(ex))
-          })
-        F.delay { cf.cancel(true); () }
-      }
-    }
 
   private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
       fcs: F[CF[A]])(implicit
