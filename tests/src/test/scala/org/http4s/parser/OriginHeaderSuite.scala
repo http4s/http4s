@@ -18,12 +18,13 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
+import com.comcast.ip4s._
 import org.http4s.headers.Origin
 import org.http4s.syntax.all._
 
 class OriginHeaderSuite extends munit.FunSuite {
   val host1 = Origin.Host(Uri.Scheme.http, Uri.RegName("www.foo.com"), Some(12345))
-  val host2 = Origin.Host(Uri.Scheme.https, ipv4"127.0.0.1", None)
+  val host2 = Origin.Host(Uri.Scheme.https, Uri.Ipv4Address(ipv4"127.0.0.1"), None)
 
   val hostString1 = "http://www.foo.com:12345"
   val hostString2 = "https://127.0.0.1"
