@@ -96,19 +96,20 @@ sealed trait PtcEncodedString extends Renderable {
     this match {
       case AsciiString(value) => writer << s""""$value""""
       case Utf8String(value) => writer << "UTF-8''" << Uri.encode(value)
-
     }
+
   override def toString = this match {
     case AsciiString(value) =>
       value
     case Utf8String(value) => s"UTF-8''${Uri.encode(value)}"
   }
+
 }
 final case class AsciiString(s: String) extends PtcEncodedString
 final case class Utf8String(s: String) extends PtcEncodedString
 
 object PtcEncodedString {
-  implicit def fromString(s: String) = AsciiString(s)
+  implicit def fromString(s: String): PtcEncodedString = AsciiString(s)
 }
 
 // see http://tools.ietf.org/html/rfc2183
