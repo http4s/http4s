@@ -91,6 +91,9 @@ title: Adopters
 [Docspell](https://github.com/eikek/docspell)
 : A personal document (pdf) organizer
 
+[fink](https://github.com/dozed/fink-http4s)
+: A simple Scala-based content management system
+
 [fleet-buddy](https://github.com/reactormonk/fleet-buddy)
 : Eve Online fleet buddy based on the CREST API
 
