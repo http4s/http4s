@@ -20,7 +20,7 @@ package headers
 
 import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Accept-Patch` {
   def apply(head: MediaType, tail: MediaType*): `Accept-Patch` =
@@ -34,7 +34,7 @@ object `Accept-Patch` {
 
   implicit val headerInstance: Header[`Accept-Patch`, Header.Recurring] =
     Header.createRendered(
-      CIString("Accept-Patch"),
+      ci"Accept-Patch",
       _.values,
       parse
     )

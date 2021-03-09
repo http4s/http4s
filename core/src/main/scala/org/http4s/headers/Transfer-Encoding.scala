@@ -22,14 +22,14 @@ import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Transfer-Encoding` {
 
   def apply(head: TransferCoding, tail: TransferCoding*): `Transfer-Encoding` =
     apply(NonEmptyList(head, tail.toList))
 
-  val name = CIString("Transfer-Encoding")
+  val name = ci"Transfer-Encoding"
 
   def parse(s: String): ParseResult[`Transfer-Encoding`] =
     ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")(s)

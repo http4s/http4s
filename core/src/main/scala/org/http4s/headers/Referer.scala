@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import java.nio.charset.StandardCharsets
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Referer {
 
@@ -32,7 +32,7 @@ object Referer {
 
   implicit val headerInstance: Header[Referer, Header.Single] =
     Header.createRendered(
-      CIString("Referer"),
+      ci"Referer",
       _.uri,
       parse
     )

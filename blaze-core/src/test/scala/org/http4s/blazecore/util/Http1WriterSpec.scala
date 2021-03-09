@@ -28,7 +28,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.concurrent.{ExecutionContext, Future}
 
 class Http1WriterSpec extends Http4sSuite {
@@ -297,7 +297,7 @@ class Http1WriterSpec extends Http4sSuite {
     def builderWithTrailer(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
       new FlushingChunkWriter[IO](
         tail,
-        IO.pure(Headers(Header.Raw(CIString("X-Trailer"), "trailer header value"))))
+        IO.pure(Headers(Header.Raw(ci"X-Trailer", "trailer header value"))))
 
     val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
 

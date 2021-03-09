@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.CharsetRange.{Atom, `*`}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Accept-Charset` {
   def apply(head: CharsetRange, tail: CharsetRange*): `Accept-Charset` =
@@ -54,7 +54,7 @@ object `Accept-Charset` {
 
   implicit val headerInstance: Header[`Accept-Charset`, Header.Recurring] =
     Header.createRendered(
-      CIString("Accept-Charset"),
+      ci"Accept-Charset",
       _.values,
       parse
     )

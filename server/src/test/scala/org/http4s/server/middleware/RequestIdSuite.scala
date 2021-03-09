@@ -21,11 +21,11 @@ import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import java.util.UUID
 
 class RequestIdSuite extends Http4sSuite {
-  private def testService(headerKey: CIString = CIString("X-Request-ID")) =
+  private def testService(headerKey: CIString = ci"X-Request-ID") =
     HttpRoutes.of[IO] {
       case req @ GET -> Root / "request" =>
         Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.head.value)}")
@@ -37,9 +37,7 @@ class RequestIdSuite extends Http4sSuite {
   private def requestIdFromBody(resp: Response[IO]) =
     resp.as[String].map(_.stripPrefix("request-id: "))
 
-  private def requestIdFromHeaders(
-      resp: Response[IO],
-      headerKey: CIString = CIString("X-Request-ID")) =
+  private def requestIdFromHeaders(resp: Response[IO], headerKey: CIString = ci"X-Request-ID") =
     resp.headers.get(headerKey).fold("None")(_.head.value)
 
   test("propagate X-Request-ID header from request to response") {
@@ -82,10 +80,10 @@ class RequestIdSuite extends Http4sSuite {
       uri = uri"/request",
       headers = Headers("X-Request-ID" -> "123", "X-Correlation-ID" -> "abc"))
     RequestId
-      .httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID")))
+      .httpRoutes(ci"X-Correlation-ID")(testService(ci"X-Correlation-ID"))
       .orNotFound(req)
       .flatMap { resp =>
-        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, CIString("X-Correlation-ID")))
+        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, ci"X-Correlation-ID"))
       }
       .map { case (reqReqId, respReqId) =>
         reqReqId === "abc" && respReqId === "abc"
@@ -97,10 +95,10 @@ class RequestIdSuite extends Http4sSuite {
     val req =
       Request[IO](uri = uri"/request", headers = Headers("X-Request-ID" -> "123"))
     RequestId
-      .httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID")))
+      .httpRoutes(ci"X-Correlation-ID")(testService(ci"X-Correlation-ID"))
       .orNotFound(req)
       .flatMap { resp =>
-        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, CIString("X-Correlation-ID")))
+        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, ci"X-Correlation-ID"))
       }
       .map { case (reqReqId, respReqId) =>
         reqReqId === respReqId && Either.catchNonFatal(UUID.fromString(respReqId)).isRight

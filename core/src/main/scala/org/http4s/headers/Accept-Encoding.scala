@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
@@ -38,7 +38,7 @@ object `Accept-Encoding` {
 
   implicit val headerInstance: Header[`Accept-Encoding`, Header.Recurring] =
     Header.createRendered(
-      CIString("Accept-Encoding"),
+      ci"Accept-Encoding",
       _.values,
       parse
     )

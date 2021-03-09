@@ -20,7 +20,7 @@ import org.http4s._
 import org.http4s.Uri._
 import org.http4s.Uri.Scheme.https
 import org.http4s.syntax.all._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class UriParserSuite extends Http4sSuite {
   {
@@ -66,19 +66,13 @@ class UriParserSuite extends Http4sSuite {
       val portExamples: Seq[(String, Uri)] = Seq(
         (
           "http://foo.com",
-          Uri(
-            Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"foo.com"), port = None)))),
         (
           "http://foo.com:",
-          Uri(
-            Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"foo.com"), port = None)))),
         (
           "http://foo.com:80",
-          Uri(
-            Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("foo.com")), port = Some(80)))))
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"foo.com"), port = Some(80)))))
       )
 
       check(portExamples)
@@ -88,12 +82,12 @@ class UriParserSuite extends Http4sSuite {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com"))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("www.foo.com")))),
+            Some(Authority(host = RegName(ci"www.foo.com"))),
             path"/foo",
             Query.fromPairs("bar" -> "baz"))),
         ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
@@ -167,12 +161,12 @@ class UriParserSuite extends Http4sSuite {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com"))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("www.foo.com")))),
+            Some(Authority(host = RegName(ci"www.foo.com"))),
             path"/foo",
             Query.fromPairs("bar" -> "baz"))),
         ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
@@ -248,7 +242,7 @@ class UriParserSuite extends Http4sSuite {
         uri"https://http4s.org",
         Uri(
           scheme = Option(https),
-          authority = Option(Uri.Authority(host = RegName(CIString("http4s.org"))))))
+          authority = Option(Uri.Authority(host = RegName(ci"http4s.org")))))
     }
 
     test("String interpolator should reject invalid URIs") {

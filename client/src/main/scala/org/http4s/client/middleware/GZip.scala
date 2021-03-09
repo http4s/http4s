@@ -22,7 +22,7 @@ import cats.data.NonEmptyList
 import cats.effect.{BracketThrow, Sync}
 import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 
 /** Client middleware for enabling gzip.
@@ -86,8 +86,8 @@ object GZip {
       }
 
   private def nonCompressionHeader(header: Header.Raw): Boolean =
-    header.name != CIString("Content-Encoding") &&
-      header.name != CIString("Content-Length")
+    header.name != ci"Content-Encoding" &&
+      header.name != ci"Content-Length"
 
   private object EmptyBodyException extends Throwable with NoStackTrace
 }

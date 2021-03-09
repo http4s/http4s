@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.syntax.foldable._
 import cats.parse._
 import org.http4s.internal.parsing.Rfc7230
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 /** {{{
   *  The "If-None-Match" header field makes the request method conditional
@@ -53,7 +53,7 @@ object `If-None-Match` {
 
   implicit val headerInstance: Header[`If-None-Match`, Header.Single] =
     Header.create(
-      CIString("If-None-Match"),
+      ci"If-None-Match",
       _.tags match {
         case None => "*"
         case Some(tags) => tags.mkString_("", ",", "")

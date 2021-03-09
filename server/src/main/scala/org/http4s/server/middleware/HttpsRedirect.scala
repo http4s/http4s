@@ -25,7 +25,7 @@ import org.http4s.Status.MovedPermanently
 import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.http4s.headers.{Host, Location, `Content-Type`}
 import org.http4s.syntax.header._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 import org.log4s.getLogger
 
@@ -40,7 +40,7 @@ object HttpsRedirect {
 
   def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
-      (req.headers.get(CIString("X-Forwarded-Proto")), req.headers.get[Host]) match {
+      (req.headers.get(ci"X-Forwarded-Proto"), req.headers.get[Host]) match {
         case (Some(NonEmptyList(proto, _)), Some(host))
             if Scheme.fromString(proto.value).contains(Scheme.http) =>
           logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host")

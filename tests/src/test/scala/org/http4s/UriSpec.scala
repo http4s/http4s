@@ -20,7 +20,7 @@ import org.http4s.Uri._
 import org.http4s.syntax.all._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSuite {
@@ -235,7 +235,7 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = RegName(CIString("www.foo.com")))),
+          Some(Authority(host = RegName(ci"www.foo.com"))),
           Uri.Path.unsafeFromString("/foo"),
           Query.fromPairs("bar" -> "baz")).toString,
         "http://www.foo.com/foo?bar=baz"
@@ -246,13 +246,13 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = RegName(CIString("www.foo.com")), port = Some(80)))).toString,
+          Some(Authority(host = RegName(ci"www.foo.com"), port = Some(80)))).toString,
         "http://www.foo.com:80")
     }
 
     test("Uri toString should render URL without port") {
       assertEquals(
-        Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com"))))).toString,
+        Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com")))).toString,
         "http://www.foo.com")
     }
 

@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Authorization {
   //https://tools.ietf.org/html/rfc7235#section-4.2
@@ -35,7 +35,7 @@ object Authorization {
 
   implicit val headerInstance: Header[Authorization, Header.Single] =
     Header.createRendered(
-      CIString("Authorization"),
+      ci"Authorization",
       _.credentials,
       parse
     )
