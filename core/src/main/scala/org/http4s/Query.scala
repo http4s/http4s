@@ -197,13 +197,17 @@ object Query {
     *
     * If parsing fails, the empty [[Query]] is returned
     */
-  def fromString(query: String): Query =
+  def unsafeFromString(query: String): Query =
     if (query.isEmpty) new Query(Vector("" -> None))
     else
       QueryParser.parseQueryString(query) match {
         case Right(query) => query
         case Left(_) => Query.empty
       }
+
+  @deprecated(message = "Use unsafeFromString instead", since = "0.22.0-M6")
+  def fromString(query: String): Query =
+    unsafeFromString(query)
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
@@ -230,7 +234,7 @@ object Query {
     import cats.parse.Parser.charIn
     import Rfc3986.pchar
 
-    pchar.orElse(charIn("/?[]")).rep0.string.map(Query.fromString)
+    pchar.orElse(charIn("/?[]")).rep0.string.map(Query.unsafeFromString)
   }
 
   implicit val catsInstancesForHttp4sQuery: Hash[Query] with Order[Query] with Show[Query] =

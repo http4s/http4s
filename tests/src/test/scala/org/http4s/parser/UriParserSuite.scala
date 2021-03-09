@@ -137,7 +137,7 @@ class UriParserSuite extends Http4sSuite {
     }
 
     {
-      val q = Query.fromString("param1=3&param2=2&param2=foo")
+      val q = Query.unsafeFromString("param1=3&param2=2&param2=foo")
       val u = Uri(query = q)
       test("Uri.requestTarget should represent query as multiParams as a Map[String,Seq[String]]") {
         assert(u.multiParams == Map("param1" -> Seq("3"), "param2" -> Seq("2", "foo")))
