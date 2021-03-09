@@ -12,8 +12,8 @@ package org.http4s
 
 import cats.kernel.laws.discipline._
 import cats.syntax.all._
+import com.comcast.ip4s._
 import java.nio.file.Paths
-
 import org.http4s.internal.CharPredicate
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Uri._
@@ -223,7 +223,7 @@ class UriSpec extends Http4sSuite {
         assertEquals(
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = Ipv6Address.unsafeFromString(s))),
+            Some(Authority(host = Uri.Ipv6Address.unsafeFromString(s))),
             Uri.Path.unsafeFromString("/foo"),
             Query.fromPairs("bar" -> "baz")).toString,
           s"http://[$s]/foo?bar=baz"
@@ -260,7 +260,7 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
+          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(80))),
           Uri.Path.unsafeFromString("/c"),
           Query.fromPairs("GB" -> "object", "Class" -> "one")
         ).toString,
@@ -272,13 +272,13 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv4"192.168.1.1", port = Some(8080)))).toString,
+          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(8080)))).toString,
         "http://192.168.1.1:8080")
     }
 
     test("Uri toString should render IPv4 URL without port") {
       assertEquals(
-        Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1"))).toString,
+        Uri(Some(Scheme.http), Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1")))).toString,
         "http://192.168.1.1")
     }
 
@@ -286,9 +286,10 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv6"2001:db8::7")),
+          Some(Authority(host = Uri.Ipv6Address(ipv6"2001:db8::7"))),
           Uri.Path.unsafeFromString("/c"),
-          Query.fromPairs("GB" -> "object", "Class" -> "one")).toString,
+          Query.fromPairs("GB" -> "object", "Class" -> "one")
+        ).toString,
         "http://[2001:db8::7]/c?GB=object&Class=one"
       )
     }
@@ -299,7 +300,7 @@ class UriSpec extends Http4sSuite {
           Some(Scheme.http),
           Some(
             Authority(
-              host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344",
+              host = Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"),
               port = Some(8080)))).toString,
         "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080"
       )
@@ -309,8 +310,11 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString,
-        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
+          Some(
+            Authority(host =
+              Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344")))).toString,
+        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]"
+      )
     }
 
     test("Uri toString should not append a '/' unless it's in the path") {
