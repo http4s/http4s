@@ -21,7 +21,7 @@ import cats.syntax.functor._
 import com.example.http4s.blaze.demo.server.endpoints.ApiVersion
 import fs2.Stream
 import io.circe.generic.auto._
-import org.http4s.circe._
+import org.http4s.circe.implicits._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.Request

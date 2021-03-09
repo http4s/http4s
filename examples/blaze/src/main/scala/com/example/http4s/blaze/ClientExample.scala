@@ -19,7 +19,7 @@ package com.example.http4s.blaze
 import cats.effect._
 import io.circe.generic.auto._
 import org.http4s.Status.{NotFound, Successful}
-import org.http4s.circe._
+import org.http4s.circe.syntax.all._
 import org.http4s.syntax.all._
 import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder

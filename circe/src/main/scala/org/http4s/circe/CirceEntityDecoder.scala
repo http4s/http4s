@@ -19,6 +19,7 @@ package org.http4s.circe
 import cats.effect.Sync
 import io.circe.Decoder
 import org.http4s.EntityDecoder
+import org.http4s.circe.implicits._
 
 /** Derive [[EntityDecoder]] if implicit [[io.circe.Decoder]] is in the scope
   * without need to explicitly call `jsonOf`.

@@ -15,5 +15,7 @@
  */
 
 package org.http4s
+package circe
+package instances
 
-package object circe extends CirceInstances
+trait AllInstances extends CirceInstances

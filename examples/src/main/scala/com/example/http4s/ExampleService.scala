@@ -20,7 +20,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import io.circe.Json
-import org.http4s.circe._
+import org.http4s.circe.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.multipart.Multipart

@@ -18,7 +18,9 @@ package org.http4s.circe
 
 import cats.effect.Sync
 import org.http4s._
+import org.http4s.circe.implicits._
 import io.circe._
+import org.http4s.circe.syntax.all._
 
 /** F-algebra for separating the Sync required for extracting
   * the Json from the body. As such if F is Sync at some layer,
