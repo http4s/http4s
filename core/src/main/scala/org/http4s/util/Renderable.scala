@@ -27,6 +27,7 @@ import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
+import org.http4s.internal.CharPredicate
 
 /** A type class that describes how to efficiently render a type
   * @tparam T the type which will be rendered
@@ -159,6 +160,17 @@ trait Writer {
 
     go(0)
     this << '"'
+  }
+
+  def eligibleOnly(s: String, keep: CharPredicate, placeholder: Char): this.type = {
+    @tailrec def rec(ix: Int = 0): this.type =
+      if (ix < s.length) {
+        val c = s.charAt(ix)
+        if (keep(c)) this << c
+        else this << placeholder
+        rec(ix + 1)
+      } else this
+    rec()
   }
 
   def addStrings(
