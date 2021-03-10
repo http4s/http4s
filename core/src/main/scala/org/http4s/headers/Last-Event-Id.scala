@@ -20,7 +20,7 @@ package headers
 import cats.parse.Parser
 import org.http4s.internal.CharPredicate
 import org.http4s.ServerSentEvent._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 final case class `Last-Event-Id`(id: EventId)
 
@@ -34,7 +34,7 @@ object `Last-Event-Id` {
 
   implicit val headerInstance: Header[`Last-Event-Id`, Header.Single] =
     Header.create(
-      CIString("Last-Event-Id"),
+      ci"Last-Event-Id",
       _.id.value,
       parse
     )

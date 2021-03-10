@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Last-Modified` {
 
@@ -31,7 +31,7 @@ object `Last-Modified` {
 
   implicit val headerInstance: Header[`Last-Modified`, Header.Single] =
     Header.createRendered(
-      CIString("Last-Modified"),
+      ci"Last-Modified",
       _.date,
       parse
     )

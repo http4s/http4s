@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.parser.AdditionalRules
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 /** Request header, used with the TRACE and OPTION request methods,
   * that gives an upper bound on how many times the request can be
@@ -47,7 +47,7 @@ object `Max-Forwards` {
 
   implicit val headerInstance: Header[`Max-Forwards`, Header.Single] =
     Header.createRendered(
-      CIString("Max-Forwards"),
+      ci"Max-Forwards",
       _.count,
       parse
     )

@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Access-Control-Allow-Credentials` {
   def parse(s: String): ParseResult[`Access-Control-Allow-Credentials`] =
@@ -28,7 +28,7 @@ object `Access-Control-Allow-Credentials` {
 
   implicit val headerInstance: Header[`Access-Control-Allow-Credentials`, Header.Single] =
     Header.create(
-      CIString("Access-Control-Allow-Credentials"),
+      ci"Access-Control-Allow-Credentials",
       _.value,
       parse
     )

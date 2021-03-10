@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.http4s.internal.parsing.Rfc7230
 import cats.data.NonEmptyList
 
@@ -34,7 +34,7 @@ object `Access-Control-Allow-Headers` {
 
   implicit val headerInstance: Header[`Access-Control-Allow-Headers`, Header.Recurring] =
     Header.createRendered(
-      CIString("Access-Control-Allow-Headers"),
+      ci"Access-Control-Allow-Headers",
       _.values,
       parse
     )

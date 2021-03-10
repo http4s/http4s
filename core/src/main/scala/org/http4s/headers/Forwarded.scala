@@ -28,7 +28,7 @@ import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import org.http4s.Header
 import scala.util.Try
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Forwarded extends ForwardedRenderers {
 
@@ -357,7 +357,7 @@ object Forwarded extends ForwardedRenderers {
       .map(Forwarded.apply)
   }
 
-  val name = CIString("Forwarded")
+  val name = ci"Forwarded"
 
   implicit val headerInstance: Header[Forwarded, Header.Recurring] =
     Header.createRendered(

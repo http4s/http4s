@@ -24,7 +24,7 @@ import org.typelevel.vault._
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.log4s.getLogger
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
@@ -162,7 +162,7 @@ package object server {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection(CIString("close")),
+              Connection(ci"close"),
               `Content-Length`.zero
             )))
     }

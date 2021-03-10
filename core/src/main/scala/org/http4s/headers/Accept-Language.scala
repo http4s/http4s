@@ -20,7 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Accept-Language` {
   def apply(head: LanguageTag, tail: LanguageTag*): `Accept-Language` =
@@ -44,7 +44,7 @@ object `Accept-Language` {
 
   implicit val headerInstance: Header[`Accept-Language`, Header.Recurring] =
     Header.createRendered(
-      CIString("Accept-Language"),
+      ci"Accept-Language",
       _.values,
       parse
     )

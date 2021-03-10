@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import java.nio.charset.StandardCharsets
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Content-Location` {
   def parse(s: String): ParseResult[`Content-Location`] =
@@ -31,7 +31,7 @@ object `Content-Location` {
 
   implicit val headerInstance: Header[`Content-Location`, Header.Single] =
     Header.create(
-      CIString("Content-Location"),
+      ci"Content-Location",
       _.uri.toString,
       parse
     )

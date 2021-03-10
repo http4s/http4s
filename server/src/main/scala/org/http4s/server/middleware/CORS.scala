@@ -23,7 +23,7 @@ import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
 import org.log4s.getLogger
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.concurrent.duration._
 
 /** CORS middleware config options.
@@ -44,7 +44,7 @@ final case class CORSConfig(
 object CORS {
   private[CORS] val logger = getLogger
 
-  val defaultVaryHeader = Header.Raw(CIString("Vary"), "Origin,Access-Control-Request-Method")
+  val defaultVaryHeader = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
 
   def DefaultCORSConfig =
     CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
@@ -68,7 +68,7 @@ object CORS {
           config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
 
       def varyHeader(response: Response[G]): Response[G] =
-        response.headers.get(CIString("Vary")) match {
+        response.headers.get(ci"Vary") match {
           case None => response.putHeaders(defaultVaryHeader)
           case _ => response
         }
@@ -108,8 +108,8 @@ object CORS {
 
       (
         req.method,
-        req.headers.get(CIString("Origin")),
-        req.headers.get(CIString("Access-Control-Request-Method"))) match {
+        req.headers.get(ci"Origin"),
+        req.headers.get(ci"Access-Control-Request-Method")) match {
         case (OPTIONS, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _)))
             if allowCORS(origin, acrm) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
@@ -117,7 +117,7 @@ object CORS {
         case (_, Some(NonEmptyList(origin, _)), _) =>
           if (allowCORS(
               origin,
-              Header.Raw(CIString("Access-Control-Request-Method"), req.method.renderString)))
+              Header.Raw(ci"Access-Control-Request-Method", req.method.renderString)))
             http(req).map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
               corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)

@@ -21,7 +21,7 @@ import cats.parse.{Numbers, Parser => P}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Content-Range` {
   def apply(range: Range.SubRange, length: Option[Long] = None): `Content-Range` =
@@ -64,7 +64,7 @@ object `Content-Range` {
 
   implicit val headerInstance: Header[`Content-Range`, Header.Single] =
     Header.createRendered(
-      CIString("Content-Range"),
+      ci"Content-Range",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {

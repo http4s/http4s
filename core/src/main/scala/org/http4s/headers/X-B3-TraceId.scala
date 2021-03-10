@@ -24,7 +24,7 @@ import cats.syntax.all._
 import java.util.UUID
 import org.http4s.parser.ZipkinHeader
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `X-B3-TraceId` {
 
@@ -40,7 +40,7 @@ object `X-B3-TraceId` {
 
   implicit val headerInstance: Header[`X-B3-TraceId`, Header.Single] =
     Header.createRendered(
-      CIString("X-B3-TraceId"),
+      ci"X-B3-TraceId",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =

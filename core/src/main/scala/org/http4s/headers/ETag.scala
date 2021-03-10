@@ -20,7 +20,7 @@ package headers
 import cats.parse.Parser
 import org.http4s
 import org.http4s.EntityTag.{Strong, Weakness, parser => entityTagParser}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object ETag {
 
@@ -42,7 +42,7 @@ object ETag {
 
   implicit val headerInstance: Header[ETag, Header.Single] =
     Header.create(
-      CIString("ETag"),
+      ci"ETag",
       _.tag.toString,
       parse
     )

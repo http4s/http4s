@@ -20,7 +20,7 @@ package headers
 import org.http4s.parser.AdditionalRules
 import scala.concurrent.duration._
 import scala.util.Try
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Age {
   def fromLong(age: Long): ParseResult[Age] =
@@ -42,7 +42,7 @@ object Age {
 
   implicit val headerInstance: Header[Age, Header.Single] =
     Header.createRendered(
-      CIString("Age"),
+      ci"Age",
       _.age,
       parse
     )

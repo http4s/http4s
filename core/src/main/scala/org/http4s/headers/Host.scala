@@ -21,7 +21,7 @@ import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.{Renderable, Writer}
 import scala.util.Try
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Host {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
@@ -40,7 +40,7 @@ object Host {
   }
   implicit val headerInstance: Header[Host, Header.Single] =
     Header.createRendered(
-      CIString("Host"),
+      ci"Host",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {
