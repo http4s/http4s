@@ -18,11 +18,7 @@ package org.http4s
 
 import cats.ApplicativeThrow
 import fs2._
-import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
-import org.http4s.internal.skipUtf8ByteOrderMark
-import org.typelevel.ci.CIString
-import scala.concurrent.ExecutionContextExecutor
 
 package object util {
 
