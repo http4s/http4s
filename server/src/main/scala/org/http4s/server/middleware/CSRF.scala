@@ -28,6 +28,7 @@ import java.security.{MessageDigest, SecureRandom}
 import java.time.Clock
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
+import org.http4s.EntityDecoder.multipart
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
 import org.http4s.util.CaseInsensitiveString
@@ -406,10 +407,26 @@ object CSRF {
       }
     }
 
+    def getMultipartToken: F[Option[String]] =
+      if (r.headers.get(headers.`Content-Type`).map(_.mediaType.isMultipart).getOrElse(false)) {
+        val token = multipart[G].decode(r, strict = true).value.flatMap {
+          case Right(dec) =>
+            // The `.drop(1)` removes the first empty line from the body value of the field.
+            dec.parts
+              .find(_.headers.exists(_.value.contains(s"""name="$fieldName"""")))
+              .traverse(_.body.through(fs2.text.utf8Decode).drop(1).compile.fold("")(_ |+| _))
+          case Left(_) => Sync[G].pure(none[String])
+        }
+        nt(token)
+      } else {
+        F.pure(none[String])
+      }
+
     for {
       fst <- F.pure(csrf.getHeaderToken(r))
       snd <- if (fst.isDefined) F.pure(fst) else getFormToken
-      tok <- snd.fold(csrf.onfailureF)(csrf.checkCSRFToken(r, http, _))
+      trd <- if (snd.isDefined) F.pure(snd) else getMultipartToken
+      tok <- trd.fold(csrf.onfailureF)(csrf.checkCSRFToken(r, http, _))
     } yield tok
   }
 
