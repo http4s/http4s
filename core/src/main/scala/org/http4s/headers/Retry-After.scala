@@ -20,7 +20,7 @@ package headers
 import cats.parse.{Parser, Rfc5234}
 import org.http4s.util.Renderable._
 import scala.concurrent.duration.FiniteDuration
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Retry-After` {
   private class RetryAfterImpl(retry: Either[HttpDate, Long]) extends `Retry-After`(retry)
@@ -57,7 +57,7 @@ object `Retry-After` {
 
   implicit val headerInstance: Header[`Retry-After`, Header.Single] =
     Header.createRendered(
-      CIString("Retry-After"),
+      ci"Retry-After",
       _.retry,
       parse
     )

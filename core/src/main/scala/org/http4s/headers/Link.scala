@@ -23,7 +23,7 @@ import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token
 
 import java.nio.charset.StandardCharsets
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Link {
 
@@ -90,7 +90,7 @@ object Link {
 
   implicit val headerInstance: Header[Link, Header.Recurring] =
     Header.createRendered(
-      CIString("Link"),
+      ci"Link",
       _.values,
       parse
     )

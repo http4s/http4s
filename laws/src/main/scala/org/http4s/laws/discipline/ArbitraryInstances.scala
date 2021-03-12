@@ -726,7 +726,7 @@ private[http4s] trait ArbitraryInstances {
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
 
     oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty).map(
-      Uri.Path.fromString)
+      Uri.Path.unsafeFromString)
   }
 
   implicit val http4sTestingCogenForPath: Cogen[Uri.Path] =

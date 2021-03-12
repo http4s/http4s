@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.{Parser, Parser0, Rfc5234}
 import org.http4s.Uri.RegName
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 sealed abstract class Origin
 
@@ -77,7 +77,7 @@ object Origin {
 
   implicit val headerInstance: Header[Origin, Header.Single] =
     Header.createRendered(
-      CIString("Origin"),
+      ci"Origin",
       v =>
         new Renderable {
           def render(writer: Writer): writer.type =

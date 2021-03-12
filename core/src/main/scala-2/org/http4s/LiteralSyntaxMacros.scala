@@ -34,7 +34,7 @@ object LiteralSyntaxMacros {
       args,
       "Uri.Path",
       _ => true,
-      s => c.universe.reify(Uri.Path.fromString(s.splice)))
+      s => c.universe.reify(Uri.Path.unsafeFromString(s.splice)))
 
   def schemeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Scheme] =
     singlePartInterpolator(c)(
@@ -42,20 +42,6 @@ object LiteralSyntaxMacros {
       "Scheme",
       Uri.Scheme.fromString(_).isRight,
       s => c.universe.reify(Uri.Scheme.unsafeFromString(s.splice)))
-
-  def ipv4AddressInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Ipv4Address] =
-    singlePartInterpolator(c)(
-      args,
-      "Ipv4Address",
-      Uri.Ipv4Address.fromString(_).isRight,
-      s => c.universe.reify(Uri.Ipv4Address.unsafeFromString(s.splice)))
-
-  def ipv6AddressInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Ipv6Address] =
-    singlePartInterpolator(c)(
-      args,
-      "Ipv6Address",
-      Uri.Ipv6Address.fromString(_).isRight,
-      s => c.universe.reify(Uri.Ipv6Address.unsafeFromString(s.splice)))
 
   def mediaTypeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[MediaType] =
     singlePartInterpolator(c)(

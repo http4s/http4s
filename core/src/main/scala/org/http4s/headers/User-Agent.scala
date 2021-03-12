@@ -19,14 +19,14 @@ package headers
 
 import org.http4s.util.{Renderable, Renderer, Writer}
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `User-Agent` {
 
   def apply(id: ProductId, tail: ProductIdOrComment*): `User-Agent` =
     apply(id, tail.toList)
 
-  val name = CIString("User-Agent")
+  val name = ci"User-Agent"
 
   def parse(s: String): ParseResult[`User-Agent`] =
     ParseResult.fromParser(parser, "Invalid User-Agent header")(s)

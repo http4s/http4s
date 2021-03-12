@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Content-Encoding` {
   def parse(s: String): ParseResult[`Content-Encoding`] =
@@ -27,7 +27,7 @@ object `Content-Encoding` {
 
   implicit val headerInstance: Header[`Content-Encoding`, Header.Single] =
     Header.createRendered(
-      CIString("Content-Encoding"),
+      ci"Content-Encoding",
       _.contentCoding,
       parse
     )

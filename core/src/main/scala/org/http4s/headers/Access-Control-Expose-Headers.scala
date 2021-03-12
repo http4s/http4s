@@ -17,10 +17,9 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci.CIString
-import org.http4s.Header
 import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
+import org.typelevel.ci._
 
 object `Access-Control-Expose-Headers` {
 
@@ -35,7 +34,7 @@ object `Access-Control-Expose-Headers` {
 
   implicit val headerInstance: Header[`Access-Control-Expose-Headers`, Header.Recurring] =
     Header.createRendered(
-      CIString("Access-Control-Expose-Headers"),
+      ci"Access-Control-Expose-Headers",
       _.values,
       parse
     )

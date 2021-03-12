@@ -18,15 +18,15 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import com.comcast.ip4s.{Port, SocketAddress}
+import com.comcast.ip4s._
 import fs2.Pure
 import org.http4s.headers.{Authorization, Cookie, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.syntax.all._
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
-  val local = SocketAddress(ipv4"127.0.0.1".address, Port.fromInt(8080).get)
-  val remote = SocketAddress(ipv4"192.168.0.1".address, Port.fromInt(45444).get)
+  val local = SocketAddress(ipv4"127.0.0.1", port"8080")
+  val remote = SocketAddress(ipv4"192.168.0.1", port"45444")
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()
@@ -58,7 +58,7 @@ class MessageSuite extends Http4sSuite {
   test(
     "ConnectionInfo should be utilized to determine the from value (first X-Forwarded-For if present)") {
     val forwardedValues =
-      NonEmptyList.of(Some(ipv4"192.168.1.1".address), Some(ipv4"192.168.1.2".address))
+      NonEmptyList.of(Some(ipv4"192.168.1.1"), Some(ipv4"192.168.1.2"))
     val r = Request()
       .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))

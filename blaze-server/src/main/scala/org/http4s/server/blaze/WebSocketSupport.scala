@@ -27,7 +27,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.websocket.WebSocketHandshake
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import cats.effect.std.{Dispatcher, Semaphore}
@@ -56,7 +56,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
-                      Connection(CIString("close")),
+                      Connection(ci"close"),
                       "Sec-WebSocket-Version" -> "13"
                     ))
                   .attempt

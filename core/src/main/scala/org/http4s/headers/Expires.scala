@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.{Parser, Parser0}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Expires {
   def parse(s: String): ParseResult[Expires] =
@@ -40,7 +40,7 @@ object Expires {
 
   implicit val headerInstance: Header[Expires, Header.Single] =
     Header.createRendered(
-      CIString("Expires"),
+      ci"Expires",
       _.expirationDate,
       parse
     )

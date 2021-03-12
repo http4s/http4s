@@ -28,7 +28,7 @@ import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success, Try}
 
@@ -160,7 +160,7 @@ object FileService {
           }
         else nope
       case _ =>
-        req.headers.get(CIString("Range")) match {
+        req.headers.get(ci"Range") match {
           case Some(_) =>
             // It exists, but it didn't parse
             nope

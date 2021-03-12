@@ -18,14 +18,14 @@ package org.http4s
 package headers
 
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Server {
 
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
 
-  val name = CIString("Server")
+  val name = ci"Server"
 
   def parse(s: String): ParseResult[Server] =
     ParseResult.fromParser(parser, "Invalid Server header")(s)

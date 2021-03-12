@@ -26,7 +26,7 @@ import org.http4s.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.headers.{Location, Referer}
 import org.http4s.server.middleware.CSRF.unlift
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class CSRFSuite extends Http4sSuite {
 
@@ -48,7 +48,7 @@ class CSRFSuite extends Http4sSuite {
   }
 
   private val cookieName = "csrf-token"
-  private val headerName = CIString("X-Csrf-Token")
+  private val headerName = ci"X-Csrf-Token"
 
   private val defaultOriginCheck: Request[IO] => Boolean =
     CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None)

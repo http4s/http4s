@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object Cookie {
   def apply(head: RequestCookie, tail: RequestCookie*): `Cookie` =
@@ -46,7 +46,7 @@ object Cookie {
 
   implicit val headerInstance: Header[Cookie, Header.Recurring] =
     Header.createRendered(
-      CIString("Cookie"),
+      ci"Cookie",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =

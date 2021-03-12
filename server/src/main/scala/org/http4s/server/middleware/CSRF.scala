@@ -32,7 +32,7 @@ import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Referer, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 
 /** Middleware to avoid Cross-site request forgery attacks.
@@ -256,7 +256,7 @@ object CSRF {
       headerCheck: Request[G] => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
-      headerName = CIString("X-Csrf-Token"),
+      headerName = ci"X-Csrf-Token",
       cookieSettings = CookieSettings(
         cookieName = "csrf-token",
         secure = false,
@@ -438,7 +438,7 @@ object CSRF {
       sc: Scheme,
       port: Option[Int]): Boolean =
     r.headers
-      .get(CIString("Origin"))
+      .get(ci"Origin")
       .flatMap(o =>
         //Hack to get around 2.11 compat
         Uri.fromString(o.head.value) match {

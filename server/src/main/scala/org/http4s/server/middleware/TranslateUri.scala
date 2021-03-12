@@ -28,7 +28,7 @@ object TranslateUri {
       F: MonoidK[F]): Kleisli[F, Request[G], B] =
     if (prefix.isEmpty || prefix == "/") http
     else {
-      val prefixAsPath = Uri.Path.fromString(prefix)
+      val prefixAsPath = Uri.Path.unsafeFromString(prefix)
 
       Kleisli { (req: Request[G]) =>
         val newCaret = req.pathInfo.findSplit(prefixAsPath)

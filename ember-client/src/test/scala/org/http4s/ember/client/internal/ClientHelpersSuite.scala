@@ -21,7 +21,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.keypool.Reusable
 
 class ClientHelpersSuite extends Http4sSuite {
@@ -63,7 +63,7 @@ class ClientHelpersSuite extends Http4sSuite {
   test("Request Preprocessing should not add a connection header if already present") {
     ClientHelpers
       .preprocessRequest(
-        Request[IO](headers = Headers(Connection(NonEmptyList.of(CIString("close"))))),
+        Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
         None
       )
       .map { req =>
@@ -140,7 +140,7 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](headers = Headers(Connection(NonEmptyList.of(CIString("close"))))),
+          Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
           Response[IO](),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
@@ -159,7 +159,7 @@ class ClientHelpersSuite extends Http4sSuite {
       _ <- ClientHelpers
         .postProcessResponse[IO](
           Request[IO](),
-          Response[IO](headers = Headers(Connection(NonEmptyList.of(CIString("close"))))),
+          Response[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse

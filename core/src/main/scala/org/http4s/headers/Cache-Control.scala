@@ -18,12 +18,12 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.parse._
 import java.util.concurrent.TimeUnit
 import org.http4s.CacheDirective._
-import org.typelevel.ci.CIString
-import cats.parse._
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
 import org.http4s.parser.{AdditionalRules}
+import org.typelevel.ci._
 import scala.concurrent.duration._
 
 object `Cache-Control` {
@@ -71,7 +71,7 @@ object `Cache-Control` {
 
   implicit val headerInstance: Header[`Cache-Control`, Header.Recurring] =
     Header.createRendered(
-      CIString("Cache-Control"),
+      ci"Cache-Control",
       _.values,
       parse
     )

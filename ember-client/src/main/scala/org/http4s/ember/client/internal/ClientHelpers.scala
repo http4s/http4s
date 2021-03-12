@@ -27,7 +27,7 @@ import cats.syntax.all._
 import scala.concurrent.duration._
 import org.http4s._
 import org.http4s.client.RequestKey
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.fs2.io.net.SocketGroup
 import _root_.fs2.io.net.tls._
@@ -124,7 +124,7 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`]): F[Request[F]] = {
     val connection = req.headers
       .get[Connection]
-      .fold(Connection(NonEmptyList.of(CIString("keep-alive"))))(identity)
+      .fold(Connection(NonEmptyList.of(ci"keep-alive")))(identity)
     val userAgentHeader: Option[`User-Agent`] = req.headers.get[`User-Agent`].orElse(userAgent)
     for {
       date <- req.headers.get[Date].fold(HttpDate.current[F].map(Date(_)))(_.pure[F])

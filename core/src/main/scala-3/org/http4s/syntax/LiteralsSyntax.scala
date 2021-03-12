@@ -25,8 +25,6 @@ trait LiteralsSyntax {
     inline def uri(args: Any*): Uri = ${LiteralsSyntax.validateUri('{ctx}, '{args})}
     inline def path(args: Any*): Uri.Path = ${LiteralsSyntax.validatePath('{ctx}, '{args})}
     inline def scheme(args: Any*): Uri.Scheme = ${LiteralsSyntax.validateUriScheme('{ctx}, '{args})}
-    inline def ipv4(args: Any*): Uri.Ipv4Address = ${LiteralsSyntax.validateIpv4('{ctx}, '{args})}
-    inline def ipv6(args: Any*): Uri.Ipv6Address = ${LiteralsSyntax.validateIpv6('{ctx}, '{args})}
     inline def mediaType(args: Any*): MediaType = ${LiteralsSyntax.validateMediatype('{ctx}, '{args})}
     inline def qValue(args: Any*): QValue = ${LiteralsSyntax.validateQvalue('{ctx}, '{args})}
   }
@@ -45,10 +43,6 @@ private[syntax] object LiteralsSyntax {
     validate(urischeme, strCtxExpr, argsExpr)
   def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(uripath, strCtxExpr, argsExpr)
-  def validateIpv4(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(ipv4, strCtxExpr, argsExpr)
-  def validateIpv6(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(ipv6, strCtxExpr, argsExpr)
   def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(mediatype, strCtxExpr, argsExpr)
   def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
@@ -91,20 +85,6 @@ private[syntax] object LiteralsSyntax {
 
     override def construct(literal: String)(using Quotes): Expr[Uri.Path] =
       '{Uri.unsafeFromString(${Expr(literal)}).path}
-  }
-
-  object ipv4 extends Validator[Uri.Ipv4Address] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.Ipv4Address.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri.Ipv4Address] =
-      '{Uri.Ipv4Address.unsafeFromString(${Expr(literal)})}
-  }
-
-  object ipv6 extends Validator[Uri.Ipv6Address] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.Ipv6Address.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri.Ipv6Address] =
-      '{Uri.Ipv6Address.unsafeFromString(${Expr(literal)})}
   }
 
   object mediatype extends Validator[MediaType] {

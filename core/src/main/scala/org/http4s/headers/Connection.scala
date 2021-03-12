@@ -20,7 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 // values should be case insensitive
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
@@ -37,7 +37,7 @@ object Connection {
 
   implicit val headerInstance: Header[Connection, Header.Recurring] =
     Header.createRendered(
-      CIString("Connection"),
+      ci"Connection",
       _.values,
       parse
     )
@@ -47,6 +47,6 @@ object Connection {
 }
 
 final case class Connection(values: NonEmptyList[CIString]) {
-  def hasClose: Boolean = values.contains_(CIString("close"))
-  def hasKeepAlive: Boolean = values.contains_(CIString("keep-alive"))
+  def hasClose: Boolean = values.contains_(ci"close")
+  def hasKeepAlive: Boolean = values.contains_(ci"keep-alive")
 }

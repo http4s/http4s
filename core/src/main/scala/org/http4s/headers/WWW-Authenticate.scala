@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7235
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `WWW-Authenticate` {
 
@@ -36,7 +36,7 @@ object `WWW-Authenticate` {
 
   implicit val headerInstance: Header[`WWW-Authenticate`, Header.Recurring] =
     Header.createRendered(
-      CIString("WWW-Authenticate"),
+      ci"WWW-Authenticate",
       _.values,
       parse
     )

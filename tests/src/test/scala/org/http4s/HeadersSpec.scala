@@ -21,11 +21,11 @@ import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
 import org.http4s.syntax.header._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class HeadersSpec extends Http4sSuite {
   val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw(CIString("raw-header"), "Raw value")
+  val raw = Header.Raw(ci"raw-header", "Raw value")
 
   val base = Headers(clength, raw)
 
@@ -35,7 +35,7 @@ class HeadersSpec extends Http4sSuite {
 
   test("Headers should Find an existing header and return its parsed form") {
     assertEquals(base.get[`Content-Length`], Some(clength))
-    assertEquals(base.get(CIString("raw-header")), Some(NonEmptyList.of(raw)))
+    assertEquals(base.get(ci"raw-header"), Some(NonEmptyList.of(raw)))
   }
 
   test("Headers should Replaces headers") {
@@ -46,14 +46,14 @@ class HeadersSpec extends Http4sSuite {
   test("Headers should also find headers created raw") {
     val headers: Headers = Headers(
       Cookie(RequestCookie("foo", "bar")),
-      Header.Raw(CIString("Cookie"), RequestCookie("baz", "quux").toString)
+      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString)
     )
     assertEquals(headers.get[Cookie].map(_.values.length), Some(2))
   }
 
   test(
     "Headers should Remove duplicate headers which are not of type Recurring on concatenation (++)") {
-    val clength = Header.Raw(CIString("Content-Length"), "4")
+    val clength = Header.Raw(ci"Content-Length", "4")
     val hs = Headers(clength) ++ Headers(clength)
     assertEquals(hs.headers.length, 1)
     assertEquals(hs.headers.head, clength)
@@ -79,7 +79,7 @@ class HeadersSpec extends Http4sSuite {
   }
 
   test("Headers should Preserve original headers when processing") {
-    val rawAuth = Header.Raw(CIString("Authorization"), "test this")
+    val rawAuth = Header.Raw(ci"Authorization", "test this")
 
     // Mapping to strings because Header equality is based on the *parsed* version
     assert((Headers(rawAuth) ++ base).headers.map(_.toString).contains(rawAuth.toString))

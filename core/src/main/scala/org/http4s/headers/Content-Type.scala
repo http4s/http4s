@@ -19,7 +19,7 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Content-Type` {
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` =
@@ -52,7 +52,7 @@ object `Content-Type` {
 
   implicit val headerInstance: Header[`Content-Type`, Header.Single] =
     Header.createRendered(
-      CIString("Content-Type"),
+      ci"Content-Type",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =

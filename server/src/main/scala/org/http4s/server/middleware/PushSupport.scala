@@ -63,7 +63,7 @@ object PushSupport {
     val emptyCollect: F[Vector[PushResponse[F]]] = F.pure(Vector.empty[PushResponse[F]])
 
     def fetchAndAdd(facc: F[Vector[PushResponse[F]]], v: PushLocation): F[Vector[PushResponse[F]]] =
-      routes(req.withPathInfo(Uri.Path.fromString(v.location))).value.flatMap {
+      routes(req.withPathInfo(Uri.Path.unsafeFromString(v.location))).value.flatMap {
         case None => emptyCollect
         case Some(response) =>
           if (v.cascade) {

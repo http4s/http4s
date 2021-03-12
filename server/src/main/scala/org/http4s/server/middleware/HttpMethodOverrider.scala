@@ -26,7 +26,7 @@ import cats.syntax.flatMap._
 import cats.syntax.alternative._
 import cats.{Monad, ~>}
 import org.http4s.Http
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.vault.Key
 
 object HttpMethodOverrider {
@@ -70,7 +70,7 @@ object HttpMethodOverrider {
 
   def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] =
     HttpMethodOverriderConfig[F, G](
-      HeaderOverrideStrategy(CIString("X-HTTP-Method-Override")),
+      HeaderOverrideStrategy(ci"X-HTTP-Method-Override"),
       Set(Method.POST))
 
   val overriddenMethodAttrKey: Key[Method] = Key.newKey[SyncIO, Method].unsafeRunSync()
@@ -101,7 +101,7 @@ object HttpMethodOverrider {
       }
 
     def updateVaryHeader(resp: Response[G]): Response[G] = {
-      val varyHeaderName = CIString("Vary")
+      val varyHeaderName = ci"Vary"
       config.overrideStrategy match {
         case HeaderOverrideStrategy(headerName) =>
           val updatedVaryHeader =

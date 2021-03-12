@@ -20,7 +20,7 @@ package headers
 import cats.parse.Parser0
 import cats.parse.Numbers
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `X-B3-Flags` {
 
@@ -72,7 +72,7 @@ object `X-B3-Flags` {
 
   implicit val headerInstance: Header[`X-B3-Flags`, Header.Single] =
     Header.createRendered(
-      CIString("X-B3-Flags"),
+      ci"X-B3-Flags",
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =

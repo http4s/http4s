@@ -28,7 +28,7 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.vault._
 
 abstract class Http4sServlet[F[_]](
@@ -77,7 +77,7 @@ abstract class Http4sServlet[F[_]](
     // a body and a status reason.  We sacrifice the status reason.
     F.delay {
       servletResponse.setStatus(response.status.code)
-      for (header <- response.headers.headers if header.name != CIString("Transfer-Encoding"))
+      for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
         servletResponse.addHeader(header.name.toString, header.value)
     }.attempt
       .flatMap {
@@ -137,8 +137,8 @@ abstract class Http4sServlet[F[_]](
   private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
     val pathInfo =
       Uri.Path
-        .fromString(req.getContextPath)
-        .concat(Uri.Path.fromString(req.getServletPath))
+        .unsafeFromString(req.getContextPath)
+        .concat(Uri.Path.unsafeFromString(req.getServletPath))
     uri.path
       .findSplit(pathInfo)
       .getOrElse(-1)

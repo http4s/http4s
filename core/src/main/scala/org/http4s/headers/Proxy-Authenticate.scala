@@ -37,7 +37,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7235
 import org.http4s.Header
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Proxy-Authenticate` {
 
@@ -52,7 +52,7 @@ object `Proxy-Authenticate` {
 
   implicit val headerInstance: Header[`Proxy-Authenticate`, Header.Recurring] =
     Header.createRendered(
-      CIString("Proxy-Authenticate"),
+      ci"Proxy-Authenticate",
       _.values,
       parse
     )

@@ -276,7 +276,7 @@ final class Request[F[_]](
 
   @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "0.22.0-M1")
   def withPathInfo(pi: String): Self =
-    withPathInfo(Uri.Path.fromString(pi))
+    withPathInfo(Uri.Path.unsafeFromString(pi))
   def withPathInfo(pi: Uri.Path): Self =
     // Don't use withUri, which clears the caret
     copy(uri = uri.withPath(scriptName.concat(pi)))

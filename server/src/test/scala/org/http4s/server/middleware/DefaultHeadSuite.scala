@@ -24,7 +24,7 @@ import cats.implicits._
 import fs2.Stream
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class DefaultHeadSuite extends Http4sSuite {
   val httpRoutes = HttpRoutes.of[IO] {
@@ -42,7 +42,7 @@ class DefaultHeadSuite extends Http4sSuite {
   test("honor HEAD routes") {
     val req = Request[IO](Method.HEAD, uri = uri"/special")
     app(req)
-      .map(_.headers.get(CIString("X-Handled-By")).map(_.head.value))
+      .map(_.headers.get(ci"X-Handled-By").map(_.head.value))
       .assertEquals(Some("HEAD"))
   }
 

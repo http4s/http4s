@@ -31,7 +31,7 @@ import org.http4s.ember.core.{Encoder, Parser}
 import org.http4s.headers.{Connection, Date}
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.{SecureSession, ServerRequestKeys}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
 
@@ -41,11 +41,11 @@ import java.net.InetSocketAddress
 
 private[server] object ServerHelpers {
 
-  private val closeCi = CIString("close")
+  private val closeCi = ci"close"
 
-  private val connectionCi = CIString("connection")
+  private val connectionCi = ci"connection"
   private val close = Connection(NonEmptyList.of(closeCi))
-  private val keepAlive = Connection(NonEmptyList.one(CIString("keep-alive")))
+  private val keepAlive = Connection(NonEmptyList.one(ci"keep-alive"))
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)

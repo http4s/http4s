@@ -21,7 +21,7 @@ import cats.effect._
 import cats.effect.Ref
 import org.http4s._
 import org.http4s.dsl.io._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.http4s.syntax.all._
 
 import scala.concurrent.duration._
@@ -44,7 +44,7 @@ class ResponseTimingSuite extends Http4sSuite {
     val res = app(req)
 
     val header = res
-      .map(_.headers.headers.find(_.name == CIString("X-Response-Time")))
+      .map(_.headers.headers.find(_.name == ci"X-Response-Time"))
     header.map(_.map(_.value.toInt) === Some(artificialDelay)).assert
   }
 }

@@ -18,10 +18,10 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object `Set-Cookie` {
-  val name = CIString("Set-Cookie")
+  val name = ci"Set-Cookie"
 
   def parse(s: String): ParseResult[`Set-Cookie`] =
     ParseResult.fromParser(parser, "Invalid Set-Cookie header")(s)

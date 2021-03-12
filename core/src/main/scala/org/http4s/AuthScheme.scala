@@ -16,10 +16,10 @@
 
 package org.http4s
 
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object AuthScheme {
-  val Basic = CIString("Basic")
-  val Digest = CIString("Digest")
-  val Bearer = CIString("Bearer")
+  val Basic = ci"Basic"
+  val Digest = ci"Digest"
+  val Bearer = ci"Bearer"
 }

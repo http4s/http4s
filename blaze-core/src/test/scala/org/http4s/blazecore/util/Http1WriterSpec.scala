@@ -19,20 +19,19 @@ package blazecore
 package util
 
 import cats.effect._
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.compression.{DeflateParams, deflate}
-
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import cats.effect.std.Dispatcher
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
-import org.http4s.util.StringWriter
 import org.http4s.testing.DispatcherIOFixture
-import org.typelevel.ci.CIString
-import scala.concurrent.Future
+import org.http4s.util.StringWriter
+import org.typelevel.ci._
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
 
 class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
   case object Failed extends RuntimeException
@@ -307,7 +306,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     def builderWithTrailer(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
       new FlushingChunkWriter[IO](
         tail,
-        IO.pure(Headers(Header.Raw(CIString("X-Trailer"), "trailer header value"))))
+        IO.pure(Headers(Header.Raw(ci"X-Trailer", "trailer header value"))))
 
     val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
 

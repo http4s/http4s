@@ -23,7 +23,7 @@ import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.Http4sSuite
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class CORSSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
@@ -44,13 +44,13 @@ class CORSSuite extends Http4sSuite {
     )
   )
 
-  def headerCheck(h: Header.Raw): Boolean = h.name == CIString("Access-Control-Max-Age")
+  def headerCheck(h: Header.Raw): Boolean = h.name == ci"Access-Control-Max-Age"
 
   final def matchHeader(hs: Headers, name: CIString, expected: String): Boolean =
     hs.get(name).fold(false)(_.exists(_.value === expected))
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = Uri.Path.fromString(path)), method = method)
+    Request[IO](uri = Uri(path = Uri.Path.unsafeFromString(path)), method = method)
       .withHeaders("Origin" -> "http://allowed.com", "Access-Control-Request-Method" -> "GET")
 
   test("Be omitted when unrequested") {
@@ -63,12 +63,11 @@ class CORSSuite extends Http4sSuite {
     val req = buildRequest("/foo")
     cors1
       .orNotFound(req)
-      .map(resp => matchHeader(resp.headers, CIString("Access-Control-Allow-Credentials"), "true"))
+      .map(resp => matchHeader(resp.headers, ci"Access-Control-Allow-Credentials", "true"))
       .assert *>
       cors2
         .orNotFound(req)
-        .map(resp =>
-          matchHeader(resp.headers, CIString("Access-Control-Allow-Credentials"), "false"))
+        .map(resp => matchHeader(resp.headers, ci"Access-Control-Allow-Credentials", "false"))
         .assert
   }
 
@@ -79,7 +78,7 @@ class CORSSuite extends Http4sSuite {
       .map { resp =>
         matchHeader(
           resp.headers,
-          CIString("Access-Control-Allow-Headers"),
+          ci"Access-Control-Allow-Headers",
           "User-Agent, Keep-Alive, Content-Type")
       }
       .assert
@@ -90,7 +89,7 @@ class CORSSuite extends Http4sSuite {
     cors2
       .orNotFound(req)
       .map { resp =>
-        matchHeader(resp.headers, CIString("Access-Control-Expose-Headers"), "x-header")
+        matchHeader(resp.headers, ci"Access-Control-Expose-Headers", "x-header")
       }
       .assert
   }
@@ -102,7 +101,7 @@ class CORSSuite extends Http4sSuite {
       .map(resp =>
         resp.status.isSuccess && matchHeader(
           resp.headers,
-          CIString("Access-Control-Allow-Credentials"),
+          ci"Access-Control-Allow-Credentials",
           "true"))
       .assert *>
       cors2
@@ -110,7 +109,7 @@ class CORSSuite extends Http4sSuite {
         .map(resp =>
           resp.status.isSuccess && matchHeader(
             resp.headers,
-            CIString("Access-Control-Allow-Credentials"),
+            ci"Access-Control-Allow-Credentials",
             "false"))
         .assert
   }
@@ -148,7 +147,7 @@ class CORSSuite extends Http4sSuite {
     service
       .orNotFound(req)
       .map { resp =>
-        matchHeader(resp.headers, CIString("Vary"), "Origin,Accept")
+        matchHeader(resp.headers, ci"Vary", "Origin,Accept")
       }
       .assert
   }
@@ -159,7 +158,7 @@ class CORSSuite extends Http4sSuite {
 
     cors
       .orNotFound(req)
-      .map(resp => matchHeader(resp.headers, CIString("Access-Control-Allow-Credentials"), "true"))
+      .map(resp => matchHeader(resp.headers, ci"Access-Control-Allow-Credentials", "true"))
       .assert
   }
 
@@ -169,7 +168,7 @@ class CORSSuite extends Http4sSuite {
 
     cors
       .run(req)
-      .map(resp => matchHeader(resp.headers, CIString("Access-Control-Allow-Credentials"), "true"))
+      .map(resp => matchHeader(resp.headers, ci"Access-Control-Allow-Credentials", "true"))
       .assert
   }
 }

@@ -26,7 +26,7 @@ import cats.data.OptionT
 import cats.syntax.all._
 import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class ParsingSpec extends Http4sSuite {
   object Helpers {
@@ -372,8 +372,8 @@ class ParsingSpec extends Http4sSuite {
     assertEquals(
       headers.headers,
       List(
-        Header.Raw(CIString("Content-Type"), "text/plain; charset=UTF-8"),
-        Header.Raw(CIString("Content-Length"), "11"))
+        Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
+        Header.Raw(ci"Content-Length", "11"))
     )
     assert(
       rest.isEmpty
@@ -408,9 +408,9 @@ class ParsingSpec extends Http4sSuite {
 
     result.assertEquals(
       List(
-        Header.Raw(CIString("Content-Type"), "text/plain"),
-        Header.Raw(CIString("Transfer-Encoding"), "chunked"),
-        Header.Raw(CIString("Trailer"), "Expires")
+        Header.Raw(ci"Content-Type", "text/plain"),
+        Header.Raw(ci"Transfer-Encoding", "chunked"),
+        Header.Raw(ci"Trailer", "Expires")
       ))
   }
 
