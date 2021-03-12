@@ -16,6 +16,8 @@ object Backticks {
     CacheDirective.`no-store`,
     CacheDirective.`no-transform`,
     CacheDirective.`only-if-cached`,
+    CacheDirective.`private`(),
+    CacheDirective.public,
     CacheDirective.`proxy-revalidate`,
     CacheDirective.`s-maxage`(Duration.Zero),
     CacheDirective.`stale-if-error`(Duration.Zero),

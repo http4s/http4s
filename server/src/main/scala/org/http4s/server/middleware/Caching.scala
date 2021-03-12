@@ -56,10 +56,10 @@ object Caching {
   private val noStoreStaticHeaders: List[Header.ToRaw] = List(
     `Cache-Control`(
       NonEmptyList.of[CacheDirective](
-        CacheDirective.noStore,
-        CacheDirective.`private`(),
-        CacheDirective.noCache(),
-        CacheDirective.maxAge(0.seconds)
+        CacheDirective.NoStore,
+        CacheDirective.Private(),
+        CacheDirective.NoCache(),
+        CacheDirective.MaxAge(0.seconds)
       )
     ),
     "Pragma" -> "no-cache",
@@ -93,7 +93,7 @@ object Caching {
   def publicCache[G[_]: MonadThrow: Clock, F[_]](lifetime: Duration, http: Http[G, F]): Http[G, F] =
     cache(
       lifetime,
-      Either.left(CacheDirective.public),
+      Either.left(CacheDirective.Public),
       Helpers.defaultMethodsToSetOn,
       Helpers.defaultStatusToSetOn,
       http)
@@ -104,7 +104,7 @@ object Caching {
     * 10 years for support of Http1 caches.
     */
   def publicCacheResponse[G[_]](lifetime: Duration): PartiallyAppliedCache[G] =
-    cacheResponse(lifetime, Either.left(CacheDirective.public))
+    cacheResponse(lifetime, Either.left(CacheDirective.Public))
 
   /** Sets headers for response to be privately cached for the specified duration.
     *
@@ -117,7 +117,7 @@ object Caching {
       fieldNames: List[CIString] = Nil): Http[G, F] =
     cache(
       lifetime,
-      Either.right(CacheDirective.`private`(fieldNames)),
+      Either.right(CacheDirective.Private(fieldNames)),
       Helpers.defaultMethodsToSetOn,
       Helpers.defaultStatusToSetOn,
       http)
@@ -131,7 +131,7 @@ object Caching {
       lifetime: Duration,
       fieldNames: List[CIString] = Nil
   ): PartiallyAppliedCache[G] =
-    cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
+    cacheResponse(lifetime, Either.right(CacheDirective.Private(fieldNames)))
 
   /** Construct a Middleware that will apply the appropriate caching headers.
     *
@@ -142,7 +142,7 @@ object Caching {
     */
   def cache[G[_]: MonadThrow: Clock, F[_]](
       lifetime: Duration,
-      isPublic: Either[CacheDirective.public.type, CacheDirective.`private`],
+      isPublic: Either[CacheDirective.Public.type, CacheDirective.Private],
       methodToSetOn: Method => Boolean,
       statusToSetOn: Status => Boolean,
       http: Http[G, F]
@@ -169,7 +169,7 @@ object Caching {
     */
   def cacheResponse[G[_]](
       lifetime: Duration,
-      isPublic: Either[CacheDirective.public.type, CacheDirective.`private`]
+      isPublic: Either[CacheDirective.Public.type, CacheDirective.Private]
   ): PartiallyAppliedCache[G] = {
     val actualLifetime = lifetime match {
       case finite: FiniteDuration => finite
@@ -190,7 +190,7 @@ object Caching {
           `Cache-Control`(
             NonEmptyList.of(
               isPublic.fold[CacheDirective](identity, identity),
-              CacheDirective.maxAge(actualLifetime)
+              CacheDirective.MaxAge(actualLifetime)
             )),
           HDate(now),
           Expires(expires)

@@ -5,18 +5,20 @@ import scala.concurrent.duration._
 
 object Backticks {
   val cacheDirectives = Set(
-    CacheDirective.maxAge(Duration.Zero),
-    CacheDirective.maxStale(),
-    CacheDirective.minFresh(Duration.Zero),
-    CacheDirective.mustRevalidate,
-    CacheDirective.noCache(),
-    CacheDirective.noStore,
-    CacheDirective.noTransform,
-    CacheDirective.onlyIfCached,
-    CacheDirective.proxyRevalidate,
-    CacheDirective.sMaxage(Duration.Zero),
-    CacheDirective.staleIfError(Duration.Zero),
-    CacheDirective.staleWhileRevalidate(Duration.Zero),
+    CacheDirective.MaxAge(Duration.Zero),
+    CacheDirective.MaxStale(),
+    CacheDirective.MinFresh(Duration.Zero),
+    CacheDirective.MustRevalidate,
+    CacheDirective.NoCache(),
+    CacheDirective.NoStore,
+    CacheDirective.NoTransform,
+    CacheDirective.OnlyIfCached,
+    CacheDirective.Private(),
+    CacheDirective.Public,
+    CacheDirective.ProxyRevalidate,
+    CacheDirective.SMaxage(Duration.Zero),
+    CacheDirective.StaleIfError(Duration.Zero),
+    CacheDirective.StaleWhileRevalidate(Duration.Zero),
   )
 
   val httpVersions = Set(

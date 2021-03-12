@@ -26,21 +26,21 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
 
   // Default values
   val valueless =
-    List(noStore, noTransform, onlyIfCached, `public`, mustRevalidate, proxyRevalidate)
+    List(NoStore, NoTransform, OnlyIfCached, Public, MustRevalidate, ProxyRevalidate)
 
   val numberdirectives = List(
-    maxAge(0.seconds),
-    minFresh(1.second),
-    sMaxage(2.seconds),
-    staleIfError(3.seconds),
-    staleWhileRevalidate(4.seconds))
+    MaxAge(0.seconds),
+    MinFresh(1.second),
+    SMaxage(2.seconds),
+    StaleIfError(3.seconds),
+    StaleWhileRevalidate(4.seconds))
 
   val strdirectives =
-    List(`private`(ci"Foo" :: Nil), `private`(Nil), noCache(ci"Foo" :: Nil), noCache())
+    List(Private(ci"Foo" :: Nil), Private(Nil), NoCache(ci"Foo" :: Nil), NoCache())
 
   val others = List(
-    maxStale(None),
-    maxStale(Some(2.seconds)),
+    MaxStale(None),
+    MaxStale(Some(2.seconds)),
     CacheDirective("Foo", None),
     CacheDirective("Foo", Some("Bar")))
 
@@ -53,8 +53,8 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
       assertEquals(v.value, s"${v.name}=$i")
     }
 
-    assertEquals(maxStale(None).value, "max-stale")
-    assertEquals(maxStale(Some(2.seconds)).value, "max-stale=2")
+    assertEquals(MaxStale(None).value, "max-stale")
+    assertEquals(MaxStale(Some(2.seconds)).value, "max-stale=2")
 
     assertEquals(CacheDirective("Foo", Some("Bar")).value, "Foo=\"Bar\"")
     assertEquals(CacheDirective("Foo", None).value, "Foo")

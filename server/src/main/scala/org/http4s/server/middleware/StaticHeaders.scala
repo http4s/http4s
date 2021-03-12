@@ -32,7 +32,7 @@ object StaticHeaders {
       http(req).map(resp => resp.copy(headers = headers ++ resp.headers))
     }
 
-  private val noCacheHeader = `Cache-Control`(NonEmptyList.of(CacheDirective.noCache()))
+  private val noCacheHeader = `Cache-Control`(NonEmptyList.of(CacheDirective.NoCache()))
 
   def `no-cache`[F[_]: Functor, G[_], A](
       http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =

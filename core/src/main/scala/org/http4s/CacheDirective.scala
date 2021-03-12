@@ -25,133 +25,139 @@ sealed trait CacheDirective extends Product with Renderable {
   * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
   */
 object CacheDirective {
-  final case class maxAge(deltaSeconds: Duration) extends CacheDirective {
-    def name = maxAge.name
+  final case class MaxAge(deltaSeconds: Duration) extends CacheDirective {
+    def name = MaxAge.name
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
-  object maxAge {
+  object MaxAge {
     val name = ci"max-age"
   }
-  @deprecated("Renamed to maxAge", "0.22.0-M6")
-  type `max-age` = maxAge
-  @deprecated("Renamed to maxAge", "0.22.0-M6")
-  val `max-age` = maxAge
+  @deprecated("Renamed to MaxAge", "0.22.0-M6")
+  type `max-age` = MaxAge
+  @deprecated("Renamed to MaxAge", "0.22.0-M6")
+  val `max-age` = MaxAge
 
-  final case class maxStale(deltaSeconds: Option[Duration] = None) extends CacheDirective {
-    def name = maxStale.name
+  final case class MaxStale(deltaSeconds: Option[Duration] = None) extends CacheDirective {
+    def name = MaxStale.name
     override def value: String = name.toString + deltaSeconds.fold("")("=" + _.toSeconds)
   }
-  object maxStale {
+  object MaxStale {
     val name = ci"max-stale"
   }
-  @deprecated("Renamed to maxStale", "0.22.0-M6")
-  type `max-stale` = maxStale
-  @deprecated("Renamed to maxStale", "0.22.0-M6")
-  val `max-stale` = maxStale
+  @deprecated("Renamed to MaxStale", "0.22.0-M6")
+  type `max-stale` = MaxStale
+  @deprecated("Renamed to MaxStale", "0.22.0-M6")
+  val `max-stale` = MaxStale
 
-  final case class minFresh(deltaSeconds: Duration) extends CacheDirective {
-    def name = minFresh.name
+  final case class MinFresh(deltaSeconds: Duration) extends CacheDirective {
+    def name = MinFresh.name
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
-  object minFresh {
+  object MinFresh {
     val name = ci"min-fresh"
   }
-  @deprecated("Renamed to minFresh", "0.22.0-M6")
-  type `min-fresh` = minFresh
-  @deprecated("Renamed to minFresh", "0.22.0-M6")
-  val `min-fresh` = minFresh
+  @deprecated("Renamed to MinFresh", "0.22.0-M6")
+  type `min-fresh` = MinFresh
+  @deprecated("Renamed to MinFresh", "0.22.0-M6")
+  val `min-fresh` = MinFresh
 
-  case object mustRevalidate extends CacheDirective {
+  case object MustRevalidate extends CacheDirective {
     val name = ci"must-revalidate"
   }
-  @deprecated("Renamed to mustRevalidate", "0.22.0-M6")
-  val `must-revalidate` = mustRevalidate
+  @deprecated("Renamed to MustRevalidate", "0.22.0-M6")
+  val `must-revalidate` = MustRevalidate
 
-  final case class noCache(fieldNames: List[CIString] = Nil) extends CacheDirective {
-    def name = noCache.name
+  final case class NoCache(fieldNames: List[CIString] = Nil) extends CacheDirective {
+    def name = NoCache.name
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
-  object noCache {
+  object NoCache {
     val name = ci"no-cache"
   }
-  @deprecated("Renamed to noCache", "0.22.0-M6")
-  type `no-cache` = noCache
-  @deprecated("Renamed to noCache", "0.22.0-M6")
-  val `no-cache` = noCache
+  @deprecated("Renamed to NoCache", "0.22.0-M6")
+  type `no-cache` = NoCache
+  @deprecated("Renamed to NoCache", "0.22.0-M6")
+  val `no-cache` = NoCache
 
-  case object noStore extends CacheDirective {
+  case object NoStore extends CacheDirective {
     val name = ci"no-store"
   }
-  @deprecated("Renamed to noStore", "0.22.0-M6")
-  val `no-store` = noStore
+  @deprecated("Renamed to NoStore", "0.22.0-M6")
+  val `no-store` = NoStore
 
-  case object noTransform extends CacheDirective {
+  case object NoTransform extends CacheDirective {
     val name = ci"no-transform"
   }
-  @deprecated("Renamed to noTransform", "0.22.0-M6")
-  val `no-transform` = noTransform
+  @deprecated("Renamed to NoTransform", "0.22.0-M6")
+  val `no-transform` = NoTransform
 
-  case object onlyIfCached extends CacheDirective {
+  case object OnlyIfCached extends CacheDirective {
     val name = ci"only-if-cached"
   }
-  @deprecated("Renamed to onlyIfCached", "0.22.0-M6")
-  val `only-if-cached` = onlyIfCached
+  @deprecated("Renamed to OnlyIfCached", "0.22.0-M6")
+  val `only-if-cached` = OnlyIfCached
 
-  final case class `private`(fieldNames: List[CIString] = Nil) extends CacheDirective {
-    val name = `private`.name
+  final case class Private(fieldNames: List[CIString] = Nil) extends CacheDirective {
+    val name = Private.name
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
-  object `private` {
+  object Private {
     val name = ci"private"
   }
+  @deprecated("Renamed to Private", "0.22.0-M6")
+  type `private` = Private
+  @deprecated("Renamed to Private", "0.22.0-M6")
+  val `private` = Private
 
-  case object proxyRevalidate extends CacheDirective {
+  case object ProxyRevalidate extends CacheDirective {
     val name = ci"proxy-revalidate"
   }
-  @deprecated("Renamed to proxyRevalidate", "0.22.0-M6")
-  val `proxy-revalidate` = proxyRevalidate
+  @deprecated("Renamed to ProxyRevalidate", "0.22.0-M6")
+  val `proxy-revalidate` = ProxyRevalidate
 
-  case object public extends CacheDirective {
+  case object Public extends CacheDirective {
     val name = ci"public"
   }
+  @deprecated("Renamed to Public", "0.22.0-M6")
+  val public = Public
 
-  final case class sMaxage(deltaSeconds: Duration) extends CacheDirective {
-    def name = sMaxage.name
+  final case class SMaxage(deltaSeconds: Duration) extends CacheDirective {
+    def name = SMaxage.name
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
-  object sMaxage {
+  object SMaxage {
     val name = ci"s-maxage"
   }
-  @deprecated("Renamed to sMaxage", "0.22.0-M6")
-  type `s-maxage` = sMaxage
-  @deprecated("Renamed to sMaxage", "0.22.0-M6")
-  val `s-maxage` = sMaxage
+  @deprecated("Renamed to SMaxage", "0.22.0-M6")
+  type `s-maxage` = SMaxage
+  @deprecated("Renamed to SMaxage", "0.22.0-M6")
+  val `s-maxage` = SMaxage
 
-  final case class staleIfError(deltaSeconds: Duration) extends CacheDirective {
-    def name = staleIfError.name
+  final case class StaleIfError(deltaSeconds: Duration) extends CacheDirective {
+    def name = StaleIfError.name
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
-  object staleIfError {
+  object StaleIfError {
     val name = ci"stale-if-error"
   }
-  @deprecated("Renamed to staleIfError", "0.22.0-M6")
-  type `stale-if-error` = staleIfError
-  @deprecated("Renamed to staleIfError", "0.22.0-M6")
-  val `stale-if-error` = staleIfError
+  @deprecated("Renamed to StaleIfError", "0.22.0-M6")
+  type `stale-if-error` = StaleIfError
+  @deprecated("Renamed to StaleIfError", "0.22.0-M6")
+  val `stale-if-error` = StaleIfError
 
-  final case class staleWhileRevalidate(deltaSeconds: Duration) extends CacheDirective {
-    def name = staleWhileRevalidate.name
+  final case class StaleWhileRevalidate(deltaSeconds: Duration) extends CacheDirective {
+    def name = StaleWhileRevalidate.name
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
-  object staleWhileRevalidate {
+  object StaleWhileRevalidate {
     val name = ci"stale-while-revalidate"
   }
-  @deprecated("Renamed to staleWhileRevalidate", "0.22.0-M6")
-  type `stale-while-revalidate` = staleWhileRevalidate
-  @deprecated("Renamed to staleWhileRevalidate", "0.22.0-M6")
-  val `stale-while-revalidate` = staleWhileRevalidate
+  @deprecated("Renamed to StaleWhileRevalidate", "0.22.0-M6")
+  type `stale-while-revalidate` = StaleWhileRevalidate
+  @deprecated("Renamed to StaleWhileRevalidate", "0.22.0-M6")
+  val `stale-while-revalidate` = StaleWhileRevalidate
 
   def apply(name: CIString, argument: Option[String] = None): CacheDirective =
     new CustomCacheDirective(name, argument)
