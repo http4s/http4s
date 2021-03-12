@@ -427,7 +427,7 @@ class ParsingSpec extends Http4sSuite {
       case ParsePreludeComplete(method, uri, httpVersion, rest) =>
         assert(method == Method.GET)
         assert(uri == uri"/")
-        assert(httpVersion == HttpVersion.`HTTP/1.1`)
+        assert(httpVersion == HttpVersion.HTTP_1_1)
         assert(rest.isEmpty)
       case _ => fail("Parse Error")
       // case ParsePreludeError(throwable, method, uri, httpVersion) =>
@@ -443,7 +443,7 @@ class ParsingSpec extends Http4sSuite {
     val bv = asHttp.getBytes()
     Parser.Response.RespPrelude.preludeInSection(bv) match {
       case Parser.Response.RespPrelude.RespPreludeComplete(version, status, rest) =>
-        assert(version == HttpVersion.`HTTP/1.1`)
+        assert(version == HttpVersion.HTTP_1_1)
         assert(
           status == Status.Ok
         )

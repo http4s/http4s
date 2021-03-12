@@ -197,7 +197,7 @@ class EntityDecoderSuite extends Http4sSuite {
     decoder
       .decode(Request[IO](headers = Headers(`Content-Type`(MediaType.text.plain))), strict = true)
       .swap
-      .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`))
+      .map(_.toHttpResponse[IO](HttpVersion.HTTP_1_1))
       .map(_.status)
       .value
       .assertEquals(Right(Status.UnprocessableEntity))

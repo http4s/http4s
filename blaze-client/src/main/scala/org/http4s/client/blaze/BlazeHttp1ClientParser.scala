@@ -46,7 +46,7 @@ private[blaze] final class BlazeHttp1ClientParser(
   }
 
   def getHttpVersion(): HttpVersion =
-    if (httpVersion == null) HttpVersion.`HTTP/1.0` // TODO Questionable default
+    if (httpVersion == null) HttpVersion.HTTP_1_0 // TODO Questionable default
     else httpVersion
 
   def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
@@ -77,9 +77,9 @@ private[blaze] final class BlazeHttp1ClientParser(
       minorversion: Int): Unit = {
     status = Status.fromIntAndReason(code, reason).valueOr(throw _)
     httpVersion =
-      if (majorversion == 1 && minorversion == 1) HttpVersion.`HTTP/1.1`
-      else if (majorversion == 1 && minorversion == 0) HttpVersion.`HTTP/1.0`
-      else HttpVersion.fromVersion(majorversion, minorversion).getOrElse(HttpVersion.`HTTP/1.0`)
+      if (majorversion == 1 && minorversion == 1) HttpVersion.HTTP_1_1
+      else if (majorversion == 1 && minorversion == 0) HttpVersion.HTTP_1_0
+      else HttpVersion.fromVersion(majorversion, minorversion).getOrElse(HttpVersion.HTTP_1_0)
   }
 
   override protected def headerComplete(name: String, value: String): Boolean = {

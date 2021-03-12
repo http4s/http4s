@@ -36,12 +36,20 @@ final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
 }
 
 object HttpVersion {
-  val `HTTP/1.0` = new HttpVersion(1, 0)
-  val `HTTP/1.1` = new HttpVersion(1, 1)
-  val `HTTP/2.0` = new HttpVersion(2, 0)
+  val HTTP_1_0 = new HttpVersion(1, 0)
+  @deprecated("Rename to HTTP_1_0", "0.22.0-M6")
+  def `HTTP/1.0` = new HttpVersion(1, 0)
 
-  private[this] val right_1_0 = Right(`HTTP/1.0`)
-  private[this] val right_1_1 = Right(`HTTP/1.1`)
+  val HTTP_1_1 = new HttpVersion(1, 1)
+  @deprecated("Rename to HTTP_1_0", "0.22.0-M6")
+  def `HTTP/1.1` = new HttpVersion(1, 1)
+
+  val HTTP_2_0 = new HttpVersion(2, 0)
+  @deprecated("Rename to HTTP_1_0", "0.22.0-M6")
+  def `HTTP/2.0` = new HttpVersion(2, 0)
+
+  private[this] val right_1_0 = Right(HTTP_1_0)
+  private[this] val right_1_1 = Right(HTTP_1_1)
 
   def fromString(s: String): ParseResult[HttpVersion] =
     s match {

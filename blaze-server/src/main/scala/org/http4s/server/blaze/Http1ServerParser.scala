@@ -48,7 +48,7 @@ private[blaze] final class Http1ServerParser[F[_]](
       attrs: Vault): Either[(ParseFailure, HttpVersion), Request[F]] = {
     val h = Headers(headers.result())
     headers.clear()
-    val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
+    val protocol = if (minorVersion() == 1) HttpVersion.HTTP_1_1 else HttpVersion.HTTP_1_0
 
     val attrsWithTrailers =
       if (minorVersion() == 1 && isChunked)

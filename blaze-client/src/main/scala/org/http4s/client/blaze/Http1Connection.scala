@@ -348,7 +348,7 @@ private final class Http1Connection[F[_]](
     // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
     if (minor == 0 && req.headers.get[`Content-Length`].isEmpty) {
       logger.warn(s"Request $req is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
-      validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
+      validateRequest(req.withHttpVersion(HttpVersion.HTTP_1_1))
     }
     // Ensure we have a host header for HTTP/1.1
     else if (minor == 1 && req.uri.host.isEmpty) // this is unlikely if not impossible
@@ -360,7 +360,7 @@ private final class Http1Connection[F[_]](
         }
         validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
       } else if (req.headers.get[`Content-Length`].nonEmpty) // translate to HTTP/1.0
-        validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
+        validateRequest(req.withHttpVersion(HttpVersion.HTTP_1_0))
       else
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
     else if (req.uri.path == Uri.Path.empty) Right(req.withUri(req.uri.copy(path = Uri.Path.Root)))
