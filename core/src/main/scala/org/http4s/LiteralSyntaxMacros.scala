@@ -29,7 +29,7 @@ object LiteralSyntaxMacros {
     def validate(c: Context)(s: String) = {
       import c.universe._
       Uri.fromString(s) match {
-        case Right(_) => Right(c.Expr(q"Uri.fromString($s).get"))
+        case Right(_) => Right(c.Expr(q"org.http4s.Uri.fromString($s).get"))
         case Left(parseError) => Left(s"invalid URI: ${parseError.details}")
       }
     }
