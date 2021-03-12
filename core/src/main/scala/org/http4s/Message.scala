@@ -211,7 +211,7 @@ object Message {
 final class Request[F[_]](
     val method: Method = Method.GET,
     val uri: Uri = Uri(path = Uri.Path.Root),
-    val httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
+    val httpVersion: HttpVersion = HttpVersion.Http1_1,
     val headers: Headers = Headers.empty,
     val body: EntityBody[F] = EmptyBody,
     val attributes: Vault = Vault.empty
@@ -471,7 +471,7 @@ object Request {
   def apply[F[_]](
       method: Method = Method.GET,
       uri: Uri = Uri(path = Uri.Path.Root),
-      httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
+      httpVersion: HttpVersion = HttpVersion.Http1_1,
       headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,
       attributes: Vault = Vault.empty
@@ -524,7 +524,7 @@ object Request {
   */
 final case class Response[F[_]](
     status: Status = Status.Ok,
-    httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
+    httpVersion: HttpVersion = HttpVersion.Http1_1,
     headers: Headers = Headers.empty,
     body: EntityBody[F] = EmptyBody,
     attributes: Vault = Vault.empty)

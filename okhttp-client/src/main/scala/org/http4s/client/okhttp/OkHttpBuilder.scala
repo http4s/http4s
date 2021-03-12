@@ -101,10 +101,10 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
-          case Protocol.HTTP_2 => HttpVersion.HTTP_2_0
-          case Protocol.HTTP_1_1 => HttpVersion.HTTP_1_1
-          case Protocol.HTTP_1_0 => HttpVersion.HTTP_1_0
-          case _ => HttpVersion.HTTP_1_1
+          case Protocol.HTTP_1_1 => HttpVersion.Http1_1
+          case Protocol.HTTP_1_0 => HttpVersion.Http1_0
+          case Protocol.HTTP_2 => HttpVersion.Http2_0
+          case _ => HttpVersion.Http1_1
         }
         val status = Status.fromInt(response.code())
         val bodyStream = response.body.byteStream()

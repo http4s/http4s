@@ -68,10 +68,10 @@ private[jetty] final case class ResponseListener[F[_]](
 
   private def getHttpVersion(version: JHttpVersion): HttpVersion =
     version match {
-      case JHttpVersion.HTTP_1_1 => HttpVersion.HTTP_1_1
-      case JHttpVersion.HTTP_2 => HttpVersion.HTTP_2_0
-      case JHttpVersion.HTTP_1_0 => HttpVersion.HTTP_1_0
-      case _ => HttpVersion.HTTP_1_1
+      case JHttpVersion.HTTP_1_1 => HttpVersion.Http1_1
+      case JHttpVersion.HTTP_2 => HttpVersion.Http2_0
+      case JHttpVersion.HTTP_1_0 => HttpVersion.Http1_0
+      case _ => HttpVersion.Http1_1
     }
 
   private def getHeaders(headers: HttpFields): Headers =

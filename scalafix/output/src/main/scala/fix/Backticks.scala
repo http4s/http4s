@@ -20,8 +20,8 @@ object Backticks {
   )
 
   val httpVersions = Set(
-    HttpVersion.HTTP_1_0,
-    HttpVersion.HTTP_1_1,
-    HttpVersion.HTTP_2_0,
+    HttpVersion.Http1_0,
+    HttpVersion.Http1_1,
+    HttpVersion.Http2_0,
   )
 }

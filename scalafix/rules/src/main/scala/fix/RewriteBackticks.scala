@@ -36,9 +36,9 @@ class RewriteBackticks extends SemanticRule("RewriteBackticks") {
       "org/http4s/CacheDirective." -> "stale-if-error" -> "staleIfError",
       "org/http4s/CacheDirective." -> "stale-while-revalidate" -> "staleWhileRevalidate",
 
-      "org/http4s/HttpVersion." -> "HTTP/1.0" -> "HTTP_1_0",
-      "org/http4s/HttpVersion." -> "HTTP/1.1" -> "HTTP_1_1",
-      "org/http4s/HttpVersion." -> "HTTP/2.0" -> "HTTP_2_0",
+      "org/http4s/HttpVersion." -> "HTTP/1.0" -> "Http1_0",
+      "org/http4s/HttpVersion." -> "HTTP/1.1" -> "Http1_1",
+      "org/http4s/HttpVersion." -> "HTTP/2.0" -> "Http2_0",
     )
 
   def replaceFields(renames: ((String, String), String)*)(implicit doc: SemanticDocument): Patch =
