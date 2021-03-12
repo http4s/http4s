@@ -350,6 +350,7 @@ object Http4sPlugin extends AutoPlugin {
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
+    val literally = "0.1-360f22d"
   }
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
@@ -393,6 +394,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
   lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % V.keypool
+  lazy val literally                        = "org.typelevel"          %% "literally"                 % V.literally
   lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % V.log4cats
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % V.log4cats

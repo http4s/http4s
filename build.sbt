@@ -95,6 +95,7 @@ lazy val core = libraryProject("core")
       scodecBits,
       slf4jApi, // residual dependency from macros
       vault,
+      literally
     ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
     mimaBinaryIssueFilters ++= Seq(
