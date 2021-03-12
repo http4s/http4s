@@ -161,7 +161,7 @@ trait Writer {
     go(0)
     this << '"'
   }
-
+  //Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
   def eligibleOnly(s: String, keep: CharPredicate, placeholder: Char): this.type = {
     @tailrec def rec(ix: Int = 0): this.type =
       if (ix < s.length) {

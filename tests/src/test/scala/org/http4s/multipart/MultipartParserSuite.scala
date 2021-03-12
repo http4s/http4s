@@ -23,6 +23,7 @@ import fs2._
 import org.http4s._
 import org.http4s.headers._
 import org.http4s.util._
+import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
 
@@ -92,7 +93,7 @@ class MultipartParserSuite extends Http4sSuite {
         val expectedHeaders = Headers(
           `Content-Disposition`(
             "form-data",
-            Map("name" -> "upload", "filename" -> "integration.txt")),
+            Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
           `Content-Type`(MediaType.application.`octet-stream`),
           "Content-Transfer-Encoding" -> "binary"
         )
@@ -144,7 +145,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -238,7 +239,7 @@ class MultipartParserSuite extends Http4sSuite {
         // #4513 for why this isn't a modeled header
         `Content-Disposition`(
           "form-data",
-          Map("name*" -> "http4s withspace", "filename*" -> "我老婆太漂亮.txt")),
+          Map(ci"name*" -> "http4s withspace", ci"filename*" -> "我老婆太漂亮.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -282,7 +283,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -376,7 +377,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -423,7 +424,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -577,11 +578,11 @@ class MultipartParserSuite extends Http4sSuite {
         .assertEquals(
           List(
             Headers(
-              `Content-Disposition`("form-data", Map("name" -> "field1")),
+              `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
               `Content-Type`(MediaType.text.plain)
             ),
             Headers(
-              `Content-Disposition`("form-data", Map("name" -> "field2"))
+              `Content-Disposition`("form-data", Map(ci"name" -> "field2"))
             )
           )
         )
@@ -619,7 +620,7 @@ class MultipartParserSuite extends Http4sSuite {
         assertEquals(
           firstPart.headers,
           Headers(
-            `Content-Disposition`("form-data", Map("name" -> "field1")),
+            `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
             `Content-Type`(MediaType.text.plain)))
         assert(confirmedError.isInstanceOf[Left[_, _]])
         assert(
@@ -714,7 +715,7 @@ class MultipartParserSuite extends Http4sSuite {
       .assertEquals(
         List(
           Headers(
-            `Content-Disposition`("form-data", Map("name" -> "field1")),
+            `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
             `Content-Type`(MediaType.text.plain)
           )
         ))

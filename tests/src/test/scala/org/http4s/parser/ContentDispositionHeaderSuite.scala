@@ -19,6 +19,7 @@ package parser
 
 import org.http4s.headers.`Content-Disposition`
 import org.http4s.syntax.header._
+import org.typelevel.ci._
 
 class ContentDispositionHeaderSuite extends Http4sSuite {
   def parse(value: String): ParseResult[`Content-Disposition`] =
@@ -26,16 +27,16 @@ class ContentDispositionHeaderSuite extends Http4sSuite {
 
   test("ContentDisposition Header should render the correct values") {
 
-    val wrongEncoding = `Content-Disposition`("form-data", Map("filename" -> "http4s łł"))
+    val wrongEncoding = `Content-Disposition`("form-data", Map(ci"filename" -> "http4s łł"))
     val correctOrder =
-      `Content-Disposition`("form-data", Map("filename*" -> "aaa", "filename" -> "aaa"))
+      `Content-Disposition`("form-data", Map(ci"filename*" -> "value1", ci"filename" -> "value2"))
 
     assertEquals(
       wrongEncoding.renderString,
       """Content-Disposition: form-data; filename="http4s ??"; filename*=UTF-8''http4s%20%C5%82%C5%82""")
     assertEquals(
       correctOrder.renderString,
-      """Content-Disposition: form-data; filename="aaa"; filename*=UTF-8''aaa""")
+      """Content-Disposition: form-data; filename="value2"; filename*=UTF-8''value1""")
   }
 
 }
