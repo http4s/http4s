@@ -413,7 +413,8 @@ object CSRF {
           case Right(dec) =>
             // The `.drop(1)` removes the first empty line from the body value of the field.
             dec.parts
-              .find(_.headers.exists(_.value.contains(s"""name="$fieldName"""")))
+              .find(_.headers.exists(h =>
+                h.is(headers.`Content-Disposition`) && h.value.contains(s"""name="$fieldName"""")))
               .traverse(_.body.through(fs2.text.utf8Decode).drop(1).compile.fold("")(_ |+| _))
           case Left(_) => Sync[G].pure(none[String])
         }
