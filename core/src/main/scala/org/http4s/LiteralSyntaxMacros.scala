@@ -22,12 +22,19 @@ import scala.reflect.macros.blackbox
   * https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala
   */
 object LiteralSyntaxMacros {
-  def uriInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri] =
-    singlePartInterpolator(c)(
-      args,
-      "Uri",
-      Uri.fromString(_).isRight,
-      s => c.universe.reify(Uri.unsafeFromString(s.splice)))
+
+  import org.typelevel.literally.Literally
+
+  object uri extends Literally[Uri] {
+    def validate(c: Context)(s: String) = {
+      import c.universe._
+      Uri.fromString(s) match {
+        case Right(_) => Right(c.Expr(q"Uri.fromString($s).get"))
+        case Left(parseError) => Left(s"invalid URI: ${parseError.details}")
+      }
+    }
+    def make(c: Context)(args: c.Expr[Any]*): c.Expr[Uri] = apply(c)(args: _*)
+  }
 
   def schemeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Scheme] =
     singlePartInterpolator(c)(
