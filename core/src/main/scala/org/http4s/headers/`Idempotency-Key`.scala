@@ -25,18 +25,14 @@ object `Idempotency-Key` {
     ParseResult.fromParser(parser, "Invalid Idempotency-Key header")(s)
 
   private[http4s] val parser =
-    token.orElse(quotedString).map(CIString(_)).map(`Idempotency-Key`.apply)
+    token.orElse(quotedString).map(`Idempotency-Key`.apply)
 
   implicit val headerInstance: Header[`Idempotency-Key`, Header.Single] =
-    Header.createRendered(
-      ci"Idempotency-Key",
-      _.key,
-      parse
-    )
+    Header.create(ci"Idempotency-Key", _.key, parse)
 }
 
 /** Request header defines request to be idempotent used by client retry middleware.
   *
   *  [[https://tools.ietf.org/html/draft-idempotency-header-00#section-2.1 idempotency-header]]
   */
-final case class `Idempotency-Key`(key: CIString)
+final case class `Idempotency-Key`(key: String)

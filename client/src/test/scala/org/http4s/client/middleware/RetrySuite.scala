@@ -27,7 +27,6 @@ import org.http4s.headers.`Idempotency-Key`
 import org.http4s.laws.discipline.ArbitraryInstances._
 import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF
-import org.typelevel.ci._
 
 import scala.concurrent.duration._
 
@@ -118,7 +117,7 @@ class RetrySuite extends Http4sSuite {
     resubmit(POST)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
   }
   test("default retriable should defaultRetriable resubmits bodies on idempotent header") {
-    resubmit(POST, Headers(`Idempotency-Key`(ci"key")))(RetryPolicy.defaultRetriable)
+    resubmit(POST, Headers(`Idempotency-Key`("key")))(RetryPolicy.defaultRetriable)
       .assertEquals(Status.Ok)
   }
   test("default retriable should defaultRetriable resubmits bodies on idempotent methods") {
