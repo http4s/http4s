@@ -23,6 +23,19 @@ import scala.meta._
 class RewriteBackticks extends SemanticRule("RewriteBackticks") {
   override def fix(implicit doc: SemanticDocument): Patch =
     replaceFields(
+      "org/http4s/CacheDirective." -> "max-age" -> "maxAge",
+      "org/http4s/CacheDirective." -> "max-stale" -> "maxStale",
+      "org/http4s/CacheDirective." -> "min-fresh" -> "minFresh",
+      "org/http4s/CacheDirective." -> "must-revalidate" -> "mustRevalidate",
+      "org/http4s/CacheDirective." -> "no-cache" -> "noCache",
+      "org/http4s/CacheDirective." -> "no-store" -> "noStore",
+      "org/http4s/CacheDirective." -> "no-transform" -> "noTransform",
+      "org/http4s/CacheDirective." -> "only-if-cached" -> "onlyIfCached",
+      "org/http4s/CacheDirective." -> "proxy-revalidate" -> "proxyRevalidate",
+      "org/http4s/CacheDirective." -> "s-maxage" -> "sMaxage",
+      "org/http4s/CacheDirective." -> "stale-if-error" -> "staleIfError",
+      "org/http4s/CacheDirective." -> "stale-while-revalidate" -> "staleWhileRevalidate",
+
       "org/http4s/HttpVersion." -> "HTTP/1.0" -> "HTTP_1_0",
       "org/http4s/HttpVersion." -> "HTTP/1.1" -> "HTTP_1_1",
       "org/http4s/HttpVersion." -> "HTTP/2.0" -> "HTTP_2_0",

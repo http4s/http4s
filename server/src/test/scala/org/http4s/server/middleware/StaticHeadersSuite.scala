@@ -36,6 +36,6 @@ class StaticHeadersSuite extends Http4sSuite {
 
     resp
       .map(_.headers.get[`Cache-Control`])
-      .assertEquals(Some(`Cache-Control`(CacheDirective.`no-cache`())))
+      .assertEquals(Some(`Cache-Control`(CacheDirective.noCache())))
   }
 }

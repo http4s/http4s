@@ -56,10 +56,10 @@ object Caching {
   private val noStoreStaticHeaders: List[Header.ToRaw] = List(
     `Cache-Control`(
       NonEmptyList.of[CacheDirective](
-        CacheDirective.`no-store`,
+        CacheDirective.noStore,
         CacheDirective.`private`(),
-        CacheDirective.`no-cache`(),
-        CacheDirective.`max-age`(0.seconds)
+        CacheDirective.noCache(),
+        CacheDirective.maxAge(0.seconds)
       )
     ),
     "Pragma" -> "no-cache",
@@ -190,7 +190,7 @@ object Caching {
           `Cache-Control`(
             NonEmptyList.of(
               isPublic.fold[CacheDirective](identity, identity),
-              CacheDirective.`max-age`(actualLifetime)
+              CacheDirective.maxAge(actualLifetime)
             )),
           HDate(now),
           Expires(expires)
