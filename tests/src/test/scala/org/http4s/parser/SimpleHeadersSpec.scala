@@ -89,7 +89,7 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("SimpleHeaders should parse Content-Disposition") {
-    val header = `Content-Disposition`("foo", Map("one" -> "two", "three" -> "four"))
+    val header = `Content-Disposition`("foo", Map(ci"one" -> "two", ci"three" -> "four"))
     val parse = `Content-Disposition`.parse(_)
     assertEquals(parse(header.value), Right(header))
 
