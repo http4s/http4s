@@ -25,7 +25,7 @@ import org.http4s.headers.`Content-Type`
 
 class ScalatagsSuite extends Http4sSuite {
   private val testCharsets = NonEmptyList.of(
-    Charset.`ISO-8859-1`,
+    Charset.Iso8859_1,
     Charset.fromString("Windows-1251").yolo,
     Charset.fromString("GB2312").yolo,
     Charset.fromString("Shift-JIS").yolo,
@@ -47,7 +47,7 @@ class ScalatagsSuite extends Http4sSuite {
   }
 
   test("TypedTag encoder should render the body") {
-    implicit val cs: Charset = Charset.`UTF-8`
+    implicit val cs: Charset = Charset.Utf8
     val resp = Response[IO](Ok).withEntity(testBody())
     EntityDecoder
       .text[IO]

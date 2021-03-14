@@ -117,7 +117,7 @@ class EntityEncoderSpec extends Http4sSuite {
     test("EntityEncoder should give the content type") {
       assertEquals(
         EntityEncoder[IO, String].contentType,
-        Some(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)))
+        Some(`Content-Type`(MediaType.text.plain, Charset.Utf8)))
       assertEquals(
         EntityEncoder[IO, Array[Byte]].contentType,
         Some(`Content-Type`(MediaType.application.`octet-stream`)))

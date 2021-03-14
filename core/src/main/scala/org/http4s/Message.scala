@@ -591,7 +591,7 @@ object Response {
       Status.NotFound,
       body = Stream("Not found").through(utf8Encode),
       headers = Headers(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+        `Content-Type`(MediaType.text.plain, Charset.Utf8),
         `Content-Length`.unsafeFromLong(9L)
       )
     )

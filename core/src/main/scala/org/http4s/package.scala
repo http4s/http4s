@@ -34,7 +34,7 @@ package object http4s {
 
   type ParseResult[+A] = Either[ParseFailure, A]
 
-  val DefaultCharset = Charset.`UTF-8`
+  val DefaultCharset = Charset.Utf8
 
   /** A kleisli with a [[Request]] input and a [[Response]] output.  This type
     * is useful for writing middleware that are polymorphic over the return

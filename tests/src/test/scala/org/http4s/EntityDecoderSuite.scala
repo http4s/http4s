@@ -371,7 +371,7 @@ class EntityDecoderSuite extends Http4sSuite {
         "Name" -> Chain("Jonathan Doe")
       ))
     val resp: IO[Response[IO]] = Request[IO]()
-      .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
+      .withEntity(urlForm)(UrlForm.entityEncoder(Charset.Utf8))
       .pure[IO]
       .flatMap(server)
     resp.map(_.status).assertEquals(Ok) *>
@@ -468,16 +468,16 @@ class EntityDecoderSuite extends Http4sSuite {
   val str = "Oekraïene"
   test("decodeText should Use an charset defined by the Content-Type header") {
     val resp = Response[IO](Ok)
-      .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
-      .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.`UTF-8`)))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`US-ASCII`).assertEquals(str)
+      .withEntity(str.getBytes(Charset.Utf8.nioCharset))
+      .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.Utf8)))
+    EntityDecoder.decodeText(resp)(implicitly, Charset.UsAscii).assertEquals(str)
   }
 
   test("decodeText should Use the default if the Content-Type header does not define one") {
     val resp = Response[IO](Ok)
-      .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
+      .withEntity(str.getBytes(Charset.Utf8.nioCharset))
       .withContentType(`Content-Type`(MediaType.text.plain, None))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`UTF-8`).assertEquals(str)
+    EntityDecoder.decodeText(resp)(implicitly, Charset.Utf8).assertEquals(str)
   }
 
   // we want to return a specific kind of error when there is a MessageFailure

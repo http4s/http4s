@@ -45,7 +45,7 @@ class DecodeSpec extends Http4sSuite {
             }
             .flatMap(Stream.chunk)
           val utf8Decoded = utf8Decode(source).toList.combineAll
-          val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+          val decoded = source.through(decode[Fallible](Charset.Utf8)).compile.string
           decoded == Right(utf8Decoded)
         }
       }
@@ -87,14 +87,14 @@ class DecodeSpec extends Http4sSuite {
 
     test("decode should drop Byte Order Mark") {
       val source = Stream(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
-      val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+      val decoded = source.through(decode[Fallible](Charset.Utf8)).compile.string
       decoded == Right("")
     }
 
     test("decode should handle malformed input") {
       // Not a valid first byte in UTF-8
       val source = Stream(0x80.toByte)
-      val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+      val decoded = source.through(decode[Fallible](Charset.Utf8)).compile.string
       assert(decoded match {
         case Left(_: MalformedInputException) => true
         case _ => false
@@ -104,7 +104,7 @@ class DecodeSpec extends Http4sSuite {
     test("decode should handle incomplete input") {
       // Only the first byte of a two-byte UTF-8 sequence
       val source = Stream(0xc2.toByte)
-      val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+      val decoded = source.through(decode[Fallible](Charset.Utf8)).compile.string
       assert(decoded match {
         case Left(_: MalformedInputException) => true
         case _ => false

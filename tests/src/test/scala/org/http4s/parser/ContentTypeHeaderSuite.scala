@@ -25,14 +25,14 @@ class ContentTypeHeaderSuite extends Http4sSuite {
     `Content-Type`.parse(value)
 
   def simple = `Content-Type`(MediaType.text.html)
-  def charset = `Content-Type`(MediaType.text.html, Charset.`UTF-8`)
+  def charset = `Content-Type`(MediaType.text.html, Charset.Utf8)
   def extensions = `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")))
   def extensionsandset =
-    `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")), Charset.`UTF-8`)
+    `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")), Charset.Utf8)
   def multipart =
     `Content-Type`(
       MediaType.multipart.`form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
-      Charset.`UTF-8`)
+      Charset.Utf8)
 
   {
     test("ContentType Header should Generate the correct values") {

@@ -111,10 +111,10 @@ class OAuthSuite extends Http4sSuite {
 
   test("RFC 5849 example shouldCollect proper params, pg 22") {
     implicit def urlFormEncoder: EntityEncoder[IO, UrlForm] =
-      UrlForm.entityEncoder(Charset.`US-ASCII`)
+      UrlForm.entityEncoder(Charset.UsAscii)
 
     val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
-    val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
+    val Right(body) = UrlForm.decodeString(Charset.UsAscii)("c2&a3=2+q")
 
     val req = Request[IO](method = Method.POST, uri = uri).withEntity(body)
 

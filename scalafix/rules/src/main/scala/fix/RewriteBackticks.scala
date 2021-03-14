@@ -38,6 +38,13 @@ class RewriteBackticks extends SemanticRule("RewriteBackticks") {
       "org/http4s/CacheDirective." -> "stale-if-error" -> "StaleIfError",
       "org/http4s/CacheDirective." -> "stale-while-revalidate" -> "StaleWhileRevalidate",
 
+      "org/http4s/Charset." -> "US-ASCII" -> "UsAscii",
+      "org/http4s/Charset." -> "ISO-8859-1" -> "Iso8859_1",
+      "org/http4s/Charset." -> "UTF-8" -> "Utf8",
+      "org/http4s/Charset." -> "UTF-16" -> "Utf16",
+      "org/http4s/Charset." -> "UTF-16BE" -> "Utf16be",
+      "org/http4s/Charset." -> "UTF-16LE" -> "Utf16le",
+
       "org/http4s/HttpVersion." -> "HTTP/1.0" -> "Http1_0",
       "org/http4s/HttpVersion." -> "HTTP/1.1" -> "Http1_1",
       "org/http4s/HttpVersion." -> "HTTP/2.0" -> "Http2_0",

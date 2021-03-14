@@ -38,12 +38,12 @@ object Charset {
         x.nioCharset.compareTo(y.nioCharset)
     }
 
-  val `US-ASCII` = Charset(StandardCharsets.US_ASCII)
-  val `ISO-8859-1` = Charset(StandardCharsets.ISO_8859_1)
-  val `UTF-8` = Charset(StandardCharsets.UTF_8)
-  val `UTF-16` = Charset(StandardCharsets.UTF_16)
-  val `UTF-16BE` = Charset(StandardCharsets.UTF_16BE)
-  val `UTF-16LE` = Charset(StandardCharsets.UTF_16LE)
+  val UsAscii = Charset(StandardCharsets.US_ASCII)
+  val Iso8859_1 = Charset(StandardCharsets.ISO_8859_1)
+  val Utf8 = Charset(StandardCharsets.UTF_8)
+  val Utf16 = Charset(StandardCharsets.UTF_16)
+  val Utf16be = Charset(StandardCharsets.UTF_16BE)
+  val Utf16le = Charset(StandardCharsets.UTF_16LE)
 
   // Charset.forName caches a whopping two values and then
   // synchronizes.  We can prevent this by pre-caching all the lookups

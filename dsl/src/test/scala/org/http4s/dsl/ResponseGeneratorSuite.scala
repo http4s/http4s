@@ -143,7 +143,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
       .map(_.headers.headers)
       .assertEquals(
         Headers(
-          `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+          `Content-Type`(MediaType.text.plain, Charset.Utf8),
           location,
           Accept(MediaRange.`audio/*`),
           `Content-Length`.unsafeFromLong(3)

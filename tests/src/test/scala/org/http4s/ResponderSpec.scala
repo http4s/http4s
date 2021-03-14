@@ -44,9 +44,9 @@ class ResponderSpec extends Http4sSuite {
     assertEquals(c1.headers.headers.length, 3)
     assertEquals(c1.contentType, Some(`Content-Type`(MediaType.text.plain)))
 
-    val c2 = c1.withContentType(`Content-Type`(MediaType.application.json, `UTF-8`))
+    val c2 = c1.withContentType(`Content-Type`(MediaType.application.json, Utf8))
 
-    assertEquals(c2.contentType, Some(`Content-Type`(MediaType.application.json, `UTF-8`)))
+    assertEquals(c2.contentType, Some(`Content-Type`(MediaType.application.json, Utf8)))
     assertEquals(c2.headers.headers.count(_.name == ci"Content-Type"), 1)
     assertEquals(c2.headers.headers.count(_.name == ci"Content-Length"), 1)
     assertEquals(c2.headers.headers.count(_.name == ci"Host"), 1)

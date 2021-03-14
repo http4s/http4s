@@ -24,6 +24,15 @@ object Backticks {
     CacheDirective.`stale-while-revalidate`(Duration.Zero),
   )
 
+  val charsets = Set(
+    Charset.`US-ASCII`,
+    Charset.`ISO-8859-1`,
+    Charset.`UTF-8`,
+    Charset.`UTF-16`,
+    Charset.`UTF-16BE`,
+    Charset.`UTF-16LE`,
+  )
+
   val httpVersions = Set(
     HttpVersion.`HTTP/1.0`,
     HttpVersion.`HTTP/1.1`,

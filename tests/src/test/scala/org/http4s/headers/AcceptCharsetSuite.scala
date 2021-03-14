@@ -38,31 +38,31 @@ class AcceptCharsetSuite extends HeaderLaws {
 
   test("AcceptCharset matches atom before splatted") {
     val acceptCharset =
-      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`UTF-8`, qValue"0.5"))
-    assertEquals(acceptCharset.qValue(Charset.`UTF-8`), qValue"0.5")
+      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.Utf8, qValue"0.5"))
+    assertEquals(acceptCharset.qValue(Charset.Utf8), qValue"0.5")
   }
 
   test("AcceptCharset matches splatted if atom not present") {
     val acceptCharset =
-      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
-    assertEquals(acceptCharset.qValue(Charset.`UTF-8`), QValue.One)
+      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.Iso8859_1, qValue"0.5"))
+    assertEquals(acceptCharset.qValue(Charset.Utf8), QValue.One)
   }
 
   test("AcceptCharset rejects charset matching atom with q=0") {
     val acceptCharset =
-      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`UTF-8`, QValue.Zero))
-    assertEquals(acceptCharset.qValue(Charset.`UTF-8`), QValue.Zero)
+      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.Utf8, QValue.Zero))
+    assertEquals(acceptCharset.qValue(Charset.Utf8), QValue.Zero)
   }
 
   test("AcceptCharset rejects charset matching splat with q=0") {
     val acceptCharset = `Accept-Charset`(
       CharsetRange.*.withQValue(QValue.Zero),
-      CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
-    assertEquals(acceptCharset.qValue(Charset.`UTF-8`), QValue.Zero)
+      CharsetRange.Atom(Charset.Iso8859_1, qValue"0.5"))
+    assertEquals(acceptCharset.qValue(Charset.Utf8), QValue.Zero)
   }
 
   test("AcceptCharset rejects unmatched charset") {
-    val acceptCharset = `Accept-Charset`(CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
-    assertEquals(acceptCharset.qValue(Charset.`UTF-8`), QValue.Zero)
+    val acceptCharset = `Accept-Charset`(CharsetRange.Atom(Charset.Iso8859_1, qValue"0.5"))
+    assertEquals(acceptCharset.qValue(Charset.Utf8), QValue.Zero)
   }
 }

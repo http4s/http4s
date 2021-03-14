@@ -324,7 +324,7 @@ class Http1ServerStageSpec extends Http4sSuite {
             Ok,
             Set(
               H.`Content-Length`.unsafeFromLong(8 + 4).toRaw,
-              H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw
+              H.`Content-Type`(MediaType.text.plain, Charset.Utf8).toRaw
             ),
             "Result: done")
         )
@@ -346,7 +346,7 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw,
+          H.`Content-Type`(MediaType.text.plain, Charset.Utf8).toRaw,
           H.`Content-Length`.unsafeFromLong(3).toRaw
         )
         // Both responses must succeed
@@ -372,7 +372,7 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw,
+          H.`Content-Type`(MediaType.text.plain, Charset.Utf8).toRaw,
           H.`Content-Length`.unsafeFromLong(3).toRaw
         )
         // Both responses must succeed
@@ -397,7 +397,7 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw,
+          H.`Content-Type`(MediaType.text.plain, Charset.Utf8).toRaw,
           H.`Content-Length`.unsafeFromLong(3).toRaw
         )
         // Both responses must succeed

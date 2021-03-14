@@ -28,7 +28,7 @@ import org.typelevel.ci._
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   //TODO: bring back well-typed value once all headers are moved to new model
-  val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw
+  val textPlain = `Content-Type`(MediaType.text.plain, Utf8).toRaw
   val connClose = Connection(ci"close").toRaw
   val connKeep = Connection(ci"keep-alive").toRaw
   val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw

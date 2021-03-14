@@ -274,7 +274,7 @@ class MessageSuite extends Http4sSuite {
   test("not Found should return a plain text UTF-8 not found response") {
     val resp: Response[Pure] = Response.notFound
 
-    assertEquals(resp.contentType, Some(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)))
+    assertEquals(resp.contentType, Some(`Content-Type`(MediaType.text.plain, Charset.Utf8)))
     assertEquals(resp.status, Status.NotFound)
     assertEquals(resp.body.through(fs2.text.utf8Decode).toList.mkString(""), "Not found")
   }

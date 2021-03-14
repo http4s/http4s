@@ -21,6 +21,15 @@ object Backticks {
     CacheDirective.StaleWhileRevalidate(Duration.Zero),
   )
 
+  val charsets = Set(
+    Charset.UsAscii,
+    Charset.Iso8859_1,
+    Charset.Utf8,
+    Charset.Utf16,
+    Charset.Utf16be,
+    Charset.Utf16le,
+  )
+
   val httpVersions = Set(
     HttpVersion.Http1_0,
     HttpVersion.Http1_1,

@@ -30,7 +30,7 @@ trait Media[F[_]] {
       RT: RaiseThrowable[F],
       defaultCharset: Charset = DefaultCharset): Stream[F, String] =
     charset.getOrElse(defaultCharset) match {
-      case Charset.`UTF-8` =>
+      case Charset.Utf8 =>
         // suspect this one is more efficient, though this is superstition
         body.through(utf8Decode)
       case cs =>
