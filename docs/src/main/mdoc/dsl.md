@@ -138,12 +138,12 @@ Extra headers can be added using `putHeaders`, for example to specify cache poli
 
 ```scala mdoc:silent
 import org.http4s.headers.`Cache-Control`
-import org.http4s.CacheDirective.`no-cache`
+import org.http4s.CacheDirective.NoCache
 import cats.data.NonEmptyList
 ```
 
 ```scala mdoc
-Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync().headers
+Ok("Ok response.", `Cache-Control`(NonEmptyList(NoCache(), Nil))).unsafeRunSync().headers
 ```
 
 http4s defines all the well known headers directly, but sometimes you need to
