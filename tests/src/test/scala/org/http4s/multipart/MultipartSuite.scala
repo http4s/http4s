@@ -26,6 +26,7 @@ import java.io.File
 import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
+import org.typelevel.ci._
 
 class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
@@ -161,7 +162,7 @@ I am a big moose
 
       test(s"Multipart form data $name should extract name properly if it is present") {
         val part = Part(
-          Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
+          Headers(`Content-Disposition`("form-data", Map(ci"name" -> "Rich Homie Quan"))),
           Stream.empty.covary[IO])
         assertEquals(part.name, Some("Rich Homie Quan"))
       }
@@ -169,7 +170,9 @@ I am a big moose
       test(s"Multipart form data $name should extract filename property if it is present") {
         val part = Part(
           Headers(
-            `Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
+            `Content-Disposition`(
+              "form-data",
+              Map(ci"name" -> "file", ci"filename" -> "file.txt"))),
           Stream.empty.covary[IO]
         )
         assertEquals(part.filename, Some("file.txt"))

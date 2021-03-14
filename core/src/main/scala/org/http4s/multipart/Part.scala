@@ -25,11 +25,12 @@ import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
+import org.typelevel.ci._
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
-  def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get("name"))
+  def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
   def filename: Option[String] =
-    headers.get[`Content-Disposition`].flatMap(_.parameters.get("filename"))
+    headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
 
   override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
@@ -48,7 +49,7 @@ object Part {
 
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
-      Headers(`Content-Disposition`("form-data", Map("name" -> name))).put(headers: _*),
+      Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
       Stream.emit(value).through(utf8Encode))
 
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
@@ -64,7 +65,7 @@ object Part {
       headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(
-        `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)),
+        `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
         "Content-Transfer-Encoding" -> "binary"
       ).put(headers: _*),
       entityBody

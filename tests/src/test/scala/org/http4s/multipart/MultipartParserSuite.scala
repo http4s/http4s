@@ -23,6 +23,8 @@ import fs2._
 import org.http4s._
 import org.http4s.headers._
 import org.http4s.util._
+import org.typelevel.ci._
+
 import java.nio.charset.StandardCharsets
 
 class MultipartParserSuite extends Http4sSuite {
@@ -90,7 +92,7 @@ class MultipartParserSuite extends Http4sSuite {
         val expectedHeaders = Headers(
           `Content-Disposition`(
             "form-data",
-            Map("name" -> "upload", "filename" -> "integration.txt")),
+            Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
           `Content-Type`(MediaType.application.`octet-stream`),
           "Content-Transfer-Encoding" -> "binary"
         )
@@ -142,7 +144,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -187,7 +189,7 @@ class MultipartParserSuite extends Http4sSuite {
           .through(multipartPipe(boundary))
 
       val expectedHeaders = Headers(
-        `Content-Disposition`("form-data", Map("name*" -> "http4s很棒", "filename*" -> "我老婆太漂亮.txt")),
+        "Content-Disposition" -> """form-data; name*="http4s很棒"; filename*="我老婆太漂亮.txt"""",
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -208,6 +210,7 @@ class MultipartParserSuite extends Http4sSuite {
             .foldMonoid
         result <- bodies.attempt
       } yield {
+
         assertEquals(headers, expectedHeaders)
         assertEquals(result, Right(expected))
       }
@@ -216,7 +219,7 @@ class MultipartParserSuite extends Http4sSuite {
     test(s"$testNamePrefix: parse characterset encoded headers properly") {
       val unprocessedInput =
         """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-            |Content-Disposition: form-data; name*=UTF-8''http4s%20withspace; filename*="我老婆太漂亮.txt"
+            |Content-Disposition: form-data; name*=UTF-8''http4s%20withspace; filename*=UTF-8''%E6%88%91%E8%80%81%E5%A9%86%E5%A4%AA%E6%BC%82%E4%BA%AE.txt
             |Content-Type: application/octet-stream
             |Content-Transfer-Encoding: binary
             |
@@ -233,7 +236,9 @@ class MultipartParserSuite extends Http4sSuite {
 
       val expectedHeaders = Headers(
         // #4513 for why this isn't a modeled header
-        "Content-Disposition" -> """form-data; name*=UTF-8''http4s%20withspace; filename*="我老婆太漂亮.txt"""",
+        `Content-Disposition`(
+          "form-data",
+          Map(ci"name*" -> "http4s withspace", ci"filename*" -> "我老婆太漂亮.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -277,7 +282,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -371,7 +376,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -418,7 +423,7 @@ class MultipartParserSuite extends Http4sSuite {
       val expectedHeaders = Headers(
         `Content-Disposition`(
           "form-data",
-          Map("name" -> "upload", "filename" -> "integration.txt")),
+          Map(ci"name" -> "upload", ci"filename" -> "integration.txt")),
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary"
       )
@@ -572,11 +577,11 @@ class MultipartParserSuite extends Http4sSuite {
         .assertEquals(
           List(
             Headers(
-              `Content-Disposition`("form-data", Map("name" -> "field1")),
+              `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
               `Content-Type`(MediaType.text.plain)
             ),
             Headers(
-              `Content-Disposition`("form-data", Map("name" -> "field2"))
+              `Content-Disposition`("form-data", Map(ci"name" -> "field2"))
             )
           )
         )
@@ -614,7 +619,7 @@ class MultipartParserSuite extends Http4sSuite {
         assertEquals(
           firstPart.headers,
           Headers(
-            `Content-Disposition`("form-data", Map("name" -> "field1")),
+            `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
             `Content-Type`(MediaType.text.plain)))
         assert(confirmedError.isInstanceOf[Left[_, _]])
         assert(
@@ -708,7 +713,7 @@ class MultipartParserSuite extends Http4sSuite {
       .assertEquals(
         List(
           Headers(
-            `Content-Disposition`("form-data", Map("name" -> "field1")),
+            `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
             `Content-Type`(MediaType.text.plain)
           )
         ))
