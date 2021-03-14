@@ -45,6 +45,8 @@ class RewriteBackticks extends SemanticRule("RewriteBackticks") {
       "org/http4s/Charset." -> "UTF-16BE" -> "Utf16be",
       "org/http4s/Charset." -> "UTF-16LE" -> "Utf16le",
 
+      "org/http4s/CharsetRange." -> "*" -> "All",
+
       "org/http4s/HttpVersion." -> "HTTP/1.0" -> "Http1_0",
       "org/http4s/HttpVersion." -> "HTTP/1.1" -> "Http1_1",
       "org/http4s/HttpVersion." -> "HTTP/2.0" -> "Http2_0",

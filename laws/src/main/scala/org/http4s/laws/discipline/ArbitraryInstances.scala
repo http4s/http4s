@@ -230,7 +230,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[Either[(Charset, QValue), QValue]].contramap {
       case CharsetRange.Atom(charset, qValue) =>
         Left((charset, qValue))
-      case CharsetRange.`*`(qValue) =>
+      case CharsetRange.All(qValue) =>
         Right(qValue)
     }
 
@@ -242,13 +242,13 @@ private[http4s] trait ArbitraryInstances {
       } yield charset.withQuality(q)
     }
 
-  implicit val http4sTestingArbitraryForCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
-    Arbitrary(getArbitrary[QValue].map(CharsetRange.`*`.withQValue(_)))
+  implicit val http4sTestingArbitraryForCharsetSplatRange: Arbitrary[CharsetRange.All] =
+    Arbitrary(getArbitrary[QValue].map(CharsetRange.All.withQValue(_)))
 
   def genCharsetRangeNoQuality: Gen[CharsetRange] =
     frequency(
       3 -> getArbitrary[Charset].map(CharsetRange.fromCharset),
-      1 -> const(CharsetRange.`*`)
+      1 -> const(CharsetRange.All)
     )
 
   implicit val http4sTestingArbitraryForAcceptCharset: Arbitrary[`Accept-Charset`] =

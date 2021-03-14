@@ -30,6 +30,8 @@ object Backticks {
     Charset.Utf16le,
   )
 
+  val charsetRangeAll = CharsetRange.All
+
   val httpVersions = Set(
     HttpVersion.Http1_0,
     HttpVersion.Http1_1,

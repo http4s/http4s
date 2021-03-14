@@ -23,7 +23,7 @@ import org.scalacheck.Prop.{forAll, propBoolean}
 
 class CharsetRangeSuite extends Http4sSuite {
   test("* should match all charsets") {
-    forAll { (range: CharsetRange.`*`, cs: Charset) =>
+    forAll { (range: CharsetRange.All, cs: Charset) =>
       range.matches(cs)
     }
   }

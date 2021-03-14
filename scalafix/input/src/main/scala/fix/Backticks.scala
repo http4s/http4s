@@ -33,6 +33,8 @@ object Backticks {
     Charset.`UTF-16LE`,
   )
 
+  val charsetRangeAll = CharsetRange.`*`
+
   val httpVersions = Set(
     HttpVersion.`HTTP/1.0`,
     HttpVersion.`HTTP/1.1`,
