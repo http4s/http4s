@@ -32,10 +32,6 @@ object CacheDirective {
   object MaxAge {
     val name = ci"max-age"
   }
-  @deprecated("Renamed to MaxAge", "0.22.0-M6")
-  type `max-age` = MaxAge
-  @deprecated("Renamed to MaxAge", "0.22.0-M6")
-  val `max-age` = MaxAge
 
   final case class MaxStale(deltaSeconds: Option[Duration] = None) extends CacheDirective {
     def name = MaxStale.name
@@ -44,10 +40,6 @@ object CacheDirective {
   object MaxStale {
     val name = ci"max-stale"
   }
-  @deprecated("Renamed to MaxStale", "0.22.0-M6")
-  type `max-stale` = MaxStale
-  @deprecated("Renamed to MaxStale", "0.22.0-M6")
-  val `max-stale` = MaxStale
 
   final case class MinFresh(deltaSeconds: Duration) extends CacheDirective {
     def name = MinFresh.name
@@ -56,16 +48,10 @@ object CacheDirective {
   object MinFresh {
     val name = ci"min-fresh"
   }
-  @deprecated("Renamed to MinFresh", "0.22.0-M6")
-  type `min-fresh` = MinFresh
-  @deprecated("Renamed to MinFresh", "0.22.0-M6")
-  val `min-fresh` = MinFresh
 
   case object MustRevalidate extends CacheDirective {
     val name = ci"must-revalidate"
   }
-  @deprecated("Renamed to MustRevalidate", "0.22.0-M6")
-  val `must-revalidate` = MustRevalidate
 
   final case class NoCache(fieldNames: List[CIString] = Nil) extends CacheDirective {
     def name = NoCache.name
@@ -75,28 +61,18 @@ object CacheDirective {
   object NoCache {
     val name = ci"no-cache"
   }
-  @deprecated("Renamed to NoCache", "0.22.0-M6")
-  type `no-cache` = NoCache
-  @deprecated("Renamed to NoCache", "0.22.0-M6")
-  val `no-cache` = NoCache
 
   case object NoStore extends CacheDirective {
     val name = ci"no-store"
   }
-  @deprecated("Renamed to NoStore", "0.22.0-M6")
-  val `no-store` = NoStore
 
   case object NoTransform extends CacheDirective {
     val name = ci"no-transform"
   }
-  @deprecated("Renamed to NoTransform", "0.22.0-M6")
-  val `no-transform` = NoTransform
 
   case object OnlyIfCached extends CacheDirective {
     val name = ci"only-if-cached"
   }
-  @deprecated("Renamed to OnlyIfCached", "0.22.0-M6")
-  val `only-if-cached` = OnlyIfCached
 
   final case class Private(fieldNames: List[CIString] = Nil) extends CacheDirective {
     val name = Private.name
@@ -106,22 +82,14 @@ object CacheDirective {
   object Private {
     val name = ci"private"
   }
-  @deprecated("Renamed to Private", "0.22.0-M6")
-  type `private` = Private
-  @deprecated("Renamed to Private", "0.22.0-M6")
-  val `private` = Private
 
   case object ProxyRevalidate extends CacheDirective {
     val name = ci"proxy-revalidate"
   }
-  @deprecated("Renamed to ProxyRevalidate", "0.22.0-M6")
-  val `proxy-revalidate` = ProxyRevalidate
 
   case object Public extends CacheDirective {
     val name = ci"public"
   }
-  @deprecated("Renamed to Public", "0.22.0-M6")
-  val public = Public
 
   final case class SMaxage(deltaSeconds: Duration) extends CacheDirective {
     def name = SMaxage.name
@@ -130,10 +98,6 @@ object CacheDirective {
   object SMaxage {
     val name = ci"s-maxage"
   }
-  @deprecated("Renamed to SMaxage", "0.22.0-M6")
-  type `s-maxage` = SMaxage
-  @deprecated("Renamed to SMaxage", "0.22.0-M6")
-  val `s-maxage` = SMaxage
 
   final case class StaleIfError(deltaSeconds: Duration) extends CacheDirective {
     def name = StaleIfError.name
@@ -142,10 +106,6 @@ object CacheDirective {
   object StaleIfError {
     val name = ci"stale-if-error"
   }
-  @deprecated("Renamed to StaleIfError", "0.22.0-M6")
-  type `stale-if-error` = StaleIfError
-  @deprecated("Renamed to StaleIfError", "0.22.0-M6")
-  val `stale-if-error` = StaleIfError
 
   final case class StaleWhileRevalidate(deltaSeconds: Duration) extends CacheDirective {
     def name = StaleWhileRevalidate.name
@@ -154,10 +114,6 @@ object CacheDirective {
   object StaleWhileRevalidate {
     val name = ci"stale-while-revalidate"
   }
-  @deprecated("Renamed to StaleWhileRevalidate", "0.22.0-M6")
-  type `stale-while-revalidate` = StaleWhileRevalidate
-  @deprecated("Renamed to StaleWhileRevalidate", "0.22.0-M6")
-  val `stale-while-revalidate` = StaleWhileRevalidate
 
   def apply(name: CIString, argument: Option[String] = None): CacheDirective =
     new CustomCacheDirective(name, argument)
