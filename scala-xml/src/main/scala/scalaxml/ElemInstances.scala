@@ -19,7 +19,7 @@ package scalaxml
 
 import cats.effect.Sync
 import cats.syntax.all._
-import java.io.StringReader
+import java.io.{StringReader, StringWriter}
 import javax.xml.parsers.SAXParserFactory
 
 import cats.data.EitherT
@@ -35,7 +35,11 @@ trait ElemInstances {
       charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
     EntityEncoder
       .stringEncoder[F]
-      .contramap[Elem](xml => xml.buildString(false))
+      .contramap[Elem] { node =>
+        val sw = new StringWriter
+        XML.write(sw, node, charset.nioCharset.name, true, null)
+        sw.toString
+      }
       .withContentType(`Content-Type`(MediaType.application.xml))
 
   /** Handles a message body as XML.
