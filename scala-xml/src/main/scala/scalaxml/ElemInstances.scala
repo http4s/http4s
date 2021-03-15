@@ -16,19 +16,20 @@
 
 package org.http4s
 package scalaxml
-package instances
 
-import cats.data.EitherT
 import cats.effect.Sync
 import cats.syntax.all._
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
+
+import cats.data.EitherT
 import org.http4s.headers.`Content-Type`
+
 import scala.util.control.NonFatal
 import scala.xml.{Elem, InputSource, SAXParseException, XML}
 
 trait ElemInstances {
-  protected def saxFactory: SAXParserFactory = DefaultSaxParserFactory
+  protected def saxFactory: SAXParserFactory
 
   implicit def xmlEncoder[F[_]](implicit
       charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =

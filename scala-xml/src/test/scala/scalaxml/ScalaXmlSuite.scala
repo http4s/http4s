@@ -22,7 +22,6 @@ import cats.syntax.all._
 import fs2.Stream
 import fs2.text.{utf8Decode, utf8Encode}
 import org.http4s.Status.Ok
-import org.http4s.scalaxml.implicits._
 import scala.xml.Elem
 
 class ScalaXmlSuite extends Http4sSuite {

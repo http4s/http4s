@@ -18,8 +18,8 @@ package org.http4s
 
 import javax.xml.parsers.SAXParserFactory
 
-package object scalaxml {
-  val DefaultSaxParserFactory: SAXParserFactory = {
+package object scalaxml extends ElemInstances {
+  override val saxFactory = {
     val factory = SAXParserFactory.newInstance
     // Safer parsing settings to avoid certain class of XML attacks
     // See https://github.com/scala/scala-xml/issues/17
