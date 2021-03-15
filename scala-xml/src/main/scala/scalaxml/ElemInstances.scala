@@ -38,7 +38,7 @@ trait ElemInstances {
         XML.write(sw, node, charset.nioCharset.name, true, null)
         sw.toString
       }
-      .withContentType(`Content-Type`(MediaType.application.xml))
+      .withContentType(`Content-Type`(MediaType.application.xml).withCharset(charset))
 
   /** Handles a message body as XML.
     *
