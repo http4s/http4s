@@ -48,115 +48,126 @@ class CSRFIntegrationSuite extends Http4sSuite {
 
   test("CSRF check must work for headers") {
     val port = CSRFIntegrationSuite.findAvailablePort(reuseAddress = true)
-    val csrfCheck: Request[IO] => Boolean =
-      CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, port.some)
-    val csrfBuilder = CSRF[IO, IO](CSRF.generateSigningKey[IO]().unsafeRunSync(), csrfCheck)
-    val csrfProtect: CSRF[IO, IO] =
-      csrfBuilder
-        .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
-        .build
-    val token = csrfProtect.generateToken[IO].unsafeRunSync()
     val routes = HttpRoutes.of[IO] { case Method.POST -> Root =>
       Ok("CSRF passed!")
     }
-    val service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-    val server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
-      .bindHttp(port, "localhost")
-      .withHttpApp(service)
-      .resource
-    val fiber: Fiber[IO, Nothing] = server.use(_ => IO.never).start.unsafeRunSync()
-    val client: Client[IO] = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
 
-    val baseReq = Request[IO](
-      method = Method.POST,
-      headers = Headers.of(Header("Origin", s"http://localhost:$port")),
-      uri = Uri(
-        scheme = Uri.Scheme.http.some,
-        authority = Uri.Authority(host = Uri.RegName("localhost"), port = port.some).some,
-        path = "/"
-      )
-    )
-    val req = csrfProtect.embedInRequestCookie(baseReq, token)
+    val prg =
+      for {
+        key <- CSRF.generateSigningKey[IO]()
+        csrfCheck = CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, port.some)
+        csrfBuilder = CSRF[IO, IO](key, csrfCheck)
+        csrfProtect =
+          csrfBuilder
+            .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
+            .build
+        token <- csrfProtect.generateToken[IO]
+        service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
+        server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
+          .bindHttp(port, "localhost")
+          .withHttpApp(service)
+          .resource
+        fiber <- server.use(_ => IO.never).start
+        client = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
+        baseReq = Request[IO](
+          method = Method.POST,
+          headers = Headers.of(
+            Header("Origin", s"http://localhost:$port"),
+            Header(COOKIE_NAME, unlift(token))),
+          uri = Uri(
+            scheme = Uri.Scheme.http.some,
+            authority = Uri.Authority(host = Uri.RegName("localhost"), port = port.some).some,
+            path = "/"
+          )
+        )
+        req = csrfProtect.embedInRequestCookie(baseReq, token)
+        check <- client.expect[String](req)
+        _ <- fiber.cancel
+      } yield check
 
-    val check = client.expect[String](req).unsafeRunSync()
-    fiber.cancel.unsafeRunSync()
-    assertEquals(check, "CSRF passed!")
+    prg.assertEquals("CSRF passed!")
   }
 
   test("CSRF check must work for url forms") {
     val port = CSRFIntegrationSuite.findAvailablePort(reuseAddress = true)
-    val csrfCheck: Request[IO] => Boolean =
-      CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, port.some)
-    val csrfBuilder = CSRF[IO, IO](CSRF.generateSigningKey[IO]().unsafeRunSync(), csrfCheck)
-    val csrfProtect: CSRF[IO, IO] =
-      csrfBuilder
-        .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
-        .build
-    val token = csrfProtect.generateToken[IO].unsafeRunSync()
     val routes = HttpRoutes.of[IO] { case Method.POST -> Root =>
       Ok("CSRF passed!")
     }
-    val service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-    val server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
-      .bindHttp(port, "localhost")
-      .withHttpApp(service)
-      .resource
-    val fiber: Fiber[IO, Nothing] = server.use(_ => IO.never).start.unsafeRunSync()
-    val client: Client[IO] = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
 
-    val baseReq = Request[IO](
-      method = Method.POST,
-      headers = Headers.of(Header("Origin", s"http://localhost:$port")),
-      uri = Uri(
-        scheme = Uri.Scheme.http.some,
-        authority = Uri.Authority(host = Uri.RegName("localhost"), port = port.some).some,
-        path = "/"
-      )
-    ).withEntity(UrlForm(COOKIE_NAME -> unlift(token)))
-    val req = csrfProtect.embedInRequestCookie(baseReq, token)
+    val prg =
+      for {
+        key <- CSRF.generateSigningKey[IO]()
+        csrfCheck = CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, port.some)
+        csrfBuilder = CSRF[IO, IO](key, csrfCheck)
+        csrfProtect =
+          csrfBuilder
+            .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
+            .build
+        token <- csrfProtect.generateToken[IO]
+        service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
+        server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
+          .bindHttp(port, "localhost")
+          .withHttpApp(service)
+          .resource
+        fiber <- server.use(_ => IO.never).start
+        client = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
+        baseReq = Request[IO](
+          method = Method.POST,
+          headers = Headers.of(Header("Origin", s"http://localhost:$port")),
+          uri = Uri(
+            scheme = Uri.Scheme.http.some,
+            authority = Uri.Authority(host = Uri.RegName("localhost"), port = port.some).some,
+            path = "/"
+          )
+        ).withEntity(UrlForm(COOKIE_NAME -> unlift(token)))
+        req = csrfProtect.embedInRequestCookie(baseReq, token)
+        check <- client.expect[String](req)
+        _ <- fiber.cancel
+      } yield check
 
-    val check = client.expect[String](req).unsafeRunSync()
-    fiber.cancel.unsafeRunSync()
-    assertEquals(check, "CSRF passed!")
+    prg.assertEquals("CSRF passed!")
   }
 
   test("CSRF check must work for multipart forms") {
     val port = CSRFIntegrationSuite.findAvailablePort(reuseAddress = true)
-    val csrfCheck: Request[IO] => Boolean =
-      CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, port.some)
-    val csrfBuilder = CSRF[IO, IO](CSRF.generateSigningKey[IO]().unsafeRunSync(), csrfCheck)
-    val csrfProtect: CSRF[IO, IO] =
-      csrfBuilder
-        .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
-        .build
-    val token = csrfProtect.generateToken[IO].unsafeRunSync()
     val routes = HttpRoutes.of[IO] { case Method.POST -> Root =>
       Ok("CSRF passed!")
     }
-    val service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-    val server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
-      .bindHttp(port, "localhost")
-      .withHttpApp(service)
-      .resource
-    val fiber: Fiber[IO, Nothing] = server.use(_ => IO.never).start.unsafeRunSync()
-    val client: Client[IO] = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
 
-    val mf = Part.formData[IO](COOKIE_NAME, unlift(token), `Content-Type`(MediaType.text.plain))
-    val mp = Multipart(Vector(mf))
-    val baseReq = Request(
-      method = Method.POST,
-      uri = Uri(
-        scheme = Uri.Scheme.http.some,
-        authority = Uri.Authority(host = Uri.RegName("localhost"), port = port.some).some,
-        path = "/"
-      ),
-      headers = mp.headers
-    ).withEntity(mp).putHeaders(Header("Origin", s"http://localhost:$port"))
-    val req = csrfProtect.embedInRequestCookie(baseReq, token)
+    val prg =
+      for {
+        key <- CSRF.generateSigningKey[IO]()
+        csrfCheck = CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, port.some)
+        csrfBuilder = CSRF[IO, IO](key, csrfCheck)
+        csrfProtect =
+          csrfBuilder
+            .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
+            .build
+        token <- csrfProtect.generateToken[IO]
+        service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
+        server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
+          .bindHttp(port, "localhost")
+          .withHttpApp(service)
+          .resource
+        fiber <- server.use(_ => IO.never).start
+        client = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
+        mf = Part.formData[IO](COOKIE_NAME, unlift(token), `Content-Type`(MediaType.text.plain))
+        mp = Multipart(Vector(mf))
+        baseReq = Request[IO](
+          method = Method.POST,
+          uri = Uri(
+            scheme = Uri.Scheme.http.some,
+            authority = Uri.Authority(host = Uri.RegName("localhost"), port = port.some).some,
+            path = "/"
+          ),
+          headers = mp.headers
+        ).withEntity(mp).putHeaders(Header("Origin", s"http://localhost:$port"))
+        req = csrfProtect.embedInRequestCookie(baseReq, token)
+        check <- client.expect[String](req)
+        _ <- fiber.cancel
+      } yield check
 
-    val check = client.expect[String](req).unsafeRunSync()
-    fiber.cancel.unsafeRunSync()
-    assertEquals(check, "CSRF passed!")
+    prg.assertEquals("CSRF passed!")
   }
 
 }
