@@ -21,6 +21,7 @@ import cats.data.EitherT
 import cats.effect.ConcurrentEffect
 import cats.syntax.all._
 import fs2.io.toInputStream
+import java.io.StringWriter
 import javax.xml.parsers.SAXParserFactory
 import org.http4s.headers.`Content-Type`
 import scala.xml.{Elem, InputSource, SAXParseException, XML}
@@ -32,7 +33,11 @@ trait ElemInstances {
       charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
     EntityEncoder
       .stringEncoder[F]
-      .contramap[Elem](xml => xml.buildString(false))
+      .contramap[Elem] { node =>
+        val sw = new StringWriter
+        XML.write(sw, node, charset.nioCharset.name, true, null)
+        sw.toString
+      }
       .withContentType(`Content-Type`(MediaType.application.xml))
 
   /** Handles a message body as XML.
