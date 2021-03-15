@@ -64,6 +64,7 @@ class ScalaXmlSuite extends Http4sSuite {
 
   test("htmlEncoder renders HTML") {
     val html = <html><body>Hello</body></html>
+    implicit val cs: Charset = Charset.`UTF-8`
     assertIO(writeToString(html), "<html><body>Hello</body></html>")
   }
 
