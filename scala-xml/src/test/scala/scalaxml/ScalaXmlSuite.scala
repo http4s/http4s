@@ -21,7 +21,10 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.text.{utf8Decode, utf8Encode}
+import org.http4s.headers.`Content-Type`
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Status.Ok
+import org.scalacheck.Prop._
 import scala.xml.Elem
 
 class ScalaXmlSuite extends Http4sSuite {
@@ -108,5 +111,11 @@ class ScalaXmlSuite extends Http4sSuite {
       """<?xml version='1.0' encoding='ISO-8859-1'?>
         |<hello name="Günther"/>""".stripMargin
     )
+  }
+
+  property("encoder sets charset of Content-Type") {
+    forAll { (cs: Charset) =>
+      assertEquals(xmlEncoder[IO](cs).headers.get(`Content-Type`).flatMap(_.charset), Some(cs))
+    }
   }
 }
