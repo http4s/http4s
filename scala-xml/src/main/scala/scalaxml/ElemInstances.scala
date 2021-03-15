@@ -17,13 +17,15 @@
 package org.http4s
 package scalaxml
 
-import cats.data.EitherT
-import cats.effect.ConcurrentEffect
+import cats.effect.Sync
 import cats.syntax.all._
-import fs2.io.toInputStream
-import java.io.StringWriter
+import java.io.{ByteArrayInputStream, StringWriter}
 import javax.xml.parsers.SAXParserFactory
+
+import cats.data.EitherT
 import org.http4s.headers.`Content-Type`
+
+import scala.util.control.NonFatal
 import scala.xml.{Elem, InputSource, SAXParseException, XML}
 
 trait ElemInstances {
@@ -46,26 +48,22 @@ trait ElemInstances {
     *
     * @return an XML element
     */
-  implicit def xml[F[_]](implicit F: ConcurrentEffect[F]): EntityDecoder[F, Elem] = {
+  implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.text.xml, MediaType.text.html, MediaType.application.xml) { msg =>
       val source = new InputSource()
       msg.charset.foreach(cs => source.setEncoding(cs.nioCharset.name))
-      EitherT(
-        msg.body
-          .through(toInputStream)
-          .evalMap { in =>
-            source.setByteStream(in)
-            val saxParser = saxFactory.newSAXParser()
-            F.delay(XML.loadXML(source, saxParser))
-          }
-          .compile
-          .lastOrError
-          .attempt).leftFlatMap {
-        case e: SAXParseException =>
-          DecodeResult.failureT(MalformedMessageBodyFailure("Invalid XML", Some(e)))
-        case e =>
-          EitherT(F.raiseError(e))
+
+      collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
+        source.setByteStream(new ByteArrayInputStream(chunk.toArray))
+        val saxParser = saxFactory.newSAXParser()
+        EitherT(
+          F.delay(XML.loadXML(source, saxParser)).attempt
+        ).leftFlatMap {
+          case e: SAXParseException =>
+            DecodeResult.failureT(MalformedMessageBodyFailure("Invalid XML", Some(e)))
+          case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
+        }
       }
     }
   }
