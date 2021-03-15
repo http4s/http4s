@@ -59,6 +59,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
         csrfBuilder = CSRF[IO, IO](key, csrfCheck)
         csrfProtect =
           csrfBuilder
+            .withCookieName(COOKIE_NAME)
             .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
             .build
         token <- csrfProtect.generateToken[IO]
@@ -101,6 +102,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
         csrfBuilder = CSRF[IO, IO](key, csrfCheck)
         csrfProtect =
           csrfBuilder
+            .withCookieName(COOKIE_NAME)
             .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
             .build
         token <- csrfProtect.generateToken[IO]
@@ -141,6 +143,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
         csrfBuilder = CSRF[IO, IO](key, csrfCheck)
         csrfProtect =
           csrfBuilder
+            .withCookieName(COOKIE_NAME)
             .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
             .build
         token <- csrfProtect.generateToken[IO]
