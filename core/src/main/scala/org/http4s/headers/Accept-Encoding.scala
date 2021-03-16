@@ -55,11 +55,11 @@ final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) {
   def qValue(coding: ContentCoding): QValue = {
     def specific =
       values.toList.collectFirst {
-        case cc: ContentCoding if cc =!= ContentCoding.`*` && cc.matches(coding) => cc.qValue
+        case cc: ContentCoding if cc =!= ContentCoding.All && cc.matches(coding) => cc.qValue
       }
     def splatted =
       values.toList.collectFirst {
-        case cc: ContentCoding if cc === ContentCoding.`*` => cc.qValue
+        case cc: ContentCoding if cc === ContentCoding.All => cc.qValue
       }
     specific.orElse(splatted).getOrElse(QValue.Zero)
   }

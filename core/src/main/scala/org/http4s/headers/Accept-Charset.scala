@@ -20,7 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
-import org.http4s.CharsetRange.{Atom, `*`}
+import org.http4s.CharsetRange.{All, Atom}
 import org.typelevel.ci._
 
 object `Accept-Charset` {
@@ -35,7 +35,7 @@ object `Accept-Charset` {
     import org.http4s.internal.parsing.Rfc7230._
 
     val anyCharset = (char('*') *> QValue.parser)
-      .map(q => if (q != QValue.One) `*`.withQValue(q) else `*`)
+      .map(q => if (q != QValue.One) All.withQValue(q) else All)
 
     val fromToken = (token ~ QValue.parser).mapFilter { case (s, q) =>
       // TODO handle tokens that aren't charsets
@@ -77,7 +77,7 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) {
     def specific =
       values.collectFirst { case cs: Atom if cs.matches(charset) => cs.qValue }
     def splatted =
-      values.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
+      values.collectFirst { case cs: CharsetRange.All => cs.qValue }
 
     specific.orElse(splatted).getOrElse(QValue.Zero)
   }

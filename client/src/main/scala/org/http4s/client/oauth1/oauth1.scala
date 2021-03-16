@@ -241,13 +241,13 @@ package object oauth1 {
 
     req.contentType match {
       case Some(t)
-          if (req.method == Method.POST || req.method == Method.PUT) &&
+          if (req.method == Method.Post || req.method == Method.Put) &&
             t.mediaType == MediaType.application.`x-www-form-urlencoded` =>
         req.as[UrlForm].map { urlform =>
           val bodyparams = urlform.values.toSeq
             .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.toList.map((k, _)) }
 
-          implicit val charset = req.charset.getOrElse(Charset.`UTF-8`)
+          implicit val charset = req.charset.getOrElse(Charset.Utf8)
           req.withEntity(urlform) -> (qparams ++ bodyparams)
         }
 

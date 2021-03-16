@@ -19,13 +19,13 @@ package org.http4s.dsl.impl
 import org.http4s.Method
 
 trait Methods {
-  val GET: Method.GET.type = Method.GET
-  val HEAD: Method.HEAD.type = Method.HEAD
-  val POST: Method.POST.type = Method.POST
-  val PUT: Method.PUT.type = Method.PUT
-  val DELETE: Method.DELETE.type = Method.DELETE
-  val CONNECT: Method.CONNECT.type = Method.CONNECT
-  val OPTIONS: Method.OPTIONS.type = Method.OPTIONS
-  val TRACE: Method.TRACE.type = Method.TRACE
-  val PATCH: Method.PATCH.type = Method.PATCH
+  val GET: Method.Get.type = Method.Get
+  val HEAD: Method.Head.type = Method.Head
+  val POST: Method.Post.type = Method.Post
+  val PUT: Method.Put.type = Method.Put
+  val DELETE: Method.Delete.type = Method.Delete
+  val CONNECT: Method.Connect.type = Method.Connect
+  val OPTIONS: Method.Options.type = Method.Options
+  val TRACE: Method.Trace.type = Method.Trace
+  val PATCH: Method.Patch.type = Method.Patch
 }

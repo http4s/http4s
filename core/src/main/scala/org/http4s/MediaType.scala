@@ -62,25 +62,19 @@ sealed class MediaRange private[http4s] (
 }
 
 object MediaRange {
-  val `*/*` = new MediaRange("*")
-  val `application/*` = new MediaRange("application")
-  val `audio/*` = new MediaRange("audio")
-  val `image/*` = new MediaRange("image")
-  val `message/*` = new MediaRange("message")
-  val `multipart/*` = new MediaRange("multipart")
-  val `text/*` = new MediaRange("text")
-  val `video/*` = new MediaRange("video")
+  val All = new MediaRange("*")
+  val AllApplications = new MediaRange("application")
+  val AllAudio = new MediaRange("audio")
+  val AllImages = new MediaRange("image")
+  val AllMessages = new MediaRange("message")
+  val AllMultipart = new MediaRange("multipart")
+  val AllText = new MediaRange("text")
+  val AllVideo = new MediaRange("video")
 
   val standard: Map[String, MediaRange] =
-    List(
-      `*/*`,
-      `application/*`,
-      `audio/*`,
-      `image/*`,
-      `message/*`,
-      `multipart/*`,
-      `text/*`,
-      `video/*`).map(x => (x.mainType, x)).toMap
+    List(All, AllApplications, AllAudio, AllImages, AllMessages, AllMultipart, AllText, AllVideo)
+      .map(x => (x.mainType, x))
+      .toMap
 
   /** Parse a MediaRange
     */

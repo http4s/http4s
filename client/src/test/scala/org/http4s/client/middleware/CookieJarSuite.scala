@@ -55,13 +55,13 @@ class CookieJarSuite extends Http4sSuite {
     for {
       jar <- CookieJar.jarImpl[IO]
       testClient = CookieJar(jar)(client)
-      _ <- testClient.successful(Request[IO](Method.GET, uri"http://google.com/get-cookie"))
-      second <- testClient.successful(Request[IO](Method.GET, uri"http://google.com/test-cookie"))
+      _ <- testClient.successful(Request[IO](Method.Get, uri"http://google.com/get-cookie"))
+      second <- testClient.successful(Request[IO](Method.Get, uri"http://google.com/test-cookie"))
     } yield assert(second)
   }
 
   test("cookieAppliesToRequest should apply if the given domain matches") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+    val req = Request[IO](Method.Get, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
@@ -71,7 +71,7 @@ class CookieJarSuite extends Http4sSuite {
   }
 
   test("cookieAppliesToRequest should not apply if not given a domain") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+    val req = Request[IO](Method.Get, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
@@ -81,7 +81,7 @@ class CookieJarSuite extends Http4sSuite {
   }
 
   test("cookieAppliesToRequest should apply if a subdomain") {
-    val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
+    val req = Request[IO](Method.Get, uri = uri"http://api.google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
@@ -91,7 +91,7 @@ class CookieJarSuite extends Http4sSuite {
   }
 
   test("cookieAppliesToRequest should not apply if the wrong subdomain") {
-    val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
+    val req = Request[IO](Method.Get, uri = uri"http://api.google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
@@ -101,7 +101,7 @@ class CookieJarSuite extends Http4sSuite {
   }
 
   test("cookieAppliesToRequest should not apply if the superdomain") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+    val req = Request[IO](Method.Get, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
@@ -111,7 +111,7 @@ class CookieJarSuite extends Http4sSuite {
   }
 
   test("cookieAppliesToRequest should not apply a secure cookie to an http request") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+    val req = Request[IO](Method.Get, uri = uri"http://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
@@ -122,7 +122,7 @@ class CookieJarSuite extends Http4sSuite {
   }
 
   test("cookieAppliesToRequest should apply a secure cookie to an https request") {
-    val req = Request[IO](Method.GET, uri = uri"https://google.com")
+    val req = Request[IO](Method.Get, uri = uri"https://google.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",

@@ -159,7 +159,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     contentTypeO.fold(withoutContentType)(withContentType)
 
   def isChunked: Boolean =
-    headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
+    headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.Chunked))
 
   // Attribute methods
 
@@ -209,9 +209,9 @@ object Message {
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 final class Request[F[_]](
-    val method: Method = Method.GET,
+    val method: Method = Method.Get,
     val uri: Uri = Uri(path = Uri.Path.Root),
-    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    val httpVersion: HttpVersion = HttpVersion.Http1_1,
     val headers: Headers = Headers.empty,
     val body: EntityBody[F] = EmptyBody,
     val attributes: Vault = Vault.empty
@@ -469,9 +469,9 @@ final class Request[F[_]](
 
 object Request {
   def apply[F[_]](
-      method: Method = Method.GET,
+      method: Method = Method.Get,
       uri: Uri = Uri(path = Uri.Path.Root),
-      httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+      httpVersion: HttpVersion = HttpVersion.Http1_1,
       headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,
       attributes: Vault = Vault.empty
@@ -524,7 +524,7 @@ object Request {
   */
 final case class Response[F[_]](
     status: Status = Status.Ok,
-    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    httpVersion: HttpVersion = HttpVersion.Http1_1,
     headers: Headers = Headers.empty,
     body: EntityBody[F] = EmptyBody,
     attributes: Vault = Vault.empty)
@@ -591,7 +591,7 @@ object Response {
       Status.NotFound,
       body = Stream("Not found").through(utf8Encode),
       headers = Headers(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+        `Content-Type`(MediaType.text.plain, Charset.Utf8),
         `Content-Length`.unsafeFromLong(9L)
       )
     )

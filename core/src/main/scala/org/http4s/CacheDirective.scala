@@ -11,11 +11,11 @@
 package org.http4s
 
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.concurrent.duration.Duration
 
 sealed trait CacheDirective extends Product with Renderable {
-  val name = CIString(productPrefix.replace("$minus", "-"))
+  def name: CIString
   def value: String = name.toString
   override def toString: String = value
   def render(writer: Writer): writer.type = writer.append(value)
@@ -25,50 +25,94 @@ sealed trait CacheDirective extends Product with Renderable {
   * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
   */
 object CacheDirective {
-  final case class `max-age`(deltaSeconds: Duration) extends CacheDirective {
+  final case class MaxAge(deltaSeconds: Duration) extends CacheDirective {
+    def name = MaxAge.name
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
+  object MaxAge {
+    val name = ci"max-age"
+  }
 
-  final case class `max-stale`(deltaSeconds: Option[Duration] = None) extends CacheDirective {
+  final case class MaxStale(deltaSeconds: Option[Duration] = None) extends CacheDirective {
+    def name = MaxStale.name
     override def value: String = name.toString + deltaSeconds.fold("")("=" + _.toSeconds)
   }
-
-  final case class `min-fresh`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
+  object MaxStale {
+    val name = ci"max-stale"
   }
 
-  case object `must-revalidate` extends CacheDirective
+  final case class MinFresh(deltaSeconds: Duration) extends CacheDirective {
+    def name = MinFresh.name
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
+  }
+  object MinFresh {
+    val name = ci"min-fresh"
+  }
 
-  final case class `no-cache`(fieldNames: List[CIString] = Nil) extends CacheDirective {
+  case object MustRevalidate extends CacheDirective {
+    val name = ci"must-revalidate"
+  }
+
+  final case class NoCache(fieldNames: List[CIString] = Nil) extends CacheDirective {
+    def name = NoCache.name
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
+  object NoCache {
+    val name = ci"no-cache"
+  }
 
-  case object `no-store` extends CacheDirective
+  case object NoStore extends CacheDirective {
+    val name = ci"no-store"
+  }
 
-  case object `no-transform` extends CacheDirective
+  case object NoTransform extends CacheDirective {
+    val name = ci"no-transform"
+  }
 
-  case object `only-if-cached` extends CacheDirective
+  case object OnlyIfCached extends CacheDirective {
+    val name = ci"only-if-cached"
+  }
 
-  final case class `private`(fieldNames: List[CIString] = Nil) extends CacheDirective {
+  final case class Private(fieldNames: List[CIString] = Nil) extends CacheDirective {
+    val name = Private.name
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
-
-  case object `proxy-revalidate` extends CacheDirective
-
-  case object public extends CacheDirective
-
-  final case class `s-maxage`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
+  object Private {
+    val name = ci"private"
   }
 
-  final case class `stale-if-error`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
+  case object ProxyRevalidate extends CacheDirective {
+    val name = ci"proxy-revalidate"
   }
 
-  final case class `stale-while-revalidate`(deltaSeconds: Duration) extends CacheDirective {
+  case object Public extends CacheDirective {
+    val name = ci"public"
+  }
+
+  final case class SMaxage(deltaSeconds: Duration) extends CacheDirective {
+    def name = SMaxage.name
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
+  }
+  object SMaxage {
+    val name = ci"s-maxage"
+  }
+
+  final case class StaleIfError(deltaSeconds: Duration) extends CacheDirective {
+    def name = StaleIfError.name
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
+  }
+  object StaleIfError {
+    val name = ci"stale-if-error"
+  }
+
+  final case class StaleWhileRevalidate(deltaSeconds: Duration) extends CacheDirective {
+    def name = StaleWhileRevalidate.name
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
+  }
+  object StaleWhileRevalidate {
+    val name = ci"stale-while-revalidate"
   }
 
   def apply(name: CIString, argument: Option[String] = None): CacheDirective =

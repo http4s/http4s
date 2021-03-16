@@ -49,7 +49,7 @@ trait ElemInstances {
       collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
         val source = new InputSource(
           new StringReader(
-            new String(chunk.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
+            new String(chunk.toArray, msg.charset.getOrElse(Charset.UsAscii).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
         EitherT(
           F.delay(XML.loadXML(source, saxParser)).attempt

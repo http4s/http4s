@@ -71,7 +71,7 @@ object HttpMethodOverrider {
   def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] =
     HttpMethodOverriderConfig[F, G](
       HeaderOverrideStrategy(ci"X-HTTP-Method-Override"),
-      Set(Method.POST))
+      Set(Method.Post))
 
   val overriddenMethodAttrKey: Key[Method] = Key.newKey[IO, Method].unsafeRunSync()
 

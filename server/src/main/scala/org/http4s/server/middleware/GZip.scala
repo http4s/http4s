@@ -57,8 +57,8 @@ object GZip {
   }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
-    acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
-      ContentCoding.`x-gzip`)
+    acceptEncoding.satisfiedBy(ContentCoding.Gzip) || acceptEncoding.satisfiedBy(
+      ContentCoding.XGzip)
 
   private def zipOrPass[F[_]: Sync](
       response: Response[F],
@@ -89,7 +89,7 @@ object GZip {
       chunk(trailerFinish(trailerGen))
     resp
       .removeHeader[`Content-Length`]
-      .putHeaders(`Content-Encoding`(ContentCoding.gzip))
+      .putHeaders(`Content-Encoding`(ContentCoding.Gzip))
       .copy(body = b)
   }
 

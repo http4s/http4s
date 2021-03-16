@@ -75,7 +75,7 @@ class WebjarServiceBuilder[F[_]] private (
     val Root = Paths.get("")
     Kleisli {
       // Intercepts the routes that match webjar asset names
-      case request if request.method == Method.GET =>
+      case request if request.method == Method.Get =>
         val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
         OptionT
           .liftF(F.catchNonFatal {
@@ -227,7 +227,7 @@ object WebjarService {
     val Root = Paths.get("")
     Kleisli {
       // Intercepts the routes that match webjar asset names
-      case request if request.method == Method.GET && request.pathInfo.nonEmpty =>
+      case request if request.method == Method.Get && request.pathInfo.nonEmpty =>
         val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
         OptionT
           .liftF(F.catchNonFatal {

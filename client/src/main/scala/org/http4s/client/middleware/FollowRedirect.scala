@@ -85,7 +85,7 @@ object FollowRedirect {
 
       def clearBodyFromGetHead(req: Request[F]): Request[F] =
         method match {
-          case GET | HEAD => req.withEmptyBody
+          case Get | Head => req.withEmptyBody
           case _ => req
         }
 
@@ -121,7 +121,7 @@ object FollowRedirect {
     resp.status.code match {
       case 301 | 302 =>
         req.method match {
-          case POST =>
+          case Post =>
             // "For historical reasons, a user agent MAY change the request method
             // from POST to GET for the subsequent request." -- RFC 7231
             //
@@ -129,7 +129,7 @@ object FollowRedirect {
             //
             // TODO In a future version, configure this behavior through a
             // redirect config.
-            Some(GET)
+            Some(Get)
 
           case m =>
             Some(m)
@@ -143,8 +143,8 @@ object FollowRedirect {
         // agent can perform a retrieval request targeting that URI (a GET
         // or HEAD request if using HTTP)" -- RFC 7231
         req.method match {
-          case HEAD => Some(HEAD)
-          case _ => Some(GET)
+          case Head => Some(Head)
+          case _ => Some(Get)
         }
 
       case 307 | 308 =>

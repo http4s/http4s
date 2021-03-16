@@ -27,8 +27,8 @@ class AcceptLanguageSuite extends Http4sSuite with HeaderParserHelper[`Accept-La
   val enq5 = `Accept-Language`(LanguageTag("en").withQValue(qValue"0.5"))
   val en_cool = `Accept-Language`(LanguageTag("en", "cool"))
 
-  val all = `Accept-Language`(LanguageTag.`*`)
-  val ninguno = `Accept-Language`(LanguageTag.`*`.withQValue(QValue.Zero))
+  val all = `Accept-Language`(LanguageTag.All)
+  val ninguno = `Accept-Language`(LanguageTag.All.withQValue(QValue.Zero))
 
   {
     test("Accept-Language should Give correct value") {

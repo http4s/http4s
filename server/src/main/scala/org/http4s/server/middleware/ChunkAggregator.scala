@@ -56,7 +56,7 @@ object ChunkAggregator {
       case h @ Header.Raw(ci"Transfer-Encoding", value) =>
         `Transfer-Encoding`.parse(value) match {
           case Right(te) =>
-            te.values.filterNot(_ === TransferCoding.chunked) match {
+            te.values.filterNot(_ === TransferCoding.Chunked) match {
               case v :: vs =>
                 hh += `Transfer-Encoding`(NonEmptyList(v, vs))
               case Nil =>

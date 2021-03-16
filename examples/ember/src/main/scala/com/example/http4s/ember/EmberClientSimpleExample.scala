@@ -35,11 +35,11 @@ import scodec.bits.ByteVector
 
 object EmberClientSimpleExample extends IOApp {
 
-  val githubReq = Request[IO](Method.GET, uri"http://christopherdavenport.github.io/")
-  val dadJokeReq = Request[IO](Method.GET, uri"https://icanhazdadjoke.com/")
-  val googleReq = Request[IO](Method.GET, uri"https://www.google.com/")
-  val httpBinGet = Request[IO](Method.GET, uri"https://httpbin.org/get")
-  val httpBinPng = Request[IO](Method.GET, uri"https://httpbin.org/image/png")
+  val githubReq = Request[IO](Method.Get, uri"http://christopherdavenport.github.io/")
+  val dadJokeReq = Request[IO](Method.Get, uri"https://icanhazdadjoke.com/")
+  val googleReq = Request[IO](Method.Get, uri"https://www.google.com/")
+  val httpBinGet = Request[IO](Method.Get, uri"https://httpbin.org/get")
+  val httpBinPng = Request[IO](Method.Get, uri"https://httpbin.org/image/png")
 
   val logger = Slf4jLogger.getLogger[IO]
 

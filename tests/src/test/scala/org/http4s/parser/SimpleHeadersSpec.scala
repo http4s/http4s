@@ -84,7 +84,7 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("SimpleHeaders should parse Content-Encoding") {
-    val header = `Content-Encoding`(ContentCoding.`pack200-gzip`)
+    val header = `Content-Encoding`(ContentCoding.Pack200Gzip)
     assertEquals(`Content-Encoding`.parse(header.value), Right(header))
   }
 
@@ -166,10 +166,10 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("SimpleHeaders should parse Transfer-Encoding") {
-    val header = `Transfer-Encoding`(TransferCoding.chunked)
+    val header = `Transfer-Encoding`(TransferCoding.Chunked)
     assertEquals(`Transfer-Encoding`.parse(header.value), Right(header))
 
-    val header2 = `Transfer-Encoding`(TransferCoding.compress)
+    val header2 = `Transfer-Encoding`(TransferCoding.Compress)
     assertEquals(`Transfer-Encoding`.parse(header2.value), Right(header2))
   }
 

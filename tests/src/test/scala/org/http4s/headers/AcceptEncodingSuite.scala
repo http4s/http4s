@@ -38,31 +38,31 @@ class AcceptEncodingSuite extends HeaderLaws {
 
   test("matches atom before splatted") {
     val acceptEncoding =
-      `Accept-Encoding`(ContentCoding.*, ContentCoding.gzip.withQValue(qValue"0.5"))
-    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), qValue"0.5")
+      `Accept-Encoding`(ContentCoding.All, ContentCoding.Gzip.withQValue(qValue"0.5"))
+    assertEquals(acceptEncoding.qValue(ContentCoding.Gzip), qValue"0.5")
   }
 
   test("matches splatted if atom not present") {
     val acceptEncoding =
-      `Accept-Encoding`(ContentCoding.*, ContentCoding.compress.withQValue(qValue"0.5"))
-    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.One)
+      `Accept-Encoding`(ContentCoding.All, ContentCoding.Compress.withQValue(qValue"0.5"))
+    assertEquals(acceptEncoding.qValue(ContentCoding.Gzip), QValue.One)
   }
 
   test("rejects content coding matching atom with q=0") {
     val acceptEncoding =
-      `Accept-Encoding`(ContentCoding.*, ContentCoding.gzip.withQValue(QValue.Zero))
-    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.Zero)
+      `Accept-Encoding`(ContentCoding.All, ContentCoding.Gzip.withQValue(QValue.Zero))
+    assertEquals(acceptEncoding.qValue(ContentCoding.Gzip), QValue.Zero)
   }
 
   test("rejects content coding matching splat with q=0") {
     val acceptEncoding = `Accept-Encoding`(
-      ContentCoding.*.withQValue(QValue.Zero),
-      ContentCoding.compress.withQValue(qValue"0.5"))
-    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.Zero)
+      ContentCoding.All.withQValue(QValue.Zero),
+      ContentCoding.Compress.withQValue(qValue"0.5"))
+    assertEquals(acceptEncoding.qValue(ContentCoding.Gzip), QValue.Zero)
   }
 
   test("rejects unmatched content coding") {
-    val acceptEncoding = `Accept-Encoding`(ContentCoding.compress.withQValue(qValue"0.5"))
-    assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.Zero)
+    val acceptEncoding = `Accept-Encoding`(ContentCoding.Compress.withQValue(qValue"0.5"))
+    assertEquals(acceptEncoding.qValue(ContentCoding.Gzip), QValue.Zero)
   }
 }

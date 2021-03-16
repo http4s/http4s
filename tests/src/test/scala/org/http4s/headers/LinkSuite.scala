@@ -31,7 +31,7 @@ class LinkSuite extends HeaderLaws {
     assertEquals(parsedLink.map(_.uri), Right(uri"/feed"))
     assertEquals(parsedLink.map(_.rel), Right(Option("alternate")))
     assertEquals(parsedLink.map(_.title), Right(Option("main")))
-    assertEquals(parsedLink.map(_.`type`), Right(Option(MediaRange.`text/*`)))
+    assertEquals(parsedLink.map(_.`type`), Right(Option(MediaRange.AllText)))
     assertEquals(parsedLink.map(_.rev), Right(Option("previous")))
   }
 
@@ -66,7 +66,7 @@ class LinkSuite extends HeaderLaws {
         uri"/feed",
         rel = Some("alternate"),
         title = Some("main"),
-        `type` = Some(MediaRange.`text/*`)
+        `type` = Some(MediaRange.AllText)
       ))
 
     assertEquals(links.renderString, "Link: </feed>; rel=alternate; title=main; type=text/*")

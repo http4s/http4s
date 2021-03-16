@@ -170,7 +170,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   val nonMatchingDecoder: EntityDecoder[IO, String] =
-    EntityDecoder.decodeBy(MediaRange.`video/*`) { _ =>
+    EntityDecoder.decodeBy(MediaRange.AllVideo) { _ =>
       DecodeResult.failureT(MalformedMessageBodyFailure("Nope."))
     }
 
@@ -197,7 +197,7 @@ class EntityDecoderSuite extends Http4sSuite {
     decoder
       .decode(Request[IO](headers = Headers(`Content-Type`(MediaType.text.plain))), strict = true)
       .swap
-      .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`))
+      .map(_.toHttpResponse[IO](HttpVersion.Http1_1))
       .map(_.status)
       .value
       .assertEquals(Right(Status.UnprocessableEntity))
@@ -293,7 +293,7 @@ class EntityDecoderSuite extends Http4sSuite {
     val reqSomeOtherMediaType =
       Request[IO](headers = Headers(`Content-Type`(`text/x-h`)))
     val reqNoMediaType = Request[IO]()
-    val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) { _ =>
+    val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.All) { _ =>
       DecodeResult.successT(3)
     }
     (decoder1 <+> catchAllDecoder)
@@ -330,7 +330,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("apply should invoke the function with  the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
-      EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+      EntityDecoder.decodeBy(MediaRange.All)(_ => DecodeResult.success(IO.pure("hooray")))
     IO.async[String] { cb =>
       request
         .decodeWith(happyDecoder, strict = false) { s =>
@@ -343,7 +343,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   test("apply should wrap the ParseFailure in a ParseException on failure") {
-    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
+    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.All)(_ =>
       DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
     request
       .decodeWith(grumpyDecoder, strict = false) { _ =>
@@ -371,7 +371,7 @@ class EntityDecoderSuite extends Http4sSuite {
         "Name" -> Chain("Jonathan Doe")
       ))
     val resp: IO[Response[IO]] = Request[IO]()
-      .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
+      .withEntity(urlForm)(UrlForm.entityEncoder(Charset.Utf8))
       .pure[IO]
       .flatMap(server)
     resp.map(_.status).assertEquals(Ok) *>
@@ -468,16 +468,16 @@ class EntityDecoderSuite extends Http4sSuite {
   val str = "Oekraïene"
   test("decodeText should Use an charset defined by the Content-Type header") {
     val resp = Response[IO](Ok)
-      .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
-      .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.`UTF-8`)))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`US-ASCII`).assertEquals(str)
+      .withEntity(str.getBytes(Charset.Utf8.nioCharset))
+      .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.Utf8)))
+    EntityDecoder.decodeText(resp)(implicitly, Charset.UsAscii).assertEquals(str)
   }
 
   test("decodeText should Use the default if the Content-Type header does not define one") {
     val resp = Response[IO](Ok)
-      .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
+      .withEntity(str.getBytes(Charset.Utf8.nioCharset))
       .withContentType(`Content-Type`(MediaType.text.plain, None))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`UTF-8`).assertEquals(str)
+    EntityDecoder.decodeText(resp)(implicitly, Charset.Utf8).assertEquals(str)
   }
 
   // we want to return a specific kind of error when there is a MessageFailure

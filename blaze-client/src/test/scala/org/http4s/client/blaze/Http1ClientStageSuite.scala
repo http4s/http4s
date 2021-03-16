@@ -226,7 +226,7 @@ class Http1ClientStageSuite extends Http4sSuite {
   test("Allow an HTTP/1.0 request without a Host header".ignore) {
     val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
 
-    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
+    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.Http1_0)
 
     getSubmission(req, resp).map { case (request, response) =>
       assert(!request.contains("Host:"))
@@ -235,7 +235,7 @@ class Http1ClientStageSuite extends Http4sSuite {
   }
 
   test("Support flushing the prelude") {
-    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
+    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.Http1_0)
     /*
      * We flush the prelude first to test connection liveness in pooled
      * scenarios before we consume the body.  Make sure we can handle
@@ -247,7 +247,7 @@ class Http1ClientStageSuite extends Http4sSuite {
   fooConnection.test("Not expect body if request was a HEAD request") { tail =>
     val contentLength = 12345L
     val resp = s"HTTP/1.1 200 OK\r\nContent-Length: $contentLength\r\n\r\n"
-    val headRequest = FooRequest.withMethod(Method.HEAD)
+    val headRequest = FooRequest.withMethod(Method.Head)
 
     val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)
@@ -269,7 +269,7 @@ class Http1ClientStageSuite extends Http4sSuite {
       "Foo:Bar\r\n" +
       "\r\n"
 
-    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
+    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.Http1_1)
 
     test("Support trailer headers") {
       val hs = bracketResponse(req, resp) { (response: Response[IO]) =>

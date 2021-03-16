@@ -27,8 +27,8 @@ import play.twirl.api.{Html, JavaScript, Txt, Xml}
 class TwirlSuite extends Http4sSuite {
   implicit val arbCharset: Arbitrary[Charset] = Arbitrary {
     Gen.oneOf(
-      Charset.`UTF-8`,
-      Charset.`ISO-8859-1`,
+      Charset.Utf8,
+      Charset.Iso8859_1,
       Charset.fromString("Windows-1251").yolo,
       Charset.fromString("GB2312").yolo,
       Charset.fromString("Shift-JIS").yolo,

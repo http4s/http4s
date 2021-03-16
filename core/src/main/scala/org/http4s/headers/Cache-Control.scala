@@ -41,25 +41,25 @@ object `Cache-Control` {
   private[http4s] val CacheDirective: Parser[CacheDirective] =
     Parser.oneOf(
       (Parser.ignoreCase("no-cache") *> (Parser.string("=") *> FieldNames).?).map { fn =>
-        `no-cache`(fn.map(_.map(CIString(_)).toList).getOrElse(Nil))
+        NoCache(fn.map(_.map(CIString(_)).toList).getOrElse(Nil))
       } ::
-        Parser.ignoreCase("no-store").as(`no-store`) ::
-        Parser.ignoreCase("no-transform").as(`no-transform`) ::
-        Parser.ignoreCase("max-age=") *> DeltaSeconds.map(s => `max-age`(s)) ::
+        Parser.ignoreCase("no-store").as(NoStore) ::
+        Parser.ignoreCase("no-transform").as(NoTransform) ::
+        Parser.ignoreCase("max-age=") *> DeltaSeconds.map(s => MaxAge(s)) ::
         Parser.ignoreCase("max-stale") *> (Parser.string("=") *> DeltaSeconds).?.map(s =>
-          `max-stale`(s)) ::
-        Parser.ignoreCase("min-fresh=") *> DeltaSeconds.map(s => `min-fresh`(s)) ::
-        Parser.ignoreCase("only-if-cached").as(`only-if-cached`) ::
-        Parser.ignoreCase("public").as(`public`) ::
+          MaxStale(s)) ::
+        Parser.ignoreCase("min-fresh=") *> DeltaSeconds.map(s => MinFresh(s)) ::
+        Parser.ignoreCase("only-if-cached").as(OnlyIfCached) ::
+        Parser.ignoreCase("public").as(Public) ::
         (Parser.ignoreCase("private") *> (Parser.string("=") *> FieldNames).?.map { fn =>
-          `private`(fn.map(_.map(CIString(_)).toList).getOrElse(Nil))
+          Private(fn.map(_.map(CIString(_)).toList).getOrElse(Nil))
         }) ::
-        Parser.ignoreCase("must-revalidate").as(`must-revalidate`) ::
-        Parser.ignoreCase("proxy-revalidate").as(`proxy-revalidate`) ::
-        Parser.ignoreCase("s-maxage=") *> DeltaSeconds.map(s => `s-maxage`(s)) ::
-        Parser.ignoreCase("stale-if-error=") *> DeltaSeconds.map(s => `stale-if-error`(s)) ::
+        Parser.ignoreCase("must-revalidate").as(MustRevalidate) ::
+        Parser.ignoreCase("proxy-revalidate").as(ProxyRevalidate) ::
+        Parser.ignoreCase("s-maxage=") *> DeltaSeconds.map(s => SMaxage(s)) ::
+        Parser.ignoreCase("stale-if-error=") *> DeltaSeconds.map(s => StaleIfError(s)) ::
         Parser.ignoreCase("stale-while-revalidate=") *> DeltaSeconds.map(s =>
-          `stale-while-revalidate`(s)) ::
+          StaleWhileRevalidate(s)) ::
         (Rfc2616.token ~ (Parser.string("=") *> (Rfc2616.token | Rfc7230.quotedString)).?).map({
           case (name: String, arg: Option[String]) =>
             org.http4s.CacheDirective(CIString(name), arg)

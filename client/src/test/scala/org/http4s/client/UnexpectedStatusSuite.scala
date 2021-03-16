@@ -23,7 +23,7 @@ import org.scalacheck.Prop
 class UnexpectedStatusSuite extends Http4sSuite {
 
   test("UnexpectedStatus should include status and original request in message") {
-    val e = UnexpectedStatus(Status.NotFound, Method.GET, Uri.unsafeFromString("www.google.com"))
+    val e = UnexpectedStatus(Status.NotFound, Method.Get, Uri.unsafeFromString("www.google.com"))
     assertEquals(
       e.getMessage(),
       "unexpected HTTP status: 404 Not Found for request GET www.google.com")
@@ -31,7 +31,7 @@ class UnexpectedStatusSuite extends Http4sSuite {
 
   property("UnexpectedStatus should not return null") {
     Prop.forAll { (status: Status) =>
-      val e = UnexpectedStatus(status, Method.GET, Uri.unsafeFromString("www.google.it"))
+      val e = UnexpectedStatus(status, Method.Get, Uri.unsafeFromString("www.google.it"))
       Option(e.getMessage()).isDefined
     }
   }

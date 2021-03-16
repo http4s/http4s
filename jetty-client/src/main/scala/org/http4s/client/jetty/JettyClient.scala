@@ -81,9 +81,9 @@ object JettyClient {
       .method(request.method.name)
       .version(
         request.httpVersion match {
-          case HttpVersion.`HTTP/1.1` => JHttpVersion.HTTP_1_1
-          case HttpVersion.`HTTP/2.0` => JHttpVersion.HTTP_2
-          case HttpVersion.`HTTP/1.0` => JHttpVersion.HTTP_1_0
+          case HttpVersion.Http1_1 => JHttpVersion.HTTP_1_1
+          case HttpVersion.Http1_0 => JHttpVersion.HTTP_1_0
+          case HttpVersion.Http2_0 => JHttpVersion.HTTP_2
           case _ => JHttpVersion.HTTP_1_1
         }
       )

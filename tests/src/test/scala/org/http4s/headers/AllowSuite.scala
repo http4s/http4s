@@ -27,10 +27,10 @@ class AllowSuite extends HeaderLaws {
   }
 
   test("Allow should parse with an ending comma") {
-    assert(Allow.parse("GET,  POST   ,") == Right(Allow(Method.GET, Method.POST)))
+    assert(Allow.parse("GET,  POST   ,") == Right(Allow(Method.Get, Method.Post)))
   }
 
   test("Allow should parse with multiple commas") {
-    assert(Allow.parse("GET,,POST") == Right(Allow(Method.GET, Method.POST)))
+    assert(Allow.parse("GET,,POST") == Right(Allow(Method.Get, Method.Post)))
   }
 }

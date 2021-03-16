@@ -23,7 +23,7 @@ class HttpRoutesSuite extends Http4sSuite {
     val route = HttpRoutes.strict[Id] { case _ =>
       Response[Id](Status.Ok)
     }
-    val req = Request[Id](Method.GET)
+    val req = Request[Id](Method.Get)
     assert(route.run(req).map(_.status).value == Some(Status.Ok))
   }
 }

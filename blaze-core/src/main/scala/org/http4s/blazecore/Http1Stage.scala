@@ -273,7 +273,7 @@ object Http1Stage {
   private var cachedString: String = _
 
   private val NoPayloadMethods: Set[Method] =
-    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
+    Set(Method.Get, Method.Delete, Method.Connect, Method.Trace)
 
   private def currentDate: String = {
     val now = Instant.now()

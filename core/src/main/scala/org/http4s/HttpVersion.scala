@@ -36,17 +36,17 @@ final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
 }
 
 object HttpVersion {
-  val `HTTP/1.0` = new HttpVersion(1, 0)
-  val `HTTP/1.1` = new HttpVersion(1, 1)
-  val `HTTP/2.0` = new HttpVersion(2, 0)
+  val Http1_0 = new HttpVersion(1, 0)
+  val Http1_1 = new HttpVersion(1, 1)
+  val Http2_0 = new HttpVersion(2, 0)
 
-  private[this] val right_1_0 = Right(`HTTP/1.0`)
-  private[this] val right_1_1 = Right(`HTTP/1.1`)
+  private[this] val right1_0 = Right(Http1_0)
+  private[this] val right1_1 = Right(Http1_1)
 
   def fromString(s: String): ParseResult[HttpVersion] =
     s match {
-      case "HTTP/1.1" => right_1_1
-      case "HTTP/1.0" => right_1_0
+      case "HTTP/1.1" => right1_1
+      case "HTTP/1.0" => right1_0
       case _ =>
         ParseResult.fromParser(parser, "HTTP version")(s)
     }

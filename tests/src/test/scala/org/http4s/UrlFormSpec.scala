@@ -41,7 +41,7 @@ class UrlFormSpec extends Http4sSuite {
     super.scalaCheckTestParameters.withMaxSize(20)
 
   {
-    val charset = Charset.`UTF-8`
+    val charset = Charset.Utf8
 
     test("UrlForm should entityDecoder . entityEncoder == right") {
       PropF.forAllF { (urlForm: UrlForm) =>

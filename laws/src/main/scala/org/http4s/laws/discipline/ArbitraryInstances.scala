@@ -230,7 +230,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[Either[(Charset, QValue), QValue]].contramap {
       case CharsetRange.Atom(charset, qValue) =>
         Left((charset, qValue))
-      case CharsetRange.`*`(qValue) =>
+      case CharsetRange.All(qValue) =>
         Right(qValue)
     }
 
@@ -242,13 +242,13 @@ private[http4s] trait ArbitraryInstances {
       } yield charset.withQuality(q)
     }
 
-  implicit val http4sTestingArbitraryForCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
-    Arbitrary(getArbitrary[QValue].map(CharsetRange.`*`.withQValue(_)))
+  implicit val http4sTestingArbitraryForCharsetSplatRange: Arbitrary[CharsetRange.All] =
+    Arbitrary(getArbitrary[QValue].map(CharsetRange.All.withQValue(_)))
 
   def genCharsetRangeNoQuality: Gen[CharsetRange] =
     frequency(
       3 -> getArbitrary[Charset].map(CharsetRange.fromCharset),
-      1 -> const(CharsetRange.`*`)
+      1 -> const(CharsetRange.All)
     )
 
   implicit val http4sTestingArbitraryForAcceptCharset: Arbitrary[`Accept-Charset`] =
@@ -358,7 +358,7 @@ private[http4s] trait ArbitraryInstances {
         primaryTag <- genToken
         subTags <- frequency(4 -> Nil, 1 -> listOf(genToken))
       } yield LanguageTag(primaryTag, subTags = subTags)),
-      1 -> const(LanguageTag.`*`)
+      1 -> const(LanguageTag.All)
     )
 
   implicit val http4sTestingArbitraryForLanguageTag: Arbitrary[LanguageTag] =
@@ -703,11 +703,11 @@ private[http4s] trait ArbitraryInstances {
 
   implicit val http4sTestingArbitraryForTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
     Gen.oneOf(
-      TransferCoding.chunked,
-      TransferCoding.compress,
-      TransferCoding.deflate,
-      TransferCoding.gzip,
-      TransferCoding.identity)
+      TransferCoding.Chunked,
+      TransferCoding.Compress,
+      TransferCoding.Deflate,
+      TransferCoding.Gzip,
+      TransferCoding.Identity)
   }
 
   implicit val http4sTestingCogenForTransferCoding: Cogen[TransferCoding] =

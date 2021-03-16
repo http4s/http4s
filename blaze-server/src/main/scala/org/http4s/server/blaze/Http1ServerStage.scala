@@ -237,7 +237,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
     val bodyEncoder: Http1Writer[F] = {
-      if (req.method == Method.HEAD || !resp.status.isEntityAllowed) {
+      if (req.method == Method.Head || !resp.status.isEntityAllowed) {
         // We don't have a body (or don't want to send it) so we just get the headers
 
         if (!resp.status.isEntityAllowed &&
@@ -245,7 +245,7 @@ private[blaze] class Http1ServerStage[F[_]](
           logger.warn(
             s"Body detected for response code ${resp.status.code} which doesn't permit an entity. Dropping.")
 
-        if (req.method == Method.HEAD)
+        if (req.method == Method.Head)
           // write message body header for HEAD response
           (parser.minorVersion(), respTransferCoding, lengthHeader) match {
             case (minor, Some(enc), _) if minor > 0 && enc.hasChunked =>

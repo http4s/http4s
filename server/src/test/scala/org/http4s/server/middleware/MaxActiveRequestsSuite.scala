@@ -29,7 +29,7 @@ class MaxActiveRequestsSuite extends Http4sSuite {
   def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) =
     Kleisli { (req: Request[IO]) =>
       req match {
-        case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
+        case other if other.method == Method.Put => OptionT.none[IO, Response[IO]]
         case _ =>
           OptionT.liftF(
             startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO])
@@ -90,7 +90,7 @@ class MaxActiveRequestsSuite extends Http4sSuite {
       deferredWait <- Deferred[IO, Unit]
       middle <- MaxActiveRequests.forHttpRoutes[IO](1)
       httpApp = middle(routes(deferredStarted, deferredWait)).orNotFound
-      out1 <- httpApp.run(Request(Method.PUT))
+      out1 <- httpApp.run(Request(Method.Put))
       _ <- deferredWait.complete(())
       out2 <- httpApp.run(req)
     } yield (out1.status, out2.status)).assertEquals((Status.NotFound, Status.Ok))

@@ -51,7 +51,7 @@ class TransferCodingSpec extends Http4sSuite {
   test("parse should parse multiple items") {
     assertEquals(
       TransferCoding.parseList("gzip, chunked"),
-      ParseResult.success(NonEmptyList.of(TransferCoding.gzip, TransferCoding.chunked)))
+      ParseResult.success(NonEmptyList.of(TransferCoding.Gzip, TransferCoding.Chunked)))
   }
 
   test("render should return coding") {

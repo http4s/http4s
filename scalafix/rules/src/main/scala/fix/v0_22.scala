@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2018 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.http4s
-package multipart
+package fix
 
-import org.http4s.headers._
+import scalafix.v1._
 
-final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Boundary.create) {
-  def headers: Headers =
-    Headers(
-      `Transfer-Encoding`(TransferCoding.Chunked),
-      `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value)))
-    )
+class v0_22 extends SemanticRule("v0_22") {
+  override def fix(implicit doc: SemanticDocument): Patch =
+    new RewriteBackticks().fix
 }

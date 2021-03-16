@@ -71,85 +71,85 @@ object Method {
   private def safe(name: String) =
     new Method(name, isSafe = true, isIdempotent = true)
 
-  val ACL: Method = idempotent("ACL")
-  val `BASELINE-CONTROL`: Method = idempotent("BASELINE-CONTROL")
-  val BIND: Method = idempotent("BIND")
-  val CHECKIN: Method = idempotent("CHECKIN")
-  val CHECKOUT: Method = idempotent("CHECKOUT")
-  val CONNECT: Method = apply("CONNECT")
-  val COPY: Method = idempotent("COPY")
-  val DELETE: Method = idempotent("DELETE")
-  val GET: Method = safe("GET")
-  val HEAD: Method = safe("HEAD")
-  val LABEL: Method = idempotent("LABEL")
-  val LINK: Method = idempotent("LINK")
-  val LOCK: Method = apply("LOCK")
-  val MERGE: Method = idempotent("MERGE")
-  val MKACTIVITY: Method = idempotent("MKACTIVITY")
-  val MKCALENDAR: Method = idempotent("MKCALENDAR")
-  val MKCOL: Method = idempotent("MKCOL")
-  val MKREDIRECTREF: Method = idempotent("MKREDIRECTREF")
-  val MKWORKSPACE: Method = idempotent("MKWORKSPACE")
-  val MOVE: Method = idempotent("MOVE")
-  val OPTIONS: Method = safe("OPTIONS")
-  val ORDERPATCH: Method = idempotent("ORDERPATCH")
-  val PATCH: Method = apply("PATCH")
-  val POST: Method = apply("POST")
-  val PRI: Method = safe("PRI")
-  val PROPFIND: Method = safe("PROPFIND")
-  val PROPPATCH: Method = idempotent("PROPPATCH")
-  val PUT: Method = idempotent("PUT")
-  val REBIND: Method = idempotent("REBIND")
-  val REPORT: Method = safe("REPORT")
-  val SEARCH: Method = safe("SEARCH")
-  val TRACE: Method = safe("TRACE")
-  val UNBIND: Method = idempotent("UNBIND")
-  val UNCHECKOUT: Method = idempotent("UNCHECKOUT")
-  val UNLINK: Method = idempotent("UNLINK")
-  val UNLOCK: Method = idempotent("UNLOCK")
-  val UPDATE: Method = idempotent("UPDATE")
-  val UPDATEREDIRECTREF: Method = idempotent("UPDATEREDIRECTREF")
-  val `VERSION-CONTROL`: Method = idempotent("VERSION-CONTROL")
+  val Acl: Method = idempotent("ACL")
+  val BaselineControl: Method = idempotent("BASELINE-CONTROL")
+  val Bind: Method = idempotent("BIND")
+  val Checkin: Method = idempotent("CHECKIN")
+  val Checkout: Method = idempotent("CHECKOUT")
+  val Connect: Method = apply("CONNECT")
+  val Copy: Method = idempotent("COPY")
+  val Delete: Method = idempotent("DELETE")
+  val Get: Method = safe("GET")
+  val Head: Method = safe("HEAD")
+  val Label: Method = idempotent("LABEL")
+  val Link: Method = idempotent("LINK")
+  val Lock: Method = apply("LOCK")
+  val Merge: Method = idempotent("MERGE")
+  val MkActivity: Method = idempotent("MKACTIVITY")
+  val MkCalendar: Method = idempotent("MKCALENDAR")
+  val MkCol: Method = idempotent("MKCOL")
+  val MkRedirectRef: Method = idempotent("MKREDIRECTREF")
+  val MkWorkspace: Method = idempotent("MKWORKSPACE")
+  val Move: Method = idempotent("MOVE")
+  val Options: Method = safe("OPTIONS")
+  val OrderPatch: Method = idempotent("ORDERPATCH")
+  val Patch: Method = apply("PATCH")
+  val Post: Method = apply("POST")
+  val Pri: Method = safe("PRI")
+  val PropFind: Method = safe("PROPFIND")
+  val PropPatch: Method = idempotent("PROPPATCH")
+  val Put: Method = idempotent("PUT")
+  val Rebind: Method = idempotent("REBIND")
+  val Report: Method = safe("REPORT")
+  val Search: Method = safe("SEARCH")
+  val Trace: Method = safe("TRACE")
+  val Unbind: Method = idempotent("UNBIND")
+  val Uncheckout: Method = idempotent("UNCHECKOUT")
+  val Unlink: Method = idempotent("UNLINK")
+  val Unlock: Method = idempotent("UNLOCK")
+  val Update: Method = idempotent("UPDATE")
+  val UpdateDirectRef: Method = idempotent("UPDATEREDIRECTREF")
+  val VersionControl: Method = idempotent("VERSION-CONTROL")
 
   val all = List(
-    ACL,
-    `BASELINE-CONTROL`,
-    BIND,
-    CHECKIN,
-    CHECKOUT,
-    CONNECT,
-    COPY,
-    DELETE,
-    GET,
-    HEAD,
-    LABEL,
-    LINK,
-    LOCK,
-    MERGE,
-    MKACTIVITY,
-    MKCALENDAR,
-    MKCOL,
-    MKREDIRECTREF,
-    MKWORKSPACE,
-    MOVE,
-    OPTIONS,
-    ORDERPATCH,
-    PATCH,
-    POST,
-    PRI,
-    PROPFIND,
-    PROPPATCH,
-    PUT,
-    REBIND,
-    REPORT,
-    SEARCH,
-    TRACE,
-    UNBIND,
-    UNCHECKOUT,
-    UNLINK,
-    UNLOCK,
-    UPDATEREDIRECTREF,
-    `VERSION-CONTROL`
+    Acl,
+    BaselineControl,
+    Bind,
+    Checkin,
+    Checkout,
+    Connect,
+    Copy,
+    Delete,
+    Get,
+    Head,
+    Label,
+    Link,
+    Lock,
+    Merge,
+    MkActivity,
+    MkCalendar,
+    MkCol,
+    MkRedirectRef,
+    MkWorkspace,
+    Move,
+    Options,
+    OrderPatch,
+    Patch,
+    Post,
+    Pri,
+    PropFind,
+    PropPatch,
+    Put,
+    Rebind,
+    Report,
+    Search,
+    Trace,
+    Unbind,
+    Uncheckout,
+    Unlink,
+    Unlock,
+    UpdateDirectRef,
+    VersionControl
   )
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap

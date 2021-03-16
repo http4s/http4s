@@ -29,7 +29,7 @@ import scala.util.control.NoStackTrace
   */
 object GZip {
   private val supportedCompressions =
-    NonEmptyList.of(ContentCoding.gzip, ContentCoding.deflate)
+    NonEmptyList.of(ContentCoding.Gzip, ContentCoding.Deflate)
 
   def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Sync[F]): Client[F] =
     Client[F] { req =>
@@ -53,14 +53,14 @@ object GZip {
       F: Sync[F]): Response[F] =
     response.headers.get[`Content-Encoding`] match {
       case Some(header)
-          if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
+          if header.contentCoding == ContentCoding.Gzip || header.contentCoding == ContentCoding.XGzip =>
         val gunzip: Pipe[F, Byte, Byte] =
           _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
         response
           .filterHeaders(nonCompressionHeader)
           .withBodyStream(response.body.through(decompressWith(gunzip)))
 
-      case Some(header) if header.contentCoding == ContentCoding.deflate =>
+      case Some(header) if header.contentCoding == ContentCoding.Deflate =>
         val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(bufferSize)
         response
           .filterHeaders(nonCompressionHeader)

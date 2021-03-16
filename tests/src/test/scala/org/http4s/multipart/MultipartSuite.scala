@@ -59,7 +59,7 @@ class MultipartSuite extends Http4sSuite {
         val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
         val body = entity.body
         val request =
-          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+          Request(method = Method.Post, uri = url, body = body, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value
 
@@ -73,7 +73,7 @@ class MultipartSuite extends Http4sSuite {
         val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
         val body = entity.body
         val request =
-          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+          Request(method = Method.Post, uri = url, body = body, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value
 
@@ -92,7 +92,7 @@ class MultipartSuite extends Http4sSuite {
         val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
         val body = entity.body
         val request =
-          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+          Request(method = Method.Post, uri = url, body = body, headers = multipart.headers)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value
@@ -123,7 +123,7 @@ Content-Type: application/pdf
           `Content-Type`(
             MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
         val request = Request[IO](
-          method = Method.POST,
+          method = Method.Post,
           uri = url,
           body = Stream.emit(body).covary[IO].through(text.utf8Encode),
           headers = header)
@@ -151,7 +151,7 @@ I am a big moose
           `Content-Type`(
             MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
         val request = Request[IO](
-          method = Method.POST,
+          method = Method.Post,
           uri = url,
           body = Stream.emit(body).through(text.utf8Encode),
           headers = header)
@@ -182,7 +182,7 @@ I am a big moose
       test(
         s"Multipart form data $name should include chunked transfer encoding header so that body is streamed by client") {
         val multipart = Multipart(Vector())
-        val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
+        val request = Request(method = Method.Post, uri = url, headers = multipart.headers)
         assert(request.isChunked)
       }
     }

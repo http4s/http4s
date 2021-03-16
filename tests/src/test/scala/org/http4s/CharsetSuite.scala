@@ -33,7 +33,7 @@ class CharsetSuite extends Http4sSuite {
   }
 
   test("fromString should work for aliases") {
-    assert(Charset.fromString("UTF8") == Right(Charset.`UTF-8`))
+    assert(Charset.fromString("UTF8") == Right(Charset.Utf8))
   }
 
   test("fromString should return InvalidCharset for unregistered names") {
