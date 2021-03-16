@@ -39,7 +39,7 @@ class AcceptLanguageSuite extends HeaderLaws {
 
   test("matches most specific tag") {
     val acceptLanguage = `Accept-Language`(
-      LanguageTag.*,
+      LanguageTag.All,
       LanguageTag("de", qValue"0.3", List("DE", "1996")),
       LanguageTag("de", qValue"0.1"),
       LanguageTag("de", qValue"0.2", List("DE")))
@@ -54,18 +54,18 @@ class AcceptLanguageSuite extends HeaderLaws {
   }
 
   test("matches splatted if primary tag not present") {
-    val acceptLanguage = `Accept-Language`(LanguageTag.*, spanish.withQValue(qValue"0.5"))
+    val acceptLanguage = `Accept-Language`(LanguageTag.All, spanish.withQValue(qValue"0.5"))
     assertEquals(acceptLanguage.qValue(english), QValue.One)
   }
 
   test("rejects language tag matching primary tag with q=0") {
-    val acceptLanguage = `Accept-Language`(LanguageTag.*, english.withQValue(QValue.Zero))
+    val acceptLanguage = `Accept-Language`(LanguageTag.All, english.withQValue(QValue.Zero))
     assertEquals(acceptLanguage.qValue(english), QValue.Zero)
   }
 
   test("rejects language tag matching splat with q=0") {
     val acceptLanguage =
-      `Accept-Language`(LanguageTag.*.withQValue(QValue.Zero), spanish.withQValue(qValue"0.5"))
+      `Accept-Language`(LanguageTag.All.withQValue(QValue.Zero), spanish.withQValue(qValue"0.5"))
     assertEquals(acceptLanguage.qValue(english), QValue.Zero)
   }
 

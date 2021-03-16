@@ -358,7 +358,7 @@ private[http4s] trait ArbitraryInstances {
         primaryTag <- genToken
         subTags <- frequency(4 -> Nil, 1 -> listOf(genToken))
       } yield LanguageTag(primaryTag, subTags = subTags)),
-      1 -> const(LanguageTag.`*`)
+      1 -> const(LanguageTag.All)
     )
 
   implicit val http4sTestingArbitraryForLanguageTag: Arbitrary[LanguageTag] =

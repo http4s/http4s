@@ -63,6 +63,8 @@ class RewriteBackticks extends SemanticRule("RewriteBackticks") {
       "org/http4s/HttpVersion." -> "HTTP/1.0" -> "Http1_0",
       "org/http4s/HttpVersion." -> "HTTP/1.1" -> "Http1_1",
       "org/http4s/HttpVersion." -> "HTTP/2.0" -> "Http2_0",
+
+      "org/http4s/LanguageTag." -> "*" -> "All",
     )
 
   def replaceFields(renames: ((String, String), String)*)(implicit doc: SemanticDocument): Patch =

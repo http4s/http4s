@@ -55,4 +55,6 @@ object Backticks {
     HttpVersion.`HTTP/1.1`,
     HttpVersion.`HTTP/2.0`,
   )
+
+  val languageTagAll = LanguageTag.`*`
 }

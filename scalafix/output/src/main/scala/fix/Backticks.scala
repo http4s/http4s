@@ -52,4 +52,6 @@ object Backticks {
     HttpVersion.Http1_1,
     HttpVersion.Http2_0,
   )
+
+  val languageTagAll = LanguageTag.All
 }
