@@ -159,7 +159,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     contentTypeO.fold(withoutContentType)(withContentType)
 
   def isChunked: Boolean =
-    headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
+    headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.Chunked))
 
   // Attribute methods
 

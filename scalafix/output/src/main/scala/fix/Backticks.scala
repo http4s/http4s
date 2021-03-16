@@ -65,4 +65,12 @@ object Backticks {
     MediaRange.AllText,
     MediaRange.AllVideo,
   )
+
+  val transferCodings = Set(
+    TransferCoding.Chunked,
+    TransferCoding.Compress,
+    TransferCoding.Deflate,
+    TransferCoding.Gzip,
+    TransferCoding.Identity,
+  )
 }

@@ -31,7 +31,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
   val textPlain = `Content-Type`(MediaType.text.plain, Utf8).toRaw
   val connClose = Connection(ci"close").toRaw
   val connKeep = Connection(ci"keep-alive").toRaw
-  val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw
+  val chunked = `Transfer-Encoding`(TransferCoding.Chunked).toRaw
 
   def length(l: Long) = `Content-Length`.unsafeFromLong(l).toRaw
   def testRequestResults: Seq[(String, (Status, Set[Header.Raw], String))] =
@@ -125,7 +125,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
           Ok("post")
 
         case req if req.method == Method.GET && req.pathInfo == path"/twocodings" =>
-          Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
+          Ok("Foo", `Transfer-Encoding`(TransferCoding.Chunked))
 
         case req if req.method == Method.POST && req.pathInfo == path"/echo" =>
           Ok(emit("post") ++ req.bodyText)

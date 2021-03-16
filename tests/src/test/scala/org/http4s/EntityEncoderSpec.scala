@@ -48,10 +48,10 @@ class EntityEncoderSpec extends Http4sSuite {
       "EntityEncoder should render streams with chunked transfer encoding without wiping out other encodings") {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
-        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => Entity.empty)
+        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.Gzip))(_ => Entity.empty)
       implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) =>
-          assertEquals(coding, `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked))
+          assertEquals(coding, `Transfer-Encoding`(TransferCoding.Gzip, TransferCoding.Chunked))
         case _ => fail("Match failed")
       }
     }
@@ -60,11 +60,11 @@ class EntityEncoderSpec extends Http4sSuite {
       "EntityEncoder should render streams with chunked transfer encoding without duplicating chunked transfer encoding") {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
-        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
+        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.Chunked))(_ =>
           Entity.empty)
       EntityEncoder[IO, Stream[IO, Foo]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) =>
-          assertEquals(coding, `Transfer-Encoding`(TransferCoding.chunked))
+          assertEquals(coding, `Transfer-Encoding`(TransferCoding.Chunked))
         case _ => fail("Match failed")
       }
     }
@@ -72,7 +72,7 @@ class EntityEncoderSpec extends Http4sSuite {
     test("EntityEncoder should render entity bodies with chunked transfer encoding") {
       assert(
         EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`] == Some(
-          `Transfer-Encoding`(TransferCoding.chunked)))
+          `Transfer-Encoding`(TransferCoding.Chunked)))
     }
 
     test("EntityEncoder should render files") {

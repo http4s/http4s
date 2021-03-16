@@ -198,7 +198,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     "Http1ServerStage: routes should Do not send `Transfer-Encoding: identity` response") { tw =>
     val routes = HttpRoutes
       .of[IO] { case _ =>
-        val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
+        val headers = Headers(H.`Transfer-Encoding`(TransferCoding.Identity))
         IO.pure(
           Response[IO](headers = headers)
             .withEntity("hello world"))
@@ -226,7 +226,7 @@ class Http1ServerStageSpec extends Http4sSuite {
         .of[IO] { case _ =>
           IO.pure(
             Response[IO](status = Status.NotModified)
-              .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+              .putHeaders(`Transfer-Encoding`(TransferCoding.Chunked))
               .withEntity("Foo!"))
         }
         .orNotFound

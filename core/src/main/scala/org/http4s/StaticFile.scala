@@ -100,7 +100,7 @@ object StaticFile {
             lastmod.map(`Last-Modified`(_)),
             nameToContentType(url.getPath),
             if (len >= 0) `Content-Length`.unsafeFromLong(len)
-            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
+            else `Transfer-Encoding`(TransferCoding.Chunked.pure[NonEmptyList])
           )
 
           blocker

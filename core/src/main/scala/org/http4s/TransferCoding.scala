@@ -43,11 +43,11 @@ object TransferCoding {
   private class TransferCodingImpl(coding: String) extends TransferCoding(coding)
 
   // https://www.iana.org/assignments/http-parameters/http-parameters.xml#transfer-coding
-  val chunked: TransferCoding = new TransferCodingImpl("chunked")
-  val compress: TransferCoding = new TransferCodingImpl("compress")
-  val deflate: TransferCoding = new TransferCodingImpl("deflate")
-  val gzip: TransferCoding = new TransferCodingImpl("gzip")
-  val identity: TransferCoding = new TransferCodingImpl("identity")
+  val Chunked: TransferCoding = new TransferCodingImpl("chunked")
+  val Compress: TransferCoding = new TransferCodingImpl("compress")
+  val Deflate: TransferCoding = new TransferCodingImpl("deflate")
+  val Gzip: TransferCoding = new TransferCodingImpl("gzip")
+  val Identity: TransferCoding = new TransferCodingImpl("identity")
 
   def parse(s: String): ParseResult[TransferCoding] =
     ParseResult.fromParser(parser, "Invalid transfer coding")(s)
@@ -59,11 +59,11 @@ object TransferCoding {
     import cats.parse.Parser.{ignoreCase, oneOf}
     oneOf(
       List(
-        ignoreCase("chunked").as(chunked),
-        ignoreCase("compress").as(compress),
-        ignoreCase("deflate").as(deflate),
-        ignoreCase("gzip").as(gzip),
-        ignoreCase("identity").as(identity)
+        ignoreCase("chunked").as(Chunked),
+        ignoreCase("compress").as(Compress),
+        ignoreCase("deflate").as(Deflate),
+        ignoreCase("gzip").as(Gzip),
+        ignoreCase("identity").as(Identity)
       ))
   }
 

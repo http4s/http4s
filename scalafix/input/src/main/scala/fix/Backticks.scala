@@ -68,4 +68,12 @@ object Backticks {
     MediaRange.`text/*`,
     MediaRange.`video/*`,
   )
+
+  val transferCodings = Set(
+    TransferCoding.chunked,
+    TransferCoding.compress,
+    TransferCoding.deflate,
+    TransferCoding.gzip,
+    TransferCoding.identity,
+  )
 }

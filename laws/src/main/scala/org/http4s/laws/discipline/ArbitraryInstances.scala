@@ -703,11 +703,11 @@ private[http4s] trait ArbitraryInstances {
 
   implicit val http4sTestingArbitraryForTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
     Gen.oneOf(
-      TransferCoding.chunked,
-      TransferCoding.compress,
-      TransferCoding.deflate,
-      TransferCoding.gzip,
-      TransferCoding.identity)
+      TransferCoding.Chunked,
+      TransferCoding.Compress,
+      TransferCoding.Deflate,
+      TransferCoding.Gzip,
+      TransferCoding.Identity)
   }
 
   implicit val http4sTestingCogenForTransferCoding: Cogen[TransferCoding] =

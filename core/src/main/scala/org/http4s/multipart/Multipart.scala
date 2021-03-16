@@ -22,7 +22,7 @@ import org.http4s.headers._
 final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Boundary.create) {
   def headers: Headers =
     Headers(
-      `Transfer-Encoding`(TransferCoding.chunked),
+      `Transfer-Encoding`(TransferCoding.Chunked),
       `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value)))
     )
 }

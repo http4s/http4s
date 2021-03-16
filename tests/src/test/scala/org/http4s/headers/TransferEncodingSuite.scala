@@ -28,30 +28,30 @@ class TransferEncodingSuite extends HeaderLaws {
 
   test("render should include all the encodings") {
     assertEquals(
-      `Transfer-Encoding`(TransferCoding.chunked).renderString,
+      `Transfer-Encoding`(TransferCoding.Chunked).renderString,
       "Transfer-Encoding: chunked")
     assertEquals(
-      `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip).renderString,
+      `Transfer-Encoding`(TransferCoding.Chunked, TransferCoding.Gzip).renderString,
       "Transfer-Encoding: chunked, gzip")
   }
 
   test("parse should accept single codings") {
     assertEquals(
       `Transfer-Encoding`.parse("chunked").map(_.values),
-      Right(NonEmptyList.one(TransferCoding.chunked)))
+      Right(NonEmptyList.one(TransferCoding.Chunked)))
   }
   test("parse should accept multiple codings") {
     assertEquals(
       `Transfer-Encoding`.parse("chunked, gzip").map(_.values),
-      Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)))
+      Right(NonEmptyList.of(TransferCoding.Chunked, TransferCoding.Gzip)))
     assertEquals(
       `Transfer-Encoding`.parse("chunked,gzip").map(_.values),
-      Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)))
+      Right(NonEmptyList.of(TransferCoding.Chunked, TransferCoding.Gzip)))
   }
 
   test("hasChunked should detect chunked") {
     forAll { (t: `Transfer-Encoding`) =>
-      assertEquals(t.hasChunked, (t.values.contains_(TransferCoding.chunked)))
+      assertEquals(t.hasChunked, (t.values.contains_(TransferCoding.Chunked)))
     }
   }
 }

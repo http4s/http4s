@@ -123,7 +123,7 @@ object EntityEncoder {
           case Some(transferCoding) if transferCoding.hasChunked =>
             W.headers
           case _ =>
-            W.headers.add(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]))
+            W.headers.add(`Transfer-Encoding`(TransferCoding.Chunked.pure[NonEmptyList]))
         }
     }
 
@@ -151,7 +151,7 @@ object EntityEncoder {
     * the content length without running the stream.
     */
   implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
-    encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
+    encodeBy(`Transfer-Encoding`(TransferCoding.Chunked.pure[NonEmptyList])) { body =>
       Entity(body, None)
     }
 
@@ -163,7 +163,7 @@ object EntityEncoder {
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
-    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
+    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.Chunked.pure[NonEmptyList])) { p =>
       Entity(readAll[F](p, blocker, 4096)) //2 KB :P
     }
 

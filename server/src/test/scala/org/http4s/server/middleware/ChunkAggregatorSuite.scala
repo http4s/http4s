@@ -32,15 +32,15 @@ class ChunkAggregatorSuite extends Http4sSuite {
   val transferCodingGen: Gen[collection.Seq[TransferCoding]] =
     Gen.someOf(
       collection.Seq(
-        TransferCoding.compress,
-        TransferCoding.deflate,
-        TransferCoding.gzip,
-        TransferCoding.identity))
+        TransferCoding.Compress,
+        TransferCoding.Deflate,
+        TransferCoding.Gzip,
+        TransferCoding.Identity))
   implicit val transferCodingArbitrary: Arbitrary[List[TransferCoding]] = Arbitrary(
     transferCodingGen.map(_.toList))
 
   def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
-    Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
+    Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.Chunked, transferCodings)))
       .map(_.removeHeader[`Content-Length`])
 
   def httpRoutes(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpRoutes[IO] =
