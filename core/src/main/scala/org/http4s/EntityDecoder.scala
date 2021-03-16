@@ -207,7 +207,7 @@ object EntityDecoder {
     }
 
   implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
+    EntityDecoder.decodeBy(MediaRange.All)(collectBinary[F])
 
   @deprecated("Use `binary` instead", "0.19.0-M2")
   def binaryChunk[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
@@ -219,7 +219,7 @@ object EntityDecoder {
   implicit def text[F[_]](implicit
       F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
-    EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
+    EntityDecoder.decodeBy(MediaRange.AllText)(msg =>
       collectBinary(msg).map(chunk =>
         new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
 
@@ -230,7 +230,7 @@ object EntityDecoder {
   def binFile[F[_]](file: File, blocker: Blocker)(implicit
       F: Sync[F],
       cs: ContextShift[F]): EntityDecoder[F, File] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+    EntityDecoder.decodeBy(MediaRange.All) { msg =>
       val pipe = writeAll[F](file.toPath, blocker)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
@@ -238,7 +238,7 @@ object EntityDecoder {
   def textFile[F[_]](file: File, blocker: Blocker)(implicit
       F: Sync[F],
       cs: ContextShift[F]): EntityDecoder[F, File] =
-    EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
+    EntityDecoder.decodeBy(MediaRange.AllText) { msg =>
       val pipe = writeAll[F](file.toPath, blocker)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
@@ -256,7 +256,7 @@ object EntityDecoder {
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+    EntityDecoder.decodeBy(MediaRange.All) { msg =>
       DecodeResult.success(msg.body.drain.compile.drain)
     }
 }

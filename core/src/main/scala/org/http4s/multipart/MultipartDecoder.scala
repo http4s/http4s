@@ -22,7 +22,7 @@ import cats.syntax.all._
 
 private[http4s] object MultipartDecoder {
   def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
+    EntityDecoder.decodeBy(MediaRange.AllMultipart) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
@@ -75,7 +75,7 @@ private[http4s] object MultipartDecoder {
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
+    EntityDecoder.decodeBy(MediaRange.AllMultipart) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {

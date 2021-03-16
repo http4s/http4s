@@ -170,7 +170,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   val nonMatchingDecoder: EntityDecoder[IO, String] =
-    EntityDecoder.decodeBy(MediaRange.`video/*`) { _ =>
+    EntityDecoder.decodeBy(MediaRange.AllVideo) { _ =>
       DecodeResult.failureT(MalformedMessageBodyFailure("Nope."))
     }
 
@@ -293,7 +293,7 @@ class EntityDecoderSuite extends Http4sSuite {
     val reqSomeOtherMediaType =
       Request[IO](headers = Headers(`Content-Type`(`text/x-h`)))
     val reqNoMediaType = Request[IO]()
-    val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) { _ =>
+    val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.All) { _ =>
       DecodeResult.successT(3)
     }
     (decoder1 <+> catchAllDecoder)
@@ -330,7 +330,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("apply should invoke the function with  the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
-      EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+      EntityDecoder.decodeBy(MediaRange.All)(_ => DecodeResult.success(IO.pure("hooray")))
     IO.async[String] { cb =>
       request
         .decodeWith(happyDecoder, strict = false) { s =>
@@ -343,7 +343,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   test("apply should wrap the ParseFailure in a ParseException on failure") {
-    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
+    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.All)(_ =>
       DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
     request
       .decodeWith(grumpyDecoder, strict = false) { _ =>

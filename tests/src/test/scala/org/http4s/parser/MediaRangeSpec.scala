@@ -34,29 +34,29 @@ class MediaRangeSpec extends Http4sSuite {
   def ext = Map("foo" -> "bar")
 
   test("MediaRanges should Perform equality correctly") {
-    assertEquals(`text/*`, `text/*`)
+    assertEquals(AllText, AllText)
 
-    assertEquals(`text/*`.withExtensions(ext), `text/*`.withExtensions(ext))
-    assertNotEquals(`text/*`.withExtensions(ext), `text/*`)
+    assertEquals(AllText.withExtensions(ext), AllText.withExtensions(ext))
+    assertNotEquals(AllText.withExtensions(ext), AllText)
 
-    assertNotEquals(`text/*`, `audio/*`)
+    assertNotEquals(AllText, AllAudio)
   }
 
   test("MediaRanges should Be satisfiedBy MediaRanges correctly") {
-    assertEquals(`text/*`.satisfiedBy(`text/*`), true)
+    assertEquals(AllText.satisfiedBy(AllText), true)
 
-    assertEquals(`text/*`.satisfiedBy(`image/*`), false)
+    assertEquals(AllText.satisfiedBy(AllImages), false)
   }
 
   test("MediaRanges should Be satisfiedBy MediaTypes correctly") {
-    assertEquals(`text/*`.satisfiedBy(MediaType.text.css), true)
-    assertEquals(`text/*`.satisfiedBy(MediaType.text.css), true)
-    assertEquals(`text/*`.satisfiedBy(`audio/aiff`), false)
+    assertEquals(AllText.satisfiedBy(MediaType.text.css), true)
+    assertEquals(AllText.satisfiedBy(MediaType.text.css), true)
+    assertEquals(AllText.satisfiedBy(`audio/aiff`), false)
   }
 
   test("MediaRanges should be satisfied regardless of extensions") {
-    assertEquals(`text/*`.withExtensions(ext).satisfies(`text/*`), true)
-    assertEquals(`text/*`.withExtensions(ext).satisfies(`text/*`), true)
+    assertEquals(AllText.withExtensions(ext).satisfies(AllText), true)
+    assertEquals(AllText.withExtensions(ext).satisfies(AllText), true)
   }
 
   test("MediaTypes should Perform equality correctly") {
@@ -75,24 +75,24 @@ class MediaRangeSpec extends Http4sSuite {
   }
 
   test("MediaTypes should Not be satisfied by MediaRanges") {
-    assertEquals(MediaType.text.html.satisfiedBy(`text/*`), false)
+    assertEquals(MediaType.text.html.satisfiedBy(AllText), false)
   }
 
   test("MediaTypes should Satisfy MediaRanges") {
-    assertEquals(MediaType.text.html.satisfies(`text/*`), true)
-    assertEquals(`text/*`.satisfies(MediaType.text.html), false)
+    assertEquals(MediaType.text.html.satisfies(AllText), true)
+    assertEquals(AllText.satisfies(MediaType.text.html), false)
   }
 
   test("MediaTypes should be satisfied regardless of extensions") {
-    assertEquals(MediaType.text.html.withExtensions(ext).satisfies(`text/*`), true)
-    assertEquals(`text/*`.satisfies(MediaType.text.html.withExtensions(ext)), false)
+    assertEquals(MediaType.text.html.withExtensions(ext).satisfies(AllText), true)
+    assertEquals(AllText.satisfies(MediaType.text.html.withExtensions(ext)), false)
 
-    assertEquals(MediaType.text.html.satisfies(`text/*`.withExtensions(ext)), true)
-    assertEquals(`text/*`.withExtensions(ext).satisfies(MediaType.text.html), false)
+    assertEquals(MediaType.text.html.satisfies(AllText.withExtensions(ext)), true)
+    assertEquals(AllText.withExtensions(ext).satisfies(MediaType.text.html), false)
   }
 
   test("MediaRanges and MediaTypes should Do inequality amongst each other properly") {
-    val r = `text/*`
+    val r = AllText
     val t = `text/asp`
 
     assert(r != t)

@@ -46,13 +46,13 @@ class ResponseGeneratorSuite extends Http4sSuite {
   test("Not duplicate headers when not provided") {
     val w =
       EntityEncoder.encodeBy[IO, String](
-        EntityEncoder.stringEncoder[IO].headers.put(Accept(MediaRange.`audio/*`)))(
+        EntityEncoder.stringEncoder[IO].headers.put(Accept(MediaRange.AllAudio)))(
         EntityEncoder.stringEncoder[IO].toEntity(_)
       )
 
     Ok("foo")(Monad[IO], w)
       .map(_.headers.get[Accept])
-      .assertEquals(Some(Accept(MediaRange.`audio/*`)))
+      .assertEquals(Some(Accept(MediaRange.AllAudio)))
   }
 
   test("Explicitly added headers have priority") {
@@ -124,13 +124,13 @@ class ResponseGeneratorSuite extends Http4sSuite {
 
   test("MovedPermanently() generates expected headers without body") {
     val location = Location(Uri.unsafeFromString("http://foo"))
-    val resp = MovedPermanently(location, (), Accept(MediaRange.`audio/*`))
+    val resp = MovedPermanently(location, (), Accept(MediaRange.AllAudio))
     resp
       .map(_.headers.headers)
       .assertEquals(
         Headers(
           location,
-          Accept(MediaRange.`audio/*`),
+          Accept(MediaRange.AllAudio),
           `Content-Length`.zero
         ).headers)
   }
@@ -138,14 +138,14 @@ class ResponseGeneratorSuite extends Http4sSuite {
   test("MovedPermanently() generates expected headers with body") {
     val location = Location(Uri.unsafeFromString("http://foo"))
     val body = "foo"
-    val resp = MovedPermanently(location, body, Accept(MediaRange.`audio/*`))
+    val resp = MovedPermanently(location, body, Accept(MediaRange.AllAudio))
     resp
       .map(_.headers.headers)
       .assertEquals(
         Headers(
           `Content-Type`(MediaType.text.plain, Charset.Utf8),
           location,
-          Accept(MediaRange.`audio/*`),
+          Accept(MediaRange.AllAudio),
           `Content-Length`.unsafeFromLong(3)
         ).headers)
   }

@@ -57,4 +57,15 @@ object Backticks {
   )
 
   val languageTagAll = LanguageTag.`*`
+
+  val mediaRanges = Set(
+    MediaRange.`*/*`,
+    MediaRange.`application/*`,
+    MediaRange.`audio/*`,
+    MediaRange.`image/*`,
+    MediaRange.`message/*`,
+    MediaRange.`multipart/*`,
+    MediaRange.`text/*`,
+    MediaRange.`video/*`,
+  )
 }

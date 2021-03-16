@@ -32,7 +32,7 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
 
   test("Accept-Header parser should Parse all registered MediaRanges") {
     // Parse a single one
-    assertEquals(parse("image/*").values.head.mediaRange, `image/*`)
+    assertEquals(parse("image/*").values.head.mediaRange, AllImages)
 
     // Parse the rest
     (MediaRange.standard.values).foreach { m =>
@@ -61,10 +61,10 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
 
   test("Accept-Header parser should Parse multiple Ranges") {
     // Just do a single type
-    val accept = Accept(`audio/*`, `video/*`)
+    val accept = Accept(AllAudio, AllVideo)
     assertEquals(roundTrip(accept), accept)
 
-    val accept2 = Accept(`audio/*`.withQValue(qValue"0.2"), `video/*`)
+    val accept2 = Accept(AllAudio.withQValue(qValue"0.2"), AllVideo)
     assertEquals(roundTrip(accept2), accept2)
 
     // Go through all of them
@@ -105,7 +105,7 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
     assertEquals(
       parse(value),
       Accept(
-        `text/*`.withQValue(qValue"0.3"),
+        AllText.withQValue(qValue"0.3"),
         MediaType.text.html.withQValue(qValue"0.7"),
         MediaType.text.html.withExtensions(Map("level" -> "1"))
       )

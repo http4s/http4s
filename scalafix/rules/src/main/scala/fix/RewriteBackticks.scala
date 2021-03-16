@@ -65,6 +65,15 @@ class RewriteBackticks extends SemanticRule("RewriteBackticks") {
       "org/http4s/HttpVersion." -> "HTTP/2.0" -> "Http2_0",
 
       "org/http4s/LanguageTag." -> "*" -> "All",
+
+      "org/http4s/MediaRange." -> "*/*" -> "All",
+      "org/http4s/MediaRange." -> "application/*" -> "AllApplications",
+      "org/http4s/MediaRange." -> "audio/*" -> "AllAudio",
+      "org/http4s/MediaRange." -> "image/*" -> "AllImages",
+      "org/http4s/MediaRange." -> "message/*" -> "AllMessages",
+      "org/http4s/MediaRange." -> "multipart/*" -> "AllMultipart",
+      "org/http4s/MediaRange." -> "text/*" -> "AllText",
+      "org/http4s/MediaRange." -> "video/*" -> "AllVideo",
     )
 
   def replaceFields(renames: ((String, String), String)*)(implicit doc: SemanticDocument): Patch =
