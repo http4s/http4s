@@ -47,6 +47,19 @@ class RewriteBackticks extends SemanticRule("RewriteBackticks") {
 
       "org/http4s/CharsetRange." -> "*" -> "All",
 
+      "org/http4s/ContentCoding." -> "*" -> "All",
+      "org/http4s/ContentCoding." -> "aes128gcm" -> "Aes128gcm",
+      "org/http4s/ContentCoding." -> "br" -> "Br",
+      "org/http4s/ContentCoding." -> "compress" -> "Compress",
+      "org/http4s/ContentCoding." -> "deflate" -> "Deflate",
+      "org/http4s/ContentCoding." -> "exi" -> "Exi",
+      "org/http4s/ContentCoding." -> "gzip" -> "Gzip",
+      "org/http4s/ContentCoding." -> "identity" -> "Identity",
+      "org/http4s/ContentCoding." -> "pack200-gzip" -> "Pack200Gzip",
+      "org/http4s/ContentCoding." -> "zstd" -> "Zstd",
+      "org/http4s/ContentCoding." -> "x-compress" -> "XCompress",
+      "org/http4s/ContentCoding." -> "x-gzip" -> "XGzip",
+
       "org/http4s/HttpVersion." -> "HTTP/1.0" -> "Http1_0",
       "org/http4s/HttpVersion." -> "HTTP/1.1" -> "Http1_1",
       "org/http4s/HttpVersion." -> "HTTP/2.0" -> "Http2_0",

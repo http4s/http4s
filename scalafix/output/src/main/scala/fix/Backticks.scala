@@ -32,6 +32,21 @@ object Backticks {
 
   val charsetRangeAll = CharsetRange.All
 
+  val contentCodings = Set(
+    ContentCoding.All,
+    ContentCoding.Aes128gcm,
+    ContentCoding.Br,
+    ContentCoding.Compress,
+    ContentCoding.Deflate,
+    ContentCoding.Exi,
+    ContentCoding.Gzip,
+    ContentCoding.Identity,
+    ContentCoding.Pack200Gzip,
+    ContentCoding.Zstd,
+    ContentCoding.XCompress,
+    ContentCoding.XGzip,
+  )
+
   val httpVersions = Set(
     HttpVersion.Http1_0,
     HttpVersion.Http1_1,

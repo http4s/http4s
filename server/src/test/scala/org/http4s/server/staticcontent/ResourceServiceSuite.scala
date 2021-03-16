@@ -138,7 +138,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Try to serve pre-gzipped content if asked to") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource.txt").yolo,
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.Gzip))
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
@@ -147,13 +147,13 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
         .assertEquals(MediaType.text.plain.some) *>
       rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
-        .assertEquals(ContentCoding.gzip.some)
+        .assertEquals(ContentCoding.Gzip.some)
   }
 
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource2.txt").yolo,
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.Gzip))
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
@@ -162,7 +162,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
         .assertEquals(MediaType.text.plain.some) *>
       rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
-        .map(_ =!= ContentCoding.gzip.some)
+        .map(_ =!= ContentCoding.Gzip.some)
         .assert
   }
 

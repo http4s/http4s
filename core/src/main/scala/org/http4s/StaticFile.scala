@@ -54,8 +54,8 @@ object StaticFile {
       req.flatMap(_.headers.get[`Accept-Encoding`])
     val tryGzipped =
       preferGzipped && acceptEncodingHeader.exists { acceptEncoding =>
-        acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
-          ContentCoding.`x-gzip`)
+        acceptEncoding.satisfiedBy(ContentCoding.Gzip) || acceptEncoding.satisfiedBy(
+          ContentCoding.XGzip)
       }
     val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
 
@@ -70,7 +70,7 @@ object StaticFile {
         fromURL(url, blocker, req).map {
           _.removeHeader[`Content-Type`]
             .putHeaders(
-              `Content-Encoding`(ContentCoding.gzip),
+              `Content-Encoding`(ContentCoding.Gzip),
               nameToContentType(normalizedName) // Guess content type from the name without ".gz"
             )
         }

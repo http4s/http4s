@@ -29,11 +29,11 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
 
   @deprecated("Use `Accept-Encoding`.isSatisfiedBy(encoding)", "0.16.1")
   def satisfiedBy(encoding: ContentCoding): Boolean =
-    (this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding)) &&
+    (this === ContentCoding.All || this.coding.equalsIgnoreCase(encoding.coding)) &&
       qValue.isAcceptable && encoding.qValue.isAcceptable
 
   def matches(encoding: ContentCoding): Boolean =
-    this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding)
+    this === ContentCoding.All || this.coding.equalsIgnoreCase(encoding.coding)
 
   override def equals(o: Any) =
     o match {
@@ -65,25 +65,25 @@ object ContentCoding {
   def fromString(coding: String): ParseResult[ContentCoding] =
     parse(coding)
 
-  val `*` : ContentCoding = new ContentCoding("*")
+  val All: ContentCoding = new ContentCoding("*")
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
-  val aes128gcm = new ContentCoding("aes128gcm")
-  val br = new ContentCoding("br")
-  val compress = new ContentCoding("compress")
-  val deflate = new ContentCoding("deflate")
-  val exi = new ContentCoding("exi")
-  val gzip = new ContentCoding("gzip")
-  val identity = new ContentCoding("identity")
-  val `pack200-gzip` = new ContentCoding("pack200-gzip")
-  val zstd = new ContentCoding("zstd")
+  val Aes128gcm = new ContentCoding("aes128gcm")
+  val Br = new ContentCoding("br")
+  val Compress = new ContentCoding("compress")
+  val Deflate = new ContentCoding("deflate")
+  val Exi = new ContentCoding("exi")
+  val Gzip = new ContentCoding("gzip")
+  val Identity = new ContentCoding("identity")
+  val Pack200Gzip = new ContentCoding("pack200-gzip")
+  val Zstd = new ContentCoding("zstd")
 
   // Legacy encodings defined by RFC2616 3.5.
-  val `x-compress` = compress
-  val `x-gzip` = gzip
+  val XCompress = Compress
+  val XGzip = Gzip
 
   val standard: Map[String, ContentCoding] =
-    List(`*`, aes128gcm, br, compress, deflate, exi, gzip, identity, `pack200-gzip`, zstd)
+    List(All, Aes128gcm, Br, Compress, Deflate, Exi, Gzip, Identity, Pack200Gzip, Zstd)
       .map(c => c.coding -> c)
       .toMap
 
