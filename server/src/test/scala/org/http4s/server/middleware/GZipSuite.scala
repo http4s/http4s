@@ -35,7 +35,7 @@ class GZipSuite extends Http4sSuite {
       Ok("pong")
     }
     val req =
-      Request[IO](Method.GET, uri"/").putHeaders(`Accept-Encoding`(ContentCoding.Gzip))
+      Request[IO](Method.Get, uri"/").putHeaders(`Accept-Encoding`(ContentCoding.Gzip))
     routes
       .orNotFound(req)
       .map { resp =>
@@ -53,7 +53,7 @@ class GZipSuite extends Http4sSuite {
 
     val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = _ => true)
 
-    val req: Request[IO] = Request[IO](Method.GET, uri"/")
+    val req: Request[IO] = Request[IO](Method.Get, uri"/")
       .putHeaders(`Accept-Encoding`(ContentCoding.Gzip))
     val actual: IO[Array[Byte]] =
       gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
@@ -72,7 +72,7 @@ class GZipSuite extends Http4sSuite {
         Ok(Stream.emits(vector).covary[IO])
       }
       val gzipRoutes: HttpRoutes[IO] = GZip(routes)
-      val req: Request[IO] = Request[IO](Method.GET, uri"/")
+      val req: Request[IO] = Request[IO](Method.Get, uri"/")
         .putHeaders(`Accept-Encoding`(ContentCoding.Gzip))
       val actual: IO[Array[Byte]] =
         gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)

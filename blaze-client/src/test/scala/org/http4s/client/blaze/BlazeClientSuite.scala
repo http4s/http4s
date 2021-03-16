@@ -137,7 +137,7 @@ class BlazeClientSuite extends BlazeClientBase {
           mkClient(1, requestTimeout = 10.seconds).use { client =>
             val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
             val req = Request[IO](
-              method = Method.POST,
+              method = Method.Post,
               uri = Uri.fromString(s"http://$name:$port/").yolo
             ).withBodyStream(body)
             client.status(req) >> reqClosed.get

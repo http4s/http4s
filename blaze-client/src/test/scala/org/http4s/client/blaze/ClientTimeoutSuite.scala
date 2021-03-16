@@ -102,7 +102,7 @@ class ClientTimeoutSuite extends Http4sSuite {
           .map(_ => "1".toByte)
           .take(4)
           .onFinalizeWeak[IO](d.complete(()).void)
-      req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      req = Request(method = Method.Post, uri = www_foo_com, body = body)
       tail = mkConnection(RequestKey.fromRequest(req))
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       h = new QueueTestHead(q)
@@ -122,7 +122,7 @@ class ClientTimeoutSuite extends Http4sSuite {
         .take(n.toLong)
     }
 
-    val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
+    val req = Request[IO](method = Method.Post, uri = www_foo_com, body = dataStream(4))
 
     val tail = mkConnection(RequestKey.fromRequest(req))
     val (f, b) = resp.splitAt(resp.length - 1)

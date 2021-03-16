@@ -75,7 +75,7 @@ private[ember] object Encoder {
   }
 
   private val NoPayloadMethods: Set[Method] =
-    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
+    Set(Method.Get, Method.Delete, Method.Connect, Method.Trace)
 
   def reqToBytes[F[_]](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = req.isChunked

@@ -172,15 +172,15 @@ object Dropwizard {
 
       private def requestTimer(method: Method): String =
         method match {
-          case Method.GET => "get-requests"
-          case Method.POST => "post-requests"
-          case Method.PUT => "put-requests"
-          case Method.HEAD => "head-requests"
-          case Method.MOVE => "move-requests"
-          case Method.OPTIONS => "options-requests"
-          case Method.TRACE => "trace-requests"
-          case Method.CONNECT => "connect-requests"
-          case Method.DELETE => "delete-requests"
+          case Method.Get => "get-requests"
+          case Method.Post => "post-requests"
+          case Method.Put => "put-requests"
+          case Method.Head => "head-requests"
+          case Method.Move => "move-requests"
+          case Method.Options => "options-requests"
+          case Method.Trace => "trace-requests"
+          case Method.Connect => "connect-requests"
+          case Method.Delete => "delete-requests"
           case _ => "other-requests"
         }
     }

@@ -206,15 +206,15 @@ object Prometheus {
 
       private def reportMethod(m: Method): String =
         m match {
-          case Method.GET => "get"
-          case Method.PUT => "put"
-          case Method.POST => "post"
-          case Method.HEAD => "head"
-          case Method.MOVE => "move"
-          case Method.OPTIONS => "options"
-          case Method.TRACE => "trace"
-          case Method.CONNECT => "connect"
-          case Method.DELETE => "delete"
+          case Method.Get => "get"
+          case Method.Put => "put"
+          case Method.Post => "post"
+          case Method.Head => "head"
+          case Method.Move => "move"
+          case Method.Options => "options"
+          case Method.Trace => "trace"
+          case Method.Connect => "connect"
+          case Method.Delete => "delete"
           case _ => "other"
         }
     }

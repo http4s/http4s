@@ -30,11 +30,11 @@ import org.http4s.headers.Accept
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val app = HttpRoutes
     .of[IO] {
-      case r if r.method == GET && r.pathInfo == path"/" =>
+      case r if r.method == Get && r.pathInfo == path"/" =>
         Response[IO](Ok).withEntity("hello").pure[IO]
-      case r if r.method == PUT && r.pathInfo == path"/put" =>
+      case r if r.method == Put && r.pathInfo == path"/put" =>
         Response[IO](Created).withEntity(r.body).pure[IO]
-      case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
+      case r if r.method == Get && r.pathInfo == path"/echoheaders" =>
         r.headers.get[Accept].fold(IO.pure(Response[IO](BadRequest))) { m =>
           Response[IO](Ok).withEntity(m.renderString).pure[IO]
         }
@@ -45,7 +45,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   val client: Client[IO] = Client.fromHttpApp(app)
 
-  val req: Request[IO] = Request(GET, uri"http://www.foo.bar/")
+  val req: Request[IO] = Request(Get, uri"http://www.foo.bar/")
 
   object SadTrombone extends Exception("sad trombone")
 
@@ -205,7 +205,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
         Left(
           UnexpectedStatus(
             Status.InternalServerError,
-            Method.GET,
+            Method.Get,
             Uri.unsafeFromString("http://www.foo.com/status/500"))))
   }
 
@@ -225,13 +225,13 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("Client should add Accept header on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
+      .expect[String](Request[IO](Get, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
   test("Client should add Accept header on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
+      .expect[String](Request[IO](Get, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
@@ -240,19 +240,19 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val edec =
       EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.successT("foo!"))
     client
-      .expect(Request[IO](GET, uri"http://www.foo.com/echoheaders"))(
+      .expect(Request[IO](Get, uri"http://www.foo.com/echoheaders"))(
         EntityDecoder.text[IO].orElse(edec))
       .assertEquals("Accept: text/*, image/jpeg")
   }
 
   test("Client should return empty with expectOption and not found") {
     client
-      .expectOption[String](Request[IO](GET, uri"http://www.foo.com/random-not-found"))
+      .expectOption[String](Request[IO](Get, uri"http://www.foo.com/random-not-found"))
       .assertEquals(Option.empty[String])
   }
   test("Client should return expected value with expectOption and a response") {
     client
-      .expectOption[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
+      .expectOption[String](Request[IO](Get, uri"http://www.foo.com/echoheaders"))
       .assertEquals(
         "Accept: text/*".some
       )

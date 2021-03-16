@@ -23,22 +23,21 @@ import java.io.IOException
 import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.{Request, Response}
 import org.http4s.dsl.io._
-import org.http4s.Method.GET
 import scala.concurrent.duration.TimeUnit
 
 object util {
   def stub: PartialFunction[Request[IO], IO[Response[IO]]] = {
-    case (GET | POST | PUT | DELETE) -> Root / "ok" =>
+    case (Get | POST | PUT | DELETE) -> Root / "ok" =>
       Ok("200 OK")
-    case GET -> Root / "bad-request" =>
+    case Get -> Root / "bad-request" =>
       BadRequest("400 Bad Request")
-    case GET -> Root / "internal-server-error" =>
+    case Get -> Root / "internal-server-error" =>
       InternalServerError("500 Internal Server Error")
-    case GET -> Root / "error" =>
+    case Get -> Root / "error" =>
       IO.raiseError[Response[IO]](new IOException("error"))
-    case GET -> Root / "timeout" =>
+    case Get -> Root / "timeout" =>
       IO.raiseError[Response[IO]](new TimeoutException("request timed out"))
-    case GET -> Root / "abnormal-termination" =>
+    case Get -> Root / "abnormal-termination" =>
       Ok("200 OK").map(
         _.withBodyStream(Stream.raiseError[IO](new RuntimeException("Abnormal termination"))))
     case _ =>

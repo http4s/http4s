@@ -115,7 +115,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: BracketThrow[F]) 
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A] =
-    expectOr(Request[F](Method.GET, uri))(onError)
+    expectOr(Request[F](Method.Get, uri))(onError)
 
   /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
@@ -216,7 +216,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: BracketThrow[F]) 
     * @return The result of applying f to the response to req
     */
   def get[A](uri: Uri)(f: Response[F] => F[A]): F[A] =
-    run(Request[F](Method.GET, uri)).use(f)
+    run(Request[F](Method.Get, uri)).use(f)
 
   /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the

@@ -22,7 +22,6 @@ import java.net.URL
 import cats.effect.IO
 import cats.syntax.all._
 import java.nio.file.Paths
-import org.http4s.Method.{GET, POST}
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.syntax.all._
 
@@ -46,7 +45,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       .toString
 
   test("Return a 200 Ok file") {
-    val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")
+    val req = Request[IO](Get, uri"/test-lib/1.0.0/testresource.txt")
     val rb = runReq(req)
     rb.flatMap { case (b, r) =>
       assertEquals(r.status, Status.Ok)
@@ -55,7 +54,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Return a 200 Ok file in a subdirectory") {
-    val req = Request[IO](GET, uri"/test-lib/1.0.0/sub/testresource.txt")
+    val req = Request[IO](Get, uri"/test-lib/1.0.0/sub/testresource.txt")
     val rb = runReq(req)
 
     rb.flatMap { case (b, r) =>
@@ -120,7 +119,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Not match a request with POST") {
-    val req = Request[IO](POST, uri"/test-lib/1.0.0/testresource.txt")
+    val req = Request[IO](Post, uri"/test-lib/1.0.0/testresource.txt")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 
@@ -143,7 +142,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("respect preferredGzip parameter") {
     val req = Request[IO](
-      GET,
+      Get,
       uri"/test-lib/1.0.0/testresource.txt",
       headers = Headers(`Accept-Encoding`(ContentCoding.Gzip)))
     val rb = runReq(req, routes = routes(preferGzipped = true))

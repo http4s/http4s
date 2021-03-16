@@ -21,7 +21,6 @@ package middleware
 import cats.{Applicative, Monad}
 import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
-import org.http4s.Method.OPTIONS
 import org.log4s.getLogger
 import org.typelevel.ci._
 import scala.concurrent.duration._
@@ -110,7 +109,7 @@ object CORS {
         req.method,
         req.headers.get(ci"Origin"),
         req.headers.get(ci"Access-Control-Request-Method")) match {
-        case (OPTIONS, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _)))
+        case (Options, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _)))
             if allowCORS(origin, acrm) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
           createOptionsResponse(origin, acrm).pure[F]

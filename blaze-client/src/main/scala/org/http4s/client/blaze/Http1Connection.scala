@@ -196,7 +196,7 @@ private final class Http1Connection[F[_]](
               }
 
             val response: F[Response[F]] = writeRequest.start >>
-              receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
+              receiveResponse(mustClose, doesntHaveBody = req.method == Method.Head, idleTimeoutS)
 
             F.race(response, timeoutFiber.join)
               .flatMap[Response[F]] {

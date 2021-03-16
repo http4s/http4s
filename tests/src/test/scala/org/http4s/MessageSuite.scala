@@ -74,7 +74,7 @@ class MessageSuite extends Http4sSuite {
 
   test("support cookies should contain a Cookie header when an explicit cookie is added") {
     assertEquals(
-      Request(Method.GET)
+      Request(Method.Get)
         .addCookie(RequestCookie("token", "value"))
         .headers
         .get[Cookie]
@@ -84,7 +84,7 @@ class MessageSuite extends Http4sSuite {
 
   test("support cookies should contain a Cookie header when multiple explicit cookies are added") {
     assertEquals(
-      Request(Method.GET)
+      Request(Method.Get)
         .addCookie(RequestCookie("token1", "value1"))
         .addCookie(RequestCookie("token2", "value2"))
         .headers
@@ -96,7 +96,7 @@ class MessageSuite extends Http4sSuite {
 
   test("support cookies should contain Cookie header(s) when a name/value pair is added") {
     assertEquals(
-      Request(Method.GET)
+      Request(Method.Get)
         .addCookie("token", "value")
         .headers
         .get[Cookie]
@@ -106,7 +106,7 @@ class MessageSuite extends Http4sSuite {
 
   test("support cookies should contain Cookie header(s) when name/value pairs are added") {
     assertEquals(
-      Request(Method.GET)
+      Request(Method.Get)
         .addCookie("token1", "value1")
         .addCookie("token2", "value2")
         .headers
@@ -130,7 +130,7 @@ class MessageSuite extends Http4sSuite {
 
   test("Request.with... should not modify pathInfo if uri is unchanged") {
     val originalReq = Request(uri = path1, attributes = attributes)
-    val updatedReq = originalReq.withMethod(method = Method.DELETE)
+    val updatedReq = originalReq.withMethod(method = Method.Delete)
 
     assertEquals(originalReq.pathInfo, updatedReq.pathInfo)
     assertEquals(originalReq.scriptName, updatedReq.scriptName)
@@ -151,19 +151,19 @@ class MessageSuite extends Http4sSuite {
     RequestCookie("test3", "value3"))
 
   test("cookies should be empty if there are no Cookie headers present") {
-    assertEquals(Request(Method.GET).cookies, List.empty)
+    assertEquals(Request(Method.Get).cookies, List.empty)
   }
 
   test("cookies should parse discrete HTTP/1 Cookie header(s) into corresponding RequestCookies") {
     val cookies = "Cookie" -> "test1=value1; test2=value2; test3=value3"
-    val request = Request(Method.GET, headers = Headers(cookies))
+    val request = Request(Method.Get, headers = Headers(cookies))
     assertEquals(request.cookies, cookieList)
   }
 
   test("cookies should parse discrete HTTP/2 Cookie header(s) into corresponding RequestCookies") {
     val cookies =
       Headers("Cookie" -> "test1=value1", "Cookie" -> "test2=value2", "Cookie" -> "test3=value3")
-    val request = Request(Method.GET, headers = cookies)
+    val request = Request(Method.Get, headers = cookies)
     assertEquals(request.cookies, cookieList)
   }
 
@@ -173,13 +173,13 @@ class MessageSuite extends Http4sSuite {
       "Cookie" -> "test1=value1; test2=value2", // HTTP/1 style
       "Cookie" -> "test3=value3"
     ) // HTTP/2 style (separate headers for separate cookies)
-    val request = Request(Method.GET, headers = cookies)
+    val request = Request(Method.Get, headers = cookies)
     assertEquals(request.cookies, cookieList)
   }
 
   test("toString should redact an Authorization header") {
     val request =
-      Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
+      Request[IO](Method.Get).putHeaders(Authorization(BasicCredentials("user", "pass")))
     assertEquals(
       request.toString,
       "Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
@@ -187,7 +187,7 @@ class MessageSuite extends Http4sSuite {
 
   test("toString should redact Cookie Headers") {
     val request =
-      Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
+      Request[IO](Method.Get).addCookie("token", "value").addCookie("token2", "value2")
     assertEquals(
       request.toString,
       "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
@@ -207,7 +207,7 @@ class MessageSuite extends Http4sSuite {
   }
 
   val uri = uri"http://localhost:1234/foo"
-  val request = Request[IO](Method.GET, uri)
+  val request = Request[IO](Method.Get, uri)
 
   test("asCurl should build cURL representation with scheme and authority") {
     assertEquals(request.asCurl(), "curl -X GET 'http://localhost:1234/foo'")

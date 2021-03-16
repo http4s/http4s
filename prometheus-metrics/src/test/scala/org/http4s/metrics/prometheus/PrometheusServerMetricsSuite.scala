@@ -19,7 +19,6 @@ package org.http4s.metrics.prometheus
 import cats.effect._
 import io.prometheus.client.CollectorRegistry
 import org.http4s.{Http4sSuite, HttpApp, HttpRoutes, Request, Status}
-import org.http4s.Method.GET
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.metrics.prometheus.util._
@@ -87,7 +86,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a GET request") {
     case (registry, routes) =>
-      val req = Request[IO](method = GET, uri = uri"/ok")
+      val req = Request[IO](method = Get, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -159,7 +158,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register an error") {
     case (registry, routes) =>
-      val req = Request[IO](method = GET, uri = uri"/error")
+      val req = Request[IO](method = Get, uri = uri"/error")
 
       routes.run(req).attempt.map { r =>
         assert(r.isLeft)
@@ -174,7 +173,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register an abnormal termination") {
     case (registry, routes) =>
-      val req = Request[IO](method = GET, uri = uri"/abnormal-termination")
+      val req = Request[IO](method = Get, uri = uri"/abnormal-termination")
 
       routes.run(req).flatMap { r =>
         r.body.attempt.compile.lastOrError.map { b =>

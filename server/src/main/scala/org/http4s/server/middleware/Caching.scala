@@ -80,8 +80,8 @@ object Caching {
     def defaultMethodsToSetOn(m: Method): Boolean = methodsToSetOn.contains(m)
 
     private lazy val methodsToSetOn: Set[Method] = Set(
-      Method.GET,
-      Method.HEAD
+      Method.Get,
+      Method.Head
     )
   }
 

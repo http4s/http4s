@@ -107,7 +107,7 @@ class ParsingSpec extends Http4sSuite {
       |
       |""".stripMargin
     val expected = Request[IO](
-      Method.GET,
+      Method.Get,
       Uri.unsafeFromString("www.google.com"),
       headers = Headers(org.http4s.headers.Host("www.google.com"))
     )
@@ -135,7 +135,7 @@ class ParsingSpec extends Http4sSuite {
       |Content-Length: 11
       |
       |Entity Here""".stripMargin
-    val expected = Request[IO](Method.POST, Uri.unsafeFromString("/foo"))
+    val expected = Request[IO](Method.Post, Uri.unsafeFromString("/foo"))
       .withEntity("Entity Here")
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -162,7 +162,7 @@ class ParsingSpec extends Http4sSuite {
         |Accept: */*
         |
         |""".stripMargin
-    val expected = Request[IO](Method.GET, Uri.unsafeFromString("/foo"))
+    val expected = Request[IO](Method.Get, Uri.unsafeFromString("/foo"))
 
     val result = Helpers.parseRequestRig[IO](raw)
 
@@ -249,7 +249,7 @@ class ParsingSpec extends Http4sSuite {
       req1 <- Parser.Request.parser[IO](Int.MaxValue)(Array.emptyByteArray, take)
       drained <- req1._2
       req2 <- Parser.Request.parser[IO](Int.MaxValue)(drained.get, take)
-    } yield req1._1.method == Method.GET && req2._1.method == Method.GET).assert
+    } yield req1._1.method == Method.Get && req2._1.method == Method.Get).assert
   }
 
   test("Parser.Response.parser should handle a chunked response") {
@@ -425,7 +425,7 @@ class ParsingSpec extends Http4sSuite {
 
     Parser.Request.ReqPrelude.preludeInSection(bv) match {
       case ParsePreludeComplete(method, uri, httpVersion, rest) =>
-        assert(method == Method.GET)
+        assert(method == Method.Get)
         assert(uri == uri"/")
         assert(httpVersion == HttpVersion.Http1_1)
         assert(rest.isEmpty)

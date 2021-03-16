@@ -247,7 +247,7 @@ class Http1ClientStageSuite extends Http4sSuite {
   fooConnection.test("Not expect body if request was a HEAD request") { tail =>
     val contentLength = 12345L
     val resp = s"HTTP/1.1 200 OK\r\nContent-Length: $contentLength\r\n\r\n"
-    val headRequest = FooRequest.withMethod(Method.HEAD)
+    val headRequest = FooRequest.withMethod(Method.Head)
 
     val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)

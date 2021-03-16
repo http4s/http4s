@@ -167,7 +167,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
               .unsafeRunSync()
         }
       // if it's a GET or HEAD, okhttp wants us to pass null
-      case _ if req.method == Method.GET || req.method == Method.HEAD => null
+      case _ if req.method == Method.Get || req.method == Method.Head => null
       // for anything else we can pass a body which produces no output
       case _ =>
         new RequestBody {

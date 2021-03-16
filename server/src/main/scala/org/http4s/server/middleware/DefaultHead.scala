@@ -18,7 +18,6 @@ package org.http4s
 package server
 package middleware
 
-import org.http4s.Method.{GET, HEAD}
 import cats.{Functor, MonoidK}
 import cats.data.Kleisli
 import cats.syntax.all._
@@ -36,7 +35,7 @@ object DefaultHead {
   def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
-        case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody[G])
+        case Head => http(req) <+> http(req.withMethod(Get)).map(drainBody[G])
         case _ => http(req)
       }
     }

@@ -72,7 +72,7 @@ class OAuthSuite extends Http4sSuite {
       "3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal"
 
   test("OAuth support should generate a Base String") {
-    assert(oauth1.genBaseString(Method.GET, uri, allParams) == specBaseString)
+    assert(oauth1.genBaseString(Method.Get, uri, allParams) == specBaseString)
   }
 
   test("OAuth support should generate a correct SHA1 signature") {
@@ -82,7 +82,7 @@ class OAuthSuite extends Http4sSuite {
 
   test("OAuth support should generate a Authorization header") {
     val auth =
-      oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
+      oauth1.genAuthHeader(Method.Get, uri, userParams, consumer, None, None, Some(token))
     val creds = auth.credentials
     assert(creds.authScheme == ci"OAuth")
   }
@@ -90,7 +90,7 @@ class OAuthSuite extends Http4sSuite {
   test("OAuth support should generate a Authorization header with config") {
     oauth1
       .genAuthHeader[IO](
-        Method.GET,
+        Method.Get,
         uri,
         oauth1.ProtocolParameter.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44"),
         Some(oauth1.ProtocolParameter.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
@@ -116,7 +116,7 @@ class OAuthSuite extends Http4sSuite {
     val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
     val Right(body) = UrlForm.decodeString(Charset.UsAscii)("c2&a3=2+q")
 
-    val req = Request[IO](method = Method.POST, uri = uri).withEntity(body)
+    val req = Request[IO](method = Method.Post, uri = uri).withEntity(body)
 
     oauth1.getUserParams(req).map { case (_, v) =>
       assert(

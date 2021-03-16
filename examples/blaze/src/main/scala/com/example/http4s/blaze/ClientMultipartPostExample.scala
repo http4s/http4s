@@ -46,7 +46,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
       ))
 
     val request: Request[IO] =
-      Method.POST(multipart, url).withHeaders(multipart.headers)
+      Method.Post(multipart, url).withHeaders(multipart.headers)
 
     client.expect[String](request)
   }

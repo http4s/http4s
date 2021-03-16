@@ -209,7 +209,7 @@ object Message {
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 final class Request[F[_]](
-    val method: Method = Method.GET,
+    val method: Method = Method.Get,
     val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.Http1_1,
     val headers: Headers = Headers.empty,
@@ -469,7 +469,7 @@ final class Request[F[_]](
 
 object Request {
   def apply[F[_]](
-      method: Method = Method.GET,
+      method: Method = Method.Get,
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.Http1_1,
       headers: Headers = Headers.empty,

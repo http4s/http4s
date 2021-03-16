@@ -52,6 +52,6 @@ package object dropwizard {
       registry: MetricRegistry,
       mapper: ObjectMapper = defaultMapper): HttpRoutes[F] =
     HttpRoutes.of {
-      case req if req.method == Method.GET => metricsResponse(registry, mapper)
+      case req if req.method == Method.Get => metricsResponse(registry, mapper)
     }
 }

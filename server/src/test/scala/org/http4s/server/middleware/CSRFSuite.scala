@@ -63,7 +63,7 @@ class CSRFSuite extends Http4sSuite {
     .orNotFound
 
   private val dummyRequest: Request[IO] =
-    Request[IO](method = Method.POST).putHeaders("Origin" -> "http://localhost")
+    Request[IO](method = Method.Post).putHeaders("Origin" -> "http://localhost")
 
   private val passThroughRequest: Request[IO] = Request[IO]()
 
