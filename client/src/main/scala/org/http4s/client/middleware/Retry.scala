@@ -25,6 +25,7 @@ import java.time.temporal.ChronoUnit
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.syntax.string._
 import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
@@ -125,15 +126,18 @@ object RetryPolicy {
     GatewayTimeout
   )
 
-  /** Returns true if the request method is idempotent and the result is
-    * either a throwable or has one of the `RetriableStatuses`.
+  val IdempotentHeader: CaseInsensitiveString = "Idempotency-Key".ci
+
+  /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)
+    * and the result is either a throwable or has one of the `RetriableStatuses`.
     *
     * Caution: if the request body is effectful, the effects will be
     * run twice.  The most common symptom of this will be resubmitting
     * an idempotent request.
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    req.method.isIdempotent && isErrorOrRetriableStatus(result)
+    (req.method.isIdempotent || req.headers.exists(_.name == IdempotentHeader)) &&
+      isErrorOrRetriableStatus(result)
 
   @deprecated("Use defaultRetriable instead", "0.19.0")
   def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =

@@ -90,7 +90,7 @@ class RetrySuite extends Http4sSuite {
     }
   }
 
-  def resubmit(method: Method)(
+  def resubmit(method: Method, headers: Headers = Headers.empty)(
       retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
     Ref[IO]
       .of(false)
@@ -99,7 +99,9 @@ class RetrySuite extends Http4sSuite {
           case false => ref.update(_ => true) *> IO.pure("")
           case true => IO.pure("OK")
         })
-        val req = Request[IO](method, uri"http://localhost/status-from-body").withEntity(body)
+        val req = Request[IO](method, uri"http://localhost/status-from-body")
+          .withHeaders(headers)
+          .withEntity(body)
         val policy = RetryPolicy[IO](
           (attempts: Int) =>
             if (attempts >= 2) None
@@ -111,6 +113,10 @@ class RetrySuite extends Http4sSuite {
 
   test("default retriable should defaultRetriable does not resubmit bodies on idempotent methods") {
     resubmit(POST)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
+  }
+  test("default retriable should defaultRetriable resubmits bodies on idempotent header") {
+    resubmit(POST, Headers.of(Header(RetryPolicy.IdempotentHeader.toString, "")))(
+      RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
   }
   test("default retriable should defaultRetriable resubmits bodies on idempotent methods") {
     resubmit(PUT)(RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
