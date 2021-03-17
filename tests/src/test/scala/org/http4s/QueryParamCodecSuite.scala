@@ -39,7 +39,13 @@ class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   checkAll("String QueryParamCodec", QueryParamCodecLaws[String])
   checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
   checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
-  checkAll("ZonedDateTime QueryParamCodec", QueryParamCodecLaws[ZonedDateTime])
+
+  if (!sys.props.get("java.specification.version").contains("1.8")) {
+    // skipping this property due to bug in JDK8
+    // where round trip conversion fails for region-based zone id & daylight saving time
+    // see https://bugs.openjdk.java.net/browse/JDK-8183553 and https://bugs.openjdk.java.net/browse/JDK-8066982
+    checkAll("ZonedDateTime QueryParamCodec", QueryParamCodecLaws[ZonedDateTime])
+  }
 
   // Law checks for instances.
   checkAll(
