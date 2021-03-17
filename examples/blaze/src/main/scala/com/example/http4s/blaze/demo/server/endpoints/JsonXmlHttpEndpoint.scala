@@ -22,7 +22,6 @@ import io.circe.generic.auto._
 import org.http4s.{ApiVersion => _, _}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.scalaxml.implicits._
 
 import scala.xml._
 
@@ -46,7 +45,7 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
   }
 
   def personXmlDecoder: EntityDecoder[F, Person] =
-    EntityDecoder[F, Elem].map(Person.fromXml)
+    org.http4s.scalaxml.xml[F].map(Person.fromXml)
 
   implicit def jsonXmlDecoder: EntityDecoder[F, Person] = jsonOf[F, Person].orElse(personXmlDecoder)
 
