@@ -26,7 +26,7 @@ import org.http4s.syntax.all._
 import scala.concurrent.duration._
 
 class HSTSSuite extends Http4sSuite {
-  val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
+  val innerRoutes = HttpRoutes.of[IO] { case Get -> Root =>
     Ok("pong")
   }
 

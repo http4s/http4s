@@ -25,7 +25,7 @@ import org.http4s.syntax.all._
 import org.typelevel.ci._
 
 class HeaderEchoSuite extends Http4sSuite {
-  val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
+  val testService = HttpRoutes.of[IO] { case Get -> Root / "request" =>
     Ok("request response")
   }
 

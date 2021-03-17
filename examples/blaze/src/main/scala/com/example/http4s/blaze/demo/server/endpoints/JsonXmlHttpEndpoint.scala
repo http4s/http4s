@@ -51,11 +51,11 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   implicit def jsonXmlDecoder: EntityDecoder[F, Person] = jsonOf[F, Person].orElse(personXmlDecoder)
 
   val service: HttpRoutes[F] = HttpRoutes.of {
-    case GET -> Root / ApiVersion / "media" =>
+    case Get -> Root / ApiVersion / "media" =>
       Ok(
         "Send either json or xml via POST method. Eg: \n{\n  \"name\": \"gvolpe\",\n  \"age\": 30\n}\n or \n <person>\n  <name>gvolpe</name>\n  <age>30</age>\n</person>")
 
-    case req @ POST -> Root / ApiVersion / "media" =>
+    case req @ Post -> Root / ApiVersion / "media" =>
       req.as[Person].flatMap { person =>
         Ok(s"Successfully decoded person: ${person.name}")
       }

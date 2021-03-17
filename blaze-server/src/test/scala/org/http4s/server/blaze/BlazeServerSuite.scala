@@ -38,20 +38,20 @@ class BlazeServerSuite extends Http4sSuite {
       .withResponseHeaderTimeout(1.second)
 
   val service: HttpApp[IO] = HttpApp {
-    case GET -> Root / "thread" / "routing" =>
+    case Get -> Root / "thread" / "routing" =>
       val thread = Thread.currentThread.getName
       Ok(thread)
 
-    case GET -> Root / "thread" / "effect" =>
+    case Get -> Root / "thread" / "effect" =>
       IO(Thread.currentThread.getName).flatMap(Ok(_))
 
-    case req @ POST -> Root / "echo" =>
+    case req @ Post -> Root / "echo" =>
       Ok(req.body)
 
     case _ -> Root / "never" =>
       IO.never
 
-    case req @ POST -> Root / "issue2610" =>
+    case req @ Post -> Root / "issue2610" =>
       req.decode[Multipart[IO]] { mp =>
         Ok(mp.parts.foldMap(_.body))
       }

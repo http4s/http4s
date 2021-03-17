@@ -50,7 +50,7 @@ Finish setting up our server:
 import scala.concurrent.ExecutionContext.global
 
 val app = HttpRoutes.of[IO] {
-  case GET -> Root / "hello" / name =>
+  case Get -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }.orNotFound
 
@@ -304,7 +304,7 @@ import org.http4s.Method._
 ```
 
 ```scala mdoc:nest
-val request = GET(
+val request = Get(
   uri"https://my-lovely-api.com/",
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
   Accept(MediaType.application.json)
@@ -324,7 +324,7 @@ case class AuthResponse(access_token: String)
 implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] =
   jsonOf[IO, AuthResponse]
 
-val postRequest = POST(
+val postRequest = Post(
   UrlForm(
     "grant_type" -> "client_credentials",
     "client_id" -> "my-awesome-client",

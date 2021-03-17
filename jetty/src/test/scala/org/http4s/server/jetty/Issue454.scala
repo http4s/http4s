@@ -61,7 +61,7 @@ object Issue454 {
 
   val servlet = new AsyncHttp4sServlet[IO](
     service = HttpRoutes
-      .of[IO] { case GET -> Root =>
+      .of[IO] { case Get -> Root =>
         Ok(insanelyHugeData)
       }
       .orNotFound,

@@ -60,7 +60,7 @@ final `HttpRoutes` to be exposed. Notice that we now have access to the user obj
 ```scala mdoc:silent
 val authedRoutes: AuthedRoutes[User, IO] =
   AuthedRoutes.of {
-    case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
+    case Get -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
 
 val service: HttpRoutes[IO] = middleware(authedRoutes)
@@ -76,12 +76,12 @@ your api for possible unprotected points.
 ```scala mdoc:silent:nest
 val spanishRoutes: AuthedRoutes[User, IO] =
     AuthedRoutes.of {
-        case GET -> Root / "hola" as user => Ok(s"Hola, ${user.name}")
+        case Get -> Root / "hola" as user => Ok(s"Hola, ${user.name}")
     }
 
 val frenchRoutes: HttpRoutes[IO] =
     HttpRoutes.of {
-        case GET -> Root / "bonjour" => Ok(s"Bonjour")
+        case Get -> Root / "bonjour" => Ok(s"Bonjour")
     }
 
 val service: HttpRoutes[IO] = middleware(spanishRoutes) <+> frenchRoutes

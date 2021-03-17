@@ -49,7 +49,7 @@ class CORSSuite extends Http4sSuite {
   final def matchHeader(hs: Headers, name: CIString, expected: String): Boolean =
     hs.get(name).fold(false)(_.exists(_.value === expected))
 
-  def buildRequest(path: String, method: Method = GET) =
+  def buildRequest(path: String, method: Method = Get) =
     Request[IO](uri = Uri(path = Uri.Path.unsafeFromString(path)), method = method)
       .withHeaders("Origin" -> "http://allowed.com", "Access-Control-Request-Method" -> "GET")
 
@@ -72,7 +72,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("Respect Access-Control-Allow-Headers in preflight call") {
-    val req = buildRequest("/foo", OPTIONS)
+    val req = buildRequest("/foo", Options)
     cors2
       .orNotFound(req)
       .map { resp =>
@@ -95,7 +95,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("Offer a successful reply to OPTIONS on fallthrough") {
-    val req = buildRequest("/unexistant", OPTIONS)
+    val req = buildRequest("/unexistant", Options)
     cors1
       .orNotFound(req)
       .map(resp =>
@@ -115,7 +115,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("Always respond with 200 and empty body for OPTIONS request") {
-    val req = buildRequest("/bar", OPTIONS)
+    val req = buildRequest("/bar", Options)
     cors1.orNotFound(req).map(_.headers.headers.exists(headerCheck _)).assert *>
       cors2.orNotFound(req).map(_.headers.headers.exists(headerCheck _)).assert
   }
@@ -130,14 +130,14 @@ class CORSSuite extends Http4sSuite {
 
   test("Fall through") {
     val req = buildRequest("/2")
-    val routes1 = CORS(HttpRoutes.of[IO] { case GET -> Root / "1" => Ok() })
-    val routes2 = CORS(HttpRoutes.of[IO] { case GET -> Root / "2" => Ok() })
+    val routes1 = CORS(HttpRoutes.of[IO] { case Get -> Root / "1" => Ok() })
+    val routes2 = CORS(HttpRoutes.of[IO] { case Get -> Root / "2" => Ok() })
     (routes1 <+> routes2).orNotFound(req).map(_.status).assertEquals(Ok)
   }
 
   test("Not replace vary header if already set") {
     val req = buildRequest("/")
-    val service = CORS(HttpRoutes.of[IO] { case GET -> Root =>
+    val service = CORS(HttpRoutes.of[IO] { case Get -> Root =>
       Response[IO](Ok)
         .putHeaders("Vary" -> "Origin,Accept")
         .withEntity("foo")

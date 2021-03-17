@@ -39,10 +39,10 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
     extends Http4sDsl[F] {
   def routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
-      case GET -> Root / "hello" =>
+      case Get -> Root / "hello" =>
         Ok("Hello world.")
 
-      case GET -> Root / "ws" =>
+      case Get -> Root / "ws" =>
         val toClient: Stream[F, WebSocketFrame] =
           Stream.awakeEvery[F](1.seconds).map(d => Text(s"Ping! $d"))
         val fromClient: Pipe[F, WebSocketFrame, Unit] = _.evalMap {
@@ -51,7 +51,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
         }
         WebSocketBuilder[F].build(toClient, fromClient)
 
-      case GET -> Root / "wsecho" =>
+      case Get -> Root / "wsecho" =>
         val echoReply: Pipe[F, WebSocketFrame, WebSocketFrame] =
           _.collect {
             case Text(msg, _) => Text("You sent the server: " + msg)

@@ -38,20 +38,20 @@ class JettyServerSuite extends Http4sSuite {
       .withAsyncTimeout(3.seconds)
       .mountService(
         HttpRoutes.of {
-          case GET -> Root / "thread" / "routing" =>
+          case Get -> Root / "thread" / "routing" =>
             val thread = Thread.currentThread.getName
             Ok(thread)
 
-          case GET -> Root / "thread" / "effect" =>
+          case Get -> Root / "thread" / "effect" =>
             IO(Thread.currentThread.getName).flatMap(Ok(_))
 
-          case req @ POST -> Root / "echo" =>
+          case req @ Post -> Root / "echo" =>
             Ok(req.body)
 
-          case GET -> Root / "never" =>
+          case Get -> Root / "never" =>
             IO.never
 
-          case GET -> Root / "slow" =>
+          case Get -> Root / "slow" =>
             implicitly[Timer[IO]].sleep(50.millis) *> Ok("slow")
         },
         "/"

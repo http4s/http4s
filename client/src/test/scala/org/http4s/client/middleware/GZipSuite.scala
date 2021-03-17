@@ -24,9 +24,9 @@ import org.http4s.headers.{`Content-Encoding`, `Content-Length`}
 
 class GZipSuite extends Http4sSuite {
   private val service = server.middleware.GZip(HttpApp[IO] {
-    case GET -> Root / "gziptest" =>
+    case Get -> Root / "gziptest" =>
       Ok("Dummy response")
-    case HEAD -> Root / "gziptest" =>
+    case Head -> Root / "gziptest" =>
       Ok()
   })
   private val gzipClient = GZip()(Client.fromHttpApp(service))

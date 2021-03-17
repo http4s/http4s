@@ -24,9 +24,9 @@ import org.http4s.dsl.io._
 
 class StaticHeadersSuite extends Http4sSuite {
   val testService = HttpRoutes.of[IO] {
-    case GET -> Root / "request" =>
+    case Get -> Root / "request" =>
       Ok("request response")
-    case req @ POST -> Root / "post" =>
+    case req @ Post -> Root / "post" =>
       Ok(req.body)
   }
 

@@ -109,7 +109,7 @@ object CORS {
         req.method,
         req.headers.get(ci"Origin"),
         req.headers.get(ci"Access-Control-Request-Method")) match {
-        case (Options, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _)))
+        case (Method.Options, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _)))
             if allowCORS(origin, acrm) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
           createOptionsResponse(origin, acrm).pure[F]

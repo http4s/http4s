@@ -33,7 +33,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   val app = HttpRoutes
     .of[IO] {
-      case GET -> Root / "loop" / i =>
+      case Get -> Root / "loop" / i =>
         val iteration = i.toInt
         if (iteration < 3) {
           val uri = Uri.unsafeFromString(s"/loop/${iteration + 1}")
@@ -71,7 +71,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("FollowRedirect should strip payload headers when switching to GET") {
     // We could test others, and other scenarios, but this was a pain.
-    val req = Request[IO](PUT, uri"http://localhost/303").withEntity("foo")
+    val req = Request[IO](Put, uri"http://localhost/303").withEntity("foo")
     client
       .run(req)
       .use { case resp =>
@@ -83,7 +83,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("FollowRedirect should Not redirect more than 'maxRedirects' iterations") {
     val statefulApp = HttpRoutes
-      .of[IO] { case GET -> Root / "loop" =>
+      .of[IO] { case Get -> Root / "loop" =>
         val body = loopCounter.incrementAndGet.toString
         MovedPermanently(Location(uri"/loop")).map(_.withEntity(body))
       }

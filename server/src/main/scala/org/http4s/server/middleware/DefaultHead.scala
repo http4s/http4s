@@ -35,7 +35,7 @@ object DefaultHead {
   def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
-        case Head => http(req) <+> http(req.withMethod(Get)).map(drainBody[G])
+        case Method.Head => http(req) <+> http(req.withMethod(Method.Get)).map(drainBody[G])
         case _ => http(req)
       }
     }

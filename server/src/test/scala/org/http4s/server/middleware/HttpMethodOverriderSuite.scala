@@ -42,24 +42,24 @@ class HttpMethodOverriderSuite extends Http4sSuite {
 
   private def postHeaderOverriderConfig[F[_], G[_]] = defaultConfig[F, G]
   private def postQueryOverriderConfig[F[_], G[_]] =
-    HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(POST))
+    HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(Post))
   private val postFormOverriderConfig =
-    HttpMethodOverriderConfig(formOverrideStrategy, Set(POST))
+    HttpMethodOverriderConfig(formOverrideStrategy, Set(Post))
   private def deleteHeaderOverriderConfig[F[_], G[_]] =
-    HttpMethodOverriderConfig[F, G](headerOverrideStrategy, Set(DELETE))
+    HttpMethodOverriderConfig[F, G](headerOverrideStrategy, Set(Delete))
   private def deleteQueryOverriderConfig[F[_], G[_]] =
-    HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(DELETE))
+    HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(Delete))
   private val deleteFormOverriderConfig =
-    HttpMethodOverriderConfig(formOverrideStrategy, Set(DELETE))
+    HttpMethodOverriderConfig(formOverrideStrategy, Set(Delete))
   private def noMethodHeaderOverriderConfig[F[_], G[_]] =
     HttpMethodOverriderConfig[F, G](headerOverrideStrategy, Set.empty)
 
   private val testApp = Router("/" -> HttpRoutes.of[IO] {
-    case r @ GET -> Root / "resources" / "id" =>
+    case r @ Get -> Root / "resources" / "id" =>
       Ok(responseText[IO](msg = "resource's details", r))
-    case r @ PUT -> Root / "resources" / "id" =>
+    case r @ Put -> Root / "resources" / "id" =>
       Ok(responseText(msg = "resource updated", r), varyHeader -> customHeader)
-    case r @ DELETE -> Root / "resources" / "id" =>
+    case r @ Delete -> Root / "resources" / "id" =>
       Ok(responseText(msg = "resource deleted", r))
   }).orNotFound
 
@@ -78,7 +78,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
 
   test("ignore method override if request method not in the overridable method list") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(GET)
+      .withMethod(Get)
       .withHeaders(overrideHeader -> "PUT")
     val app = HttpMethodOverrider(testApp, noMethodHeaderOverriderConfig)
 
@@ -88,7 +88,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource's details",
-            reqMethod = GET,
+            reqMethod = Get,
             overriddenMethod = None) &&
             res.status === Status.Ok)
     }.assert
@@ -97,7 +97,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "override request method when using header method overrider strategy if override method provided") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(POST)
+      .withMethod(Post)
       .withHeaders(overrideHeader -> "PUT")
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
@@ -107,8 +107,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource updated",
-            reqMethod = PUT,
-            overriddenMethod = Some(POST)) &&
+            reqMethod = Put,
+            overriddenMethod = Some(Post)) &&
             res.status === Status.Ok
         )
     }.assert
@@ -117,7 +117,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "not override request method when using header method overrider strategy if override method not provided") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(DELETE)
+      .withMethod(Delete)
     val app = HttpMethodOverrider(testApp, deleteHeaderOverriderConfig)
 
     app(req).flatMap { res =>
@@ -127,7 +127,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
           _ ===
             mkResponseText(
               msg = "resource deleted",
-              reqMethod = DELETE,
+              reqMethod = Delete,
               overriddenMethod = None) && res.status === Status.Ok
         )
     }.assert
@@ -136,7 +136,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "override request method and store the original method when using query method overrider strategy") {
     val req = Request[IO](uri = uri"/resources/id?_method=PUT")
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
     app(req).flatMap { res =>
@@ -145,8 +145,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource updated",
-            reqMethod = PUT,
-            overriddenMethod = Some(POST)) && res.status === Status.Ok
+            reqMethod = Put,
+            overriddenMethod = Some(Post)) && res.status === Status.Ok
         )
     }.assert
   }
@@ -154,7 +154,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "not override request method when using query method overrider strategy if override method not provided") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(DELETE)
+      .withMethod(Delete)
     val app = HttpMethodOverrider(testApp, deleteQueryOverriderConfig)
 
     app(req).flatMap { res =>
@@ -164,7 +164,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
           _ ===
             mkResponseText(
               msg = "resource deleted",
-              reqMethod = DELETE,
+              reqMethod = Delete,
               overriddenMethod = None) && res.status === Status.Ok
         )
     }.assert
@@ -175,7 +175,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
     val urlForm = UrlForm("foo" -> "bar", overrideField -> "PUT")
     val req = Request[IO](uri = uri"/resources/id")
       .withEntity(urlForm)
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
     app(req).flatMap { res =>
@@ -184,8 +184,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource updated",
-            reqMethod = PUT,
-            overriddenMethod = Some(POST)) && res.status === Status.Ok
+            reqMethod = Put,
+            overriddenMethod = Some(Post)) && res.status === Status.Ok
         )
     }.assert
   }
@@ -195,7 +195,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
     val urlForm = UrlForm("foo" -> "bar")
     val req = Request[IO](uri = uri"/resources/id")
       .withEntity(urlForm)
-      .withMethod(DELETE)
+      .withMethod(Delete)
     val app = HttpMethodOverrider(testApp, deleteFormOverriderConfig)
 
     app(req).flatMap { res =>
@@ -204,7 +204,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource deleted",
-            reqMethod = DELETE,
+            reqMethod = Delete,
             overriddenMethod = None) && res.status === Status.Ok
         )
     }.assert
@@ -213,7 +213,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "return 404 when using header method overrider strategy if override method provided is not recognized") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(POST)
+      .withMethod(Post)
       .withHeaders(overrideHeader -> "INVALID")
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
@@ -223,7 +223,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "return 404 when using query method overrider strategy if override method provided is not recognized") {
     val req = Request[IO](uri = uri"/resources/id?_method=INVALID")
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
     app(req).map(_.status).assertEquals(Status.NotFound)
@@ -234,7 +234,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
     val urlForm = UrlForm("foo" -> "bar", overrideField -> "INVALID")
     val req = Request[IO](uri = uri"/resources/id")
       .withEntity(urlForm)
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
     app(req).map(_.status).assertEquals(Status.NotFound)
@@ -243,7 +243,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "return 400 when using header method overrider strategy if override method provided is duped") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(POST)
+      .withMethod(Post)
       .withHeaders(overrideHeader -> "")
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
@@ -253,7 +253,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "return 400 when using query method overrider strategy if override method provided is duped") {
     val req = Request[IO](uri = uri"/resources/id?_method=")
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
     app(req).map(_.status).assertEquals(Status.BadRequest)
@@ -264,7 +264,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
     val urlForm = UrlForm("foo" -> "bar", overrideField -> "")
     val req = Request[IO](uri = uri"/resources/id")
       .withEntity(urlForm)
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
     app(req).map(_.status).assertEquals(Status.BadRequest)
@@ -273,7 +273,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "override request method when using header method overrider strategy and be case insensitive") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(POST)
+      .withMethod(Post)
       .withHeaders(overrideHeader -> "pUt")
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
@@ -284,8 +284,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
           _ ===
             mkResponseText(
               msg = "resource updated",
-              reqMethod = PUT,
-              overriddenMethod = Some(POST)) &&
+              reqMethod = Put,
+              overriddenMethod = Some(Post)) &&
             res.status === (Status.Ok)
         )
     }
@@ -294,7 +294,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "override request method when using query method overrider strategy and be case insensitive") {
     val req = Request[IO](uri = uri"/resources/id?_method=pUt")
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
     app(req).flatMap { res =>
@@ -303,8 +303,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource updated",
-            reqMethod = PUT,
-            overriddenMethod = Some(POST)) && res.status === (Status.Ok)
+            reqMethod = Put,
+            overriddenMethod = Some(Post)) && res.status === (Status.Ok)
         )
     }
   }
@@ -314,7 +314,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
     val urlForm = UrlForm("foo" -> "bar", overrideField -> "pUt")
     val req = Request[IO](uri = uri"/resources/id")
       .withEntity(urlForm)
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
     app(req).flatMap { res =>
@@ -323,8 +323,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource updated",
-            reqMethod = PUT,
-            overriddenMethod = Some(POST)) && res.status === (Status.Ok)
+            reqMethod = Put,
+            overriddenMethod = Some(Post)) && res.status === (Status.Ok)
         )
     }
   }
@@ -332,7 +332,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "updates vary header when using query method overrider strategy and vary header comes pre-populated") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(POST)
+      .withMethod(Post)
       .withHeaders(overrideHeader -> "PUT")
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
@@ -342,8 +342,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource updated",
-            reqMethod = PUT,
-            overriddenMethod = Some(POST)) &&
+            reqMethod = Put,
+            overriddenMethod = Some(Post)) &&
             res.status === (Status.Ok) &&
             res.headers.headers.exists(
               _ === Header.Raw(CIString(varyHeader), s"$customHeader, $overrideHeader"))
@@ -354,7 +354,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "set vary header when using header method overrider strategy and vary header has not been set") {
     val req = Request[IO](uri = uri"/resources/id")
-      .withMethod(POST)
+      .withMethod(Post)
       .withHeaders(overrideHeader -> "DELETE")
     val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
@@ -364,8 +364,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         .map(
           _ === mkResponseText(
             msg = "resource deleted",
-            reqMethod = DELETE,
-            overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+            reqMethod = Delete,
+            overriddenMethod = Some(Post)) && res.status === Status.Ok &&
             res.headers.headers.exists(_ === Header.Raw(CIString(varyHeader), s"$overrideHeader"))
         )
     }.assert
@@ -374,7 +374,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "not set vary header when using query method overrider strategy and vary header has not been set") {
     val req = Request[IO](uri = uri"/resources/id?_method=DELETE")
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
     app(req).flatMap { res =>
@@ -384,8 +384,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
           _ ===
             mkResponseText(
               msg = "resource deleted",
-              reqMethod = DELETE,
-              overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+              reqMethod = Delete,
+              overriddenMethod = Some(Post)) && res.status === Status.Ok &&
             !res.headers.headers.exists(_.name === CIString(varyHeader))
         )
     }.assert
@@ -394,7 +394,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   test(
     "not update vary header when using query method overrider strategy and vary header comes pre-populated") {
     val req = Request[IO](uri = uri"/resources/id?_method=PUT")
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
     app(req).flatMap { res =>
@@ -404,8 +404,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
           _ ===
             mkResponseText(
               msg = "resource updated",
-              reqMethod = PUT,
-              overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+              reqMethod = Put,
+              overriddenMethod = Some(Post)) && res.status === Status.Ok &&
             res.headers.headers.exists(_ === Header.Raw(CIString(varyHeader), s"$customHeader"))
         )
     }.assert
@@ -416,7 +416,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
     val urlForm = UrlForm("foo" -> "bar", overrideField -> "DELETE")
     val req = Request[IO](uri = uri"/resources/id")
       .withEntity(urlForm)
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
     app(req).flatMap { res =>
@@ -424,8 +424,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
         _ ===
           mkResponseText(
             msg = "resource deleted",
-            reqMethod = DELETE,
-            overriddenMethod = Some(POST)) && res.status === Status.Ok && !res.headers.headers
+            reqMethod = Delete,
+            overriddenMethod = Some(Post)) && res.status === Status.Ok && !res.headers.headers
             .exists(_.name === CIString(varyHeader))
       }
     }.assert
@@ -436,7 +436,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
     val urlForm = UrlForm("foo" -> "bar", overrideField -> "PUT")
     val req = Request[IO](uri = uri"/resources/id")
       .withEntity(urlForm)
-      .withMethod(POST)
+      .withMethod(Post)
     val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
     app(req).flatMap { res =>
@@ -446,8 +446,8 @@ class HttpMethodOverriderSuite extends Http4sSuite {
           _ ===
             mkResponseText(
               msg = "resource updated",
-              reqMethod = PUT,
-              overriddenMethod = Some(POST)) && res.status === Status.Ok &&
+              reqMethod = Put,
+              overriddenMethod = Some(Post)) && res.status === Status.Ok &&
             res.headers.headers.exists(_ === Header.Raw(CIString(varyHeader), s"$customHeader"))
         )
     }.assert

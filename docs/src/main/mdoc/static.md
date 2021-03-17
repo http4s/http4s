@@ -99,7 +99,7 @@ import org.http4s.dsl.io._
 import java.io.File
 
 val routes = HttpRoutes.of[IO] {
-  case request @ GET -> Root / "index.html" =>
+  case request @ Get -> Root / "index.html" =>
     StaticFile.fromFile(new File("relative/path/to/index.html"), blocker, Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
@@ -122,7 +122,7 @@ def static(file: String, blocker: Blocker, request: Request[IO]) =
   StaticFile.fromResource("/" + file, blocker, Some(request)).getOrElseF(NotFound())
 
 val routes = HttpRoutes.of[IO] {
-  case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
+  case request @ Get -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
     static(path, blocker, request)
 }
 ```

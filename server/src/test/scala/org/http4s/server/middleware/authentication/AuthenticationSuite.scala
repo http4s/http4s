@@ -28,7 +28,7 @@ import scala.concurrent.duration._
 
 class AuthenticationSuite extends Http4sSuite {
   def nukeService(launchTheNukes: => Unit) =
-    AuthedRoutes.of[String, IO] { case GET -> Root / "launch-the-nukes" as user =>
+    AuthedRoutes.of[String, IO] { case Get -> Root / "launch-the-nukes" as user =>
       for {
         _ <- IO(launchTheNukes)
         r <- Gone(s"Oops, $user launched the nukes.")
@@ -52,7 +52,7 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
   val service = AuthedRoutes.of[String, IO] {
-    case GET -> Root as user => Ok(user)
+    case Get -> Root as user => Ok(user)
     case req as _ => Response.notFoundFor(req)
   }
 

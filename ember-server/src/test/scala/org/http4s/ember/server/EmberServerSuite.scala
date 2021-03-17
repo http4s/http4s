@@ -33,7 +33,7 @@ class EmberServerSuite extends Http4sSuite {
     import dsl._
 
     HttpRoutes
-      .of[F] { case GET -> Root =>
+      .of[F] { case Get -> Root =>
         Ok("Hello!")
       }
       .orNotFound

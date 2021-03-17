@@ -120,6 +120,16 @@ class RewriteBackticks extends SemanticRule("RewriteBackticks") {
       "org/http4s/TransferCoding." -> "deflate" -> "Deflate",
       "org/http4s/TransferCoding." -> "gzip" -> "Gzip",
       "org/http4s/TransferCoding." -> "identity" -> "Identity",
+
+      "org/http4s/dsl/impl/Methods#" -> "GET" -> "Get",
+      "org/http4s/dsl/impl/Methods#" -> "HEAD" -> "Head",
+      "org/http4s/dsl/impl/Methods#" -> "POST" -> "Post",
+      "org/http4s/dsl/impl/Methods#" -> "PUT" -> "Put",
+      "org/http4s/dsl/impl/Methods#" -> "DELETE" -> "Delete",
+      "org/http4s/dsl/impl/Methods#" -> "CONNECT" -> "Connect",
+      "org/http4s/dsl/impl/Methods#" -> "OPTIONS" -> "Options",
+      "org/http4s/dsl/impl/Methods#" -> "TRACE" -> "Trace",
+      "org/http4s/dsl/impl/Methods#" -> "PATCH" -> "Patch",
     )
 
   def replaceFields(renames: ((String, String), String)*)(implicit doc: SemanticDocument): Patch =

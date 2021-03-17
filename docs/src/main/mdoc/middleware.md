@@ -58,14 +58,14 @@ we need to call `unsafeRunSync` on the result of the function to extract the `Re
 
 ```scala mdoc
 val service = HttpRoutes.of[IO] {
-  case GET -> Root / "bad" =>
+  case Get -> Root / "bad" =>
     BadRequest()
   case _ =>
     Ok()
 }
 
-val goodRequest = Request[IO](Method.GET, uri"/")
-val badRequest = Request[IO](Method.GET, uri"/bad")
+val goodRequest = Request[IO](Method.Get, uri"/")
+val badRequest = Request[IO](Method.Get, uri"/bad")
 
 service.orNotFound(goodRequest).unsafeRunSync()
 service.orNotFound(badRequest).unsafeRunSync()
@@ -121,13 +121,13 @@ You can also wrap a single service in multiple layers of middleware. For example
 
 ```scala mdoc
 val apiService = HttpRoutes.of[IO] {
-  case GET -> Root / "api" =>
+  case Get -> Root / "api" =>
     Ok()
 }
 
 val aggregateService = apiService <+> MyMiddle(service, "SomeKey" -> "SomeValue")
 
-val apiRequest = Request[IO](Method.GET, uri"/api")
+val apiRequest = Request[IO](Method.Get, uri"/api")
 
 aggregateService.orNotFound(goodRequest).unsafeRunSync()
 aggregateService.orNotFound(apiRequest).unsafeRunSync()

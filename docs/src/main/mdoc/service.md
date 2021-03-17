@@ -71,7 +71,7 @@ greet.
 
 ```scala mdoc
 val helloWorldService = HttpRoutes.of[IO] {
-  case GET -> Root / "hello" / name =>
+  case Get -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
 ```
@@ -99,9 +99,9 @@ def getTweet(tweetId: Int): IO[Tweet] = ???
 def getPopularTweets(): IO[Seq[Tweet]] = ???
 
 val tweetService = HttpRoutes.of[IO] {
-  case GET -> Root / "tweets" / "popular" =>
+  case Get -> Root / "tweets" / "popular" =>
     getPopularTweets().flatMap(Ok(_))
-  case GET -> Root / "tweets" / IntVar(tweetId) =>
+  case Get -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId).flatMap(Ok(_))
 }
 ```
@@ -186,7 +186,7 @@ import scala.concurrent.ExecutionContext.global
 object Main extends IOApp {
 
   val helloWorldService = HttpRoutes.of[IO] {
-    case GET -> Root / "hello" / name =>
+    case Get -> Root / "hello" / name =>
       Ok(s"Hello, $name.")
   }.orNotFound
 

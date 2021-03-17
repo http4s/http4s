@@ -3,7 +3,9 @@ rule = v0_22
 */
 package fix
 
+import cats.effect.IO
 import org.http4s._
+import org.http4s.dsl.io._
 import scala.concurrent.duration._
 
 object Backticks {
@@ -118,4 +120,16 @@ object Backticks {
     TransferCoding.gzip,
     TransferCoding.identity,
   )
+
+  val dslMethods = HttpRoutes.of[IO] {
+    case GET -> _ => NoContent()
+    case HEAD -> _ => NoContent()
+    case POST -> _ => NoContent()
+    case PUT -> _ => NoContent()
+    case DELETE -> _ => NoContent()
+    case CONNECT -> _ => NoContent()
+    case OPTIONS -> _ => NoContent()
+    case TRACE -> _ => NoContent()
+    case PATCH -> _ => NoContent()
+  }
 }

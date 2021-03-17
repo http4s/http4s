@@ -31,7 +31,7 @@ class CookieJarSuite extends Http4sSuite {
   test("CookieJar middleware should extract a cookie and apply it correctly") {
     val routes = HttpRoutes
       .of[IO] {
-        case GET -> Root / "get-cookie" =>
+        case Get -> Root / "get-cookie" =>
           val resp = Response[IO](Status.Ok).addCookie(
             ResponseCookie(
               name = "foo",
@@ -40,7 +40,7 @@ class CookieJarSuite extends Http4sSuite {
               expires = HttpDate.MaxValue.some
             ))
           resp.pure[IO]
-        case req @ GET -> Root / "test-cookie" =>
+        case req @ Get -> Root / "test-cookie" =>
           req.headers
             .get[Cookie]
             .fold(

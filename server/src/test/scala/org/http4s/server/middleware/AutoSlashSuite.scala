@@ -26,7 +26,7 @@ class AutoSlashSuite extends Http4sSuite {
 
   val pingRoutes = {
     import org.http4s.dsl.io._
-    HttpRoutes.of[IO] { case GET -> Root / "ping" =>
+    HttpRoutes.of[IO] { case Get -> Root / "ping" =>
       Ok()
     }
   }

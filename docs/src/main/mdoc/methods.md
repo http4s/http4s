@@ -28,19 +28,19 @@ implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
 implicit val tweetDecoder = jsonOf[IO, Tweet]
 
 val tweetService = HttpRoutes.of[IO] {
-  case GET -> Root / "tweets" / IntVar(tweetId) =>
+  case Get -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId)
       .flatMap(_.fold(NotFound())(Ok(_)))
-  case req @ POST -> Root / "tweets" =>
+  case req @ Post -> Root / "tweets" =>
     req.as[Tweet].flatMap(addTweet).flatMap(Ok(_))
-  case req @ PUT -> Root / "tweets" / IntVar(tweetId) =>
+  case req @ Put -> Root / "tweets" / IntVar(tweetId) =>
     req.as[Tweet]
       .flatMap(updateTweet(tweetId, _))
       .flatMap(_.fold(NotFound())(Ok(_)))
-  case HEAD -> Root / "tweets" / IntVar(tweetId) =>
+  case Head -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId)
       .flatMap(_.fold(NotFound())(_ => Ok()))
-  case DELETE -> Root / "tweets" / IntVar(tweetId) =>
+  case Delete -> Root / "tweets" / IntVar(tweetId) =>
     deleteTweet(tweetId)
       .flatMap(_ => Ok())
 }

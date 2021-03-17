@@ -47,7 +47,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
   def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =
     HttpRoutes.of[F] {
-      case GET -> Root =>
+      case Get -> Root =>
         // disabled until twirl supports dotty
         // Supports Play Framework template -- see src/main/twirl.
         // Ok(html.index())
@@ -55,30 +55,30 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
       case _ -> Root =>
         // The default route result is NotFound. Sometimes MethodNotAllowed is more appropriate.
-        MethodNotAllowed(Allow(GET))
+        MethodNotAllowed(Allow(Get))
 
-      case GET -> Root / "ping" =>
+      case Get -> Root / "ping" =>
         // EntityEncoder allows for easy conversion of types to a response body
         Ok("pong")
 
-      case GET -> Root / "streaming" =>
+      case Get -> Root / "streaming" =>
         // It's also easy to stream responses to clients
         Ok(dataStream(100))
 
-      case req @ GET -> Root / "ip" =>
+      case req @ Get -> Root / "ip" =>
         // It's possible to define an EntityEncoder anywhere so you're not limited to built in types
         val json = Json.obj("origin" -> Json.fromString(req.remoteAddr.fold("unknown")(_.toString)))
         Ok(json)
 
-      case GET -> Root / "redirect" =>
+      case Get -> Root / "redirect" =>
         // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
         TemporaryRedirect(Location(uri"/http4s/"))
 
-      case GET -> Root / "content-change" =>
+      case Get -> Root / "content-change" =>
         // EntityEncoder typically deals with appropriate headers, but they can be overridden
         Ok("<h2>This will have an html content type!</h2>", `Content-Type`(MediaType.text.html))
 
-      case req @ GET -> "static" /: path =>
+      case req @ Get -> "static" /: path =>
         // captures everything after "/static" into `path`
         // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
         // See also org.http4s.server.staticcontent to create a mountable service for static content
@@ -86,25 +86,25 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
       ///////////////////////////////////////////////////////////////
       //////////////// Dealing with the message body ////////////////
-      case req @ POST -> Root / "echo" =>
+      case req @ Post -> Root / "echo" =>
         // The body can be used in the response
         Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.plain)))
 
-      case GET -> Root / "echo" =>
+      case Get -> Root / "echo" =>
         // disabled until twirl supports dotty
         // Ok(html.submissionForm("echo data"))
         Ok("Hello World")
 
-      case req @ POST -> Root / "echo2" =>
+      case req @ Post -> Root / "echo2" =>
         // Even more useful, the body can be transformed in the response
         Ok(req.body.drop(6), `Content-Type`(MediaType.text.plain))
 
-      case GET -> Root / "echo2" =>
+      case Get -> Root / "echo2" =>
         // disabled until twirl supports dotty
         // Ok(html.submissionForm("echo data"))
         Ok("Hello World")
 
-      case req @ POST -> Root / "sum" =>
+      case req @ Post -> Root / "sum" =>
         // EntityDecoders allow turning the body into something useful
         req
           .decode[UrlForm] { data =>
@@ -120,7 +120,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
             case e: NumberFormatException => BadRequest("Not an int: " + e.getMessage)
           }
 
-      case GET -> Root / "sum" =>
+      case Get -> Root / "sum" =>
         // disabled until twirl supports dotty
         // Ok(html.submissionForm("sum"))
         Ok("Hello World")
@@ -130,33 +130,33 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
       // You can use the same service for GET and HEAD. For HEAD request,
       // only the Content-Length is sent (if static content)
-      case GET -> Root / "helloworld" =>
+      case Get -> Root / "helloworld" =>
         helloWorldService
-      case HEAD -> Root / "helloworld" =>
+      case Head -> Root / "helloworld" =>
         helloWorldService
 
       // HEAD responses with Content-Length, but empty content
-      case HEAD -> Root / "head" =>
+      case Head -> Root / "head" =>
         Ok("", `Content-Length`.unsafeFromLong(1024))
 
       // Response with invalid Content-Length header generates
       // an error (underflow causes the connection to be closed)
-      case GET -> Root / "underflow" =>
+      case Get -> Root / "underflow" =>
         Ok("foo", `Content-Length`.unsafeFromLong(4))
 
       // Response with invalid Content-Length header generates
       // an error (overflow causes the extra bytes to be ignored)
-      case GET -> Root / "overflow" =>
+      case Get -> Root / "overflow" =>
         Ok("foo", `Content-Length`.unsafeFromLong(2))
 
       ///////////////////////////////////////////////////////////////
       //////////////// Form encoding example ////////////////////////
-      case GET -> Root / "form-encoded" =>
+      case Get -> Root / "form-encoded" =>
         // disabled until twirl supports dotty
         // Ok(html.formEncoded())
         Ok("Hello World")
 
-      case req @ POST -> Root / "form-encoded" =>
+      case req @ Post -> Root / "form-encoded" =>
         // EntityDecoders return an F[A] which is easy to sequence
         req.decode[UrlForm] { m =>
           val s = m.values.mkString("\n")
@@ -165,26 +165,26 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
       ///////////////////////////////////////////////////////////////
       //////////////////////// Server Push //////////////////////////
-      case req @ GET -> Root / "push" =>
+      case req @ Get -> Root / "push" =>
         // http4s intends to be a forward looking library made with http2.0 in mind
         val data = <html><body><img src="image.jpg"/></body></html>
         Ok(data)
           .map(_.withContentType(`Content-Type`(MediaType.text.`html`)))
           .map(_.push("/image.jpg")(req))
 
-      case req @ GET -> Root / "image.jpg" =>
+      case req @ Get -> Root / "image.jpg" =>
         StaticFile
           .fromResource("/nasa_blackhole_image.jpg", blocker, Some(req))
           .getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
       //////////////////////// Multi Part //////////////////////////
-      case GET -> Root / "form" =>
+      case Get -> Root / "form" =>
         // disabled until twirl supports dotty
         // Ok(html.form())
         Ok("Hello World")
 
-      case req @ POST -> Root / "multipart" =>
+      case req @ Post -> Root / "multipart" =>
         req.decode[Multipart[F]] { m =>
           Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map(_.name).mkString("\n")}""")
         }
@@ -219,7 +219,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
   def authRoutes: HttpRoutes[F] =
     basicAuth(AuthedRoutes.of[String, F] {
       // AuthedRoutes look like HttpRoutes, but the user is extracted with `as`.
-      case GET -> Root / "protected" as user =>
+      case Get -> Root / "protected" as user =>
         Ok(s"This page is protected using HTTP authentication; logged in as $user")
     })
 }

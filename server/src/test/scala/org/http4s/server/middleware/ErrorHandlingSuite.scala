@@ -23,11 +23,11 @@ import org.http4s.syntax.all._
 
 class ErrorHandlingSuite extends Http4sSuite {
   def routes(t: Throwable) =
-    HttpRoutes.of[IO] { case GET -> Root / "error" =>
+    HttpRoutes.of[IO] { case Get -> Root / "error" =>
       IO.raiseError(t)
     }
 
-  val request = Request[IO](GET, uri"/error")
+  val request = Request[IO](Get, uri"/error")
 
   test("Handle errors based on the default service error handler") {
     ErrorHandling(

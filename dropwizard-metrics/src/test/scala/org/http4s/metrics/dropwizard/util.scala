@@ -27,7 +27,7 @@ import scala.concurrent.duration.TimeUnit
 
 object util {
   def stub: PartialFunction[Request[IO], IO[Response[IO]]] = {
-    case (Get | POST | PUT | DELETE) -> Root / "ok" =>
+    case (Get | Post | Put | Delete) -> Root / "ok" =>
       Ok("200 OK")
     case Get -> Root / "bad-request" =>
       BadRequest("400 Bad Request")

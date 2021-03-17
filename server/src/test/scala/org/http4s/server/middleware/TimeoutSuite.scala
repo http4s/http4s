@@ -41,8 +41,8 @@ class TimeoutSuite extends Http4sSuite {
 
   val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
 
-  val fastReq = Request[IO](GET, uri"/fast")
-  val neverReq = Request[IO](GET, uri"/never")
+  val fastReq = Request[IO](Get, uri"/fast")
+  val neverReq = Request[IO](Get, uri"/never")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
     IO.race(IO.sleep(3.seconds), resp.map(_.status)).assertEquals(Right(status))

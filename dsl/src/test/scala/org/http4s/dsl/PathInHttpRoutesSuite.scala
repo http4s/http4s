@@ -51,42 +51,42 @@ class PathInHttpRoutesSuite extends Http4sSuite {
   object Flag extends FlagQueryParamMatcher("flag")
 
   val app: HttpApp[IO] = HttpApp {
-    case GET -> Root :? I(start) +& L(limit) =>
+    case Get -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: ${limit.l}")
-    case GET -> Root / LongVar(id) =>
+    case Get -> Root / LongVar(id) =>
       Ok(s"id: $id")
-    case GET -> Root :? I(start) =>
+    case Get -> Root :? I(start) =>
       Ok(s"start: $start")
-    case GET -> Root =>
+    case Get -> Root =>
       Ok("(empty)")
-    case GET -> Root / "calc" :? P(d) =>
+    case Get -> Root / "calc" :? P(d) =>
       Ok(s"result: ${d / 2}")
-    case GET -> Root / "items" :? List(list) =>
+    case Get -> Root / "items" :? List(list) =>
       Ok(s"items: ${list.mkString(",")}")
-    case GET -> Root / "search" :? T(search) =>
+    case Get -> Root / "search" :? T(search) =>
       Ok(s"term: $search")
-    case GET -> Root / "mix" :? T(t) +& List(l) +& P(d) +& I(s) +& L(m) =>
+    case Get -> Root / "mix" :? T(t) +& List(l) +& P(d) +& I(s) +& L(m) =>
       Ok(s"list: ${l.mkString(",")}, start: $s, limit: ${m.l}, term: $t, decimal=$d")
-    case GET -> Root / "app" :? OptCounter(c) =>
+    case Get -> Root / "app" :? OptCounter(c) =>
       Ok(s"counter: $c")
-    case GET -> Root / "valid" :? ValidatingCounter(c) =>
+    case Get -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
         errors => BadRequest(errors.map(_.sanitized).mkString_("", ",", "")),
         vc => Ok(s"counter: $vc")
       )
-    case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
+    case Get -> Root / "optvalid" :? OptValidatingCounter(c) =>
       c match {
         case Some(Invalid(errors)) => BadRequest(errors.map(_.sanitized).mkString_("", ",", ""))
         case Some(Valid(cv)) => Ok(s"counter: $cv")
         case None => Ok("no counter")
       }
-    case GET -> Root / "multiopt" :? MultiOptCounter(counters) =>
+    case Get -> Root / "multiopt" :? MultiOptCounter(counters) =>
       counters match {
         case Valid(cs @ (_ :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
         case Valid(Nil) => Ok("absent")
         case Invalid(errors) => BadRequest(errors.toList.map(_.details).mkString("\n"))
       }
-    case GET -> Root / "flagparam" :? Flag(flag) =>
+    case Get -> Root / "flagparam" :? Flag(flag) =>
       if (flag) Ok("flag present")
       else Ok("flag not present")
     case r =>
@@ -97,40 +97,40 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     app(req)
 
   test("Path DSL within HttpService should GET /") {
-    val response = serve(Request(GET, Uri(path = Uri.Path.Root)))
+    val response = serve(Request(Get, Uri(path = Uri.Path.Root)))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("(empty)")
   }
   test("Path DSL within HttpService should GET /{id}") {
-    val response = serve(Request(GET, uri"/12345"))
+    val response = serve(Request(Get, uri"/12345"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("id: 12345")
   }
   test("Path DSL within HttpService should GET /?{start}") {
-    val response = serve(Request(GET, uri"/?start=1"))
+    val response = serve(Request(Get, uri"/?start=1"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("start: 1")
   }
   test("Path DSL within HttpService should GET /?{start,limit}") {
-    val response = serve(Request(GET, uri"/?start=1&limit=2"))
+    val response = serve(Request(Get, uri"/?start=1&limit=2"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("start: 1, limit: 2")
   }
   test("Path DSL within HttpService should GET /calc") {
-    val response = serve(Request(GET, Uri(path = path"/calc")))
+    val response = serve(Request(Get, Uri(path = path"/calc")))
     response.map(_.status).assertEquals(NotFound) *>
       response.flatMap(_.as[String]).assertEquals("404 Not Found: /calc")
   }
   test("Path DSL within HttpService should GET /calc?decimal=1.3") {
     val response =
-      serve(Request(GET, Uri(path = path"/calc", query = Query.unsafeFromString("decimal=1.3"))))
+      serve(Request(Get, Uri(path = path"/calc", query = Query.unsafeFromString("decimal=1.3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals(s"result: 0.65")
   }
   test("Path DSL within HttpService should GET /items?list=1&list=2&list=3&list=4&list=5") {
     val response = serve(
       Request(
-        GET,
+        Get,
         Uri(
           path = path"/items",
           query = Query.unsafeFromString("list=1&list=2&list=3&list=4&list=5"))))
@@ -138,19 +138,19 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       response.flatMap(_.as[String]).assertEquals(s"items: 1,2,3,4,5")
   }
   test("Path DSL within HttpService should GET /search") {
-    val response = serve(Request(GET, Uri(path = path"/search")))
+    val response = serve(Request(Get, Uri(path = path"/search")))
     response.map(_.status).assertEquals(NotFound) *>
       response.flatMap(_.as[String]).assertEquals("404 Not Found: /search")
   }
   test("Path DSL within HttpService should GET /search?term") {
     val response =
-      serve(Request(GET, Uri(path = path"/search", query = Query.unsafeFromString("term"))))
+      serve(Request(Get, Uri(path = path"/search", query = Query.unsafeFromString("term"))))
     response.map(_.status).assertEquals(NotFound) *>
       response.flatMap(_.as[String]).assertEquals("404 Not Found: /search")
   }
   test("Path DSL within HttpService should GET /search?term=") {
     val response =
-      serve(Request(GET, Uri(path = path"/search", query = Query.unsafeFromString("term="))))
+      serve(Request(Get, Uri(path = path"/search", query = Query.unsafeFromString("term="))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("term: ")
   }
@@ -158,60 +158,60 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     val response =
       serve(
         Request(
-          GET,
+          Get,
           Uri(path = path"/search", query = Query.unsafeFromString("term=%20http4s%20%20"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("term:  http4s  ")
   }
   test("Path DSL within HttpService should GET /search?term=http4s") {
     val response =
-      serve(Request(GET, Uri(path = path"/search", query = Query.unsafeFromString("term=http4s"))))
+      serve(Request(Get, Uri(path = path"/search", query = Query.unsafeFromString("term=http4s"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("term: http4s")
   }
   test("Path DSL within HttpService should optional parameter present") {
     val response =
-      serve(Request(GET, Uri(path = path"/app", query = Query.unsafeFromString("counter=3"))))
+      serve(Request(Get, Uri(path = path"/app", query = Query.unsafeFromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: Some(3)")
   }
   test("Path DSL within HttpService should optional parameter absent") {
     val response =
-      serve(Request(GET, Uri(path = path"/app", query = Query.unsafeFromString("other=john"))))
+      serve(Request(Get, Uri(path = path"/app", query = Query.unsafeFromString("other=john"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: None")
   }
   test("Path DSL within HttpService should optional parameter present with incorrect format") {
     val response =
-      serve(Request(GET, Uri(path = path"/app", query = Query.unsafeFromString("counter=john"))))
+      serve(Request(Get, Uri(path = path"/app", query = Query.unsafeFromString("counter=john"))))
     response.map(_.status).assertEquals(NotFound)
   }
   test("Path DSL within HttpService should validating parameter present") {
     val response =
-      serve(Request(GET, Uri(path = path"/valid", query = Query.unsafeFromString("counter=3"))))
+      serve(Request(Get, Uri(path = path"/valid", query = Query.unsafeFromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: 3")
   }
   test("Path DSL within HttpService should validating parameter absent") {
     val response =
-      serve(Request(GET, Uri(path = path"/valid", query = Query.unsafeFromString("notthis=3"))))
+      serve(Request(Get, Uri(path = path"/valid", query = Query.unsafeFromString("notthis=3"))))
     response.map(_.status).assertEquals(NotFound)
   }
   test("Path DSL within HttpService should validating parameter present with incorrect format") {
     val response =
-      serve(Request(GET, Uri(path = path"/valid", query = Query.unsafeFromString("counter=foo"))))
+      serve(Request(Get, Uri(path = path"/valid", query = Query.unsafeFromString("counter=foo"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response.flatMap(_.as[String]).assertEquals("Query decoding Int failed")
   }
   test("Path DSL within HttpService should optional validating parameter present") {
     val response =
-      serve(Request(GET, Uri(path = path"/optvalid", query = Query.unsafeFromString("counter=3"))))
+      serve(Request(Get, Uri(path = path"/optvalid", query = Query.unsafeFromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: 3")
   }
   test("Path DSL within HttpService should optional validating parameter absent") {
     val response =
-      serve(Request(GET, Uri(path = path"/optvalid", query = Query.unsafeFromString("notthis=3"))))
+      serve(Request(Get, Uri(path = path"/optvalid", query = Query.unsafeFromString("notthis=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("no counter")
   }
@@ -219,43 +219,43 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     "Path DSL within HttpService should optional validating parameter present with incorrect format") {
     val response =
       serve(
-        Request(GET, Uri(path = path"/optvalid", query = Query.unsafeFromString("counter=foo"))))
+        Request(Get, Uri(path = path"/optvalid", query = Query.unsafeFromString("counter=foo"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response.flatMap(_.as[String]).assertEquals("Query decoding Int failed")
   }
   test("Path DSL within HttpService should optional multi parameter with no parameters") {
-    val response = serve(Request(GET, Uri(path = path"/multiopt")))
+    val response = serve(Request(Get, Uri(path = path"/multiopt")))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("absent")
   }
   test("Path DSL within HttpService should optional multi parameter with multiple parameters") {
     val response = serve(Request(
-      GET,
+      Get,
       Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=1&counter=2&counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("3: 1,2,3")
   }
   test("Path DSL within HttpService should optional multi parameter with one parameter") {
     val response =
-      serve(Request(GET, Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=3"))))
+      serve(Request(Get, Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("1: 3")
   }
   test("Path DSL within HttpService should optional multi parameter with incorrect format") {
     val response =
       serve(
-        Request(GET, Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo"))))
+        Request(Get, Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo"))))
     response.map(_.status).assertEquals(BadRequest)
   }
   test("Path DSL within HttpService should optional multi parameter with one incorrect parameter") {
     val response = serve(
       Request(
-        GET,
+        Get,
         Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo&counter=1"))))
 
     val response2 = serve(
       Request(
-        GET,
+        Get,
         Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=1&counter=foo"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response2.map(_.status).assertEquals(BadRequest)
@@ -264,7 +264,7 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     "Path DSL within HttpService should optional multi parameter with two incorrect parameters must return both") {
     val response = serve(
       Request(
-        GET,
+        Get,
         Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo&counter=bar"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response
@@ -278,19 +278,19 @@ class PathInHttpRoutesSuite extends Http4sSuite {
   }
   test("Path DSL within HttpService should optional flag parameter when present") {
     val response =
-      serve(Request(GET, Uri(path = path"/flagparam", query = Query.unsafeFromString("flag"))))
+      serve(Request(Get, Uri(path = path"/flagparam", query = Query.unsafeFromString("flag"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("flag present")
   }
   test("Path DSL within HttpService should optional flag parameter when present with a value") {
     val response =
-      serve(Request(GET, Uri(path = path"/flagparam", query = Query.unsafeFromString("flag=1"))))
+      serve(Request(Get, Uri(path = path"/flagparam", query = Query.unsafeFromString("flag=1"))))
     response.map(_.status).assertEquals(Ok) *>
-      serve(Request(GET, Uri(path = path"/flagparam", query = Query.unsafeFromString(""))))
+      serve(Request(Get, Uri(path = path"/flagparam", query = Query.unsafeFromString(""))))
   }
   test("Path DSL within HttpService should optional flag parameter when not present") {
     val response =
-      serve(Request(GET, Uri(path = path"/flagparam", query = Query.unsafeFromString(""))))
+      serve(Request(Get, Uri(path = path"/flagparam", query = Query.unsafeFromString(""))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("flag not present")
   }

@@ -34,7 +34,7 @@ val service = HttpRoutes.of[IO] {
     Ok()
 } 
 
-val request = Request[IO](Method.GET, uri"/")
+val request = Request[IO](Method.Get, uri"/")
 
 service.orNotFound(request).unsafeRunSync()
 ```
@@ -59,7 +59,7 @@ val csrf = csrfBuilder.withCookieName(cookieName).withCookieDomain(Some("localho
 Now we need to wrap this around our service! We're gonna start with a safe call
 ```scala mdoc
 val dummyRequest: Request[IO] =
-    Request[IO](method = Method.GET).putHeaders("Origin" -> "http://localhost")
+    Request[IO](method = Method.Get).putHeaders("Origin" -> "http://localhost")
 val resp = csrf.validate()(service.orNotFound)(dummyRequest).unsafeRunSync()
 ```
 Notice how the response has the CSRF cookies added. How easy was
@@ -78,7 +78,7 @@ the browser would send this up with our request, but I needed to do it manually 
 ```scala mdoc
 val cookie = resp.cookies.head
 val dummyPostRequest: Request[IO] =
-    Request[IO](method = Method.POST).putHeaders(
+    Request[IO](method = Method.Post).putHeaders(
       "Origin" -> "http://localhost",
       "X-Csrf-Token" -> cookie.content
     ).addCookie(RequestCookie(cookie.name,cookie.content))

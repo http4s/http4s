@@ -35,11 +35,11 @@ import scala.concurrent.duration._
 class BlockingHttp4sServletSuite extends Http4sSuite {
   lazy val service = HttpRoutes
     .of[IO] {
-      case GET -> Root / "simple" =>
+      case Get -> Root / "simple" =>
         Ok("simple")
-      case req @ POST -> Root / "echo" =>
+      case req @ Post -> Root / "echo" =>
         Ok(req.body)
-      case GET -> Root / "shifted" =>
+      case Get -> Root / "shifted" =>
         IO.shift(munitExecutionContext) *>
           // Wait for a bit to make sure we lose the race
           Timer[IO].sleep(50.millis) *>

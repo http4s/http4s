@@ -36,7 +36,7 @@ trait UserRepo[F[_]] {
 def service[F[_]](repo: UserRepo[F])(
       implicit F: Effect[F]
 ): HttpRoutes[F] = HttpRoutes.of[F] {
-  case GET -> Root / "user" / id =>
+  case Get -> Root / "user" / id =>
     repo.find(id).map {
       case Some(user) => Response(status = Status.Ok).withEntity(user.asJson)
       case None       => Response(status = Status.NotFound)
@@ -72,7 +72,7 @@ val success: UserRepo[IO] = new UserRepo[IO] {
 }
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
-  Request(method = Method.GET, uri = uri"/user/not-used" )
+  Request(method = Method.Get, uri = uri"/user/not-used" )
 )
 
 val expectedJson = Json.obj(
@@ -91,7 +91,7 @@ val foundNone: UserRepo[IO] = new UserRepo[IO] {
 } 
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
-  Request(method = Method.GET, uri = uri"/user/not-used" )
+  Request(method = Method.Get, uri = uri"/user/not-used" )
 )
 
 check[Json](response, Status.NotFound, None)
@@ -105,7 +105,7 @@ val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
 } 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
-  Request(method = Method.GET, uri = uri"/not-a-matching-path" )
+  Request(method = Method.Get, uri = uri"/not-a-matching-path" )
 )
 
 check[String](response, Status.NotFound, Some("Not found"))

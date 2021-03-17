@@ -81,12 +81,12 @@ class RetrySuite extends Http4sSuite {
       (ServiceUnavailable, 2),
       (GatewayTimeout, 2),
       (HttpVersionNotSupported, 1)
-    ).traverse { case (s, r) => countRetries(defaultClient, GET, s, EmptyBody).assertEquals(r) }
+    ).traverse { case (s, r) => countRetries(defaultClient, Get, s, EmptyBody).assertEquals(r) }
   }
 
   test("default retriable should not retry non-idempotent methods") {
     PropF.forAllF { (s: Status) =>
-      countRetries(defaultClient, POST, s, EmptyBody).assertEquals(1)
+      countRetries(defaultClient, Post, s, EmptyBody).assertEquals(1)
     }
   }
 
@@ -110,23 +110,23 @@ class RetrySuite extends Http4sSuite {
       }
 
   test("default retriable should defaultRetriable does not resubmit bodies on idempotent methods") {
-    resubmit(POST)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
+    resubmit(Post)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
   }
   test("default retriable should defaultRetriable resubmits bodies on idempotent methods") {
-    resubmit(PUT)(RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
+    resubmit(Put)(RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
   }
   test("default retriable should recklesslyRetriable resubmits bodies on non-idempotent methods") {
-    resubmit(POST)((_, result) => RetryPolicy.recklesslyRetriable(result)).assertEquals(Status.Ok)
+    resubmit(Post)((_, result) => RetryPolicy.recklesslyRetriable(result)).assertEquals(Status.Ok)
   }
 
   test("default retriable should retry exceptions") {
     val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(new Exception("boom"))))
-    countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(2)
+    countRetries(failClient, Get, InternalServerError, EmptyBody).assertEquals(2)
   }
 
   test("default retriable should not retry a TimeoutException") {
     val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(WaitQueueTimeoutException)))
-    countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(1)
+    countRetries(failClient, Get, InternalServerError, EmptyBody).assertEquals(1)
   }
 
   test("default retriable should not exhaust the connection pool on retry") {

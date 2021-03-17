@@ -29,9 +29,9 @@ import scala.io.Source
   */
 class LoggerSuite extends Http4sSuite {
   val testApp = HttpApp[IO] {
-    case GET -> Root / "request" =>
+    case Get -> Root / "request" =>
       Ok("request response")
-    case req @ POST -> Root / "post" =>
+    case req @ Post -> Root / "post" =>
       Ok(req.body)
     case _ =>
       Ok()
@@ -52,7 +52,7 @@ class LoggerSuite extends Http4sSuite {
   }
 
   test("response should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = Post).withBodyStream(body)
     respApp(req).flatMap { res =>
       res
         .as[String]
@@ -70,7 +70,7 @@ class LoggerSuite extends Http4sSuite {
   }
 
   test("request should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = Post).withBodyStream(body)
     reqApp(req).flatMap { res =>
       res.as[String].map(_ === expectedBody && res.status === Status.Ok)
     }.assert
@@ -84,7 +84,7 @@ class LoggerSuite extends Http4sSuite {
   }
 
   test("logger should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = Post).withBodyStream(body)
     loggerApp(req).flatMap { res =>
       res.as[String].map(_ === expectedBody && res.status === Status.Ok)
     }.assert

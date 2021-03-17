@@ -69,7 +69,7 @@ need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
 ```scala mdoc
-val getRoot = Request[IO](Method.GET, uri"/")
+val getRoot = Request[IO](Method.Get, uri"/")
 
 val io = service.orNotFound.run(getRoot)
 ```
@@ -310,7 +310,7 @@ right side, the path info.  The following matches a request to `GET
 
 ```scala mdoc
 HttpRoutes.of[IO] {
-  case GET -> Root / "hello" => Ok("hello")
+  case Get -> Root / "hello" => Ok("hello")
 }
 ```
 
@@ -337,7 +337,7 @@ following matches requests to `GET /`:
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> Root => Ok("root")
+  case Get -> Root => Ok("root")
 }
 ```
 
@@ -350,7 +350,7 @@ Alice!" to `GET /hello/Alice`:
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> Root / "hello" / name => Ok(s"Hello, $name!")
+  case Get -> Root / "hello" / name => Ok(s"Hello, $name!")
 }
 ```
 
@@ -362,7 +362,7 @@ say `"Hello, Alice and Bob!"`
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.segments.mkString(" and ")}!""")
+  case Get -> "hello" /: rest => Ok(s"""Hello, ${rest.segments.mkString(" and ")}!""")
 }
 ```
 
@@ -370,7 +370,7 @@ To match a file extension on a segment, use the `~` extractor:
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> Root / file ~ "json" => Ok(s"""{"response": "You asked for $file"}""")
+  case Get -> Root / file ~ "json" => Ok(s"""{"response": "You asked for $file"}""")
 }
 ```
 
@@ -383,7 +383,7 @@ of `IntVar` and `LongVar`, as well as `UUIDVar` extractor for `java.util.UUID`.
 def getUserName(userId: Int): IO[String] = ???
 
 val usersService = HttpRoutes.of[IO] {
-  case GET -> Root / "users" / IntVar(userId) =>
+  case Get -> Root / "users" / IntVar(userId) =>
     Ok(getUserName(userId))
 }
 ```
@@ -411,11 +411,11 @@ object LocalDateVar {
 def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
 val dailyWeatherService = HttpRoutes.of[IO] {
-  case GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
+  case Get -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-val req = GET(uri"/weather/temperature/2016-11-05")
+val req = Get(uri"/weather/temperature/2016-11-05")
 dailyWeatherService.orNotFound(req).unsafeRunSync()
 ```
 
@@ -445,7 +445,7 @@ object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Double] = ???
 
 val averageTemperatureService = HttpRoutes.of[IO] {
-  case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
+  case Get -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }
 ```
@@ -484,7 +484,7 @@ def getAverageTemperatureForCurrentYear: IO[String] = ???
 def getAverageTemperatureForYear(y: Year): IO[String] = ???
 
 val routes2 = HttpRoutes.of[IO] {
-  case GET -> Root / "temperature" :? OptionalYearQueryParamMatcher(maybeYear) =>
+  case Get -> Root / "temperature" :? OptionalYearQueryParamMatcher(maybeYear) =>
     maybeYear match {
       case None =>
         Ok(getAverageTemperatureForCurrentYear)
@@ -509,7 +509,7 @@ implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
 
 val routes = HttpRoutes.of[IO] {
-  case GET -> Root / "temperature" :? YearQueryParamMatcher(yearValidated) =>
+  case Get -> Root / "temperature" :? YearQueryParamMatcher(yearValidated) =>
     yearValidated.fold(
       parseFailures => BadRequest("unable to parse argument year"),
       year => Ok(getAverageTemperatureForYear(year))
@@ -526,7 +526,7 @@ Consider `OptionalValidatingQueryParamDecoderMatcher[A]` given the power that
 object LongParamMatcher extends OptionalValidatingQueryParamDecoderMatcher[Long]("long")
 
 val routes = HttpRoutes.of[IO] {
-  case GET -> Root / "number" :? LongParamMatcher(maybeNumber) =>
+  case Get -> Root / "number" :? LongParamMatcher(maybeNumber) =>
 
     val _: Option[cats.data.ValidatedNel[org.http4s.ParseFailure, Long]] = maybeNumber
 

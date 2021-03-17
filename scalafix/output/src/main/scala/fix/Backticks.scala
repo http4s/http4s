@@ -1,6 +1,8 @@
 package fix
 
+import cats.effect.IO
 import org.http4s._
+import org.http4s.dsl.io._
 import scala.concurrent.duration._
 
 object Backticks {
@@ -115,4 +117,16 @@ object Backticks {
     TransferCoding.Gzip,
     TransferCoding.Identity,
   )
+
+  val dslMethods = HttpRoutes.of[IO] {
+    case Get -> _ => NoContent()
+    case Head -> _ => NoContent()
+    case Post -> _ => NoContent()
+    case Put -> _ => NoContent()
+    case Delete -> _ => NoContent()
+    case Connect -> _ => NoContent()
+    case Options -> _ => NoContent()
+    case Trace -> _ => NoContent()
+    case Patch -> _ => NoContent()
+  }
 }

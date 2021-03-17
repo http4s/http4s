@@ -104,7 +104,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a POST request") {
     case (registry, routes) =>
-      val req = Request[IO](method = POST, uri = uri"/ok")
+      val req = Request[IO](method = Post, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -122,7 +122,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a PUT request") {
     case (registry, routes) =>
-      val req = Request[IO](method = PUT, uri = uri"/ok")
+      val req = Request[IO](method = Put, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -140,7 +140,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a DELETE request") {
     case (registry, routes) =>
-      val req = Request[IO](method = DELETE, uri = uri"/ok")
+      val req = Request[IO](method = Delete, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>

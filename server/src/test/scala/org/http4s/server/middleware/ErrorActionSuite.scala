@@ -29,12 +29,12 @@ class ErrorActionSuite extends Http4sSuite {
   val remote = Ipv4Address.fromBytes(192, 168, 0, 1)
 
   def httpRoutes(error: Throwable = new RuntimeException()) =
-    HttpRoutes.of[IO] { case GET -> Root / "error" =>
+    HttpRoutes.of[IO] { case Get -> Root / "error" =>
       IO.raiseError(error)
     }
 
   val req = Request[IO](
-    GET,
+    Get,
     uri"/error",
     attributes = Vault.empty.insert(
       Request.Keys.ConnectionInfo,

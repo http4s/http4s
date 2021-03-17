@@ -50,7 +50,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
       .withResponseHeaderTimeout(1.second)
 
   val service: HttpApp[IO] = HttpApp {
-    case req @ GET -> Root / "dummy" =>
+    case req @ Get -> Root / "dummy" =>
       val output = req.attributes
         .lookup(ServerRequestKeys.SecureSession)
         .flatten
@@ -65,7 +65,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
 
       Ok(output)
 
-    case req @ GET -> Root / "noauth" =>
+    case req @ Get -> Root / "noauth" =>
       req.attributes
         .lookup(ServerRequestKeys.SecureSession)
         .flatten

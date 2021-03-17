@@ -34,11 +34,11 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
   val client: Client[IO] = Client.fromHttpApp(app)
 
   test("mock client should read body before dispose") {
-    client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
+    client.expect[String](Request[IO](Post).withEntity("foo")).assertEquals("foo")
   }
 
   test("mock client should fail to read body after dispose") {
-    Request[IO](POST)
+    Request[IO](Post)
       .withEntity("foo")
       .pure[IO]
       .flatMap { req =>
@@ -58,7 +58,7 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
     })
 
     hostClient
-      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+      .expect[String](Request[IO](Get, uri"https://http4s.org/"))
       .assertEquals("http4s.org")
   }
 
@@ -68,7 +68,7 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
     })
 
     hostClient
-      .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
+      .expect[String](Request[IO](Get, uri"https://http4s.org:1983/"))
       .assertEquals("http4s.org:1983")
   }
 
@@ -80,7 +80,7 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
     val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
 
     hostClient
-      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+      .expect[String](Request[IO](Get, uri"https://http4s.org/"))
       .assertEquals("http4s.org")
   }
 
@@ -97,7 +97,7 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
         Deferred[IO, ExitCase[Throwable]]
           .flatTap { exitCase =>
             cancelClient
-              .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+              .expect[String](Request[IO](Get, uri"https://http4s.org/"))
               .guaranteeCase(exitCase.complete)
               .start
               .flatTap(fiber =>

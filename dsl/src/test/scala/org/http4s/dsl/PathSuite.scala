@@ -61,7 +61,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   test("Path should -> extractor /test.json") {
     val req = Request[IO](method = Method.Get, uri = uri"/test.json")
     assert(req match {
-      case GET -> Root / "test.json" => true
+      case Get -> Root / "test.json" => true
       case _ => false
     })
   }
@@ -69,7 +69,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   test("Path should -> extractor /foo/test.json") {
     val req = Request[IO](method = Method.Get, uri = uri"/foo/test.json")
     assert(req match {
-      case GET -> Root / "foo" / "test.json" => true
+      case Get -> Root / "foo" / "test.json" => true
       case _ => false
     })
   }
@@ -77,7 +77,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   test("Path should → extractor /test.json") {
     val req = Request[IO](method = Method.Get, uri = uri"/test.json")
     assert(req match {
-      case GET → (Root / "test.json") => true
+      case Get → (Root / "test.json") => true
       case _ => false
     })
   }

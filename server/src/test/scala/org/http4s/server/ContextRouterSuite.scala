@@ -24,23 +24,23 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 class ContextRouterSuite extends Http4sSuite {
-  val numbers = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+  val numbers = ContextRoutes.of[Unit, IO] { case Get -> Root / "1" as _ =>
     Ok("one")
   }
-  val numbers2 = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+  val numbers2 = ContextRoutes.of[Unit, IO] { case Get -> Root / "1" as _ =>
     Ok("two")
   }
 
-  val letters = ContextRoutes.of[Unit, IO] { case GET -> Root / "/b" as _ =>
+  val letters = ContextRoutes.of[Unit, IO] { case Get -> Root / "/b" as _ =>
     Ok("bee")
   }
-  val shadow = ContextRoutes.of[Unit, IO] { case GET -> Root / "shadowed" as _ =>
+  val shadow = ContextRoutes.of[Unit, IO] { case Get -> Root / "shadowed" as _ =>
     Ok("visible")
   }
   val root = ContextRoutes.of[Unit, IO] {
-    case GET -> Root / "about" as _ =>
+    case Get -> Root / "about" as _ =>
       Ok("about")
-    case GET -> Root / "shadow" / "shadowed" as _ =>
+    case Get -> Root / "shadow" / "shadowed" as _ =>
       Ok("invisible")
   }
 
@@ -64,22 +64,22 @@ class ContextRouterSuite extends Http4sSuite {
 
   test("translate mount prefixes") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/numbers/1")))
+      .orNotFound(ContextRequest((), Request[IO](Get, uri"/numbers/1")))
       .flatMap(_.as[String])
       .assertEquals("one") *>
       service
-        .orNotFound(ContextRequest((), Request[IO](GET, uri"/numb/1")))
+        .orNotFound(ContextRequest((), Request[IO](Get, uri"/numb/1")))
         .flatMap(_.as[String])
         .assertEquals("two") *>
       service
-        .orNotFound(ContextRequest((), Request[IO](GET, uri"/numbe?block")))
+        .orNotFound(ContextRequest((), Request[IO](Get, uri"/numbe?block")))
         .map(_.status)
         .assertEquals(NotFound)
   }
 
   test("require the correct prefix") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/letters/1")))
+      .orNotFound(ContextRequest((), Request[IO](Get, uri"/letters/1")))
       .flatMap { resp =>
         resp.as[String].map { b =>
           b =!= "bee" && b =!= "one" && resp.status === NotFound
@@ -90,28 +90,28 @@ class ContextRouterSuite extends Http4sSuite {
 
   test("support root mappings") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/about")))
+      .orNotFound(ContextRequest((), Request[IO](Get, uri"/about")))
       .flatMap(_.as[String])
       .assertEquals("about")
   }
 
   test("match longer prefixes first") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/shadow/shadowed")))
+      .orNotFound(ContextRequest((), Request[IO](Get, uri"/shadow/shadowed")))
       .flatMap(_.as[String])
       .assertEquals("visible")
   }
 
   test("404 on unknown prefixes") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/symbols/~")))
+      .orNotFound(ContextRequest((), Request[IO](Get, uri"/symbols/~")))
       .map(_.status)
       .assertEquals(NotFound)
   }
 
   test("Allow passing through of routes with identical prefixes") {
     ContextRouter[IO, Unit]("" -> letters, "" -> numbers)
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/1")))
+      .orNotFound(ContextRequest((), Request[IO](Get, uri"/1")))
       .flatMap(_.as[String])
       .assertEquals("one")
   }

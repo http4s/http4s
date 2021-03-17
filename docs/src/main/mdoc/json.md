@@ -77,7 +77,7 @@ import org.http4s.client.dsl.io._
 ```
 
 ```scala mdoc
-POST(json"""{"name": "Alice"}""", uri"/hello")
+Post(json"""{"name": "Alice"}""", uri"/hello")
 ```
 
 ## Encoding case classes as JSON
@@ -134,7 +134,7 @@ and responses for our case classes:
 
 ```scala mdoc
 Ok(Hello("Alice").asJson).unsafeRunSync()
-POST(User("Bob").asJson, uri"/hello")
+Post(User("Bob").asJson, uri"/hello")
 ```
 
 If within some route we serve json only, we can use:
@@ -160,7 +160,7 @@ response body to JSON using the [`as` syntax]:
 
 ```scala mdoc
 Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync()
-POST("""{"name":"Bob"}""", uri"/hello").as[Json].unsafeRunSync()
+Post("""{"name":"Bob"}""", uri"/hello").as[Json].unsafeRunSync()
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -178,7 +178,7 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync()
 
-POST("""{"name":"Bob"}""", uri"/hello").as[User].unsafeRunSync()
+Post("""{"name":"Bob"}""", uri"/hello").as[User].unsafeRunSync()
 ```
 
 If we are always decoding from JSON to a typed model, we can use
@@ -232,7 +232,7 @@ implicit val timer: Timer[IO] = IO.timer(global)
 implicit val decoder = jsonOf[IO, User]
 
 val jsonApp = HttpRoutes.of[IO] {
-  case req @ POST -> Root / "hello" =>
+  case req @ Post -> Root / "hello" =>
     for {
 	  // Decode a User request
 	  user <- req.as[User]
@@ -259,7 +259,7 @@ import fs2.Stream
 // Decode the Hello response
 def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
-  val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
+  val req = Post(User(name).asJson, uri"http://localhost:8080/hello")
   // Create a client
   BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
     // Decode a Hello response

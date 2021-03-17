@@ -27,10 +27,10 @@ import org.http4s.multipart.Part
 class MultipartHttpEndpoint[F[_]](fileService: FileService[F])(implicit F: Sync[F])
     extends Http4sDsl[F] {
   val service: HttpRoutes[F] = HttpRoutes.of {
-    case GET -> Root / ApiVersion / "multipart" =>
+    case Get -> Root / ApiVersion / "multipart" =>
       Ok("Send a file (image, sound, etc) via POST Method")
 
-    case req @ POST -> Root / ApiVersion / "multipart" =>
+    case req @ Post -> Root / ApiVersion / "multipart" =>
       req.decodeWith(multipart[F], strict = true) { response =>
         def filterFileTypes(part: Part[F]): Boolean =
           part.headers.headers.exists(_.value.contains("filename"))

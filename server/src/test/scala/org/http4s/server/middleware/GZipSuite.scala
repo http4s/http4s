@@ -31,7 +31,7 @@ import org.scalacheck.effect.PropF
 
 class GZipSuite extends Http4sSuite {
   test("fall through if the route doesn't match") {
-    val routes = GZip(HttpRoutes.empty[IO]) <+> HttpRoutes.of[IO] { case GET -> Root =>
+    val routes = GZip(HttpRoutes.empty[IO]) <+> HttpRoutes.of[IO] { case Get -> Root =>
       Ok("pong")
     }
     val req =
@@ -47,7 +47,7 @@ class GZipSuite extends Http4sSuite {
 
   test("encodes random content-type if given isZippable is true") {
     val response = "Response string"
-    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case Get -> Root =>
       Ok(response, "Content-Type" -> "random-type; charset=utf-8")
     }
 
@@ -68,7 +68,7 @@ class GZipSuite extends Http4sSuite {
 
   test("encoding") {
     PropF.forAllF { (vector: Vector[Array[Byte]]) =>
-      val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
+      val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case Get -> Root =>
         Ok(Stream.emits(vector).covary[IO])
       }
       val gzipRoutes: HttpRoutes[IO] = GZip(routes)

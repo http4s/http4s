@@ -30,11 +30,11 @@ class GitHubHttpEndpoint[F[_]](gitHubService: GitHubService[F])(implicit F: Sync
   object StateQuery extends QueryParamDecoderMatcher[String]("state")
 
   val service: HttpRoutes[F] = HttpRoutes.of {
-    case GET -> Root / ApiVersion / "github" =>
+    case Get -> Root / ApiVersion / "github" =>
       Ok(gitHubService.authorize)
 
     // OAuth2 Callback URI
-    case GET -> Root / ApiVersion / "login" / "github" :? CodeQuery(code) :? StateQuery(state) =>
+    case Get -> Root / ApiVersion / "login" / "github" :? CodeQuery(code) :? StateQuery(state) =>
       for {
         o <- Ok()
         code <- gitHubService.accessToken(code, state).flatMap(gitHubService.userData)

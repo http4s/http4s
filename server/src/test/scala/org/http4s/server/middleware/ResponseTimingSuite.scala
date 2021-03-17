@@ -31,7 +31,7 @@ class ResponseTimingSuite extends Http4sSuite {
 
   private val artificialDelay = 10
 
-  private val thisService = HttpApp[IO] { case GET -> Root / "request" =>
+  private val thisService = HttpApp[IO] { case Get -> Root / "request" =>
     List.fill(artificialDelay)(Sys.tick()).sequence_ *>
       Ok("request response")
   }

@@ -55,9 +55,9 @@ class CSRFSuite extends Http4sSuite {
 
   private val dummyRoutes: HttpApp[IO] = HttpRoutes
     .of[IO] {
-      case GET -> Root =>
+      case Get -> Root =>
         Ok()
-      case POST -> Root =>
+      case Post -> Root =>
         Ok()
     }
     .orNotFound
@@ -151,7 +151,7 @@ class CSRFSuite extends Http4sSuite {
     for {
       csrf <- csrfIO
       token <- csrf.generateToken[IO]
-      req = csrf.embedInRequestCookie(Request[IO](POST), token)
+      req = csrf.embedInRequestCookie(Request[IO](Post), token)
       v <- csrf.checkCSRF(req, dummyRoutes.run(req))
     } yield assertEquals(v.status, Status.Forbidden)
   }
@@ -213,7 +213,7 @@ class CSRFSuite extends Http4sSuite {
       token <- csrf.generateToken[IO]
       res <- csrf.validate()(dummyRoutes)(
         csrf.embedInRequestCookie(
-          Request[IO](POST)
+          Request[IO](Post)
             .putHeaders(headerName.toString -> unlift(token), Referer(uri"http://localhost/lol")),
           token)
       )
@@ -224,7 +224,7 @@ class CSRFSuite extends Http4sSuite {
     for {
       csrf <- csrfIO
       token <- csrf.generateToken[IO]
-      req = csrf.embedInRequestCookie(Request[IO](POST), token)
+      req = csrf.embedInRequestCookie(Request[IO](Post), token)
       v <- csrf.checkCSRF(req, dummyRoutes.run(req))
     } yield assertEquals(v.status, Status.Forbidden)
   }
@@ -234,7 +234,7 @@ class CSRFSuite extends Http4sSuite {
       csrf <- csrfIO
       token <- csrf.generateToken[IO]
       res <- csrf.validate()(dummyRoutes)(
-        Request[IO](POST)
+        Request[IO](Post)
           .putHeaders(
             headerName.toString -> unlift(token),
             "Origin" -> "http://example.com",
@@ -366,7 +366,7 @@ class CSRFSuite extends Http4sSuite {
       for {
         csrfCatchFailure <- csrfCatchFailureIO
         token <- csrfCatchFailure.generateToken[IO]
-        req = csrfCatchFailure.embedInRequestCookie(Request[IO](POST), token)
+        req = csrfCatchFailure.embedInRequestCookie(Request[IO](Post), token)
         v <- csrfCatchFailure.checkCSRF(req, dummyRoutes.run(req))
       } yield assertEquals(v.status, Status.SeeOther)
     }
@@ -383,7 +383,7 @@ class CSRFSuite extends Http4sSuite {
         csrfCatchFailure <- csrfCatchFailureIO
         token <- csrfCatchFailure.generateToken[IO]
         res <- csrfCatchFailure.validate()(dummyRoutes)(
-          Request[IO](POST)
+          Request[IO](Post)
             .putHeaders(
               headerName.toString -> unlift(token),
               "Origin" -> "http://example.com",

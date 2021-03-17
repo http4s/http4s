@@ -138,11 +138,11 @@ class Http1ServerStageSpec extends Http4sSuite {
 
   val exceptionService = HttpRoutes
     .of[IO] {
-      case GET -> Root / "sync" => sys.error("Synchronous error!")
-      case GET -> Root / "async" => IO.raiseError(new Exception("Asynchronous error!"))
-      case GET -> Root / "sync" / "422" =>
+      case Get -> Root / "sync" => sys.error("Synchronous error!")
+      case Get -> Root / "async" => IO.raiseError(new Exception("Asynchronous error!"))
+      case Get -> Root / "sync" / "422" =>
         throw InvalidMessageBodyFailure("lol, I didn't even look")
-      case GET -> Root / "async" / "422" =>
+      case Get -> Root / "async" / "422" =>
         IO.raiseError(InvalidMessageBodyFailure("lol, I didn't even look"))
     }
     .orNotFound

@@ -28,9 +28,9 @@ import scala.io.Source
   */
 class LoggerSuite extends Http4sSuite {
   val testApp = HttpApp[IO] {
-    case req @ POST -> Root / "post" =>
+    case req @ Post -> Root / "post" =>
       Ok(req.body)
-    case GET -> Root / "request" =>
+    case Get -> Root / "request" =>
       Ok("request response")
     case _ =>
       NotFound()
@@ -52,7 +52,7 @@ class LoggerSuite extends Http4sSuite {
   }
 
   test("ResponseLogger should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = Post).withBodyStream(body)
     val res = responseLoggerClient.expect[String](req)
     res.assertEquals(expectedBody)
   }
@@ -65,7 +65,7 @@ class LoggerSuite extends Http4sSuite {
   }
 
   test("RequestLogger should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = Post).withBodyStream(body)
     val res = requestLoggerClient.expect[String](req)
     res.assertEquals(expectedBody)
   }
@@ -79,7 +79,7 @@ class LoggerSuite extends Http4sSuite {
   }
 
   test("Logger should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = Post).withBodyStream(body)
     val res = loggerApp(req)
     res.map(_.status).assertEquals(Status.Ok)
     res.flatMap(_.as[String]).assertEquals(expectedBody)

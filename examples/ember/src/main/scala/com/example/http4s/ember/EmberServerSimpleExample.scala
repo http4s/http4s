@@ -51,16 +51,16 @@ object EmberServerSimpleExample extends IOApp {
 
     HttpRoutes
       .of[F] {
-        case req @ POST -> Root =>
+        case req @ Post -> Root =>
           for {
             json <- req.decodeJson[Json]
             resp <- Ok(json)
           } yield resp
-        case GET -> Root =>
+        case Get -> Root =>
           Ok(Json.obj("root" -> Json.fromString("GET")))
-        case GET -> Root / "hello" / name =>
+        case Get -> Root / "hello" / name =>
           Ok(show"Hi $name!")
-        case GET -> Root / "chunked" =>
+        case Get -> Root / "chunked" =>
           val body = Stream("This IS A CHUNK\n")
             .covary[F]
             .repeat

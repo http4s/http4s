@@ -27,9 +27,9 @@ import java.util.UUID
 class RequestIdSuite extends Http4sSuite {
   private def testService(headerKey: CIString = ci"X-Request-ID") =
     HttpRoutes.of[IO] {
-      case req @ GET -> Root / "request" =>
+      case req @ Get -> Root / "request" =>
         Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.head.value)}")
-      case req @ GET -> Root / "attribute" =>
+      case req @ Get -> Root / "attribute" =>
         Ok(
           show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}")
     }

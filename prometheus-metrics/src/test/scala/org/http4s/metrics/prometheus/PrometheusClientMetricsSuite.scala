@@ -87,7 +87,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a POST request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](POST, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](Post, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "post"), 1.0)
@@ -100,7 +100,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a PUT request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](PUT, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](Put, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "put"), 1.0)
@@ -113,7 +113,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a DELETE request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](DELETE, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](Delete, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "delete"), 1.0)

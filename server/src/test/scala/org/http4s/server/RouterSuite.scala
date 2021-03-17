@@ -24,23 +24,23 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 class RouterSuite extends Http4sSuite {
-  val numbers = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+  val numbers = HttpRoutes.of[IO] { case Get -> Root / "1" =>
     Ok("one")
   }
-  val numbers2 = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+  val numbers2 = HttpRoutes.of[IO] { case Get -> Root / "1" =>
     Ok("two")
   }
 
-  val letters = HttpRoutes.of[IO] { case GET -> Root / "/b" =>
+  val letters = HttpRoutes.of[IO] { case Get -> Root / "/b" =>
     Ok("bee")
   }
-  val shadow = HttpRoutes.of[IO] { case GET -> Root / "shadowed" =>
+  val shadow = HttpRoutes.of[IO] { case Get -> Root / "shadowed" =>
     Ok("visible")
   }
   val root = HttpRoutes.of[IO] {
-    case GET -> Root / "about" =>
+    case Get -> Root / "about" =>
       Ok("about")
-    case GET -> Root / "shadow" / "shadowed" =>
+    case Get -> Root / "shadow" / "shadowed" =>
       Ok("invisible")
   }
 
@@ -63,19 +63,19 @@ class RouterSuite extends Http4sSuite {
 
   test("translate mount prefixes") {
     service
-      .orNotFound(Request[IO](GET, uri"/numbers/1"))
+      .orNotFound(Request[IO](Get, uri"/numbers/1"))
       .flatMap(_.as[String])
       .assertEquals("one") *>
       service
-        .orNotFound(Request[IO](GET, uri"/numb/1"))
+        .orNotFound(Request[IO](Get, uri"/numb/1"))
         .flatMap(_.as[String])
         .assertEquals("two") *>
-      service.orNotFound(Request[IO](GET, uri"/numbe?block")).map(_.status).assertEquals(NotFound)
+      service.orNotFound(Request[IO](Get, uri"/numbe?block")).map(_.status).assertEquals(NotFound)
   }
 
   test("require the correct prefix") {
     service
-      .orNotFound(Request[IO](GET, uri"/letters/1"))
+      .orNotFound(Request[IO](Get, uri"/letters/1"))
       .flatMap { res =>
         res.as[String].map { b =>
           b =!= "bee" && b =!= "one" && res.status === NotFound
@@ -85,23 +85,23 @@ class RouterSuite extends Http4sSuite {
   }
 
   test("support root mappings") {
-    service.orNotFound(Request[IO](GET, uri"/about")).flatMap(_.as[String]).assertEquals("about")
+    service.orNotFound(Request[IO](Get, uri"/about")).flatMap(_.as[String]).assertEquals("about")
   }
 
   test("match longer prefixes first") {
     service
-      .orNotFound(Request[IO](GET, uri"/shadow/shadowed"))
+      .orNotFound(Request[IO](Get, uri"/shadow/shadowed"))
       .flatMap(_.as[String])
       .assertEquals("visible")
   }
 
   test("404 on unknown prefixes") {
-    service.orNotFound(Request[IO](GET, uri"/symbols/~")).map(_.status).assertEquals(NotFound)
+    service.orNotFound(Request[IO](Get, uri"/symbols/~")).map(_.status).assertEquals(NotFound)
   }
 
   test("Allow passing through of routes with identical prefixes") {
     Router[IO]("" -> letters, "" -> numbers)
-      .orNotFound(Request[IO](GET, uri"/1"))
+      .orNotFound(Request[IO](Get, uri"/1"))
       .flatMap(_.as[String])
       .assertEquals("one")
   }

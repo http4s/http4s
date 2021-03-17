@@ -32,7 +32,7 @@ implicit val cs: ContextShift[IO] = IO.contextShift(global)
 val seconds = Stream.awakeEvery[IO](1.second)
 
 val routes = HttpRoutes.of[IO] {
-  case GET -> Root / "seconds" =>
+  case Get -> Root / "seconds" =>
     Ok(seconds.map(_.toString)) // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
 ```
@@ -125,7 +125,7 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
   def stream(blocker: Blocker): Stream[F, Unit] = {
-    val req = Request[F](Method.GET, uri"https://stream.twitter.com/1.1/statuses/sample.json")
+    val req = Request[F](Method.Get, uri"https://stream.twitter.com/1.1/statuses/sample.json")
     val s   = jsonStream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
     s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blocker))
   }

@@ -28,13 +28,13 @@ import org.typelevel.ci._
 
 class DefaultHeadSuite extends Http4sSuite {
   val httpRoutes = HttpRoutes.of[IO] {
-    case GET -> Root / "hello" =>
+    case Get -> Root / "hello" =>
       Ok("hello")
 
-    case GET -> Root / "special" =>
+    case Get -> Root / "special" =>
       Ok().map(_.putHeaders("X-Handled-By" -> "GET"))
 
-    case HEAD -> Root / "special" =>
+    case Head -> Root / "special" =>
       Ok().map(_.putHeaders("X-Handled-By" -> "HEAD"))
   }
   val app = DefaultHead(httpRoutes).orNotFound
@@ -62,7 +62,7 @@ class DefaultHeadSuite extends Http4sSuite {
   test("allow GET body to clean up on fallthrough") {
     (for {
       open <- Ref[IO].of(false)
-      route = HttpRoutes.of[IO] { case GET -> _ =>
+      route = HttpRoutes.of[IO] { case Get -> _ =>
         val body: EntityBody[IO] =
           Stream.bracket(open.set(true))(_ => open.set(false)).flatMap(_ => Stream.never[IO])
         Ok(body)
