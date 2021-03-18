@@ -62,7 +62,13 @@ trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
 trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def liftG: FunctionK[G, F]
 
-  def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
+  @deprecated(
+    message = "Use StatusType.headers instead. This will be removed in 0.22",
+    since = "0.21.21")
+  def apply(_headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
+    headers(_headers: _*)
+
+  def headers(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: headers.toList)))
 
   def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
