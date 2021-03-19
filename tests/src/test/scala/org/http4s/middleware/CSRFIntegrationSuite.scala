@@ -16,19 +16,14 @@
 
 package org.http4s.server.middleware
 
-import java.net.{ServerSocket, URI}
-import java.util.concurrent.Executors
+import java.net.ServerSocket
 
-import cats._
 import cats.arrow._
-import cats.data._
 import cats.effect._
 import cats.syntax.all._
-import munit.CatsEffectSuite
 import org.http4s.MediaType
 import org.http4s._
 import org.http4s.client._
-import org.http4s.client.dsl.io._
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.http4s.headers._
@@ -64,14 +59,14 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = EmberServerBuilder
+        resource = EmberServerBuilder
           .default[IO]
+          .withBlocker(testBlocker)
           .withHost("localhost")
           .withPort(port)
           .withHttpApp(service)
           .build
-        fiber <- server.use(_ => IO.never).start
-        client = JavaNetClientBuilder[IO](testBlocker).create
+        client <- IO.delay(JavaNetClientBuilder[IO](testBlocker).create)
         baseReq = Request[IO](
           method = Method.POST,
           headers = Headers.of(
@@ -84,8 +79,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
           )
         )
         req = csrfProtect.embedInRequestCookie(baseReq, token)
-        check <- client.expect[String](req)
-        _ <- fiber.cancel
+        fiber <- resource
+          .use(server =>
+            IO.delay(println(s"Server started at ${server.address}!")) >> client.expect[String](
+              req))
+          .start
+        check <- fiber.join
       } yield check
 
     prg.assertEquals("CSRF passed!")
@@ -109,14 +108,14 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = EmberServerBuilder
+        resource = EmberServerBuilder
           .default[IO]
+          .withBlocker(testBlocker)
           .withHost("localhost")
           .withPort(port)
           .withHttpApp(service)
           .build
-        fiber <- server.use(_ => IO.never).start
-        client = JavaNetClientBuilder[IO](testBlocker).create
+        client <- IO.delay(JavaNetClientBuilder[IO](testBlocker).create)
         baseReq = Request[IO](
           method = Method.POST,
           headers = Headers.of(Header("Origin", s"http://localhost:$port")),
@@ -127,8 +126,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
           )
         ).withEntity(UrlForm(COOKIE_NAME -> unlift(token)))
         req = csrfProtect.embedInRequestCookie(baseReq, token)
-        check <- client.expect[String](req)
-        _ <- fiber.cancel
+        fiber <- resource
+          .use(server =>
+            IO.delay(println(s"Server started at ${server.address}!")) >> client.expect[String](
+              req))
+          .start
+        check <- fiber.join
       } yield check
 
     prg.assertEquals("CSRF passed!")
@@ -152,14 +155,14 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = EmberServerBuilder
+        resource = EmberServerBuilder
           .default[IO]
+          .withBlocker(testBlocker)
           .withHost("localhost")
           .withPort(port)
           .withHttpApp(service)
           .build
-        fiber <- server.use(_ => IO.never).start
-        client = JavaNetClientBuilder[IO](testBlocker).create
+        client <- IO.delay(JavaNetClientBuilder[IO](testBlocker).create)
         mf = Part.formData[IO](COOKIE_NAME, unlift(token), `Content-Type`(MediaType.text.plain))
         mp = Multipart(Vector(mf))
         baseReq = Request[IO](
@@ -172,8 +175,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
           headers = mp.headers
         ).withEntity(mp).putHeaders(Header("Origin", s"http://localhost:$port"))
         req = csrfProtect.embedInRequestCookie(baseReq, token)
-        check <- client.expect[String](req)
-        _ <- fiber.cancel
+        fiber <- resource
+          .use(server =>
+            IO.delay(println(s"Server started at ${server.address}!")) >> client.expect[String](
+              req))
+          .start
+        check <- fiber.join
       } yield check
 
     prg.assertEquals("CSRF passed!")
