@@ -68,6 +68,8 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(_headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     headers(_headers: _*)
 
+  def apply()(implicit F: Applicative[F]): F[Response[G]] = headers()
+
   def headers(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: headers.toList)))
 
