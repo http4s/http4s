@@ -31,10 +31,10 @@ class DefaultHeadSuite extends Http4sSuite {
       Ok("hello")
 
     case GET -> Root / "special" =>
-      Ok(Header("X-Handled-By", "GET"))
+      Ok.headers(Header("X-Handled-By", "GET"))
 
     case HEAD -> Root / "special" =>
-      Ok(Header("X-Handled-By", "HEAD"))
+      Ok.headers(Header("X-Handled-By", "HEAD"))
   }
   val app = DefaultHead(httpRoutes).orNotFound
 
