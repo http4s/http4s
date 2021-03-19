@@ -64,12 +64,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
+        server = BlazeServerBuilder[IO](testBlocker.blockingContext)
           .bindHttp(port, "localhost")
           .withHttpApp(service)
           .resource
         fiber <- server.use(_ => IO.never).start
-        client = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
+        client = JavaNetClientBuilder[IO](testBlocker).create
         baseReq = Request[IO](
           method = Method.POST,
           headers = Headers.of(
@@ -107,12 +107,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
+        server = BlazeServerBuilder[IO](testBlocker.blockingContext)
           .bindHttp(port, "localhost")
           .withHttpApp(service)
           .resource
         fiber <- server.use(_ => IO.never).start
-        client = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
+        client = JavaNetClientBuilder[IO](testBlocker).create
         baseReq = Request[IO](
           method = Method.POST,
           headers = Headers.of(Header("Origin", s"http://localhost:$port")),
@@ -148,12 +148,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = BlazeServerBuilder[IO](CSRFIntegrationSuite.blocker.blockingContext)
+        server = BlazeServerBuilder[IO](testBlocker.blockingContext)
           .bindHttp(port, "localhost")
           .withHttpApp(service)
           .resource
         fiber <- server.use(_ => IO.never).start
-        client = JavaNetClientBuilder[IO](CSRFIntegrationSuite.blocker).create
+        client = JavaNetClientBuilder[IO](testBlocker).create
         mf = Part.formData[IO](COOKIE_NAME, unlift(token), `Content-Type`(MediaType.text.plain))
         mp = Multipart(Vector(mf))
         baseReq = Request[IO](
@@ -176,8 +176,6 @@ class CSRFIntegrationSuite extends Http4sSuite {
 }
 
 object CSRFIntegrationSuite {
-  val blockingPool = Executors.newFixedThreadPool(2)
-  val blocker = Blocker.liftExecutorService(blockingPool)
 
   /** Start a server socket and close it. The port number used by
     * the socket is considered free and returned.
