@@ -103,7 +103,7 @@ abstract class Http4sServlet[F[_]](
       uri = uri,
       httpVersion = version,
       headers = toHeaders(req),
-      body = servletIo.reader(req),
+      entity = Entity.chunked(servletIo.reader(req)), // TODO This is WRONG
       attributes = Vault.empty
         .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri))
         .insert(

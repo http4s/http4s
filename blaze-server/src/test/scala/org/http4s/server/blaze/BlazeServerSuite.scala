@@ -52,7 +52,7 @@ class BlazeServerSuite extends Http4sSuite {
 
     case req @ POST -> Root / "issue2610" =>
       req.decode[Multipart[IO]] { mp =>
-        Ok(mp.parts.foldMap(_.body))
+        Ok(mp.parts.foldMap(_.entity.body))
       }
 
     case _ => NotFound()

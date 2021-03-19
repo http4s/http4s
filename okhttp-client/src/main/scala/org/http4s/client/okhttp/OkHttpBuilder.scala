@@ -111,7 +111,8 @@ sealed abstract class OkHttpBuilder[F[_]] private (
                     status = s,
                     headers = getHeaders(response),
                     httpVersion = protocol,
-                    body = body),
+                    entity = Entity.chunked(body)
+                  ), // TODO fix
                   dispose
                 ))
             )
@@ -144,7 +145,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
           override def writeTo(sink: BufferedSink): Unit = {
             // This has to be synchronous with this method, or else
             // chunks get silently dropped.
-            val f = req.body.chunks
+            val f = req.entity.body.chunks
               .map(_.toArray)
               .evalMap { (b: Array[Byte]) =>
                 F.delay {

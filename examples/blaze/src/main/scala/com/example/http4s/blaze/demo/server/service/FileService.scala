@@ -53,6 +53,6 @@ class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
       home <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
       filename <- S.evalF(part.filename.getOrElse("sample"))
       path <- S.evalF(Paths.get(s"$home/$filename"))
-      result <- part.body.through(Files[F].writeAll(path))
+      result <- part.entity.body.through(Files[F].writeAll(path))
     } yield result
 }

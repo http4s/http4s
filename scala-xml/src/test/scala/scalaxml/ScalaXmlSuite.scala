@@ -34,7 +34,8 @@ class ScalaXmlSuite extends Http4sSuite {
   def getBody(body: EntityBody[IO]): IO[String] =
     body.through(utf8Decode).foldMonoid.compile.lastOrError
 
-  def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8Encode)
+  def strBody(body: String): Entity[IO] =
+    Entity.trustMe(Stream(body).through(utf8Encode), body.length().toLong)
 
   val server: Request[IO] => IO[Response[IO]] = { req =>
     req.decode { (elem: Elem) =>
@@ -43,13 +44,13 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("xml should parse the XML") {
-    server(Request[IO](body = strBody("<html><h1>h1</h1></html>")))
+    server(Request[IO](entity = strBody("<html><h1>h1</h1></html>")))
       .flatMap(r => getBody(r.body))
       .assertEquals("html")
   }
 
   test("parse XML in parallel") {
-    val req = Request(body = strBody(
+    val req = Request(entity = strBody(
       """<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>"""))
     // https://github.com/http4s/http4s/issues/1209
     ((0 to 5).toList)
@@ -61,7 +62,7 @@ class ScalaXmlSuite extends Http4sSuite {
 
   test("return 400 on parse error") {
     val body = strBody("This is not XML.")
-    val tresp = server(Request[IO](body = body))
+    val tresp = server(Request[IO](entity = body))
     tresp.map(_.status).assertEquals(Status.BadRequest)
   }
 

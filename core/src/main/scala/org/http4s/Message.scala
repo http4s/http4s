@@ -82,7 +82,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self =
     change(entity = w.toEntity(b), headers = headers ++ w.headers)
 
-
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.

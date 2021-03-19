@@ -94,7 +94,7 @@ object StaticFile {
         if (expired) {
           val len = urlConn.getContentLengthLong
           val headers = Headers(
-            lastmod.map(`Last-Modified`(_)), 
+            lastmod.map(`Last-Modified`(_)),
             nameToContentType(url.getPath)
           )
           F.blocking(urlConn.getInputStream)
@@ -173,7 +173,7 @@ object StaticFile {
               val contentType = nameToContentType(f.getName)
               val hs = Headers(
                 lastModified.map(lm => `Last-Modified`(lm)),
-                contentType, 
+                contentType,
                 List(etagCalc)
               )
 

@@ -49,19 +49,28 @@ object Part {
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Entity.Strict(fs2.Chunk.array(value.getBytes(StandardCharsets.UTF_8))))
+      Entity.Strict(fs2.Chunk.array(value.getBytes(StandardCharsets.UTF_8)))
+    )
 
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
-    fileData(name, file.getName, Entity.Chunked(Files[F].readAll(file.toPath, ChunkSize)), headers: _*)
+    fileData(
+      name,
+      file.getName,
+      Entity.Chunked(Files[F].readAll(file.toPath, ChunkSize)),
+      headers: _*)
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
 
-  def fileData[F[_]](name: String, filename: String, entity: Entity[F], headers: Header.ToRaw*): Part[F] =
+  def fileData[F[_]](
+      name: String,
+      filename: String,
+      entity: Entity[F],
+      headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(
         `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
-          "Content-Transfer-Encoding" -> "binary"
+        "Content-Transfer-Encoding" -> "binary"
       ).put(headers: _*),
       entity
     )

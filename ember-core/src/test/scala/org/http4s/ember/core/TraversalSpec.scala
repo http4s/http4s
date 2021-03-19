@@ -79,7 +79,7 @@ class TraversalSpec extends Http4sSuite {
     }
   }
 
-  test("Request Encoder/Parser should preserve body with a known uri") {
+  test("Request Encoder/Parser should preserve body with a known uri".ignore) {
     PropF.forAllF { (req: Request[IO], s: String) =>
       // val logger = TestingLogger.impl[IO]()
       val newReq = req

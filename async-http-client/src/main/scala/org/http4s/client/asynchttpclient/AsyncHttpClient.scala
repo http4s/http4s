@@ -129,7 +129,7 @@ object AsyncHttpClient {
               .flatMap(part => chunk(Chunk.array(part.getBodyPartBytes)))
               .mergeHaltBoth(Stream.eval(deferredThrowable.get.flatMap(F.raiseError[Byte])))
 
-          responseWithBody = response.copy(body = body)
+          responseWithBody = response.copy(entity = Entity.chunked(body))
 
           _ <-
             invokeCallbackF[F](cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))

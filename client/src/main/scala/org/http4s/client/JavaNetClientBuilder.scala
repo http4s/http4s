@@ -164,7 +164,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     if (req.isChunked)
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
-        req.body
+        req.entity.body
           .through(writeOutputStream(F.delay(conn.getOutputStream), false))
           .compile
           .drain
@@ -173,7 +173,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         case Some(len) if len >= 0L =>
           F.delay(conn.setDoOutput(true)) *>
             F.delay(conn.setFixedLengthStreamingMode(len)) *>
-            req.body
+            req.entity.body
               .through(writeOutputStream(F.delay(conn.getOutputStream), false))
               .compile
               .drain

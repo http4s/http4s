@@ -43,7 +43,6 @@ private[ember] object Encoder {
         .append(resp.status.renderString)
         .append(CRLF)
 
-
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
         if (h.name == `Content-Length`.name) ()
@@ -77,7 +76,8 @@ private[ember] object Encoder {
 
           case Empty() =>
             stringBuilder
-              .append(`Content-Length`.zero)
+              .append(contentLengthPrefix)
+              .append(0)
               .append(CRLF)
         }
         ()
@@ -145,8 +145,8 @@ private[ember] object Encoder {
           case Strict(chunk) =>
             val length = `Content-Length`.unsafeFromLong(chunk.size.toLong)
             stringBuilder
-              .append("Content")
-              .append(length)
+              .append(contentLengthPrefix)
+              .append(length.length)
               .append(CRLF)
           case TrustMe(_, size) =>
             val length = `Content-Length`.unsafeFromLong(size.toLong)
