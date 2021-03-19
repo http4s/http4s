@@ -45,8 +45,16 @@ private[impl] object ResponseGenerator {
   * }}}
   */
 trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
-  def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response(status, headers = Headers(headers.toList)))
+  @deprecated(
+    message = "Use StatusType.headers instead. This will be removed in 0.22",
+    since = "0.21.21")
+  def apply(header: Header, _headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
+    headers(header, _headers: _*)
+
+  def apply()(implicit F: Applicative[F]): F[Response[G]] = F.pure(Response[G](status))
+
+  def headers(header: Header, _headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
+    F.pure(Response[G](status, headers = Headers(header :: _headers.toList)))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
@@ -65,13 +73,15 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   @deprecated(
     message = "Use StatusType.headers instead. This will be removed in 0.22",
     since = "0.21.21")
-  def apply(_headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    headers(_headers: _*)
+  def apply(header: Header, _headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
+    headers(header, _headers: _*)
 
-  def apply()(implicit F: Applicative[F]): F[Response[G]] = headers()
+  def apply()(implicit F: Applicative[F]): F[Response[G]] =
+    F.pure(Response[G](status, headers = Headers(List(`Content-Length`.zero))))
 
-  def headers(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: headers.toList)))
+  def headers(header: Header, headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
+    F.pure(
+      Response[G](status, headers = Headers(`Content-Length`.zero :: header :: headers.toList)))
 
   def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
     F.flatMap(liftG(body))(apply[A](_))
