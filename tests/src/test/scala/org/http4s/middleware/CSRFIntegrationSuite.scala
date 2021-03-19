@@ -30,11 +30,11 @@ import org.http4s._
 import org.http4s.client._
 import org.http4s.client.dsl.io._
 import org.http4s.dsl.io._
+import org.http4s.ember.server._
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.multipart._
 import org.http4s.server._
-import org.http4s.server.blaze._
 import org.http4s.server.middleware.CSRF.unlift
 import org.http4s.server.middleware._
 
@@ -64,10 +64,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = BlazeServerBuilder[IO](testBlocker.blockingContext)
-          .bindHttp(port, "localhost")
+        server = EmberServerBuilder
+          .default[IO]
+          .withHost("localhost")
+          .withPort(port)
           .withHttpApp(service)
-          .resource
+          .build
         fiber <- server.use(_ => IO.never).start
         client = JavaNetClientBuilder[IO](testBlocker).create
         baseReq = Request[IO](
@@ -107,10 +109,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = BlazeServerBuilder[IO](testBlocker.blockingContext)
-          .bindHttp(port, "localhost")
+        server = EmberServerBuilder
+          .default[IO]
+          .withHost("localhost")
+          .withPort(port)
           .withHttpApp(service)
-          .resource
+          .build
         fiber <- server.use(_ => IO.never).start
         client = JavaNetClientBuilder[IO](testBlocker).create
         baseReq = Request[IO](
@@ -148,10 +152,12 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .build
         token <- csrfProtect.generateToken[IO]
         service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
-        server = BlazeServerBuilder[IO](testBlocker.blockingContext)
-          .bindHttp(port, "localhost")
+        server = EmberServerBuilder
+          .default[IO]
+          .withHost("localhost")
+          .withPort(port)
           .withHttpApp(service)
-          .resource
+          .build
         fiber <- server.use(_ => IO.never).start
         client = JavaNetClientBuilder[IO](testBlocker).create
         mf = Part.formData[IO](COOKIE_NAME, unlift(token), `Content-Type`(MediaType.text.plain))

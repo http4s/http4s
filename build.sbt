@@ -145,7 +145,7 @@ lazy val tests = libraryProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
   )
-  .dependsOn(core, client, blazeClient, blazeServer, theDsl, testing % "test->test")
+  .dependsOn(core, client, emberServer, theDsl, testing % "test->test")
 
 lazy val server = libraryProject("server")
   .settings(
