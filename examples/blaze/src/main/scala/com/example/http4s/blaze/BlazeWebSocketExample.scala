@@ -74,7 +74,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Async[F]) extends Http4sDsl[F] 
           .unbounded[F, Option[WebSocketFrame]]
           .flatMap { q =>
             val d: Stream[F, WebSocketFrame] = Stream.fromQueueNoneTerminated(q).through(echoReply)
-            val e: Pipe[F, WebSocketFrame, Unit] = _.enqueue(q)
+            val e: Pipe[F, WebSocketFrame, Unit] = _.enqueueNoneTerminated(q)
             WebSocketBuilder[F].build(d, e)
           }
     }

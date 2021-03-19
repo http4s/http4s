@@ -54,7 +54,7 @@ final case class UriTemplate(
     */
   def expandFragment[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     if (fragment.isEmpty) this
-    else copy(fragment = expandFragmentN(fragment, name, String.valueOf(value)))
+    else copy(fragment = expandFragmentN(fragment, name, QueryParamEncoder[T].encode(value).value))
 
   /** Replaces any expansion type in `path` that matches the given `name`. If no
     * matching `expansion` could be found the same instance will be returned.
@@ -396,16 +396,20 @@ object UriTemplate {
       case UriTemplate(s, a, Nil, q, Nil) => Uri(s, a, query = buildQuery(q))
       case UriTemplate(s, a, Nil, q, f) =>
         Uri(s, a, query = buildQuery(q), fragment = Some(renderFragmentIdentifier(f)))
-      case UriTemplate(s, a, p, Nil, Nil) => Uri(s, a, Uri.Path.fromString(renderPath(p)))
+      case UriTemplate(s, a, p, Nil, Nil) => Uri(s, a, Uri.Path.unsafeFromString(renderPath(p)))
       case UriTemplate(s, a, p, q, Nil) =>
-        Uri(s, a, Uri.Path.fromString(renderPath(p)), buildQuery(q))
+        Uri(s, a, Uri.Path.unsafeFromString(renderPath(p)), buildQuery(q))
       case UriTemplate(s, a, p, Nil, f) =>
-        Uri(s, a, Uri.Path.fromString(renderPath(p)), fragment = Some(renderFragmentIdentifier(f)))
+        Uri(
+          s,
+          a,
+          Uri.Path.unsafeFromString(renderPath(p)),
+          fragment = Some(renderFragmentIdentifier(f)))
       case UriTemplate(s, a, p, q, f) =>
         Uri(
           s,
           a,
-          Uri.Path.fromString(renderPath(p)),
+          Uri.Path.unsafeFromString(renderPath(p)),
           buildQuery(q),
           Some(renderFragmentIdentifier(f)))
     }

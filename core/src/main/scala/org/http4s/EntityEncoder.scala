@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.{Contravariant, Show}
+import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
@@ -51,10 +52,10 @@ trait EntityEncoder[F[_], A] { self =>
     }
 
   /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
+  def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def charset: Option[Charset] = headers.get(`Content-Type`).flatMap(_.charset)
+  def charset: Option[Charset] = headers.get[`Content-Type`].flatMap(_.charset)
 
   /** Generate a new EntityEncoder that will contain the `Content-Type` header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] =
@@ -78,14 +79,16 @@ object EntityEncoder {
     }
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: Header*)(f: A => Entity[F]): EntityEncoder[F, A] =
-    encodeBy(Headers(hs.toList))(f)
+  def encodeBy[F[_], A](hs: Header.ToRaw*)(f: A => Entity[F]): EntityEncoder[F, A] = {
+    val hdrs = if (hs.nonEmpty) Headers(hs: _*) else Headers.empty
+    encodeBy(hdrs)(f)
+  }
 
   /** Create a new [[EntityEncoder]]
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
+  def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
       Entity.Strict(c)

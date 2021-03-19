@@ -17,13 +17,17 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
+
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.http4s.Header
 import org.typelevel.ci.CIString
+
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
+import org.http4s.internal.CharPredicate
 
 /** A type class that describes how to efficiently render a type
   * @tparam T the type which will be rendered
@@ -81,6 +85,23 @@ object Renderer {
     override def render(writer: Writer, ciString: CIString): writer.type =
       writer << ciString
   }
+
+  implicit def nelRenderer[T: Renderer]: Renderer[NonEmptyList[T]] =
+    new Renderer[NonEmptyList[T]] {
+      override def render(writer: Writer, values: NonEmptyList[T]): writer.type =
+        writer.addNel(values)
+    }
+
+  implicit def setRenderer[T: Renderer]: Renderer[Set[T]] =
+    new Renderer[Set[T]] {
+      override def render(writer: Writer, values: Set[T]): writer.type =
+        writer.addSet(values)
+    }
+
+  implicit def headerSelectRenderer[A](implicit select: Header.Select[A]): Renderer[A] =
+    new Renderer[A] {
+      override def render(writer: Writer, t: A): writer.type = writer << select.toRaw(t)
+    }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
@@ -140,6 +161,17 @@ trait Writer {
     go(0)
     this << '"'
   }
+  //Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
+  def eligibleOnly(s: String, keep: CharPredicate, placeholder: Char): this.type = {
+    @tailrec def rec(ix: Int = 0): this.type =
+      if (ix < s.length) {
+        val c = s.charAt(ix)
+        if (keep(c)) this << c
+        else this << placeholder
+        rec(ix + 1)
+      } else this
+    rec()
+  }
 
   def addStrings(
       s: collection.Seq[String],
@@ -154,9 +186,9 @@ trait Writer {
     append(end)
   }
 
-  def addStringNel(
-      s: NonEmptyList[String],
-      sep: String = "",
+  def addNel[T: Renderer](
+      s: NonEmptyList[T],
+      sep: String = ", ",
       start: String = "",
       end: String = ""): this.type = {
     append(start)
@@ -167,7 +199,7 @@ trait Writer {
 
   def addSet[T: Renderer](
       s: collection.Set[T],
-      sep: String = "",
+      sep: String = ", ",
       start: String = "",
       end: String = ""): this.type = {
     append(start)

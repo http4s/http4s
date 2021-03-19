@@ -32,11 +32,11 @@ class StaticFileSuite extends Http4sSuite {
     def check(f: File, tpe: Option[MediaType]): IO[Boolean] =
       StaticFile.fromFile[IO](f).value.map { r =>
         r.isDefined &&
-        r.flatMap(_.headers.get(`Content-Type`)) == tpe.map(t => `Content-Type`(t)) &&
+        r.flatMap(_.headers.get[`Content-Type`]) == tpe.map(t => `Content-Type`(t)) &&
         // Other headers must be present
-        r.flatMap(_.headers.get(`Last-Modified`)).isDefined &&
-        r.flatMap(_.headers.get(`Content-Length`)).isDefined &&
-        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) === Some(f.length())
+        r.flatMap(_.headers.get[`Last-Modified`]).isDefined &&
+        r.flatMap(_.headers.get[`Content-Length`]).isDefined &&
+        r.flatMap(_.headers.get[`Content-Length`].map(_.length)) === Some(f.length())
       }
 
     val tests = List(

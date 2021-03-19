@@ -20,9 +20,9 @@ package headers
 import cats.parse.Parser
 import org.http4s
 import org.http4s.EntityTag.{Strong, Weakness, parser => entityTagParser}
-import org.http4s.util.Writer
+import org.typelevel.ci._
 
-object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
+object ETag {
 
   type EntityTag = http4s.EntityTag
   val EntityTag: http4s.EntityTag.type = http4s.EntityTag
@@ -30,8 +30,8 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
   def apply(tag: String, weakness: Weakness = Strong): ETag =
     ETag(http4s.EntityTag(tag, weakness))
 
-  override def parse(s: String): ParseResult[ETag] =
-    ParseResult.fromParser(parser, "ETag header")(s)
+  def parse(s: String): ParseResult[ETag] =
+    ParseResult.fromParser(parser, "Invalid ETag header")(s)
 
   /* `ETag = entity-tag`
    *
@@ -39,10 +39,13 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
    */
   private[http4s] val parser: Parser[ETag] =
     entityTagParser.map(ETag.apply)
+
+  implicit val headerInstance: Header[ETag, Header.Single] =
+    Header.create(
+      ci"ETag",
+      _.tag.toString,
+      parse
+    )
 }
 
-final case class ETag(tag: EntityTag) extends Header.Parsed {
-  def key: ETag.type = ETag
-  override def value: String = tag.toString()
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class ETag(tag: EntityTag)

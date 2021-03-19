@@ -23,10 +23,9 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.4"
+  val scala_213 = "2.13.5"
   val scala_212 = "2.12.13"
-  val scala_3M3 = "3.0.0-M3"
-  val scala_3RC1 = "3.0.0-RC1"
+  val scala_3 = "3.0.0-RC1"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -277,33 +276,33 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.2"
-    val blaze = "0.15.0-M1"
+    val blaze = "0.15.0-M2"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.0.0"
+    val caseInsensitive = "1.1.0"
     val cats = "2.4.2"
-    val catsEffect = "3.0.0-M5"
+    val catsEffect = "3.0.0-RC2"
     val catsParse = "0.3.1"
-    val circe = "0.14.0-M3"
+    val circe = "0.14.0-M4"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
-    val dropwizardMetrics = "4.1.17"
-    val fs2 = "3.0.0-M7"
-    val ip4s = "3.0.0-M1"
+    val dropwizardMetrics = "4.1.18"
+    val fs2 = "3.0.0-M9"
+    val ip4s = "3.0.0-RC2"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.1.0"
-    val jawnFs2 = "2.0.0-RC1"
-    val jetty = "9.4.36.v20210114"
-    val keypool = "0.4.0-M1"
+    val jawnFs2 = "2.0.0-RC3"
+    val jetty = "9.4.38.v20210224"
+    val keypool = "0.4.0-RC2"
     val logback = "1.2.3"
-    val log4cats = "2.0.0-M1"
+    val log4cats = "2.0.0-RC1"
     val log4s = "1.10.0-M5"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.13.0"
+    val munitCatsEffect = "0.13.1"
     val munitDiscipline = "1.0.6"
-    val netty = "4.1.59.Final"
+    val netty = "4.1.60.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
-    val playJson = "2.10.0-RC1"
+    val playJson = "2.10.0-RC2"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
@@ -314,10 +313,10 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.24"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
-    val tomcat = "9.0.43"
+    val tomcat = "9.0.44"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "3.0.0-M4"
+    val vault = "3.0.0-RC2"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
@@ -347,7 +346,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
-  lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s  
+  lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2

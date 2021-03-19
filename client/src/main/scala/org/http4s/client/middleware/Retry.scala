@@ -20,12 +20,13 @@ package middleware
 
 import cats.effect.kernel.{Resource, Temporal}
 import cats.syntax.all._
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import org.http4s.Status._
-import org.http4s.headers.`Retry-After`
+import org.http4s.headers.{`Idempotency-Key`, `Retry-After`}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 import cats.effect.std.Hotswap
@@ -38,7 +39,7 @@ object Retry {
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(client: Client[F])(
       implicit F: Temporal[F]): Client[F] = {
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
-      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+      val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
       val uri = request.uri.renderString
       val method = request.method
       s"method=$method uri=$uri headers=$headers"
@@ -73,7 +74,7 @@ object Retry {
             case Some(duration) =>
               logger.info(
                 s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
-              nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`), hotswap)
+              nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
             case None =>
               F.pure(response)
           }
@@ -133,15 +134,16 @@ object RetryPolicy {
     GatewayTimeout
   )
 
-  /** Returns true if the request method is idempotent and the result is
-    * either a throwable or has one of the `RetriableStatuses`.
+  /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)
+    * and the result is either a throwable or has one of the `RetriableStatuses`.
     *
     * Caution: if the request body is effectful, the effects will be
     * run twice.  The most common symptom of this will be resubmitting
     * an idempotent request.
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    req.method.isIdempotent && isErrorOrRetriableStatus(result)
+    (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
+      isErrorOrRetriableStatus(result)
 
   @deprecated("Use defaultRetriable instead", "0.19.0")
   def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =

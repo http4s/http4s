@@ -21,4 +21,5 @@ package object syntax {
   object kleisli extends KleisliSyntax
   object literals extends LiteralsSyntax
   object string extends StringSyntax
+  object header extends HeaderSyntax
 }

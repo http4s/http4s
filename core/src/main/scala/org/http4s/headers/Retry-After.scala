@@ -18,11 +18,11 @@ package org.http4s
 package headers
 
 import cats.parse.{Parser, Rfc5234}
-import org.http4s.util.{Renderer, Writer}
 import org.http4s.util.Renderable._
 import scala.concurrent.duration.FiniteDuration
+import org.typelevel.ci._
 
-object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Singleton {
+object `Retry-After` {
   private class RetryAfterImpl(retry: Either[HttpDate, Long]) extends `Retry-After`(retry)
 
   def apply(retry: HttpDate): `Retry-After` = new RetryAfterImpl(Left(retry))
@@ -40,8 +40,8 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
   def unsafeFromDuration(retry: FiniteDuration): `Retry-After` =
     fromLong(retry.toSeconds).fold(throw _, identity)
 
-  override def parse(s: String): ParseResult[`Retry-After`] =
-    ParseResult.fromParser(parser, "Retry-After header")(s)
+  def parse(s: String): ParseResult[`Retry-After`] =
+    ParseResult.fromParser(parser, "Invalid Retry-After header")(s)
 
   /* `Retry-After = HTTP-date / delay-seconds` */
   private[http4s] val parser: Parser[`Retry-After`] = {
@@ -54,6 +54,14 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
 
     httpDate.orElse(delaySeconds)
   }
+
+  implicit val headerInstance: Header[`Retry-After`, Header.Single] =
+    Header.createRendered(
+      ci"Retry-After",
+      _.retry,
+      parse
+    )
+
 }
 
 /** Response header, used by the server to indicate to the user-agent how long it has to wait before
@@ -64,8 +72,4 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
   * @param retry Indicates the retry time, either as a date of expiration or as a number of seconds from the current time
   * until that expiration.
   */
-sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long]) extends Header.Parsed {
-  val key = `Retry-After`
-  override val value = Renderer.renderString(retry)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long])

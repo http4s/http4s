@@ -27,7 +27,7 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Timestamp,
   Version
 }
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
@@ -83,7 +83,7 @@ class OAuthSuite extends Http4sSuite {
     val auth =
       oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
     val creds = auth.credentials
-    assert(creds.authScheme == CIString("OAuth"))
+    assert(creds.authScheme == ci"OAuth")
   }
 
   test("OAuth support should generate a Authorization header with config") {
@@ -104,7 +104,7 @@ class OAuthSuite extends Http4sSuite {
       )
       .map { auth =>
         val creds = auth.credentials
-        assert(creds.authScheme == CIString("OAuth"))
+        assert(creds.authScheme == ci"OAuth")
       }
   }
 

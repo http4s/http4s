@@ -24,6 +24,7 @@ import fs2._
 import java.io.File
 import java.nio.file._
 import org.http4s.syntax.all._
+import org.http4s.headers.`Content-Range`
 import org.http4s.headers.Range.SubRange
 import org.http4s.server.middleware.TranslateUri
 
@@ -251,9 +252,8 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       routes.orNotFound(req).map(_.status).assertEquals(Status.RangeNotSatisfiable) *>
         routes
           .orNotFound(req)
-          .map(_.headers.toList.exists(
-            _ === headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
-          .assert
+          .map(_.headers.get[`Content-Range`])
+          .assertEquals(Some(headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
     }
   }
 

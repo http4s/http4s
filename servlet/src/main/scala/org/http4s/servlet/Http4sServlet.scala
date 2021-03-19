@@ -24,11 +24,11 @@ import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import org.http4s._
-import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
+import org.typelevel.ci._
 import org.typelevel.vault._
 
 abstract class Http4sServlet[F[_]](
@@ -77,7 +77,7 @@ abstract class Http4sServlet[F[_]](
     // a body and a status reason.  We sacrifice the status reason.
     F.delay {
       servletResponse.setStatus(response.status.code)
-      for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
+      for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
         servletResponse.addHeader(header.name.toString, header.value)
     }.attempt
       .flatMap {
@@ -132,27 +132,13 @@ abstract class Http4sServlet[F[_]](
                 .asInstanceOf[Array[X509Certificate]]))
             .mapN(SecureSession.apply)
         )
-        .insert(Request.Keys.ServerSoftware, serverSoftware)
-        .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
-        .insert(
-          ServerRequestKeys.SecureSession,
-          (
-            Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
-            Option(
-              req
-                .getAttribute("javax.servlet.request.X509Certificate")
-                .asInstanceOf[Array[X509Certificate]]))
-            .mapN(SecureSession.apply)
-        )
     )
 
   private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
     val pathInfo =
       Uri.Path
-        .fromString(req.getContextPath)
-        .concat(Uri.Path.fromString(req.getServletPath))
+        .unsafeFromString(req.getContextPath)
+        .concat(Uri.Path.unsafeFromString(req.getServletPath))
     uri.path
       .findSplit(pathInfo)
       .getOrElse(-1)
@@ -162,7 +148,7 @@ abstract class Http4sServlet[F[_]](
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header(name, value)
+    } yield name -> value
     Headers(headers.toList)
   }
 }

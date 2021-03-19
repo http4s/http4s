@@ -19,11 +19,9 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Content-Language`
+import org.http4s.syntax.all._
 
 class ContentLanguageSpec extends Http4sSuite with HeaderParserHelper[`Content-Language`] {
-
-  override def hparse(value: String): ParseResult[`Content-Language`] =
-    `Content-Language`.parse(value)
 
   val en = `Content-Language`(LanguageTag("en"))
   val en_IN = `Content-Language`(LanguageTag("en", "IN"))
@@ -39,10 +37,10 @@ class ContentLanguageSpec extends Http4sSuite with HeaderParserHelper[`Content-L
   }
 
   test("Content-Language should Parse Properly") {
-    assertEquals(parse(en.value), en)
-    assertEquals(parse(en_IN.value), en_IN)
-    assertEquals(parse(en_IN_en_US.value), en_IN_en_US)
-    assertEquals(parse(multi_lang.value), multi_lang)
+    assertEquals(roundTrip(en), en)
+    assertEquals(roundTrip(en_IN), en_IN)
+    assertEquals(roundTrip(en_IN_en_US), en_IN_en_US)
+    assertEquals(roundTrip(multi_lang), multi_lang)
   }
 
 }

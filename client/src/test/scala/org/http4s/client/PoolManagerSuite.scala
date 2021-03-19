@@ -18,13 +18,14 @@ package org.http4s
 package client
 
 import cats.effect._
+import com.comcast.ip4s._
 import fs2.Stream
 import org.http4s.syntax.AllSyntax
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
 class PoolManagerSuite extends Http4sSuite with AllSyntax {
-  val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = ipv4"127.0.0.1"))
+  val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.Ipv4Address(ipv4"127.0.0.1")))
   val otherKey = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.RegName("localhost")))
 
   class TestConnection extends Connection[IO] {

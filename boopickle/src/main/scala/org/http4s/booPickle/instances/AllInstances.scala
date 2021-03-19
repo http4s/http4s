@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2018 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 package org.http4s
-package headers
+package booPickle
+package instances
 
-object Trailer extends HeaderKey.Default
+trait AllInstances extends BooPickleInstances

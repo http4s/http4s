@@ -28,7 +28,7 @@ object Logger {
       logHeaders: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
     if (logHeaders)
-      message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
+      message.headers.redactSensitive(redactHeadersWhen).headers.mkString("Headers(", ", ", ")")
     else ""
 
   def defaultLogBody[F[_]: Concurrent, A <: Message[F]](message: A)(
@@ -62,8 +62,8 @@ object Logger {
       log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
     def prelude =
       message match {
-        case Request(method, uri, httpVersion, _, _, _) => s"$httpVersion $method $uri"
-        case Response(status, httpVersion, _, _, _) => s"$httpVersion $status"
+        case req: Request[_] => s"${req.httpVersion} ${req.method} ${req.uri}"
+        case resp: Response[_] => s"${resp.httpVersion} ${resp.status}"
       }
 
     val headers: String = defaultLogHeaders[F, A](message)(logHeaders, redactHeadersWhen)

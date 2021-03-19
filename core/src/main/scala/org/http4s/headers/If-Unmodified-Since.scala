@@ -18,21 +18,23 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.util.{Renderer, Writer}
+import org.typelevel.ci._
 
-object `If-Unmodified-Since`
-    extends HeaderKey.Internal[`If-Unmodified-Since`]
-    with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`If-Unmodified-Since`] =
+object `If-Unmodified-Since` {
+  def parse(s: String): ParseResult[`If-Unmodified-Since`] =
     ParseResult.fromParser(parser, "Invalid If-Unmodified-Since header")(s)
 
   /* `If-Modified-Since = HTTP-date` */
   private[http4s] val parser: Parser[`If-Unmodified-Since`] =
     HttpDate.parser.map(apply)
+
+  implicit val headerInstance: Header[`If-Unmodified-Since`, Header.Single] =
+    Header.createRendered(
+      ci"If-Unmodified-Since",
+      _.date,
+      parse
+    )
+
 }
 
-final case class `If-Unmodified-Since`(date: HttpDate) extends Header.Parsed {
-  override def key: `If-Unmodified-Since`.type = `If-Unmodified-Since`
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class `If-Unmodified-Since`(date: HttpDate)

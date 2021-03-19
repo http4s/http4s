@@ -16,7 +16,6 @@
 
 package com.example.http4s.blaze.demo.server.endpoints
 
-import cats.Defer
 import cats.effect.Concurrent
 import cats.syntax.all._
 import com.example.http4s.blaze.demo.server.service.FileService
@@ -25,8 +24,7 @@ import org.http4s.{ApiVersion => _, _}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.multipart.Part
 
-class MultipartHttpEndpoint[F[_]: Concurrent: Defer](fileService: FileService[F])
-    extends Http4sDsl[F] {
+class MultipartHttpEndpoint[F[_]: Concurrent](fileService: FileService[F]) extends Http4sDsl[F] {
   val service: HttpRoutes[F] = HttpRoutes.of {
     case GET -> Root / ApiVersion / "multipart" =>
       Ok("Send a file (image, sound, etc) via POST Method")
@@ -34,7 +32,7 @@ class MultipartHttpEndpoint[F[_]: Concurrent: Defer](fileService: FileService[F]
     case req @ POST -> Root / ApiVersion / "multipart" =>
       req.decodeWith(multipart[F], strict = true) { response =>
         def filterFileTypes(part: Part[F]): Boolean =
-          part.headers.toList.exists(_.value.contains("filename"))
+          part.headers.headers.exists(_.value.contains("filename"))
 
         val stream = response.parts.filter(filterFileTypes).traverse(fileService.store)
 

@@ -18,7 +18,7 @@ package org.http4s.ember.core
 
 import fs2._
 import org.http4s._
-import org.http4s.headers.`Content-Length`
+import org.http4s.headers.{Host, `Content-Length`}
 import java.nio.charset.StandardCharsets
 import org.http4s.Entity.Strict
 import org.http4s.Entity.TrustMe
@@ -30,6 +30,7 @@ private[ember] object Encoder {
   private val SPACE = " "
   private val CRLF = "\r\n"
   val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
+  private val contentLengthPrefix = "Content-Length: "
 
   def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     val initSection = {
@@ -42,12 +43,15 @@ private[ember] object Encoder {
         .append(resp.status.renderString)
         .append(CRLF)
 
+
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
-        if (h.is(`Content-Length`)) ()
+        if (h.name == `Content-Length`.name) ()
         else {
           stringBuilder
-            .append(h.renderString)
+            .append(h.name)
+            .append(": ")
+            .append(h.value)
             .append(CRLF)
           ()
         }
@@ -57,12 +61,14 @@ private[ember] object Encoder {
           case Strict(chunk) =>
             val length = `Content-Length`.unsafeFromLong(chunk.size.toLong)
             stringBuilder
-              .append(length.renderString)
+              .append(contentLengthPrefix)
+              .append(length.length)
               .append(CRLF)
           case TrustMe(_, size) =>
             val length = `Content-Length`.unsafeFromLong(size.toLong)
             stringBuilder
-              .append(length.renderString)
+              .append(contentLengthPrefix)
+              .append(length.length)
               .append(CRLF)
           case Chunked(_) =>
             stringBuilder
@@ -71,7 +77,7 @@ private[ember] object Encoder {
 
           case Empty() =>
             stringBuilder
-              .append(`Content-Length`.zero.renderString)
+              .append(`Content-Length`.zero)
               .append(CRLF)
         }
         ()
@@ -113,7 +119,7 @@ private[ember] object Encoder {
         .append(CRLF)
 
       // Host From Uri Becomes Header if not already present in headers
-      if (org.http4s.headers.Host.from(req.headers).isEmpty)
+      if (req.headers.get[Host].isEmpty)
         req.uri.authority.foreach { auth =>
           stringBuilder
             .append("Host: ")
@@ -123,10 +129,12 @@ private[ember] object Encoder {
 
       // Apply each header followed by a CRLF
       req.headers.foreach { h =>
-        if (h.is(`Content-Length`)) ()
+        if (h.name == `Content-Length`.name) ()
         else {
           stringBuilder
-            .append(h.renderString)
+            .append(h.name)
+            .append(": ")
+            .append(h.value)
             .append(CRLF)
           ()
         }
@@ -137,18 +145,23 @@ private[ember] object Encoder {
           case Strict(chunk) =>
             val length = `Content-Length`.unsafeFromLong(chunk.size.toLong)
             stringBuilder
-              .append(length.renderString)
+              .append("Content")
+              .append(length)
               .append(CRLF)
           case TrustMe(_, size) =>
             val length = `Content-Length`.unsafeFromLong(size.toLong)
             stringBuilder
-              .append(length.renderString)
+              .append(contentLengthPrefix)
+              .append(length.length)
               .append(CRLF)
           case Chunked(_) =>
             stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
             ()
           case Empty() =>
-            stringBuilder.append(`Content-Length`.zero.renderString).append(CRLF)
+            stringBuilder
+              .append(contentLengthPrefix)
+              .append(0)
+              .append(CRLF)
             ()
         }
 

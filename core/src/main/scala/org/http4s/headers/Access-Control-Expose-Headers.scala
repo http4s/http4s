@@ -17,26 +17,30 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci.CIString
-import org.http4s.util._
 import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
+import org.typelevel.ci._
 
-object `Access-Control-Expose-Headers`
-    extends HeaderKey.Internal[`Access-Control-Expose-Headers`]
-    with HeaderKey.Recurring {
+object `Access-Control-Expose-Headers` {
 
-  override def parse(s: String): ParseResult[`Access-Control-Expose-Headers`] =
+  def apply(head: CIString, tail: CIString*): `Access-Control-Expose-Headers` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`Access-Control-Expose-Headers`] =
     ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers header")(s)
 
   private[http4s] val parser =
     Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
+
+  implicit val headerInstance: Header[`Access-Control-Expose-Headers`, Header.Recurring] =
+    Header.createRendered(
+      ci"Access-Control-Expose-Headers",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Expose-Headers`] =
+    (a, b) => `Access-Control-Expose-Headers`(a.values.concatNel(b.values))
 }
 
 final case class `Access-Control-Expose-Headers`(values: NonEmptyList[CIString])
-    extends Header.RecurringRenderer {
-  override type Value = CIString
-
-  override implicit def renderer: Renderer[Value] = Renderer.ciStringRenderer
-  override def key: `Access-Control-Expose-Headers`.type = `Access-Control-Expose-Headers`
-}

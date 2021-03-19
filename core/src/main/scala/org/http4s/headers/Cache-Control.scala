@@ -18,16 +18,19 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.parse._
 import java.util.concurrent.TimeUnit
 import org.http4s.CacheDirective._
-import org.typelevel.ci.CIString
-import cats.parse._
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
 import org.http4s.parser.{AdditionalRules}
+import org.typelevel.ci._
 import scala.concurrent.duration._
 
-object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[`Cache-Control`] =
+object `Cache-Control` {
+  def apply(head: CacheDirective, tail: CacheDirective*): `Cache-Control` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`Cache-Control`] =
     ParseResult.fromParser(parser, "Invalid Cache-Control header")(s)
 
   private[http4s] val FieldNames: Parser[NonEmptyList[String]] =
@@ -62,12 +65,20 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
             org.http4s.CacheDirective(CIString(name), arg)
         }) :: Nil
     )
+
   private[http4s] val parser: Parser[`Cache-Control`] =
     CacheDirective.repSep(Rfc7230.listSep).map(`Cache-Control`(_))
+
+  implicit val headerInstance: Header[`Cache-Control`, Header.Recurring] =
+    Header.createRendered(
+      ci"Cache-Control",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Cache-Control`] =
+    (a, b) => `Cache-Control`(a.values.concatNel(b.values))
+
 }
 
 final case class `Cache-Control`(values: NonEmptyList[CacheDirective])
-    extends Header.RecurringRenderable {
-  override def key: `Cache-Control`.type = `Cache-Control`
-  type Value = CacheDirective
-}

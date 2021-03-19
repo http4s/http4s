@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2018 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.http4s.scalaxml
+package org.http4s.booPickle
 
 package object instances {
   object all extends AllInstances
-  object elem extends ElemInstances
+  object booPickle extends BooPickleInstances
 }

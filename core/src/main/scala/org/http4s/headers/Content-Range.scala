@@ -20,9 +20,10 @@ package headers
 import cats.parse.{Numbers, Parser => P}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKey.Singleton {
+object `Content-Range` {
   def apply(range: Range.SubRange, length: Option[Long] = None): `Content-Range` =
     `Content-Range`(RangeUnit.Bytes, range, length)
 
@@ -31,10 +32,8 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
   def apply(start: Long): `Content-Range` =
     apply(Range.SubRange(start, None), None)
 
-  override def parse(s: String): ParseResult[`Content-Range`] =
-    parser.parseAll(s).left.map { e =>
-      ParseFailure("Invalid Content-Range header", e.toString)
-    }
+  def parse(s: String): ParseResult[`Content-Range`] =
+    ParseResult.fromParser(parser, "Invalid Content-Range header")(s)
 
   val parser: P[`Content-Range`] = {
 
@@ -62,17 +61,23 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
     // other types of ranges are not supported, `other-content-range` is ignored
     byteContentRange
   }
+
+  implicit val headerInstance: Header[`Content-Range`, Header.Single] =
+    Header.createRendered(
+      ci"Content-Range",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.unit << ' ' << h.range << '/'
+            h.length match {
+              case Some(l) => writer << l
+              case None => writer << '*'
+            }
+          }
+        },
+      parse
+    )
+
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])
-    extends Header.Parsed {
-  override def key: `Content-Range`.type = `Content-Range`
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << unit << ' ' << range << '/'
-    length match {
-      case Some(l) => writer << l
-      case None => writer << '*'
-    }
-  }
-}

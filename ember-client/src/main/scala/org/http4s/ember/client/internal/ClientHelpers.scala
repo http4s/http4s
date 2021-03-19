@@ -17,33 +17,33 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
-import fs2.io.tcp._
-import fs2.io.Network
+import fs2.io.net._
 import cats._
 import cats.data.NonEmptyList
-import cats.effect._
-import cats.effect.implicits._
+import cats.effect.{ApplicativeThrow => _, _}
 import cats.effect.kernel.Clock
 import cats.syntax.all._
+
 import scala.concurrent.duration._
-import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.client.RequestKey
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.fs2.io.tcp.SocketGroup
-import _root_.fs2.io.tls._
+import _root_.fs2.io.net.SocketGroup
+import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
+
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
-import _root_.org.http4s.ember.core.Util.durationToFinite
+import _root_.org.http4s.ember.core.Util.timeoutMaybe
+import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: Sync: Network](
+  def requestToSocketWithKey[F[_]: Sync](
       request: Request[F],
-      tlsContextOpt: Option[TLSContext],
-      sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      tlsContextOpt: Option[TLSContext[F]],
+      sg: SocketGroup[F],
+      additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -54,15 +54,15 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Sync: Network](
+  def requestKeyToSocketWithKey[F[_]: Sync](
       requestKey: RequestKey,
-      tlsContextOpt: Option[TLSContext],
-      sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      tlsContextOpt: Option[TLSContext[F]],
+      sg: SocketGroup[F],
+      additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] =
     for {
       address <- Resource.eval(getAddress(requestKey))
-      initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
+      initSocket <- sg.client(address, options = additionalSocketOptions)
       socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
           tlsContextOpt.fold[Resource[F, Socket[F]]] {
@@ -73,12 +73,18 @@ private[client] object ClientHelpers {
             tlsContext
               .client(
                 initSocket,
-                TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
+                TLSParameters(serverNames = extractHostname(address.host).map(List(_))))
               .widen[Socket[F]]
           }
         else initSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
+
+  private def extractHostname(from: Host): Option[SNIHostName] = from match {
+    case hostname: Hostname => new SNIHostName(hostname.normalized.toString).some
+    case address: IpAddress => new SNIHostName(address.toString).some
+    case idn: IDN => extractHostname(idn.hostname)
+  }
 
   def request[F[_]: Async](
       request: Request[F],
@@ -90,26 +96,21 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`]
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
-    def writeRequestToSocket(
-        req: Request[F],
-        socket: Socket[F],
-        timeout: Option[FiniteDuration]): F[Unit] =
+    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
       Encoder
         .reqToBytes(req)
-        .through(socket.writes(timeout))
+        .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
         .compile
         .drain
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket, durationToFinite(idleTimeout)) >>
+      writeRequestToSocket(req, connection.keySocket.socket) >>
         connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
-          val finiteDuration = durationToFinite(timeout)
           val parse = Parser.Response.parser(maxResponseHeaderSize)(
             head,
-            connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
+            timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout)
           )
-
-          finiteDuration.fold(parse)(duration => parse.timeout(duration))
+          timeoutMaybe(parse, timeout)
         }
 
     for {
@@ -122,14 +123,14 @@ private[client] object ClientHelpers {
       req: Request[F],
       userAgent: Option[`User-Agent`]): F[Request[F]] = {
     val connection = req.headers
-      .get(Connection)
-      .fold(Connection(NonEmptyList.of(CIString("keep-alive"))))(identity)
-    val userAgentHeader: Option[`User-Agent`] = req.headers.get(`User-Agent`).orElse(userAgent)
+      .get[Connection]
+      .fold(Connection(NonEmptyList.of(ci"keep-alive")))(identity)
+    val userAgentHeader: Option[`User-Agent`] = req.headers.get[`User-Agent`].orElse(userAgent)
     for {
-      date <- req.headers.get(Date).fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
+      date <- req.headers.get[Date].fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
     } yield req
       .putHeaders(date, connection)
-      .putHeaders(userAgentHeader.toSeq: _*)
+      .putHeaders(userAgentHeader)
   }
 
   private[ember] def postProcessResponse[F[_]](
@@ -140,8 +141,8 @@ private[client] object ClientHelpers {
       canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
-        val requestClose = req.headers.get(Connection).exists(_.hasClose)
-        val responseClose = resp.headers.get(Connection).exists(_.hasClose)
+        val requestClose = req.headers.get[Connection].exists(_.hasClose)
+        val responseClose = resp.headers.get[Connection].exists(_.hasClose)
 
         if (requestClose || responseClose) F.unit
         else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
@@ -149,12 +150,14 @@ private[client] object ClientHelpers {
     }
 
   // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
-  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
+  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
-        Sync[F].delay(new InetSocketAddress(host, port))
+        Sync[F].delay(
+          SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)
+        ) // FIXME
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool

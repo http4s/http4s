@@ -40,7 +40,7 @@ class GZipSuite extends Http4sSuite {
       .orNotFound(req)
       .map { resp =>
         resp.status === Status.Ok &&
-        resp.headers.get(`Content-Encoding`).isEmpty
+        resp.headers.get[`Content-Encoding`].isEmpty
       }
       .assert
   }
@@ -48,7 +48,7 @@ class GZipSuite extends Http4sSuite {
   test("encodes random content-type if given isZippable is true") {
     val response = "Response string"
     val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
-      Ok(response, Header("Content-Type", "random-type; charset=utf-8"))
+      Ok(response, "Content-Type" -> "random-type; charset=utf-8")
     }
 
     val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = _ => true)

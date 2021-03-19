@@ -59,8 +59,7 @@ they will accept GZipped responses via an `Accept-Encoding` header. Acceptable
 values for the `Accept-Encoding` header are **"gzip"**, **"x-gzip"**, and **"*"**.
 
 ```scala mdoc:nest
-val acceptHeader = Header("Accept-Encoding", "gzip")
-val zipRequest = request.putHeaders(acceptHeader)
+val zipRequest = request.putHeaders("Accept-Encoding" -> "gzip")
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(zipRequest).unsafeRunSync()

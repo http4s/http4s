@@ -23,7 +23,7 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.headers.Connection
 import org.http4s.circe._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 object JsonDebugErrorHandler {
   private[this] val messageFailureLogger =
@@ -64,8 +64,7 @@ object JsonDebugErrorHandler {
               Status.InternalServerError,
               req.httpVersion,
               Headers(
-                Connection(CIString("close")) ::
-                  Nil
+                Connection(ci"close")
               ))
               .withEntity(JsonErrorHandlerResponse[G](req, t))
               .pure[F]
@@ -118,8 +117,7 @@ object JsonDebugErrorHandler {
           .dropNullValues,
         "headers" -> req.headers
           .redactSensitive(redactWhen)
-          .toList
-          .map(_.toRaw)
+          .headers
           .map { h =>
             Json.obj(
               "name" -> h.name.toString.asJson,

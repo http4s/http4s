@@ -215,7 +215,7 @@ private[http4s] trait MimeDB {
         new MediaType("application", "dssc+xml", Compressible, NotBinary, List("xdssc"))
       lazy val `dvcs`: MediaType = new MediaType("application", "dvcs", Compressible, NotBinary)
       lazy val `ecmascript`: MediaType =
-        new MediaType("application", "ecmascript", Compressible, NotBinary, List("ecma", "es"))
+        new MediaType("application", "ecmascript", Compressible, NotBinary, List("es", "ecma"))
       lazy val `edi-consent`: MediaType =
         new MediaType("application", "edi-consent", Compressible, NotBinary)
       lazy val `edi-x12`: MediaType =
@@ -493,9 +493,9 @@ private[http4s] trait MimeDB {
       lazy val `mpeg4-iod-xmt`: MediaType =
         new MediaType("application", "mpeg4-iod-xmt", Compressible, NotBinary)
       lazy val `mrb-consumer+xml`: MediaType =
-        new MediaType("application", "mrb-consumer+xml", Compressible, NotBinary, List("xdf"))
+        new MediaType("application", "mrb-consumer+xml", Compressible, NotBinary)
       lazy val `mrb-publish+xml`: MediaType =
-        new MediaType("application", "mrb-publish+xml", Compressible, NotBinary, List("xdf"))
+        new MediaType("application", "mrb-publish+xml", Compressible, NotBinary)
       lazy val `msc-ivr+xml`: MediaType =
         new MediaType("application", "msc-ivr+xml", Compressible, NotBinary)
       lazy val `msc-mixer+xml`: MediaType =
@@ -1905,6 +1905,10 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.cyan.dean.root+xml", Compressible, NotBinary)
       lazy val `vnd.cybank`: MediaType =
         new MediaType("application", "vnd.cybank", Compressible, NotBinary)
+      lazy val `vnd.cyclonedx+json`: MediaType =
+        new MediaType("application", "vnd.cyclonedx+json", Compressible, NotBinary)
+      lazy val `vnd.cyclonedx+xml`: MediaType =
+        new MediaType("application", "vnd.cyclonedx+xml", Compressible, NotBinary)
       lazy val `vnd.d2l.coursepackage1p0+zip`: MediaType =
         new MediaType("application", "vnd.d2l.coursepackage1p0+zip", Uncompressible, NotBinary)
       lazy val `vnd.d3m-dataset`: MediaType =
@@ -2873,10 +2877,6 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.muvee.style", Compressible, NotBinary, List("msty"))
       lazy val `vnd.mynfc`: MediaType =
         new MediaType("application", "vnd.mynfc", Compressible, NotBinary, List("taglet"))
-      lazy val `vnd.ncd.control`: MediaType =
-        new MediaType("application", "vnd.ncd.control", Compressible, NotBinary)
-      lazy val `vnd.ncd.reference`: MediaType =
-        new MediaType("application", "vnd.ncd.reference", Compressible, NotBinary)
       lazy val part_1: List[MediaType] = List(
         `vnd.afpc.foca-charset`,
         `vnd.afpc.foca-codedfont`,
@@ -2998,6 +2998,8 @@ private[http4s] trait MimeDB {
         `vnd.curl.pcurl`,
         `vnd.cyan.dean.root+xml`,
         `vnd.cybank`,
+        `vnd.cyclonedx+json`,
+        `vnd.cyclonedx+xml`,
         `vnd.d2l.coursepackage1p0+zip`,
         `vnd.d3m-dataset`,
         `vnd.d3m-problem`,
@@ -3375,12 +3377,14 @@ private[http4s] trait MimeDB {
         `vnd.music-niff`,
         `vnd.musician`,
         `vnd.muvee.style`,
-        `vnd.mynfc`,
-        `vnd.ncd.control`,
-        `vnd.ncd.reference`
+        `vnd.mynfc`
       )
     }
     trait application_2 {
+      lazy val `vnd.ncd.control`: MediaType =
+        new MediaType("application", "vnd.ncd.control", Compressible, NotBinary)
+      lazy val `vnd.ncd.reference`: MediaType =
+        new MediaType("application", "vnd.ncd.reference", Compressible, NotBinary)
       lazy val `vnd.nearst.inv+json`: MediaType =
         new MediaType("application", "vnd.nearst.inv+json", Compressible, NotBinary)
       lazy val `vnd.nervana`: MediaType =
@@ -4924,11 +4928,9 @@ private[http4s] trait MimeDB {
         new MediaType("application", "x-font-linux-psf", Compressible, NotBinary, List("psf"))
       lazy val `x-font-pcf`: MediaType =
         new MediaType("application", "x-font-pcf", Compressible, NotBinary, List("pcf"))
-      lazy val `x-font-snf`: MediaType =
-        new MediaType("application", "x-font-snf", Compressible, NotBinary, List("snf"))
-      lazy val `x-font-speedo`: MediaType =
-        new MediaType("application", "x-font-speedo", Compressible, NotBinary)
       lazy val part_2: List[MediaType] = List(
+        `vnd.ncd.control`,
+        `vnd.ncd.reference`,
         `vnd.nearst.inv+json`,
         `vnd.nervana`,
         `vnd.netfpx`,
@@ -5426,12 +5428,14 @@ private[http4s] trait MimeDB {
         `x-font-ghostscript`,
         `x-font-libgrx`,
         `x-font-linux-psf`,
-        `x-font-pcf`,
-        `x-font-snf`,
-        `x-font-speedo`
+        `x-font-pcf`
       )
     }
     trait application_3 {
+      lazy val `x-font-snf`: MediaType =
+        new MediaType("application", "x-font-snf", Compressible, NotBinary, List("snf"))
+      lazy val `x-font-speedo`: MediaType =
+        new MediaType("application", "x-font-speedo", Compressible, NotBinary)
       lazy val `x-font-sunos-news`: MediaType =
         new MediaType("application", "x-font-sunos-news", Compressible, NotBinary)
       lazy val `x-font-type1`: MediaType = new MediaType(
@@ -5696,7 +5700,7 @@ private[http4s] trait MimeDB {
       lazy val `xcap-el+xml`: MediaType =
         new MediaType("application", "xcap-el+xml", Compressible, NotBinary, List("xel"))
       lazy val `xcap-error+xml`: MediaType =
-        new MediaType("application", "xcap-error+xml", Compressible, NotBinary, List("xer"))
+        new MediaType("application", "xcap-error+xml", Compressible, NotBinary)
       lazy val `xcap-ns+xml`: MediaType =
         new MediaType("application", "xcap-ns+xml", Compressible, NotBinary, List("xns"))
       lazy val `xcon-conference-info+xml`: MediaType =
@@ -5756,6 +5760,8 @@ private[http4s] trait MimeDB {
       lazy val `zlib`: MediaType = new MediaType("application", "zlib", Compressible, NotBinary)
       lazy val `zstd`: MediaType = new MediaType("application", "zstd", Compressible, NotBinary)
       lazy val part_3: List[MediaType] = List(
+        `x-font-snf`,
+        `x-font-speedo`,
         `x-font-sunos-news`,
         `x-font-type1`,
         `x-font-vfont`,
@@ -5905,7 +5911,7 @@ private[http4s] trait MimeDB {
     lazy val `aac`: MediaType = new MediaType("audio", "aac", Compressible, Binary)
     lazy val `ac3`: MediaType = new MediaType("audio", "ac3", Compressible, Binary)
     lazy val `adpcm`: MediaType = new MediaType("audio", "adpcm", Compressible, Binary, List("adp"))
-    lazy val `amr`: MediaType = new MediaType("audio", "amr", Compressible, Binary)
+    lazy val `amr`: MediaType = new MediaType("audio", "amr", Compressible, Binary, List("amr"))
     lazy val `amr-wb`: MediaType = new MediaType("audio", "amr-wb", Compressible, Binary)
     lazy val `amr-wb+` : MediaType = new MediaType("audio", "amr-wb+", Compressible, Binary)
     lazy val `aptx`: MediaType = new MediaType("audio", "aptx", Compressible, Binary)
@@ -6017,6 +6023,7 @@ private[http4s] trait MimeDB {
     lazy val `rtploopback`: MediaType = new MediaType("audio", "rtploopback", Compressible, Binary)
     lazy val `rtx`: MediaType = new MediaType("audio", "rtx", Compressible, Binary)
     lazy val `s3m`: MediaType = new MediaType("audio", "s3m", Compressible, Binary, List("s3m"))
+    lazy val `scip`: MediaType = new MediaType("audio", "scip", Compressible, Binary)
     lazy val `silk`: MediaType = new MediaType("audio", "silk", Compressible, Binary, List("sil"))
     lazy val `smv`: MediaType = new MediaType("audio", "smv", Compressible, Binary)
     lazy val `smv-qcp`: MediaType = new MediaType("audio", "smv-qcp", Compressible, Binary)
@@ -6253,6 +6260,7 @@ private[http4s] trait MimeDB {
       `rtploopback`,
       `rtx`,
       `s3m`,
+      `scip`,
       `silk`,
       `smv`,
       `smv-qcp`,
@@ -7190,6 +7198,7 @@ private[http4s] trait MimeDB {
       new MediaType("video", "3gpp", Compressible, Binary, List("3gp", "3gpp"))
     lazy val `3gpp-tt`: MediaType = new MediaType("video", "3gpp-tt", Compressible, Binary)
     lazy val `3gpp2`: MediaType = new MediaType("video", "3gpp2", Compressible, Binary, List("3g2"))
+    lazy val `av1`: MediaType = new MediaType("video", "av1", Compressible, Binary)
     lazy val `bmpeg`: MediaType = new MediaType("video", "bmpeg", Compressible, Binary)
     lazy val `bt656`: MediaType = new MediaType("video", "bt656", Compressible, Binary)
     lazy val `celb`: MediaType = new MediaType("video", "celb", Compressible, Binary)
@@ -7204,7 +7213,8 @@ private[http4s] trait MimeDB {
     lazy val `h264-rcdo`: MediaType = new MediaType("video", "h264-rcdo", Compressible, Binary)
     lazy val `h264-svc`: MediaType = new MediaType("video", "h264-svc", Compressible, Binary)
     lazy val `h265`: MediaType = new MediaType("video", "h265", Compressible, Binary)
-    lazy val `iso.segment`: MediaType = new MediaType("video", "iso.segment", Compressible, Binary)
+    lazy val `iso.segment`: MediaType =
+      new MediaType("video", "iso.segment", Compressible, Binary, List("m4s"))
     lazy val `jpeg`: MediaType = new MediaType("video", "jpeg", Compressible, Binary, List("jpgv"))
     lazy val `jpeg2000`: MediaType = new MediaType("video", "jpeg2000", Compressible, Binary)
     lazy val `jpm`: MediaType =
@@ -7238,6 +7248,7 @@ private[http4s] trait MimeDB {
       new MediaType("video", "rtp-enc-aescm128", Compressible, Binary)
     lazy val `rtploopback`: MediaType = new MediaType("video", "rtploopback", Compressible, Binary)
     lazy val `rtx`: MediaType = new MediaType("video", "rtx", Compressible, Binary)
+    lazy val `scip`: MediaType = new MediaType("video", "scip", Compressible, Binary)
     lazy val `smpte291`: MediaType = new MediaType("video", "smpte291", Compressible, Binary)
     lazy val `smpte292m`: MediaType = new MediaType("video", "smpte292m", Compressible, Binary)
     lazy val `ulpfec`: MediaType = new MediaType("video", "ulpfec", Compressible, Binary)
@@ -7347,6 +7358,7 @@ private[http4s] trait MimeDB {
       `3gpp`,
       `3gpp-tt`,
       `3gpp2`,
+      `av1`,
       `bmpeg`,
       `bt656`,
       `celb`,
@@ -7384,6 +7396,7 @@ private[http4s] trait MimeDB {
       `rtp-enc-aescm128`,
       `rtploopback`,
       `rtx`,
+      `scip`,
       `smpte291`,
       `smpte292m`,
       `ulpfec`,

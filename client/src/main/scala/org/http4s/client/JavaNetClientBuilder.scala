@@ -26,6 +26,7 @@ import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.typelevel.ci.CIString
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
@@ -104,15 +105,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
           _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
           _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-          _ <- F.delay(req.headers.foreach {
-            case Header(name, value) =>
-              conn.setRequestProperty(name.toString, value)
-            case h: Header.Parsed =>
-              // Appease 2.13.4's exhaustiveness checker
-              conn.setRequestProperty(h.name.toString, h.value)
-            case Header.Raw(name, value) =>
-              // Appease 2.13.4's exhaustiveness checker
-              conn.setRequestProperty(name.toString, value)
+          _ <- F.delay(req.headers.foreach { case Header.Raw(name, value) =>
+            conn.setRequestProperty(name.toString, value)
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
           _ <- F.delay(conn.setDoInput(true))
@@ -143,10 +137,10 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
-            .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
+            .flatMap { case (k, vs) => vs.asScala.map(Header.Raw(CIString(k), _)) }
             .toList
         ))
-      l = headers.get(org.http4s.headers.`Content-Length`).map(_.length)
+      l = headers.get[org.http4s.headers.`Content-Length`].map(_.length)
     } yield Response(
       status = status,
       headers = headers.removePayloadHeaders,

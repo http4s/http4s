@@ -20,17 +20,29 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7235
+import org.http4s.Header
+import org.typelevel.ci._
 
-object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with HeaderKey.Recurring {
+object `WWW-Authenticate` {
+
+  def apply(head: Challenge, tail: Challenge*): `WWW-Authenticate` =
+    apply(NonEmptyList(head, tail.toList))
+
   private[http4s] val parser: Parser[`WWW-Authenticate`] =
     Rfc7235.challenges.map(`WWW-Authenticate`.apply)
 
-  override def parse(s: String): ParseResult[`WWW-Authenticate`] =
-    ParseResult.fromParser(parser, "Invalid WWW-Authenticate")(s)
+  def parse(s: String): ParseResult[`WWW-Authenticate`] =
+    ParseResult.fromParser(parser, "Invalid WWW-Authenticate header")(s)
+
+  implicit val headerInstance: Header[`WWW-Authenticate`, Header.Recurring] =
+    Header.createRendered(
+      ci"WWW-Authenticate",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`WWW-Authenticate`] =
+    (a, b) => `WWW-Authenticate`(a.values.concatNel(b.values))
 }
 
 final case class `WWW-Authenticate`(values: NonEmptyList[Challenge])
-    extends Header.RecurringRenderable {
-  override def key: `WWW-Authenticate`.type = `WWW-Authenticate`
-  type Value = Challenge
-}

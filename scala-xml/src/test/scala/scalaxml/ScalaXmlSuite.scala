@@ -21,9 +21,14 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.text.{utf8Decode, utf8Encode}
+import org.http4s.headers.`Content-Type`
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Status.Ok
-import org.http4s.scalaxml.implicits._
+import org.scalacheck.Prop._
+import org.typelevel.ci._
 import scala.xml.Elem
+import fs2.Chunk
+import java.nio.charset.StandardCharsets
 
 class ScalaXmlSuite extends Http4sSuite {
   def getBody(body: EntityBody[IO]): IO[String] =
@@ -62,6 +67,166 @@ class ScalaXmlSuite extends Http4sSuite {
 
   test("htmlEncoder renders HTML") {
     val html = <html><body>Hello</body></html>
-    assertIO(writeToString(html), "<html><body>Hello</body></html>")
+    implicit val cs: Charset = Charset.`UTF-8`
+    assertIO(
+      writeToString(html),
+      """<?xml version='1.0' encoding='UTF-8'?>
+        |<html><body>Hello</body></html>""".stripMargin)
+  }
+
+  test("encode to UTF-8") {
+    val hello = <hello name="Günther"/>
+    assertIO(
+      xmlEncoder[IO](Charset.`UTF-8`)
+        .toEntity(hello)
+        .body
+        .through(fs2.text.utf8Decode)
+        .compile
+        .string,
+      """<?xml version='1.0' encoding='UTF-8'?>
+        |<hello name="Günther"/>""".stripMargin
+    )
+  }
+
+  test("encode to UTF-16") {
+    val hello = <hello name="Günther"/>
+    assertIO(
+      xmlEncoder[IO](Charset.`UTF-16`)
+        .toEntity(hello)
+        .body
+        .through(internal.decode(Charset.`UTF-16`))
+        .compile
+        .string,
+      """<?xml version='1.0' encoding='UTF-16'?>
+        |<hello name="Günther"/>""".stripMargin
+    )
+  }
+
+  test("encode to ISO-8859-1") {
+    val hello = <hello name="Günther"/>
+    assertIO(
+      xmlEncoder[IO](Charset.`ISO-8859-1`)
+        .toEntity(hello)
+        .body
+        .through(internal.decode(Charset.`ISO-8859-1`))
+        .compile
+        .string,
+      """<?xml version='1.0' encoding='ISO-8859-1'?>
+        |<hello name="Günther"/>""".stripMargin
+    )
+  }
+
+  property("encoder sets charset of Content-Type") {
+    forAll { (cs: Charset) =>
+      assertEquals(xmlEncoder[IO](cs).headers.get[`Content-Type`].flatMap(_.charset), Some(cs))
+    }
+  }
+
+  def encodingTest(bytes: Chunk[Byte], contentType: String, name: String) = {
+    val body = Stream.chunk(bytes)
+    val msg = Request[IO](Method.POST, headers = Headers(Header.Raw(ci"Content-Type", contentType)))
+      .withBodyStream(body)
+    msg.as[Elem].map(_ \\ "hello" \@ "name").assertEquals(name)
+  }
+
+  test("parse UTF-8 charset with explicit encoding") {
+    // https://tools.ietf.org/html/rfc7303#section-8.1
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0" encoding="utf-8"?><hello name="Günther"/>""".getBytes(
+          StandardCharsets.UTF_8)),
+      "application/xml; charset=utf-8",
+      "Günther"
+    )
+  }
+
+  test("parse UTF-8 charset with no encoding") {
+    // https://tools.ietf.org/html/rfc7303#section-8.1
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_8)),
+      "application/xml; charset=utf-8",
+      "Günther")
+  }
+
+  test("parse UTF-16 charset with explicit encoding") {
+    // https://tools.ietf.org/html/rfc7303#section-8.2
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0" encoding="utf-16"?><hello name="Günther"/>""".getBytes(
+          StandardCharsets.UTF_16)),
+      "application/xml; charset=utf-16",
+      "Günther"
+    )
+  }
+
+  test("parse UTF-16 charset with no encoding") {
+    // https://tools.ietf.org/html/rfc7303#section-8.2
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_16)),
+      "application/xml; charset=utf-16",
+      "Günther")
+  }
+
+  test("parse omitted charset and 8-Bit MIME Entity") {
+    // https://tools.ietf.org/html/rfc7303#section-8.3
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0" encoding="iso-8859-1"?><hello name="Günther"/>""".getBytes(
+          StandardCharsets.ISO_8859_1)),
+      "application/xml",
+      "Günther"
+    )
+  }
+
+  test("parse omitted charset and 16-Bit MIME Entity") {
+    // https://tools.ietf.org/html/rfc7303#section-8.4
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0" encoding="utf-16"?><hello name="Günther"/>""".getBytes(
+          StandardCharsets.UTF_16)),
+      "application/xml",
+      "Günther")
+  }
+
+  test("parse omitted charset, no internal encoding declaration") {
+    // https://tools.ietf.org/html/rfc7303#section-8.5
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_8)),
+      "application/xml",
+      "Günther")
+  }
+
+  test("parse utf-16be charset") {
+    // https://tools.ietf.org/html/rfc7303#section-8.6
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_16BE)),
+      "application/xml; charset=utf-16be",
+      "Günther")
+  }
+
+  test("parse non-utf charset") {
+    // https://tools.ietf.org/html/rfc7303#section-8.7
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0" encoding="iso-2022-kr"?><hello name="문재인"/>""".getBytes(
+          "iso-2022-kr")),
+      "application/xml; charset=iso-2022kr",
+      "문재인"
+    )
+  }
+
+  test("parse conflicting charset and internal encoding") {
+    // https://tools.ietf.org/html/rfc7303#section-8.8
+    encodingTest(
+      Chunk.array(
+        """<?xml version="1.0" encoding="utf-8"?><hello name="Günther"/>""".getBytes(
+          StandardCharsets.ISO_8859_1)),
+      "application/xml; charset=iso-8859-1",
+      "Günther"
+    )
   }
 }

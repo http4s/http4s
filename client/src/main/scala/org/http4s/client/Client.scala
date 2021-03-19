@@ -244,8 +244,7 @@ object Client {
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
-  def liftKleisli[F[_]: MonadCancelThrow: cats.Defer, A](
-      client: Client[F]): Client[Kleisli[F, A, *]] =
+  def liftKleisli[F[_]: MonadCancelThrow, A](client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { (req: Request[Kleisli[F, A, *]]) =>
       Resource.eval(Kleisli.ask[F, A]).flatMap { a =>
         client
@@ -257,7 +256,7 @@ object Client {
 
   private def addHostHeaderIfUriIsAbsolute[F[_]](req: Request[F]): Request[F] =
     req.uri.host match {
-      case Some(host) if req.headers.get(Host).isEmpty =>
+      case Some(host) if req.headers.get[Host].isEmpty =>
         req.withHeaders(req.headers.put(Host(host.value, req.uri.port)))
       case _ => req
     }

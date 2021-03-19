@@ -17,13 +17,17 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
-  def apply(id: ProductId): Server =
-    new Server(id, Nil)
+object Server {
 
-  override def parse(s: String): ParseResult[Server] =
+  def apply(id: ProductId, tail: ProductIdOrComment*): Server =
+    apply(id, tail.toList)
+
+  val name = ci"Server"
+
+  def parse(s: String): ParseResult[Server] =
     ParseResult.fromParser(parser, "Invalid Server header")(s)
 
   private[http4s] val parser =
@@ -31,21 +35,27 @@ object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         Server(product, tokens)
     }
+
+  implicit val headerInstance: Header[Server, Header.Single] =
+    Header.createRendered(
+      name,
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.product
+            h.rest.foreach {
+              case p: ProductId => writer << ' ' << p
+              case ProductComment(c) => writer << ' ' << '(' << c << ')'
+            }
+            writer
+          }
+        },
+      parse
+    )
+
 }
 
 /** Server header
   * https://tools.ietf.org/html/rfc7231#section-7.4.2
   */
-final case class Server(product: ProductId, rest: List[ProductIdOrComment]) extends Header.Parsed {
-  def key: Server.type = Server
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << product
-    rest.foreach {
-      case p: ProductId => writer << ' ' << p
-      case ProductComment(c) => writer << ' ' << '(' << c << ')'
-    }
-    writer
-  }
-
-}
+final case class Server(product: ProductId, rest: List[ProductIdOrComment])

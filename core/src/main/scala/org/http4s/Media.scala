@@ -26,18 +26,6 @@ trait Media[F[_]] {
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
-  @deprecated(
-    "Can go into an infinite loop for charsets other than UTF-8. Replaced by bodyText",
-    "0.21.5")
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
-    charset.getOrElse(defaultCharset) match {
-      case Charset.`UTF-8` =>
-        // suspect this one is more efficient, though this is superstition
-        entity.body.through(utf8Decode)
-      case cs =>
-        entity.body.through(util.decode(cs))
-    }
-
   final def bodyText(implicit
       RT: RaiseThrowable[F],
       defaultCharset: Charset = DefaultCharset): Stream[F, String] =
@@ -50,7 +38,7 @@ trait Media[F[_]] {
     }
 
   final def contentType: Option[`Content-Type`] =
-    headers.get(`Content-Type`)
+    headers.get[`Content-Type`]
 
   final def contentLength: Option[Long] =
     entity.length

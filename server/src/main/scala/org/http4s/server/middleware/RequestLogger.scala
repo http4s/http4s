@@ -80,11 +80,9 @@ object RequestLogger {
         // The Completed Case is Unit, as we rely on the semantics of G
         // As None Is Successful, but we oly want to log on Some
         http(req)
-          .guaranteeCase { (oc: Outcome[G, _, Response[F]]) =>
-            oc match {
-              case Outcome.Succeeded(_) => G.unit
-              case _ => fk(logAct)
-            }
+          .guaranteeCase {
+            case Outcome.Succeeded(_) => G.unit
+            case _ => fk(logAct)
           } <* fk(logAct)
       } else
         fk(F.ref(Vector.empty[Chunk[Byte]]))
@@ -103,11 +101,10 @@ object RequestLogger {
               logMessage(req.withBodyStream(newBody))
             val response: G[Response[F]] =
               http(changedRequest)
-                .guaranteeCase { (oc: Outcome[G, _, Response[F]]) =>
-                  oc match {
-                    case Outcome.Succeeded(_) => G.unit
-                    case _ => fk(logRequest)
-                  }
+                .guaranteeCase {
+                  case Outcome.Succeeded(_) => G.unit
+                  case _ => fk(logRequest)
+
                 }
                 .map(resp => resp.withBodyStream(resp.body.onFinalizeWeak(logRequest)))
             response

@@ -334,7 +334,7 @@ private[http4s] trait ArbitraryInstances {
         contentCodingsWithQ = contentCodings.zip(qValues).map { case (coding, q) =>
           coding.withQValue(q)
         }
-      } yield `Accept-Encoding`(contentCodingsWithQ.head, contentCodingsWithQ.tail: _*)
+      } yield `Accept-Encoding`(NonEmptyList.fromListUnsafe(contentCodingsWithQ.toList))
     }
 
   implicit val http4sTestingArbitraryForContentEncoding: Arbitrary[`Content-Encoding`] =
@@ -582,19 +582,8 @@ private[http4s] trait ArbitraryInstances {
       } yield Header.Raw(CIString(token), value)
     }
 
-  implicit val http4sTestingArbitraryForHeader: Arbitrary[Header] =
-    Arbitrary {
-      oneOf(
-        getArbitrary[`Accept-Charset`],
-        getArbitrary[Allow],
-        getArbitrary[`Content-Length`],
-        getArbitrary[Date],
-        getArbitrary[Header.Raw]
-      )
-    }
-
   implicit val http4sTestingArbitraryForHeaders: Arbitrary[Headers] =
-    Arbitrary(listOf(getArbitrary[Header]).map(Headers(_)))
+    Arbitrary(listOf(getArbitrary[Header.Raw]).map(Headers(_)))
 
   implicit val http4sTestingArbitraryForServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
@@ -737,7 +726,7 @@ private[http4s] trait ArbitraryInstances {
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
 
     oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty).map(
-      Uri.Path.fromString)
+      Uri.Path.unsafeFromString)
   }
 
   implicit val http4sTestingCogenForPath: Cogen[Uri.Path] =
@@ -847,9 +836,9 @@ private[http4s] trait ArbitraryInstances {
     Cogen[(Headers, Entity[F])].contramap(m => (m.headers, m.entity))
 
   implicit def http4sTestingCogenForHeaders: Cogen[Headers] =
-    Cogen[List[Header]].contramap(_.toList)
+    Cogen[List[Header.Raw]].contramap(_.headers)
 
-  implicit def http4sTestingCogenForHeader: Cogen[Header] =
+  implicit def http4sTestingCogenForHeader: Cogen[Header.Raw] =
     Cogen[(CIString, String)].contramap(h => (h.name, h.value))
 
   implicit def http4sTestingArbitraryForDecodeFailure: Arbitrary[DecodeFailure] =

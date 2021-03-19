@@ -172,13 +172,13 @@ object AsyncHttpClient {
 
   // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
   private def invokeCallbackF[F[_]](invoked: => Unit)(implicit F: Async[F]): F[Unit] =
-    F.start(F.delay(invoked)).flatMap(_.joinAndEmbedNever)
+    F.start(F.delay(invoked)).flatMap(_.joinWithNever)
 
   private def toAsyncRequest[F[_]: Async](
       request: Request[F],
       dispatcher: Dispatcher[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
-    for (h <- request.headers.toList)
+    for (h <- request.headers.headers)
       headers.add(h.name.toString, h.value)
     new RequestBuilder(request.method.renderString)
       .setUrl(request.uri.renderString)
@@ -206,6 +206,6 @@ object AsyncHttpClient {
 
   private def getHeaders(headers: HttpHeaders): Headers =
     Headers(headers.asScala.map { header =>
-      Header(header.getKey, header.getValue)
+      header.getKey -> header.getValue
     }.toList)
 }

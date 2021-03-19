@@ -21,6 +21,7 @@ package blaze
 import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
+
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
@@ -33,8 +34,9 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.util.StringWriter
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.vault._
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
@@ -224,17 +226,17 @@ private[blaze] class Http1ServerStage[F[_]](
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 
-    Http1Stage.encodeHeaders(resp.headers.toList, rr, isServer = true)
+    Http1Stage.encodeHeaders(resp.headers.headers, rr, isServer = true)
 
-    val respTransferCoding = `Transfer-Encoding`.from(resp.headers)
-    val lengthHeader = `Content-Length`.from(resp.headers)
-    val respConn = Connection.from(resp.headers)
+    val respTransferCoding = resp.headers.get[`Transfer-Encoding`]
+    val lengthHeader = resp.headers.get[`Content-Length`]
+    val respConn = resp.headers.get[Connection]
 
     // Need to decide which encoder and if to close on finish
     val closeOnFinish = respConn
       .map(_.hasClose)
       .orElse {
-        Connection.from(req.headers).map(checkCloseConnection(_, rr))
+        req.headers.get[Connection].map(checkCloseConnection(_, rr))
       }
       .getOrElse(
         parser.minorVersion() == 0
@@ -337,7 +339,7 @@ private[blaze] class Http1ServerStage[F[_]](
       req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
+      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -349,7 +351,7 @@ private[blaze] class Http1ServerStage[F[_]](
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
+      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
     renderResponse(
       req,
       resp,

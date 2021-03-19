@@ -29,5 +29,5 @@ trait StreamUtils[F[_]] {
 }
 
 object StreamUtils {
-  implicit def syncInstance[F[_]: Sync]: StreamUtils[F] = new StreamUtils[F] {}
+  implicit def syncInstance[F[_]]: StreamUtils[F] = new StreamUtils[F] {}
 }

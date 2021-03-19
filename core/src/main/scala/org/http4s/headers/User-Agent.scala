@@ -17,13 +17,18 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Renderer, Writer}
+import org.http4s.Header
+import org.typelevel.ci._
 
-object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
-  def apply(id: ProductId): `User-Agent` =
-    new `User-Agent`(id, Nil)
+object `User-Agent` {
 
-  override def parse(s: String): ParseResult[`User-Agent`] =
+  def apply(id: ProductId, tail: ProductIdOrComment*): `User-Agent` =
+    apply(id, tail.toList)
+
+  val name = ci"User-Agent"
+
+  def parse(s: String): ParseResult[`User-Agent`] =
     ParseResult.fromParser(parser, "Invalid User-Agent header")(s)
 
   private[http4s] val parser =
@@ -31,21 +36,33 @@ object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Sing
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         `User-Agent`(product, tokens)
     }
+
+  implicit val headerInstance: Header[`User-Agent`, Header.Single] =
+    Header.createRendered(
+      name,
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.product
+            h.rest.foreach {
+              case p: ProductId => writer << ' ' << p
+              case ProductComment(c) => writer << ' ' << '(' << c << ')'
+            }
+            writer
+          }
+
+        },
+      parse
+    )
+
+  implicit def convert(implicit select: Header.Select[`User-Agent`]): Renderer[`User-Agent`] =
+    new Renderer[`User-Agent`] {
+      override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
+    }
+
 }
 
 /** User-Agent header
   * [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
   */
 final case class `User-Agent`(product: ProductId, rest: List[ProductIdOrComment])
-    extends Header.Parsed {
-  def key: `User-Agent`.type = `User-Agent`
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << product
-    rest.foreach {
-      case p: ProductId => writer << ' ' << p
-      case ProductComment(c) => writer << ' ' << '(' << c << ')'
-    }
-    writer
-  }
-}

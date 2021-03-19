@@ -27,15 +27,15 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.websocket.WebSocketHandshake
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import cats.effect.std.{Dispatcher, Semaphore}
 
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit def F: Async[F]
+  protected implicit val F: Async[F]
 
-  protected implicit def dispatcher: Dispatcher[F]
+  implicit val dispatcher: Dispatcher[F]
 
   override protected def renderResponse(
       req: Request[F],
@@ -47,7 +47,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
     ws match {
       case None => super.renderResponse(req, resp, cleanup)
       case Some(wsContext) =>
-        val hdrs = req.headers.toList.map(h => (h.name.toString, h.value))
+        val hdrs = req.headers.headers.map(h => (h.name.toString, h.value))
         if (WebSocketHandshake.isWebSocketRequest(hdrs))
           WebSocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
@@ -56,8 +56,8 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
-                      Connection(CIString("close")),
-                      Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
+                      Connection(ci"close"),
+                      "Sec-WebSocket-Version" -> "13"
                     ))
                   .attempt
                   .flatMap {

@@ -33,7 +33,7 @@ private[blaze] final class Http1ServerParser[F[_]](
   private var uri: String = _
   private var method: String = _
   private var minor: Int = -1
-  private val headers = new ListBuffer[Header]
+  private val headers = new ListBuffer[Header.ToRaw]
 
   def minorVersion(): Int = minor
 
@@ -90,7 +90,7 @@ private[blaze] final class Http1ServerParser[F[_]](
   /////////////////// Stateful methods for the HTTP parser ///////////////////
   override protected def headerComplete(name: String, value: String): Boolean = {
     logger.trace(s"Received header '$name: $value'")
-    headers += Header(name, value)
+    headers += name -> value
     false
   }
 

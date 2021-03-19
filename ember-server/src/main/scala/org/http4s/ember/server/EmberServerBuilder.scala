@@ -19,24 +19,24 @@ package org.http4s.ember.server
 import cats._
 import cats.syntax.all._
 import cats.effect._
-import fs2.io.tcp.SocketGroup
-import fs2.io.tcp.SocketOptionMapping
-import fs2.io.tls._
+import com.comcast.ip4s._
+import fs2.io.net.{Network, SocketGroup, SocketOption}
+import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.server.Server
+import java.net.InetSocketAddress
 
 import scala.concurrent.duration._
-import java.net.InetSocketAddress
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
 
 final class EmberServerBuilder[F[_]: Async] private (
-    val host: String,
-    val port: Int,
+    val host: Option[Host],
+    val port: Port,
     private val httpApp: HttpApp[F],
-    private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
-    private val sgOpt: Option[SocketGroup],
+    private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+    private val sgOpt: Option[SocketGroup[F]],
     private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
     val maxConcurrency: Int,
@@ -45,16 +45,16 @@ final class EmberServerBuilder[F[_]: Async] private (
     val requestHeaderReceiveTimeout: Duration,
     val idleTimeout: Duration,
     val shutdownTimeout: Duration,
-    val additionalSocketOptions: List[SocketOptionMapping[_]],
+    val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F]
 ) { self =>
 
   private def copy(
-      host: String = self.host,
-      port: Int = self.port,
+      host: Option[Host] = self.host,
+      port: Port = self.port,
       httpApp: HttpApp[F] = self.httpApp,
-      tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
-      sgOpt: Option[SocketGroup] = self.sgOpt,
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
+      sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
       maxConcurrency: Int = self.maxConcurrency,
@@ -63,7 +63,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout,
       idleTimeout: Duration = self.idleTimeout,
       shutdownTimeout: Duration = self.shutdownTimeout,
-      additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
+      additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
@@ -84,14 +84,17 @@ final class EmberServerBuilder[F[_]: Async] private (
       logger = logger
     )
 
-  def withHost(host: String) = copy(host = host)
-  def withPort(port: Int) = copy(port = port)
+  def withHostOption(host: Option[Host]) = copy(host = host)
+  def withHost(host: Host) = withHostOption(Some(host))
+  def withoutHost = withHostOption(None)
+
+  def withPort(port: Port) = copy(port = port)
   def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = httpApp)
 
-  def withSocketGroup(sg: SocketGroup) =
+  def withSocketGroup(sg: SocketGroup[F]) =
     copy(sgOpt = sg.pure[Option])
 
-  def withTLS(tlsContext: TLSContext, tlsParameters: TLSParameters = TLSParameters.Default) =
+  def withTLS(tlsContext: TLSContext[F], tlsParameters: TLSParameters = TLSParameters.Default) =
     copy(tlsInfoOpt = (tlsContext, tlsParameters).pure[Option])
   def withoutTLS =
     copy(tlsInfoOpt = None)
@@ -120,16 +123,17 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def build: Resource[F, Server] =
     for {
-      bindAddress <- Resource.eval(Sync[F].delay(new InetSocketAddress(host, port)))
-      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
-      ready <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
+      sg <- sgOpt.getOrElse(Network.forAsync[F]).pure[Resource[F, *]]
+      ready <- Resource.eval(Deferred[F, Either[Throwable, InetSocketAddress]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(
-            bindAddress,
-            httpApp,
+            host,
+            port,
+            additionalSocketOptions,
             sg,
+            httpApp,
             tlsInfoOpt,
             ready,
             shutdown,
@@ -140,15 +144,14 @@ final class EmberServerBuilder[F[_]: Async] private (
             maxHeaderSize,
             requestHeaderReceiveTimeout,
             idleTimeout,
-            additionalSocketOptions,
             logger
           )
           .compile
           .drain
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
-      _ <- Resource.eval(ready.get.rethrow)
-      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: $bindAddress"))
+      bindAddress <- Resource.eval(ready.get.rethrow)
+      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
     } yield new Server {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
@@ -158,8 +161,8 @@ final class EmberServerBuilder[F[_]: Async] private (
 object EmberServerBuilder {
   def default[F[_]: Async]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
-      host = Defaults.host,
-      port = Defaults.port,
+      host = Host.fromString(Defaults.host),
+      port = Port.fromInt(Defaults.port).get,
       httpApp = Defaults.httpApp[F],
       tlsInfoOpt = None,
       sgOpt = None,
@@ -204,6 +207,6 @@ object EmberServerBuilder {
     val requestHeaderReceiveTimeout: Duration = 5.seconds
     val idleTimeout: Duration = server.defaults.IdleTimeout
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
-    val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
+    val additionalSocketOptions = List.empty[SocketOption]
   }
 }

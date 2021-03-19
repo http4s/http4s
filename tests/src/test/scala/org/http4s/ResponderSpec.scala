@@ -19,7 +19,7 @@ package org.http4s
 import cats.effect.IO
 import org.http4s.Charset._
 import org.http4s.headers._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class ResponderSpec extends Http4sSuite {
   val resp = Response[IO](Status.Ok)
@@ -39,65 +39,56 @@ class ResponderSpec extends Http4sSuite {
       .withContentType(`Content-Type`(MediaType.text.plain))
       .putHeaders(Host("foo"))
 
-    assertEquals(c1.headers.count(_.is(`Content-Type`)), 1)
-    assertEquals(c1.headers.count(_.is(`Content-Length`)), 1)
-    assertEquals(c1.headers.toList.length, 3)
+    assertEquals(c1.headers.headers.count(_.name == ci"Content-Type"), 1)
+    assertEquals(c1.headers.headers.count(_.name == ci"Content-Length"), 1)
+    assertEquals(c1.headers.headers.length, 3)
     assertEquals(c1.contentType, Some(`Content-Type`(MediaType.text.plain)))
 
     val c2 = c1.withContentType(`Content-Type`(MediaType.application.json, `UTF-8`))
 
     assertEquals(c2.contentType, Some(`Content-Type`(MediaType.application.json, `UTF-8`)))
-    assertEquals(c2.headers.count(_.is(`Content-Type`)), 1)
-    assertEquals(c2.headers.count(_.is(`Content-Length`)), 1)
-    assertEquals(c2.headers.count(_.is(Host)), 1)
+    assertEquals(c2.headers.headers.count(_.name == ci"Content-Type"), 1)
+    assertEquals(c2.headers.headers.count(_.name == ci"Content-Length"), 1)
+    assertEquals(c2.headers.headers.count(_.name == ci"Host"), 1)
   }
 
   test("Responder should Remove headers") {
-    val wHeader = resp.putHeaders(Connection(CIString("close")))
-    val maybeHeaderT = wHeader.headers.get(Connection)
-    assertEquals(maybeHeaderT, Some(Connection(CIString("close"))))
+    val wHeader = resp.putHeaders(Connection(ci"close"))
+    val maybeHeaderT = wHeader.headers.get[Connection]
+    assertEquals(maybeHeaderT, Some(Connection(ci"close")))
 
-    val newHeaders = wHeader.removeHeader(Connection)
-    assert(newHeaders.headers.get(Connection).isEmpty)
+    val newHeaders = wHeader.removeHeader[Connection]
+    assert(newHeaders.headers.get[Connection].isEmpty)
   }
 
   test("Responder should Replace all headers") {
     val wHeader =
-      resp.putHeaders(
-        Connection(CIString("close")),
-        `Content-Length`.unsafeFromLong(10),
-        Host("foo"))
-    assertEquals(wHeader.headers.toList.length, 3)
+      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+    assertEquals(wHeader.headers.headers.length, 3)
 
     val newHeaders = wHeader.withHeaders(Date(HttpDate.Epoch))
-    assertEquals(newHeaders.headers.toList.length, 1)
-    assert(newHeaders.headers.get(Connection).isEmpty)
+    assertEquals(newHeaders.headers.headers.length, 1)
+    assert(newHeaders.headers.get[Connection].isEmpty)
   }
 
   test("Responder should Replace all headers II") {
     val wHeader =
-      resp.putHeaders(
-        Connection(CIString("close")),
-        `Content-Length`.unsafeFromLong(10),
-        Host("foo"))
-    assertEquals(wHeader.headers.toList.length, 3)
+      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+    assertEquals(wHeader.headers.headers.length, 3)
 
-    val newHeaders = wHeader.withHeaders(Headers.of(Date(HttpDate.Epoch)))
-    assertEquals(newHeaders.headers.toList.length, 1)
-    assert(newHeaders.headers.get(Connection).isEmpty)
+    val newHeaders = wHeader.withHeaders(Headers(Date(HttpDate.Epoch)))
+    assertEquals(newHeaders.headers.headers.length, 1)
+    assert(newHeaders.headers.get[Connection].isEmpty)
   }
 
   test("Responder should Filter headers") {
     val wHeader =
-      resp.putHeaders(
-        Connection(CIString("close")),
-        `Content-Length`.unsafeFromLong(10),
-        Host("foo"))
-    assertEquals(wHeader.headers.toList.length, 3)
+      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+    assertEquals(wHeader.headers.headers.length, 3)
 
-    val newHeaders = wHeader.filterHeaders(_.name != CIString("Connection"))
-    assertEquals(newHeaders.headers.toList.length, 2)
-    assert(newHeaders.headers.get(Connection).isEmpty)
+    val newHeaders = wHeader.filterHeaders(_.name != ci"Connection")
+    assertEquals(newHeaders.headers.headers.length, 2)
+    assert(newHeaders.headers.get[Connection].isEmpty)
   }
 
   test("Responder should Set cookie from tuple") {
@@ -128,7 +119,7 @@ class ResponderSpec extends Http4sSuite {
     assertEquals(
       resp.removeCookie(cookie).cookies,
       List(
-        ResponseCookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
+        ResponseCookie("foo", "", expires = Option(HttpDate.Epoch))
       ))
   }
 }

@@ -23,10 +23,12 @@ import cats.syntax.all._
 
 import java.util.UUID
 import org.http4s.parser.ZipkinHeader
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-object `X-B3-TraceId` extends HeaderKey.Internal[`X-B3-TraceId`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`X-B3-TraceId`] =
+object `X-B3-TraceId` {
+
+  def parse(s: String): ParseResult[`X-B3-TraceId`] =
     ParseResult.fromParser(parser, "Invalid X-B3-TraceId header")(s)
 
   private[http4s] val parser: Parser0[`X-B3-TraceId`] = {
@@ -35,14 +37,21 @@ object `X-B3-TraceId` extends HeaderKey.Internal[`X-B3-TraceId`] with HeaderKey.
     }
     (hexValue, hexValue.?).mapN(`X-B3-TraceId`(_, _))
   }
+
+  implicit val headerInstance: Header[`X-B3-TraceId`, Header.Single] =
+    Header.createRendered(
+      ci"X-B3-TraceId",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            xB3RenderValueImpl(writer, h.idMostSigBits, h.idLeastSigBits)
+
+        },
+      parse
+    )
+
 }
 
-final case class `X-B3-TraceId`(idMostSigBits: Long, idLeastSigBits: Option[Long])
-    extends Header.Parsed {
-  override def key: `X-B3-TraceId`.type = `X-B3-TraceId`
-
-  override def renderValue(writer: Writer): writer.type =
-    xB3RenderValueImpl(writer, idMostSigBits, idLeastSigBits)
-
+final case class `X-B3-TraceId`(idMostSigBits: Long, idLeastSigBits: Option[Long]) {
   def asUUID: UUID = new UUID(idMostSigBits, idLeastSigBits.getOrElse(0L))
 }

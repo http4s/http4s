@@ -21,10 +21,11 @@ import cats.data.NonEmptyList
 import cats.parse.{Numbers, Parser0 => P0, Parser => P}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
 // See https://tools.ietf.org/html/rfc7233
 
-object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
+object Range {
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
     Range(unit, NonEmptyList.of(r1, rs: _*))
 
@@ -51,11 +52,6 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
       writer
     }
   }
-
-  override def parse(s: String): ParseResult[Range] =
-    parser.parseAll(s).left.map { e =>
-      ParseFailure("Invalid Range header", e.toString)
-    }
 
   val parser: P0[Range] = {
     // https://tools.ietf.org/html/rfc7233#section-3.1
@@ -90,14 +86,23 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     byteRangesSpecifier
   }
 
+  def parse(s: String): ParseResult[Range] =
+    ParseResult.fromParser(parser, "Invalid Range header")(s)
+
+  implicit val headerInstance: Header[Range, Header.Single] =
+    Header.createRendered(
+      ci"Range",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.unit << '=' << h.ranges.head
+            h.ranges.tail.foreach(writer << ',' << _)
+            writer
+          }
+        },
+      parse
+    )
+
 }
 
 final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange])
-    extends Header.Parsed {
-  override def key: Range.type = Range
-  override def renderValue(writer: Writer): writer.type = {
-    writer << unit << '=' << ranges.head
-    ranges.tail.foreach(writer << ',' << _)
-    writer
-  }
-}

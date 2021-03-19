@@ -22,7 +22,7 @@ import org.http4s.syntax.all._
 import org.scalacheck.Prop._
 
 class AcceptEncodingSuite extends HeaderLaws {
-  checkAll("Accept-Encoding", headerLaws(`Accept-Encoding`))
+  checkAll("Accept-Encoding", headerLaws[`Accept-Encoding`])
 
   test("is satisfied by a content coding if the q value is > 0") {
     forAll { (h: `Accept-Encoding`, cc: ContentCoding) =>

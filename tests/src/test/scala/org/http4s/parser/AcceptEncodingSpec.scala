@@ -20,8 +20,8 @@ package parser
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.syntax.all._
 
-class AcceptEncodingSpec extends Http4sSuite with HeaderParserHelper[`Accept-Encoding`] {
-  def hparse(value: String): ParseResult[`Accept-Encoding`] =
+class AcceptEncodingSpec extends Http4sSuite {
+  def parse(value: String): ParseResult[`Accept-Encoding`] =
     `Accept-Encoding`.parse(value)
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
@@ -33,7 +33,7 @@ class AcceptEncodingSpec extends Http4sSuite with HeaderParserHelper[`Accept-Enc
 
   test("Accept-Encoding parser should parse all encodings") {
     ContentCoding.standard.foreach { case (_, coding) =>
-      assertEquals(parse(coding.renderString).values.head, coding)
+      assertEquals(parse(coding.renderString).map(_.values.head), Right(coding))
     }
   }
 
@@ -47,14 +47,15 @@ class AcceptEncodingSpec extends Http4sSuite with HeaderParserHelper[`Accept-Enc
   }
 
   test("Parse properly") {
-    assertEquals(parse(gzip.value), gzip)
-    assertEquals(parse(gzip5.value), gzip5)
-    assertEquals(parse(gzip555.value), gzip555)
+    assertEquals(parse(gzip.value), Right(gzip))
+    assertEquals(parse(gzip5.value), Right(gzip5))
+    assertEquals(parse(gzip555.value), Right(gzip555))
 
     assertEquals(
       parse("gzip; q=1.0, compress"),
-      `Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
+      Right(`Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
+    )
 
-    assertEquals(parse(gzip1.value), gzip)
+    assertEquals(parse(gzip1.value), Right(gzip))
   }
 }

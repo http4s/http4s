@@ -42,7 +42,7 @@ object GZip {
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
-      req.headers.get(`Accept-Encoding`) match {
+      req.headers.get[`Accept-Encoding`] match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
           http(req).map(zipOrPass(_, bufferSize, level, isZippable))
         case _ => http(req)
@@ -50,8 +50,8 @@ object GZip {
     }
 
   def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {
-    val contentType = resp.headers.get(`Content-Type`)
-    resp.headers.get(`Content-Encoding`).isEmpty &&
+    val contentType = resp.headers.get[`Content-Type`]
+    resp.headers.get[`Content-Encoding`].isEmpty &&
     (contentType.isEmpty || contentType.get.mediaType.compressible ||
       (contentType.get.mediaType eq MediaType.application.`octet-stream`))
   }
@@ -88,7 +88,7 @@ object GZip {
               level = level))) ++
       chunk(trailerFinish(trailerGen))
     resp
-      .removeHeader(`Content-Length`)
+      .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
       .copy(entity = Entity.chunked(b))
   }

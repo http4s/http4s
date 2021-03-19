@@ -25,6 +25,7 @@ import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import org.http4s.headers._
+import org.typelevel.ci._
 import scala.collection.mutable.ListBuffer
 
 object ChunkAggregator {
@@ -51,16 +52,23 @@ object ChunkAggregator {
 
   /* removes the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
    removes the `Content-Length` header, and leaves the other headers unchanged */
+
   private[this] def removeChunkedTransferEncoding(headers: Headers): Headers = {
-    val hh: ListBuffer[Header] = ListBuffer.empty[Header]
-    headers.toList.foreach {
-      case e: `Transfer-Encoding` =>
-        e.values.filterNot(_ === TransferCoding.chunked) match {
-          case v :: vs =>
-            hh += `Transfer-Encoding`(NonEmptyList(v, vs))
-          case Nil => // do nothing
+    val hh: ListBuffer[Header.ToRaw] = ListBuffer.empty[Header.ToRaw]
+    headers.headers.foreach {
+      case h @ Header.Raw(ci"Transfer-Encoding", value) =>
+        `Transfer-Encoding`.parse(value) match {
+          case Right(te) =>
+            te.values.filterNot(_ === TransferCoding.chunked) match {
+              case v :: vs =>
+                hh += `Transfer-Encoding`(NonEmptyList(v, vs))
+              case Nil =>
+              // do nothing
+            }
+          case Left(_) =>
+            hh += h
         }
-      case `Content-Length`(_) => // do nothing
+      case Header.Raw(ci"Content-Length", _) => // do nothing
       case header => hh += header
     }
     Headers(hh.toList)

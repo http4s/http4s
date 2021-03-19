@@ -26,6 +26,7 @@ import java.io.File
 import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
+import org.typelevel.ci._
 
 class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
@@ -115,7 +116,7 @@ Content-Type: application/pdf
 
 ------WebKitFormBoundarycaZFo8IAKVROTEeD--
       """.replace("\n", "\r\n")
-        val header = Headers.of(
+        val header = Headers(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
         val request = Request[IO](
@@ -143,7 +144,7 @@ I am a big moose
 --bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz--
 
       """.replace("\n", "\r\n")
-        val header = Headers.of(
+        val header = Headers(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
         val request = Request[IO](

@@ -28,9 +28,7 @@ import munit.CatsEffectAssertions._
 
 trait LawAdapter {
 
-  def booleanPropF[F[_]: MonadThrow, A: Arbitrary: Shrink](
-      propLabel: String,
-      prop: => Boolean): (String, PropF[F]) =
+  def booleanPropF[F[_]: MonadThrow, A](propLabel: String, prop: => Boolean): (String, PropF[F]) =
     propLabel -> PropF.boolean(prop)
 
   def isEqPropF[F[_], A: Arbitrary: Shrink, B: Eq](propLabel: String, prop: A => IsEq[F[B]])(

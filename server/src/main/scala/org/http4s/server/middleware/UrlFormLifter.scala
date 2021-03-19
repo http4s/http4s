@@ -48,7 +48,7 @@ object UrlFormLifter {
         http(newRequest)
       }
 
-      req.headers.get(headers.`Content-Type`) match {
+      req.headers.get[headers.`Content-Type`] match {
         case Some(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`, _))
             if checkRequest(req) =>
           for {

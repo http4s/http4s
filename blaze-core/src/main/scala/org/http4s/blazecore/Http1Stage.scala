@@ -31,6 +31,7 @@ import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blazecore.util._
 import org.http4s.headers._
+import org.http4s.syntax.header._
 import org.http4s.util.{Renderer, StringWriter, Writer}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -78,9 +79,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       closeOnFinish: Boolean): Http1Writer[F] = {
     val headers = req.headers
     getEncoder(
-      Connection.from(headers),
-      `Transfer-Encoding`.from(headers),
-      `Content-Length`.from(headers),
+      headers.get[Connection],
+      headers.get[`Transfer-Encoding`],
+      headers.get[`Content-Length`],
       req.trailerHeaders,
       rr,
       minor,
@@ -298,17 +299,18 @@ object Http1Stage {
     *
     * Note: this method is very niche but useful for both server and client.
     */
-  def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
+  def encodeHeaders(headers: Iterable[Header.Raw], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
+    val dateName = Header[Date].name
     headers.foreach { h =>
       if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
-        if (isServer && h.name == Date.name) dateEncoded = true
+        if (isServer && h.name == dateName) dateEncoded = true
         rr << h << "\r\n"
       }
     }
 
     if (isServer && !dateEncoded)
-      rr << Date.name << ": " << currentDate << "\r\n"
+      rr << dateName << ": " << currentDate << "\r\n"
     ()
   }
 

@@ -8,7 +8,8 @@
  * See licenses/LICENSE_fs2-http
  */
 
-package org.http4s.ember.core
+package org.http4s
+package ember.core
 
 import cats._
 import cats.syntax.all._
@@ -16,7 +17,6 @@ import cats.effect.kernel.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
-import org.http4s.Headers
 
 import scala.util.control.NonFatal
 

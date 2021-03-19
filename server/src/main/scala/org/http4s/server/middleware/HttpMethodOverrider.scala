@@ -26,7 +26,7 @@ import cats.syntax.flatMap._
 import cats.syntax.alternative._
 import cats.{Monad, ~>}
 import org.http4s.Http
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.vault.Key
 
 object HttpMethodOverrider {
@@ -70,7 +70,7 @@ object HttpMethodOverrider {
 
   def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] =
     HttpMethodOverriderConfig[F, G](
-      HeaderOverrideStrategy(CIString("X-HTTP-Method-Override")),
+      HeaderOverrideStrategy(ci"X-HTTP-Method-Override"),
       Set(Method.POST))
 
   val overriddenMethodAttrKey: Key[Method] = Key.newKey[SyncIO, Method].unsafeRunSync()
@@ -101,14 +101,15 @@ object HttpMethodOverrider {
       }
 
     def updateVaryHeader(resp: Response[G]): Response[G] = {
-      val varyHeaderName = CIString("Vary")
+      val varyHeaderName = ci"Vary"
       config.overrideStrategy match {
         case HeaderOverrideStrategy(headerName) =>
           val updatedVaryHeader =
             resp.headers
               .get(varyHeaderName)
-              .map((h: Header) => Header(h.name.toString, s"${h.value}, ${headerName.toString}"))
-              .getOrElse(Header(varyHeaderName.toString, headerName.toString))
+              .map(_.head)
+              .map((h: Header.Raw) => Header.Raw(h.name, s"${h.value}, ${headerName.toString}"))
+              .getOrElse(Header.Raw(varyHeaderName, headerName.toString))
 
           resp.withHeaders(resp.headers.put(updatedVaryHeader))
         case _ => resp
@@ -122,7 +123,8 @@ object HttpMethodOverrider {
 
     def getUnsafeOverrideMethod(req: Request[G]): F[Option[String]] =
       config.overrideStrategy match {
-        case HeaderOverrideStrategy(headerName) => F.pure(req.headers.get(headerName).map(_.value))
+        case HeaderOverrideStrategy(headerName) =>
+          F.pure(req.headers.get(headerName).map(_.head.value))
         case QueryOverrideStrategy(parameter) => F.pure(req.params.get(parameter))
         case FormOverrideStrategy(field, f) =>
           for {

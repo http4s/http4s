@@ -26,6 +26,7 @@ import cats.data.OptionT
 import cats.syntax.all._
 import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires
+import org.typelevel.ci._
 
 class ParsingSpec extends Http4sSuite {
   object Helpers {
@@ -40,7 +41,7 @@ class ParsingSpec extends Http4sSuite {
       } yield q.take
 
     // Only for Use with Text Requests
-    def parseRequestRig[F[_]: Concurrent: Temporal](s: String): F[Request[F]] = {
+    def parseRequestRig[F[_]: Concurrent](s: String): F[Request[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
@@ -52,7 +53,7 @@ class ParsingSpec extends Http4sSuite {
       }
     }
 
-    def parseResponseRig[F[_]: Concurrent: Temporal](s: String): Resource[F, Response[F]] = {
+    def parseResponseRig[F[_]: Concurrent](s: String): Resource[F, Response[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
@@ -106,7 +107,7 @@ class ParsingSpec extends Http4sSuite {
     val expected = Request[IO](
       Method.GET,
       Uri.unsafeFromString("www.google.com"),
-      headers = Headers.of(org.http4s.headers.Host("www.google.com"))
+      headers = Headers(org.http4s.headers.Host("www.google.com"))
     )
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -322,7 +323,7 @@ class ParsingSpec extends Http4sSuite {
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- result._1.entity.body.through(text.utf8Decode).compile.string
       trailers <- result._1.trailerHeaders
-    } yield body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined).assert
+    } yield body == "MozillaDeveloperNetwork" && trailers.get[Expires].isDefined).assert
   }
 
   test(
@@ -368,10 +369,11 @@ class ParsingSpec extends Http4sSuite {
       case _ => ???
     }
 
-    assert(
-      headers.toList == List(
-        Header("Content-Type", "text/plain; charset=UTF-8"),
-        Header("Content-Length", "11"))
+    assertEquals(
+      headers.headers,
+      List(
+        Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
+        Header.Raw(ci"Content-Length", "11"))
     )
     assert(
       rest.isEmpty
@@ -402,13 +404,13 @@ class ParsingSpec extends Http4sSuite {
       headers <- Parser.HeaderP
         .parseHeaders(Array.emptyByteArray, take, defaultMaxHeaderLength, None)
         .map(_._1)
-    } yield headers.toList
+    } yield headers.headers
 
     result.assertEquals(
       List(
-        Header("Content-Type", "text/plain"),
-        Header("Transfer-Encoding", "chunked"),
-        Header("Trailer", "Expires")
+        Header.Raw(ci"Content-Type", "text/plain"),
+        Header.Raw(ci"Transfer-Encoding", "chunked"),
+        Header.Raw(ci"Trailer", "Expires")
       ))
   }
 

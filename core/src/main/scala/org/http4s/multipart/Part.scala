@@ -23,12 +23,13 @@ import fs2.io.file.Files
 import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
+import org.typelevel.ci._
 import java.nio.charset.StandardCharsets
 
 final case class Part[F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
-  def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
+  def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
   def filename: Option[String] =
-    headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
+    headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
 
   override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
@@ -45,29 +46,23 @@ object Part {
   def empty[F[_]]: Part[F] =
     Part(Headers.empty, Entity.empty)
 
-  def formData[F[_]](name: String, value: String, headers: Header*): Part[F] =
+  def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
-      Headers(`Content-Disposition`("form-data", Map("name" -> name)) :: headers.toList),
-      Entity.Strict(fs2.Chunk.array(value.getBytes(StandardCharsets.UTF_8)))
-    )
+      Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
+      Entity.Strict(fs2.Chunk.array(value.getBytes(StandardCharsets.UTF_8))))
 
-  def fileData[F[_]: Files](name: String, file: File, headers: Header*): Part[F] =
-    fileData(
-      name,
-      file.getName,
-      Entity.Chunked(Files[F].readAll(file.toPath, ChunkSize)),
-      headers: _*)
+  def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
+    fileData(name, file.getName, Entity.Chunked(Files[F].readAll(file.toPath, ChunkSize)), headers: _*)
 
-  def fileData[F[_]: Sync](name: String, resource: URL, headers: Header*): Part[F] =
+  def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
 
-  def fileData[F[_]](name: String, filename: String, entity: Entity[F], headers: Header*): Part[F] =
+  def fileData[F[_]](name: String, filename: String, entity: Entity[F], headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(
-        `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) ::
-          Header("Content-Transfer-Encoding", "binary") ::
-          headers.toList
-      ),
+        `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
+          "Content-Transfer-Encoding" -> "binary"
+      ).put(headers: _*),
       entity
     )
 
@@ -75,7 +70,10 @@ object Part {
   // argument in callers, so we can avoid lifting into an effect.  Exposing
   // this API publicly would invite unsafe use, and the `EntityBody` version
   // should be safe.
-  private def fileData[F[_]](name: String, filename: String, in: => InputStream, headers: Header*)(
-      implicit F: Sync[F]): Part[F] =
+  private def fileData[F[_]](
+      name: String,
+      filename: String,
+      in: => InputStream,
+      headers: Header.ToRaw*)(implicit F: Sync[F]): Part[F] =
     fileData(name, filename, Entity.Chunked(readInputStream(F.delay(in), ChunkSize)), headers: _*)
 }

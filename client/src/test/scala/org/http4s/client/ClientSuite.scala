@@ -51,7 +51,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
 
   test("mock client should include a Host header in requests whose URIs are absolute") {
     val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
-      Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+      Ok(r.headers.get[Host].map(_.value).getOrElse("None"))
     })
 
     hostClient
@@ -61,7 +61,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
 
   test("mock client should include a Host header with a port when the port is non-standard") {
     val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
-      Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+      Ok(r.headers.get[Host].map(_.value).getOrElse("None"))
     })
 
     hostClient
@@ -71,7 +71,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
 
   test("mock client should cooperate with the VirtualHost server middleware") {
     val routes = HttpRoutes.of[IO] { case r =>
-      Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+      Ok(r.headers.get[Host].map(_.value).getOrElse("None"))
     }
 
     val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)

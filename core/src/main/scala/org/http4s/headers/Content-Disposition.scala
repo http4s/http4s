@@ -20,13 +20,15 @@ package headers
 import cats.parse.{Parser, Rfc5234}
 import org.http4s.internal.CharPredicate
 import org.http4s.internal.parsing.{Rfc2616, Rfc3986, Rfc7230}
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci._
+import scala.collection.immutable.TreeMap
 
-object `Content-Disposition`
-    extends HeaderKey.Internal[`Content-Disposition`]
-    with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`Content-Disposition`] =
+object `Content-Disposition` {
+  private val safeChars = CharPredicate.Printable -- "%\"\\"
+
+  def parse(s: String): ParseResult[`Content-Disposition`] =
     ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
 
   private[http4s] val parser = {
@@ -65,23 +67,47 @@ object `Content-Disposition`
     val parameter = for {
       tok <- Rfc7230.token <* Parser.string("=") <* Rfc7230.ows
       v <- if (tok.endsWith("*")) extValue else value
-    } yield (tok, v)
+    } yield (CIString(tok), v)
 
     (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map {
-      case (token: String, params: List[(String, String)]) =>
+      case (token: String, params: List[(CIString, String)]) =>
         `Content-Disposition`(token, params.toMap)
     }
   }
+
+  implicit val headerInstance: Header[`Content-Disposition`, Header.Single] =
+    Header.createRendered(
+      ci"Content-Disposition",
+      v =>
+        new Renderable {
+          // Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/scaladsl/model/headers/headers.scala#L468-L492
+          def render(writer: Writer): writer.type = {
+            val renderExtFilename =
+              v.parameters.get(ci"filename").exists(!safeChars.matchesAll(_))
+            val withExtParams =
+              if (renderExtFilename && !v.parameters.contains(ci"filename*"))
+                v.parameters + (ci"filename*" -> v.parameters(ci"filename"))
+              else v.parameters
+            val withExtParamsSorted =
+              if (withExtParams.contains(ci"filename") && withExtParams.contains(ci"filename*"))
+                TreeMap[CIString, String]() ++ withExtParams
+              else withExtParams
+
+            writer.append(v.dispositionType)
+            withExtParamsSorted.foreach {
+              case (k, v) if k == ci"filename" =>
+                writer << "; " << k << '=' << '"'
+                writer.eligibleOnly(v, keep = safeChars, placeholder = '?') << '"'
+              case (k @ ci"${_}*", v) =>
+                writer << "; " << k << '=' << "UTF-8''" << Uri.encode(v)
+              case (k, v) => writer << "; " << k << "=\"" << v << '"'
+            }
+            writer
+          }
+        },
+      parse
+    )
 }
 
 // see http://tools.ietf.org/html/rfc2183
-final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String])
-    extends Header.Parsed {
-  override def key: `Content-Disposition`.type = `Content-Disposition`
-  override lazy val value = super.value
-  override def renderValue(writer: Writer): writer.type = {
-    writer.append(dispositionType)
-    parameters.foreach(p => writer << "; " << p._1 << "=\"" << p._2 << '"')
-    writer
-  }
-}
+final case class `Content-Disposition`(dispositionType: String, parameters: Map[CIString, String])

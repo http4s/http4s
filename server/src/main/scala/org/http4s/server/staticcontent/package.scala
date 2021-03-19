@@ -17,7 +17,7 @@
 package org.http4s
 package server
 
-import cats.effect.kernel.{Async, Sync}
+import cats.effect.kernel.{Async}
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
@@ -28,7 +28,7 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceServiceBuilder[F[_]: Sync](basePath: String): ResourceServiceBuilder[F] =
+  def resourceServiceBuilder[F[_]](basePath: String): ResourceServiceBuilder[F] =
     ResourceServiceBuilder[F](basePath)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */

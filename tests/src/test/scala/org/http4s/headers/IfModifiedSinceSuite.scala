@@ -28,4 +28,7 @@ class IfModifiedSinceSuite extends Http4sSuite {
       `If-Modified-Since`.parse("Sat, 29 Oct 1994 19:43:31 GMT"),
       Right(`If-Modified-Since`(rfc7232Example)))
   }
+  test("fail to parse invalid If-Modified-Since") {
+    assert(`If-Modified-Since`.parse("foo").isLeft)
+  }
 }

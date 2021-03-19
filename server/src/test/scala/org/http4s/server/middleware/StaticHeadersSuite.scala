@@ -18,6 +18,7 @@ package org.http4s.server.middleware
 
 import cats.effect._
 import org.http4s._
+import org.http4s.headers.`Cache-Control`
 import org.http4s.syntax.all._
 import org.http4s.dsl.io._
 
@@ -34,7 +35,7 @@ class StaticHeadersSuite extends Http4sSuite {
     val resp = StaticHeaders.`no-cache`(testService).orNotFound(req)
 
     resp
-      .map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache"))
-      .assert
+      .map(_.headers.get[`Cache-Control`])
+      .assertEquals(Some(`Cache-Control`(CacheDirective.`no-cache`())))
   }
 }

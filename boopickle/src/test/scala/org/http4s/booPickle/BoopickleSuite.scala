@@ -26,8 +26,9 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.EntityCodecTests
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
+import org.http4s.booPickle.implicits._
 
-class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawSuite {
+class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()
 
   trait Fruit {
@@ -64,13 +65,13 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawS
 
   test("have octet-stream content type") {
     assertEquals(
-      encoder.headers.get(`Content-Type`),
+      encoder.headers.get[`Content-Type`],
       Some(`Content-Type`(MediaType.application.`octet-stream`)))
   }
 
   test("have octect-stream content type") {
     assertEquals(
-      booEncoderOf[IO, Fruit].headers.get(`Content-Type`),
+      booEncoderOf[IO, Fruit].headers.get[`Content-Type`],
       Some(`Content-Type`(MediaType.application.`octet-stream`)))
   }
 

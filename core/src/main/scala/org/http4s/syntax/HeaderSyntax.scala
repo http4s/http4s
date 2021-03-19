@@ -15,15 +15,25 @@
  */
 
 package org.http4s
-package parser
+package syntax
 
+import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
-import scala.util.Try
 
-class HeaderParserSuite extends Http4sSuite {
-  test("Header parsing should catch ParseFailures") {
-    val h2 =
-      Header.Raw(CIString("Date"), "Fri, 06 Feb 0010 15:28:43 GMT") // Invalid year: must be >= 1800
-    assert(Try(h2.parsed).isSuccess)
-  }
+trait HeaderSyntax {
+  implicit def http4sHeaderSyntax[A](a: A)(implicit header: Header[A, _]): HeaderOps[A] =
+    new HeaderOps(a, header)
+
+  implicit def http4sSelectSyntax[A](a: A)(implicit select: Header.Select[A]): SelectOps[A] =
+    new SelectOps(a)
+}
+
+final class HeaderOps[A](val a: A, header: Header[A, _]) {
+  def value: String = header.value(a)
+  def name: CIString = header.name
+}
+
+final class SelectOps[A](val a: A)(implicit ev: Header.Select[A]) {
+  def toRaw: Header.Raw = ev.toRaw(a)
+  def renderString: String = Renderer.renderString(a)
 }

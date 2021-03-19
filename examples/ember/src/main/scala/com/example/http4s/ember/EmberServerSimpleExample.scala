@@ -19,6 +19,7 @@ package com.example.http4s.ember
 import fs2._
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
@@ -29,8 +30,8 @@ import _root_.org.http4s.ember.server.EmberServerBuilder
 object EmberServerSimpleExample extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] = {
-    val host = "0.0.0.0"
-    val port = 8080
+    val host = host"0.0.0.0"
+    val port = port"8080"
     for {
       // Server Level Resources Here
       server <-

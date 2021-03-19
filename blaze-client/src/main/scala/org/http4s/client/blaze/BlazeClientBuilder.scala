@@ -162,7 +162,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     since = "0.22.0-M1")
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext =
-      sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided))
+      sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided.apply))
 
   /** Disable secure calls */
   def withoutSslContext: BlazeClientBuilder[F] =

@@ -20,7 +20,7 @@ import org.http4s.Method
 import org.http4s.laws.discipline.ArbitraryInstances._
 
 class AllowSuite extends HeaderLaws {
-  checkAll("Allow", headerLaws(Allow))
+  checkAll("Allow", headerLaws[Allow])
 
   test("Allow should parse an empty string") {
     assert(Allow.parse("") == Right(Allow()))

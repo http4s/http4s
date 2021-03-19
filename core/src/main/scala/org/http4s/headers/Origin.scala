@@ -18,36 +18,21 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.implicits.toBifunctorOps
 import cats.parse.{Parser, Parser0, Rfc5234}
 import org.http4s.Uri.RegName
 import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-sealed abstract class Origin extends Header.Parsed {
-  def key: Origin.type =
-    Origin
-}
+sealed abstract class Origin
 
-object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
+object Origin {
   // An Origin header may be the string "null", representing an "opaque origin":
   // https://stackoverflow.com/questions/42239643/when-does-firefox-set-the-origin-header-to-null-in-post-requests
-  case object Null extends Origin {
-    def renderValue(writer: Writer): writer.type =
-      writer << "null"
-  }
+  case object Null extends Origin
 
   // If the Origin is not "null", it is a non-empty list of Hosts:
   // http://tools.ietf.org/html/rfc6454#section-7
-  final case class HostList(hosts: NonEmptyList[Host]) extends Origin {
-    def renderValue(writer: Writer): writer.type = {
-      writer << hosts.head
-      hosts.tail.foreach { host =>
-        writer << " "
-        writer << host
-      }
-      writer
-    }
-  }
+  final case class HostList(hosts: NonEmptyList[Host]) extends Origin
 
   // A host in an Origin header isn't a full URI.
   // It only contains a scheme, a host, and an optional port.
@@ -87,8 +72,28 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
     nullHost.orElse(singleHost.repSep(char(' ')).map(hosts => Origin.HostList(hosts)))
   }
 
-  override def parse(s: String): ParseResult[Origin] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Origin Header", e.toString)
-    }
+  def parse(s: String): ParseResult[Origin] =
+    ParseResult.fromParser(parser, "Invalid Origin header")(s)
+
+  implicit val headerInstance: Header[Origin, Header.Single] =
+    Header.createRendered(
+      ci"Origin",
+      v =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            v match {
+              case HostList(hosts) =>
+                writer << hosts.head
+                hosts.tail.foreach { host =>
+                  writer << " "
+                  writer << host
+                }
+                writer
+              case Null => writer << "null"
+            }
+
+        },
+      parse
+    )
+
 }

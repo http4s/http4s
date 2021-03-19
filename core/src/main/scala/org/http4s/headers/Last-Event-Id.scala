@@ -18,22 +18,25 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s
 import org.http4s.internal.CharPredicate
 import org.http4s.ServerSentEvent._
-import org.http4s.util.Writer
+import org.typelevel.ci._
 
-final case class `Last-Event-Id`(id: EventId) extends Header.Parsed {
-  override def key: http4s.headers.`Last-Event-Id`.type = `Last-Event-Id`
-  override def renderValue(writer: Writer): writer.type =
-    writer.append(id.value)
-}
+final case class `Last-Event-Id`(id: EventId)
 
-object `Last-Event-Id` extends HeaderKey.Internal[`Last-Event-Id`] with HeaderKey.Singleton {
+object `Last-Event-Id` {
   def parse(s: String): ParseResult[`Last-Event-Id`] =
     ParseResult.fromParser(parser, "Invalid Last-Event-Id header")(s)
 
   private[http4s] val parser = Parser.charsWhile0(CharPredicate.All -- "\n\r").map { (id: String) =>
     `Last-Event-Id`(ServerSentEvent.EventId(id))
   }
+
+  implicit val headerInstance: Header[`Last-Event-Id`, Header.Single] =
+    Header.create(
+      ci"Last-Event-Id",
+      _.id.value,
+      parse
+    )
+
 }

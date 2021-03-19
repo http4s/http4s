@@ -24,11 +24,9 @@ import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.syntax.all._
 
 class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
+
   val `audio/mod`: MediaType =
     new MediaType("audio", "mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))
-
-  def hparse(value: String): ParseResult[Accept] =
-    Accept.parse(value)
 
   def ext = Map("foo" -> "bar", "baz" -> "whatever")
 
@@ -64,17 +62,17 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
   test("Accept-Header parser should Parse multiple Ranges") {
     // Just do a single type
     val accept = Accept(`audio/*`, `video/*`)
-    assertEquals(parse(accept.value), accept)
+    assertEquals(roundTrip(accept), accept)
 
     val accept2 = Accept(`audio/*`.withQValue(qValue"0.2"), `video/*`)
-    assertEquals(parse(accept2.value), accept2)
+    assertEquals(roundTrip(accept2), accept2)
 
     // Go through all of them
     {
       val samples = MediaRange.standard.values.map(MediaRangeAndQValue(_))
       (samples.sliding(4).toArray).foreach { sample =>
         val h = Accept(sample.head, sample.tail.toSeq: _*)
-        assertEquals(parse(h.value), h)
+        assertEquals(roundTrip(h), h)
       }
     }
 
@@ -84,7 +82,7 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
         MediaRange.standard.values.map(_.withExtensions(ext).withQValue(qValue"0.2"))
       (samples.sliding(4).toArray).foreach { sample =>
         val h = Accept(sample.head, sample.tail.toSeq: _*)
-        assertEquals(parse(h.value), h)
+        assertEquals(roundTrip(h), h)
       }
     }
   }
@@ -92,13 +90,13 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
   test("Accept-Header parser should Parse multiple Types") {
     // Just do a single type
     val accept = Accept(`audio/mod`, MediaType.audio.mpeg)
-    assertEquals(parse(accept.value), accept)
+    assertEquals(roundTrip(accept), accept)
 
     // Go through all of them
     val samples = MediaType.all.values.map(MediaRangeAndQValue(_))
     (samples.sliding(4).toArray).foreach { sample =>
       val h = Accept(sample.head, sample.tail.toSeq: _*)
-      assertEquals(parse(h.value), h)
+      assertEquals(roundTrip(h), h)
     }
   }
 
@@ -117,7 +115,7 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
     val samples = MediaType.all.values.map(_.withExtensions(ext).withQValue(qValue"0.2"))
     (samples.sliding(4).toArray).foreach { sample =>
       val h = Accept(sample.head, sample.tail.toSeq: _*)
-      assertEquals(parse(h.value), h)
+      assertEquals(roundTrip(h), h)
     }
   }
 

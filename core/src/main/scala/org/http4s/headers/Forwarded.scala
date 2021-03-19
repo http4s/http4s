@@ -26,12 +26,14 @@ import java.util.Locale
 import org.http4s._
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
+import org.http4s.Header
 import scala.util.Try
+import org.typelevel.ci._
 
-object Forwarded
-    extends HeaderKey.Internal[Forwarded]
-    with HeaderKey.Recurring
-    with ForwardedRenderers {
+object Forwarded extends ForwardedRenderers {
+
+  def apply(head: Forwarded.Element, tail: Forwarded.Element*): Forwarded =
+    apply(NonEmptyList(head, tail.toList))
 
   final case class Node(nodeName: Node.Name, nodePort: Option[Node.Port] = None)
 
@@ -283,10 +285,8 @@ object Forwarded
       ParseFailure("missing host", s"no host defined in the URI '$uri'")
   }
 
-  override def parse(s: String): ParseResult[Forwarded] =
-    parser.parseAll(s).left.map { e =>
-      ParseFailure("Invalid header", e.toString)
-    }
+  def parse(s: String): ParseResult[Forwarded] =
+    ParseResult.fromParser(parser, "Invalid Forwarded header")(s)
 
   private val parser: P[Forwarded] = {
     // https://tools.ietf.org/html/rfc7239#section-4
@@ -357,14 +357,18 @@ object Forwarded
       .map(Forwarded.apply)
   }
 
+  val name = ci"Forwarded"
+
+  implicit val headerInstance: Header[Forwarded, Header.Recurring] =
+    Header.createRendered(
+      name,
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =
+    (a, b) => Forwarded(a.values.concatNel(b.values))
+
 }
 
 final case class Forwarded(values: NonEmptyList[Forwarded.Element])
-    extends Header.RecurringRenderable {
-
-  override type Value = Forwarded.Element
-  override def key: Forwarded.type = Forwarded
-
-  def apply(firstElem: Forwarded.Element, otherElems: Forwarded.Element*): Forwarded =
-    Forwarded(NonEmptyList.of(firstElem, otherElems: _*))
-}

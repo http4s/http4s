@@ -16,11 +16,12 @@
 
 package org.http4s.parser
 
+import com.comcast.ip4s._
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.Uri.Scheme.https
 import org.http4s.syntax.all._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 class UriParserSuite extends Http4sSuite {
   {
@@ -44,14 +45,14 @@ class UriParserSuite extends Http4sSuite {
       } yield f + "::" + b)
 
       v.foreach { s =>
-        assertEquals(Ipv6Address.fromString(s).map(_.value), Right(s))
+        assertEquals(Uri.Ipv6Address.fromString(s).map(_.value), Right(s))
       }
     }
 
     test("Uri.requestTarget should parse a IPv4 address") {
       (0 to 255).foreach { i =>
         val addr = s"$i.$i.$i.$i"
-        assertEquals(Ipv4Address.fromString(addr).map(_.value), Right(addr))
+        assertEquals(Uri.Ipv4Address.fromString(addr).map(_.value), Right(addr))
       }
     }
 
@@ -59,26 +60,20 @@ class UriParserSuite extends Http4sSuite {
       val s = "[01ab::32ba:32ba]"
       assertEquals(
         Uri.requestTarget(s),
-        Right(Uri(authority = Some(Authority(host = ipv6"01ab::32ba:32ba")))))
+        Right(Uri(authority = Some(Authority(host = Uri.Ipv6Address(ipv6"01ab::32ba:32ba"))))))
     }
 
     test("Uri.requestTarget should handle port configurations") {
       val portExamples: Seq[(String, Uri)] = Seq(
         (
           "http://foo.com",
-          Uri(
-            Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"foo.com"), port = None)))),
         (
           "http://foo.com:",
-          Uri(
-            Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"foo.com"), port = None)))),
         (
           "http://foo.com:80",
-          Uri(
-            Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("foo.com")), port = Some(80)))))
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"foo.com"), port = Some(80)))))
       )
 
       check(portExamples)
@@ -88,32 +83,34 @@ class UriParserSuite extends Http4sSuite {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com"))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("www.foo.com")))),
+            Some(Authority(host = RegName(ci"www.foo.com"))),
             path"/foo",
             Query.fromPairs("bar" -> "baz"))),
-        ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
+        (
+          "http://192.168.1.1",
+          Uri(Some(Scheme.http), Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"))))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
+            Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(80))),
             path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = ipv6"2001:db8::7")),
+            Some(Authority(host = Uri.Ipv6Address(ipv6"2001:db8::7"))),
             path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "mailto:John.Doe@example.com",
-          Uri(Some(scheme"mailto"), path = Uri.Path.fromString("John.Doe@example.com")))
+          Uri(Some(scheme"mailto"), path = Uri.Path.unsafeFromString("John.Doe@example.com")))
       )
 
       check(absoluteUris)
@@ -137,7 +134,7 @@ class UriParserSuite extends Http4sSuite {
     }
 
     {
-      val q = Query.fromString("param1=3&param2=2&param2=foo")
+      val q = Query.unsafeFromString("param1=3&param2=2&param2=foo")
       val u = Uri(query = q)
       test("Uri.requestTarget should represent query as multiParams as a Map[String,Seq[String]]") {
         assert(u.multiParams == Map("param1" -> Seq("3"), "param2" -> Seq("2", "foo")))
@@ -167,32 +164,34 @@ class UriParserSuite extends Http4sSuite {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com"))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName(CIString("www.foo.com")))),
+            Some(Authority(host = RegName(ci"www.foo.com"))),
             path"/foo",
             Query.fromPairs("bar" -> "baz"))),
-        ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
+        (
+          "http://192.168.1.1",
+          Uri(Some(Scheme.http), Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"))))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
+            Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(80))),
             path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = ipv6"2001:db8::7")),
+            Some(Authority(host = Uri.Ipv6Address(ipv6"2001:db8::7"))),
             path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "mailto:John.Doe@example.com",
-          Uri(Some(scheme"mailto"), path = Uri.Path.fromString("John.Doe@example.com")))
+          Uri(Some(scheme"mailto"), path = Uri.Path.unsafeFromString("John.Doe@example.com")))
       )
 
       check(absoluteUris)
@@ -248,7 +247,7 @@ class UriParserSuite extends Http4sSuite {
         uri"https://http4s.org",
         Uri(
           scheme = Option(https),
-          authority = Option(Uri.Authority(host = RegName(CIString("http4s.org"))))))
+          authority = Option(Uri.Authority(host = RegName(ci"http4s.org")))))
     }
 
     test("String interpolator should reject invalid URIs") {

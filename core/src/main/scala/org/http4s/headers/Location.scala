@@ -17,20 +17,26 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci._
 
-object Location extends HeaderKey.Internal[Location] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[Location] =
-    ParseResult.fromParser(parser, "Invalid Location")(s)
+object Location {
+
+  def parse(s: String): ParseResult[Location] =
+    ParseResult.fromParser(parser, "Invalid Location header")(s)
+
   private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
     .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
     .map(Location(_))
+
+  implicit val headerInstance: Header[Location, Header.Single] =
+    Header.create(
+      ci"Location",
+      _.uri.toString,
+      parse
+    )
+
 }
 
-final case class Location(uri: Uri) extends Header.Parsed {
-  def key: `Location`.type = `Location`
-  override def value: String = uri.toString
-  def renderValue(writer: Writer): writer.type = writer << uri.toString
-}
+final case class Location(uri: Uri)

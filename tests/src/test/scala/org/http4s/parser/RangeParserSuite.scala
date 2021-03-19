@@ -19,6 +19,7 @@ package parser
 
 import org.http4s.headers.{Range, `Content-Range`}
 import org.http4s.headers.Range.SubRange
+import org.http4s.syntax.header._
 
 class RangeParserSuite extends Http4sSuite {
 
@@ -32,7 +33,7 @@ class RangeParserSuite extends Http4sSuite {
     )
 
     headers.foreach { header =>
-      assertEquals(Range.parse(header.value), Right(header))
+      assertEquals(Header[Range].parse(header.value), Right(header))
     }
   }
 

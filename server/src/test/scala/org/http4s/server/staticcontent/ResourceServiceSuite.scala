@@ -138,30 +138,30 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Try to serve pre-gzipped content if asked to") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource.txt").yolo,
-      headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
     Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResourceGzipped) *>
       rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get(`Content-Type`).map(_.mediaType))
+      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
         .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get(`Content-Encoding`).map(_.contentCoding))
+      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
         .assertEquals(ContentCoding.gzip.some)
   }
 
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource2.txt").yolo,
-      headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
     Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
       rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get(`Content-Type`).map(_.mediaType))
+      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
         .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get(`Content-Encoding`).map(_.contentCoding))
+      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
         .map(_ =!= ContentCoding.gzip.some)
         .assert
   }

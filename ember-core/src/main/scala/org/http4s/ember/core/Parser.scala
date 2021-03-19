@@ -22,6 +22,7 @@ import cats.effect.kernel.{Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._
+import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
 import scodec.bits.ByteVector
@@ -101,9 +102,9 @@ private[ember] object Parser {
         extends ParseHeaderResult
     final case class ParseHeadersIncomplete(
         bv: Array[Byte],
-        accHeaders: List[Header],
+        accHeaders: List[Header.Raw],
         idx: Int,
-        state: Byte,
+        state: Boolean,
         name: Option[String],
         start: Int,
         chunked: Boolean,
@@ -113,8 +114,8 @@ private[ember] object Parser {
     def headersInSection(
         bv: Array[Byte],
         initIndex: Int = 0,
-        initState: Byte = 0, //HeaderNameOrPostCRLF,
-        initHeaders: List[Header] = List.empty,
+        initState: Boolean = false, //HeaderNameOrPostCRLF,
+        initHeaders: List[Header.Raw] = List.empty,
         initChunked: Boolean = false,
         initContentLength: Option[Long] = None,
         initName: Option[String] = None,
@@ -133,49 +134,48 @@ private[ember] object Parser {
       var start = initStart
 
       while (!complete && idx < bv.size) {
-        (state: @switch) match {
-          case 0 => // HeaderNameOrPostCRLF
-            val current = bv(idx)
-            // if current index is colon our name is complete
-            if (current == colon) {
-              state = 1 // set state to check for header value
-              name = new String(bv, start, idx - start) // extract name string
-              start = idx + 1 // advance past colon for next start
+        if (!state) {
+          val current = bv(idx)
+          // if current index is colon our name is complete
+          if (current == colon) {
+            state = true // set state to check for header value
+            name = new String(bv, start, idx - start) // extract name string
+            start = idx + 1 // advance past colon for next start
 
-              // TODO: This if clause may not be necessary since the header value parser trims
-              if ((bv.size > idx + 1 && bv(idx + 1) == space)) {
-                start += 1 // if colon is followed by space advance again
-                idx += 1 // double advance index here to skip the space
-              }
-              // double CRLF condition - Termination of headers
-            } else if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
-              complete = true // completed terminate loop
+            // TODO: This if clause may not be necessary since the header value parser trims
+            if ((bv.size > idx + 1 && bv(idx + 1) == space)) {
+              start += 1 // if colon is followed by space advance again
+              idx += 1 // double advance index here to skip the space
             }
-          case 1 => // HeaderValue
-            val current = bv(idx)
-            // If crlf is next we have completed the header value
-            if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
-              // extract header value, trim leading and trailing whitespace
-              val hValue = new String(bv, start, idx - start - 1).trim
+            // double CRLF condition - Termination of headers
+          } else if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
+            complete = true // completed terminate loop
+          }
+        } else {
+          val current = bv(idx)
+          // If crlf is next we have completed the header value
+          if (current == lf && (idx > 0 && bv(idx - 1) == cr)) {
+            // extract header value, trim leading and trailing whitespace
+            val hValue = new String(bv, start, idx - start - 1).trim
 
-              val hName = name // copy var to val
-              name = null // set name back to null
-              val newHeader = Header(hName, hValue) // create header
-              if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
-                try contentLength = hValue.toLong.some
-                catch {
-                  case scala.util.control.NonFatal(e) =>
-                    throwable = e
-                    complete = true
-                }
-              } else if (hName
-                  .equalsIgnoreCase(transferEncodingS)) { // Check if this is Transfer-encoding
-                chunked = hValue.contains(chunkedS)
+            val hName = name // copy var to val
+            name = null // set name back to null
+            val newHeader = Header.Raw(CIString(hName), hValue) // create header
+            if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
+              try contentLength = hValue.toLong.some
+              catch {
+                case scala.util.control.NonFatal(e) =>
+                  throwable = e
+                  complete = true
               }
-              start = idx + 1 // Next Start is after the CRLF
-              headers += newHeader // Add Header
-              state = 0 // Go back to Looking for HeaderName or Termination
+            } else if (hName
+                .equalsIgnoreCase(transferEncodingS)) { // Check if this is Transfer-encoding
+              chunked = hValue.contains(chunkedS)
             }
+            start = idx + 1 // Next Start is after the CRLF
+            headers += newHeader // Add Header
+            state = false // Go back to Looking for HeaderName or Termination
+          }
         }
         idx += 1 // Single Advance Every Iteration
       }

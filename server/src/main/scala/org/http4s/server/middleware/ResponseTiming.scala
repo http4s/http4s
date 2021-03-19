@@ -21,7 +21,7 @@ package middleware
 import cats.data.Kleisli
 import cats.effect._
 import cats.syntax.all._
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import scala.concurrent.duration._
 
 object ResponseTiming {
@@ -39,7 +39,7 @@ object ResponseTiming {
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
-      headerName: CIString = CIString("X-Response-Time"))(implicit
+      headerName: CIString = ci"X-Response-Time")(implicit
       F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
@@ -48,7 +48,7 @@ object ResponseTiming {
         before <- getTime
         resp <- http(req)
         after <- getTime
-        header = Header(headerName.toString, s"${after - before}")
+        header = Header.Raw(headerName, s"${after - before}")
       } yield resp.putHeaders(header)
     }
 }

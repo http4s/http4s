@@ -17,21 +17,25 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
 import cats.parse.{Parser, Rfc5234}
+import org.http4s.Header
+import org.typelevel.ci._
 
-object `X-B3-Sampled` extends HeaderKey.Internal[`X-B3-Sampled`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`X-B3-Sampled`] =
+object `X-B3-Sampled` {
+
+  def parse(s: String): ParseResult[`X-B3-Sampled`] =
     ParseResult.fromParser(parser, "Invalid X-B3-Sampled header")(s)
+
   private[http4s] val parser: Parser[`X-B3-Sampled`] =
     Rfc5234.bit.map(s => `X-B3-Sampled`(s == '1'))
+
+  implicit val headerInstance: Header[`X-B3-Sampled`, Header.Single] =
+    Header.create(
+      ci"X-B3-Sampled",
+      v => if (v.sampled) "1" else "0",
+      parse
+    )
+
 }
 
-final case class `X-B3-Sampled`(sampled: Boolean) extends Header.Parsed {
-  override def key: `X-B3-Sampled`.type = `X-B3-Sampled`
-
-  override def renderValue(writer: Writer): writer.type = {
-    val b: String = if (sampled) "1" else "0"
-    writer.append(b)
-  }
-}
+final case class `X-B3-Sampled`(sampled: Boolean)

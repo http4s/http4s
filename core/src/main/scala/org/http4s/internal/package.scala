@@ -30,11 +30,10 @@ import cats.effect.{Async, Sync}
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
-import org.log4s.Logger
-
-import scala.util.control.NoStackTrace
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
+import org.log4s.Logger
+import scala.util.control.NoStackTrace
 
 package object internal {
 
@@ -120,23 +119,6 @@ package object internal {
       case HexDecodeException => None
     }
   }
-
-  // Adapted from https://github.com/typelevel/cats-effect/issues/160#issue-306054982
-  @deprecated("Use `fromCompletionStage`", since = "0.21.3")
-  private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(implicit
-      F: Async[F]): F[A] =
-    fcf.flatMap { cf =>
-      F.async { cb =>
-        F.delay(cf.handle[Unit]((result, err) =>
-          err match {
-            case null => cb(Right(result))
-            case _: CancellationException => ()
-            case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-            case ex => cb(Left(ex))
-          })) >>
-          F.pure(Some(F.delay(cf.cancel(true)).void))
-      }
-    }
 
   private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
       fcs: F[CF[A]])(implicit

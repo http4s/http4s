@@ -16,19 +16,18 @@
 
 package org.http4s
 
-import cats.Eq
+import cats._
 import cats.effect.IO
-import cats.syntax.all._
 import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
 import cats.laws.discipline.eq._
-import cats.laws.discipline.arbitrary._
 import fs2._
+import cats.laws.discipline.arbitrary._
+
 import java.io._
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeoutException
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
-import scala.concurrent.duration._
+import org.scalacheck.Arbitrary
 
 class EntityEncoderSpec extends Http4sSuite {
   {
@@ -39,7 +38,7 @@ class EntityEncoderSpec extends Http4sSuite {
 
     /*Invalid With New Model What do we want to do about them?
     test("EntityEncoder should render streams with chunked transfer encoding") {
-      EntityEncoder[IO, Stream[IO, String]].headers.get(`Transfer-Encoding`) match {
+      EntityEncoder[IO, Stream[IO, String]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) => assert(coding.hasChunked)
         case _ => fail("Match failed")
       }
@@ -60,10 +59,10 @@ class EntityEncoderSpec extends Http4sSuite {
     test(
       "EntityEncoder should render streams with chunked transfer encoding without duplicating chunked transfer encoding") {
       trait Foo
-      implicit val FooEncoder =
+      implicit val FooEncoder: EntityEncoder[IO, Foo] =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
           Entity.Empty[IO]())
-      EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) match {
+      EntityEncoder[IO, Stream[IO, Foo]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) =>
           assertEquals(coding, `Transfer-Encoding`(TransferCoding.chunked))
         case _ => fail("Match failed")
@@ -72,7 +71,7 @@ class EntityEncoderSpec extends Http4sSuite {
 
     test("EntityEncoder should render entity bodies with chunked transfer encoding") {
       assert(
-        EntityEncoder[IO, EntityBody[IO]].headers.get(`Transfer-Encoding`) == Some(
+        EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`] == Some(
           `Transfer-Encoding`(TransferCoding.chunked)))
     }
      */
@@ -140,25 +139,24 @@ class EntityEncoderSpec extends Http4sSuite {
   }
 
   {
-    implicit val throwableEq: Eq[Throwable] =
-      Eq.fromUniversalEquals
-
-    implicit def entityEq: Eq[Entity[IO]] =
-      Eq.by[Entity[IO], Either[Throwable, (Option[Long], Vector[Byte])]] { entity =>
-        entity.body.compile.toVector
-          .map(bytes => (entity.length, bytes))
-          .attempt
-          .unsafeRunTimed(1.second)
-          .getOrElse(throw new TimeoutException)
+    implicit def entityEq: Eq[Entity[Id]] =
+      Eq.by[Entity[Id], (Option[Long], Vector[Byte])] { entity =>
+        (entity.length, entity.body.compile.toVector)
       }
 
-    implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[IO, A]] =
-      Eq.by[EntityEncoder[IO, A], (Headers, A => Entity[IO])] { enc =>
+    implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[Id, A]] =
+      Eq.by[EntityEncoder[Id, A], (Headers, A => Entity[Id])] { enc =>
         (enc.headers, enc.toEntity)
       }
 
+    // todo this is needed for scala 2.12, remove once we no longer support it
+    implicit def contravariant: Contravariant[EntityEncoder[Id, *]] =
+      EntityEncoder.entityEncoderContravariant[Id]
+    implicit def arb[A: org.scalacheck.Cogen]: Arbitrary[EntityEncoder[Id, A]] =
+      http4sTestingArbitraryForEntityEncoder[Id, A]
+
     checkAll(
       "Contravariant[EntityEncoder[F, *]]",
-      ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt])
+      ContravariantTests[EntityEncoder[Id, *]].contravariant[MiniInt, MiniInt, MiniInt])
   }
 }

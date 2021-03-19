@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.client.okhttp
+package org.http4s
+package client.okhttp
 
 import java.io.IOException
 
@@ -33,7 +34,6 @@ import okhttp3.{
   Response => OKResponse
 }
 import okio.BufferedSink
-import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.Client
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
@@ -126,8 +126,8 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     }
 
   private def getHeaders(response: OKResponse): Headers =
-    Headers(response.headers().names().asScala.toList.flatMap { v =>
-      response.headers().values(v).asScala.map(Header(v, _))
+    Headers(response.headers().names().asScala.toList.flatMap { k =>
+      response.headers().values(k).asScala.map(k -> _)
     })
 
   private def toOkHttpRequest(req: Request[F], dispatcher: Dispatcher[F])(implicit
@@ -168,7 +168,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     }
 
     new OKRequest.Builder()
-      .headers(OKHeaders.of(req.headers.toList.map(h => (h.name.toString, h.value)).toMap.asJava))
+      .headers(OKHeaders.of(req.headers.headers.map(h => (h.name.toString, h.value)).toMap.asJava))
       .method(req.method.toString(), body)
       .url(req.uri.toString())
       .build()

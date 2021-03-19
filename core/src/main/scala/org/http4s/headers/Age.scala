@@ -18,16 +18,14 @@ package org.http4s
 package headers
 
 import org.http4s.parser.AdditionalRules
-import org.http4s.util.{Renderer, Writer}
-import scala.concurrent.duration.{FiniteDuration, _}
+import scala.concurrent.duration._
 import scala.util.Try
+import org.typelevel.ci._
 
-object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
-  private class AgeImpl(age: Long) extends Age(age)
-
+object Age {
   def fromLong(age: Long): ParseResult[Age] =
     if (age >= 0)
-      ParseResult.success(new AgeImpl(age))
+      ParseResult.success(apply(age))
     else
       ParseResult.fail("Invalid age value", s"Age param $age must be more or equal to 0 seconds")
 
@@ -37,9 +35,17 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   def unsafeFromLong(age: Long): Age =
     fromLong(age).fold(throw _, identity)
 
-  override def parse(s: String): ParseResult[Age] =
+  def parse(s: String): ParseResult[Age] =
     ParseResult.fromParser(parser, "Invalid Age header")(s)
+
   private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
+
+  implicit val headerInstance: Header[Age, Header.Single] =
+    Header.createRendered(
+      ci"Age",
+      _.age,
+      parse
+    )
 }
 
 /** Constructs an Age header.
@@ -48,13 +54,7 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   *
   * @param age age of the response
   */
-sealed abstract case class Age(age: Long) extends Header.Parsed {
-  val key = Age
-
-  override val value = Renderer.renderString(age)
-
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-
+final case class Age private (age: Long) {
   def duration: Option[FiniteDuration] = Try(age.seconds).toOption
 
   def unsafeDuration: FiniteDuration = age.seconds
