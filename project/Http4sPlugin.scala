@@ -290,6 +290,7 @@ object Http4sPlugin extends AutoPlugin {
     val jawnFs2 = "1.1.0"
     val jetty = "9.4.38.v20210224"
     val keypool = "0.3.0"
+    val literally = "1.0.0-RC1"
     val logback = "1.2.3"
     val log4cats = "1.2.0"
     val log4s = "1.10.0-M5"
@@ -355,6 +356,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % V.jetty
   lazy val jettyUtil                        = "org.eclipse.jetty"      %  "jetty-util"                % V.jetty
   lazy val keypool                          = "org.typelevel"          %% "keypool"                   % V.keypool
+  lazy val literally                        = "org.typelevel"          %% "literally"                 % V.literally
   lazy val log4catsCore                     = "org.typelevel"          %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "org.typelevel"          %% "log4cats-slf4j"            % V.log4cats
   lazy val log4catsTesting                  = "org.typelevel"          %% "log4cats-testing"          % V.log4cats
