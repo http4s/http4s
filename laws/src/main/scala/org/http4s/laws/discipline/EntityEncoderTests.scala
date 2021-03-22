@@ -18,7 +18,7 @@ package org.http4s
 package laws
 package discipline
 
-import cats.Eq
+import cats.{Eq, MonadThrow}
 import cats.effect._
 import cats.laws.discipline._
 import org.scalacheck.Arbitrary
