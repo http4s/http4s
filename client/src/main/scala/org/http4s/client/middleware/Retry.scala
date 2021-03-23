@@ -162,8 +162,11 @@ object RetryPolicy {
     isErrorOrRetriableStatus(result)
 
   def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+    isErrorOrStatus(result, RetriableStatuses)
+
+  def isErrorOrStatus[F[_]](result: Either[Throwable, Response[F]], status: Set[Status]): Boolean =
     result match {
-      case Right(resp) => RetriableStatuses(resp.status)
+      case Right(resp) => status(resp.status)
       case Left(WaitQueueTimeoutException) => false
       case _ => true
     }
