@@ -27,6 +27,7 @@ import org.http4s.syntax.all._
 import org.http4s.laws.discipline.ArbitraryInstances._
 import scala.concurrent.duration._
 import org.scalacheck.effect.PropF
+import org.scalacheck.Gen
 
 class RetrySuite extends Http4sSuite {
   val app = HttpRoutes
@@ -87,6 +88,34 @@ class RetrySuite extends Http4sSuite {
   test("default retriable should not retry non-idempotent methods") {
     PropF.forAllF { (s: Status) =>
       countRetries(defaultClient, POST, s, EmptyBody).assertEquals(1)
+    }
+  }
+
+  test("is error or retriable status should return true on a response with a retriable status") {
+    val statusGen = Gen.oneOf(RetryPolicy.RetriableStatuses)
+    PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
+      IO.pure(
+        RetryPolicy.isErrorOrRetriableStatus(Response[IO](status).asRight)
+      ).assertEquals(true)
+    }
+  }
+
+  test("is error or status should return true on a response with a supported status") {
+    val statusGen = Gen.oneOf(Status.registered)
+    PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
+      IO.pure(
+        RetryPolicy.isErrorOrStatus(Response[IO](status).asRight, Set(status))
+      ).assertEquals(true)
+    }
+  }
+
+  test(
+    "is error or status should return false when a response does not match the supported status") {
+    val statusGen = Gen.oneOf(Status.registered)
+    PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
+      IO.pure(
+        RetryPolicy.isErrorOrStatus(Response[IO](status).asRight, Set.empty[Status])
+      ).assertEquals(false)
     }
   }
 
