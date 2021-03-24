@@ -153,9 +153,14 @@ object RetryPolicy {
   def recklesslyRetriable[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     isErrorOrRetriableStatus(result)
 
+  /** Returns true if parameter is a Left or if the response contains a retriable status(as per HTTP spec) */
   def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+    isErrorOrStatus(result, RetriableStatuses)
+
+  /** Like `isErrorOrRetriableStatus` but allows the caller to specify which statuses are considered retriable */
+  def isErrorOrStatus[F[_]](result: Either[Throwable, Response[F]], status: Set[Status]): Boolean =
     result match {
-      case Right(resp) => RetriableStatuses(resp.status)
+      case Right(resp) => status(resp.status)
       case Left(WaitQueueTimeoutException) => false
       case _ => true
     }

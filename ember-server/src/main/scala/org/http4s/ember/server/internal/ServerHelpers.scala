@@ -133,7 +133,12 @@ private[server] object ServerHelpers {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
     val parseWithHeaderTimeout =
-      durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration => parse.timeout(duration))
+      durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration =>
+        parse.timeoutTo(
+          duration,
+          ApplicativeThrow[F].raiseError(
+            new java.util.concurrent.TimeoutException(
+              s"Timed Out on EmberServer Header Receive Timeout: $duration"))))
 
     for {
       tmp <- parseWithHeaderTimeout
@@ -193,18 +198,27 @@ private[server] object ServerHelpers {
     val read: F[Option[Chunk[Byte]]] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
       Stream
-        .unfoldLoopEval(Array.emptyByteArray)(incoming =>
-          runApp(
-            incoming,
-            read,
-            maxHeaderSize,
-            requestHeaderReceiveTimeout,
-            httpApp,
-            errorHandler,
-            requestVault).attempt.map {
-            case Right((req, resp, rest)) => (Right((req, resp)), rest)
-            case Left(e) => (Left(e), None)
-          })
+        .unfoldLoopEval((Array.emptyByteArray, false)) { case (incoming, reused) =>
+          if (incoming.isEmpty || !reused) {
+            read.map(chunkOpt =>
+              (
+                Option.empty[Either[Throwable, (Request[F], Response[F])]],
+                chunkOpt.map(c => (c.toArray, true))))
+          } else {
+            runApp(
+              incoming,
+              read,
+              maxHeaderSize,
+              requestHeaderReceiveTimeout,
+              httpApp,
+              errorHandler,
+              requestVault).attempt.map {
+              case Right((req, resp, rest)) => (Right((req, resp)).some, rest.map((_, true)))
+              case Left(e) => (Left(e).some, None)
+            }
+          }
+        }
+        .unNone
         .evalMap {
           case Right((req, resp)) =>
             postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
