@@ -62,7 +62,7 @@ class ParsingSpec extends Http4sSuite {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Resource.liftF(
+      Resource.eval(
         taking(byteStream).flatMap { read =>
           Parser.Response.parser[F](Int.MaxValue)(Array.emptyByteArray, read).map(_._1)
         }

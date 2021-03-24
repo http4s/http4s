@@ -220,7 +220,7 @@ object Client {
           val req0 =
             addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
           Resource
-            .liftF(app(req0))
+            .eval(app(req0))
             .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
             .map(resp => resp.copy(body = go(resp.body).stream))
         }
@@ -232,7 +232,7 @@ object Client {
     */
   def liftKleisli[F[_]: BracketThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { (req: Request[Kleisli[F, A, *]]) =>
-      Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>
+      Resource.eval(Kleisli.ask[F, A]).flatMap { a =>
         client
           .run(req.mapK(Kleisli.applyK(a)))
           .mapK(Kleisli.liftK[F, A])

@@ -75,7 +75,7 @@ object RequestLogger {
       implicit F: Concurrent[F]): Client[F] =
     Client { req =>
       if (!logBody)
-        Resource.liftF(logMessage(req)) *> client.run(req)
+        Resource.eval(logMessage(req)) *> client.run(req)
       else
         Resource.suspend {
           Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>

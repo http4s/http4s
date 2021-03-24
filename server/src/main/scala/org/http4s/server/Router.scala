@@ -17,9 +17,9 @@
 package org.http4s
 package server
 
-import cats.implicits._
 import cats._
 import cats.data.Kleisli
+import cats.syntax.all._
 
 object Router {
 

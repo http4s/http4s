@@ -31,7 +31,7 @@ class BlockingHttp4sServlet[F[_]](
   override def service(
       servletRequest: HttpServletRequest,
       servletResponse: HttpServletResponse): Unit =
-    F.suspend {
+    F.defer {
       val bodyWriter = servletIo.initWriter(servletResponse)
 
       val render = toRequest(servletRequest).fold(
@@ -50,12 +50,12 @@ class BlockingHttp4sServlet[F[_]](
       bodyWriter: BodyWriter[F]): F[Unit] =
     // Note: We're catching silly user errors in the lift => flatten.
     Sync[F]
-      .suspend(serviceFn(request))
+      .defer(serviceFn(request))
       .recoverWith(serviceErrorHandler(request))
       .flatMap(renderResponse(_, servletResponse, bodyWriter))
 
   private def errorHandler(servletResponse: HttpServletResponse)(t: Throwable): F[Unit] =
-    F.suspend {
+    F.defer {
       if (servletResponse.isCommitted) {
         logger.error(t)("Error processing request after response was committed")
         F.unit

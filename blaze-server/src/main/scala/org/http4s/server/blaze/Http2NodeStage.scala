@@ -224,7 +224,7 @@ private class Http2NodeStage[F[_]](
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = Sync[F]
-            .suspend(raceTimeout(req))
+            .defer(raceTimeout(req))
             .recoverWith(serviceErrorHandler(req))
             .flatMap(renderResponse)
 

@@ -127,11 +127,11 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Server] =
     for {
-      bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
+      bindAddress <- Resource.eval(Sync[F].delay(new InetSocketAddress(host, port)))
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
-      ready <- Resource.liftF(Deferred[F, Either[Throwable, Unit]])
-      shutdown <- Resource.liftF(Shutdown[F](shutdownTimeout))
+      ready <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
+      shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(
@@ -155,8 +155,8 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           .drain
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
-      _ <- Resource.liftF(ready.get.rethrow)
-      _ <- Resource.liftF(logger.info(s"Ember-Server service bound to address: $bindAddress"))
+      _ <- Resource.eval(ready.get.rethrow)
+      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: $bindAddress"))
     } yield new Server {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined

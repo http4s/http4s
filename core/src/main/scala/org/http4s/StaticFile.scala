@@ -84,7 +84,7 @@ object StaticFile {
       cs: ContextShift[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
-    OptionT.apply(F.suspend {
+    OptionT.apply(F.defer {
       if (file.isDirectory())
         F.pure(None)
       else {

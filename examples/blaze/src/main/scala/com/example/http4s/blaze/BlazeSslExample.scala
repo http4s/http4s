@@ -42,7 +42,7 @@ object BlazeSslExampleApp {
   def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
     for {
       blocker <- Blocker[F]
-      b <- Resource.liftF(builder[F])
+      b <- Resource.eval(builder[F])
       server <- b.withHttpApp(BlazeExampleApp.httpApp(blocker)).resource
     } yield server
 }

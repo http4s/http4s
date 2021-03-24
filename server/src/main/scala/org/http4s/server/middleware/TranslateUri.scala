@@ -17,9 +17,9 @@
 package org.http4s
 package server.middleware
 
-import cats.data.Kleisli
 import cats.MonoidK
-import cats.implicits._
+import cats.data.Kleisli
+import cats.syntax.all._
 
 /** Removes the given prefix from the beginning of the path of the [[Request]].
   */
