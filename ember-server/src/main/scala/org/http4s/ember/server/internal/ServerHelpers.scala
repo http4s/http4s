@@ -26,7 +26,7 @@ import fs2.{Chunk, Stream}
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s._
-import org.http4s.ember.core.Util.timeoutMaybe
+import org.http4s.ember.core.Util.{timeoutMaybe, timeoutToMaybe}
 import org.http4s.ember.core.{Encoder, Parser}
 import org.http4s.headers.{Connection, Date}
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
@@ -124,17 +124,23 @@ private[server] object ServerHelpers {
         .widen[Socket[F]]
     }
 
-  private[internal] def runApp[F[_]: Temporal](
+  private[internal] def runApp[F[_]](
       head: Array[Byte],
       read: F[Option[Chunk[Byte]]],
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] = {
+      requestVault: Vault)(implicit
+      F: Temporal[F]): F[(Request[F], Response[F], Option[Array[Byte]])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
-    val parseWithHeaderTimeout = timeoutMaybe(parse, requestHeaderReceiveTimeout)
+    val parseWithHeaderTimeout = timeoutToMaybe(
+      parse,
+      requestHeaderReceiveTimeout,
+      F.raiseError[(Request[F], F[Option[Array[Byte]]])](new java.util.concurrent.TimeoutException(
+        s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout"))
+    )
 
     for {
       tmp <- parseWithHeaderTimeout
@@ -194,18 +200,27 @@ private[server] object ServerHelpers {
     val read: F[Option[Chunk[Byte]]] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
     Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
       Stream
-        .unfoldLoopEval(Array.emptyByteArray)(incoming =>
-          runApp(
-            incoming,
-            read,
-            maxHeaderSize,
-            requestHeaderReceiveTimeout,
-            httpApp,
-            errorHandler,
-            requestVault).attempt.map {
-            case Right((req, resp, rest)) => (Right((req, resp)), rest)
-            case Left(e) => (Left(e), None)
-          })
+        .unfoldLoopEval((Array.emptyByteArray, false)) { case (incoming, reused) =>
+          if (incoming.isEmpty || !reused) {
+            read.map(chunkOpt =>
+              (
+                Option.empty[Either[Throwable, (Request[F], Response[F])]],
+                chunkOpt.map(c => (c.toArray, true))))
+          } else {
+            runApp(
+              incoming,
+              read,
+              maxHeaderSize,
+              requestHeaderReceiveTimeout,
+              httpApp,
+              errorHandler,
+              requestVault).attempt.map {
+              case Right((req, resp, rest)) => (Right((req, resp)).some, rest.map((_, true)))
+              case Left(e) => (Left(e).some, None)
+            }
+          }
+        }
+        .unNone
         .evalMap {
           case Right((req, resp)) =>
             postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])

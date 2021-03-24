@@ -35,7 +35,7 @@ import org.typelevel.keypool._
 
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
-import _root_.org.http4s.ember.core.Util.timeoutMaybe
+import _root_.org.http4s.ember.core.Util.{timeoutMaybe, timeoutToMaybe}
 import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
 
 private[client] object ClientHelpers {
@@ -110,7 +110,11 @@ private[client] object ClientHelpers {
             head,
             timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout)
           )
-          timeoutMaybe(parse, timeout)
+          timeoutToMaybe(
+            parse,
+            timeout,
+            ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
+              s"Timed Out on EmberClient Header Receive Timeout: $timeout")))
         }
 
     for {

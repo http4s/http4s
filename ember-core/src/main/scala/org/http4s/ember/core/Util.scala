@@ -91,4 +91,9 @@ private[ember] object Util {
       case _ => fa
     }
 
+  def timeoutToMaybe[F[_], A](fa: F[A], d: Duration, ft: F[A])(implicit F: Temporal[F]): F[A] =
+    d match {
+      case fd: FiniteDuration => F.timeoutTo(fa, fd, ft)
+      case _ => fa
+    }
 }
