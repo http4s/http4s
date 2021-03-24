@@ -136,7 +136,7 @@ private final class Http1Connection[F[_]](
   }
 
   def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
-    F.suspend[Response[F]] {
+    F.defer[Response[F]] {
       stageState.get match {
         case Idle =>
           if (stageState.compareAndSet(Idle, ReadWrite)) {
@@ -166,7 +166,7 @@ private final class Http1Connection[F[_]](
       case Left(e) =>
         F.raiseError(e)
       case Right(req) =>
-        F.suspend {
+        F.defer {
           val initWriterSize: Int = 512
           val rr: StringWriter = new StringWriter(initWriterSize)
           val isServer: Boolean = false
@@ -291,7 +291,7 @@ private final class Http1Connection[F[_]](
 
             val attrs = Vault.empty.insert[F[Headers]](
               Message.Keys.TrailerHeaders[F],
-              F.suspend {
+              F.defer {
                 if (parser.contentComplete()) F.pure(trailers.get())
                 else
                   F.raiseError(

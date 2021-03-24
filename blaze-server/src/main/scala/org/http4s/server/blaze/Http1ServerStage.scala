@@ -190,7 +190,7 @@ private[blaze] class Http1ServerStage[F[_]](
         executionContext.execute(new Runnable {
           def run(): Unit = {
             val action = Sync[F]
-              .suspend(raceTimeout(req))
+              .defer(raceTimeout(req))
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 

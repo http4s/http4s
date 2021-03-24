@@ -20,6 +20,7 @@ import java.net.URLEncoder
 import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
 import org.http4s.UriTemplate._
 import org.http4s.util.StringWriter
+import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
@@ -52,6 +53,7 @@ final case class UriTemplate(
     * If no matching `expansion` could be found the same instance will be
     * returned.
     */
+  @nowarn("cat=unused")
   def expandFragment[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     if (fragment.isEmpty) this
     else copy(fragment = expandFragmentN(fragment, name, String.valueOf(value)))

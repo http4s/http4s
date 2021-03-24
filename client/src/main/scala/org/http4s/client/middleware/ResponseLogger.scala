@@ -73,7 +73,7 @@ object ResponseLogger {
     Client { req =>
       client.run(req).flatMap { response =>
         if (!logBody)
-          Resource.liftF(logMessage(response) *> F.delay(response))
+          Resource.eval(logMessage(response) *> F.delay(response))
         else
           Resource.suspend {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>

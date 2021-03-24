@@ -54,7 +54,7 @@ private[blaze] final class Http1ServerParser[F[_]](
       if (minorVersion() == 1 && isChunked)
         attrs.insert(
           Message.Keys.TrailerHeaders[F],
-          F.suspend[Headers] {
+          F.defer[Headers] {
             if (!contentComplete())
               F.raiseError(
                 new IllegalStateException(

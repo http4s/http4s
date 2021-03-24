@@ -72,7 +72,7 @@ object RequestLogger {
 
     Client { req =>
       if (!logBody)
-        Resource.liftF(logMessage(req)) *> client
+        Resource.eval(logMessage(req)) *> client
           .run(req)
       else
         Resource.suspend {

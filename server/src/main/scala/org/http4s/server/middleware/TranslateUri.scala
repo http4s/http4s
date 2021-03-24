@@ -19,10 +19,12 @@ package server.middleware
 
 import cats.data.Kleisli
 import cats.{Functor, MonoidK}
+import scala.annotation.nowarn
 
 /** Removes the given prefix from the beginning of the path of the [[Request]].
   */
 object TranslateUri {
+  @nowarn("cat=unused")
   def apply[F[_], G[_], B](prefix: String)(http: Kleisli[F, Request[G], B])(implicit
       F: MonoidK[F],
       G: Functor[G]): Kleisli[F, Request[G], B] =
@@ -43,7 +45,7 @@ object TranslateUri {
       }
     }
 
-  private def setCaret[F[_]: Functor](req: Request[F], newCaret: Int): Request[F] = {
+  private def setCaret[F[_]](req: Request[F], newCaret: Int): Request[F] = {
     val oldCaret = req.attributes
       .lookup(Request.Keys.PathInfoCaret)
       .getOrElse(0)

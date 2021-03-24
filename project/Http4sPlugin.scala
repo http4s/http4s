@@ -22,7 +22,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.4"
+  val scala_213 = "2.13.5"
   val scala_212 = "2.12.13"
 
   override lazy val globalSettings = Seq(
@@ -89,7 +89,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
-    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.1"),    
+    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.1"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.2"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn-json4s"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn-parser"),
@@ -308,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.14.15"
     val boopickle = "1.3.3"
     val cats = "2.4.2"
-    val catsEffect = "2.3.3"
+    val catsEffect = "2.4.0"
     val catsEffectTesting = "0.5.2"
     val circe = "0.13.0"
     val cryptobits = "1.3"

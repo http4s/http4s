@@ -24,6 +24,7 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.effect.concurrent._
 import cats.syntax.all._
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import org.http4s._
@@ -54,6 +55,7 @@ private[client] object ClientHelpers {
     )
   }
 
+  @nowarn("cat=unused")
   def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext],
@@ -61,7 +63,7 @@ private[client] object ClientHelpers {
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] =
     for {
-      address <- Resource.liftF(getAddress(requestKey))
+      address <- Resource.eval(getAddress(requestKey))
       initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
       socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
@@ -80,6 +82,7 @@ private[client] object ClientHelpers {
       }
     } yield RequestKeySocket(socket, requestKey)
 
+  @nowarn("cat=unused")
   def request[F[_]: Concurrent: ContextShift: Timer](
       request: Request[F],
       connection: EmberConnection[F],
@@ -167,17 +170,17 @@ private[client] object ClientHelpers {
       request: Request[F]): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
-        .liftF(managed.value.keySocket.socket.isOpen)
+        .eval(managed.value.keySocket.socket.isOpen)
         .ifM(
           managed.pure[Resource[F, *]],
           // Already Closed,
           // The Resource Scopes Aren't doing us anything
           // if we have max removed from pool we will need to revisit
           if (managed.isReused) {
-            Resource.liftF(managed.canBeReused.set(Reusable.DontReuse)) >>
+            Resource.eval(managed.canBeReused.set(Reusable.DontReuse)) >>
               getValidManaged(pool, request)
           } else
-            Resource.liftF(Sync[F].raiseError(
+            Resource.eval(Sync[F].raiseError(
               new java.net.SocketException("Fresh connection from pool was not open")))
         )
     }

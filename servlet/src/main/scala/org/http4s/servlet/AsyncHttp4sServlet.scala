@@ -81,7 +81,7 @@ class AsyncHttp4sServlet[F[_]](
       val response =
         gate.get *>
           Sync[F]
-            .suspend(serviceFn(request))
+            .defer(serviceFn(request))
             .recoverWith(serviceErrorHandler(request))
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       F.race(timeout, response).flatMap(r => renderResponse(r.merge, servletResponse, bodyWriter))

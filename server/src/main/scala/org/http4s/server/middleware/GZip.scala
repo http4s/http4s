@@ -35,6 +35,7 @@ object GZip {
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
+  @nowarn("cat=unused")
   def apply[F[_]: Functor, G[_]: Functor](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
@@ -60,7 +61,7 @@ object GZip {
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
       ContentCoding.`x-gzip`)
 
-  private def zipOrPass[F[_]: Functor](
+  private def zipOrPass[F[_]](
       response: Response[F],
       bufferSize: Int,
       level: Int,
@@ -71,10 +72,7 @@ object GZip {
     }
 
   @nowarn("cat=deprecation")
-  private def zipResponse[F[_]: Functor](
-      bufferSize: Int,
-      level: Int,
-      resp: Response[F]): Response[F] = {
+  private def zipResponse[F[_]](bufferSize: Int, level: Int, resp: Response[F]): Response[F] = {
     logger.trace("GZip middleware encoding content")
     // Need to add the Gzip header and trailer
     val trailerGen = new TrailerGen()

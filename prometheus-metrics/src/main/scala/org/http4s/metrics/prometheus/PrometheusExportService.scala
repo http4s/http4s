@@ -24,6 +24,7 @@ import io.prometheus.client.hotspot._
 import java.io.StringWriter
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
+import scala.annotation.nowarn
 
 /*
  * PrometheusExportService Contains an HttpService
@@ -31,6 +32,7 @@ import org.http4s.dsl.Http4sDsl
  * with the CollectorRegistry that it is creating
  * metrics for, allowing custom metric registration.
  */
+@nowarn("cat=unused")
 final class PrometheusExportService[F[_]: Sync] private (
     val routes: HttpRoutes[F],
     val collectorRegistry: CollectorRegistry

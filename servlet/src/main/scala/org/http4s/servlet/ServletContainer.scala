@@ -22,7 +22,9 @@ import java.util
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.http4s.server.ServerBuilder
+import scala.annotation.nowarn
 
+@nowarn("cat=unused")
 abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
   type Self <: ServletContainer[F]
 
