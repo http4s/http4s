@@ -109,7 +109,11 @@ private[client] object ClientHelpers {
             connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
           )
 
-          finiteDuration.fold(parse)(duration => parse.timeout(duration))
+          finiteDuration.fold(parse)(duration =>
+            parse.timeoutTo(
+              duration,
+              ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
+                s"Timed Out on EmberClient Header Receive Timeout: $duration"))))
         }
 
     for {
