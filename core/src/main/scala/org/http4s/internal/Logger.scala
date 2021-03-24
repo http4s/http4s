@@ -38,8 +38,8 @@ object Logger {
 
     def prelude =
       message match {
-        case Request(method, uri, httpVersion, _, _, _) =>
-          s"$httpVersion $method $uri"
+        case req: Request[_] =>
+          s"${req.httpVersion} ${req.method} ${req.uri}"
 
         case Response(status, httpVersion, _, _, _) =>
           s"$httpVersion $status"
@@ -80,8 +80,8 @@ object Logger {
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
     def prelude =
       message match {
-        case Request(method, uri, httpVersion, _, _, _) =>
-          s"$httpVersion $method $uri"
+        case req: Request[_] =>
+          s"${req.httpVersion} ${req.method} ${req.uri}"
 
         case Response(status, httpVersion, _, _, _) =>
           s"$httpVersion $status"

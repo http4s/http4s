@@ -20,6 +20,7 @@ package server
 import cats._
 import cats.data.Kleisli
 import cats.syntax.semigroupk._
+import scala.annotation.nowarn
 
 object Router {
 
@@ -50,6 +51,7 @@ object Router {
         }
     }
 
+  @nowarn("cat=unused")
   private[server] def translate[F[_]: Functor](prefix: String)(req: Request[F]): Request[F] = {
     val newCaret = prefix match {
       case "/" => 0

@@ -25,6 +25,7 @@ import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
+import scala.annotation.nowarn
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
@@ -65,6 +66,7 @@ object Part {
       headers: Header*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), blocker, headers: _*)
 
+  @nowarn("cat=unused")
   def fileData[F[_]: Sync](
       name: String,
       filename: String,

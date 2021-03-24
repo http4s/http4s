@@ -24,6 +24,7 @@ import cats.effect.IO
 import cats.syntax.all._
 import org.log4s.getLogger
 import io.chrisdavenport.vault._
+import scala.annotation.nowarn
 
 object PushSupport {
   private[this] val logger = getLogger
@@ -31,6 +32,7 @@ object PushSupport {
   implicit def http4sPushOps[F[_]: Functor](response: Response[F]): PushOps[F] =
     new PushOps[F](response)
 
+  @nowarn("cat=unused")
   final class PushOps[F[_]: Functor](response: Response[F]) extends AnyRef {
     def push(url: String, cascade: Boolean = true)(implicit req: Request[F]): Response[F] = {
       val newUrl = {

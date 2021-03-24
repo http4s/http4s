@@ -43,7 +43,7 @@ class ParsingSpec extends Http4sSuite {
       } yield q.dequeue1
 
     // Only for Use with Text Requests
-    def parseRequestRig[F[_]: Concurrent: Timer](s: String): F[Request[F]] = {
+    def parseRequestRig[F[_]: Concurrent](s: String): F[Request[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
@@ -55,14 +55,14 @@ class ParsingSpec extends Http4sSuite {
       }
     }
 
-    def parseResponseRig[F[_]: Concurrent: Timer](s: String): Resource[F, Response[F]] = {
+    def parseResponseRig[F[_]: Concurrent](s: String): Resource[F, Response[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Resource.liftF(
+      Resource.eval(
         taking(byteStream).flatMap { read =>
           Parser.Response.parser[F](Int.MaxValue)(Array.emptyByteArray, read).map(_._1)
         }

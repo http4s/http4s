@@ -21,6 +21,7 @@ import fs2._
 import org.http4s._
 import org.http4s.headers.`Content-Length`
 import java.nio.charset.StandardCharsets
+import scala.annotation.nowarn
 
 private[ember] object Encoder {
 
@@ -28,6 +29,7 @@ private[ember] object Encoder {
   private val CRLF = "\r\n"
   val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
 
+  @nowarn("cat=unused")
   def respToBytes[F[_]: Sync](
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
@@ -75,6 +77,7 @@ private[ember] object Encoder {
   private val NoPayloadMethods: Set[Method] =
     Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
 
+  @nowarn("cat=unused")
   def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = req.isChunked
     val initSection = {

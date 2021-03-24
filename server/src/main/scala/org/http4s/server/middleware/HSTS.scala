@@ -21,7 +21,7 @@ package middleware
 import cats.Functor
 import cats.data.Kleisli
 import org.http4s.headers.`Strict-Transport-Security`
-
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 /** [[Middleware]] to add HTTP Strict Transport Security (HSTS) support adding
@@ -38,6 +38,7 @@ object HSTS {
       routes: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     apply(routes, defaultHSTSPolicy)
 
+  @nowarn("cat=unused")
   def apply[F[_]: Functor, A, G[_]: Functor](
       http: Kleisli[F, A, Response[G]],
       header: `Strict-Transport-Security`): Kleisli[F, A, Response[G]] =

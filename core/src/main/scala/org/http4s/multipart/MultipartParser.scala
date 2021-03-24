@@ -22,6 +22,7 @@ import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.{readAll, writeAll}
 import java.nio.file.{Files, Path, StandardOpenOption}
+import scala.annotation.nowarn
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -95,7 +96,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteMatch[F[_]: Sync](
+  private def splitCompleteMatch[F[_]](
       middleChunked: Boolean,
       sti: Int,
       i: Int,
@@ -123,7 +124,7 @@ object MultipartParser {
     * Jose messed up hard like 5 patches ago and now it breaks bincompat to
     * remove.
     */
-  private def splitPartialMatch[F[_]: Sync](
+  private def splitPartialMatch[F[_]](
       middleChunked: Boolean,
       currState: Int,
       i: Int,
@@ -152,6 +153,7 @@ object MultipartParser {
     * incomplete match, or ignored (as such excluding the sequence
     * from the subsequent split stream).
     */
+  @nowarn("cat=unused")
   private[http4s] def splitOnChunk[F[_]: Sync](
       values: Array[Byte],
       state: Int,
@@ -446,7 +448,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteLimited[F[_]: Sync](
+  private def splitCompleteLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       sti: Int,
@@ -484,6 +486,7 @@ object MultipartParser {
     * Else, if the whole block is a partial match,
     * add it to the carry over
     */
+  @nowarn("cat=unused")
   private[http4s] def splitPartialLimited[F[_]: Sync](
       state: Int,
       middleChunked: Boolean,

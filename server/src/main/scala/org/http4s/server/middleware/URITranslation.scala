@@ -20,9 +20,11 @@ package middleware
 
 import cats.Functor
 import cats.data.Kleisli
+import scala.annotation.nowarn
 
 @deprecated("Use org.http4s.server.middleware.TranslateUri instead", since = "0.18.16")
 object URITranslation {
+  @nowarn("cat=unused")
   def translateRoot[F[_], G[_]: Functor, B](prefix: String)(
       @deprecatedName(Symbol("service")) http: Kleisli[F, Request[G], B])
       : Kleisli[F, Request[G], B] = {
