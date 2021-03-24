@@ -114,7 +114,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     for {
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
-      tlsContextOptWithDefault <- Resource.liftF(
+      tlsContextOptWithDefault <- Resource.eval(
         tlsContextOpt
           .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])
       )
@@ -146,7 +146,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       val client = Client[F] { request =>
         for {
           managed <- ClientHelpers.getValidManaged(pool, request)
-          _ <- Resource.liftF(
+          _ <- Resource.eval(
             pool.state.flatMap { poolState =>
               logger.trace(
                 s"Connection Taken - Key: ${managed.value.keySocket.requestKey} - Reused: ${managed.isReused} - PoolState: $poolState"

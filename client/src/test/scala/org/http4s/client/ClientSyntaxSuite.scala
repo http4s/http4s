@@ -322,7 +322,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
             _ <- List(1, 2, 3).traverse { i =>
               Resource(IO.pure(() -> released.update(_ :+ i)))
             }
-            _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
+            _ <- Resource.eval[IO, Unit](IO.raiseError(SadTrombone))
           } yield Response()
         }.toHttpApp(req).flatMap(_.as[Unit]).attempt >> released.get
       }

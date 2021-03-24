@@ -111,7 +111,7 @@ object FileService {
   private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(implicit
       F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
-    OptionT(F.suspend {
+    OptionT(F.defer {
       if (file.isDirectory)
         StaticFile
           .fromFile(new File(file, "index.html"), config.blocker, Some(req))
@@ -148,7 +148,7 @@ object FileService {
     req.headers.get[Range] match {
       case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
         if (validRange(s, e, file.length))
-          F.suspend {
+          F.defer {
             val size = file.length()
             val start = if (s >= 0) s else math.max(0, size + s)
             val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive

@@ -206,8 +206,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def resource: Resource[F, Client[F]] =
     for {
       scheduler <- scheduler
-      _ <- Resource.liftF(verifyAllTimeoutsAccuracy(scheduler))
-      _ <- Resource.liftF(verifyTimeoutRelations())
+      _ <- Resource.eval(verifyAllTimeoutsAccuracy(scheduler))
+      _ <- Resource.eval(verifyTimeoutRelations())
       manager <- connectionManager(scheduler)
     } yield BlazeClient.makeClient(
       manager = manager,
