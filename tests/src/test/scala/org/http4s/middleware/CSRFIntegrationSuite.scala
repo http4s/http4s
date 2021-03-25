@@ -23,8 +23,8 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s.MediaType
 import org.http4s._
-import org.http4s.client._
 import org.http4s.dsl.io._
+import org.http4s.ember.client._
 import org.http4s.ember.server._
 import org.http4s.headers._
 import org.http4s.implicits._
@@ -66,7 +66,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
           .withPort(port)
           .withHttpApp(service)
           .build
-        client <- IO.delay(JavaNetClientBuilder[IO](testBlocker).create)
+        client <- IO.delay(EmberClientBuilder.default[IO].withBlocker(testBlocker).build)
         baseReq = Request[IO](
           method = Method.POST,
           headers = Headers.of(
@@ -81,8 +81,8 @@ class CSRFIntegrationSuite extends Http4sSuite {
         req = csrfProtect.embedInRequestCookie(baseReq, token)
         fiber <- resource
           .use(server =>
-            IO.delay(println(s"Server started at ${server.address}!")) >> client.expect[String](
-              req))
+            IO.delay(println(s"Server started at ${server.address}!")) >> client.use(
+              _.expect[String](req)))
           .start
         check <- fiber.join
       } yield check
@@ -115,7 +115,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
           .withPort(port)
           .withHttpApp(service)
           .build
-        client <- IO.delay(JavaNetClientBuilder[IO](testBlocker).create)
+        client <- IO.delay(EmberClientBuilder.default[IO].withBlocker(testBlocker).build)
         baseReq = Request[IO](
           method = Method.POST,
           headers = Headers.of(Header("Origin", s"http://localhost:$port")),
@@ -128,8 +128,8 @@ class CSRFIntegrationSuite extends Http4sSuite {
         req = csrfProtect.embedInRequestCookie(baseReq, token)
         fiber <- resource
           .use(server =>
-            IO.delay(println(s"Server started at ${server.address}!")) >> client.expect[String](
-              req))
+            IO.delay(println(s"Server started at ${server.address}!")) >> client.use(
+              _.expect[String](req)))
           .start
         check <- fiber.join
       } yield check
@@ -162,7 +162,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
           .withPort(port)
           .withHttpApp(service)
           .build
-        client <- IO.delay(JavaNetClientBuilder[IO](testBlocker).create)
+        client <- IO.delay(EmberClientBuilder.default[IO].withBlocker(testBlocker).build)
         mf = Part.formData[IO](COOKIE_NAME, unlift(token), `Content-Type`(MediaType.text.plain))
         mp = Multipart(Vector(mf))
         baseReq = Request[IO](
@@ -177,8 +177,8 @@ class CSRFIntegrationSuite extends Http4sSuite {
         req = csrfProtect.embedInRequestCookie(baseReq, token)
         fiber <- resource
           .use(server =>
-            IO.delay(println(s"Server started at ${server.address}!")) >> client.expect[String](
-              req))
+            IO.delay(println(s"Server started at ${server.address}!")) >> client.use(
+              _.expect[String](req)))
           .start
         check <- fiber.join
       } yield check
