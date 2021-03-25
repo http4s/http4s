@@ -282,7 +282,7 @@ sealed class JettyBuilder[F[_]] private (
 
   private def shutdown(jetty: JServer): F[Unit] =
     F.async[Unit] { cb =>
-      jetty.addLifeCycleListener(
+      jetty.addEventListener(
         new AbstractLifeCycle.AbstractLifeCycleListener {
           override def lifeCycleStopped(ev: LifeCycle) = cb(Right(()))
           override def lifeCycleFailure(ev: LifeCycle, cause: Throwable) = cb(Left(cause))

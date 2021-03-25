@@ -23,7 +23,9 @@ import cats.syntax.all._
 import fs2._
 import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.client.api.{Request => JettyRequest}
+import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
+import org.eclipse.jetty.io.ClientConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.log4s.{Logger, getLogger}
 
@@ -38,7 +40,7 @@ object JettyClient {
       .map(client =>
         Client[F] { req =>
           Resource.suspend(F.asyncF[Resource[F, Response[F]]] { cb =>
-            F.bracket(StreamRequestContentProvider()) { dcp =>
+            F.bracket(StreamRequestContent()) { dcp =>
               val jReq = toJettyRequest(client, req, dcp)
               for {
                 rl <- ResponseListener(cb)
@@ -65,8 +67,11 @@ object JettyClient {
     Stream.resource(resource(client))
 
   def defaultHttpClient(): HttpClient = {
-    val sslCtxFactory = new SslContextFactory.Client();
-    val c = new HttpClient(sslCtxFactory)
+    val sslCtxFactory = new SslContextFactory.Client()
+    val connector = new ClientConnector()
+    connector.setSslContextFactory(sslCtxFactory)
+    val transport = new HttpClientTransportOverHTTP(connector)
+    val c = new HttpClient(transport)
     c.setFollowRedirects(false)
     c.setDefaultRequestContentType(null)
     c
@@ -75,7 +80,7 @@ object JettyClient {
   private def toJettyRequest[F[_]](
       client: HttpClient,
       request: Request[F],
-      dcp: StreamRequestContentProvider[F]): JettyRequest = {
+      dcp: StreamRequestContent[F]): JettyRequest = {
     val jReq = client
       .newRequest(request.uri.toString)
       .method(request.method.name)
@@ -88,7 +93,7 @@ object JettyClient {
         }
       )
 
-    for (h <- request.headers.headers) jReq.header(h.name.toString, h.value)
-    jReq.content(dcp)
+    for (h <- request.headers) jReq.headers(c => c.add(h.name.toString, h.value): Unit): Unit
+    jReq.body(dcp)
   }
 }

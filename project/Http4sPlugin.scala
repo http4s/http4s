@@ -66,13 +66,6 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
-    // servlet containers skipped until we figure out our Jakarta EE strategy
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 
@@ -288,7 +281,7 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.12.2"
     val jawn = "1.1.0"
     val jawnFs2 = "1.1.0"
-    val jetty = "9.4.38.v20210224"
+    val jetty = "10.0.1"
     val keypool = "0.3.0"
     val literally = "1.0.0-RC1"
     val logback = "1.2.3"
@@ -309,7 +302,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalatags = "0.9.3"
     val scalaXml = "2.0.0-M5"
     val scodecBits = "1.1.24"
-    val servlet = "3.1.0"
+    val servlet = "4.0.1"
     val slf4j = "1.7.30"
     val tomcat = "9.0.44"
     val treehugger = "0.4.4"
