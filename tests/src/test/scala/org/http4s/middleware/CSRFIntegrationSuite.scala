@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets
 import cats.arrow._
 import cats.effect._
 import cats.syntax.all._
+import org.http4s.EntityDecoder.multipart
 import org.http4s.MediaType
 import org.http4s._
 import org.http4s.dsl.io._
@@ -92,8 +93,10 @@ class CSRFIntegrationSuite extends Http4sSuite {
 
   test("CSRF check must work for url forms") {
     val port = CSRFIntegrationSuite.findAvailablePort(reuseAddress = true)
-    val routes = HttpRoutes.of[IO] { case Method.POST -> Root =>
-      Ok("CSRF passed!")
+    val routes = HttpRoutes.of[IO] { case req @ Method.POST -> Root =>
+      req.decode[UrlForm] { _ =>
+        Ok("CSRF passed!")
+      }
     }
 
     val prg =
@@ -139,8 +142,10 @@ class CSRFIntegrationSuite extends Http4sSuite {
 
   test("CSRF check must work for multipart forms") {
     val port = CSRFIntegrationSuite.findAvailablePort(reuseAddress = true)
-    val routes = HttpRoutes.of[IO] { case Method.POST -> Root =>
-      Ok("CSRF passed!")
+    val multipartRoutes = HttpRoutes.of[IO] { case req @ Method.POST -> Root =>
+      req.decodeWith(multipart[IO], strict = true) { _ =>
+        Ok("CSRF passed!")
+      }
     }
 
     val prg =
@@ -154,7 +159,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
             .build
         token <- csrfProtect.generateToken[IO]
-        service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
+        service = csrfProtect.validate()(Router("/" -> multipartRoutes).orNotFound)
         resource = EmberServerBuilder
           .default[IO]
           .withBlocker(testBlocker)
@@ -188,8 +193,10 @@ class CSRFIntegrationSuite extends Http4sSuite {
 
   test("CSRF check must work for multipart forms with files") {
     val port = CSRFIntegrationSuite.findAvailablePort(reuseAddress = true)
-    val routes = HttpRoutes.of[IO] { case Method.POST -> Root =>
-      Ok("CSRF passed!")
+    val multipartRoutes = HttpRoutes.of[IO] { case req @ Method.POST -> Root =>
+      req.decodeWith(multipart[IO], strict = true) { _ =>
+        Ok("CSRF passed!")
+      }
     }
 
     val prg =
@@ -203,7 +210,7 @@ class CSRFIntegrationSuite extends Http4sSuite {
             .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](COOKIE_NAME, FunctionK.id))
             .build
         token <- csrfProtect.generateToken[IO]
-        service = csrfProtect.validate()(Router("/" -> routes).orNotFound)
+        service = csrfProtect.validate()(Router("/" -> multipartRoutes).orNotFound)
         resource = EmberServerBuilder
           .default[IO]
           .withBlocker(testBlocker)
