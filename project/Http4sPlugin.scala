@@ -65,20 +65,16 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
     // breaks binary compatibility in caffeine module with 0.8.1
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.9.0"),
     // servlet containers skipped until we figure out our Jakarta EE strategy
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.2"),    
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.2"),
     // No release notes. If it's compatible with 6.2.5, prove it and PR it.
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut"),
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.1"),
@@ -320,7 +316,7 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.11.4"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.38.v20210224"
+    val jetty = "10.0.1"
     val json4s = "3.6.11"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
@@ -344,7 +340,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalatags = "0.9.3"
     val scalaXml = "1.3.0"
     val scodecBits = "1.1.24"
-    val servlet = "3.1.0"
+    val servlet = "4.0.1"
     val slf4j = "1.7.30"
     val specs2 = "4.10.6"
     val tomcat = "9.0.44"
