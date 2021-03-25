@@ -31,7 +31,6 @@ import org.http4s.implicits._
 import org.http4s.multipart._
 import org.http4s.server._
 import org.http4s.server.middleware.CSRF.unlift
-import org.http4s.server.middleware._
 
 import scala.concurrent.ExecutionContext.global
 
