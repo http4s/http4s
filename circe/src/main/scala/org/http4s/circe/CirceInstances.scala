@@ -170,7 +170,7 @@ trait CirceInstances extends JawnInstances {
       Uri.fromString(str).leftMap(_ => "Uri")
     }
 
-  implicit final def toMessageSynax[F[_]](req: Message[F]): CirceInstances.MessageSyntax[F] =
+  implicit final def toMessageSyntax[F[_]](req: Message[F]): CirceInstances.MessageSyntax[F] =
     new CirceInstances.MessageSyntax(req)
 }
 
