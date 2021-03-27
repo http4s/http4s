@@ -16,6 +16,7 @@
 
 package org.http4s.server.middleware
 
+import cats.data.OptionT
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
@@ -54,4 +55,47 @@ class ErrorHandlingSuite extends Http4sSuite {
       .map(_.status)
       .assertEquals(Status.BadRequest)
   }
+
+  sealed trait ErrorCode extends Throwable
+  object ErrorCode {
+    case object CouldNotParseRequest extends ErrorCode
+  }
+
+  test("Handle errors with a custom error handler") {
+    ErrorHandling(
+      routes(ErrorCode.CouldNotParseRequest),
+      (req: Request[IO]) => {
+        case ErrorCode.CouldNotParseRequest => OptionT.liftF(BadRequest())
+      }
+    ).orNotFound
+      .apply(request)
+      .map(_.status)
+      .assertEquals(Status.BadRequest)
+  }
+
+  test("Handle errors with a custom error handler via httpRoutes") {
+    ErrorHandling.httpRoutes(
+      routes(ErrorCode.CouldNotParseRequest),
+      (req: Request[IO]) => {
+        case ErrorCode.CouldNotParseRequest => BadRequest()
+      }
+    ).orNotFound
+      .apply(request)
+      .map(_.status)
+      .assertEquals(Status.BadRequest)
+  }
+
+  test("Handle errors with a custom error handler via httpApp") {
+    ErrorHandling.httpApp(
+      routes(ErrorCode.CouldNotParseRequest).orNotFound,
+      (req: Request[IO]) => {
+        case ErrorCode.CouldNotParseRequest => BadRequest()
+      }
+    )
+      .apply(request)
+      .map(_.status)
+      .assertEquals(Status.BadRequest)
+  }
+
+
 }
