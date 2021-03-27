@@ -22,8 +22,7 @@ import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
 import cats.syntax.all._
 import java.io.File
-import java.nio.file.NoSuchFileException
-import java.nio.file.{LinkOption, Path, Paths}
+import java.nio.file.{Files, LinkOption, NoSuchFileException, Path, Paths}
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
@@ -86,13 +85,16 @@ object FileService {
               case _ => OptionT.none
             }
           resolvedPath
-            .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
+            .flatMapF(path =>
+              F.delay(
+                if (Files.exists(path, LinkOption.NOFOLLOW_LINKS))
+                  Some(path.toRealPath(LinkOption.NOFOLLOW_LINKS))
+                else None))
             .collect { case path if path.startsWith(rootPath) => path.toFile }
             .flatMap(f => config.pathCollector(f, config, request))
             .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-            .recoverWith {
-              case _: NoSuchFileException => OptionT.none
-              case BadTraversal => OptionT.some(Response(Status.BadRequest))
+            .recoverWith { case BadTraversal =>
+              OptionT.some(Response(Status.BadRequest))
             }
         })
 

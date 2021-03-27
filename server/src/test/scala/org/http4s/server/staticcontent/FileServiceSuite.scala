@@ -56,6 +56,11 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
+  test("Return a 404 for a resource under an existing file") {
+    val req = Request[IO](uri = uri"/testresource.txt/test")
+    routes.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
+  }
+
   test("Decodes path segments") {
     val req = Request[IO](uri = uri"/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
