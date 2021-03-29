@@ -20,8 +20,8 @@ package servlet
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.syntax.all._
-import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import jakarta.servlet._
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.internal.loggingAsyncCallback
 import org.http4s.server._
 import scala.concurrent.duration.Duration

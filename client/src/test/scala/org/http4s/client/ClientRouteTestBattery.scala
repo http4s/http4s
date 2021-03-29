@@ -22,7 +22,7 @@ import cats.syntax.all._
 import fs2._
 import fs2.io._
 import java.util.Locale
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._

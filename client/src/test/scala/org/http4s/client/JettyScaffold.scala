@@ -17,10 +17,10 @@
 package org.http4s.client
 
 import cats.effect.{Resource, Sync}
+import jakarta.servlet.http.HttpServlet
 import java.net.{InetAddress, InetSocketAddress}
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
-import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.ssl.SslContextFactory

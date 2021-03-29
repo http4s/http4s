@@ -17,9 +17,9 @@
 package org.http4s
 package servlet
 
+import jakarta.servlet._
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets.UTF_8
-import javax.servlet._
 
 import cats.effect.IO
 

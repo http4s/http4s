@@ -19,8 +19,8 @@ package servlet
 
 import cats.effect._
 import java.util
-import javax.servlet.{DispatcherType, Filter}
-import javax.servlet.http.HttpServlet
+import jakarta.servlet.{DispatcherType, Filter}
+import jakarta.servlet.http.HttpServlet
 import org.http4s.server.ServerBuilder
 
 abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
