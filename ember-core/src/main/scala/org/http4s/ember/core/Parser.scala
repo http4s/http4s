@@ -26,6 +26,7 @@ import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
 import scodec.bits.ByteVector
+import cats.MonadThrow
 
 private[ember] object Parser {
 

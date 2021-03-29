@@ -37,6 +37,7 @@ import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import _root_.org.http4s.ember.core.Util.{timeoutMaybe, timeoutToMaybe}
 import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
+import cats.ApplicativeThrow
 
 private[client] object ClientHelpers {
   def requestToSocketWithKey[F[_]: Sync](
