@@ -95,7 +95,7 @@ Includes all the changes of v0.21.21.
 
 * [#4622](https://github.com/http4s/http4s/pull/4622): Encode `scala.xml.Elem` with an XML declaration, including the charset.
 
-### Dependency updates
+## Dependency updates
 
 * cats-effect-2.4.0
 * jetty-9.4.39
