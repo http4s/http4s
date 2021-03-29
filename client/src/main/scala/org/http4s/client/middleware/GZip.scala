@@ -21,7 +21,7 @@ package middleware
 import cats.data.NonEmptyList
 import cats.effect.Async
 import fs2.{Pipe, Pull, Stream}
-import fs2.compression.DeflateParams
+import fs2.compression.{Compression, DeflateParams}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import org.typelevel.ci._
 import scala.util.control.NoStackTrace
@@ -56,13 +56,13 @@ object GZip {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
-          _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
+          _.through(Compression[F].gunzip(bufferSize)).flatMap(_.content)
         response
           .filterHeaders(nonCompressionHeader)
           .withBodyStream(response.body.through(decompressWith(gunzip)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
-        val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(DeflateParams(bufferSize))
+        val deflate: Pipe[F, Byte, Byte] = Compression[F].deflate(DeflateParams(bufferSize))
         response
           .filterHeaders(nonCompressionHeader)
           .withBodyStream(response.body.through(decompressWith(deflate)))

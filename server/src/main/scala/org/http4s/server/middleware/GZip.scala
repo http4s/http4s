@@ -81,7 +81,7 @@ object GZip {
       resp.body
         .through(trailer(trailerGen, bufferSize))
         .through(
-          deflate(
+          Compression[F].deflate(
             DeflateParams(
               bufferSize = bufferSize,
               header = ZLibParams.Header.GZIP,

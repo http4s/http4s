@@ -23,7 +23,7 @@ import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
-import fs2.compression.{DeflateParams, deflate}
+import fs2.compression.{Compression, DeflateParams}
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
@@ -245,10 +245,10 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
   // Some tests for the raw unwinding body without HTTP encoding.
   test("FlushingChunkWriter should write a deflated stream") {
     val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
-    val p = s.through(deflate(DeflateParams.DEFAULT))
+    val p = s.through(Compression[IO].deflate(DeflateParams.DEFAULT))
     (
       p.compile.toVector.map(_.toArray),
-      DumpingWriter.dump(s.through(deflate(DeflateParams.DEFAULT))))
+      DumpingWriter.dump(s.through(Compression[IO].deflate(DeflateParams.DEFAULT))))
       .mapN(_ sameElements _)
       .assert
   }
@@ -268,10 +268,10 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
   }
 
   test("FlushingChunkWriter should write a deflated resource") {
-    val p = resource.through(deflate(DeflateParams.DEFAULT))
+    val p = resource.through(Compression[IO].deflate(DeflateParams.DEFAULT))
     (
       p.compile.toVector.map(_.toArray),
-      DumpingWriter.dump(resource.through(deflate(DeflateParams.DEFAULT))))
+      DumpingWriter.dump(resource.through(Compression[IO].deflate(DeflateParams.DEFAULT))))
       .mapN(_ sameElements _)
       .assert
   }
