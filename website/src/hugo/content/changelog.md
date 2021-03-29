@@ -8,6 +8,57 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.21 (2021-03-29)
+
+## http4s-client
+
+### Enhancements
+
+* [#4614](https://github.com/http4s/http4s/pull/4614): Support for `Idempotent-Key` header in `Retry` middleware
+* [#4636](https://github.com/http4s/http4s/pull/4636): Add `isErrorOrStatus` to `RetryPolicy` to support retrying on different response statuses than the default set
+
+## http4s-server
+
+### Bugfixes
+
+* [#4638](https://github.com/http4s/http4s/pull/4646): In `Caching` middleware, don't send `private` alongside `no-store`. These are contradictory directives.
+* [#4654](https://github.com/http4s/http4s/pull/4654): Return a 404 instead of 500 when requesting a path whose parent is a file instead of a directory
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4637](https://github.com/http4s/http4s/pull/4637): Clarify which timeout is firing in the error message
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#4637](https://github.com/http4s/http4s/pull/4637): On reused connections, wait for the idle period, not the shorter header timeout, for the next byte.
+
+## http4s-play-json
+
+### Enhancements
+
+* [#4595](https://github.com/http4s/http4s/pull/4595): Streamline `Writes[Uri]` and `Reads[Uri]` instances
+
+## http4s-scala-xml
+
+### Bugfixes
+
+* [#4620](https://github.com/http4s/http4s/pull/4620): Make XML chraset inference compliant with RFC7303
+
+### Enhancements
+
+* [#4622](https://github.com/http4s/http4s/pull/4622): Encode `scala.xml.Elem` with an XML declaration, including the charset.
+
+### Dependency updates
+
+* cats-effect-2.4.0
+* netty-4.1.60
+* scalatags-0.9.4
+* tomcat-9.0.44
+
 # v0.21.20 (2021-03-02)
 
 ## http4s-core
