@@ -8,6 +8,49 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.0-M6 (2021-03-29)
+
+Includes all the changes of v0.21.21.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4588](https://github.com/http4s/http4s/pull/4588): Additional consistency in modeled headers around `.value` (removed in favor of the typeclass) and `.parse` (present on the companion)
+* [#4580](https://github.com/http4s/http4s/pull/4580): Rename `Uri.Path.fromString` to `Uri.Path.unsafeFromString`.
+* [#4581](https://github.com/http4s/http4s/pull/4581): Rename `Query.fromString` to `Query.unsafeFromString`.
+* [#4602](https://github.com/http4s/http4s/pull/4602): Remove `ipv4` and `ipv6` macros that clash with ip4s'.
+* [#4603](https://github.com/http4s/http4s/pull/4603): Drop deprecated members of `org.http4s.util`.
+* [#4604](https://github.com/http4s/http4s/pull/4604): Fix rendering of UTF-8-encoded `Content-Disposition` parameters.  The `parameters` map is now keyed by a `CIString`.
+* [#4630](https://github.com/http4s/http4s/pull/4630): Use Typesafe Literally to implement the literal interpolators. This should have zero impact on user code, but does affect binary compatibility.
+
+## http4s-dsl
+
+### Breaking changes
+
+* [#4640](https://github.com/http4s/http4s/pull/4640): Change `apply(Headers.ToRaw*)` syntax to `headers(Headers.Raw)`. The overload from 0.21 was ambiguous with the new header model in 0.22.
+
+## http4s-boopickle
+
+### Breaking changes
+
+* [#4590](https://github.com/http4s/http4s/pull/4590): Move implicits to `org.http4s.booPickle.implicits._`. The thinking is evolving here, and this is likely to be reverted before 0.22.0 final.
+
+## http4s-scala-xml
+
+### Breaking changes
+
+* [#4621](https://github.com/http4s/http4s/pull/4621): Revert the `implicits` decoding back to how it was in 0.21.  Set up safer defaults for the default `SAXParserFactory`, corresponding to what will be in scala-xml-2.0.
+
+### Dependency updates
+
+* async-http-client-2.12.3
+* case-insensitive-1.1.0
+* jackson-databind-2.12.2
+* literally-1.0.0-RC1 (new)
+* log4cats-1.2.1
+* vault-2.1.8
+
 # v0.21.21 (2021-03-29)
 
 ## http4s-client
