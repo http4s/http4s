@@ -880,7 +880,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.19/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.21/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1237,7 +1237,7 @@ the entity headers or with the entity itself.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">EntityBody</span><span class="tparams">[<span name="F">+F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.EntityBody.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>
+        <span class="name">EntityBody</span><span class="tparams">[<span name="F">+F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.3/fs2-core_2.12-2.5.3-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.EntityBody.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>
       </span>
       
       
@@ -1304,7 +1304,7 @@ a streaming decoder by having the value of A be some kind of streaming construct
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">EventStream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.0/fs2-core_2.12-2.5.0-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.EventStream.F">F</span>, <a href="ServerSentEvent.html" class="extype" name="org.http4s.ServerSentEvent">ServerSentEvent</a>]</span>
+        <span class="name">EventStream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.3/fs2-core_2.12-2.5.3-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.EventStream.F">F</span>, <a href="ServerSentEvent.html" class="extype" name="org.http4s.ServerSentEvent">ServerSentEvent</a>]</span>
       </span>
       
       <p class="shortcomment cmt">A stream of server-sent events</p>
@@ -2039,22 +2039,6 @@ status line, headers, and a possible request body.
       </span>
       
       
-    </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RequestCookieJarextendsAnyVal"></a><a id="RequestCookieJar:RequestCookieJar"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/RequestCookieJar.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="RequestCookieJar.html"><span class="name">RequestCookieJar</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.Response" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Response[F[_]]extendsMessage[F]withProductwithSerializable"></a><a id="Response[F[_]]:Response[F]"></a>
       <span class="permalink">
@@ -2358,6 +2342,25 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Deprecated in favor of HttpRoutes</p></dd></dl></div>
+    </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RequestCookieJarextendsAnyVal"></a><a id="RequestCookieJar:RequestCookieJar"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/RequestCookieJar.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="RequestCookieJar.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.20) Use the CookieJar middleware instead">RequestCookieJar</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.20)</i> Use the CookieJar middleware instead</p></dd></dl></div>
     </li><li name="org.http4s.Service" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Service[F[_],A,B]=cats.data.Kleisli[F,A,B]"></a><a id="Service[F[_],A,B]:Service[F,A,B]"></a>
       <span class="permalink">
@@ -3207,22 +3210,6 @@ https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/sh
       </span>
       
       
-    </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RequestCookieJar"></a><a id="RequestCookieJar:RequestCookieJar"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/RequestCookieJar$.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="RequestCookieJar$.html"><span class="name">RequestCookieJar</span></a>
-      </span>
-      
-      
     </li><li name="org.http4s.Response" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Response"></a><a id="Response:Response"></a>
       <span class="permalink">
@@ -3521,6 +3508,25 @@ https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/sh
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Replaced by HttpRoutes</p></dd></dl></div>
+    </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RequestCookieJar"></a><a id="RequestCookieJar:RequestCookieJar"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/RequestCookieJar$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="RequestCookieJar$.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.20) Use the CookieJar middleware instead">RequestCookieJar</span></a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.20)</i> Use the CookieJar middleware instead</p></dd></dl></div>
     </li><li name="org.http4s.Service" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Service"></a><a id="Service:Service"></a>
       <span class="permalink">

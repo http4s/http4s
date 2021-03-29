@@ -314,7 +314,7 @@
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Removes the given prefix from the beginning of the path of the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.19/server/src/main/scala/org/http4s/server/middleware/TranslateUri.scala" target="_blank">TranslateUri.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.21/server/src/main/scala/org/http4s/server/middleware/TranslateUri.scala" target="_blank">TranslateUri.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -419,7 +419,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.TranslateUri#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.middleware.TranslateUri#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply[F[_],G[_],B](prefix:String)(http:cats.data.Kleisli[F,org.http4s.Request[G],B])(implicitF:cats.MonoidK[F],implicitG:cats.Functor[G]):cats.data.Kleisli[F,org.http4s.Request[G],B]"></a><a id="apply[F[_],G[_],B](String)(Kleisli[F,Request[G],B])(MonoidK[F],Functor[G]):Kleisli[F,Request[G],B]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/TranslateUri$.html#apply[F[_],G[_],B](prefix:String)(http:cats.data.Kleisli[F,org.http4s.Request[G],B])(implicitF:cats.MonoidK[F],implicitG:cats.Functor[G]):cats.data.Kleisli[F,org.http4s.Request[G],B]" title="Permalink">
@@ -434,7 +434,13 @@
         <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="B">B</span>]</span><span class="params">(<span name="prefix">prefix: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="http">http: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.G">G</span>], <span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.B">B</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonoidK.html#cats.MonoidK" class="extype" name="cats.MonoidK">MonoidK</a>[<span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.F">F</span>]</span>, <span name="G">G: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.G">G</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.G">G</span>], <span class="extype" name="org.http4s.server.middleware.TranslateUri.apply.B">B</span>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@<a href="../../../../scala/annotation/nowarn.html" class="extype" name="scala.annotation.nowarn">nowarn</a></span><span class="args">(<span>
+      value = 
+      <span class="symbol">&quot;cat=unused&quot;</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">

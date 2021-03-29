@@ -313,7 +313,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.19/server/src/main/scala/org/http4s/server/middleware/GZip.scala" target="_blank">GZip.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.21/server/src/main/scala/org/http4s/server/middleware/GZip.scala" target="_blank">GZip.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -418,7 +418,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.GZip#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.middleware.GZip#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply[F[_],G[_]](http:org.http4s.Http[F,G],bufferSize:Int,level:Int,isZippable:org.http4s.Response[G]=&gt;Boolean)(implicitevidence$1:cats.Functor[F],implicitevidence$2:cats.Functor[G]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](Http[F,G],Int,Int,(Response[G])⇒Boolean)(Functor[F],Functor[G]):Http[F,G]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/GZip$.html#apply[F[_],G[_]](http:org.http4s.Http[F,G],bufferSize:Int,level:Int,isZippable:org.http4s.Response[G]=&gt;Boolean)(implicitevidence$1:cats.Functor[F],implicitevidence$2:cats.Functor[G]):org.http4s.Http[F,G]" title="Permalink">
@@ -433,7 +433,13 @@
         <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.GZip.apply.G">G</span>]</span>, <span name="bufferSize">bufferSize: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">32 * 1024</span></span>, <span name="level">level: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">Deflater.DEFAULT_COMPRESSION</span></span>, <span name="isZippable">isZippable: (<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.G">G</span>]) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="defval" name='<span class="name"><a href="#defaultIsZippable[F[_]](resp:org.http4s.Response[F]):Boolean">defaultIsZippable[G](_: Response[G])</a></span>'>...</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.G">G</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.GZip.apply.G">G</span>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@<a href="../../../../scala/annotation/nowarn.html" class="extype" name="scala.annotation.nowarn">nowarn</a></span><span class="args">(<span>
+      value = 
+      <span class="symbol">&quot;cat=unused&quot;</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">

@@ -201,7 +201,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.19/client/src/main/scala/org/http4s/client/middleware/Retry.scala" target="_blank">Retry.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.21/client/src/main/scala/org/http4s/client/middleware/Retry.scala" target="_blank">Retry.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -306,6 +306,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.client.middleware.RetryPolicy#IdempotentHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IdempotentHeader:org.http4s.util.CaseInsensitiveString"></a><a id="IdempotentHeader:CaseInsensitiveString"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/RetryPolicy$.html#IdempotentHeader:org.http4s.util.CaseInsensitiveString" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">IdempotentHeader</span><span class="result">: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.client.middleware.RetryPolicy#RetriableStatuses" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RetriableStatuses:scala.collection.immutable.Set[org.http4s.Status]"></a><a id="RetriableStatuses:Set[Status]"></a>
       <span class="permalink">
@@ -401,9 +417,9 @@ returned.  Defaults to <code>defaultRetriable</code>.</p></dd></dl></div>
         <span class="name">defaultRetriable</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.middleware.RetryPolicy.defaultRetriable.F">F</span>]</span>, <span name="result">result: <a href="../../../../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<a href="../../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.middleware.RetryPolicy.defaultRetriable.F">F</span>]]</span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
-      <p class="shortcomment cmt">Returns true if the request method is idempotent and the result is
-either a throwable or has one of the <code>RetriableStatuses</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns true if the request method is idempotent and the result is
-either a throwable or has one of the <code>RetriableStatuses</code>.</p><p>Caution: if the request body is effectful, the effects will be
+      <p class="shortcomment cmt">Returns true if (the request method is idempotent or request contains Idempotency-Key header)
+and the result is either a throwable or has one of the <code>RetriableStatuses</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns true if (the request method is idempotent or request contains Idempotency-Key header)
+and the result is either a throwable or has one of the <code>RetriableStatuses</code>.</p><p>Caution: if the request body is effectful, the effects will be
 run twice.  The most common symptom of this will be resubmitting
 an idempotent request.
 </p></div></div>
@@ -530,7 +546,23 @@ an idempotent request.
         <span class="name">isErrorOrRetriableStatus</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="result">result: <a href="../../../../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<a href="../../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.middleware.RetryPolicy.isErrorOrRetriableStatus.F">F</span>]]</span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
+      <p class="shortcomment cmt">Returns true if parameter is a Left or if the response contains a retriable status(as per HTTP spec)</p>
+    </li><li name="org.http4s.client.middleware.RetryPolicy#isErrorOrStatus" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="isErrorOrStatus[F[_]](result:Either[Throwable,org.http4s.Response[F]],status:Set[org.http4s.Status]):Boolean"></a><a id="isErrorOrStatus[F[_]](Either[Throwable,Response[F]],Set[Status]):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/RetryPolicy$.html#isErrorOrStatus[F[_]](result:Either[Throwable,org.http4s.Response[F]],status:Set[org.http4s.Status]):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isErrorOrStatus</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="result">result: <a href="../../../../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<a href="../../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.middleware.RetryPolicy.isErrorOrStatus.F">F</span>]]</span>, <span name="status">status: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
       
+      <p class="shortcomment cmt">Like <code>isErrorOrRetriableStatus</code> but allows the caller to specify which statuses are considered retriable</p>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
