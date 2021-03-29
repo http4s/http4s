@@ -281,7 +281,7 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.12.2"
     val jawn = "1.1.0"
     val jawnFs2 = "1.1.0"
-    val jetty = "10.0.1"
+    val jetty = "11.0.1"
     val keypool = "0.3.0"
     val literally = "1.0.0-RC1"
     val logback = "1.2.3"
@@ -302,9 +302,9 @@ object Http4sPlugin extends AutoPlugin {
     val scalatags = "0.9.3"
     val scalaXml = "2.0.0-M5"
     val scodecBits = "1.1.24"
-    val servlet = "4.0.1"
+    val servlet = "5.0.0"
     val slf4j = "1.7.30"
-    val tomcat = "9.0.44"
+    val tomcat = "10.0.4"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.8"
@@ -337,7 +337,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
-  lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
+  lazy val jakartaServletApi                = "jakarta.servlet"        %  "jakarta.servlet-api"       % V.servlet
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn

@@ -347,7 +347,7 @@ lazy val servlet = libraryProject("servlet")
     description := "Portable servlet implementation for http4s servers",
     startYear := Some(2013),
     libraryDependencies ++= Seq(
-      javaxServletApi % Provided,
+      jakartaServletApi % Provided,
       jettyServer % Test,
       jettyServlet % Test,
     ),
@@ -642,7 +642,7 @@ lazy val examplesWar = exampleProject("examples-war")
     description := "Example of a WAR deployment of an http4s service",
     startYear := Some(2014),
     fork := true,
-    libraryDependencies += javaxServletApi % Provided,
+    libraryDependencies += jakartaServletApi % Provided,
     Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)

@@ -20,7 +20,7 @@ package servlet
 import cats.effect._
 import cats.effect.implicits._
 import cats.syntax.all._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.server._
 
 class BlockingHttp4sServlet[F[_]](

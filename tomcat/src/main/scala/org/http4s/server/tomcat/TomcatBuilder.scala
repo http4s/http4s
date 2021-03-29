@@ -19,11 +19,11 @@ package server
 package tomcat
 
 import cats.effect._
+import jakarta.servlet.{DispatcherType, Filter}
+import jakarta.servlet.http.HttpServlet
 import java.net.InetSocketAddress
 import java.util
 import java.util.concurrent.Executor
-import javax.servlet.http.HttpServlet
-import javax.servlet.{DispatcherType, Filter}
 import org.apache.catalina.Context
 import org.apache.catalina.connector.Connector
 import org.apache.catalina.startup.Tomcat

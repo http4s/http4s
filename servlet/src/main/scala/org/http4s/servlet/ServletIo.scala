@@ -21,8 +21,8 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import java.util.concurrent.atomic.AtomicReference
-import javax.servlet.{ReadListener, WriteListener}
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import jakarta.servlet.{ReadListener, WriteListener}
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.internal.bug
 import org.http4s.internal.Trampoline
 import org.log4s.getLogger

@@ -16,27 +16,27 @@
 
 package org.http4s.servlet
 
-import javax.servlet.ServletInputStream
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.ServletInputStream
+import jakarta.servlet.http.HttpServletRequest
 
 case class HttpServletRequestStub(
     inputStream: ServletInputStream
 ) extends HttpServletRequest {
   def getInputStream(): ServletInputStream = inputStream
 
-  def authenticate(x$1: javax.servlet.http.HttpServletResponse): Boolean = ???
+  def authenticate(x$1: jakarta.servlet.http.HttpServletResponse): Boolean = ???
   def changeSessionId(): String = ???
   def getAuthType(): String = ???
   def getContextPath(): String = ???
-  def getCookies(): Array[javax.servlet.http.Cookie] = ???
+  def getCookies(): Array[jakarta.servlet.http.Cookie] = ???
   def getDateHeader(x$1: String): Long = ???
   def getHeader(x$1: String): String = ???
   def getHeaderNames(): java.util.Enumeration[String] = ???
   def getHeaders(x$1: String): java.util.Enumeration[String] = ???
   def getIntHeader(x$1: String): Int = ???
   def getMethod(): String = ???
-  def getPart(x$1: String): javax.servlet.http.Part = ???
-  def getParts(): java.util.Collection[javax.servlet.http.Part] = ???
+  def getPart(x$1: String): jakarta.servlet.http.Part = ???
+  def getParts(): java.util.Collection[jakarta.servlet.http.Part] = ???
   def getPathInfo(): String = ???
   def getPathTranslated(): String = ???
   def getQueryString(): String = ???
@@ -45,8 +45,8 @@ case class HttpServletRequestStub(
   def getRequestURL(): StringBuffer = ???
   def getRequestedSessionId(): String = ???
   def getServletPath(): String = ???
-  def getSession(): javax.servlet.http.HttpSession = ???
-  def getSession(x$1: Boolean): javax.servlet.http.HttpSession = ???
+  def getSession(): jakarta.servlet.http.HttpSession = ???
+  def getSession(x$1: Boolean): jakarta.servlet.http.HttpSession = ???
   def getUserPrincipal(): java.security.Principal = ???
   def isRequestedSessionIdFromCookie(): Boolean = ???
   def isRequestedSessionIdFromURL(): Boolean = ???
@@ -55,15 +55,15 @@ case class HttpServletRequestStub(
   def isUserInRole(x$1: String): Boolean = ???
   def login(x$1: String, x$2: String): Unit = ???
   def logout(): Unit = ???
-  def upgrade[T <: javax.servlet.http.HttpUpgradeHandler](x$1: Class[T]): T = ???
-  def getAsyncContext(): javax.servlet.AsyncContext = ???
+  def upgrade[T <: jakarta.servlet.http.HttpUpgradeHandler](x$1: Class[T]): T = ???
+  def getAsyncContext(): jakarta.servlet.AsyncContext = ???
   def getAttribute(x$1: String): Object = ???
   def getAttributeNames(): java.util.Enumeration[String] = ???
   def getCharacterEncoding(): String = ???
   def getContentLength(): Int = ???
   def getContentLengthLong(): Long = ???
   def getContentType(): String = ???
-  def getDispatcherType(): javax.servlet.DispatcherType = ???
+  def getDispatcherType(): jakarta.servlet.DispatcherType = ???
   def getLocalAddr(): String = ???
   def getLocalName(): String = ???
   def getLocalPort(): Int = ???
@@ -79,11 +79,11 @@ case class HttpServletRequestStub(
   def getRemoteAddr(): String = ???
   def getRemoteHost(): String = ???
   def getRemotePort(): Int = ???
-  def getRequestDispatcher(x$1: String): javax.servlet.RequestDispatcher = ???
+  def getRequestDispatcher(x$1: String): jakarta.servlet.RequestDispatcher = ???
   def getScheme(): String = ???
   def getServerName(): String = ???
   def getServerPort(): Int = ???
-  def getServletContext(): javax.servlet.ServletContext = ???
+  def getServletContext(): jakarta.servlet.ServletContext = ???
   def isAsyncStarted(): Boolean = ???
   def isAsyncSupported(): Boolean = ???
   def isSecure(): Boolean = ???
@@ -91,7 +91,7 @@ case class HttpServletRequestStub(
   def setAttribute(x$1: String, x$2: Object): Unit = ???
   def setCharacterEncoding(x$1: String): Unit = ???
   def startAsync(
-      x$1: javax.servlet.ServletRequest,
-      x$2: javax.servlet.ServletResponse): javax.servlet.AsyncContext = ???
-  def startAsync(): javax.servlet.AsyncContext = ???
+      x$1: jakarta.servlet.ServletRequest,
+      x$2: jakarta.servlet.ServletResponse): jakarta.servlet.AsyncContext = ???
+  def startAsync(): jakarta.servlet.AsyncContext = ???
 }

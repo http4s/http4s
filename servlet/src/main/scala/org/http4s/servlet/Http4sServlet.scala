@@ -20,8 +20,8 @@ import cats.effect._
 import cats.syntax.all._
 import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import java.security.cert.X509Certificate
-import javax.servlet.ServletConfig
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
+import jakarta.servlet.ServletConfig
+import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import org.http4s._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
@@ -117,12 +117,12 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
         .insert(
           ServerRequestKeys.SecureSession,
           (
-            Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
+            Option(req.getAttribute("jakarta.servlet.request.ssl_session_id").asInstanceOf[String]),
+            Option(req.getAttribute("jakarta.servlet.request.cipher_suite").asInstanceOf[String]),
+            Option(req.getAttribute("jakarta.servlet.request.key_size").asInstanceOf[Int]),
             Option(
               req
-                .getAttribute("javax.servlet.request.X509Certificate")
+                .getAttribute("jakarta.servlet.request.X509Certificate")
                 .asInstanceOf[Array[X509Certificate]]))
             .mapN(SecureSession.apply)
         )

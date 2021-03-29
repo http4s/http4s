@@ -18,8 +18,8 @@ package com.example.http4s
 package war
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
-import javax.servlet.annotation.WebListener
-import javax.servlet.{ServletContextEvent, ServletContextListener}
+import jakarta.servlet.annotation.WebListener
+import jakarta.servlet.{ServletContextEvent, ServletContextListener}
 import org.http4s.servlet.syntax._
 import scala.concurrent.ExecutionContext
 

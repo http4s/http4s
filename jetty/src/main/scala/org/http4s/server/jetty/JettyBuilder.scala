@@ -20,11 +20,11 @@ package jetty
 
 import cats.effect._
 import cats.syntax.all._
+import jakarta.servlet.{DispatcherType, Filter}
+import jakarta.servlet.http.HttpServlet
 import java.net.InetSocketAddress
 import java.util
 import javax.net.ssl.{SSLContext, SSLParameters}
-import javax.servlet.{DispatcherType, Filter}
-import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory
 import org.eclipse.jetty.server.{
   ServerConnector,
