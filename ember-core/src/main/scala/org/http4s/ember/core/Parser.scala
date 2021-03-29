@@ -17,8 +17,7 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.effect.{MonadThrow => _, _}
-import cats.effect.kernel.{Deferred, Ref}
+import cats.effect.kernel.{Concurrent, Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._

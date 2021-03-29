@@ -20,8 +20,7 @@ import org.http4s.ember.client._
 import fs2.io.net._
 import cats._
 import cats.data.NonEmptyList
-import cats.effect.{ApplicativeThrow => _, _}
-import cats.effect.kernel.Clock
+import cats.effect.kernel.{Async, Clock, Concurrent, Ref, Resource, Sync}
 import cats.syntax.all._
 
 import scala.concurrent.duration._
