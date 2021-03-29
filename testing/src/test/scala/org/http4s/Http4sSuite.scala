@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.effect.IO
-import cats.effect.unsafe.IORuntime
+import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
 import cats.syntax.all._
 import cats.effect.unsafe.Scheduler
 import fs2._
@@ -80,7 +80,8 @@ object Http4sSuite {
         blockingPool.shutdown()
         computePool.shutdown()
         scheduledExecutor.shutdown()
-      }
+      },
+      IORuntimeConfig()
     )
   }
 }
