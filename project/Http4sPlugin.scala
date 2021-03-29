@@ -290,12 +290,12 @@ object Http4sPlugin extends AutoPlugin {
     val ip4s = "3.0.0-RC2"
     val jacksonDatabind = "2.12.2"
     val jawn = "1.1.0"
-    val jawnFs2 = "2.0.0-RC3"
+    val jawnFs2 = "2.0.0"
     val jetty = "9.4.39.v20210325"
-    val keypool = "0.4.0-RC2"
+    val keypool = "0.4.0"
     val literally = "1.0.0-RC1"
     val logback = "1.2.3"
-    val log4cats = "2.0.0-RC1"
+    val log4cats = "2.0.0"
     val log4s = "1.10.0-M5"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.0"
@@ -317,7 +317,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.44"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "3.0.0-RC2"
+    val vault = "3.0.0"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
