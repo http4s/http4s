@@ -602,8 +602,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="LanguageTag.html" title="">LanguageTag</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="object" href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala"></a>
-                        <a href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala">LiteralSyntaxMacros</a>
+                        <a class="object" href="LiteralSyntaxMacros$.html" title=""></a>
+                        <a href="LiteralSyntaxMacros$.html" title="">LiteralSyntaxMacros</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
@@ -817,7 +817,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>EntityDecoder is used to attempt to decode an <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>
 This companion object provides a way to create <code>new EntityDecoder</code>s along
 with some commonly used instances which can be resolved implicitly.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M6/core/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1495,25 +1495,6 @@ system errors are raised in <code>F</code>.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use <code>binary</code> instead</p></dd></dl></div>
-    </li><li name="org.http4s.EntityDecoder#decodeString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="decodeString[F[_]](m:org.http4s.Media[F])(implicitF:cats.effect.Sync[F],implicitdefaultCharset:org.http4s.Charset):F[String]"></a><a id="decodeString[F[_]](Media[F])(Sync[F],Charset):F[String]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#decodeString[F[_]](m:org.http4s.Media[F])(implicitF:cats.effect.Sync[F],implicitdefaultCharset:org.http4s.Charset):F[String]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText">decodeString</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="m">m: <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.EntityDecoder.decodeString.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.decodeString.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <span class="extype" name="org.http4s.EntityDecoder.decodeString.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.5)</i> Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText</p></dd></dl></div>
     </li></ol>
             </div>
         </div>

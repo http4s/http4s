@@ -602,8 +602,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="LanguageTag.html" title="">LanguageTag</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="object" href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala"></a>
-                        <a href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala">LiteralSyntaxMacros</a>
+                        <a class="object" href="LiteralSyntaxMacros$.html" title=""></a>
+                        <a href="LiteralSyntaxMacros$.html" title="">LiteralSyntaxMacros</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
@@ -814,7 +814,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/Query.scala" target="_blank">Query.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M6/core/src/main/scala/org/http4s/Query.scala" target="_blank">Query.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1128,23 +1128,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
-    </li><li name="org.http4s.Query#fromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fromString(query:String):org.http4s.Query"></a><a id="fromString(String):Query"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Query$.html#fromString(query:String):org.http4s.Query" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fromString</span><span class="params">(<span name="query">query: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Query.html" class="extype" name="org.http4s.Query">Query</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Generate a <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> from its <code>String</code> representation</p><div class="fullcomment"><div class="comment cmt"><p>Generate a <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> from its <code>String</code> representation</p><p>If parsing fails, the empty <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> is returned
-</p></div></div>
     </li><li name="org.http4s.Query#fromVector" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="fromVector(xs:Vector[(String,Option[String])]):org.http4s.Query"></a><a id="fromVector(Vector[(String,Option[String])]):Query"></a>
       <span class="permalink">
@@ -1301,6 +1284,23 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Query#unsafeFromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unsafeFromString(query:String):org.http4s.Query"></a><a id="unsafeFromString(String):Query"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Query$.html#unsafeFromString(query:String):org.http4s.Query" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unsafeFromString</span><span class="params">(<span name="query">query: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Query.html" class="extype" name="org.http4s.Query">Query</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Generate a <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> from its <code>String</code> representation</p><div class="fullcomment"><div class="comment cmt"><p>Generate a <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> from its <code>String</code> representation</p><p>If parsing fails, the empty <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> is returned
+</p></div></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1375,7 +1375,29 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.Query#fromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromString(query:String):org.http4s.Query"></a><a id="fromString(String):Query"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Query$.html#fromString(query:String):org.http4s.Query" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.0-M6) Use unsafeFromString instead">fromString</span><span class="params">(<span name="query">query: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Query.html" class="extype" name="org.http4s.Query">Query</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.0-M6)</i> Use unsafeFromString instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

@@ -602,8 +602,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="LanguageTag.html" title="">LanguageTag</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="object" href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala"></a>
-                        <a href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala">LiteralSyntaxMacros</a>
+                        <a class="object" href="LiteralSyntaxMacros$.html" title=""></a>
+                        <a href="LiteralSyntaxMacros$.html" title="">LiteralSyntaxMacros</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
@@ -817,7 +817,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>EntityBody[F] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><span class="extype" name="io.chrisdavenport.vault.Vault">io.chrisdavenport.vault.Vault</span> containing additional
                   parameters which may be used by the http4s backend for
-                  additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+                  additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M6/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1940,26 +1940,7 @@ that make no sense with an empty body.
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.Media#bodyAsText" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="bodyAsText(implicitdefaultCharset:org.http4s.Charset):fs2.Stream[F,String]"></a><a id="bodyAsText(Charset):Stream[F,String]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#bodyAsText(implicitdefaultCharset:org.http4s.Charset):fs2.Stream[F,String]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Can go into an infinite loop for charsets other than UTF-8. Replaced by bodyText">bodyAsText</span><span class="params">(<span class="implicit">implicit </span><span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.3/fs2-core_2.12-2.5.3-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.Response.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Media.html" class="extype" name="org.http4s.Media">Media</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.5)</i> Can go into an infinite loop for charsets other than UTF-8. Replaced by bodyText</p></dd></dl></div>
-    </li><li name="org.http4s.Message#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.Message#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]"></a><a id="withBody[T](T)(Applicative[F],EntityEncoder[F,T]):F[Self]"></a>
       <span class="permalink">
       <a href="../../org/http4s/Response.html#withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]" title="Permalink">

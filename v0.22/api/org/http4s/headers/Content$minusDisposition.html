@@ -226,6 +226,10 @@
                         <a class="class" href="Host.html" title="A Request header, that provides the host and port information"></a>
                         <a href="Host.html" title="A Request header, that provides the host and port information">Host</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="Idempotency$minusKey$.html" title=""></a>
+                        <a class="class" href="Idempotency$minusKey.html" title="Request header defines request to be idempotent used by client retry middleware."></a>
+                        <a href="Idempotency$minusKey.html" title="Request header defines request to be idempotent used by client retry middleware.">Idempotency-Key</a>
+                      </li><li class="current-entities indented3">
                         <a class="object" href="If$minusMatch$.html" title=""></a>
                         <a class="class" href="If$minusMatch.html" title="Request header to make the request conditional on the current contents of the origin server at the given target resource (URI)."></a>
                         <a href="If$minusMatch.html" title="Request header to make the request conditional on the current contents of the origin server at the given target resource (URI).">If-Match</a>
@@ -366,12 +370,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: Content$minusDisposition" class="name">Content-Disposition</span><span class="params">(<span name="dispositionType">dispositionType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="parameters">parameters: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span title="gt4s: Content$minusDisposition" class="name">Content-Disposition</span><span class="params">(<span name="dispositionType">dispositionType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="parameters">parameters: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="org.typelevel.ci.CIString">CIString</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M5/core/src/main/scala/org/http4s/headers/Content-Disposition.scala" target="_blank">Content-Disposition.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0-M6/core/src/main/scala/org/http4s/headers/Content-Disposition.scala" target="_blank">Content-Disposition.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -422,9 +426,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.headers.Content-Disposition#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(dispositionType:String,parameters:Map[String,String]):org.http4s.headers.Content-Disposition"></a><a id="&lt;init&gt;:Content-Disposition"></a>
+      <a id="&lt;init&gt;(dispositionType:String,parameters:Map[org.typelevel.ci.CIString,String]):org.http4s.headers.Content-Disposition"></a><a id="&lt;init&gt;:Content-Disposition"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/Content$minusDisposition.html#&lt;init&gt;(dispositionType:String,parameters:Map[String,String]):org.http4s.headers.Content-Disposition" title="Permalink">
+      <a href="../../../org/http4s/headers/Content$minusDisposition.html#&lt;init&gt;(dispositionType:String,parameters:Map[org.typelevel.ci.CIString,String]):org.http4s.headers.Content-Disposition" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -433,7 +437,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: Content$minusDisposition" class="name">Content-Disposition</span><span class="params">(<span name="dispositionType">dispositionType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="parameters">parameters: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span>
+        <span title="gt4s: Content$minusDisposition" class="name">Content-Disposition</span><span class="params">(<span name="dispositionType">dispositionType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="parameters">parameters: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="org.typelevel.ci.CIString">CIString</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span>
       </span>
       
       
@@ -679,9 +683,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.headers.Content-Disposition#parameters" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parameters:Map[String,String]"></a>
+      <a id="parameters:Map[org.typelevel.ci.CIString,String]"></a><a id="parameters:Map[CIString,String]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/Content$minusDisposition.html#parameters:Map[String,String]" title="Permalink">
+      <a href="../../../org/http4s/headers/Content$minusDisposition.html#parameters:Map[org.typelevel.ci.CIString,String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -690,7 +694,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">parameters</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">parameters</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="org.typelevel.ci.CIString">CIString</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       
