@@ -43,8 +43,11 @@ private[impl] object ResponseGenerator {
   * }}}
   */
 trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
-  def apply(headers: Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response(status, headers = Headers(headers.toList)))
+  def apply()(implicit F: Applicative[F]): F[Response[G]] = F.pure(Response[G](status))
+
+  def headers(header: Header.ToRaw, _headers: Header.ToRaw*)(implicit
+      F: Applicative[F]): F[Response[G]] =
+    F.pure(Response[G](status, headers = Headers(header :: _headers.toList)))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
@@ -60,8 +63,15 @@ trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
 trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def liftG: FunctionK[G, F]
 
-  def apply(headers: Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero, headers.toList)))
+  def apply()(implicit F: Applicative[F]): F[Response[G]] =
+    F.pure(Response[G](status, headers = Headers(List(`Content-Length`.zero))))
+
+  def headers(header: Header.ToRaw, _headers: Header.ToRaw*)(implicit
+      F: Applicative[F]): F[Response[G]] =
+    F.pure(
+      Response[G](
+        status,
+        headers = Headers(`Content-Length`.zero) ++ Headers(header :: _headers.toList)))
 
   def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
     F.flatMap(liftG(body))(apply[A](_))

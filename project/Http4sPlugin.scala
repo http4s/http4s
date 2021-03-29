@@ -275,7 +275,7 @@ object Http4sPlugin extends AutoPlugin {
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val asyncHttpClient = "2.12.2"
+    val asyncHttpClient = "2.12.3"
     val blaze = "0.15.0-M2"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.1.0"
@@ -291,8 +291,9 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.12.2"
     val jawn = "1.1.0"
     val jawnFs2 = "2.0.0-RC3"
-    val jetty = "9.4.38.v20210224"
+    val jetty = "9.4.39.v20210325"
     val keypool = "0.4.0-RC2"
+    val literally = "1.0.0-RC1"
     val logback = "1.2.3"
     val log4cats = "2.0.0-RC1"
     val log4s = "1.10.0-M5"
@@ -308,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.3"
     val scalacheckEffect = "0.7.1"
-    val scalatags = "0.9.3"
+    val scalatags = "0.9.4"
     val scalaXml = "2.0.0-M5"
     val scodecBits = "1.1.24"
     val servlet = "3.1.0"
@@ -360,6 +361,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % V.jetty
   lazy val jettyUtil                        = "org.eclipse.jetty"      %  "jetty-util"                % V.jetty
   lazy val keypool                          = "org.typelevel"          %% "keypool"                   % V.keypool
+  lazy val literally                        = "org.typelevel"          %% "literally"                 % V.literally
   lazy val log4catsCore                     = "org.typelevel"          %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "org.typelevel"          %% "log4cats-slf4j"            % V.log4cats
   lazy val log4catsTesting                  = "org.typelevel"          %% "log4cats-testing"          % V.log4cats

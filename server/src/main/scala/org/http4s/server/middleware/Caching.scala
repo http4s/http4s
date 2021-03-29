@@ -56,7 +56,6 @@ object Caching {
     `Cache-Control`(
       NonEmptyList.of[CacheDirective](
         CacheDirective.`no-store`,
-        CacheDirective.`private`(),
         CacheDirective.`no-cache`(),
         CacheDirective.`max-age`(0.seconds)
       )

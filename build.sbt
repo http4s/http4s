@@ -119,6 +119,7 @@ lazy val core = libraryProject("core")
       fs2Core,
       fs2Io,
       ip4sCore,
+      literally,
       log4s,
       scodecBits,
       slf4jApi, // residual dependency from macros
