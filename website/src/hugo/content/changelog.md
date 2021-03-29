@@ -8,6 +8,12 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M20
+
+## Dependency updates
+
+* cats-effect-3.0.0-RC3
+
 # v0.22.0-M6 (2021-03-29)
 
 Includes all the changes of v0.21.21.
