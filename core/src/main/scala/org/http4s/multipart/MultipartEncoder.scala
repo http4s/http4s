@@ -27,7 +27,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
   def headers: Headers = Headers.empty
 
   def toEntity(mp: Multipart[F]): Entity[F] =
-    Entity(renderParts(mp.boundary)(mp.parts), None)
+    Entity.Chunked(renderParts(mp.boundary)(mp.parts))
 
   val dash: String = "--"
 
@@ -69,7 +69,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
     Stream.chunk(prelude) ++
       Stream.chunk(renderHeaders(part.headers)) ++
       Stream.chunk(Chunk.array(Boundary.CRLF.getBytes(StandardCharsets.UTF_8))) ++
-      part.body
+      part.entity.body
 
   def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
     if (parts.isEmpty)

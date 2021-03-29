@@ -109,7 +109,7 @@ class MultipartParserSuite extends Http4sSuite {
           multipartMaterialized <- results.compile.last.map(_.get)
           headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
           bodies = multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.entity.body)
             .through(asciiDecode)
             .compile
             .foldMonoid
@@ -159,7 +159,7 @@ class MultipartParserSuite extends Http4sSuite {
         headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
         bodies =
           multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.entity.body)
             .through(asciiDecode)
             .compile
             .foldMonoid
@@ -204,7 +204,7 @@ class MultipartParserSuite extends Http4sSuite {
         headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
         bodies =
           multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.entity.body)
             .through(asciiDecode)
             .compile
             .foldMonoid
@@ -253,7 +253,7 @@ class MultipartParserSuite extends Http4sSuite {
         headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
         bodies =
           multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.entity.body)
             .through(asciiDecode)
             .compile
             .foldMonoid
@@ -320,7 +320,7 @@ class MultipartParserSuite extends Http4sSuite {
         multipartMaterialized <- results.compile.last.map(_.get)
         headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
         bodies = multipartMaterialized.parts
-          .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+          .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.entity.body)
           .through(asciiDecode)
           .compile
           .foldMonoid
@@ -438,7 +438,7 @@ class MultipartParserSuite extends Http4sSuite {
         multipartMaterialized <- results.compile.last.map(_.get)
         headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
         bodies = multipartMaterialized.parts
-          .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+          .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.entity.body)
           .through(asciiDecode)
           .compile
           .foldMonoid
@@ -473,7 +473,7 @@ class MultipartParserSuite extends Http4sSuite {
       results.compile.last
         .map(_.get)
         .map(
-          _.parts(1).body
+          _.parts(1).entity.body
             .through(asciiDecode)
             .compile
             .foldMonoid)
@@ -510,7 +510,7 @@ class MultipartParserSuite extends Http4sSuite {
       results.compile.last
         .map(_.get)
         .map(
-          _.parts(1).body
+          _.parts(1).entity.body
             .through(asciiDecode)
             .compile
             .foldMonoid)
@@ -543,7 +543,7 @@ class MultipartParserSuite extends Http4sSuite {
         results.compile.last
           .map(_.get)
           .map(
-            _.parts(1).body
+            _.parts(1).entity.body
               .through(asciiDecode)
               .compile
               .foldMonoid)
@@ -611,7 +611,7 @@ class MultipartParserSuite extends Http4sSuite {
       for {
         firstPart <- results.take(1).compile.last.map(_.get)
         confirmedError <- results.compile.drain.attempt
-        _ <- firstPart.body
+        _ <- firstPart.entity.body
           .through(text.utf8Decode[IO])
           .compile
           .foldMonoid

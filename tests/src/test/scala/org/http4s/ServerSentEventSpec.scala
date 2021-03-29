@@ -146,6 +146,7 @@ class ServerSentEventSpec extends Http4sSuite {
     for {
       r <- Response[IO]()
         .withEntity(eventStream)
+        .entity
         .body
         .through(ServerSentEvent.decoder)
         .compile

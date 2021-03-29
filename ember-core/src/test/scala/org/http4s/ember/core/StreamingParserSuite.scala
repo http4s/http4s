@@ -119,7 +119,7 @@ class StreamingParserSuite extends Http4sSuite {
       (for {
         read <- Helpers.taking[IO, Byte](segments)
         result <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
-        _ <- result._1.body.compile.drain
+        _ <- result._1.entity.body.compile.drain
         _ <- result._2
       } yield true).assert
     }
@@ -130,7 +130,7 @@ class StreamingParserSuite extends Http4sSuite {
       (for {
         read <- Helpers.taking[IO, Byte](segments)
         result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
-        _ <- result._1.body.compile.drain
+        _ <- result._1.entity.body.compile.drain
         _ <- result._2
       } yield true).assert
     }
@@ -141,10 +141,10 @@ class StreamingParserSuite extends Http4sSuite {
       (for {
         read <- Helpers.taking[IO, Byte](s0 ++ s1)
         result1 <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
-        _ <- result1._1.body.compile.drain
+        _ <- result1._1.entity.body.compile.drain
         rest1 <- result1._2
         result2 <- Parser.Request.parser(Int.MaxValue)(rest1.get, read)
-        _ <- result2._1.body.compile.drain
+        _ <- result2._1.entity.body.compile.drain
         _ <- result2._2
       } yield true).assert
     }
@@ -155,10 +155,10 @@ class StreamingParserSuite extends Http4sSuite {
       (for {
         read <- Helpers.taking[IO, Byte](s0 ++ s1)
         result1 <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
-        _ <- result1._1.body.compile.drain
+        _ <- result1._1.entity.body.compile.drain
         rest1 <- result1._2
         result2 <- Parser.Response.parser(Int.MaxValue)(rest1.get, read)
-        _ <- result2._1.body.compile.drain
+        _ <- result2._1.entity.body.compile.drain
         _ <- result2._2
       } yield true).assert
     }

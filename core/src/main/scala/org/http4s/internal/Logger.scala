@@ -40,7 +40,7 @@ object Logger {
       val bodyStream = if (!isBinary || isJson) {
         message.bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
       } else {
-        message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
+        message.entity.body.map(b => java.lang.Integer.toHexString(b & 0xff))
       }
       Some(bodyStream.compile.string)
     } else None
@@ -69,7 +69,7 @@ object Logger {
     val headers: String = defaultLogHeaders[F, A](message)(logHeaders, redactHeadersWhen)
 
     val bodyText: F[String] =
-      logBodyText(message.body) match {
+      logBodyText(message.entity.body) match {
         case Some(textF) => textF.map(text => s"""body="$text"""")
         case None => F.pure("")
       }

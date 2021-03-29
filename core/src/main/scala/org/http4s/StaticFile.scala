@@ -95,11 +95,8 @@ object StaticFile {
           val len = urlConn.getContentLengthLong
           val headers = Headers(
             lastmod.map(`Last-Modified`(_)),
-            nameToContentType(url.getPath),
-            if (len >= 0) `Content-Length`.unsafeFromLong(len)
-            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
+            nameToContentType(url.getPath)
           )
-
           F.blocking(urlConn.getInputStream)
             .redeem(
               recover = {
@@ -110,7 +107,11 @@ object StaticFile {
                 Some(
                   Response(
                     headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
+                    entity = {
+                      val body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
+                      if (len >= 0) Entity.TrustMe(body, len)
+                      else Entity.Chunked(body)
+                    }
                   ))
               }
             )
@@ -170,17 +171,15 @@ object StaticFile {
                 else (fileToBody[F](f, start, end), end - start)
 
               val contentType = nameToContentType(f.getName)
-              val hs =
-                Headers(
-                  lastModified.map(`Last-Modified`(_)),
-                  `Content-Length`.fromLong(contentLength).toOption,
-                  contentType,
-                  etagCalc
-                )
+              val hs = Headers(
+                lastModified.map(lm => `Last-Modified`(lm)),
+                contentType,
+                List(etagCalc)
+              )
 
               val r = Response(
                 headers = hs,
-                body = body,
+                entity = Entity.TrustMe(body, contentLength),
                 attributes = Vault.empty.insert(staticFileKey, f)
               )
 

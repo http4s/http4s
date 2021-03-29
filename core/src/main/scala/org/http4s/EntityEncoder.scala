@@ -91,7 +91,7 @@ object EntityEncoder {
   def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
+      Entity.Strict(c)
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
@@ -104,7 +104,7 @@ object EntityEncoder {
 
   def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
-      def toEntity(a: A): Entity[F] = Entity.empty
+      def toEntity(a: A): Entity[F] = Entity.empty[F]
       def headers: Headers = Headers.empty
     }
 
@@ -116,15 +116,10 @@ object EntityEncoder {
       W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
-        Entity(a.flatMap(W.toEntity(_).body))
+        Entity.chunked(a.flatMap(W.toEntity(_).body))
 
       override def headers: Headers =
-        W.headers.get[`Transfer-Encoding`] match {
-          case Some(transferCoding) if transferCoding.hasChunked =>
-            W.headers
-          case _ =>
-            W.headers.add(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]))
-        }
+        Headers.empty
     }
 
   implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
@@ -151,8 +146,8 @@ object EntityEncoder {
     * the content length without running the stream.
     */
   implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
-    encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
-      Entity(body, None)
+    encodeBy() { body =>
+      Entity.Chunked(body)
     }
 
   // TODO parameterize chunk size
@@ -163,8 +158,8 @@ object EntityEncoder {
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
-    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(Files[F].readAll(p, 4096)) //2 KB :P
+    encodeBy[F, Path]() { p =>
+      Entity.Chunked(Files[F].readAll(p, 4096)) //2 KB :P
     }
 
   // TODO parameterize chunk size
@@ -221,7 +216,7 @@ object EntityEncoder {
     }
 
   implicit def serverSentEventEncoder[F[_]]: EntityEncoder[F, EventStream[F]] =
-    entityBodyEncoder[F]
-      .contramap[EventStream[F]](_.through(ServerSentEvent.encoder))
-      .withContentType(`Content-Type`(MediaType.`text/event-stream`))
+    EntityEncoder.encodeBy(`Content-Type`(MediaType.`text/event-stream`)) { e: EventStream[F] =>
+      Entity.chunked[F](e.through(ServerSentEvent.encoder))
+    }
 }

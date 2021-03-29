@@ -109,7 +109,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
           .map(_ => "1".toByte)
           .take(4)
           .onFinalizeWeak[IO](d.complete(()).void)
-      req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      req = Request(method = Method.POST, uri = www_foo_com, entity = Entity.chunked(body))
       tail = mkConnection(RequestKey.fromRequest(req), dispatcher)
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       h = new QueueTestHead(q)
@@ -129,7 +129,8 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
         .take(n.toLong)
     }
 
-    val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
+    val req =
+      Request[IO](method = Method.POST, uri = www_foo_com, entity = Entity.chunked(dataStream(4)))
 
     val tail = mkConnection(RequestKey.fromRequest(req), dispatcher)
     val (f, b) = resp.splitAt(resp.length - 1)

@@ -260,7 +260,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   fixture.test("Http1ServerStage: routes should Add a date header") { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body))
+        IO.pure(Response(entity = req.entity))
       }
       .orNotFound
 
@@ -278,7 +278,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     val dateHeader = Date(HttpDate.Epoch)
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body).withHeaders(dateHeader))
+        IO.pure(Response(entity = req.entity).withHeaders(dateHeader))
       }
       .orNotFound
 
@@ -299,7 +299,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
-          IO.pure(Response(body = req.body))
+          IO.pure(Response(entity = req.entity))
         }
         .orNotFound
 
@@ -425,7 +425,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
-          IO.pure(Response(body = req.body))
+          IO.pure(Response(entity = req.entity))
         }
         .orNotFound
 
@@ -449,7 +449,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     "Http1ServerStage: routes should Handle using the request body as the response body") { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body))
+        IO.pure(Response(entity = req.entity))
       }
       .orNotFound
 

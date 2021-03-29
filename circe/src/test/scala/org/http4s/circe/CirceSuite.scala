@@ -208,8 +208,11 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
           .withEntity(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
           .pure[IO]
       }
-      .map(_.body)
-    body.flatMap(getBody).map(b => new String(b, StandardCharsets.UTF_8)).assertEquals("157")
+      .map(_.entity.body)
+    body
+      .flatMap(getBody)
+      .map(bytes => new String(bytes, StandardCharsets.UTF_8))
+      .assertEquals("157")
   }
 
   test("jsonOf should decode JSON from a Circe decoder") {

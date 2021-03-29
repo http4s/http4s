@@ -790,7 +790,8 @@ private[http4s] trait ArbitraryInstances {
       for {
         body <- http4sTestingGenForPureByteStream
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body.covary[F], length)
+      } yield length.fold[Entity[F]](Entity.Chunked(body.covary[F]))(_ =>
+        Entity.Strict(body.compile.to(fs2.Chunk)))
     })
 
   implicit def http4sTestingCogenForEntity[F[_]](implicit
@@ -825,14 +826,14 @@ private[http4s] trait ArbitraryInstances {
       dispatcher: Dispatcher[F],
       testContext: TestContext
   ): Cogen[Media[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+    Cogen[(Headers, Entity[F])].contramap(m => (m.headers, m.entity))
 
   implicit def http4sTestingCogenForMessage[F[_]](implicit
       F: Concurrent[F],
       dispatcher: Dispatcher[F],
       testContext: TestContext
   ): Cogen[Message[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+    Cogen[(Headers, Entity[F])].contramap(m => (m.headers, m.entity))
 
   implicit def http4sTestingCogenForHeaders: Cogen[Headers] =
     Cogen[List[Header.Raw]].contramap(_.headers)
@@ -899,8 +900,8 @@ private[http4s] trait ArbitraryInstances {
         uri <- getArbitrary[Uri]
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
-        body <- http4sTestingGenForPureByteStream
-      } yield try Request(method, uri, httpVersion, headers, body)
+        entity <- getArbitrary[Entity[F]]
+      } yield try Request(method, uri, httpVersion, headers, entity)
       catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
@@ -925,8 +926,8 @@ private[http4s] trait ArbitraryInstances {
         status <- getArbitrary[Status]
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
-        body <- http4sTestingGenForPureByteStream
-      } yield Response(status, httpVersion, headers, body)
+        entity <- getArbitrary[Entity[F]]
+      } yield Response(status, httpVersion, headers, entity)
     }
 
   implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =

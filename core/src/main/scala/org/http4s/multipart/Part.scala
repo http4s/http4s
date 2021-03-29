@@ -18,16 +18,15 @@ package org.http4s
 package multipart
 
 import cats.effect.Sync
-import fs2.Stream
 import fs2.io.readInputStream
 import fs2.io.file.Files
-import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
+import java.nio.charset.StandardCharsets
 
-final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
+final case class Part[F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
   def filename: Option[String] =
     headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
@@ -45,15 +44,20 @@ object Part {
     "0.18.12"
   )
   def empty[F[_]]: Part[F] =
-    Part(Headers.empty, EmptyBody)
+    Part(Headers.empty, Entity.empty)
 
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Stream.emit(value).through(utf8Encode))
+      Entity.Strict(fs2.Chunk.array(value.getBytes(StandardCharsets.UTF_8)))
+    )
 
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
-    fileData(name, file.getName, Files[F].readAll(file.toPath, ChunkSize), headers: _*)
+    fileData(
+      name,
+      file.getName,
+      Entity.Chunked(Files[F].readAll(file.toPath, ChunkSize)),
+      headers: _*)
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
@@ -61,14 +65,14 @@ object Part {
   def fileData[F[_]](
       name: String,
       filename: String,
-      entityBody: EntityBody[F],
+      entity: Entity[F],
       headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(
         `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
         "Content-Transfer-Encoding" -> "binary"
       ).put(headers: _*),
-      entityBody
+      entity
     )
 
   // The InputStream is passed by name, and we open it in the by-name
@@ -80,5 +84,5 @@ object Part {
       filename: String,
       in: => InputStream,
       headers: Header.ToRaw*)(implicit F: Sync[F]): Part[F] =
-    fileData(name, filename, readInputStream(F.delay(in), ChunkSize), headers: _*)
+    fileData(name, filename, Entity.Chunked(readInputStream(F.delay(in), ChunkSize)), headers: _*)
 }

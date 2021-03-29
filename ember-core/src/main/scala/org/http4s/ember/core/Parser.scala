@@ -380,14 +380,14 @@ private[ember] object Parser {
                     (
                       baseReq
                         .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                        .withEntity(Entity.chunked(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest))),
                       rest.get)
                 }
               } else {
-                Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
-                  case (bodyStream, drain) =>
-                    (baseReq.withBodyStream(bodyStream), drain)
+                val size = contentLength.getOrElse(0L)
+                Body.parseFixedBody(size, bytes, read).map { case (entity, drain) =>
+                  (baseReq.withEntity(entity), drain)
                 }
               }
           }
@@ -417,14 +417,14 @@ private[ember] object Parser {
                     (
                       baseResp
                         .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest)),
+                        .withEntity(Entity.chunked(
+                          ChunkedEncoding.decode(bytes, read, maxHeaderLength, trailers, rest))),
                       rest.get)
                 }
               } else {
                 Body.parseFixedBody(contentLength.getOrElse(0L), bytes, read).map {
-                  case (bodyStream, drain) =>
-                    (baseResp.withBodyStream(bodyStream), drain)
+                  case (entity, drain) =>
+                    (baseResp.withEntity(entity), drain)
                 }
               }
           }
@@ -560,13 +560,11 @@ private[ember] object Parser {
     def parseFixedBody[F[_]: Concurrent](
         contentLength: Long,
         head: Array[Byte],
-        read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Option[Array[Byte]]])] =
+        read: F[Option[Chunk[Byte]]]): F[(Entity[F], F[Option[Array[Byte]]])] =
       if (contentLength > 0) {
         if (head.length >= contentLength) {
           val (body, rest) = head.splitAt(contentLength.toInt)
-          (
-            Stream.chunk(Chunk.byteVector(ByteVector(body))).covary[F],
-            (Some(rest): Option[Array[Byte]]).pure[F])
+          (Entity.strict[F](Chunk.array(body)), (Some(rest): Option[Array[Byte]]).pure[F])
             .pure[F]
         } else {
           val unread = contentLength - head.length
@@ -593,11 +591,15 @@ private[ember] object Parser {
             // followup: Check if there are bytes immediately available without blocking
             val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
 
-            (Stream.chunk(Chunk.byteVector(ByteVector(head))) ++ bodyStream, drain)
+            (
+              Entity.trustMe(
+                Stream.chunk(Chunk.byteVector(ByteVector(head))) ++ bodyStream,
+                contentLength),
+              drain)
           }
         }
       } else {
-        (EmptyBody.covary[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
+        (Entity.empty[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
       }
 
     private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =

@@ -36,7 +36,7 @@ trait JawnInstances {
   private[http4s] def jawnDecoderImpl[F[_]: Concurrent, J: Facade](
       m: Media[F]): DecodeResult[F, J] =
     DecodeResult {
-      m.body.chunks
+      m.entity.body.chunks
         .parseJson(AsyncParser.SingleValue)
         .map(Either.right)
         .handleErrorWith {

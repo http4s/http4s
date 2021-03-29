@@ -140,7 +140,11 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .flatMap { case (k, vs) => vs.asScala.map(Header.Raw(CIString(k), _)) }
             .toList
         ))
-    } yield Response(status = status, headers = headers, body = readBody(conn))
+      l = headers.get[org.http4s.headers.`Content-Length`].map(_.length)
+    } yield Response(
+      status = status,
+      headers = headers.removePayloadHeaders,
+      entity = l.fold(Entity.chunked(readBody(conn)))(l => Entity.trustMe(readBody(conn), l)))
 
   private def timeoutMillis(d: Duration): Int =
     d match {
@@ -160,7 +164,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     if (req.isChunked)
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
-        req.body
+        req.entity.body
           .through(writeOutputStream(F.delay(conn.getOutputStream), false))
           .compile
           .drain
@@ -169,7 +173,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         case Some(len) if len >= 0L =>
           F.delay(conn.setDoOutput(true)) *>
             F.delay(conn.setFixedLengthStreamingMode(len)) *>
-            req.body
+            req.entity.body
               .through(writeOutputStream(F.delay(conn.getOutputStream), false))
               .compile
               .drain

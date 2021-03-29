@@ -33,11 +33,11 @@ class EntityLimiterSuite extends Http4sSuite {
     case r if r.pathInfo == path"/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }
 
-  val b = chunk(Chunk.array("hello".getBytes(StandardCharsets.UTF_8)))
+  val e = Entity.strict[IO](Chunk.array("hello".getBytes(StandardCharsets.UTF_8)))
 
   test("Allow reasonable entities") {
     EntityLimiter(routes, 100)
-      .apply(Request[IO](POST, uri"/echo", body = b))
+      .apply(Request[IO](POST, uri"/echo", entity = e))
       .map(_ => -1)
       .value
       .assertEquals(Some(-1))
@@ -45,7 +45,7 @@ class EntityLimiterSuite extends Http4sSuite {
 
   test("Limit the maximum size of an EntityBody") {
     EntityLimiter(routes, 3)
-      .apply(Request[IO](POST, uri"/echo", body = b))
+      .apply(Request[IO](POST, uri"/echo", entity = e))
       .map(_ => -1L)
       .value
       .handleError { case EntityTooLarge(i) => Some(i) }
@@ -60,11 +60,11 @@ class EntityLimiterSuite extends Http4sSuite {
 
     val st = EntityLimiter(routes, 3) <+> routes2
 
-    st.apply(Request[IO](POST, uri"/echo2", body = b))
+    st.apply(Request[IO](POST, uri"/echo2", entity = e))
       .map(_ => -1)
       .value
       .assertEquals(Some(-1)) *>
-      st.apply(Request[IO](POST, uri"/echo", body = b))
+      st.apply(Request[IO](POST, uri"/echo", entity = e))
         .map(_ => -1L)
         .value
         .handleError { case EntityTooLarge(i) => Some(i) }
@@ -74,7 +74,7 @@ class EntityLimiterSuite extends Http4sSuite {
   test("Be created via the httpRoutes constructor") {
     EntityLimiter
       .httpRoutes(routes, 3)
-      .apply(Request[IO](POST, uri"/echo", body = b))
+      .apply(Request[IO](POST, uri"/echo", entity = e))
       .map(_ => -1L)
       .value
       .handleError { case EntityTooLarge(i) => Some(i) }
@@ -86,7 +86,7 @@ class EntityLimiterSuite extends Http4sSuite {
 
     EntityLimiter
       .httpApp(app, 3L)
-      .apply(Request[IO](POST, uri"/echo", body = b))
+      .apply(Request[IO](POST, uri"/echo", entity = e))
       .map(_ => -1L)
       .handleError { case EntityTooLarge(i) => i }
       .assertEquals(3L)

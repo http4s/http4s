@@ -224,9 +224,10 @@ private class Http2NodeStage[F[_]](
     if (error.length > 0)
       closePipeline(Some(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
     else {
-      val body = if (endStream) EmptyBody else getBody(contentLength)
+      val ent =
+        if (endStream) Entity.empty[F] else Entity.trustMe(getBody(contentLength), contentLength)
       val hs = Headers(headers.result())
-      val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
+      val req = Request[F](method, path, HttpVersion.`HTTP/2.0`, hs, entity = ent, attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = F

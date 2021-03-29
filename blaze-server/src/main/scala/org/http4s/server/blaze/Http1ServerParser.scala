@@ -64,11 +64,18 @@ private[blaze] final class Http1ServerParser[F[_]](
         )
       else attrs // Won't have trailers without a chunked body
 
+    val ent: Entity[F] = if (isChunked()) {
+      Entity.chunked(body)
+    } else {
+      val contentLength = h.get[org.http4s.headers.`Content-Length`]
+      contentLength.fold[Entity[F]](Entity.empty)(l => Entity.trustMe(body, l.length))
+    }
+
     Method
       .fromString(this.method)
       .flatMap { method =>
         Uri.requestTarget(this.uri).map { uri =>
-          Request(method, uri, protocol, h, body, attrsWithTrailers)
+          Request(method, uri, protocol, h, entity = ent, attrsWithTrailers)
         }
       }
       .leftMap(_ -> protocol)

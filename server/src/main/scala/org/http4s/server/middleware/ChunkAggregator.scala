@@ -33,12 +33,14 @@ object ChunkAggregator {
       http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
-        response.body.chunks.compile.toVector
-          .map { vec =>
-            val body = Chunk.concat(vec)
-            response
-              .withBodyStream(Stream.chunk(body))
-              .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))
+        response.entity.body.compile
+          .to(Chunk)
+          .map { chunk =>
+            val out = if (chunk.isEmpty) {
+              response.withEntity(Entity.empty[G])
+            } else response.withEntity(Entity.strict[G](chunk))
+            out
+              .transformHeaders(removeChunkedTransferEncoding)
           })
     }
 
@@ -50,7 +52,8 @@ object ChunkAggregator {
 
   /* removes the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
    removes the `Content-Length` header, and leaves the other headers unchanged */
-  private[this] def removeChunkedTransferEncoding(len: Long)(headers: Headers): Headers = {
+
+  private[this] def removeChunkedTransferEncoding(headers: Headers): Headers = {
     val hh: ListBuffer[Header.ToRaw] = ListBuffer.empty[Header.ToRaw]
     headers.headers.foreach {
       case h @ Header.Raw(ci"Transfer-Encoding", value) =>
@@ -68,8 +71,6 @@ object ChunkAggregator {
       case Header.Raw(ci"Content-Length", _) => // do nothing
       case header => hh += header
     }
-    if (len > 0L)
-      hh += `Content-Length`.unsafeFromLong(len)
     Headers(hh.toList)
   }
 }
