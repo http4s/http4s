@@ -55,6 +55,7 @@ it.
 ### Dependency updates
 
 * cats-effect-2.4.0
+* jetty-9.4.39
 * netty-4.1.60
 * scalatags-0.9.4
 * tomcat-9.0.44
