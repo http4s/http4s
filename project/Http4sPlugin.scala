@@ -103,6 +103,8 @@ object Http4sPlugin extends AutoPlugin {
     // Major
     dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", revision="3.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect*", revision="3.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect*", revision="1.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect*", revision="1.*"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -328,7 +330,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.0"
     val munitDiscipline = "1.0.7"
-    val netty = "4.1.60.Final"
+    val netty = "4.1.61.Final"
     val okio = "2.9.0"
     val okhttp = "4.9.1"
     val parboiledHttp4s = "2.0.1"
