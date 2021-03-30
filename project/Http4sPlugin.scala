@@ -76,9 +76,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.2"),    
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.*"),
     // No release notes. If it's compatible with 6.2.5, prove it and PR it.
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut"),
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.1"),
@@ -102,9 +100,9 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus"),
     // This doesn't really matter. It's only used in the mime generator.
     dependencyUpdatesFilter -= moduleFilter(name = "http4s-blaze-client"),
-    // We tried, and it was hard, so we quit. #4519
-    dependencyUpdatesFilter -= moduleFilter(name = "scala-library", revision = "2.13.5"),
-    dependencyUpdatesFilter -= moduleFilter(name = "scala-reflect", revision = "2.13.5"),
+    // Major
+    dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", revision="3.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect*", revision="3.*"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -308,8 +306,8 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.15"
     val boopickle = "1.3.3"
-    val cats = "2.4.2"
-    val catsEffect = "2.4.0"
+    val cats = "2.5.0"
+    val catsEffect = "2.4.1"
     val catsEffectTesting = "0.5.2"
     val circe = "0.13.0"
     val cryptobits = "1.3"
@@ -328,8 +326,8 @@ object Http4sPlugin extends AutoPlugin {
     val log4s = "1.9.0"
     val mockito = "3.5.15"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.13.1"
-    val munitDiscipline = "1.0.6"
+    val munitCatsEffect = "1.0.0"
+    val munitDiscipline = "1.0.7"
     val netty = "4.1.60.Final"
     val okio = "2.9.0"
     val okhttp = "4.9.1"
@@ -343,7 +341,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.4"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.24"
+    val scodecBits = "1.1.25"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.6"
