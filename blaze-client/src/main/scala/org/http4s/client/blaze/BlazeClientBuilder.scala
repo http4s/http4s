@@ -65,6 +65,52 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
 
+  @deprecated("Kept for binary compatibility", "0.21.21")
+  private[BlazeClientBuilder] def this(
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      requestTimeout: Duration,
+      connectTimeout: Duration,
+      userAgent: Option[`User-Agent`],
+      maxTotalConnections: Int,
+      maxWaitQueueLimit: Int,
+      maxConnectionsPerRequestKey: RequestKey => Int,
+      sslContext: Option[SSLContext],
+      checkEndpointIdentification: Boolean,
+      maxResponseLineSize: Int,
+      maxHeaderLength: Int,
+      maxChunkSize: Int,
+      chunkBufferMaxSize: Int,
+      parserMode: ParserMode,
+      bufferSize: Int,
+      executionContext: ExecutionContext,
+      scheduler: Resource[F, TickWheelExecutor],
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup],
+      channelOptions: ChannelOptions
+  )(implicit F: ConcurrentEffect[F]) = this(
+    responseHeaderTimeout = responseHeaderTimeout,
+    idleTimeout = idleTimeout,
+    requestTimeout = requestTimeout,
+    connectTimeout = connectTimeout,
+    userAgent = userAgent,
+    maxTotalConnections = maxTotalConnections,
+    maxWaitQueueLimit = maxWaitQueueLimit,
+    maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
+    sslContext = sslContext,
+    checkEndpointIdentification = checkEndpointIdentification,
+    maxResponseLineSize = maxResponseLineSize,
+    maxHeaderLength = maxHeaderLength,
+    maxChunkSize = maxChunkSize,
+    chunkBufferMaxSize = chunkBufferMaxSize,
+    parserMode = parserMode,
+    bufferSize = bufferSize,
+    executionContext = executionContext,
+    scheduler = scheduler,
+    asynchronousChannelGroup = asynchronousChannelGroup,
+    channelOptions = channelOptions,
+    customDnsResolver = None
+  )
+
   final protected val logger = getLogger(this.getClass)
 
   private def copy(
