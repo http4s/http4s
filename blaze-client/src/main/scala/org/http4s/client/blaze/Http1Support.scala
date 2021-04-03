@@ -61,6 +61,41 @@ final private class Http1Support[F[_]](
     connectTimeout
   )
 
+  @deprecated("Kept for binary compatibility", "0.21.21")
+  private[Http1Support] def this(
+      sslContextOption: Option[SSLContext],
+      bufferSize: Int,
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup],
+      executionContext: ExecutionContext,
+      scheduler: TickWheelExecutor,
+      checkEndpointIdentification: Boolean,
+      maxResponseLineSize: Int,
+      maxHeaderLength: Int,
+      maxChunkSize: Int,
+      chunkBufferMaxSize: Int,
+      parserMode: ParserMode,
+      userAgent: Option[`User-Agent`],
+      channelOptions: ChannelOptions,
+      connectTimeout: Duration
+  )(implicit F: ConcurrentEffect[F]) =
+    this(
+      sslContextOption = sslContextOption,
+      bufferSize = bufferSize,
+      asynchronousChannelGroup = asynchronousChannelGroup,
+      executionContext = executionContext,
+      scheduler = scheduler,
+      checkEndpointIdentification = checkEndpointIdentification,
+      maxResponseLineSize = maxResponseLineSize,
+      maxHeaderLength = maxHeaderLength,
+      maxChunkSize = maxChunkSize,
+      chunkBufferMaxSize = chunkBufferMaxSize,
+      parserMode = parserMode,
+      userAgent = userAgent,
+      channelOptions = channelOptions,
+      connectTimeout = connectTimeout,
+      getAddress = BlazeClientBuilder.getAddress(_)
+    )
+
 ////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
