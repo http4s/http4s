@@ -49,7 +49,7 @@ object Http1Client {
       userAgent = config.userAgent,
       channelOptions = ChannelOptions(Vector.empty),
       connectTimeout = Duration.Inf,
-      customDnsResolver = None
+      getAddress = BlazeClientBuilder.getAddress(_)
     ).makeClient
 
     Resource

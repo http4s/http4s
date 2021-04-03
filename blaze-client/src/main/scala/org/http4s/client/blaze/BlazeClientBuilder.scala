@@ -322,7 +322,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       userAgent = userAgent,
       channelOptions = channelOptions,
       connectTimeout = connectTimeout,
-      customDnsResolver = customDnsResolver
+      getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
     ).makeClient
     Resource.make(
       ConnectionManager.pool(
@@ -370,6 +370,14 @@ object BlazeClientBuilder {
       channelOptions = ChannelOptions(Vector.empty),
       customDnsResolver = None
     ) {}
+
+  def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
+    requestKey match {
+      case RequestKey(s, auth) =>
+        val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
+        val host = auth.host.value
+        Either.catchNonFatal(new InetSocketAddress(host, port))
+    }
 
   private def tryDefaultSslContext: Option[SSLContext] =
     try Some(SSLContext.getDefault())
