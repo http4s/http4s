@@ -51,7 +51,8 @@ final private class Http1Support[F[_]](
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
-    connectTimeout: Duration
+    connectTimeout: Duration,
+    customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]]
 )(implicit F: ConcurrentEffect[F]) {
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
@@ -64,7 +65,7 @@ final private class Http1Support[F[_]](
 ////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
-    getAddress(requestKey) match {
+    customDnsResolver.getOrElse(getAddress _)(requestKey) match {
       case Right(a) => fromFuture(F.delay(buildPipeline(requestKey, a)))
       case Left(t) => F.raiseError(t)
     }
