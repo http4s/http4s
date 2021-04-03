@@ -295,7 +295,7 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.4.0"
     val literally = "1.0.0"
     val logback = "1.2.3"
-    val log4cats = "2.0.0"
+    val log4cats = "2.0.1"
     val log4s = "1.10.0-M5"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.0"
