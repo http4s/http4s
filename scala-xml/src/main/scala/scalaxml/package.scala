@@ -19,18 +19,5 @@ package org.http4s
 import javax.xml.parsers.SAXParserFactory
 
 package object scalaxml extends ElemInstances {
-  override val saxFactory = {
-    val factory = SAXParserFactory.newInstance
-    // Safer parsing settings to avoid certain class of XML attacks
-    // See https://github.com/scala/scala-xml/pull/177
-    factory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true)
-    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-    factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-    factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
-    factory.setFeature("http://xml.org/sax/features/resolve-dtd-uris", false)
-    factory.setXIncludeAware(false)
-    factory.setNamespaceAware(false)
-    factory
-  }
+  override val saxFactory = SAXParserFactory.newInstance
 }
