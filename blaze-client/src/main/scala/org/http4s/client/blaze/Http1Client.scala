@@ -48,7 +48,8 @@ object Http1Client {
       parserMode = if (config.lenientParser) ParserMode.Lenient else ParserMode.Strict,
       userAgent = config.userAgent,
       channelOptions = ChannelOptions(Vector.empty),
-      connectTimeout = Duration.Inf
+      connectTimeout = Duration.Inf,
+      getAddress = BlazeClientBuilder.getAddress(_)
     ).makeClient
 
     Resource

@@ -19,7 +19,6 @@ package client
 package blaze
 
 import cats.effect._
-import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
@@ -51,7 +50,8 @@ final private class Http1Support[F[_]](
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
-    connectTimeout: Duration
+    connectTimeout: Duration,
+    getAddress: RequestKey => Either[Throwable, InetSocketAddress]
 )(implicit F: ConcurrentEffect[F]) {
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
@@ -60,6 +60,41 @@ final private class Http1Support[F[_]](
     scheduler,
     connectTimeout
   )
+
+  @deprecated("Kept for binary compatibility", "0.21.21")
+  private[Http1Support] def this(
+      sslContextOption: Option[SSLContext],
+      bufferSize: Int,
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup],
+      executionContext: ExecutionContext,
+      scheduler: TickWheelExecutor,
+      checkEndpointIdentification: Boolean,
+      maxResponseLineSize: Int,
+      maxHeaderLength: Int,
+      maxChunkSize: Int,
+      chunkBufferMaxSize: Int,
+      parserMode: ParserMode,
+      userAgent: Option[`User-Agent`],
+      channelOptions: ChannelOptions,
+      connectTimeout: Duration
+  )(implicit F: ConcurrentEffect[F]) =
+    this(
+      sslContextOption = sslContextOption,
+      bufferSize = bufferSize,
+      asynchronousChannelGroup = asynchronousChannelGroup,
+      executionContext = executionContext,
+      scheduler = scheduler,
+      checkEndpointIdentification = checkEndpointIdentification,
+      maxResponseLineSize = maxResponseLineSize,
+      maxHeaderLength = maxHeaderLength,
+      maxChunkSize = maxChunkSize,
+      chunkBufferMaxSize = chunkBufferMaxSize,
+      parserMode = parserMode,
+      userAgent = userAgent,
+      channelOptions = channelOptions,
+      connectTimeout = connectTimeout,
+      getAddress = BlazeClientBuilder.getAddress(_)
+    )
 
 ////////////////////////////////////////////////////
 
@@ -127,11 +162,4 @@ final private class Http1Support[F[_]](
     }
   }
 
-  private def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
-    requestKey match {
-      case RequestKey(s, auth) =>
-        val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
-        val host = auth.host.value
-        Either.catchNonFatal(new InetSocketAddress(host, port))
-    }
 }
