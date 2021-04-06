@@ -8,6 +8,24 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.22 (2021-04-06)
+
+## http4s-blaze-client
+
+### Enhancements
+
+* [#4699](https://github.com/http4s/http4s/pull/4699): Add custom DNS resolver support to `BlazeClientBuilder`
+
+## Dependency upgrades
+
+* cats-2.5.0
+* cats-effect-2.4.1
+* fs2-2.5.4
+* netty-4.1.63
+* scodec-bits-1.1.25
+* tomcat-9.0.45
+* twirl-1.5.1
+
 # v0.21.21 (2021-03-29)
 
 ## http4s-client
