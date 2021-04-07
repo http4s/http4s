@@ -430,7 +430,7 @@ lazy val playJson = libraryProject("play-json")
       Http4sPlugin.playJson.withDottyCompat(scalaVersion.value),
     ),
     skip in publish := isDotty.value,
-    skip in test := isDotty.value
+    skip in compile := isDotty.value
   )
   .dependsOn(jawn % "compile;test->test")
 
