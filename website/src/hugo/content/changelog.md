@@ -24,6 +24,7 @@ Contains all the changes of v0.21.22.
 ## Dependency updates
 
 * blaze-0.15.0-M3
+* case-insensitive-1.1.2
 * cats-parse-0.3.2
 * circe-0.14.0-M5
 * ip4s-2.0.1
