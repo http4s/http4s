@@ -8,6 +8,34 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.0-M7 (2021-04-06)
+
+Contains all the changes of v0.21.22.
+
+## Cross builds
+
+* Add Scala-3.0.0-RC2
+* Drop Scala-3.0.0-RC1
+
+## http4s-play-json
+
+* There is not yet an http4s-play-json build for Scala 3.0.0-RC2 because play-json doesn't yet support it.  A PR is open upstream, and we will revive it in the next release.
+
+## Dependency updates
+
+* blaze-0.15.0-M3
+* cats-parse-0.3.2
+* circe-0.14.0-M5
+* ip4s-2.0.1
+* jawn-1.1.1
+* jawn-fs2-1.1.1
+* keypool-0.3.3
+* log4cats-1.2.2
+* log4s-1.10.0-M6
+* literally-1.0.0
+* scala-xml-2.0.0-RC1
+* vault-2.1.9
+
 # v0.21.22 (2021-04-06)
 
 ## http4s-blaze-client
