@@ -183,7 +183,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.21/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientBuilder.scala" target="_blank">BlazeClientBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.22/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientBuilder.scala" target="_blank">BlazeClientBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -345,7 +345,7 @@ to process requests.  The second element of the tuple shuts
 down the backend when run.</p><p>Unlike <a href="#resource:cats.effect.Resource[F,org.http4s.client.Client[F]]" class="extmbr" name="org.http4s.client.blaze.BlazeClientBuilder#resource">resource</a> and <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.blaze.BlazeClientBuilder#stream">stream</a>, there is no automatic
 release of the backend.  This function is intended for REPL
 sessions, tests, and other situations where composing a
-<a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html" class="extype" name="cats.effect.Resource">cats.effect.Resource</a> or <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.3/fs2-core_2.12-2.5.3-javadoc.jar/!/fs2/Stream.html" class="extype" name="fs2.Stream">fs2.Stream</a> is not tenable.
+<a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html" class="extype" name="cats.effect.Resource">cats.effect.Resource</a> or <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.4/fs2-core_2.12-2.5.4-javadoc.jar/!/fs2/Stream.html" class="extype" name="fs2.Stream">fs2.Stream</a> is not tenable.
 <a href="#resource:cats.effect.Resource[F,org.http4s.client.Client[F]]" class="extmbr" name="org.http4s.client.blaze.BlazeClientBuilder#resource">resource</a> or <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.blaze.BlazeClientBuilder#stream">stream</a> is recommended wherever possible.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -497,6 +497,22 @@ sessions, tests, and other situations where composing a
       </span>
       <span class="symbol">
         <span class="name">connectTimeout</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#customDnsResolver" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="customDnsResolver:Option[org.http4s.client.RequestKey=&gt;Either[Throwable,java.net.InetSocketAddress]]"></a><a id="customDnsResolver:Option[(RequestKey)⇒Either[Throwable,InetSocketAddress]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#customDnsResolver:Option[org.http4s.client.RequestKey=&gt;Either[Throwable,java.net.InetSocketAddress]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">customDnsResolver</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[(<a href="../RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a>) ⇒ <a href="../../../../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<a href="../../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]]</span>
       </span>
       
       
@@ -980,7 +996,7 @@ until the backend is ready to process requests.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.3/fs2-core_2.12-2.5.3-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]]</span>
+        <span class="name">stream</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.4/fs2-core_2.12-2.5.4-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Returns the backend as a single-element stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a single-element stream.  The stream
@@ -1244,6 +1260,22 @@ The backend is shut down when the stream is finalized.
       </span>
       <span class="symbol">
         <span class="name">withConnectTimeout</span><span class="params">(<span name="connectTimeout">connectTimeout: <a href="https://www.scala-lang.org/api/2.12.13/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withCustomDnsResolver" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withCustomDnsResolver(customDnsResolver:org.http4s.client.RequestKey=&gt;Either[Throwable,java.net.InetSocketAddress]):org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withCustomDnsResolver((RequestKey)⇒Either[Throwable,InetSocketAddress]):BlazeClientBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withCustomDnsResolver(customDnsResolver:org.http4s.client.RequestKey=&gt;Either[Throwable,java.net.InetSocketAddress]):org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withCustomDnsResolver</span><span class="params">(<span name="customDnsResolver">customDnsResolver: (<a href="../RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a>) ⇒ <a href="../../../../scala/index.html#Either[+A,+B]=scala.util.Either[A,B]" class="extmbr" name="scala.Either">Either</a>[<a href="../../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>, <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
       </span>
       
       
