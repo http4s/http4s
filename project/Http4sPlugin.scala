@@ -347,7 +347,7 @@ object Http4sPlugin extends AutoPlugin {
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.6"
-    val tomcat = "9.0.44"
+    val tomcat = "9.0.45"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
