@@ -185,9 +185,7 @@ lazy val server = libraryProject("server")
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
-    buildInfoKeys := Seq[BuildInfoKey](
-      resourceDirectory in Test,
-    ),
+    buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
     buildInfoPackage := "org.http4s.server.test",
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
@@ -405,8 +403,8 @@ lazy val boopickle = libraryProject("boopickle")
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle.withDottyCompat(scalaVersion.value),
     ),
-    skip in compile := isDotty.value,
-    skip in publish := isDotty.value
+    compile / skip := isDotty.value,
+    publish / skip := isDotty.value
   )
   .dependsOn(core, testing % "test->test")
 
@@ -429,8 +427,8 @@ lazy val playJson = libraryProject("play-json")
     libraryDependencies ++= Seq(
       Http4sPlugin.playJson.withDottyCompat(scalaVersion.value),
     ),
-    skip in publish := isDotty.value,
-    skip in compile := isDotty.value
+    publish / skip := isDotty.value,
+    compile / skip := isDotty.value
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -456,7 +454,7 @@ lazy val twirl = http4sProject("twirl")
         case module => module
       }
     },
-    skip in publish := isDotty.value
+    publish / skip := isDotty.value
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
@@ -468,7 +466,7 @@ lazy val scalatags = http4sProject("scalatags")
     libraryDependencies ++= Seq(
       scalatagsApi.withDottyCompat(scalaVersion.value),
     ),
-    skip in publish := isDotty.value
+    publish / skip := isDotty.value
   )
   .dependsOn(core, testing % "test->test")
 
@@ -512,7 +510,7 @@ lazy val docs = http4sProject("docs")
         examplesTomcat,
         examplesWar
       ),
-    mdocIn := (sourceDirectory in Compile).value / "mdoc",
+    mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
     Hugo / baseURL := {
