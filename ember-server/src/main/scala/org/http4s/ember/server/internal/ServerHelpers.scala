@@ -199,10 +199,14 @@ private[server] object ServerHelpers {
       Stream
         .unfoldLoopEval((Array.emptyByteArray, false)) { case (incoming, reused) =>
           if (incoming.isEmpty || !reused) {
-            read.map(chunkOpt =>
-              (
-                Option.empty[Either[Throwable, (Request[F], Response[F])]],
-                chunkOpt.map(c => (c.toArray, true))))
+            read.attempt.map {
+              case Right(chunkOpt) =>
+                (
+                  Option.empty[Either[Throwable, (Request[F], Response[F])]],
+                  chunkOpt.map(c => (c.toArray, true))
+                )
+              case Left(e) => (Left(e).some, None)
+            }
           } else {
             runApp(
               incoming,
