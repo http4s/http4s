@@ -21,6 +21,9 @@ title: Adopters
 [Formation](https://www.formation.ai/)
 : Uses the client internally
 
+[HiFi](https://hi.fi/)
+: Uses http4s for internal web services
+
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
