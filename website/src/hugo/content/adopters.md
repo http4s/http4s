@@ -39,6 +39,9 @@ title: Adopters
 [Quantiply](https://www.quantiply.com)
 : Uses http4s to power the critical data APIs.
 
+[SecurityScorecard](https://securityscorecard.io)
+: Uses http4s to power its critical data pipeline.
+
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
 
