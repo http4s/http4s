@@ -19,7 +19,6 @@ package client
 package blaze
 
 import cats.effect._
-import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
@@ -52,7 +51,8 @@ final private class Http1Support[F[_]](
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
-    connectTimeout: Duration
+    connectTimeout: Duration,
+    getAddress: RequestKey => Either[Throwable, InetSocketAddress]
 )(implicit F: ConcurrentEffect[F]) {
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
@@ -61,8 +61,6 @@ final private class Http1Support[F[_]](
     scheduler,
     connectTimeout
   )
-
-////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
@@ -131,11 +129,4 @@ final private class Http1Support[F[_]](
     }
   }
 
-  private def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
-    requestKey match {
-      case RequestKey(s, auth) =>
-        val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
-        val host = auth.host.value
-        Either.catchNonFatal(new InetSocketAddress(host, port))
-    }
 }

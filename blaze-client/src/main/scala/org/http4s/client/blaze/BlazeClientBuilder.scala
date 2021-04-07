@@ -34,6 +34,7 @@ import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import java.net.InetSocketAddress
 
 /** @param sslContext Some custom `SSLContext`, or `None` if the
   * default SSL context is to be lazily instantiated.
@@ -58,7 +59,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val executionContext: ExecutionContext,
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
-    val channelOptions: ChannelOptions
+    val channelOptions: ChannelOptions,
+    val customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]]
 )(implicit protected val F: ConcurrentEffect[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
@@ -86,7 +88,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       executionContext: ExecutionContext = executionContext,
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
-      channelOptions: ChannelOptions = channelOptions
+      channelOptions: ChannelOptions = channelOptions,
+      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] = None
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -108,7 +111,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       executionContext = executionContext,
       scheduler = scheduler,
       asynchronousChannelGroup = asynchronousChannelGroup,
-      channelOptions = channelOptions
+      channelOptions = channelOptions,
+      customDnsResolver = customDnsResolver
     ) {}
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
@@ -203,6 +207,10 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
     copy(channelOptions = channelOptions)
 
+  def withCustomDnsResolver(customDnsResolver: RequestKey => Either[Throwable, InetSocketAddress])
+      : BlazeClientBuilder[F] =
+    copy(customDnsResolver = Some(customDnsResolver))
+
   def resource: Resource[F, Client[F]] =
     for {
       scheduler <- scheduler
@@ -273,7 +281,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       userAgent = userAgent,
       channelOptions = channelOptions,
-      connectTimeout = connectTimeout
+      connectTimeout = connectTimeout,
+      getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
     ).makeClient
     Resource.make(
       ConnectionManager.pool(
@@ -315,21 +324,15 @@ object BlazeClientBuilder {
       executionContext = executionContext,
       scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
-      channelOptions = ChannelOptions(Vector.empty)
+      channelOptions = ChannelOptions(Vector.empty),
+      customDnsResolver = None
     ) {}
 
-  /** Creates a BlazeClientBuilder
-    *
-    * @param executionContext the ExecutionContext for blaze's internal Futures
-    * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
-    */
-  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "0.22.0-M1")
-  def apply[F[_]: ConcurrentEffect](
-      executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = SSLContextOption.tryDefaultSslContext)
-      : BlazeClientBuilder[F] =
-    sslContext match {
-      case None => apply(executionContext).withoutSslContext
-      case Some(sslCtx) => apply(executionContext).withSslContext(sslCtx)
+  def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
+    requestKey match {
+      case RequestKey(s, auth) =>
+        val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
+        val host = auth.host.value
+        Either.catchNonFatal(new InetSocketAddress(host, port))
     }
 }
