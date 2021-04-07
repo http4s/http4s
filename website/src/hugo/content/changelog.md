@@ -16,6 +16,10 @@ it.
 
 * [#4699](https://github.com/http4s/http4s/pull/4699): Add custom DNS resolver support to `BlazeClientBuilder`
 
+## http4s-ember-server
+
+* [#4715](https://github.com/http4s/http4s/pull/4715): Fix regression in SSL handshake resulting in Connection Refused errors
+
 ## Dependency upgrades
 
 * cats-2.5.0
