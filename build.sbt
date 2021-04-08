@@ -315,7 +315,8 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
       nettyBuffer,
       nettyCodecHttp,
       reactiveStreams,
-    )
+    ),
+    Test / parallelExecution := false
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 

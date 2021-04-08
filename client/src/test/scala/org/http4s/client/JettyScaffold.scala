@@ -17,7 +17,7 @@
 package org.http4s.client
 
 import cats.effect.{Resource, Sync}
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.{InetSocketAddress}
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import javax.servlet.http.HttpServlet
@@ -82,7 +82,7 @@ class JettyScaffold private (num: Int, secure: Boolean) {
       server.start()
 
       val address = new InetSocketAddress(
-        InetAddress.getLocalHost.getCanonicalHostName,
+        "localhost",
         server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort)
 
       (address, server)

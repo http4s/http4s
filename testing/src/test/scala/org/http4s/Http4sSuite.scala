@@ -32,6 +32,19 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
   // BatchExecutor on Scala 2.12.
   override val munitExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
+
+  private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
+
+  override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
+
+  def registerSuiteFixture[A](fixture: Fixture[A]) = {
+    suiteFixtures += fixture
+    fixture
+  }
+
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
+    ResourceSuiteLocalFixture(name, resource))
+
   val testBlocker: Blocker = Http4sSuite.TestBlocker
 
   // allow flaky tests on ci
