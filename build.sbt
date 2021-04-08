@@ -10,7 +10,6 @@ ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.star
 ThisBuild / baseVersion := "0.21"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
-ThisBuild / Test / parallelExecution := false
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -359,7 +358,8 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
       nettyBuffer,
       nettyCodecHttp,
       reactiveStreams,
-    )
+    ),
+    Test / parallelExecution := false
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
