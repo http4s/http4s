@@ -547,7 +547,7 @@ private[ember] object Parser {
           idx += 1
         }
 
-        if (throwable != null) RespPreludeError("Encounterd Error parsing", Option(throwable))
+        if (throwable != null) RespPreludeError("Encountered Error parsing", Option(throwable))
         if (httpVersion != null && status != null)
           RespPreludeComplete(httpVersion, status, bv.drop(idx))
         else RespPreludeIncomplete
