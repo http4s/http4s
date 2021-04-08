@@ -10,6 +10,7 @@ ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.star
 ThisBuild / baseVersion := "0.21"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
+ThisBuild / Test / parallelExecution := false
 
 enablePlugins(SonatypeCiReleasePlugin)
 
