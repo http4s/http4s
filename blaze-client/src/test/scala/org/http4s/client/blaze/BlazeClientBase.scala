@@ -18,7 +18,6 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
-import cats.syntax.all._
 import javax.net.ssl.SSLContext
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -90,7 +89,6 @@ trait BlazeClientBase extends Http4sSuite {
         }.unsafeRunSync()
     }
 
-  val jettyScaffold = ResourceFixture(
-    (JettyScaffold[IO](5, false, testServlet), JettyScaffold[IO](1, true, testServlet)).tupled)
-
+  val jettyServer = resourceSuiteFixture("http", JettyScaffold[IO](2, false, testServlet))
+  val jettySslServer = resourceSuiteFixture("https", JettyScaffold[IO](1, true, testServlet))
 }
