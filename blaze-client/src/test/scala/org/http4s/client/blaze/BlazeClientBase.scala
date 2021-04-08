@@ -78,6 +78,6 @@ trait BlazeClientBase extends Http4sSuite {
       }
     }
 
-  val jettyServer = resourceSuiteFixture("http", JettyScaffold[IO](5, false, testServlet))
+  val jettyServer = resourceSuiteFixture("http", JettyScaffold[IO](2, false, testServlet))
   val jettySslServer = resourceSuiteFixture("https", JettyScaffold[IO](1, true, testServlet))
 }
