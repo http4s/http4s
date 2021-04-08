@@ -16,10 +16,9 @@
 
 package org.http4s
 
-import cats.effect.IO
-import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
+import cats.effect.{IO, Resource}
+import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
 import cats.syntax.all._
-import cats.effect.unsafe.Scheduler
 import fs2._
 import fs2.text.utf8Decode
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
@@ -34,7 +33,20 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
   // BatchExecutor on Scala 2.12.
   override val munitExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
+
   override implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
+
+  private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
+
+  override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
+
+  def registerSuiteFixture[A](fixture: Fixture[A]) = {
+    suiteFixtures += fixture
+    fixture
+  }
+
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
+    ResourceSuiteLocalFixture(name, resource))
 
   // allow flaky tests on ci
   override def munitFlakyOK = sys.env.get("CI").isDefined
