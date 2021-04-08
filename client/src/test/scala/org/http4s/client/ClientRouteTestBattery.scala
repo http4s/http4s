@@ -31,9 +31,6 @@ import java.util.Arrays
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
   val timeout = 20.seconds
-  private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
-
-  override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
 
   def clientResource: Resource[IO, Client[IO]]
 
@@ -56,14 +53,6 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   // Need to override the context shift from munitCatsEffect
   // This is only required for JettyClient
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
-
-  def registerSuiteFixture[A](fixture: Fixture[A]) = {
-    suiteFixtures += fixture
-    fixture
-  }
-
-  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource))
 
   val jetty = resourceSuiteFixture("server", JettyScaffold[IO](1, false, testServlet))
   val client = resourceSuiteFixture("client", clientResource)
