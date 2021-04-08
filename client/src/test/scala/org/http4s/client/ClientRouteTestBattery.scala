@@ -55,15 +55,15 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   // This is only required for JettyClient
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
-  val clientFixture = ResourceFixture(
-    (JettyScaffold[IO](1, false, testServlet), clientResource).tupled)
+  val jetty = resourceSuiteFixture("server", JettyScaffold[IO](1, false, testServlet))
+  val client = resourceSuiteFixture("client", clientResource)
 
-  clientFixture.test(s"$name Repeat a simple request") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name Repeat a simple request") {
+    val address = jetty().addresses.head
     val path = GetRoutes.SimplePath
 
     def fetchBody =
-      client.toKleisli(_.as[String]).local { (uri: Uri) =>
+      client().toKleisli(_.as[String]).local { (uri: Uri) =>
         Request(uri = uri)
       }
 
@@ -74,46 +74,46 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       .assert
   }
 
-  clientFixture.test(s"$name POST an empty body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST an empty body") {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(uri)
-    val body = client.expect[String](req)
+    val body = client().expect[String](req)
     body.assertEquals("")
   }
 
-  clientFixture.test(s"$name POST a normal body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST a normal body") {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST("This is normal.", uri)
-    val body = client.expect[String](req)
+    val body = client().expect[String](req)
     body.assertEquals("This is normal.")
   }
 
-  clientFixture.test(s"$name POST a chunked body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST a chunked body") {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(Stream("This is chunked.").covary[IO], uri)
-    val body = client.expect[String](req)
+    val body = client().expect[String](req)
     body.assertEquals("This is chunked.")
   }
 
-  clientFixture.test(s"$name POST a multipart body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST a multipart body") {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
     val req = POST(multipart, uri).withHeaders(multipart.headers)
-    val body = client.expect[String](req)
+    val body = client().expect[String](req)
     body.map(_.contains("This is text.")).assert
   }
 
-  clientFixture.test(s"$name Execute GET") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name Execute GET") {
+    val address = jetty().addresses.head
     GetRoutes.getPaths.toList.traverse { case (path, expected) =>
       val name = address.getHostName
       val port = address.getPort
       val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
-      client
+      client()
         .run(req)
         .use(resp => checkResponse(resp, expected))
         .assert
