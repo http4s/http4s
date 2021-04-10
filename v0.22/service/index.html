@@ -93,7 +93,7 @@ and calling it with http4s&rsquo; client.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.13.4&quot; // Also supports 2.12.x
 
-val http4sVersion = &quot;0.22.0-M6&quot;
+val http4sVersion = &quot;0.22.0-M7&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -154,7 +154,7 @@ greet.</p>
     Ok(s&quot;Hello, $name.&quot;)
 }
 // helloWorldService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8142/1613424171@2936e44b
+//   org.http4s.HttpRoutes$$$Lambda$8194/656707957@66541daa
 // )
 </code></pre>
 
@@ -187,7 +187,7 @@ val tweetService = HttpRoutes.of[IO] {
     getTweet(tweetId).flatMap(Ok(_))
 }
 // tweetService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8142/1613424171@51b445bf
+//   org.http4s.HttpRoutes$$$Lambda$8194/656707957@6a5606c9
 // )
 </code></pre>
 
@@ -215,14 +215,14 @@ import org.http4s.server.Router
 
 <pre><code class="language-scala">val services = tweetService &lt;+&gt; helloWorldService
 // services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.KleisliSemigroupK$$Lambda$8143/204311715@6a438ba4
+//   cats.data.KleisliSemigroupK$$Lambda$8195/11644561@3696412f
 // )
 val httpApp = Router(&quot;/&quot; -&gt; helloWorldService, &quot;/api&quot; -&gt; services).orNotFound
 // httpApp: cats.data.Kleisli[IO, Request[IO], Response[IO]] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$8392/590538068@260cf4a0
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$8435/210144352@613cacbe
 // )
 val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;).withHttpApp(httpApp)
-// serverBuilder: BlazeServerBuilder[IO] = org.http4s.server.blaze.BlazeServerBuilder@38064896
+// serverBuilder: BlazeServerBuilder[IO] = org.http4s.server.blaze.BlazeServerBuilder@2743547e
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -235,7 +235,7 @@ associates the specified routes with this http server instance.</p>
 // fiber: Fiber[IO, Nothing] = Tuple(
 //   Bind(
 //     Async(
-//       cats.effect.internals.IOAsync$$$Lambda$8135/1218383888@4bec7b94,
+//       cats.effect.internals.IOAsync$$$Lambda$8187/401854732@7d796e11,
 //       false,
 //       StackTrace(
 //         List(
