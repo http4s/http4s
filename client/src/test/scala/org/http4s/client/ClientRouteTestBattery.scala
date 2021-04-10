@@ -90,7 +90,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     body.assertEquals("This is normal.")
   }
 
-  test(s"$name POST a chunked body") {
+  test(s"$name POST a chunked body".flaky) {
     val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(Stream("This is chunked.").covary[IO], uri)
