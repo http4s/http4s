@@ -103,7 +103,7 @@ class BlazeClient213Suite extends BlazeClientBase {
       .assertEquals(true)
   }
 
-  test("Blaze Http1Client should behave and not deadlock on failures with parSequence") {
+  test("Blaze Http1Client should behave and not deadlock on failures with parSequence".flaky) {
     val addresses = jettyServer().addresses
     mkClient(3)
       .use { client =>

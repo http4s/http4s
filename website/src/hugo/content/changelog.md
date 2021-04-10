@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.0-M7 (2021-04-08)
+# v0.22.0-M7 (2021-04-10)
 
 Contains all the changes of v0.21.22.
 

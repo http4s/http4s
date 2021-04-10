@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.5"
   val scala_212 = "2.12.13"
-  val scala_3 = "3.0.0-RC1"
+  val scala_3 = "3.0.0-RC2"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -76,7 +76,7 @@ object Http4sPlugin extends AutoPlugin {
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 
-    excludeFilter.in(headerSources) := HiddenFileFilter ||
+    headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
         def accept(file: File) = {
           attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
@@ -265,7 +265,7 @@ object Http4sPlugin extends AutoPlugin {
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
-        siteBuildJob("website"), 
+        siteBuildJob("website"),
         // siteBuildJob("docs")
       ),
     )
@@ -276,27 +276,27 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.0-M2"
+    val blaze = "0.15.0-M3"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.1.0"
+    val caseInsensitive = "1.1.2"
     val cats = "2.5.0"
     val catsEffect = "3.0.1"
-    val catsParse = "0.3.1"
-    val circe = "0.14.0-M4"
+    val catsParse = "0.3.2"
+    val circe = "0.14.0-M5"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
     val dropwizardMetrics = "4.1.18"
     val fs2 = "3.0.1"
     val ip4s = "3.0.1"
     val jacksonDatabind = "2.12.2"
-    val jawn = "1.1.0"
-    val jawnFs2 = "2.0.0"
+    val jawn = "1.1.1"
+    val jawnFs2 = "2.0.1"
     val jetty = "9.4.39.v20210325"
-    val keypool = "0.4.0"
+    val keypool = "0.4.1"
     val literally = "1.0.0"
     val logback = "1.2.3"
     val log4cats = "2.0.1"
-    val log4s = "1.10.0-M5"
+    val log4s = "1.10.0-M6"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.1"
     val munitDiscipline = "1.0.7"
@@ -317,7 +317,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.45"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "3.0.0"
+    val vault = "3.0.1"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
