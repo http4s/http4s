@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M21 (2021-04-10)
+
+Contains all the changes of v0.22.0-M7.
+
+## Dependency updates
+
+* cats-effect-3.0.1
+* jawn-fs2-2.0.1
+* keypool-0.4.1
+* log4cats-2.0.1
+* vault-3.0.1
+
 # v0.22.0-M7 (2021-04-10)
 
 Contains all the changes of v0.21.22.
