@@ -104,9 +104,8 @@ private[ember] object ChunkedEncoding {
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
           (Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
         else
-          Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map {
-            case (headers, _, _, bytes) =>
-              (headers, bytes)
+          Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map { headerP =>
+            (headerP.headers, headerP.rest)
           }
     }
   }
