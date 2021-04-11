@@ -33,6 +33,7 @@ import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
+import cats.data.EitherT
 
 // Originally based on ArgonautSuite
 class CirceSuite extends JawnDecodeSupportSuite[Json] {
@@ -138,6 +139,26 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
 
   test("stream json array encoder should write compact JSON") {
     writeToString(jsons).assertEquals("""[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""")
+  }
+
+  test("stream json array decoder should decode JSON") {
+    (for {
+      stream <- streamJsonArrayDecoder[IO].decode(
+        Media(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+          Headers.of(Header("content-type", "application/json"))
+        ),
+        false
+      )
+      list <- EitherT(stream.compile.toList.map(_.asRight[DecodeFailure]))
+      res = list.map(j => Printer.noSpaces.print(j))
+    } yield res).value.assertEquals(
+      Right(
+        List(
+          """{"test1":"CirceSupport"}""",
+          """{"test2":"CirceSupport"}"""
+        )))
   }
 
   test("stream json array encoder should write JSON according to custom encoders") {
