@@ -38,7 +38,7 @@ private[ember] object Parser {
     def parseMessage[F[_]](buffer: Array[Byte], read: F[Option[Chunk[Byte]]], maxHeaderLength: Int)(implicit F: MonadThrow[F]): F[Message] = {
       val endIndex = buffer.take(maxHeaderLength).indexOfSlice(DoubleCrlf)
       if (endIndex == -1 && buffer.length > maxHeaderLength) {
-        F.raiseError(new Throwable("HTTP message too long"))
+        F.raiseError(new Throwable("HTTP Message Too Long"))
       } else if (endIndex == -1) {
         read.flatMap {
           case Some(chunk) =>
@@ -226,95 +226,17 @@ private[ember] object Parser {
 
   object Request {
 
-    final case class ReqPrelude(method: Method, uri: Uri, version: HttpVersion, rest: Array[Byte], bytes: Int)
+    final case class ReqPrelude(method: Method, uri: Uri, version: HttpVersion, rest: Array[Byte], nextIndex: Int)
 
     object ReqPrelude {
-
-      val emptyStreamError = ParsePreludeError("Cannot Parse Empty Stream", None, None, None, None)
-
-      def parsePrelude[F[_]](
-          head: Array[Byte],
-          read: F[Option[Chunk[Byte]]],
-          maxHeaderLength: Int,
-          acc: Option[ParsePreludeIncomplete] = None)(implicit
-          F: MonadThrow[F]): F[ReqPrelude] = {
-        val nextChunk = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
-
-        nextChunk.flatMap {
-          case Some(chunk) =>
-            val next: Array[Byte] = acc match {
-              case None => chunk.toArray
-              case Some(ic) => combineArrays(ic.bv, chunk.toArray)
-            }
-            ReqPrelude.preludeInSection(next) match {
-              case ParsePreludeComplete(m, u, h, rest) =>
-                F.pure(ReqPrelude(m, u, h, rest))
-              case t @ ParsePreludeError(_, _, _, _, _) => F.raiseError(t)
-              case p @ ParsePreludeIncomplete(_, _, method, uri, httpVersion) =>
-                if (next.size <= maxHeaderLength)
-                  parsePrelude(Array.emptyByteArray, read, maxHeaderLength, p.some)
-                else
-                  F.raiseError(
-                    ParsePreludeError(
-                      "Reached Max Header Length Looking for Request Prelude",
-                      None,
-                      method,
-                      uri,
-                      httpVersion))
-            }
-          case None =>
-            acc match {
-              case None => F.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.bv.isEmpty => F.raiseError(emptyStreamError)
-              case Some(incomplete) =>
-                F.raiseError(
-                  ParsePreludeError(
-                    s"Unexpected EOF - $incomplete",
-                    None,
-                    incomplete.method,
-                    incomplete.uri,
-                    incomplete.httpVersion))
-            }
-        }
-      }
 
       private val space = ' '.toByte
       private val cr: Byte = '\r'.toByte
       private val lf: Byte = '\n'.toByte
 
-      sealed trait ParsePreludeResult
-      
-      final case class ParsePreludeError(
-          message: String,
-          caused: Option[Throwable],
-          method: Option[Method],
-          uri: Option[Uri],
-          httpVersion: Option[HttpVersion]
-      ) extends Exception(
-            s"Parse Prelude Error Encountered - Message: $message - Partially Decoded: $method $uri $httpVersion",
-            caused.orNull
-          )
-          with ParsePreludeResult
-      
-      final case class ParsePreludeIncomplete(
-          idx: Int,
-          bv: Array[Byte],
-          // buffer: String,
-          method: Option[Method],
-          uri: Option[Uri],
-          httpVersion: Option[HttpVersion]
-      ) extends ParsePreludeResult
-
-      final case class ParsePreludeComplete(
-          method: Method,
-          uri: Uri,
-          httpVersion: HttpVersion,
-          rest: Array[Byte]
-      ) extends ParsePreludeResult
-
       // Method SP URI SP HttpVersion CRLF - REST
-      def preludeInSection(bv: Array[Byte]): ParsePreludeResult = {
-        var idx = initIdx
+      def parsePrelude[F[_]](message: Array[Byte])(implicit F: MonadThrow[F]): F[ReqPrelude] = {
+        var idx = 0
         var state: Byte = 0
         var complete = false
 
@@ -325,7 +247,6 @@ private[ember] object Parser {
 
         var start = 0
         while (!complete && idx < bv.size) {
-          val value = bv(idx)
           (state: @switch) match {
             case 0 =>
               if (value == space) {
@@ -340,6 +261,7 @@ private[ember] object Parser {
                 state = 1
               }
             case 1 =>
+              val value = bv(idx)
               if (value == space) {
                 Uri.fromString(new String(bv, start, idx - start)) match {
                   case Left(e) =>
@@ -352,6 +274,7 @@ private[ember] object Parser {
                 state = 2
               }
             case 2 =>
+              val value = bv(idx)
               if (value == lf && (idx > 0 && bv(idx - 1) == cr)) {
                 HttpVersion.fromString(new String(bv, start, idx - start - 1)) match {
                   case Left(e) =>
@@ -367,18 +290,35 @@ private[ember] object Parser {
         }
 
         if (throwable != null)
-          ParsePreludeError(
+          F.raiseError(ParsePreludeError(
             throwable.getMessage(),
             Option(throwable),
             Option(method),
             Option(uri),
             Option(httpVersion)
-          )
-        else if (method != null && uri != null && httpVersion != null)
-          ParsePreludeComplete(method, uri, httpVersion, bv.drop(idx))
+          ))
+        else if (method != null || uri != null || httpVersion != null)
+          F.raiseError(ParsePreludeError(
+            new Throwable("Failed to parse HTTP request prelude"),
+            Option(throwable),
+            Option(method),
+            Option(uri),
+            Option(httpVersion)
+          ))
         else
-          ParsePreludeIncomplete(idx, bv, Option(method), Option(uri), Option(httpVersion))
+          ReqPrelude(m, u, h, rest, idx).pure[F]
       }
+      
+      final case class ParsePreludeError(
+          message: String,
+          caused: Option[Throwable],
+          method: Option[Method],
+          uri: Option[Uri],
+          httpVersion: Option[HttpVersion]
+      ) extends Exception(
+            s"Parse Prelude Error Encountered - Message: $message - Partially Decoded: $method $uri $httpVersion",
+            caused.orNull
+          )
     }
 
     def parser[F[_]](maxHeaderLength: Int)(
