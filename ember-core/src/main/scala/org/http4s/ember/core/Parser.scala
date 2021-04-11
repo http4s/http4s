@@ -27,7 +27,34 @@ import scala.collection.mutable
 
 private[ember] object Parser {
 
-  final case class HeaderP(headers: Headers, chunked: Boolean, length: Option[Long], rest: Array[Byte])
+  final case class Message(bytes: Array[Byte], rest: Array[Byte])
+
+  object Message {
+
+    private val cr: Byte = '\r'.toByte
+    private val lf: Byte = '\n'.toByte
+    private val DoubleCrlf: Seq[Byte] = (cr, lf, cr, lf)
+
+    def parseMessage[F[_]](buffer: Array[Byte], read: F[Option[Chunk[Byte]]], maxHeaderLength: Int)(implicit F: MonadThrow[F]): F[Message] = {
+      val endIndex = buffer.take(maxHeaderLength).indexOfSlice(DoubleCrlf)
+      if (endIndex == -1 && buffer.length > maxHeaderLength) {
+        F.raiseError(new Throwable("HTTP message too long"))
+      } else if (endIndex == -1) {
+        read.flatMap {
+          case Some(chunk) =>
+            val nextBuffer = combineArrays(buffer, chunk.toArray)
+            parseMessage(nextBuffer, read, maxHeaderLength)
+          case None => F.raiseError(new Throwable("Reached End Of Stream"))
+        }
+      } else {
+        val (bytes, rest) = buffer.splitAt(endIndex)
+        Message(bytes, rest).pure[F]
+      }
+    }
+
+  }
+
+  final case class HeaderP(headers: Headers, chunked: Boolean, contentLength: Option[Long], rest: Array[Byte])
 
   object HeaderP {
 
@@ -199,7 +226,7 @@ private[ember] object Parser {
 
   object Request {
 
-    final case class ReqPrelude(method: Method, uri: Uri, version: HttpVersion, rest: Array[Byte])
+    final case class ReqPrelude(method: Method, uri: Uri, version: HttpVersion, rest: Array[Byte], bytes: Int)
 
     object ReqPrelude {
 
@@ -251,16 +278,13 @@ private[ember] object Parser {
         }
       }
 
-      // sealed trait ParsePreludeState
-      // 0 case object GetMethod extends ParsePreludeState
-      // 1 case object GetUri extends ParsePreludeState
-      // 2 case object GetHttpVersion extends ParsePreludeState
       private val space = ' '.toByte
       private val cr: Byte = '\r'.toByte
       private val lf: Byte = '\n'.toByte
 
       sealed trait ParsePreludeResult
-      case class ParsePreludeError(
+      
+      final case class ParsePreludeError(
           message: String,
           caused: Option[Throwable],
           method: Option[Method],
@@ -271,6 +295,7 @@ private[ember] object Parser {
             caused.orNull
           )
           with ParsePreludeResult
+      
       final case class ParsePreludeIncomplete(
           idx: Int,
           bv: Array[Byte],
@@ -279,20 +304,16 @@ private[ember] object Parser {
           uri: Option[Uri],
           httpVersion: Option[HttpVersion]
       ) extends ParsePreludeResult
+
       final case class ParsePreludeComplete(
           method: Method,
           uri: Uri,
           httpVersion: HttpVersion,
           rest: Array[Byte]
       ) extends ParsePreludeResult
+
       // Method SP URI SP HttpVersion CRLF - REST
-      def preludeInSection(
-          bv: Array[Byte],
-          initIdx: Int = 0,
-          initMethod: Option[Method] = None,
-          initUri: Option[Uri] = None,
-          initHttpVersion: Option[HttpVersion] = None
-      ): ParsePreludeResult = {
+      def preludeInSection(bv: Array[Byte]): ParsePreludeResult = {
         var idx = initIdx
         var state: Byte = 0
         var complete = false
@@ -386,7 +407,7 @@ private[ember] object Parser {
                     rest.get)
               }
             } else {
-              Body.parseFixedBody(headerP.length.getOrElse(0L), headerP.rest, read).map {
+              Body.parseFixedBody(headerP.contentLength.getOrElse(0L), headerP.rest, read).map {
                 case (bodyStream, drain) =>
                   (baseReq.withBodyStream(bodyStream), drain)
               }
@@ -422,7 +443,7 @@ private[ember] object Parser {
                     rest.get)
               }
             } else {
-              Body.parseFixedBody(headerP.length.getOrElse(0L), headerP.rest, read).map {
+              Body.parseFixedBody(headerP.contentLength.getOrElse(0L), headerP.rest, read).map {
                 case (bodyStream, drain) =>
                   (baseResp.withBodyStream(bodyStream), drain)
               }
