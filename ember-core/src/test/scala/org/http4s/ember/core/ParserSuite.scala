@@ -400,7 +400,10 @@ class ParsingSpec extends Http4sSuite {
         .parseMessage(Array.emptyByteArray, take, defaultMaxHeaderLength)
     } yield message
 
-    result.map(_.bytes.toList).assertEquals(respS.compile.string.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList)
+    result
+      .map(_.bytes.toList)
+      .assertEquals(
+        respS.compile.string.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList)
   }
 
   test("Request Prelude should parse an expected value") {

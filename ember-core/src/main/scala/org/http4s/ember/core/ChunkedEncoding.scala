@@ -101,7 +101,7 @@ private[ember] object ChunkedEncoding {
     val nextChunk =
       if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
     nextChunk.flatMap {
-      case None => 
+      case None =>
         // TODO: end of stream?
         Trailers(Headers.empty, Array.emptyByteArray).pure[F]
       case Some(chunk) =>

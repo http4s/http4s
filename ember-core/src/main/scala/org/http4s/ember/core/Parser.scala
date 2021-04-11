@@ -37,7 +37,8 @@ private[ember] object Parser {
     private val lf: Byte = '\n'.toByte
     private val DoubleCrlf: Seq[Byte] = Seq(cr, lf, cr, lf)
 
-    def parseMessage[F[_]](buffer: Array[Byte], read: F[Option[Chunk[Byte]]], maxHeaderSize: Int)(implicit F: MonadThrow[F]): F[MessageP] = {
+    def parseMessage[F[_]](buffer: Array[Byte], read: F[Option[Chunk[Byte]]], maxHeaderSize: Int)(
+        implicit F: MonadThrow[F]): F[MessageP] = {
       val endIndex = buffer.take(maxHeaderSize).indexOfSlice(DoubleCrlf)
       if (endIndex == -1 && buffer.length > maxHeaderSize) {
         F.raiseError(new Throwable("HTTP Message Too Long"))
@@ -69,7 +70,8 @@ private[ember] object Parser {
     private val transferEncodingS = "Transfer-Encoding"
     private val chunkedS = "chunked"
 
-    def parseHeaders[F[_]](message: Array[Byte], initIndex: Int)(implicit F: MonadThrow[F]): F[HeaderP] = {
+    def parseHeaders[F[_]](message: Array[Byte], initIndex: Int)(implicit
+        F: MonadThrow[F]): F[HeaderP] = {
       import scala.collection.mutable.ListBuffer
       var idx = initIndex
       var state = 0
@@ -130,7 +132,7 @@ private[ember] object Parser {
         idx += 1 // Single Advance Every Iteration
       }
 
-      if (throwable != null) 
+      if (throwable != null)
         F.raiseError(ParseHeadersError(throwable))
       else if (!complete)
         F.raiseError(ParseHeadersError(new Throwable("Failed to parse headers")))
@@ -209,25 +211,27 @@ private[ember] object Parser {
         }
 
         if (throwable != null)
-          F.raiseError(ParsePreludeError(
-            throwable.getMessage(),
-            Option(throwable),
-            Option(method),
-            Option(uri),
-            Option(httpVersion)
-          ))
+          F.raiseError(
+            ParsePreludeError(
+              throwable.getMessage(),
+              Option(throwable),
+              Option(method),
+              Option(uri),
+              Option(httpVersion)
+            ))
         else if (method == null || uri == null || httpVersion == null)
-          F.raiseError(ParsePreludeError(
-            "Failed to parse HTTP request prelude",
-            Option(throwable),
-            Option(method),
-            Option(uri),
-            Option(httpVersion)
-          ))
+          F.raiseError(
+            ParsePreludeError(
+              "Failed to parse HTTP request prelude",
+              Option(throwable),
+              Option(method),
+              Option(uri),
+              Option(httpVersion)
+            ))
         else
           ReqPrelude(method, uri, httpVersion, idx).pure[F]
       }
-      
+
       final case class ParsePreludeError(
           message: String,
           caused: Option[Throwable],
@@ -256,22 +260,23 @@ private[ember] object Parser {
           headers = headerP.headers
         )
 
-        request <- if (headerP.chunked) {
-          Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
-            case (rest, trailers) =>
-              (
-                baseReq
-                  .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                  .withBodyStream(
-                    ChunkedEncoding.decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
-                rest.get)
+        request <-
+          if (headerP.chunked) {
+            Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
+              case (rest, trailers) =>
+                (
+                  baseReq
+                    .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                    .withBodyStream(ChunkedEncoding
+                      .decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
+                  rest.get)
+            }
+          } else {
+            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
+              case (bodyStream, drain) =>
+                (baseReq.withBodyStream(bodyStream), drain)
+            }
           }
-        } else {
-          Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
-            case (bodyStream, drain) =>
-              (baseReq.withBodyStream(bodyStream), drain)
-          }
-        }
       } yield request
   }
 
@@ -292,21 +297,22 @@ private[ember] object Parser {
           headers = headerP.headers
         )
 
-        resp <- if (headerP.chunked) {
-              Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
-                case (rest, trailers) =>
-                    baseResp
-                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                      .withBodyStream(
-                        ChunkedEncoding.decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)) ->
-                    rest.get
-              }
-            } else {
-              Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
-                case (bodyStream, drain) =>
-                  baseResp.withBodyStream(bodyStream) -> drain
-              }
+        resp <-
+          if (headerP.chunked) {
+            Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
+              case (rest, trailers) =>
+                baseResp
+                  .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                  .withBodyStream(ChunkedEncoding
+                    .decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)) ->
+                  rest.get
             }
+          } else {
+            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
+              case (bodyStream, drain) =>
+                baseResp.withBodyStream(bodyStream) -> drain
+            }
+          }
       } yield resp
 
     object RespPrelude {
@@ -371,7 +377,7 @@ private[ember] object Parser {
           idx += 1
         }
 
-        if (throwable != null) 
+        if (throwable != null)
           F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
         else if (httpVersion == null || status == null)
           F.raiseError(RespPreludeError("Failed to parse HTTP response prelude", None))
