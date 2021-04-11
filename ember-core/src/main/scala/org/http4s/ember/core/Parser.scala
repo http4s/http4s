@@ -55,58 +55,9 @@ private[ember] object Parser {
 
   }
 
-  final case class HeaderP(headers: Headers, chunked: Boolean, contentLength: Option[Long], rest: Array[Byte])
+  final case class HeaderP(headers: Headers, chunked: Boolean, contentLength: Option[Long], nextIndex: Int)
 
   object HeaderP {
-
-    def parseHeaders[F[_]](
-        head: Array[Byte],
-        read: F[Option[Chunk[Byte]]],
-        maxHeaderLength: Int,
-        acc: Option[ParseHeadersIncomplete])(implicit
-        F: MonadThrow[F]): F[HeaderP] = {
-      // TODO: improve this
-      val nextChunk = if (head.nonEmpty) F.pure(Some(Chunk.bytes(head))) else read
-      nextChunk.flatMap {
-        case Some(chunk) =>
-          val nextArr: Array[Byte] = acc match {
-            case None => chunk.toArray
-            case Some(last) => combineArrays(last.bv, chunk.toArray)
-          }
-          val result = acc match {
-            case None => headersInSection(nextArr)
-            case Some(
-                  ParseHeadersIncomplete(
-                    _,
-                    accHeaders,
-                    idx,
-                    state,
-                    name,
-                    start,
-                    chunked,
-                    contentLength)) =>
-              headersInSection(nextArr, idx, state, accHeaders, chunked, contentLength, name, start)
-          }
-          result match {
-            case ParseHeadersCompleted(headers, rest, chunked, length) =>
-              F.pure(HeaderP(headers, chunked, length, rest))
-            case p @ ParseHeadersError(_) => F.raiseError(p)
-            case p @ ParseHeadersIncomplete(_, _, _, _, _, _, _, _) =>
-              if (nextArr.size <= maxHeaderLength)
-                parseHeaders(Array.emptyByteArray, read, maxHeaderLength, p.some)
-              else
-                F.raiseError(
-                  ParseHeadersError(
-                    new Throwable(
-                      s"Parse Headers Exceeded Max Content-Length current size: ${nextArr.size}, only allow ${maxHeaderLength}")
-                  )
-                )
-          }
-        case None =>
-          F.raiseError(
-            ParseHeadersError(new Throwable("Reached End of Stream Looking for Headers")))
-      }
-    }
 
     private val colon: Byte = ':'.toByte
     private val cr: Byte = '\r'.toByte
@@ -116,39 +67,7 @@ private[ember] object Parser {
     private val transferEncodingS = "Transfer-Encoding"
     private val chunkedS = "chunked"
 
-    sealed trait ParseHeaderResult
-    final case class ParseHeadersError(cause: Throwable)
-        extends Throwable(
-          s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
-          cause)
-        with ParseHeaderResult
-    final case class ParseHeadersCompleted(
-        headers: Headers,
-        rest: Array[Byte],
-        chunked: Boolean,
-        length: Option[Long])
-        extends ParseHeaderResult
-    final case class ParseHeadersIncomplete(
-        bv: Array[Byte],
-        accHeaders: List[Header],
-        idx: Int,
-        state: Byte,
-        name: Option[String],
-        start: Int,
-        chunked: Boolean,
-        contentLength: Option[Long])
-        extends ParseHeaderResult
-
-    def headersInSection(
-        bv: Array[Byte],
-        initIndex: Int = 0,
-        initState: Byte = 0, //HeaderNameOrPostCRLF,
-        initHeaders: List[Header] = List.empty,
-        initChunked: Boolean = false,
-        initContentLength: Option[Long] = None,
-        initName: Option[String] = None,
-        initStart: Int = 0
-    ): ParseHeaderResult = {
+    def parseHeaders[F[_]](buffer: Array[Byte], initIndex: Int)(implicit F: MonadThrow[F]): F[HeaderP] = {
       import scala.collection.mutable.ListBuffer
       var idx = initIndex
       var state = initState
@@ -209,20 +128,18 @@ private[ember] object Parser {
         idx += 1 // Single Advance Every Iteration
       }
 
-      if (throwable != null) ParseHeadersError(throwable)
-      else if (complete)
-        ParseHeadersCompleted(Headers(headers.toList), bv.drop(idx), chunked, contentLength)
+      if (throwable != null) 
+        F.raiseError(ParseHeadersError(throwable))
+      else if (!complete)
+        F.raiseError(ParseHeadersError(new Throwable("Failed to parse headers")))
       else
-        ParseHeadersIncomplete(
-          bv,
-          headers.toList,
-          idx,
-          state,
-          Option(name),
-          start,
-          chunked,
-          contentLength)
+        HeadersP(Headers(headers.toList), chunked, contentLength, idx).pure[F]
     }
+
+    final case class ParseHeadersError(cause: Throwable)
+        extends Throwable(
+          s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
+          cause)
   }
 
   object Request {
@@ -298,7 +215,7 @@ private[ember] object Parser {
             Option(uri),
             Option(httpVersion)
           ))
-        else if (method != null || uri != null || httpVersion != null)
+        else if (method == null || uri == null || httpVersion == null)
           F.raiseError(ParsePreludeError(
             new Throwable("Failed to parse HTTP request prelude"),
             Option(throwable),
@@ -456,7 +373,7 @@ private[ember] object Parser {
 
         if (throwable != null) 
           F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
-        else if (httpVersion != null || status != null)
+        else if (httpVersion == null || status == null)
           F.raiseError(RespPreludeError("Failed to parse HTTP response prelude", None))
         else
           RespPrelude(version, status, idx).pure[F]
