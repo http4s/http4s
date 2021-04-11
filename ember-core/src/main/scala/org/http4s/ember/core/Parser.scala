@@ -31,21 +31,23 @@ private[ember] object Parser {
 
   object MessageP {
 
+    val emptyStreamError = new Throwable("Cannot Parse Empty Stream")
+
     private val cr: Byte = '\r'.toByte
     private val lf: Byte = '\n'.toByte
     private val DoubleCrlf: Seq[Byte] = Seq(cr, lf, cr, lf)
 
-    def parseMessage[F[_]](buffer: Array[Byte], read: F[Option[Chunk[Byte]]], maxHeaderLength: Int)(implicit F: MonadThrow[F]): F[MessageP] = {
-      val endIndex = buffer.take(maxHeaderLength).indexOfSlice(DoubleCrlf)
-      if (endIndex == -1 && buffer.length > maxHeaderLength) {
+    def parseMessage[F[_]](buffer: Array[Byte], read: F[Option[Chunk[Byte]]], maxHeaderSize: Int)(implicit F: MonadThrow[F]): F[MessageP] = {
+      val endIndex = buffer.take(maxHeaderSize).indexOfSlice(DoubleCrlf)
+      if (endIndex == -1 && buffer.length > maxHeaderSize) {
         F.raiseError(new Throwable("HTTP Message Too Long"))
       } else if (endIndex == -1) {
         read.flatMap {
           case Some(chunk) =>
             val nextBuffer = combineArrays(buffer, chunk.toArray)
-            parseMessage(nextBuffer, read, maxHeaderLength)
+            parseMessage(nextBuffer, read, maxHeaderSize)
           case None if buffer.length > 0 => F.raiseError(new Throwable("Reached End Of Stream"))
-          case _ => F.raiseError(new Throwable("Cannot parse empty stream"))
+          case _ => F.raiseError(emptyStreamError)
         }
       } else {
         val (bytes, rest) = buffer.splitAt(endIndex)
@@ -238,12 +240,12 @@ private[ember] object Parser {
           )
     }
 
-    def parser[F[_]](maxHeaderLength: Int)(
+    def parser[F[_]](maxHeaderSize: Int)(
         head: Array[Byte],
         read: F[Option[Chunk[Byte]]]
     )(implicit F: Concurrent[F]): F[(Request[F], F[Option[Array[Byte]]])] =
       for {
-        message <- MessageP.parseMessage(head, read, maxHeaderLength)
+        message <- MessageP.parseMessage(head, read, maxHeaderSize)
         prelude <- ReqPrelude.parsePrelude(message.bytes)
         headerP <- HeaderP.parseHeaders(message.bytes, prelude.nextIndex)
 
@@ -261,7 +263,7 @@ private[ember] object Parser {
                 baseReq
                   .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
                   .withBodyStream(
-                    ChunkedEncoding.decode(message.rest, read, maxHeaderLength, trailers, rest)),
+                    ChunkedEncoding.decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
                 rest.get)
           }
         } else {
@@ -275,12 +277,12 @@ private[ember] object Parser {
 
   object Response {
 
-    def parser[F[_]: Concurrent](maxHeaderLength: Int)(
+    def parser[F[_]: Concurrent](maxHeaderSize: Int)(
         head: Array[Byte],
         read: F[Option[Chunk[Byte]]]
     ): F[(Response[F], F[Option[Array[Byte]]])] =
       for {
-        message <- MessageP.parseMessage(head, read, maxHeaderLength)
+        message <- MessageP.parseMessage(head, read, maxHeaderSize)
         prelude <- RespPrelude.parsePrelude(message.bytes)
         headerP <- HeaderP.parseHeaders(message.bytes, prelude.nextIndex)
 
@@ -297,7 +299,7 @@ private[ember] object Parser {
                     baseResp
                       .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
                       .withBodyStream(
-                        ChunkedEncoding.decode(message.rest, read, maxHeaderLength, trailers, rest)),
+                        ChunkedEncoding.decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
                     rest.get)
               }
             } else {

@@ -29,6 +29,7 @@ private[ember] object ChunkedEncoding {
   def decode[F[_]](
       head: Array[Byte],
       read: F[Option[Chunk[Byte]]],
+      maxHeaderSize: Int,
       maxChunkHeaderSize: Int,
       trailers: Deferred[F, Headers],
       rest: Ref[F, Option[Array[Byte]]])(implicit F: MonadThrow[F]): Stream[F, Byte] = {
@@ -63,9 +64,9 @@ private[ember] object ChunkedEncoding {
                   case Some(0) =>
                     // Done With Message, Now Parse Trailers
                     Pull.eval(
-                      parseTrailers[F](maxChunkHeaderSize)(rem.toArray, read)
-                        .flatMap { case (hdrs, bytes) =>
-                          trailers.complete(hdrs) >> rest.set(Some(bytes))
+                      parseTrailers[F](maxHeaderSize)(rem.toArray, read)
+                        .flatMap { t =>
+                          trailers.complete(t.headers) >> rest.set(Some(t.rest))
                         }
                     ) >> Pull.done
                   case Some(sz) => go(Right(sz), rem.toArray)
@@ -92,20 +93,26 @@ private[ember] object ChunkedEncoding {
     go(Left(ByteVector.empty), head).stream
   }
 
+  final case class Trailers(headers: Headers, rest: Array[Byte])
+
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
-  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(Headers, Array[Byte])] = {
+  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] = {
     val nextChunk =
       if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
     nextChunk.flatMap {
-      case None => (Headers.empty, Array.emptyByteArray).pure[F]
+      case None => 
+        // TODO: end of stream?
+        Trailers(Headers.empty, Array.emptyByteArray).pure[F]
       case Some(chunk) =>
         if (chunk.isEmpty) parseTrailers(maxHeaderSize)(Array.emptyByteArray, read)
         else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
-          (Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
+          Trailers(Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
         else
-          Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map { headerP =>
-            (headerP.headers, headerP.rest)
+          Parser.MessageP.parseMessage(chunk.toArray, read, maxHeaderSize).flatMap { message =>
+            Parser.HeaderP.parseHeaders(message.bytes, 0).map { headerP =>
+              Trailers(headerP.headers, message.rest)
+            }
           }
     }
   }

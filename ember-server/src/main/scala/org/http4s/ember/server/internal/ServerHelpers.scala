@@ -233,7 +233,7 @@ private[server] object ServerHelpers {
           case Left(err) =>
             err match {
               case req: Parser.Request.ReqPrelude.ParsePreludeError
-                  if req == Parser.Request.ReqPrelude.emptyStreamError =>
+                  if req == Parser.MessageP.emptyStreamError =>
                 Applicative[F].unit
               case err =>
                 errorHandler(err)
