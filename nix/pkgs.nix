@@ -5,7 +5,7 @@ let
   pinnedVersion = hostPkgs.lib.importJSON ./nixpkgs-version.json;
   pinnedPkgs = hostPkgs.fetchFromGitHub {
     owner = "NixOS";
-    repo = "nixpkgs-channels";
+    repo = "nixpkgs";
     inherit (pinnedVersion) rev sha256;
   };
   config = {
