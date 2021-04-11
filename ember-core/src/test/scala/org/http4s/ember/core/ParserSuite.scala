@@ -219,7 +219,7 @@ class ParsingSpec extends Http4sSuite {
       .map(Helpers.httpifyString)
       .through(text.utf8Encode)
 
-    (for {
+    for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Request.parser[IO](Int.MaxValue)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
@@ -229,7 +229,10 @@ class ParsingSpec extends Http4sSuite {
         .through(text.utf8Decode)
         .compile
         .string
-    } yield body == "hello" && rest == "everything after the body").assert
+    } yield {
+      assertEquals(body, "hello")
+      assertEquals(rest, "everything after the body")
+    }
   }
 
   test("Parser.Request.parser should parse two requests in a row") {
@@ -342,7 +345,7 @@ class ParsingSpec extends Http4sSuite {
       .map(Helpers.httpifyString)
       .through(text.utf8Encode)
 
-    (for {
+    for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
@@ -353,7 +356,10 @@ class ParsingSpec extends Http4sSuite {
         .through(text.utf8Decode)
         .compile
         .string
-    } yield body == "hello" && rest == "everything after the body").assert
+    } yield {
+      assertEquals(body, "hello")
+      assertEquals(rest, "everything after the body")
+    }
   }
 
   test("Header Parser should handle headers in a section") {

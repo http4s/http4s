@@ -50,7 +50,7 @@ private[ember] object Parser {
           case _ => F.raiseError(emptyStreamError)
         }
       } else {
-        val (bytes, rest) = buffer.splitAt(endIndex)
+        val (bytes, rest) = buffer.splitAt(endIndex + 4)
         MessageP(bytes, rest).pure[F]
       }
     }
@@ -80,7 +80,7 @@ private[ember] object Parser {
 
       val headers: ListBuffer[Header] = ListBuffer()
       var name: String = null
-      var start = 0
+      var start = initIndex
 
       while (!complete && idx < message.size) {
         (state: @switch) match {
@@ -167,7 +167,7 @@ private[ember] object Parser {
 
         var start = 0
         while (!complete && idx < message.size) {
-              val value = message(idx)
+          val value = message(idx)
           (state: @switch) match {
             case 0 =>
               if (value == space) {
@@ -295,17 +295,16 @@ private[ember] object Parser {
         resp <- if (headerP.chunked) {
               Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
                 case (rest, trailers) =>
-                  (
                     baseResp
                       .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
                       .withBodyStream(
-                        ChunkedEncoding.decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
-                    rest.get)
+                        ChunkedEncoding.decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)) ->
+                    rest.get
               }
             } else {
               Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
                 case (bodyStream, drain) =>
-                  (baseResp.withBodyStream(bodyStream), drain)
+                  baseResp.withBodyStream(bodyStream) -> drain
               }
             }
       } yield resp
