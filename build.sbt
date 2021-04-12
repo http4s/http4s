@@ -468,7 +468,6 @@ lazy val circe = libraryProject("circe")
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
-      circeFs2,
       circeTesting % Test
     )
   )

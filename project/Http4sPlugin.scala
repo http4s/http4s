@@ -366,7 +366,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeCore                        = "io.circe"               %% "circe-core"                % V.circe
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % V.circe
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % V.circe
-  lazy val circeFs2                         = "io.circe"               %% "circe-fs2"                 % V.circe
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % V.circe
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % V.circe
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % V.circe
