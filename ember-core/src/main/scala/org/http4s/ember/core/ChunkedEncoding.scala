@@ -108,7 +108,7 @@ private[ember] object ChunkedEncoding {
           // TODO: end of stream?
           Trailers(Headers.empty, Array.emptyByteArray).pure[F]
         case Some(chunk) =>
-          parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray, read)
+          parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
       }
     } else {
       Parser.MessageP.parseMessage(buffer, read, maxHeaderSize).flatMap { message =>
