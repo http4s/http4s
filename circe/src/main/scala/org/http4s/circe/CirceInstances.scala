@@ -145,6 +145,7 @@ trait CirceInstances extends JawnInstances {
     EntityDecoder.decodeBy(MediaType.application.json) { media =>
       DecodeResult.successT(media.body.chunks.through(jawnfs2.unwrapJsonArray))
     }
+
   /** An [[EntityEncoder]] for a [[fs2.Stream]] of JSONs, which will encode it as a single JSON array. */
   def streamJsonArrayEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Stream[F, Json]] =
     EntityEncoder
