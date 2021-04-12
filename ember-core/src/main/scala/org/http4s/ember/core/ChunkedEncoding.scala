@@ -97,6 +97,8 @@ private[ember] object ChunkedEncoding {
 
   final case class Trailers(headers: Headers, rest: Array[Byte])
 
+  private val emptyTrailingHeaders = Trailers(Headers.empty, Array.emptyByteArray)
+
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(buffer: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] =
@@ -106,7 +108,7 @@ private[ember] object ChunkedEncoding {
       read.flatMap {
         case None =>
           // TODO: end of stream?
-          Trailers(Headers.empty, Array.emptyByteArray).pure[F]
+          emptyTrailingHeaders.pure[F]
         case Some(chunk) =>
           parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
       }
