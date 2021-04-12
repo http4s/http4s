@@ -142,10 +142,9 @@ trait CirceInstances extends JawnInstances {
     streamJsonArrayEncoderWithPrinter(defaultPrinter)
 
   implicit def streamJsonArrayDecoder[F[_]: Sync]: EntityDecoder[F, Stream[F, Json]] =
-    EntityDecoder.byteArrayDecoder[F].map { array =>
-      fs2.byteArrayParser[F].apply(Stream.fromIterator(array.iterator))
+    EntityDecoder.decodeBy(MediaType.application.json) { media =>
+      DecodeResult.successT(media.body.chunks.through(jawnfs2.unwrapJsonArray))
     }
-
   /** An [[EntityEncoder]] for a [[fs2.Stream]] of JSONs, which will encode it as a single JSON array. */
   def streamJsonArrayEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Stream[F, Json]] =
     EntityEncoder
