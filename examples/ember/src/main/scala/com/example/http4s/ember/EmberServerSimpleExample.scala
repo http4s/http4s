@@ -23,7 +23,7 @@ import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.circe._
-import _root_.io.circe.Json
+import _root_.io.circe._
 import _root_.org.http4s.ember.server.EmberServerBuilder
 
 object EmberServerSimpleExample extends IOApp {
