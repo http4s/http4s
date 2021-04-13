@@ -504,14 +504,11 @@ class UriSpec extends Http4sSuite {
     }
 
     test("Uri toString should handle brackets in query string") {
-      // These are illegal, but common in the wild.  We will be "conservative
-      // in our sending behavior and liberal in our receiving behavior", and
-      // encode them.
       assertEquals(
         Uri
           .fromString("http://localhost:8080/index?filter[state]=public")
           .map(_.toString),
-        Right("http://localhost:8080/index?filter%5Bstate%5D=public"))
+        Right("http://localhost:8080/index?filter[state]=public"))
     }
 
     test("Uri toString should round trip with toString".fail) {
