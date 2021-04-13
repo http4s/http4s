@@ -31,8 +31,6 @@ private[ember] object Parser {
 
   object MessageP {
 
-    val emptyStreamError = new Throwable("Cannot Parse Empty Stream")
-
     private val cr: Byte = '\r'.toByte
     private val lf: Byte = '\n'.toByte
     private val DoubleCrlf: Seq[Byte] = Seq(cr, lf, cr, lf)
@@ -41,20 +39,26 @@ private[ember] object Parser {
         implicit F: MonadThrow[F]): F[MessageP] = {
       val endIndex = buffer.take(maxHeaderSize).indexOfSlice(DoubleCrlf)
       if (endIndex == -1 && buffer.length > maxHeaderSize) {
-        F.raiseError(new Throwable("HTTP Message Too Long"))
+        F.raiseError(MessageTooLongError(maxHeaderSize))
       } else if (endIndex == -1) {
         read.flatMap {
           case Some(chunk) =>
             val nextBuffer = combineArrays(buffer, chunk.toArray)
             parseMessage(nextBuffer, read, maxHeaderSize)
-          case None if buffer.length > 0 => F.raiseError(new Throwable("Reached End Of Stream"))
-          case _ => F.raiseError(emptyStreamError)
+          case None if buffer.length > 0 => F.raiseError(EndOfStreamError())
+          case _ => F.raiseError(EmptyStreamError())
         }
       } else {
         val (bytes, rest) = buffer.splitAt(endIndex + 4)
         MessageP(bytes, rest).pure[F]
       }
     }
+
+    final case class MessageTooLongError(maxHeaderSize: Int) extends Exception(s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes")
+
+    final case class EmptyStreamError() extends Exception("Cannot Parse Empty Stream")
+
+    final case class EndOfStreamError() extends Exception("Reached End Of Stream")
 
   }
 
@@ -132,18 +136,21 @@ private[ember] object Parser {
         idx += 1 // Single Advance Every Iteration
       }
 
-      if (throwable != null)
+      if (throwable != null) {
         F.raiseError(ParseHeadersError(throwable))
-      else if (!complete)
-        F.raiseError(ParseHeadersError(new Throwable("Failed to parse headers")))
-      else
+      } else if (!complete) {
+        F.raiseError(IncompleteHttpMessage())
+      } else {
         HeaderP(Headers(headers.toList), chunked, contentLength).pure[F]
+      }
     }
 
     final case class ParseHeadersError(cause: Throwable)
         extends Throwable(
           s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
           cause)
+
+    final case class IncompleteHttpMessage() extends Exception("Tried To Parse An Incomplete HTTP Message")
   }
 
   object Request {
@@ -411,7 +418,7 @@ private[ember] object Parser {
           Ref.of[F, Either[Long, Array[Byte]]](Left(unread)).map { state =>
             val bodyStream = Stream.eval(state.get).flatMap {
               case Right(_) =>
-                Stream.raiseError(new Throwable("Body has already been completely read"))
+                Stream.raiseError(BodyAlreadyConsumedError())
               case Left(remaining) =>
                 readStream(read).chunks
                   .evalMapAccumulate(remaining) { case (r, chunk) =>
@@ -437,6 +444,8 @@ private[ember] object Parser {
       } else {
         (EmptyBody.covary[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
       }
+
+    final case class BodyAlreadyConsumedError() extends Exception("Body Has Been Consumed Completely Already")
 
     private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
       Stream.eval(read).flatMap {

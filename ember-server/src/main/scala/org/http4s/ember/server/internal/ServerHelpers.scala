@@ -232,8 +232,7 @@ private[server] object ServerHelpers {
             send(socket)(Some(request), response, idleTimeout, onWriteFailure)
           case Left(err) =>
             err match {
-              case req: Parser.Request.ReqPrelude.ParsePreludeError
-                  if req == Parser.MessageP.emptyStreamError =>
+              case Parser.MessageP.EmptyStreamError() =>
                 Applicative[F].unit
               case err =>
                 errorHandler(err)
