@@ -29,7 +29,7 @@ import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
 import org.http4s.headers.Expires
 
-class ParsingSpec extends Http4sSuite {
+class ParsingSuite extends Http4sSuite {
   object Helpers {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
@@ -526,5 +526,27 @@ class ParsingSpec extends Http4sSuite {
       _ <- body._1.compile.drain
       _ <- body._1.compile.drain.intercept[Throwable]
     } yield ()
+  }
+
+  test(
+    "Parser.Message.parser should raise an error if prelude/header message is too long") {
+    val raw =
+      """POST /foo HTTP/1.1
+          |Host: localhost:8080
+          |User-Agent: curl/7.64.1
+          |Accept: */*
+          |Content-Length: 5
+          |
+          |helloeverything after the body""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .covary[IO]
+      .map(Helpers.httpifyString)
+      .through(text.utf8Encode)
+
+    Helpers.taking[IO, Byte](byteStream).flatMap { take =>
+      Parser.MessageP.parseMessage[IO](Array.emptyByteArray, take, 10).intercept[Parser.MessageP.MessageTooLongError]
+    }
   }
 }
