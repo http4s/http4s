@@ -54,7 +54,8 @@ private[ember] object Parser {
       }
     }
 
-    final case class MessageTooLongError(maxHeaderSize: Int) extends Exception(s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes")
+    final case class MessageTooLongError(maxHeaderSize: Int)
+        extends Exception(s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes")
 
     final case class EmptyStreamError() extends Exception("Cannot Parse Empty Stream")
 
@@ -150,7 +151,8 @@ private[ember] object Parser {
           s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
           cause)
 
-    final case class IncompleteHttpMessage() extends Exception("Tried To Parse An Incomplete HTTP Message")
+    final case class IncompleteHttpMessage()
+        extends Exception("Tried To Parse An Incomplete HTTP Message")
   }
 
   object Request {
@@ -445,7 +447,8 @@ private[ember] object Parser {
         (EmptyBody.covary[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
       }
 
-    final case class BodyAlreadyConsumedError() extends Exception("Body Has Been Consumed Completely Already")
+    final case class BodyAlreadyConsumedError()
+        extends Exception("Body Has Been Consumed Completely Already")
 
     private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
       Stream.eval(read).flatMap {

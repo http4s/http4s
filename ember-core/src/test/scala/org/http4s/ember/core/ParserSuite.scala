@@ -528,8 +528,7 @@ class ParsingSuite extends Http4sSuite {
     } yield ()
   }
 
-  test(
-    "Parser.Message.parser should raise an error if prelude/header message is too long") {
+  test("Parser.Message.parser should raise an error if prelude/header message is too long") {
     val raw =
       """POST /foo HTTP/1.1
           |Host: localhost:8080
@@ -546,7 +545,9 @@ class ParsingSuite extends Http4sSuite {
       .through(text.utf8Encode)
 
     Helpers.taking[IO, Byte](byteStream).flatMap { take =>
-      Parser.MessageP.parseMessage[IO](Array.emptyByteArray, take, 10).intercept[Parser.MessageP.MessageTooLongError]
+      Parser.MessageP
+        .parseMessage[IO](Array.emptyByteArray, take, 10)
+        .intercept[Parser.MessageP.MessageTooLongError]
     }
   }
 }
