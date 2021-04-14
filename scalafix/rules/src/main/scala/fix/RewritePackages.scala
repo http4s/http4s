@@ -24,6 +24,7 @@ class RewritePackages extends SemanticRule("RewritePackages") {
     Patch.replaceSymbols(
       "org.http4s.server.tomcat" -> "org.http4s.tomcat.server",
       "org.http4s.server.jetty" -> "org.http4s.jetty.server",
-      "org.http4s.client.jetty" -> "org.http4s.jetty.client"
+      "org.http4s.client.jetty" -> "org.http4s.jetty.client",
+      "org.http4s.client.okhttp" -> "org.http4s.okhttp.client"
     )
 }
