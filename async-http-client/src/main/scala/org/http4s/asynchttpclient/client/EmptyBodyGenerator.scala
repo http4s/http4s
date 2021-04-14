@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.asynchttpclient
+package org.http4s.asynchttpclient.client
 
 import io.netty.buffer.ByteBuf
 import org.asynchttpclient.request.body.Body
