@@ -36,9 +36,9 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
     def shutdown() = ()
   }
 
-  def mkPool(
-      maxTotal: Int = 1,
-      maxWaitQueueLimit: Int = 2,
+  private def mkPool(
+      maxTotal: Int,
+      maxWaitQueueLimit: Int,
       requestTimeout: Duration = Duration.Inf
   ) =
     ConnectionManager.pool(

@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Random
 
-final case class WaitQueueFullFailure() extends RuntimeException {
+private final case class WaitQueueFullFailure() extends RuntimeException {
   @deprecated("Use `getMessage` instead", "0.20.0")
   def message: String = getMessage
 
@@ -377,5 +377,5 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
 }
 
-final case class NoConnectionAllowedException(key: RequestKey)
+private final case class NoConnectionAllowedException(key: RequestKey)
     extends IllegalArgumentException(s"No client connections allowed to $key")
