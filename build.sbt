@@ -49,6 +49,7 @@ versionIntroduced := Map(
 )
 
 lazy val modules: List[ProjectReference] = List(
+  parsing,
   core,
   laws,
   testing,
@@ -97,6 +98,16 @@ lazy val root = project.in(file("."))
   )
   .aggregate(modules: _*)
 
+lazy val parsing = project.in(file("parsing"))
+  .settings(
+    name := "http4s-parsing",
+    description := "Parsers for HTTP and related RFCs",
+    startYear := Some(2021),
+    libraryDependencies ++= Seq(
+      catsParse,
+    )
+  )
+
 lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
@@ -115,7 +126,6 @@ lazy val core = libraryProject("core")
       caseInsensitive,
       catsCore,
       catsEffect,
-      catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
       ip4sCore,
@@ -133,6 +143,7 @@ lazy val core = libraryProject("core")
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
+  .dependsOn(parsing)
 
 lazy val laws = libraryProject("laws")
   .settings(

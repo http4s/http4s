@@ -20,7 +20,7 @@ import cats.{Hash, Order, Show}
 import cats.syntax.all._
 import cats.kernel.BoundedEnumerable
 import cats.parse.{Parser => P}
-import cats.parse.Rfc5234.digit
+import org.http4s.parsing.Rfc7230
 import org.http4s.util._
 
 /** An HTTP version, as seen on the start line of an HTTP request or response.
@@ -51,15 +51,8 @@ object HttpVersion {
         ParseResult.fromParser(parser, "HTTP version")(s)
     }
 
-  private val parser: P[HttpVersion] = {
-    // HTTP-name = %x48.54.54.50 ; HTTP
-    // HTTP-version = HTTP-name "/" DIGIT "." DIGIT
-    val httpVersion = P.string("HTTP/") *> digit ~ (P.char('.') *> digit)
-
-    httpVersion.map { case (major, minor) =>
-      new HttpVersion(major - '0', minor - '0')
-    }
-  }
+  private val parser: P[HttpVersion] =
+    Rfc7230.httpVersion.map { case (major, minor) => new HttpVersion(major, minor) }
 
   def fromVersion(major: Int, minor: Int): ParseResult[HttpVersion] =
     if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $major")
