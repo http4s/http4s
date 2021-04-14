@@ -64,10 +64,10 @@ lazy val modules: List[ProjectReference] = List(
   blazeServer,
   blazeClient,
   asyncHttpClient,
+  jettyServer,
   jettyClient,
   okHttpClient,
   servlet,
-  jetty,
   tomcatServer,
   theDsl,
   jawn,
@@ -347,19 +347,19 @@ lazy val servlet = libraryProject("servlet")
     startYear := Some(2013),
     libraryDependencies ++= Seq(
       javaxServletApi % Provided,
-      jettyServer % Test,
+      Http4sPlugin.jettyServer % Test,
       jettyServlet % Test,
     ),
   )
   .dependsOn(server % "compile;test->test")
 
-lazy val jetty = libraryProject("jetty")
+lazy val jettyServer = libraryProject("jetty-server")
   .settings(
     description := "Jetty implementation for http4s servers",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       jettyHttp2Server,
-      jettyServer,
+      Http4sPlugin.jettyServer,
       jettyServlet,
       jettyUtil,
     )
@@ -623,7 +623,7 @@ lazy val examplesJetty = exampleProject("examples-jetty")
     fork := true,
     reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
   )
-  .dependsOn(jetty)
+  .dependsOn(jettyServer)
 
 lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(Revolver.settings)
