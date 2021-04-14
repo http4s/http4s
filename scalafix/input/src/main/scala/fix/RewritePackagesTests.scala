@@ -3,6 +3,7 @@ rule = v0_22
 */
 package fix
 
+import org.http4s.client.jetty._
 import org.http4s.server.jetty._
 import org.http4s.server.tomcat._
 
@@ -12,4 +13,7 @@ object RewritePackagesTests {
 
   val jettyBuilder = JettyBuilder
   val jettyBuilderQualified = org.http4s.server.jetty.JettyBuilder
+
+  val jettyClient = JettyClient
+  val jettyClientQualified = org.http4s.client.jetty.JettyClient
 }

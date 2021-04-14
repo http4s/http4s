@@ -23,6 +23,7 @@ class RewritePackages extends SemanticRule("RewritePackages") {
   override def fix(implicit doc: SemanticDocument): Patch =
     Patch.replaceSymbols(
       "org.http4s.server.tomcat" -> "org.http4s.tomcat.server",
-      "org.http4s.server.jetty" -> "org.http4s.jetty.server"
+      "org.http4s.server.jetty" -> "org.http4s.jetty.server",
+      "org.http4s.client.jetty" -> "org.http4s.jetty.client"
     )
 }
