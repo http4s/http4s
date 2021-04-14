@@ -68,7 +68,7 @@ lazy val modules: List[ProjectReference] = List(
   okHttpClient,
   servlet,
   jetty,
-  tomcat,
+  tomcatServer,
   theDsl,
   jawn,
   boopickle,
@@ -366,7 +366,7 @@ lazy val jetty = libraryProject("jetty")
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
-lazy val tomcat = libraryProject("tomcat")
+lazy val tomcatServer = libraryProject("tomcat-server")
   .settings(
     description := "Tomcat implementation for http4s servers",
     startYear := Some(2014),
@@ -633,7 +633,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
     fork := true,
     reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
   )
-  .dependsOn(tomcat)
+  .dependsOn(tomcatServer)
 
 // Run this with jetty:start
 lazy val examplesWar = exampleProject("examples-war")
