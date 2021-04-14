@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package server
 package jetty
+package server
 
 import cats.effect._
 import cats.syntax.all._
@@ -37,8 +37,16 @@ import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHo
 import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
+import org.http4s.server.{
+  DefaultServiceErrorHandler,
+  SSLClientAuthMode,
+  Server,
+  ServerBuilder,
+  ServiceErrorHandler,
+  defaults
+}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.server.jetty.JettyBuilder._
+import org.http4s.jetty.server.JettyBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.http4s.syntax.all._
 import org.log4s.getLogger

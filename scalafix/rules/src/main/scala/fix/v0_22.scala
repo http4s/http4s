@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.http4s
-package client
-package jetty
+package fix
 
-import cats.effect.IO
+import scalafix.v1._
 
-class JettyClientSuite extends ClientRouteTestBattery("JettyClient") {
-  def clientResource = JettyClient.resource[IO]()
+class v0_22 extends SemanticRule("v0_22") {
+  override def fix(implicit doc: SemanticDocument): Patch =
+    (new RewritePackages).fix
 }

@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package server
 package jetty
+package server
 
 import cats.effect.{ContextShift, IO, Timer}
 import cats.syntax.all._
@@ -24,6 +24,7 @@ import java.net.{HttpURLConnection, URL}
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
+import org.http4s.server.Server
 import scala.concurrent.duration._
 import scala.io.Source
 
