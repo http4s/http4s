@@ -16,6 +16,7 @@
 
 package org.http4s
 package client
+package blaze
 
 import cats.effect._
 import com.comcast.ip4s._
