@@ -15,10 +15,11 @@
  */
 
 package org.http4s
-package client
 package jetty
+package client
 
 import cats.effect.IO
+import org.http4s.client.ClientRouteTestBattery
 
 class JettyClientSuite extends ClientRouteTestBattery("JettyClient") {
   def clientResource = JettyClient.resource[IO]()

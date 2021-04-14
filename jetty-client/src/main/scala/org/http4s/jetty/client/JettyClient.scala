@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package jetty
+package client
 
 import cats.effect._
 import cats.syntax.all._
@@ -25,6 +25,7 @@ import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.client.api.{Request => JettyRequest}
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.http4s.client.Client
 import org.log4s.{Logger, getLogger}
 
 object JettyClient {

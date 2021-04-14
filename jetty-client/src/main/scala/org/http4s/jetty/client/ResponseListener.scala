@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package jetty
+package client
 
 import cats.effect._
 import cats.effect.implicits._
@@ -28,7 +28,7 @@ import java.nio.ByteBuffer
 import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
-import org.http4s.client.jetty.ResponseListener.Item
+import org.http4s.jetty.client.ResponseListener.Item
 import org.http4s.internal.{invokeCallback, loggingAsyncCallback}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
