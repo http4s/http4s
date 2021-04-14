@@ -15,10 +15,11 @@
  */
 
 package org.http4s
-package client
 package okhttp
+package client
 
 import cats.effect.IO
+import org.http4s.client.ClientRouteTestBattery
 
 class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
   def clientResource =
