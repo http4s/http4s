@@ -1,5 +1,6 @@
 package fix
 
+import org.http4s.asynchttpclient.client._
 import org.http4s.jetty.client._
 import org.http4s.jetty.server._
 import org.http4s.okhttp.client._
@@ -17,4 +18,7 @@ object RewritePackagesTests {
 
   val okhttpBuilder = OkHttpBuilder
   val okhttpBuilderQualified = org.http4s.okhttp.client.OkHttpBuilder
+
+  val asyncHttpClient = AsyncHttpClient
+  val asyncHttpClientQualified = org.http4s.asynchttpclient.client.AsyncHttpClient
 }
