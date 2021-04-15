@@ -80,6 +80,7 @@ class EmberServerSuite extends Http4sSuite {
 
       val body: Stream[IO, Byte] =
         Stream.emits(Seq("hello")).repeatN(256).through(fs2.text.utf8Encode).covary[IO]
+      val expected = "hello" * 256
 
       val uri = Uri
         .fromString(s"http://${server.address.getHostName}:${server.address.getPort}/echo")
@@ -87,8 +88,8 @@ class EmberServerSuite extends Http4sSuite {
         .get
       val request = POST(body, uri)
       for {
-        r1 <- client.status(request)
-        r2 <- client.status(request)
-      } yield assertEquals(r1, Status.Ok) && assertEquals(r2, Status.Ok)
+        r1 <- client.fetchAs[String](request)
+        r2 <- client.fetchAs[String](request)
+      } yield assertEquals(expected, r1) && assertEquals(expected, r2)
   }
 }
