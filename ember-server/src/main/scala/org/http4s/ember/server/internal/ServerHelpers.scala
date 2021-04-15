@@ -202,12 +202,11 @@ private[server] object ServerHelpers {
         .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
           case (buffer, reuse) =>
             val initRead: F[Array[Byte]] = if (buffer.length > 0) {
-              // next request has already been pipelined
+              // next request has already been (partially) received
               buffer.pure[F]
             } else if (reuse) {
               // the connection is keep-alive, but we don't have any bytes.
-              // the reason we do this is we want to be on the idle timeout
-              // before the next request is actually received
+              // we want to be on the idle timeout until the next request is received.
               read.flatMap {
                 case Some(chunk) => chunk.toArray.pure[F]
                 case None => Concurrent[F].raiseError(EmptyStreamError())

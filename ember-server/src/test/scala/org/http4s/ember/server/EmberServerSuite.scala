@@ -18,6 +18,7 @@ package org.http4s.ember.server
 
 import cats.syntax.all._
 import cats.effect._
+import fs2.Stream
 import org.http4s._
 import org.http4s.server.Server
 import org.http4s.implicits._
@@ -33,8 +34,11 @@ class EmberServerSuite extends Http4sSuite {
     import dsl._
 
     HttpRoutes
-      .of[F] { case GET -> Root =>
-        Ok("Hello!")
+      .of[F] {
+        case GET -> Root =>
+          Ok("Hello!")
+        case req @ POST -> Root / "echo" =>
+          Ok(req.body)
       }
       .orNotFound
   }
@@ -47,21 +51,44 @@ class EmberServerSuite extends Http4sSuite {
 
   val client = ResourceFixture(EmberClientBuilder.default[IO].build)
 
-  val server = ResourceFixture(
+  def server(receiveBufferSize: Int = 256 * 1024) = ResourceFixture(
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
+      .withReceiveBufferSize(receiveBufferSize)
       .build)
 
-  val fixture = (server, client).mapN(FunFixture.map2(_, _))
+  def fixture(receiveBufferSize: Int = 256 * 1024) =
+    (server(receiveBufferSize), client).mapN(FunFixture.map2(_, _))
 
-  fixture.test("server responds to requests") { case (server, client) =>
+  fixture().test("server responds to requests") { case (server, client) =>
     client
       .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
       .assertEquals(Status.Ok)
   }
 
-  server.test("server startup fails if address is already in use") { case _ =>
+  server().test("server startup fails if address is already in use") { case _ =>
     serverResource.use(_ => IO.unit).intercept[BindException]
+  }
+
+  fixture(receiveBufferSize = 256).test("#4731 - read socket is drained after writing") {
+    case (server, client) =>
+      // We set the receive buffer size to be smaller than the request body,
+      // so that draining is necessary for a second request.
+      import org.http4s.dsl.io._
+      import org.http4s.client.dsl.io._
+
+      val body: Stream[IO, Byte] =
+        Stream.emits(Seq("hello")).repeatN(256).through(fs2.text.utf8Encode).covary[IO]
+
+      val uri = Uri
+        .fromString(s"http://${server.address.getHostName}:${server.address.getPort}/echo")
+        .toOption
+        .get
+      val request = POST(body, uri)
+      for {
+        r1 <- client.status(request)
+        r2 <- client.status(request)
+      } yield assertEquals(r1, Status.Ok) && assertEquals(r2, Status.Ok)
   }
 }
