@@ -161,7 +161,8 @@ private[server] object ServerHelpers {
       .drain
       .attempt
       .flatMap {
-        case Left(err) => onWriteFailure(request, resp, err)
+        case Left(err) => 
+          onWriteFailure(request, resp, err)
         case Right(()) => Sync[F].pure(())
       }
 
