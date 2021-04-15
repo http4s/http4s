@@ -232,7 +232,7 @@ private[server] object ServerHelpers {
               case Right((req, resp, drain)) =>
                 send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
                   drain.map {
-                    case Some(nextBuffer) => Some((req, resp) -> (nextBuffer, true))
+                    case Some(nextBuffer) => Some(((req, resp), (nextBuffer, true)))
                     case None => None
                   }
               case Left(err) =>
