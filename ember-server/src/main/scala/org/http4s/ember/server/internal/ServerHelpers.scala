@@ -30,7 +30,7 @@ import io.chrisdavenport.vault.Vault
 import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.ember.core.Util.durationToFinite
-import org.http4s.ember.core.{Encoder, Parser, Drain, Read, EmptyStreamError}
+import org.http4s.ember.core.{Drain, EmptyStreamError, Encoder, Parser, Read}
 import org.http4s.headers.{Connection, Date}
 import org.http4s.implicits._
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
@@ -161,7 +161,7 @@ private[server] object ServerHelpers {
       .drain
       .attempt
       .flatMap {
-        case Left(err) => 
+        case Left(err) =>
           onWriteFailure(request, resp, err)
         case Right(()) => Sync[F].pure(())
       }
@@ -199,55 +199,58 @@ private[server] object ServerHelpers {
     val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
       Stream
-        .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) { case (buffer, reuse) =>
-          val readConn: F[Array[Byte]] = if (buffer.length > 0) {
-            // next request has already been pipelined
-            buffer.pure[F]
-          } else if (reuse) {
-            // the connection is keep-alive, but we don't have any bytes.
-            // the reason we do this is we want to be on the idle timeout
-            // before the next request is actually received
-            read.flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmptyStreamError())
-            }
-          } else {
-            // first request begins immediately
-            Array.emptyByteArray.pure[F]
-          }
-
-          val result = readConn.flatMap { initBuffer =>
-            runApp(
-              initBuffer,
-              read,
-              maxHeaderSize,
-              requestHeaderReceiveTimeout,
-              httpApp,
-              errorHandler,
-              requestVault)
-          }
-
-          result.attempt.flatMap {
-            case Right((req, resp, drain)) =>
-              send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
-                drain.map {
-                  case Some(nextBuffer) => Some((req, resp) -> (nextBuffer, true))
-                  case None => None
-                }
-            case Left(err) => 
-              err match {
-                case EmptyStreamError() =>
-                  Applicative[F].pure(None)
-                case err =>
-                  errorHandler(err)
-                    .handleError(_ => serverFailure.covary[F])
-                    .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-                    .as(None)
+        .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
+          case (buffer, reuse) =>
+            val readConn: F[Array[Byte]] = if (buffer.length > 0) {
+              // next request has already been pipelined
+              buffer.pure[F]
+            } else if (reuse) {
+              // the connection is keep-alive, but we don't have any bytes.
+              // the reason we do this is we want to be on the idle timeout
+              // before the next request is actually received
+              read.flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmptyStreamError())
               }
-          }
+            } else {
+              // first request begins immediately
+              Array.emptyByteArray.pure[F]
+            }
+
+            val result = readConn.flatMap { initBuffer =>
+              runApp(
+                initBuffer,
+                read,
+                maxHeaderSize,
+                requestHeaderReceiveTimeout,
+                httpApp,
+                errorHandler,
+                requestVault)
+            }
+
+            result.attempt.flatMap {
+              case Right((req, resp, drain)) =>
+                send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
+                  drain.map {
+                    case Some(nextBuffer) => Some((req, resp) -> (nextBuffer, true))
+                    case None => None
+                  }
+              case Left(err) =>
+                err match {
+                  case EmptyStreamError() =>
+                    Applicative[F].pure(None)
+                  case err =>
+                    errorHandler(err)
+                      .handleError(_ => serverFailure.covary[F])
+                      .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+                      .as(None)
+                }
+            }
         }
         .takeWhile { case (req, resp) =>
-          !(req.headers.get(Connection).exists(_.hasClose) || resp.headers.get(Connection).exists(_.hasClose))
+          !(req.headers
+            .get(Connection)
+            .exists(_.hasClose) || resp.headers.get(Connection).exists(_.hasClose))
         }
         .drain ++ Stream.eval_(socket.close)
     }

@@ -583,10 +583,7 @@ private[ember] object Parser {
 
             // If the remaining bytes for the body have not yet been read, close the connection.
             // followup: Check if there are bytes immediately available without blocking
-            val drain: Drain[F] = state.get.map(r => {
-              println(s"Draining $r")
-              r.toOption
-            })
+            val drain: Drain[F] = state.get.map(_.toOption)
 
             (Stream.chunk(Chunk.bytes(buffer)) ++ bodyStream, drain)
           }
