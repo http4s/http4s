@@ -30,7 +30,7 @@ import io.chrisdavenport.vault.Vault
 import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.ember.core.Util.durationToFinite
-import org.http4s.ember.core.{Encoder, Parser}
+import org.http4s.ember.core.{Encoder, Parser, Drain, Read}
 import org.http4s.headers.{Connection, Date}
 import org.http4s.implicits._
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
@@ -122,15 +122,15 @@ private[server] object ServerHelpers {
     }
 
   private[internal] def runApp[F[_]: Concurrent: Timer](
-      head: Array[Byte],
-      read: F[Option[Chunk[Byte]]],
+      buffer: Array[Byte],
+      read: Read[F],
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      requestVault: Vault): F[(Request[F], Response[F], Option[Array[Byte]])] = {
+      requestVault: Vault): F[(Request[F], Response[F], Drain[F])] = {
 
-    val parse = Parser.Request.parser(maxHeaderSize)(head, read)
+    val parse = Parser.Request.parser(maxHeaderSize)(buffer, read)
     val parseWithHeaderTimeout =
       durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration =>
         parse.timeoutTo(
@@ -145,8 +145,8 @@ private[server] object ServerHelpers {
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
-      rest <- drain // TODO: handle errors?
-    } yield (req, resp, rest)
+      postResp <- postProcessResponse(req, resp)
+    } yield (req, postResp, drain)
   }
 
   private[internal] def send[F[_]: Sync](socket: Socket[F])(
