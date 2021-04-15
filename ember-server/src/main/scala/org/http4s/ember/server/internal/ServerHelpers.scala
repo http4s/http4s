@@ -201,7 +201,7 @@ private[server] object ServerHelpers {
       Stream
         .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
           case (buffer, reuse) =>
-            val readConn: F[Array[Byte]] = if (buffer.length > 0) {
+            val initRead: F[Array[Byte]] = if (buffer.length > 0) {
               // next request has already been pipelined
               buffer.pure[F]
             } else if (reuse) {
@@ -217,7 +217,7 @@ private[server] object ServerHelpers {
               Array.emptyByteArray.pure[F]
             }
 
-            val result = readConn.flatMap { initBuffer =>
+            val result = initRead.flatMap { initBuffer =>
               runApp(
                 initBuffer,
                 read,

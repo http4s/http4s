@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-package org.http4s.ember
+package org.http4s.ember.core
 
-import fs2.Chunk
-
-package object core {
-  private[ember] type Drain[F[_]] = F[Option[Array[Byte]]]
-  private[ember] type Read[F[_]] = F[Option[Chunk[Byte]]]
-}
+private[ember] final case class EmptyStreamError() extends Exception("Cannot Parse Empty Stream")
