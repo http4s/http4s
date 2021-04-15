@@ -194,60 +194,42 @@ private[server] object ServerHelpers {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
   ): Stream[F, Nothing] = {
     val _ = logger
-    val read: F[Option[Chunk[Byte]]] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
       Stream
-        .unfoldLoopEval((Array.emptyByteArray, false)) { case (incoming, reused) =>
-          if (incoming.isEmpty || !reused) {
-            read.attempt.map {
-              case Right(chunkOpt) =>
-                (
-                  Option.empty[Either[Throwable, (Request[F], Response[F])]],
-                  chunkOpt.map(c => (c.toArray, true))
-                )
-              case Left(e) => (Left(e).some, None)
-            }
-          } else {
-            runApp(
-              incoming,
-              read,
-              maxHeaderSize,
-              requestHeaderReceiveTimeout,
-              httpApp,
-              errorHandler,
-              requestVault).attempt.map {
-              case Right((req, resp, rest)) => (Right((req, resp)).some, rest.map((_, true)))
-              case Left(e) => (Left(e).some, None)
-            }
+        .unfoldEval[F, Array[Byte], (Request[F], Response[F])](Array.emptyByteArray) { buffer =>
+          val result = runApp(
+            buffer,
+            read,
+            maxHeaderSize,
+            requestHeaderReceiveTimeout,
+            httpApp,
+            errorHandler,
+            requestVault)
+
+          result.attempt.flatMap {
+            case Right((req, resp, drain)) =>
+              send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
+                drain.map {
+                  case Some(nextBuffer) => Some((req, resp), nextBuffer)
+                  case None => None
+                }
+            case Left(err) => 
+              val handleError = err match {
+                case req: Parser.Request.ReqPrelude.ParsePreludeError
+                    if req == Parser.Request.ReqPrelude.emptyStreamError =>
+                  Applicative[F].unit
+                case err =>
+                  errorHandler(err)
+                    .handleError(_ => serverFailure.covary[F])
+                    .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+              }
+              
+              handleError >> Applicative[F].pure(None)
           }
         }
-        .unNone
-        .evalMap {
-          case Right((req, resp)) =>
-            postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
-          case other => other.pure[F]
-        }
-        .evalTap {
-          case Right((request, response)) =>
-            send(socket)(Some(request), response, idleTimeout, onWriteFailure)
-          case Left(err) =>
-            err match {
-              case req: Parser.Request.ReqPrelude.ParsePreludeError
-                  if req == Parser.Request.ReqPrelude.emptyStreamError =>
-                Applicative[F].unit
-              case err =>
-                errorHandler(err)
-                  .handleError(_ => serverFailure.covary[F])
-                  .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-            }
-        }
-        .takeWhile {
-          case Left(_) => false
-          case Right((req, resp)) =>
-            !(
-              req.headers.get(Connection).exists(_.hasClose) ||
-                resp.headers.get(Connection).exists(_.hasClose)
-            )
+        .takeWhile { case (req, resp) =>
+          !(req.headers.get(Connection).exists(_.hasClose) || resp.headers.get(Connection).exists(_.hasClose))
         }
         .drain ++ Stream.eval_(socket.close)
     }
