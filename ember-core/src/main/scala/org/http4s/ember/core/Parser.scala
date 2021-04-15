@@ -199,8 +199,6 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
-      val emptyStreamError = ParsePreludeError("Cannot Parse Empty Stream", None, None, None, None)
-
       def parsePrelude[F[_]](
           head: Array[Byte],
           read: Read[F],
@@ -233,8 +231,8 @@ private[ember] object Parser {
             }
           case None =>
             acc match {
-              case None => F.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.bv.isEmpty => F.raiseError(emptyStreamError)
+              case None => F.raiseError(EmptyStreamError())
+              case Some(incomplete) if incomplete.bv.isEmpty => F.raiseError(EmptyStreamError())
               case Some(incomplete) =>
                 F.raiseError(
                   ParsePreludeError(
@@ -430,8 +428,6 @@ private[ember] object Parser {
 
     object RespPrelude {
 
-      val emptyStreamError = RespPreludeError("Cannot Parse Empty Stream", None)
-
       def parsePrelude[F[_]](
           head: Array[Byte],
           read: Read[F],
@@ -461,8 +457,8 @@ private[ember] object Parser {
             }
           case None =>
             acc match {
-              case None => F.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.isEmpty => F.raiseError(emptyStreamError)
+              case None => F.raiseError(EmptyStreamError())
+              case Some(incomplete) if incomplete.isEmpty => F.raiseError(EmptyStreamError())
               case Some(_) =>
                 F.raiseError(
                   RespPreludeError(
