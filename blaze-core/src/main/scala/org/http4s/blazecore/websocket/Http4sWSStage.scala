@@ -28,10 +28,11 @@ import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.websocket.{WebSocket, WebSocketFrame}
+import org.http4s.websocket.{ReservedOpcodeException, WebSocket, WebSocketFrame}
 import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
+import java.net.ProtocolException
 
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
@@ -99,19 +100,24 @@ private[http4s] class Http4sWSStage[F[_]](
         else F.unit
       } >> deadSignal.set(true)
 
-    readFrameTrampoline.flatMap {
-      case c: Close =>
-        for {
-          s <- F.delay(sentClose.get())
-          //If we sent a close signal, we don't need to reply with one
-          _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
-        } yield c
-      case p @ Ping(d) =>
-        //Reply to ping frame immediately
-        writeFrame(Pong(d), trampoline) >> F.pure(p)
-      case rest =>
-        F.pure(rest)
-    }
+    readFrameTrampoline
+      .recoverWith {
+        case _: ReservedOpcodeException => F.delay(Close(1003)).flatMap(F.fromEither)
+        case _: ProtocolException => F.delay(Close(1002)).flatMap(F.fromEither)
+      }
+      .flatMap {
+        case c: Close =>
+          for {
+            s <- F.delay(sentClose.get())
+            //If we sent a close signal, we don't need to reply with one
+            _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
+          } yield c
+        case p @ Ping(d) =>
+          //Reply to ping frame immediately
+          writeFrame(Pong(d), trampoline) >> F.pure(p)
+        case rest =>
+          F.pure(rest)
+      }
   }
 
   /** The websocket input stream

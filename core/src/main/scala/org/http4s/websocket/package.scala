@@ -17,6 +17,7 @@
 package org.http4s
 
 import java.net.ProtocolException
+import scala.annotation.switch
 import scodec.bits.ByteVector
 
 package object websocket {
@@ -38,20 +39,28 @@ package object websocket {
   // Type constructors
   @throws[ProtocolException]
   private[websocket] def makeFrame(opcode: Int, data: ByteVector, last: Boolean): WebSocketFrame =
-    opcode match {
-      case TEXT => WebSocketFrame.Text(data, last)
-      case BINARY => WebSocketFrame.Binary(data, last)
-      case CONTINUATION => WebSocketFrame.Continuation(data, last)
-      case PING =>
-        if (!last) throw new ProtocolException("Control frame cannot be fragmented: Ping")
-        else WebSocketFrame.Ping(data)
-      case PONG =>
-        if (!last) throw new ProtocolException("Control frame cannot be fragmented: Pong")
-        else WebSocketFrame.Pong(data)
-      case CLOSE =>
+    (opcode: @switch) match {
+      case 0x0 => WebSocketFrame.Continuation(data, last)
+      case 0x1 => WebSocketFrame.Text(data, last)
+      case 0x2 => WebSocketFrame.Binary(data, last)
+      case 0x3 | 0x4 | 0x5 | 0x6 | 0x7 =>
+        // Reserved for future non-control frames.
+        throw new ReservedOpcodeException(opcode)
+      case 0x8 =>
         if (data.length == 1)
           throw new ProtocolException("Close frame must have 0 data bits or at least 2")
         if (!last) throw new ProtocolException("Control frame cannot be fragmented: Close")
         WebSocketFrame.Close(data)
+      case 0x9 =>
+        if (!last) throw new ProtocolException("Control frame cannot be fragmented: Ping")
+        else WebSocketFrame.Ping(data)
+      case 0xa =>
+        if (!last) throw new ProtocolException("Control frame cannot be fragmented: Pong")
+        else WebSocketFrame.Pong(data)
+      case 0xb | 0xc | 0xd | 0xe | 0xf =>
+        // Reserved for future control frames.
+        throw new ReservedOpcodeException(opcode)
+      case _ =>
+        throw new ProtocolException(s"Unknown frame opcode: $opcode")
     }
 }
