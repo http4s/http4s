@@ -42,6 +42,6 @@ object AutoSlash {
         L.local(http)(_.withPathInfo(pathInfo.dropEndsWithSlash))
     }
 
-  def httpRoutes[F[_]: Monad, B](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
 }
