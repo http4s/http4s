@@ -59,7 +59,10 @@ object RequestId {
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
       genReqId: F[UUID]
-  )(http: G[Response[F]])(implicit G: FlatMap[G], L: Local[G, Request[F]], F: Sync[F]): G[Response[F]] =
+  )(http: G[Response[F]])(implicit
+      G: FlatMap[G],
+      L: Local[G, Request[F]],
+      F: Sync[F]): G[Response[F]] =
     for {
       req <- L.ask
       header <- fk(req.headers.get(headerName) match {
@@ -99,6 +102,9 @@ object RequestId {
         headerName: CIString = requestIdHeader,
         genReqId: F[UUID]
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-      RequestId.apply(OptionT.liftK.andThen(Kleisli.liftK[OptionT[F, *], Request[F]]), headerName, genReqId)(httpRoutes)
+      RequestId.apply(
+        OptionT.liftK.andThen(Kleisli.liftK[OptionT[F, *], Request[F]]),
+        headerName,
+        genReqId)(httpRoutes)
   }
 }
