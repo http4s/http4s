@@ -20,17 +20,47 @@ package blaze
 
 import cats.syntax.all._
 import cats.effect._
+import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
+import org.http4s.internal.threads._
 import scala.concurrent.duration._
 import scala.io.Source
 import org.http4s.multipart.Multipart
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext, ExecutionContext.global
 import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
+
+  override implicit val ioRuntime: IORuntime = {
+    val TestScheduler: ScheduledExecutorService = {
+      val s =
+        new ScheduledThreadPoolExecutor(
+          2,
+          threadFactory(i => s"blaze-server-suite-scheduler-$i", true))
+      s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+      s.allowCoreThreadTimeOut(true)
+      s
+    }
+
+    val blockingPool = newBlockingPool("blaze-server-suite-blocking")
+    val computePool = newDaemonPool("blaze-server-suite-compute", timeout = true)
+    val scheduledExecutor = TestScheduler
+    IORuntime.apply(
+      ExecutionContext.fromExecutor(computePool),
+      ExecutionContext.fromExecutor(blockingPool),
+      Scheduler.fromScheduledExecutor(scheduledExecutor),
+      () => {
+        blockingPool.shutdown()
+        computePool.shutdown()
+        scheduledExecutor.shutdown()
+      },
+      IORuntimeConfig()
+    )
+  }
 
   def builder =
     BlazeServerBuilder[IO](global)
@@ -117,11 +147,11 @@ class BlazeServerSuite extends Http4sSuite {
     }
 
   blazeServer.test("route requests on the service executor".flaky) { server =>
-    get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
+    get(server, "/thread/routing").map(_.startsWith("blaze-server-suite-compute-")).assert
   }
 
   blazeServer.test("execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
+    get(server, "/thread/effect").map(_.startsWith("blaze-server-suite-compute-")).assert
   }
 
   blazeServer.test("be able to echo its input") { server =>
