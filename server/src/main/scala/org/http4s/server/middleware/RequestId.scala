@@ -20,9 +20,9 @@ package server
 package middleware
 
 import cats.{FlatMap, ~>}
-import cats.arrow.FunctionK
 import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.{IO, Sync}
+import cats.mtl._
 import cats.syntax.all._
 import org.typelevel.ci._
 import org.typelevel.vault.Key
@@ -38,38 +38,37 @@ object RequestId {
 
   val requestIdAttrKey: Key[String] = Key.newKey[IO, String].unsafeRunSync()
 
-  def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
+  def apply[G[_], F[_]](
+      http: G[Response[F]])(implicit G: Sync[G], L: Local[G, Request[F]]): G[Response[F]] =
     apply(requestIdHeader)(http)
 
   def apply[G[_], F[_]](
       headerName: CIString
-  )(http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
-    Kleisli[G, Request[F], Response[F]] { req =>
-      for {
-        header <- req.headers.get(headerName).map(_.head) match {
-          case None => G.delay(Header.Raw(headerName, UUID.randomUUID().toString()))
-          case Some(header) => G.pure(header)
-        }
-        reqId = header.value
-        response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
-      } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
-    }
+  )(http: G[Response[F]])(implicit G: Sync[G], L: Local[G, Request[F]]): G[Response[F]] =
+    for {
+      req <- L.ask
+      header <- req.headers.get(headerName).map(_.head) match {
+        case None => G.delay(Header.Raw(headerName, UUID.randomUUID().toString()))
+        case Some(header) => G.pure(header)
+      }
+      reqId = header.value
+      resp <- L.local(http)(_.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
+    } yield resp.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
 
   def apply[G[_], F[_]](
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
       genReqId: F[UUID]
-  )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] =
-    Kleisli[G, Request[F], Response[F]] { req =>
-      for {
-        header <- fk(req.headers.get(headerName) match {
-          case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
-          case Some(NonEmptyList(header, _)) => F.pure(header)
-        })
-        reqId = header.value
-        response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
-      } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
-    }
+  )(http: G[Response[F]])(implicit G: FlatMap[G], L: Local[G, Request[F]], F: Sync[F]): G[Response[F]] =
+    for {
+      req <- L.ask
+      header <- fk(req.headers.get(headerName) match {
+        case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
+        case Some(NonEmptyList(header, _)) => F.pure(header)
+      })
+      reqId = header.value
+      resp <- L.local(http)(_.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
+    } yield resp.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
 
   object httpApp {
     def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
@@ -84,7 +83,7 @@ object RequestId {
         headerName: CIString = requestIdHeader,
         genReqId: F[UUID]
     )(httpApp: HttpApp[F]): HttpApp[F] =
-      RequestId.apply(FunctionK.id[F], headerName, genReqId)(httpApp)
+      RequestId.apply(Kleisli.liftK[F, Request[F]], headerName, genReqId)(httpApp)
   }
 
   object httpRoutes {
@@ -100,6 +99,6 @@ object RequestId {
         headerName: CIString = requestIdHeader,
         genReqId: F[UUID]
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-      RequestId.apply(OptionT.liftK[F], headerName, genReqId)(httpRoutes)
+      RequestId.apply(OptionT.liftK.andThen(Kleisli.liftK[OptionT[F, *], Request[F]]), headerName, genReqId)(httpRoutes)
   }
 }

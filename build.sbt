@@ -115,6 +115,7 @@ lazy val core = libraryProject("core")
       caseInsensitive,
       catsCore,
       catsEffect,
+      "org.typelevel" %% "cats-mtl" % "1.1.2",
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
