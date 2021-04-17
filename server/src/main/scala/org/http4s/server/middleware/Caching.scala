@@ -17,9 +17,10 @@
 package org.http4s.server.middleware
 
 import cats._
-import cats.syntax.all._
-import cats.effect.{MonadThrow => _, _}
 import cats.data._
+import cats.effect.{MonadThrow => _, _}
+import cats.mtl._
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.headers.{Date => HDate, _}
 import org.typelevel.ci.CIString
@@ -35,21 +36,15 @@ object Caching {
   /** Middleware that implies responses should NOT be cached.
     * This is a best attempt, many implementors of caching have done so differently.
     */
-  def `no-store`[G[_]: Monad: Clock, F[_], A](
-      http: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
-    Kleisli { (a: A) =>
-      for {
-        resp <- http(a)
-        out <- `no-store-response`[G](resp)
-      } yield out
-    }
+  def `no-store`[F[_]: Monad: Clock, G[_]](http: F[Response[G]]): F[Response[G]] =
+    http.flatMap(`no-store-response`[F](_))
 
   /** Transform a Response so that it will not be cached.
     */
-  def `no-store-response`[G[_]]: PartiallyAppliedNoStoreCache[G] =
-    new PartiallyAppliedNoStoreCache[G] {
-      def apply[F[_]](resp: Response[F])(implicit M: Monad[G], C: Clock[G]): G[Response[F]] =
-        HttpDate.current[G].map(now => resp.putHeaders(HDate(now)).putHeaders(noStoreStaticHeaders))
+  def `no-store-response`[F[_]]: PartiallyAppliedNoStoreCache[F] =
+    new PartiallyAppliedNoStoreCache[F] {
+      def apply[G[_]](resp: Response[G])(implicit F: Functor[F], C: Clock[F]): F[Response[G]] =
+        HttpDate.current[F].map(now => resp.putHeaders(HDate(now)).putHeaders(noStoreStaticHeaders))
     }
 
   // These never change, so don't recreate them each time.
@@ -89,7 +84,10 @@ object Caching {
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
     */
-  def publicCache[G[_]: MonadThrow: Clock, F[_]](lifetime: Duration, http: Http[G, F]): Http[G, F] =
+  def publicCache[F[_], G[_]](lifetime: Duration, http: F[Response[G]])(implicit
+      F: MonadThrow[F],
+      C: Clock[F],
+      A: Ask[F, Request[G]]): F[Response[G]] =
     cache(
       lifetime,
       Either.left(CacheDirective.public),
@@ -110,10 +108,13 @@ object Caching {
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
     */
-  def privateCache[G[_]: MonadThrow: Clock, F[_]](
+  def privateCache[F[_], G[_]](
       lifetime: Duration,
-      http: Http[G, F],
-      fieldNames: List[CIString] = Nil): Http[G, F] =
+      http: F[Response[G]],
+      fieldNames: List[CIString] = Nil)(implicit
+      F: MonadThrow[F],
+      C: Clock[F],
+      A: Ask[F, Request[G]]): F[Response[G]] =
     cache(
       lifetime,
       Either.right(CacheDirective.`private`(fieldNames)),
@@ -126,10 +127,10 @@ object Caching {
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
     */
-  def privateCacheResponse[G[_]](
+  def privateCacheResponse[F[_]](
       lifetime: Duration,
       fieldNames: List[CIString] = Nil
-  ): PartiallyAppliedCache[G] =
+  ): PartiallyAppliedCache[F] =
     cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
 
   /** Construct a Middleware that will apply the appropriate caching headers.
@@ -139,20 +140,20 @@ object Caching {
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
     */
-  def cache[G[_]: MonadThrow: Clock, F[_]](
+  def cache[F[_], G[_]](
       lifetime: Duration,
       isPublic: Either[CacheDirective.public.type, CacheDirective.`private`],
       methodToSetOn: Method => Boolean,
       statusToSetOn: Status => Boolean,
-      http: Http[G, F]
-  ): Http[G, F] =
-    Kleisli { (req: Request[F]) =>
+      http: F[Response[G]]
+  )(implicit F: MonadThrow[F], C: Clock[F], A: Ask[F, Request[G]]): F[Response[G]] =
+    A.ask.flatMap { req =>
       for {
-        resp <- http(req)
+        resp <- http
         out <-
           if (methodToSetOn(req.method) && statusToSetOn(resp.status))
-            cacheResponse[G](lifetime, isPublic)(resp)
-          else resp.pure[G]
+            cacheResponse[F](lifetime, isPublic)(resp)
+          else resp.pure[F]
       } yield out
     }
 
@@ -198,11 +199,11 @@ object Caching {
     }
   }
 
-  trait PartiallyAppliedCache[G[_]] {
-    def apply[F[_]](resp: Response[F])(implicit M: MonadThrow[G], C: Clock[G]): G[Response[F]]
+  trait PartiallyAppliedCache[F[_]] {
+    def apply[G[_]](resp: Response[G])(implicit M: MonadThrow[F], C: Clock[F]): F[Response[G]]
   }
 
-  trait PartiallyAppliedNoStoreCache[G[_]] {
-    def apply[F[_]](resp: Response[F])(implicit M: Monad[G], C: Clock[G]): G[Response[F]]
+  trait PartiallyAppliedNoStoreCache[F[_]] {
+    def apply[G[_]](resp: Response[G])(implicit F: Functor[F], C: Clock[F]): F[Response[G]]
   }
 }
