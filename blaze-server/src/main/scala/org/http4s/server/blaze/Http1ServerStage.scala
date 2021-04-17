@@ -201,14 +201,16 @@ private[blaze] class Http1ServerStage[F[_]](
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 
+            val theCancelToken = Some(
+              F.runCancelable(action) {
+                case Right(()) => IO.unit
+                case Left(t) =>
+                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                    closeConnection())
+              }.unsafeRunSync())
+
             parser.synchronized {
-              cancelToken = Some(
-                F.runCancelable(action) {
-                  case Right(()) => IO.unit
-                  case Left(t) =>
-                    IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                      closeConnection())
-                }.unsafeRunSync())
+              cancelToken = theCancelToken
             }
           }
         })
