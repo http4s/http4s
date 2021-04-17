@@ -62,7 +62,7 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       requestColor: String = RequestLogger.defaultRequestColor,
-      responseColor: Response[F] => String = ResponseLogger.defaultResponseColor _,
+      responseColor: Response[F] => String = ResponseLogger.defaultResponseColor[F] _,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     ResponseLogger.colored(logHeaders, logBody, redactHeadersWhen, responseColor, logAction)(
