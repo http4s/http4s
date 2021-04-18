@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package asynchttpclient
+package client
 
 import cats.effect._
 import cats.effect.kernel.{Async, Resource}
@@ -31,6 +31,7 @@ import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
+import org.http4s.client.{Client, defaults}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._

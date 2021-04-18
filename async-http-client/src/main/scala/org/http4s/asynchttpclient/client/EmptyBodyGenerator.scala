@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 http4s.org
+ * Copyright 2016 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.http4s
-package client
-package okhttp
+package org.http4s.asynchttpclient.client
 
-import cats.effect.IO
+import io.netty.buffer.ByteBuf
+import org.asynchttpclient.request.body.Body
+import org.asynchttpclient.request.body.generator.BodyGenerator
 
-class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
-  def clientResource = OkHttpBuilder.withDefaultClient[IO].flatMap(_.resource)
+private[asynchttpclient] object EmptyBodyGenerator extends BodyGenerator {
+  override val createBody: Body = new Body {
+    override val getContentLength: Long = 0L
+    override def transferTo(target: ByteBuf): Body.BodyState = Body.BodyState.STOP
+    override def close() = {}
+  }
 }

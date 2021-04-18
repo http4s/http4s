@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.asynchttpclient
+package org.http4s.asynchttpclient.client
 
 import java.util.concurrent.atomic.AtomicInteger
 import _root_.io.netty.handler.codec.http.cookie.Cookie

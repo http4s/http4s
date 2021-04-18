@@ -15,12 +15,13 @@
  */
 
 package org.http4s
-package client
 package asynchttpclient
+package client
 
 import cats.effect.{IO, Resource}
 import org.asynchttpclient.DefaultAsyncHttpClient
 import org.asynchttpclient.HostStats
+import org.http4s.client.{Client, ClientRouteTestBattery, DefaultClient, defaults}
 
 class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSuite {
 
