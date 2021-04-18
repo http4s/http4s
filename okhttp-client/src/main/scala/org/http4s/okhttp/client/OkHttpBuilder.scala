@@ -15,7 +15,7 @@
  */
 
 package org.http4s
-package client.okhttp
+package okhttp.client
 
 import java.io.IOException
 

@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package asynchttpclient
+package client
 
 import cats.effect.Sync
 import org.asynchttpclient.{ClientStats, HostStats, Response => _}
