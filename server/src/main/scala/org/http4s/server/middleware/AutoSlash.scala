@@ -19,6 +19,7 @@ package server
 package middleware
 
 import cats.{Monad, MonoidK}
+import cats.data.{Kleisli, OptionT}
 import cats.mtl.Local
 import cats.syntax.all._
 
@@ -42,6 +43,7 @@ object AutoSlash {
         L.local(fb)(_.withPathInfo(pathInfo.dropEndsWithSlash))
     }
 
+  /** Convenience constructor to help type inference in Scala 2.12. */
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(httpRoutes)
+    apply[Kleisli[OptionT[F, *], Request[F], *], F, Response[F]](httpRoutes)
 }
