@@ -19,11 +19,11 @@ package server
 package middleware
 
 import org.http4s.Method.{GET, HEAD}
-import cats.{Functor, MonoidK}
-import cats.data.Kleisli
+import cats.{Monad, MonoidK}
+import cats.effect.Concurrent
+import cats.mtl._
 import cats.syntax.all._
 import fs2.Stream
-import cats.effect.Concurrent
 
 /** Handles HEAD requests as a GET without a body.
   *
@@ -33,11 +33,15 @@ import cats.effect.Concurrent
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
-    Kleisli { req =>
-      req.method match {
-        case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody[G])
-        case _ => http(req)
+  def apply[F[_], G[_]](http: F[Response[G]])(implicit
+      F: Monad[F],
+      FMK: MonoidK[F],
+      L: Local[F, Request[G]],
+      G: Concurrent[G]): F[Response[G]] =
+    L.ask.flatMap {
+      _.method match {
+        case HEAD => http <+> L.local(http)(_.withMethod(GET)).map(drainBody[G])
+        case _ => http
       }
     }
 
