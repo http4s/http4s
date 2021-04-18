@@ -201,7 +201,7 @@ private[server] object ServerHelpers {
       Stream
         .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
           case (buffer, reuse) =>
-            val initRead: F[Array[Byte]] = if (buffer.length > 0) {
+            val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
               // next request has already been (partially) received
               buffer.pure[F]
             } else if (reuse) {
@@ -251,7 +251,7 @@ private[server] object ServerHelpers {
             .get(Connection)
             .exists(_.hasClose) || resp.headers.get(Connection).exists(_.hasClose))
         }
-        .drain ++ Stream.eval_(socket.close)
+        .drain
     }
   }
 
