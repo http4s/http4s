@@ -528,7 +528,9 @@ final class Response[F[_]] private (
     val headers: Headers,
     val body: EntityBody[F],
     val attributes: Vault)
-    extends Message[F] {
+    extends Message[F]
+    with Product
+    with Serializable {
   type SelfF[F0[_]] = Response[F0]
 
   def copy(
@@ -545,6 +547,24 @@ final class Response[F[_]] private (
       body = body,
       attributes = attributes
     )
+
+  def canEqual(that: Any): Boolean =
+    that match {
+      case _: Response[F] => true
+      case _ => false
+    }
+
+  def productArity: Int = 5
+
+  def productElement(n: Int): Any =
+    n match {
+      case 0 => status
+      case 1 => httpVersion
+      case 2 => headers
+      case 3 => body
+      case 4 => attributes
+      case _ => throw new IndexOutOfBoundsException()
+    }
 
   def mapK[G[_]](f: F ~> G): Response[G] =
     Response[G](
