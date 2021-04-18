@@ -203,7 +203,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+            128),
           Headers("content-type" -> "application/json")
         ),
         true
@@ -223,7 +224,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+          128),
         Headers.empty
       ),
       true
@@ -235,7 +237,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+          128),
         Headers("content-type" -> "application/json")
       ),
       true
@@ -248,7 +251,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+            128),
           Headers("content-type" -> "application/json")
         ),
         true

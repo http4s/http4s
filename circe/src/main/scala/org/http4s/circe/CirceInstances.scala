@@ -28,6 +28,7 @@ import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
+import org.typelevel.jawn.fs2.unwrapJsonArray
 
 trait CirceInstances extends JawnInstances {
   protected val circeSupportParser =
@@ -147,9 +148,9 @@ trait CirceInstances extends JawnInstances {
   implicit def streamJsonArrayEncoder[F[_]]: EntityEncoder[F, Stream[F, Json]] =
     streamJsonArrayEncoderWithPrinter(defaultPrinter)
 
-  implicit def streamJsonArrayDecoder[F[_]: Sync]: EntityDecoder[F, Stream[F, Json]] =
+  implicit def streamJsonArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Stream[F, Json]] =
     EntityDecoder.decodeBy(MediaType.application.json) { media =>
-      DecodeResult.successT(media.body.chunks.through(jawnfs2.unwrapJsonArray))
+      DecodeResult.successT(media.body.chunks.through(unwrapJsonArray))
     }
 
   /** An [[EntityEncoder]] for a [[fs2.Stream]] of JSONs, which will encode it as a single JSON array. */

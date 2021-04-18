@@ -22,7 +22,7 @@ import cats.effect._
 import cats.effect.kernel.Resource
 import cats.syntax.all._
 import com.comcast.ip4s._
-import fs2.{Chunk, Stream}
+import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s._
@@ -125,22 +125,21 @@ private[server] object ServerHelpers {
     }
 
   private[internal] def runApp[F[_]](
-      buffer: Array[Byte],
+      head: Array[Byte],
       read: Read[F],
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      requestVault: Vault)
+      requestVault: Vault)(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
 
-    val parse = Parser.Request.parser(maxHeaderSize)(buffer, read)
-    val parseWithHeaderTimeout =
-      durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration =>
-        parse.timeoutTo(
-          duration,
-          ApplicativeThrow[F].raiseError(
-            new java.util.concurrent.TimeoutException(
-              s"Timed Out on EmberServer Header Receive Timeout: $duration"))))
+    val parse = Parser.Request.parser(maxHeaderSize)(head, read)
+    val parseWithHeaderTimeout = timeoutToMaybe(
+      parse,
+      requestHeaderReceiveTimeout,
+      F.raiseError[(Request[F], F[Option[Array[Byte]]])](new java.util.concurrent.TimeoutException(
+        s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout"))
+    )
 
     for {
       tmp <- parseWithHeaderTimeout

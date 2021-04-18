@@ -27,9 +27,9 @@ import java.nio.ByteBuffer
 import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
-import org.http4s.client.jetty.ResponseListener.Item
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.loggingAsyncCallback
+import org.http4s.jetty.client.ResponseListener.Item
 import org.log4s.getLogger
 
 private[jetty] final case class ResponseListener[F[_]](
