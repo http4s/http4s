@@ -61,6 +61,6 @@ package object websocket {
         // Reserved for future control frames.
         throw new ReservedOpcodeException(opcode)
       case _ =>
-        throw new ProtocolException(s"Unknown frame opcode: $opcode")
+        throw new UnknownOpcodeException(opcode)
     }
 }
