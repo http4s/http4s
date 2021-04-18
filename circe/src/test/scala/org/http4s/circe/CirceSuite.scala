@@ -261,7 +261,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
         stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
     } yield list).value.attempt
       .assertEquals(Left(
-        ParseException("expected json value got 'C...' (line 1, column 36)", 35, 1, 36)))
+        ParseException("expected json value got 'CirceS...' (line 1, column 36)", 35, 1, 36)))
   }
 
   test("json handle the optionality of asNumber") {
