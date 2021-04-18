@@ -228,7 +228,6 @@ private[server] object ServerHelpers {
 
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
-                // TODO: Should we postprocess the response here?
                 // TODO: Process upgrades here
 
                 // What are the criteria for a websocket upgrade?
@@ -236,16 +235,16 @@ private[server] object ServerHelpers {
 
                 // TODO: Should we pay this cost for every HTTP request?
                 // TODO: there will likely be many upgrade paths here eventually
-                req.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
+                resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
                   case Some(ctx) =>
                     // TODO: Do we need to drain here? Is it unsound for clients to send extra bytes at this point?
-                    ???
+                    WebSocketHelpers.upgrade(req, resp, ctx).as(None)
                   case None =>
                     for {
                       nextResp <- postProcessResponse(req, resp)
                       _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                       nextBuffer <- drain
-                    } yield nextBuffer.map(buffer => ((req, resp), (buffer, true)))
+                    } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
                 }
               case Left(err) =>
                 err match {
