@@ -499,19 +499,15 @@ object Request {
     )
 
   def unapply[F[_]](
-      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
-    message match {
-      case request: Request[F] =>
-        Some(
-          (
-            request.method,
-            request.uri,
-            request.httpVersion,
-            request.headers,
-            request.body,
-            request.attributes))
-      case _ => None
-    }
+      request: Request[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+    Some(
+      (
+        request.method,
+        request.uri,
+        request.httpVersion,
+        request.headers,
+        request.body,
+        request.attributes))
 
   final case class Connection(
       local: SocketAddress[IpAddress],
