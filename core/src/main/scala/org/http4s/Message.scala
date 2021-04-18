@@ -468,6 +468,19 @@ final class Request[F[_]] private (
 }
 
 object Request {
+
+  /** Representation of an incoming HTTP message
+    *
+    * A Request encapsulates the entirety of the incoming HTTP request including the
+    * status line, headers, and a possible request body.
+    *
+    * @param method [[Method.GET]], [[Method.POST]], etc.
+    * @param uri representation of the request URI
+    * @param httpVersion the HTTP version
+    * @param headers collection of [[Header]]s
+    * @param body fs2.Stream[F, Byte] defining the body of the request
+    * @param attributes Immutable Map used for carrying additional information in a type safe fashion
+    */
   def apply[F[_]](
       method: Method = Method.GET,
       uri: Uri = Uri(path = Uri.Path.Root),
@@ -623,6 +636,16 @@ final class Response[F[_]] private (
 }
 
 object Response {
+
+  /** Representation of the HTTP response to send back to the client
+    *
+    * @param status [[Status]] code and message
+    * @param headers [[Headers]] containing all response headers
+    * @param body EntityBody[F] representing the possible body of the response
+    * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+    *                   parameters which may be used by the http4s backend for
+    *                   additional processing such as java.io.File object
+    */
   def apply[F[_]](
       status: Status = Status.Ok,
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
