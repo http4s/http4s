@@ -145,8 +145,7 @@ private[server] object ServerHelpers {
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
-      postResp <- postProcessResponse(req, resp)
-    } yield (req, postResp, drain)
+    } yield (req, resp, drain)
   }
 
   private[internal] def send[F[_]: Sync](socket: Socket[F])(
@@ -238,13 +237,15 @@ private[server] object ServerHelpers {
                 // TODO: Should we pay this cost for every HTTP request?
                 // TODO: there will likely be many upgrade paths here eventually
                 req.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
-                  case Some(ctx) => 
+                  case Some(ctx) =>
+                    // TODO: Do we need to drain here? Is it unsound for clients to send extra bytes at this point?
+                    ???
                   case None =>
-                    send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
-                      drain.map {
-                        case Some(nextBuffer) => Some(((req, resp), (nextBuffer, true)))
-                        case None => None
-                      }
+                    for {
+                      nextResp <- postProcessResponse(req, resp)
+                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                      nextBuffer <- drain
+                    } yield nextBuffer.map(buffer => ((req, resp), (buffer, true)))
                 }
               case Left(err) =>
                 err match {
