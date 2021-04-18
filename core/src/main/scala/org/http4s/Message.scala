@@ -433,18 +433,6 @@ final class Request[F[_]] private (
 
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
-  override def equals(that: Any): Boolean =
-    (this eq that.asInstanceOf[Object]) || (that match {
-      case that: Request[_] =>
-        (this.method == that.method) &&
-          (this.uri == that.uri) &&
-          (this.httpVersion == that.httpVersion) &&
-          (this.headers == that.headers) &&
-          (this.body == that.body) &&
-          (this.attributes == that.attributes)
-      case _ => false
-    })
-
   def canEqual(that: Any): Boolean = that match {
     case _: Request[_] => true
     case _ => false
