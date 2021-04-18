@@ -33,6 +33,8 @@ import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
+import cats.data.EitherT
+import org.typelevel.jawn.ParseException
 
 // Originally based on ArgonautSuite
 class CirceSuite extends JawnDecodeSupportSuite[Json] {
@@ -199,6 +201,68 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
 
   test("stream json array encoder of should write a valid JSON array for an empty stream") {
     writeToString[Stream[IO, Foo]](Stream.empty)(streamJsonArrayEncoderOf).assertEquals("[]")
+  }
+
+  test("stream json array decoder should decode JSON stream") {
+    (for {
+      stream <- streamJsonArrayDecoder[IO].decode(
+        Media(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+          Headers.of(Header("content-type", "application/json"))
+        ),
+        true
+      )
+      list <- EitherT(
+        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
+    } yield list).value.assertEquals(
+      Right(
+        List(
+          """{"test1":"CirceSupport"}""",
+          """{"test2":"CirceSupport"}"""
+        )))
+  }
+
+  test(
+    "stream json array decoder should fail if `content-type: application/json` header is not present") {
+    val result = streamJsonArrayDecoder[IO].decode(
+      Media(
+        Stream.fromIterator[IO](
+          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+        Headers.empty
+      ),
+      true
+    )
+    result.value.assertEquals(Left(MediaTypeMissing(Set(MediaType.application.json))))
+  }
+
+  test("stream json array decoder should not fail on improper JSON") {
+    val result = streamJsonArrayDecoder[IO].decode(
+      Media(
+        Stream.fromIterator[IO](
+          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+        Headers.of(Header("content-type", "application/json"))
+      ),
+      true
+    )
+    result.value.map(_.isRight).assertEquals(true)
+  }
+
+  test("stream json array decoder should return stream that fails when run on improper JSON") {
+    (for {
+      stream <- streamJsonArrayDecoder[IO].decode(
+        Media(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+          Headers.of(Header("content-type", "application/json"))
+        ),
+        true
+      )
+      list <- EitherT(
+        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
+    } yield list).value.attempt
+      .assertEquals(Left(
+        ParseException("expected json value got 'C...' (line 1, column 36)", 35, 1, 36)))
   }
 
   test("json handle the optionality of asNumber") {

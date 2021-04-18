@@ -1,5 +1,5 @@
 let
-  java = "openjdk8_headless";
+  java = "graalvm8-ce";
   pkgs = import ./nix/pkgs.nix { inherit java; };
   hugo = pkgs.callPackage ./nix/hugo.nix {};
 in

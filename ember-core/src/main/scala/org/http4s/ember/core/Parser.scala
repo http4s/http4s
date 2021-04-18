@@ -35,8 +35,8 @@ private[ember] object Parser {
     private val lf: Byte = '\n'.toByte
     private val DoubleCrlf: Seq[Byte] = Seq(cr, lf, cr, lf)
 
-    def parseMessage[F[_]](buffer: Array[Byte], read: F[Option[Chunk[Byte]]], maxHeaderSize: Int)(
-        implicit F: MonadThrow[F]): F[MessageP] = {
+    def parseMessage[F[_]](buffer: Array[Byte], read: Read[F], maxHeaderSize: Int)(implicit
+        F: MonadThrow[F]): F[MessageP] = {
       val endIndex = buffer.take(maxHeaderSize).indexOfSlice(DoubleCrlf)
       if (endIndex == -1 && buffer.length > maxHeaderSize) {
         F.raiseError(MessageTooLongError(maxHeaderSize))
@@ -56,8 +56,6 @@ private[ember] object Parser {
 
     final case class MessageTooLongError(maxHeaderSize: Int)
         extends Exception(s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes")
-
-    final case class EmptyStreamError() extends Exception("Cannot Parse Empty Stream")
 
     final case class EndOfStreamError() extends Exception("Reached End Of Stream")
 
@@ -254,11 +252,11 @@ private[ember] object Parser {
     }
 
     def parser[F[_]](maxHeaderSize: Int)(
-        head: Array[Byte],
-        read: F[Option[Chunk[Byte]]]
-    )(implicit F: Concurrent[F]): F[(Request[F], F[Option[Array[Byte]]])] =
+        buffer: Array[Byte],
+        read: Read[F]
+    )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] =
       for {
-        message <- MessageP.parseMessage(head, read, maxHeaderSize)
+        message <- MessageP.parseMessage(buffer, read, maxHeaderSize)
         prelude <- ReqPrelude.parsePrelude(message.bytes)
         headerP <- HeaderP.parseHeaders(message.bytes, prelude.nextIndex)
 
@@ -292,11 +290,11 @@ private[ember] object Parser {
   object Response {
 
     def parser[F[_]: Concurrent](maxHeaderSize: Int)(
-        head: Array[Byte],
-        read: F[Option[Chunk[Byte]]]
-    ): F[(Response[F], F[Option[Array[Byte]]])] =
+        buffer: Array[Byte],
+        read: Read[F]
+    ): F[(Response[F], Drain[F])] =
       for {
-        message <- MessageP.parseMessage(head, read, maxHeaderSize)
+        message <- MessageP.parseMessage(buffer, read, maxHeaderSize)
         prelude <- RespPrelude.parsePrelude(message.bytes)
         headerP <- HeaderP.parseHeaders(message.bytes, prelude.nextIndex)
 
@@ -408,15 +406,15 @@ private[ember] object Parser {
   object Body {
     def parseFixedBody[F[_]: Concurrent](
         contentLength: Long,
-        head: Array[Byte],
-        read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Option[Array[Byte]]])] =
+        buffer: Array[Byte],
+        read: Read[F]): F[(EntityBody[F], Drain[F])] =
       if (contentLength > 0) {
-        if (head.length >= contentLength) {
-          val (body, rest) = head.splitAt(contentLength.toInt)
+        if (buffer.length >= contentLength) {
+          val (body, rest) = buffer.splitAt(contentLength.toInt)
           (Stream.chunk(Chunk.bytes(body)).covary[F], (Some(rest): Option[Array[Byte]]).pure[F])
             .pure[F]
         } else {
-          val unread = contentLength - head.length
+          val unread = contentLength - buffer.length
           Ref.of[F, Either[Long, Array[Byte]]](Left(unread)).map { state =>
             val bodyStream = Stream.eval(state.get).flatMap {
               case Right(_) =>
@@ -438,19 +436,19 @@ private[ember] object Parser {
 
             // If the remaining bytes for the body have not yet been read, close the connection.
             // followup: Check if there are bytes immediately available without blocking
-            val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
+            val drain: Drain[F] = state.get.map(_.toOption)
 
-            (Stream.chunk(Chunk.bytes(head)) ++ bodyStream, drain)
+            (Stream.chunk(Chunk.bytes(buffer)) ++ bodyStream, drain)
           }
         }
       } else {
-        (EmptyBody.covary[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
+        (EmptyBody.covary[F], (Some(buffer): Option[Array[Byte]]).pure[F]).pure[F]
       }
 
     final case class BodyAlreadyConsumedError()
         extends Exception("Body Has Been Consumed Completely Already")
 
-    private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
+    private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
       Stream.eval(read).flatMap {
         case Some(bytes) =>
           Stream.chunk(bytes) ++ readStream(read)
