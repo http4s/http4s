@@ -533,39 +533,6 @@ final class Response[F[_]] private (
     with Serializable {
   type SelfF[F0[_]] = Response[F0]
 
-  def copy(
-      status: Status = this.status,
-      httpVersion: HttpVersion = this.httpVersion,
-      headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
-      attributes: Vault = this.attributes
-  ): Response[F] =
-    Response[F](
-      status = status,
-      httpVersion = httpVersion,
-      headers = headers,
-      body = body,
-      attributes = attributes
-    )
-
-  def canEqual(that: Any): Boolean =
-    that match {
-      case _: Response[F] => true
-      case _ => false
-    }
-
-  def productArity: Int = 5
-
-  def productElement(n: Int): Any =
-    n match {
-      case 0 => status
-      case 1 => httpVersion
-      case 2 => headers
-      case 3 => body
-      case 4 => attributes
-      case _ => throw new IndexOutOfBoundsException()
-    }
-
   def mapK[G[_]](f: F ~> G): Response[G] =
     Response[G](
       status = status,
@@ -615,6 +582,39 @@ final class Response[F[_]] private (
     */
   def cookies: List[ResponseCookie] =
     headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
+
+  def copy(
+      status: Status = this.status,
+      httpVersion: HttpVersion = this.httpVersion,
+      headers: Headers = this.headers,
+      body: EntityBody[F] = this.body,
+      attributes: Vault = this.attributes
+  ): Response[F] =
+    Response[F](
+      status = status,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body,
+      attributes = attributes
+    )
+
+  def canEqual(that: Any): Boolean =
+    that match {
+      case _: Response[F] => true
+      case _ => false
+    }
+
+  def productArity: Int = 5
+
+  def productElement(n: Int): Any =
+    n match {
+      case 0 => status
+      case 1 => httpVersion
+      case 2 => headers
+      case 3 => body
+      case 4 => attributes
+      case _ => throw new IndexOutOfBoundsException()
+    }
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
