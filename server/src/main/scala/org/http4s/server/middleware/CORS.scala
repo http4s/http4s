@@ -55,7 +55,9 @@ object CORS {
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_], G[_]](http: F[Response[G]], config: CORSConfig = DefaultCORSConfig)(implicit F: Monad[F], A: Ask[F, Request[G]]): F[Response[G]] =
+  def apply[F[_], G[_]](http: F[Response[G]], config: CORSConfig = DefaultCORSConfig)(implicit
+      F: Monad[F],
+      A: Ask[F, Request[G]]): F[Response[G]] =
     A.ask.flatMap { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header.Raw, acrm: Header.Raw): Response[G] =
