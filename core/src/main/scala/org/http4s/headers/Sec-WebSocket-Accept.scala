@@ -18,3 +18,10 @@ package org.http4s
 package headers
 
 object `Sec-WebSocket-Accept` extends HeaderKey.Default
+
+final case class `Sec-WebSocket-Accept`(accept: String) extends Header.Parsed {
+  override def key: `Sec-WebSocket-Accept`.type = `Sec-WebSocket-Accept`
+  override def renderValue(writer: org.http4s.util.Writer): writer.type =
+    writer.append(accept)
+}
+

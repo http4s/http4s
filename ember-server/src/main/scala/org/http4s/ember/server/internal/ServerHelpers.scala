@@ -41,7 +41,6 @@ import scodec.bits.ByteVector
 private[server] object ServerHelpers {
 
   private val closeCi = "close".ci
-
   private val connectionCi = "connection".ci
   private val close = Connection(NonEmptyList.of(closeCi))
   private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
@@ -226,6 +225,7 @@ private[server] object ServerHelpers {
                 requestVault)
             }
 
+            // TODO: fix the order of error handling?
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
                 // TODO: Process upgrades here
@@ -235,10 +235,12 @@ private[server] object ServerHelpers {
 
                 // TODO: Should we pay this cost for every HTTP request?
                 // TODO: there will likely be many upgrade paths here eventually
+
+                // Intercept the response for various upgrade paths
                 resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
                   case Some(ctx) =>
                     // TODO: Do we need to drain here? Is it unsound for clients to send extra bytes at this point?
-                    WebSocketHelpers.upgrade(req, resp, ctx).as(None)
+                    WebSocketHelpers.upgrade(socket, req, resp, ctx, idleTimeout, onWriteFailure).as(None)
                   case None =>
                     for {
                       nextResp <- postProcessResponse(req, resp)
