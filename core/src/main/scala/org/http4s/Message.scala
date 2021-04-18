@@ -609,8 +609,20 @@ object Response {
       attributes: Vault = Vault.empty): Response[F] =
     new Response(status, httpVersion, headers, body, attributes)
 
-  def unapply[F[_]](r: Response[F]): Option[(Status, HttpVersion, Headers, EntityBody[F], Vault)] =
-    Some((r.status, r.httpVersion, r.headers, r.body, r.attributes))
+  def unapply[F[_]](
+      message: Message[F]): Option[(Status, HttpVersion, Headers, EntityBody[F], Vault)] =
+    message match {
+      case response: Response[F] =>
+        Some(
+          (
+            response.status,
+            response.httpVersion,
+            response.headers,
+            response.body,
+            response.attributes))
+      case _ =>
+        None
+    }
 
   private[this] val pureNotFound: Response[Pure] =
     Response(
