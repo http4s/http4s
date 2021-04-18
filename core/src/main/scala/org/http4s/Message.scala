@@ -522,14 +522,29 @@ object Request {
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
-final case class Response[F[_]](
-    status: Status = Status.Ok,
-    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: Headers = Headers.empty,
-    body: EntityBody[F] = EmptyBody,
-    attributes: Vault = Vault.empty)
+final class Response[F[_]](
+    val status: Status = Status.Ok,
+    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    val headers: Headers = Headers.empty,
+    val body: EntityBody[F] = EmptyBody,
+    val attributes: Vault = Vault.empty)
     extends Message[F] {
   type SelfF[F0[_]] = Response[F0]
+
+  def copy(
+      status: Status = this.status,
+      httpVersion: HttpVersion = this.httpVersion,
+      headers: Headers = this.headers,
+      body: EntityBody[F] = this.body,
+      attributes: Vault = this.attributes
+  ): Response[F] =
+    Response[F](
+      status = status,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body,
+      attributes = attributes
+    )
 
   def mapK[G[_]](f: F ~> G): Response[G] =
     Response[G](
@@ -586,6 +601,17 @@ final case class Response[F[_]](
 }
 
 object Response {
+  def apply[F[_]](
+      status: Status = Status.Ok,
+      httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+      headers: Headers = Headers.empty,
+      body: EntityBody[F] = EmptyBody,
+      attributes: Vault = Vault.empty): Response[F] =
+    new Response(status, httpVersion, headers, body, attributes)
+
+  def unapply[F[_]](r: Response[F]): Option[(Status, HttpVersion, Headers, EntityBody[F], Vault)] =
+    Some((r.status, r.httpVersion, r.headers, r.body, r.attributes))
+
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
@@ -596,7 +622,7 @@ object Response {
       )
     )
 
-  def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
+  def notFound[F[_]]: Response[F] = pureNotFound.covary[F].copy(body = pureNotFound.body.covary[F])
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
       encoder: EntityEncoder[F, String]): F[Response[F]] =
