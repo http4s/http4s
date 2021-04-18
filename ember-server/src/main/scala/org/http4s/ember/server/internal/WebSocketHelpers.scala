@@ -20,9 +20,9 @@ import cats.effect.Sync
 import cats.syntax.all._
 import fs2.io.tcp._
 import org.http4s.syntax.all._
-import org.http4s.{Request, Response, Status, Header}
+import org.http4s.{Header, Request, Response, Status}
 import org.http4s.websocket.WebSocketContext
-import org.http4s.headers.{`Sec-WebSocket-Key`, `Sec-WebSocket-Accept`, Host}
+import org.http4s.headers.{Connection, Upgrade, `Sec-WebSocket-Accept`, `Sec-WebSocket-Key`}
 import org.http4s.ember.core.{Encoder}
 import org.http4s.ember.core.Util.durationToFinite
 
@@ -30,24 +30,38 @@ import scala.concurrent.duration.Duration
 import java.security.MessageDigest
 import java.util.Base64
 import java.nio.charset.StandardCharsets
-import org.http4s.Header
+import org.http4s.headers.Connection
+import cats.data.NonEmptyList
 
 object WebSocketHelpers {
 
-  private val rfc6455Magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(StandardCharsets.US_ASCII)
-  
-  def upgrade[F[_]: Sync](socket: Socket[F], req: Request[F], resp: Response[F], ctx: WebSocketContext[F], idleTimeout: Duration, onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]): F[Unit] = {
+  private val rfc6455Magic =
+    "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(StandardCharsets.US_ASCII)
+
+  private val connectionUpgrade = Connection(NonEmptyList.of("upgrade".ci))
+  private val upgradeWebSocket = Upgrade(NonEmptyList.of("websocket".ci))
+
+  def upgrade[F[_]: Sync](
+      socket: Socket[F],
+      req: Request[F],
+      resp: Response[F],
+      ctx: WebSocketContext[F],
+      idleTimeout: Duration,
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]): F[Unit] = {
     // TODO: Craft a 101 Switching Protocols response here
     // Validate that the request needs to be upgrade?
-    
+
     // TODO: Check upgrade, headers, version
 
     val wsResponse = req.headers.get(`Sec-WebSocket-Key`) match {
-      case Some(key) => handshake(key.value).map { accept =>
-        Response[F](Status.SwitchingProtocols)
-          .withHeaders(`Sec-WebSocket-Accept`(accept))
-      }
-      case None => Response[F](Status.BadRequest).withEntity("Sec-WebSocket-Key not specified.").pure[F]
+      case Some(key) =>
+        handshake(key.value).map { accept =>
+          val secWebSocketAccept = `Sec-WebSocket-Accept`(accept)
+          Response[F](Status.SwitchingProtocols)
+            .withHeaders(secWebSocketAccept, connectionUpgrade, upgradeWebSocket)
+        }
+      case None =>
+        Response[F](Status.BadRequest).withEntity("Missing Sec-WebSocket-Key.").pure[F]
     }
 
     wsResponse.flatMap { res =>

@@ -24,4 +24,3 @@ final case class `Sec-WebSocket-Accept`(accept: String) extends Header.Parsed {
   override def renderValue(writer: org.http4s.util.Writer): writer.type =
     writer.append(accept)
 }
-

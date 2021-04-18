@@ -198,6 +198,16 @@ private[parser] trait SimpleHeaders {
   def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
     TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 
+  def UPGRADE(value: String): ParseResult[Upgrade] =
+    new Http4sHeaderParser[Upgrade](value) {
+      def entry =
+        rule(
+          oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[String]) =>
+            Upgrade(xs.head.ci, xs.tail.map(_.ci): _*)
+          }
+        )
+    }.parse
+
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
     new Http4sHeaderParser[`User-Agent`](value) {
       def entry =

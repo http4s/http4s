@@ -240,7 +240,9 @@ private[server] object ServerHelpers {
                 resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
                   case Some(ctx) =>
                     // TODO: Do we need to drain here? Is it unsound for clients to send extra bytes at this point?
-                    WebSocketHelpers.upgrade(socket, req, resp, ctx, idleTimeout, onWriteFailure).as(None)
+                    WebSocketHelpers
+                      .upgrade(socket, req, resp, ctx, idleTimeout, onWriteFailure)
+                      .as(None)
                   case None =>
                     for {
                       nextResp <- postProcessResponse(req, resp)

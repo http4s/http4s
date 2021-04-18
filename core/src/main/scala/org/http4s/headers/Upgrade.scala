@@ -17,4 +17,18 @@
 package org.http4s
 package headers
 
-object Upgrade extends HeaderKey.Default
+import org.http4s.util.{CaseInsensitiveString, Writer}
+import cats.data.NonEmptyList
+import org.http4s.parser.HttpHeaderParser
+
+object Upgrade extends HeaderKey.Internal[Upgrade] with HeaderKey.Recurring {
+  override def parse(s: String): ParseResult[Upgrade] =
+    HttpHeaderParser.UPGRADE(s)
+}
+
+final case class Upgrade(values: NonEmptyList[CaseInsensitiveString]) extends Header.Recurring {
+  override def key: Upgrade.type = Upgrade
+  type Value = CaseInsensitiveString
+  override def renderValue(writer: Writer): writer.type =
+    writer.addStringNel(values.map(_.toString), ", ")
+}
