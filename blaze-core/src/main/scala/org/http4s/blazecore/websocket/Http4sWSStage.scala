@@ -28,7 +28,12 @@ import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.websocket.{ReservedOpcodeException, WebSocket, WebSocketFrame}
+import org.http4s.websocket.{
+  ReservedOpcodeException,
+  UnknownOpcodeException,
+  WebSocket,
+  WebSocketFrame
+}
 import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
@@ -102,8 +107,14 @@ private[http4s] class Http4sWSStage[F[_]](
 
     readFrameTrampoline
       .recoverWith {
-        case _: ReservedOpcodeException => F.delay(Close(1003)).flatMap(F.fromEither)
-        case _: ProtocolException => F.delay(Close(1002)).flatMap(F.fromEither)
+        case t: ReservedOpcodeException =>
+          F.delay(logger.error(t)("Decoded a websocket frame with a reserved opcode")) *>
+            F.fromEither(Close(1003))
+        case t: UnknownOpcodeException =>
+          F.delay(logger.error(t)("Decoded a websocket frame with an unknown opcode")) *>
+            F.fromEither(Close(1002))
+        case t: ProtocolException =>
+          F.delay(logger.error(t)("Websocket protocol violation")) *> F.fromEither(Close(1002))
       }
       .flatMap {
         case c: Close =>
