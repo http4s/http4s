@@ -583,6 +583,8 @@ final class Response[F[_]] private (
   def cookies: List[ResponseCookie] =
     headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
 
+  override def hashCode(): Int = MurmurHash3.productHash(this)
+
   def copy(
       status: Status = this.status,
       httpVersion: HttpVersion = this.httpVersion,
