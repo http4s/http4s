@@ -32,7 +32,7 @@ private[ember] object Parser {
 
     def parseHeaders[F[_]](
         head: Array[Byte],
-        read: F[Option[Chunk[Byte]]],
+        read: Read[F],
         maxHeaderLength: Int,
         acc: Option[ParseHeadersIncomplete])(implicit
         F: MonadThrow[F]): F[(Headers, Boolean, Option[Long], Array[Byte])] = {
@@ -199,11 +199,9 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
-      val emptyStreamError = ParsePreludeError("Cannot Parse Empty Stream", None, None, None, None)
-
       def parsePrelude[F[_]](
           head: Array[Byte],
-          read: F[Option[Chunk[Byte]]],
+          read: Read[F],
           maxHeaderLength: Int,
           acc: Option[ParsePreludeIncomplete] = None)(implicit
           F: MonadThrow[F]): F[(Method, Uri, HttpVersion, Array[Byte])] = {
@@ -234,8 +232,8 @@ private[ember] object Parser {
             }
           case None =>
             acc match {
-              case None => F.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.bv.isEmpty => F.raiseError(emptyStreamError)
+              case None => F.raiseError(EmptyStreamError())
+              case Some(incomplete) if incomplete.bv.isEmpty => F.raiseError(EmptyStreamError())
               case Some(incomplete) =>
                 F.raiseError(
                   ParsePreludeError(
@@ -359,8 +357,8 @@ private[ember] object Parser {
 
     def parser[F[_]](maxHeaderLength: Int)(
         head: Array[Byte],
-        read: F[Option[Chunk[Byte]]]
-    )(implicit F: Concurrent[F]): F[(Request[F], F[Option[Array[Byte]]])] =
+        read: Read[F]
+    )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] =
       ReqPrelude
         .parsePrelude[F](head, read, maxHeaderLength, None)
         .flatMap { case (method, uri, httpVersion, bytes) =>
@@ -397,8 +395,8 @@ private[ember] object Parser {
 
     def parser[F[_]: Concurrent](maxHeaderLength: Int)(
         head: Array[Byte],
-        read: F[Option[Chunk[Byte]]]
-    ): F[(Response[F], F[Option[Array[Byte]]])] =
+        read: Read[F]
+    ): F[(Response[F], Drain[F])] =
       RespPrelude
         .parsePrelude(head, read, maxHeaderLength, None)
         .flatMap { case (httpVersion, status, bytes) =>
@@ -431,11 +429,9 @@ private[ember] object Parser {
 
     object RespPrelude {
 
-      val emptyStreamError = RespPreludeError("Cannot Parse Empty Stream", None)
-
       def parsePrelude[F[_]](
           head: Array[Byte],
-          read: F[Option[Chunk[Byte]]],
+          read: Read[F],
           maxHeaderLength: Int,
           acc: Option[Array[Byte]] = None)(implicit
           F: MonadThrow[F]): F[(HttpVersion, Status, Array[Byte])] = {
@@ -462,8 +458,8 @@ private[ember] object Parser {
             }
           case None =>
             acc match {
-              case None => F.raiseError(emptyStreamError)
-              case Some(incomplete) if incomplete.isEmpty => F.raiseError(emptyStreamError)
+              case None => F.raiseError(EmptyStreamError())
+              case Some(incomplete) if incomplete.isEmpty => F.raiseError(EmptyStreamError())
               case Some(_) =>
                 F.raiseError(
                   RespPreludeError(
@@ -558,17 +554,17 @@ private[ember] object Parser {
   object Body {
     def parseFixedBody[F[_]: Concurrent](
         contentLength: Long,
-        head: Array[Byte],
-        read: F[Option[Chunk[Byte]]]): F[(EntityBody[F], F[Option[Array[Byte]]])] =
+        buffer: Array[Byte],
+        read: Read[F]): F[(EntityBody[F], Drain[F])] =
       if (contentLength > 0) {
-        if (head.length >= contentLength) {
-          val (body, rest) = head.splitAt(contentLength.toInt)
+        if (buffer.length >= contentLength) {
+          val (body, rest) = buffer.splitAt(contentLength.toInt)
           (
             Stream.chunk(Chunk.byteVector(ByteVector(body))).covary[F],
             (Some(rest): Option[Array[Byte]]).pure[F])
             .pure[F]
         } else {
-          val unread = contentLength - head.length
+          val unread = contentLength - buffer.length
           Ref.of[F, Either[Long, Array[Byte]]](Left(unread)).map { state =>
             val bodyStream = Stream.eval(state.get).flatMap {
               case Right(_) =>
@@ -590,16 +586,16 @@ private[ember] object Parser {
 
             // If the remaining bytes for the body have not yet been read, close the connection.
             // followup: Check if there are bytes immediately available without blocking
-            val drain: F[Option[Array[Byte]]] = state.get.map(_.toOption)
+            val drain: Drain[F] = state.get.map(_.toOption)
 
-            (Stream.chunk(Chunk.byteVector(ByteVector(head))) ++ bodyStream, drain)
+            (Stream.chunk(Chunk.byteVector(ByteVector(buffer))) ++ bodyStream, drain)
           }
         }
       } else {
-        (EmptyBody.covary[F], (Some(head): Option[Array[Byte]]).pure[F]).pure[F]
+        (EmptyBody.covary[F], (Some(buffer): Option[Array[Byte]]).pure[F]).pure[F]
       }
 
-    private def readStream[F[_]](read: F[Option[Chunk[Byte]]]): Stream[F, Byte] =
+    private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
       Stream.eval(read).flatMap {
         case Some(bytes) =>
           Stream.chunk(bytes) ++ readStream(read)

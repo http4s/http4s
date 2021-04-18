@@ -234,7 +234,7 @@ object Query {
     import cats.parse.Parser.charIn
     import Rfc3986.pchar
 
-    pchar.orElse(charIn("/?[]")).rep0.string.map(Query.unsafeFromString)
+    pchar.orElse(charIn("/?[]")).rep0.string.map(pchars => new Query(Right(pchars)))
   }
 
   implicit val catsInstancesForHttp4sQuery: Hash[Query] with Order[Query] with Show[Query] =

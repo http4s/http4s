@@ -288,7 +288,7 @@ object Http4sPlugin extends AutoPlugin {
     val dropwizardMetrics = "4.1.18"
     val fs2 = "3.0.1"
     val ip4s = "3.0.1"
-    val jacksonDatabind = "2.12.2"
+    val jacksonDatabind = "2.12.3"
     val jawn = "1.1.1"
     val jawnFs2 = "2.0.1"
     val jetty = "9.4.39.v20210325"
