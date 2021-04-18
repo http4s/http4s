@@ -38,7 +38,7 @@ class Module[F[_]: ConcurrentEffect: ContextShift: Timer](client: Client[F], blo
 
   def middleware: HttpMiddleware[F] = { (routes: HttpRoutes[F]) =>
     GZip(routes)
-  }.compose(routes => AutoSlash(routes))
+  }.compose(routes => AutoSlash.httpRoutes(routes))
 
   val fileHttpEndpoint: HttpRoutes[F] =
     new FileHttpEndpoint[F](fileService).service
