@@ -522,12 +522,12 @@ object Request {
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
-final class Response[F[_]](
-    val status: Status = Status.Ok,
-    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    val headers: Headers = Headers.empty,
-    val body: EntityBody[F] = EmptyBody,
-    val attributes: Vault = Vault.empty)
+final class Response[F[_]] private (
+    val status: Status,
+    val httpVersion: HttpVersion,
+    val headers: Headers,
+    val body: EntityBody[F],
+    val attributes: Vault)
     extends Message[F] {
   type SelfF[F0[_]] = Response[F0]
 
