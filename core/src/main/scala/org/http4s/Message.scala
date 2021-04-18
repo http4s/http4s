@@ -208,13 +208,13 @@ object Message {
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-final class Request[F[_]](
-    val method: Method = Method.GET,
-    val uri: Uri = Uri(path = Uri.Path.Root),
-    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    val headers: Headers = Headers.empty,
-    val body: EntityBody[F] = EmptyBody,
-    val attributes: Vault = Vault.empty
+final class Request[F[_]] private (
+    val method: Method,
+    val uri: Uri,
+    val httpVersion: HttpVersion,
+    val headers: Headers,
+    val body: EntityBody[F],
+    val attributes: Vault
 ) extends Message[F]
     with Product
     with Serializable {
