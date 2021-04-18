@@ -89,7 +89,7 @@ class LoggerSuite extends Http4sSuite {
     val _ = Logger.colored[IO](
       logHeaders = true,
       logBody = false,
-      logAction = Some(s => IO.println(s))
+      logAction = Some(s => IO(println(s)))
     ) _
   }
 }
