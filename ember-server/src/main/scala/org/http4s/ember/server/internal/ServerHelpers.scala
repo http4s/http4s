@@ -229,11 +229,23 @@ private[server] object ServerHelpers {
 
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
-                send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
-                  drain.map {
-                    case Some(nextBuffer) => Some(((req, resp), (nextBuffer, true)))
-                    case None => None
-                  }
+                // TODO: Should we postprocess the response here?
+                // TODO: Process upgrades here
+
+                // What are the criteria for a websocket upgrade?
+                // the upgrade header, the websocket key
+
+                // TODO: Should we pay this cost for every HTTP request?
+                // TODO: there will likely be many upgrade paths here eventually
+                req.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
+                  case Some(ctx) => 
+                  case None =>
+                    send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
+                      drain.map {
+                        case Some(nextBuffer) => Some(((req, resp), (nextBuffer, true)))
+                        case None => None
+                      }
+                }
               case Left(err) =>
                 err match {
                   case EmptyStreamError() =>
