@@ -19,8 +19,7 @@ package servlet
 
 import cats.syntax.all._
 import cats.effect.{IO, Resource, Timer}
-import java.net.{HttpURLConnection, URL}
-import java.nio.charset.StandardCharsets
+import java.net.URL
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.{Server => EclipseServer}
@@ -56,24 +55,29 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
         .getLines()
         .mkString)
 
-  def post(serverPort: Int, path: String, body: String): IO[String] =
-    testBlocker.delay[IO, String] {
-      val url = new URL(s"http://127.0.0.1:$serverPort/$path")
-      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-      val bytes = body.getBytes(StandardCharsets.UTF_8)
-      conn.setRequestMethod("POST")
-      conn.setRequestProperty("Content-Length", bytes.size.toString)
-      conn.setDoOutput(true)
-      conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
-    }
-
   servletServer.test("Http4sBlockingServlet handle GET requests") { server =>
     get(server, "simple").assertEquals("simple")
   }
 
   servletServer.test("Http4sBlockingServlet handle POST requests") { server =>
-    post(server, "echo", "input data").assertEquals("input data")
+    import org.http4s.client.asynchttpclient._
+
+    val contents = (1 to 14).map { i =>
+      val number =
+        scala.math.pow(2, i.toDouble).toInt - 1 //-1 for the end-of-line to make awk play nice
+      s"$i $number ${"*".*(number)}\n"
+    }.toList
+
+    AsyncHttpClient.resource[IO]().use { client =>
+      contents
+        .traverse { content =>
+          val request =
+            Request[IO](Method.POST, Uri.unsafeFromString(s"http://127.0.0.1:$server/echo"))
+              .withEntity(content)
+          client.fetchAs[String](request)
+        }
+        .assertEquals(contents)
+    }
   }
 
   servletServer.test("Http4sBlockingServlet work for shifted IO") { server =>
@@ -82,7 +86,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
 
   lazy val servlet = new AsyncHttp4sServlet[IO](
     service = service,
-    servletIo = new NonBlockingServletIo[IO](4096),
+    servletIo = NonBlockingServletIo[IO](4096),
     serviceErrorHandler = DefaultServiceErrorHandler[IO]
   )
 
