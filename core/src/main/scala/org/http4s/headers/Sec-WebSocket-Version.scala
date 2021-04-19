@@ -17,4 +17,36 @@
 package org.http4s
 package headers
 
-object `Sec-WebSocket-Version` extends HeaderKey.Default
+import org.http4s.parser.HttpHeaderParser
+import org.http4s.util.{Renderer, Writer}
+import scala.concurrent.duration.{FiniteDuration, _}
+import scala.util.Try
+
+object `Sec-WebSocket-Version` extends HeaderKey.Internal[`Sec-WebSocket-Version`] with HeaderKey.Singleton {
+  private class VersionImpl(version: Int) extends `Sec-WebSocket-Version`(version)
+
+  def fromInt(version: Int): ParseResult[`Sec-WebSocket-Version`] =
+    if (version >= 0)
+      ParseResult.success(new VersionImpl(version))
+    else
+      ParseResult.fail("Invalid version value", s"Version $version must be more or equal to 0")
+
+  def unsafeFromInt(version: Int): `Sec-WebSocket-Version` =
+    fromInt(version).fold(throw _, identity)
+
+  override def parse(s: String): ParseResult[Age] =
+    HttpHeaderParser.AGE(s)
+}
+
+sealed abstract case class `Sec-WebSocket-Version`(version: Int) extends Header.Parsed {
+  val key = `Sec-WebSocket-Version`
+
+  override val value = Renderer.renderString(age)
+
+  override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  def duration: Option[FiniteDuration] = Try(age.seconds).toOption
+
+  def unsafeDuration: FiniteDuration = age.seconds
+}
+

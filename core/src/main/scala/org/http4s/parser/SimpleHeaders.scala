@@ -195,6 +195,14 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
+  def SEC_WEBSOCKET_VERSION(value: String): ParseResult[`Sec-WebSocket-Version`] =
+    new Http4sHeaderParser[`Sec-WebSocket-Version`](value) {
+      def entry =
+        rule {
+          Digits ~ EOL ~> ((t: String) => `Sec-WebSocket-Version`.unsafeFromInt(t.toInt))
+        }
+    }.parse
+
   def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
     TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 

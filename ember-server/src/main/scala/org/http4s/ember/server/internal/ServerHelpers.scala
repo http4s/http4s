@@ -40,10 +40,10 @@ import scodec.bits.ByteVector
 
 private[server] object ServerHelpers {
 
-  private val closeCi = "close".ci
-  private val connectionCi = "connection".ci
-  private val close = Connection(NonEmptyList.of(closeCi))
-  private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
+  private[this] val closeCi = "close".ci
+  private[this] val connectionCi = "connection".ci
+  private[this] val close = Connection(NonEmptyList.of(closeCi))
+  private[this] val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)

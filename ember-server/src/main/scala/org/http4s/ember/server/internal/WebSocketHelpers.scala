@@ -16,13 +16,13 @@
 
 package org.http4s.ember.server.internal
 
-import cats.effect.Sync
+import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
 import fs2.io.tcp._
 import org.http4s.syntax.all._
-import org.http4s.{Header, Request, Response, Status}
+import org.http4s.{Header, Headers, Request, Response, Status}
 import org.http4s.websocket.WebSocketContext
-import org.http4s.headers.{Connection, Upgrade, `Sec-WebSocket-Accept`, `Sec-WebSocket-Key`}
+import org.http4s.headers.{Connection, Upgrade, `Sec-WebSocket-Accept`, `Sec-WebSocket-Key`, `Sec-WebSocket-Version`}
 import org.http4s.ember.core.{Encoder}
 import org.http4s.ember.core.Util.durationToFinite
 
