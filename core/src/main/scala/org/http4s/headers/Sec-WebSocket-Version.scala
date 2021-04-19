@@ -34,19 +34,15 @@ object `Sec-WebSocket-Version` extends HeaderKey.Internal[`Sec-WebSocket-Version
   def unsafeFromInt(version: Int): `Sec-WebSocket-Version` =
     fromInt(version).fold(throw _, identity)
 
-  override def parse(s: String): ParseResult[Age] =
-    HttpHeaderParser.AGE(s)
+  override def parse(s: String): ParseResult[`Sec-WebSocket-Version`] =
+    HttpHeaderParser.SEC_WEBSOCKET_VERSION(s)
 }
 
 sealed abstract case class `Sec-WebSocket-Version`(version: Int) extends Header.Parsed {
   val key = `Sec-WebSocket-Version`
 
-  override val value = Renderer.renderString(age)
+  override val value = version.toString
 
   override def renderValue(writer: Writer): writer.type = writer.append(value)
-
-  def duration: Option[FiniteDuration] = Try(age.seconds).toOption
-
-  def unsafeDuration: FiniteDuration = age.seconds
 }
 
