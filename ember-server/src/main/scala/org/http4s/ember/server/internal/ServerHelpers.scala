@@ -228,11 +228,6 @@ private[server] object ServerHelpers {
             // TODO: fix the order of error handling?
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
-                // TODO: Process upgrades here
-
-                // What are the criteria for a websocket upgrade?
-                // the upgrade header, the websocket key
-
                 // TODO: Should we pay this cost for every HTTP request?
                 // TODO: there will likely be many upgrade paths here eventually
 

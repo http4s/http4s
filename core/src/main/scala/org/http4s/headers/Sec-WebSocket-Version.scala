@@ -22,7 +22,9 @@ import org.http4s.util.{Renderer, Writer}
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Try
 
-object `Sec-WebSocket-Version` extends HeaderKey.Internal[`Sec-WebSocket-Version`] with HeaderKey.Singleton {
+object `Sec-WebSocket-Version`
+    extends HeaderKey.Internal[`Sec-WebSocket-Version`]
+    with HeaderKey.Singleton {
   private class VersionImpl(version: Int) extends `Sec-WebSocket-Version`(version)
 
   def fromInt(version: Int): ParseResult[`Sec-WebSocket-Version`] =
@@ -45,4 +47,3 @@ sealed abstract case class `Sec-WebSocket-Version`(version: Int) extends Header.
 
   override def renderValue(writer: Writer): writer.type = writer.append(value)
 }
-
