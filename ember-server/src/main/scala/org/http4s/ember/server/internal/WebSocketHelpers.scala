@@ -18,18 +18,21 @@ package org.http4s.ember.server.internal
 
 import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
+import cats.data.NonEmptyList
+import fs2.{Stream, Chunk}
 import fs2.io.tcp._
 import org.http4s.syntax.all._
 import org.http4s._
-import org.http4s.websocket.WebSocketContext
+import org.http4s.websocket.{WebSocketContext, FrameTranscoder}
 import org.http4s.headers._
+import org.http4s.ember.core.Read
+import org.http4s.ember.core.Util.durationToFinite
 
 import scala.concurrent.duration.Duration
 import java.security.MessageDigest
 import java.util.Base64
 import java.nio.charset.StandardCharsets
 import org.http4s.headers.Connection
-import cats.data.NonEmptyList
 
 object WebSocketHelpers {
 
@@ -42,17 +45,19 @@ object WebSocketHelpers {
   private[this] val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
   private[this] val upgradeWebSocket = Upgrade(NonEmptyList.of(webSocketCi))
 
+  // TODO: Express this in terms of Stream to leverage interrupt machinery
   def upgrade[F[_]](
       socket: Socket[F],
       req: Request[F],
-      resp: Response[F],
       ctx: WebSocketContext[F],
+      buffer: Array[Byte],
+      receiveBufferSize: Int,
       idleTimeout: Duration,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit])(implicit
       F: Concurrent[F]): F[Unit] = {
-    val wsResponse = extractRequest(req) match {
+    val wsResponse = clientHandshake(req) match {
       case Right(key) =>
-        handshake(key)
+        serverHandshake(key)
           .map { accept =>
             val secWebSocketAccept = `Sec-WebSocket-Accept`(accept)
             val headers =
@@ -60,44 +65,84 @@ object WebSocketHelpers {
             Response[F](Status.SwitchingProtocols)
               .withHeaders(headers)
           }
-      case Left(error) => Response[F](error.status).withEntity(error.message).pure[F]
+          .handleError(_ =>
+            Response[F](Status.InternalServerError).withEntity(
+              "Encountered an error during WebSocket handshake."))
+      case Left(error) => 
+        // TODO: insert the appropriate headers
+        Response[F](error.status).withEntity(error.message).pure[F]
     }
 
     wsResponse
-      .handleError(_ =>
-        Response[F](Status.InternalServerError).withEntity(
-          "Encountered an error during WebSocket handshake."))
       .flatMap { res =>
         ServerHelpers.send(socket)(Some(req), res, idleTimeout, onWriteFailure).void
-      } >> F.never
+      } >> runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout, onWriteFailure)
   }
 
-  private def extractRequest[F[_]](req: Request[F]): Either[HandshakeError, String] = {
+  private def runConnection[F[_]](socket: Socket[F], ctx: WebSocketContext[F], buffer: Array[Byte], receiveBufferSize: Int, idleTimeout: Duration, onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
+    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    val frameTranscoder = new FrameTranscoder(false)
+    
+    // TODO: consider write/read failures and effect on outer connection
+    // TODO: there is some shared code here with ServerHelpers
+    val writer = ctx.webSocket.send
+      .flatMap { frame =>
+        // TODO: frameToBuffer can throw
+        Stream
+          .iterable(frameTranscoder.frameToBuffer(frame).map(buffer => {
+            // TODO: improve
+            val bytes = Array.ofDim[Byte](buffer.remaining())
+            buffer.get(bytes)
+            Chunk.bytes(bytes)
+          }))
+          .flatMap(Stream.chunk(_))
+      }
+      .through(socket.writes(durationToFinite(idleTimeout)))
+      .compile
+      .drain
+      .attempt
+      .flatMap {
+        case Left(err) =>
+          err.printStackTrace()
+          F.unit
+        case Right(()) => {
+          F.unit
+        }
+      }
+
+    val reader = F.never[Unit]
+
+    F.background(writer).use { _ =>
+      reader
+    }
+  }
+
+  private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
     val connection = req.headers.get(Connection) match {
       case Some(header) if header.values.contains_(upgradeCi) => Right(())
-      case _ => Left(UpgradeRequired())
+      case _ => Left(UpgradeRequired)
     }
 
     val upgrade = req.headers.get(Upgrade) match {
       case Some(header) if header.values.contains_(webSocketCi) => Right(())
-      case _ => Left(UpgradeRequired())
+      case _ => Left(UpgradeRequired)
     }
 
     val version = req.headers.get(`Sec-WebSocket-Version`) match {
       case Some(header) if header.version == supportedWebSocketVersion => Right(())
       case Some(header) => Left(UnsupportedVersion(supportedWebSocketVersion, header.version))
-      case None => Left(VersionNotFound())
+      case None => Left(VersionNotFound)
     }
 
     val key = req.headers.get(`Sec-WebSocket-Key`) match {
       case Some(header) => Right(header.value)
-      case None => Left(KeyNotFound())
+      case None => Left(KeyNotFound)
     }
 
     (connection, upgrade, version, key).mapN { case (_, _, _, key) => key }
   }
 
-  private def handshake[F[_]](value: String)(implicit F: Sync[F]): F[String] = F.delay {
+  private def serverHandshake[F[_]](value: String)(implicit F: Sync[F]): F[String] = F.delay {
     val crypt = MessageDigest.getInstance("SHA-1")
     crypt.reset()
     crypt.update(value.getBytes(StandardCharsets.US_ASCII))
@@ -106,17 +151,17 @@ object WebSocketHelpers {
     Base64.getEncoder.encodeToString(bytes)
   }
 
-  sealed abstract class HandshakeError(val status: Status, val message: String)
-  final case class VersionNotFound()
-      extends HandshakeError(Status.BadRequest, "Sec-WebSocket-Version header not present.")
+  sealed abstract class ClientHandshakeError(val status: Status, val message: String)
+  case object VersionNotFound
+      extends ClientHandshakeError(Status.BadRequest, "Sec-WebSocket-Version header not present.")
   final case class UnsupportedVersion(supported: Int, requested: Int)
-      extends HandshakeError(
+      extends ClientHandshakeError(
         Status.UpgradeRequired,
         s"This server only supports WebSocket version $supported.")
-  final case class UpgradeRequired()
-      extends HandshakeError(
+  case object UpgradeRequired
+      extends ClientHandshakeError(
         Status.UpgradeRequired,
         "Upgrade required for WebSocket communication.")
-  final case class KeyNotFound()
-      extends HandshakeError(Status.BadRequest, "Sec-WebSocket-Key header not present.")
+  case object KeyNotFound
+      extends ClientHandshakeError(Status.BadRequest, "Sec-WebSocket-Key header not present.")
 }
