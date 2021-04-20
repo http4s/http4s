@@ -279,7 +279,7 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.0-M3"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.1.2"
-    val cats = "2.5.0"
+    val cats = "2.6.0"
     val catsEffect = "3.0.2"
     val catsParse = "0.3.2"
     val circe = "0.14.0-M5"
