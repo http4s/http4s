@@ -19,7 +19,7 @@ package org.http4s.ember.server.internal
 import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
 import cats.data.NonEmptyList
-import fs2.{Stream, Chunk}
+import fs2.{Stream, Chunk, Pull, Pipe}
 import fs2.io.tcp._
 import org.http4s.syntax.all._
 import org.http4s._
@@ -33,6 +33,8 @@ import java.security.MessageDigest
 import java.util.Base64
 import java.nio.charset.StandardCharsets
 import org.http4s.headers.Connection
+import org.http4s.websocket.WebSocketFrame
+import java.nio.ByteBuffer
 
 object WebSocketHelpers {
 
@@ -83,6 +85,7 @@ object WebSocketHelpers {
     val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     val frameTranscoder = new FrameTranscoder(false)
     
+    // TODO: cleanup on connection closure/errors
     // TODO: consider write/read failures and effect on outer connection
     // TODO: there is some shared code here with ServerHelpers
     val writer = ctx.webSocket.send
@@ -91,7 +94,7 @@ object WebSocketHelpers {
         Stream
           .iterable(frameTranscoder.frameToBuffer(frame).map(buffer => {
             // TODO: improve
-            val bytes = Array.ofDim[Byte](buffer.remaining())
+            val bytes = new Array[Byte](buffer.remaining())
             buffer.get(bytes)
             Chunk.bytes(bytes)
           }))
@@ -106,15 +109,51 @@ object WebSocketHelpers {
           err.printStackTrace()
           F.unit
         case Right(()) => {
+          println("Connection ended")
           F.unit
         }
       }
 
-    val reader = F.never[Unit]
+    val reader = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
+      .through(decodeFrames(frameTranscoder))
+      .through(ctx.webSocket.receive)
+      .compile
+      .drain
+      .attempt
+      .void
 
+    // TODO: will probably want to use concurrently here
     F.background(writer).use { _ =>
       reader
     }
+  }
+
+  private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit F: Concurrent[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
+    def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
+      rest.pull.uncons.flatMap { 
+        case Some((chunk, next)) => 
+          val buffer = acc ++ chunk.toArray
+          val byteBuffer = ByteBuffer.wrap(buffer)
+          Pull.attemptEval(F.delay(frameTranscoder.bufferToFrame(byteBuffer)))
+            .flatMap {
+              case Right(value) => {
+                // TODO: value is nullable
+                val remaining = new Array[Byte](byteBuffer.remaining())
+                byteBuffer.get(remaining)
+                Pull.output1(value) >> go(next, remaining)
+              }
+              case Left(err) => 
+                // TODO: figure out what to do here
+                println(err)
+                Pull.done
+            }
+        case None => 
+          // TODO: figure out what to do here
+          println("done")
+          Pull.done
+      }
+    
+    go(stream, Array.emptyByteArray).void.stream
   }
 
   private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
@@ -150,6 +189,13 @@ object WebSocketHelpers {
     val bytes = crypt.digest()
     Base64.getEncoder.encodeToString(bytes)
   }
+
+  private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
+    Stream.eval(read).flatMap {
+      case Some(bytes) =>
+        Stream.chunk(bytes) ++ readStream(read)
+      case None => Stream.empty
+    }
 
   sealed abstract class ClientHandshakeError(val status: Status, val message: String)
   case object VersionNotFound
