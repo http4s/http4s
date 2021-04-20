@@ -18,9 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.{Renderer, Writer}
-import scala.concurrent.duration.{FiniteDuration, _}
-import scala.util.Try
+import org.http4s.util.Writer
 
 object `Sec-WebSocket-Version`
     extends HeaderKey.Internal[`Sec-WebSocket-Version`]
