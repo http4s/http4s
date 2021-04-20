@@ -85,7 +85,7 @@ object WebSocketHelpers {
     val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     val frameTranscoder = new FrameTranscoder(false)
     
-    // TODO: cleanup on connection closure/errors
+    // TODO: make sure error semantics are correct and that resources are properly cleaned up
     // TODO: consider write/read failures and effect on outer connection
     // TODO: there is some shared code here with ServerHelpers
     val writer = ctx.webSocket.send
@@ -101,6 +101,13 @@ object WebSocketHelpers {
           .flatMap(Stream.chunk(_))
       }
       .through(socket.writes(durationToFinite(idleTimeout)))
+
+    val reader = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
+      .through(decodeFrames(frameTranscoder))
+      .through(ctx.webSocket.receive)
+      
+    reader.concurrently(writer) 
+      .drain
       .compile
       .drain
       .attempt
@@ -113,19 +120,6 @@ object WebSocketHelpers {
           F.unit
         }
       }
-
-    val reader = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
-      .through(decodeFrames(frameTranscoder))
-      .through(ctx.webSocket.receive)
-      .compile
-      .drain
-      .attempt
-      .void
-
-    // TODO: will probably want to use concurrently here
-    F.background(writer).use { _ =>
-      reader
-    }
   }
 
   private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit F: Concurrent[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
