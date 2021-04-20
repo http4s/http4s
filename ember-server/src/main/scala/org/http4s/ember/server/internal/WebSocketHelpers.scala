@@ -132,16 +132,20 @@ object WebSocketHelpers {
     def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
       rest.pull.uncons.flatMap {
         case Some((chunk, next)) =>
-          val buffer = acc ++ chunk.toArray
+          val buffer = acc ++ chunk.toArray[Byte]
           val byteBuffer = ByteBuffer.wrap(buffer)
           Pull
             .attemptEval(F.delay(frameTranscoder.bufferToFrame(byteBuffer)))
             .flatMap {
               case Right(value) =>
-                // TODO: value is nullable
-                val remaining = new Array[Byte](byteBuffer.remaining())
-                byteBuffer.get(remaining)
-                Pull.output1(value) >> go(next, remaining)
+                // TODO: improve this buffering
+                if (value != null) {
+                  val remaining = new Array[Byte](byteBuffer.remaining())
+                  byteBuffer.get(remaining)
+                  Pull.output1(value) >> go(next, remaining)
+                } else {
+                  go(next, buffer)
+                }
               case Left(err) =>
                 // TODO: figure out what to do here
                 println(err)
