@@ -19,11 +19,11 @@ package org.http4s.ember.server.internal
 import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
 import cats.data.NonEmptyList
-import fs2.{Stream, Chunk, Pull, Pipe}
+import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.io.tcp._
 import org.http4s.syntax.all._
 import org.http4s._
-import org.http4s.websocket.{WebSocketContext, FrameTranscoder}
+import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
 import org.http4s.headers._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.durationToFinite
@@ -70,7 +70,7 @@ object WebSocketHelpers {
           .handleError(_ =>
             Response[F](Status.InternalServerError).withEntity(
               "Encountered an error during WebSocket handshake."))
-      case Left(error) => 
+      case Left(error) =>
         // TODO: insert the appropriate headers
         Response[F](error.status).withEntity(error.message).pure[F]
     }
@@ -78,13 +78,18 @@ object WebSocketHelpers {
     wsResponse
       .flatMap { res =>
         ServerHelpers.send(socket)(Some(req), res, idleTimeout, onWriteFailure).void
-      } >> runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout, onWriteFailure)
+      } >> runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout)
   }
 
-  private def runConnection[F[_]](socket: Socket[F], ctx: WebSocketContext[F], buffer: Array[Byte], receiveBufferSize: Int, idleTimeout: Duration, onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
+  private def runConnection[F[_]](
+      socket: Socket[F],
+      ctx: WebSocketContext[F],
+      buffer: Array[Byte],
+      receiveBufferSize: Int,
+      idleTimeout: Duration)(implicit F: Concurrent[F]): F[Unit] = {
     val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     val frameTranscoder = new FrameTranscoder(false)
-    
+
     // TODO: make sure error semantics are correct and that resources are properly cleaned up
     // TODO: consider write/read failures and effect on outer connection
     // TODO: there is some shared code here with ServerHelpers
@@ -92,12 +97,12 @@ object WebSocketHelpers {
       .flatMap { frame =>
         // TODO: frameToBuffer can throw
         Stream
-          .iterable(frameTranscoder.frameToBuffer(frame).map(buffer => {
+          .iterable(frameTranscoder.frameToBuffer(frame).map { buffer =>
             // TODO: improve
             val bytes = new Array[Byte](buffer.remaining())
             buffer.get(bytes)
             Chunk.bytes(bytes)
-          }))
+          })
           .flatMap(Stream.chunk(_))
       }
       .through(socket.writes(durationToFinite(idleTimeout)))
@@ -105,8 +110,9 @@ object WebSocketHelpers {
     val reader = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
       .through(decodeFrames(frameTranscoder))
       .through(ctx.webSocket.receive)
-      
-    reader.concurrently(writer) 
+
+    reader
+      .concurrently(writer)
       .drain
       .compile
       .drain
@@ -115,38 +121,38 @@ object WebSocketHelpers {
         case Left(err) =>
           err.printStackTrace()
           F.unit
-        case Right(()) => {
+        case Right(()) =>
           println("Connection ended")
           F.unit
-        }
       }
   }
 
-  private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit F: Concurrent[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
+  private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit
+      F: Concurrent[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
     def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
-      rest.pull.uncons.flatMap { 
-        case Some((chunk, next)) => 
+      rest.pull.uncons.flatMap {
+        case Some((chunk, next)) =>
           val buffer = acc ++ chunk.toArray
           val byteBuffer = ByteBuffer.wrap(buffer)
-          Pull.attemptEval(F.delay(frameTranscoder.bufferToFrame(byteBuffer)))
+          Pull
+            .attemptEval(F.delay(frameTranscoder.bufferToFrame(byteBuffer)))
             .flatMap {
-              case Right(value) => {
+              case Right(value) =>
                 // TODO: value is nullable
                 val remaining = new Array[Byte](byteBuffer.remaining())
                 byteBuffer.get(remaining)
                 Pull.output1(value) >> go(next, remaining)
-              }
-              case Left(err) => 
+              case Left(err) =>
                 // TODO: figure out what to do here
                 println(err)
                 Pull.done
             }
-        case None => 
+        case None =>
           // TODO: figure out what to do here
           println("done")
           Pull.done
       }
-    
+
     go(stream, Array.emptyByteArray).void.stream
   }
 

@@ -238,7 +238,14 @@ private[server] object ServerHelpers {
                     drain.flatMap {
                       case Some(buffer) =>
                         WebSocketHelpers
-                          .upgrade(socket, req, ctx, buffer, receiveBufferSize, idleTimeout, onWriteFailure)
+                          .upgrade(
+                            socket,
+                            req,
+                            ctx,
+                            buffer,
+                            receiveBufferSize,
+                            idleTimeout,
+                            onWriteFailure)
                           .as(None)
                       case None => ???
                     }
