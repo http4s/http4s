@@ -45,6 +45,9 @@ title: Adopters
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
 
+[Wolt](https://wolt.com/)
+: Uses http4s for some API services.
+
 ## Libraries
 
 [Avias](https://github.com/fiadliel/avias)
