@@ -45,6 +45,9 @@ title: Adopters
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
 
+[Wegtam GmbH](https://www.wegtam.com)
+: Uses http4s to implement service and microservice architectures as well as web applications for customers.
+
 [Wolt](https://wolt.com/)
 : Uses http4s for some API services.
 
@@ -151,6 +154,12 @@ G8 templates provide a fast way to get started with SBT projects by just running
 
 [http4s.g8](https://github.com/http4s/http4s.g8)
 : Bootstrap Http4s services
+
+[http4s-app.g8](https://codeberg.org/wegtam/http4s-app.g8)
+: Bootstrap web apps based on Http4s including database migrations and on Typelevel Stack
+
+[http4s-tapir.g8](https://codeberg.org/wegtam/http4s-tapir.g8)
+: Bootstrap HTTP services using Http4s and sttp tapir (Typed API descRiptions)
 
 [typelevel-stack.g8](https://github.com/gvolpe/typelevel-stack.g8)
 : Typelevel Stack (Http4s / Doobie / Circe / Cats Effect / Fs2)
