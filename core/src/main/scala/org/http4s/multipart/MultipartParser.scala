@@ -17,18 +17,16 @@
 package org.http4s
 package multipart
 
-import cats._
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.Files
 import java.nio.file.{Path, StandardOpenOption}
 import org.typelevel.ci.CIString
+import fs2.RaiseThrowable
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
-  private[this] val logger = org.log4s.getLogger
-
   private[this] val CRLFBytesN = Array[Byte]('\r', '\n')
   private[this] val DoubleCRLFBytesN = Array[Byte]('\r', '\n', '\r', '\n')
   private[this] val DashDashBytesN = Array[Byte]('-', '-')
@@ -41,11 +39,8 @@ object MultipartParser {
     BoundaryBytesN.andThen(CRLFBytesN ++ DashDashBytesN ++ _)
   private[this] val dashByte: Byte = '-'.toByte
   private[this] val streamEmpty = Stream.empty
-  private[this] val PullUnit = Pull.pure[Pure, Unit](())
 
   private type SplitStream[F[_]] = Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])]
-  private type SplitFileStream[F[_]] =
-    Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte], Option[Path])]
 
   private[this] sealed trait Event
   private[this] final case class PartStart(value: Headers) extends Event
@@ -471,8 +466,9 @@ object MultipartParser {
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
       failOnLimit: Boolean = false): Pipe[F, Byte, Multipart[F]] = { st =>
-    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
-      .fold(Vector.empty[Part[F]])(_ :+ _)
+    st.through(
+      parseToPartsStreamedFile(boundary, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+    ).fold(Vector.empty[Part[F]])(_ :+ _)
       .map(Multipart(_, boundary))
   }
 
@@ -481,235 +477,115 @@ object MultipartParser {
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
-      failOnLimit: Boolean = false): Pipe[F, Byte, Part[F]] = { st =>
-    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+      failOnLimit: Boolean = false): Pipe[F, Byte, Part[F]] = {
+
+    val pullParts: Stream[F, Event] => Stream[F, Part[F]] =
+      Pull
+        .loop[F, Part[F], Stream[F, Event]](
+          _.pull.uncons1.flatMap(
+            _.traverse {
+              case (PartStart(headers), s) =>
+                partBodyFileStream(s, maxSizeBeforeWrite)
+                  .flatMap { case (body, rest) =>
+                    Pull.output1(Part(headers, body)).as(rest)
+                  }
+              case _ =>
+                // Shouldn't happen if the `parseToEventsStream` contract holds.
+                sys.error("Unexpected state")
+            }
+          )
+        )(_)
+        .stream
+
+    _.through(
+      parseEvents[F](boundary, limit)
+    ).through(
+      limitParts[F](maxParts, failOnLimit)
+    ).through(pullParts)
   }
 
-  /** The first part of our streaming stages:
-    *
-    * Ignore the prelude and remove the first boundary. Only traverses until the first
-    * part
-    */
-  private[this] def ignorePreludeFileStream[F[_]: Concurrent: Files](
-      b: Boundary,
-      stream: Stream[F, Byte],
-      limit: Int,
-      maxSizeBeforeWrite: Int,
+  private[this] def limitParts[F[_]: RaiseThrowable](
       maxParts: Int,
-      failOnLimit: Boolean): Stream[F, Part[F]] = {
-    val values = StartLineBytesN(b)
-
-    def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
-      if (state == values.length)
-        pullPartsFileStream[F](b, strim ++ s, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
-      else
-        s.pull.uncons.flatMap {
-          case Some((chnk, rest)) =>
-            val (ix, strim) = splitAndIgnorePrev(values, state, chnk)
-            go(rest, ix, strim)
-          case None =>
-            Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Malformed match"))
-        }
-
-    stream.pull.uncons.flatMap {
-      case Some((chnk, strim)) =>
-        val (ix, rest) = splitAndIgnorePrev(values, 0, chnk)
-        go(strim, ix, rest)
-      case None =>
-        Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
-    }.stream
-  }
-
-  /** @param boundary
-    * @param s
-    * @param limit
-    * @tparam F
-    * @return
-    */
-  private def pullPartsFileStream[F[_]: Concurrent: Files](
-      boundary: Boundary,
-      s: Stream[F, Byte],
-      limit: Int,
-      maxBeforeWrite: Int,
-      maxParts: Int,
-      failOnLimit: Boolean): Pull[F, Part[F], Unit] = {
-    val values = DoubleCRLFBytesN
-    val expectedBytes = ExpectedBytesN(boundary)
-
-    splitOrFinish[F](values, s, limit).flatMap { case (l, r) =>
-      //We can abuse reference equality here for efficiency
-      //Since `splitOrFinish` returns `empty` on a capped stream
-      //However, we must have at least one part, so `splitOrFinish` on this function
-      //Indicates an error
-      if (r == streamEmpty)
-        Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
-      else
-        tailrecPartsFileStream[F](
-          boundary,
-          l,
-          r,
-          expectedBytes,
-          limit,
-          maxBeforeWrite,
-          1,
-          maxParts,
-          failOnLimit)
-    }
-  }
-
-  private[this] def cleanupFileOption[F[_]: Files: MonadThrow](
-      p: Option[Path]
-  ): Pull[F, Nothing, Unit] =
-    p match {
-      case Some(path) =>
-        Pull.eval(cleanupFile(path))
-
-      case None =>
-        PullUnit //Todo: Move to fs2
-    }
-
-  private[this] def cleanupFile[F[_]](
-      path: Path
-  )(implicit files: Files[F], F: MonadThrow[F]): F[Unit] =
-    files
-      .delete(path)
-      .handleErrorWith { err =>
-        logger.error(err)("Caught error during file cleanup for multipart")
-        //Swallow and report io exceptions in case
-        F.unit
+      failOnLimit: Boolean): Pipe[F, Event, Event] = {
+    def go(st: Stream[F, Event], partsCounter: Int): Pull[F, Event, Unit] =
+      st.pull.uncons1.flatMap {
+        case Some((event: PartStart, rest)) =>
+          if (partsCounter < maxParts) {
+            Pull.output1(event) >> go(rest, partsCounter + 1)
+          } else if (failOnLimit) {
+            Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
+          } else Pull.pure(())
+        case Some((event, rest)) =>
+          Pull.output1(event) >> go(rest, partsCounter)
+        case None => Pull.pure(())
       }
 
-  private[this] def tailrecPartsFileStream[F[_]: Concurrent: Files](
-      b: Boundary,
-      headerStream: Stream[F, Byte],
-      rest: Stream[F, Byte],
-      expectedBytes: Array[Byte],
-      headerLimit: Int,
-      maxBeforeWrite: Int,
-      partsCounter: Int,
-      partsLimit: Int,
-      failOnLimit: Boolean): Pull[F, Part[F], Unit] =
-    Pull
-      .eval(parseHeaders(headerStream))
-      .flatMap { hdrs =>
-        splitWithFileStream(expectedBytes, rest, maxBeforeWrite).flatMap {
-          case (partBody, rest, fileRef) =>
-            //We hit a boundary, but the rest of the stream is empty
-            //and thus it's not a properly capped multipart body
-            if (rest == streamEmpty)
-              cleanupFileOption[F](fileRef) >> Pull.raiseError[F](
-                MalformedMessageBodyFailure("Part not terminated properly"))
-            else
-              Pull.output1(makePart(hdrs, partBody, fileRef)) >> splitOrFinish(
-                DoubleCRLFBytesN,
-                rest,
-                headerLimit)
-                .flatMap { case (hdrStream, remaining) =>
-                  if (hdrStream == streamEmpty) //Empty returned if it worked fine
-                    Pull.done
-                  else if (partsCounter >= partsLimit)
-                    if (failOnLimit)
-                      Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
-                    else
-                      Pull.done
-                  else
-                    tailrecPartsFileStream[F](
-                      b,
-                      hdrStream,
-                      remaining,
-                      expectedBytes,
-                      headerLimit,
-                      maxBeforeWrite,
-                      partsCounter + 1,
-                      partsLimit,
-                      failOnLimit)
-                      .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError[F](e))
-                }
-        }
-      }
+    go(_, 0).stream
+  }
 
-  private[this] def makePart[F[_]: Applicative](
-      hdrs: Headers,
-      body: Stream[F, Byte],
-      path: Option[Path]
-  )(implicit files: Files[F]): Part[F] =
-    path match {
-      case Some(p) => Part(hdrs, body.onFinalizeWeak(files.delete(p)))
-      case None => Part(hdrs, body)
-    }
-
-  /** Split the stream on `values`, but when
-    */
-  private def splitWithFileStream[F[_]: Concurrent: Files](
-      values: Array[Byte],
-      stream: Stream[F, Byte],
-      maxBeforeWrite: Int): SplitFileStream[F] = {
+  // Consume `PartChunk`s until the first `PartEnd`, produce a stream with all the consumed data.
+  private[this] def partBodyFileStream[F[_]: Concurrent: Files](
+      stream: Stream[F, Event],
+      maxBeforeWrite: Int
+  ): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Event])] = {
+    // Consume `PartChunk`s until the first `PartEnd`, and write all the data into the file.
     def streamAndWrite(
-        s: Stream[F, Byte],
-        state: Int,
-        lacc: Stream[F, Byte],
-        racc: Stream[F, Byte],
+        s: Stream[F, Event],
+        lacc: Stream[Pure, Byte],
         limitCTR: Int,
-        fileRef: Path): SplitFileStream[F] =
-      if (state == values.length)
+        fileRef: Path
+    ): Pull[F, Nothing, Stream[F, Event]] =
+      if (limitCTR >= maxBeforeWrite)
         Pull.eval(
           lacc
             .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
             .compile
-            .drain) >> Pull.pure(
-          (Files[F].readAll(fileRef, maxBeforeWrite), racc ++ s, Some(fileRef)))
-      else if (limitCTR >= maxBeforeWrite)
-        Pull.eval(
-          lacc
-            .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
-            .compile
-            .drain) >> streamAndWrite(s, state, Stream.empty, racc, 0, fileRef)
+            .drain) >> streamAndWrite(s, Stream.empty, 0, fileRef)
       else
-        s.pull.uncons.flatMap {
-          case Some((chnk, str)) =>
-            val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
-            streamAndWrite(str, ix, l, r, limitCTR + add, fileRef)
-          case None =>
-            Pull.eval(Files[F].delete(fileRef).attempt) >> Pull.raiseError[F](
-              MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
+        s.pull.uncons1.flatMap {
+          case Some((PartChunk(chnk), str)) =>
+            streamAndWrite(str, lacc ++ Stream.chunk(chnk), limitCTR + chnk.size, fileRef)
+          case Some((PartEnd, str)) =>
+            Pull
+              .eval(
+                lacc
+                  .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
+                  .compile
+                  .drain
+              )
+              .as(str)
+          case Some((_: PartStart, _)) | None =>
+            // Shouldn't happen if the `parseToEventsStream` contract holds.
+            sys.error("Unexpected state")
         }
 
+    // Consume `PartChunks` until the first `PartEnd`, accumulating the data in memory.
+    // Produce a stream with all the accumulated data.
+    // Fall back to `streamAndWrite` after the limit is reached
     def go(
-        s: Stream[F, Byte],
-        state: Int,
-        lacc: Stream[F, Byte],
-        racc: Stream[F, Byte],
-        limitCTR: Int): SplitFileStream[F] =
+        s: Stream[F, Event],
+        lacc: Stream[Pure, Byte],
+        limitCTR: Int): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Event])] =
       if (limitCTR >= maxBeforeWrite)
         Pull
           .eval(Files[F].tempFile(None, "", "").allocated)
           .flatMap { case (path, cleanup) =>
-            (
-              for {
-                _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
-                split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
-              } yield split
-            ).onError { case _ => Pull.eval(cleanup) }
+            streamAndWrite(s, lacc, limitCTR, path)
+              .tupleLeft(Files[F].readAll(path, maxBeforeWrite).onFinalizeWeak(cleanup))
+              .onError { case _ => Pull.eval(cleanup) }
           }
-      else if (state == values.length)
-        Pull.pure((lacc, racc ++ s, None))
       else
-        s.pull.uncons.flatMap {
-          case Some((chnk, str)) =>
-            val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
-            go(str, ix, l, r, limitCTR + add)
-          case None =>
-            Pull.raiseError[F](MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
+        s.pull.uncons1.flatMap {
+          case Some((PartChunk(chnk), str)) =>
+            go(str, lacc ++ Stream.chunk(chnk), limitCTR + chnk.size)
+          case Some((PartEnd, str)) =>
+            Pull.pure((lacc, str))
+          case Some((_: PartStart, _)) | None =>
+            // Shouldn't happen if the `parseToEventsStream` contract holds.
+            sys.error("Unexpected state")
         }
 
-    stream.pull.uncons.flatMap {
-      case Some((chunk, rest)) =>
-        val (ix, l, r, add) =
-          splitOnChunkLimited[F](values, 0, chunk, Stream.empty, Stream.empty)
-        go(rest, ix, l, r, add)
-      case None =>
-        Pull.raiseError[F](MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
-    }
+    go(stream, Stream.empty, 0)
   }
 
   ////////////////////////////
