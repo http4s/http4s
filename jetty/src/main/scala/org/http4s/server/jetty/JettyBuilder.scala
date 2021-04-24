@@ -35,7 +35,7 @@ import org.eclipse.jetty.server.{
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
+import org.eclipse.jetty.util.thread.ThreadPool
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.jetty.JettyBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
@@ -67,18 +67,18 @@ sealed class JettyBuilder[F[_]] private (
 
   @deprecated(message = "Retained for binary compatibility", since = "0.21.23")
   private[JettyBuilder] def this(
-    socketAddress: InetSocketAddress,
-    threadPool: ThreadPool,
-    idleTimeout: Duration,
-    asyncTimeout: Duration,
-    shutdownTimeout: Duration,
-    servletIo: ServletIo[F],
-    sslConfig: SslConfig,
-    mounts: Vector[Mount[F]],
-    serviceErrorHandler: ServiceErrorHandler[F],
-    supportHttp2: Boolean,
-    banner: immutable.Seq[String],
-    jettyHttpConfiguration: HttpConfiguration
+      socketAddress: InetSocketAddress,
+      threadPool: ThreadPool,
+      idleTimeout: Duration,
+      asyncTimeout: Duration,
+      shutdownTimeout: Duration,
+      servletIo: ServletIo[F],
+      sslConfig: SslConfig,
+      mounts: Vector[Mount[F]],
+      serviceErrorHandler: ServiceErrorHandler[F],
+      supportHttp2: Boolean,
+      banner: immutable.Seq[String],
+      jettyHttpConfiguration: HttpConfiguration
   )(implicit F: ConcurrentEffect[F]) =
     this(
       socketAddress,
@@ -409,8 +409,8 @@ object JettyBuilder {
       socketAddress = defaults.SocketAddress,
       threadPool = LazyThreadPool.newLazyThreadPool,
       threadPoolResourceOption = Some(
-        JettyLifeCycle.lifeCycleAsResource[F, QueuedThreadPool](
-          Sync[F].delay(new QueuedThreadPool()))),
+        JettyThreadPools.default[F]
+      ),
       idleTimeout = defaults.IdleTimeout,
       asyncTimeout = defaults.ResponseTimeout,
       shutdownTimeout = defaults.ShutdownTimeout,
