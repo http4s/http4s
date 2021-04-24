@@ -65,6 +65,7 @@ sealed class JettyBuilder[F[_]] private (
 
   private[this] val logger = getLogger
 
+  @deprecated(message = "Retained for binary compatibility", since = "0.21.23")
   private[JettyBuilder] def this(
     socketAddress: InetSocketAddress,
     threadPool: ThreadPool,
