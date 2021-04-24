@@ -113,7 +113,6 @@ sealed class JettyBuilder[F[_]] private (
     this(
       socketAddress = socketAddress,
       threadPool = threadPool,
-      threadPoolResourceOption = None,
       idleTimeout = idleTimeout,
       asyncTimeout = asyncTimeout,
       shutdownTimeout = shutdownTimeout,
