@@ -49,7 +49,7 @@ object JettyThreadPools {
     *       of the [[cats.effect.Resource]] will fail.
     */
   def resource[F[_]](value: F[ThreadPool])(implicit F: Async[F]): Resource[F, ThreadPool] =
-    value match {
+    Resource.eval(value).flatMap {
       // I know, this is gross.
       case value: ThreadPool with LifeCycle =>
         JettyLifeCycle.lifeCycleAsResource[F, ThreadPool with LifeCycle](F.pure(value))
