@@ -86,7 +86,7 @@ import scodec.bits.ByteVector
   */
 class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
-    executionContext: ExecutionContext,
+    executionContextF: F[ExecutionContext],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     connectorPoolSize: Int,
@@ -112,7 +112,7 @@ class BlazeServerBuilder[F[_]] private (
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
-      executionContext: ExecutionContext = executionContext,
+      executionContextF: F[ExecutionContext] = executionContextF,
       idleTimeout: Duration = idleTimeout,
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       connectorPoolSize: Int = connectorPoolSize,
@@ -132,7 +132,7 @@ class BlazeServerBuilder[F[_]] private (
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
-      executionContext,
+      executionContextF,
       responseHeaderTimeout,
       idleTimeout,
       connectorPoolSize,
@@ -202,7 +202,10 @@ class BlazeServerBuilder[F[_]] private (
     copy(socketAddress = socketAddress)
 
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
-    copy(executionContext = executionContext)
+    withExecutionContextF(executionContext.pure[F])
+
+  def withExecutionContextF(executionContextF: F[ExecutionContext]): BlazeServerBuilder[F] =
+    copy(executionContextF = executionContextF)
 
   def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
@@ -287,7 +290,7 @@ class BlazeServerBuilder[F[_]] private (
           () => Vault.empty
       }
 
-    def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =
+    def http1Stage(executionContext: ExecutionContext, secure: Boolean, engine: Option[SSLEngine]) =
       Http1ServerStage(
         httpApp,
         requestAttributes(secure = secure, engine),
@@ -303,7 +306,7 @@ class BlazeServerBuilder[F[_]] private (
         dispatcher
       )
 
-    def http2Stage(engine: SSLEngine): ALPNServerSelector =
+    def http2Stage(executionContext: ExecutionContext, engine: SSLEngine): ALPNServerSelector =
       ProtocolSelector(
         engine,
         httpApp,
@@ -319,22 +322,24 @@ class BlazeServerBuilder[F[_]] private (
         dispatcher
       )
 
-    Future.successful {
-      engineConfig match {
-        case Some((ctx, configure)) =>
-          val engine = ctx.createSSLEngine()
-          engine.setUseClientMode(false)
-          configure(engine)
+    dispatcher.unsafeToFuture {
+      executionContextF.map { executionContext =>
+        engineConfig match {
+          case Some((ctx, configure)) =>
+            val engine = ctx.createSSLEngine()
+            engine.setUseClientMode(false)
+            configure(engine)
 
-          LeafBuilder(
-            if (isHttp2Enabled) http2Stage(engine)
-            else http1Stage(secure = true, engine.some)
-          ).prepend(new SSLStage(engine))
+            LeafBuilder(
+              if (isHttp2Enabled) http2Stage(executionContext, engine)
+              else http1Stage(executionContext, secure = true, engine.some)
+            ).prepend(new SSLStage(engine))
 
-        case None =>
-          if (isHttp2Enabled)
-            logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-          LeafBuilder(http1Stage(secure = false, None))
+          case None =>
+            if (isHttp2Enabled)
+              logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
+            LeafBuilder(http1Stage(executionContext, secure = false, None))
+        }
       }
     }
   }
@@ -414,6 +419,9 @@ class BlazeServerBuilder[F[_]] private (
 
 object BlazeServerBuilder {
   def apply[F[_]](executionContext: ExecutionContext)(implicit F: Async[F]): BlazeServerBuilder[F] =
+    apply[F].withExecutionContext(executionContext)
+
+  def apply[F[_]](implicit F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.IPv4SocketAddress,
       executionContext = executionContext,
