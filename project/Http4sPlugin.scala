@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.5"
   val scala_212 = "2.12.13"
-  val scala_3 = "3.0.0-RC2"
+  val scala_3 = "3.0.0-RC3"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -279,7 +279,7 @@ object Http4sPlugin extends AutoPlugin {
     val cats = "2.6.0"
     val catsEffect = "2.5.0"
     val catsParse = "0.3.2"
-    val circe = "0.14.0-M5"
+    val circe = "0.14.0-M6"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
     val dropwizardMetrics = "4.1.20"
@@ -289,7 +289,7 @@ object Http4sPlugin extends AutoPlugin {
     val jawn = "1.1.2"
     val jawnFs2 = "1.1.2"
     val jetty = "9.4.40.v20210413"
-    val keypool = "0.3.3"
+    val keypool = "0.3.4"
     val literally = "1.0.1"
     val logback = "1.2.3"
     val log4cats = "1.3.0"
