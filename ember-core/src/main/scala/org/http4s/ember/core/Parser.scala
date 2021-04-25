@@ -133,7 +133,7 @@ private[ember] object Parser {
       if (throwable != null) {
         F.raiseError(ParseHeadersError(throwable))
       } else if (!complete) {
-        F.raiseError(IncompleteHttpMessage())
+        F.raiseError(IncompleteHttpMessage(Headers(headers.toList)))
       } else {
         HeaderP(Headers(headers.toList), chunked, contentLength).pure[F]
       }
@@ -144,7 +144,7 @@ private[ember] object Parser {
           s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
           cause)
 
-    final case class IncompleteHttpMessage()
+    final case class IncompleteHttpMessage(headers: Headers)
         extends Exception("Tried To Parse An Incomplete HTTP Message")
   }
 
