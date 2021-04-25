@@ -18,7 +18,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{CancelToken, Concurrent, ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.{CancelToken, Concurrent, ConcurrentEffect, IO, Sync}
 import cats.syntax.all._
 
 import java.nio.ByteBuffer
@@ -41,8 +41,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
-import scala.annotation.nowarn
-
 private[blaze] object Http1ServerStage {
   def apply[F[_]](
       routes: HttpApp[F],
@@ -55,9 +53,7 @@ private[blaze] object Http1ServerStage {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F],
-      timer: Timer[F]): Http1ServerStage[F] =
+      scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
         routes,
@@ -84,7 +80,6 @@ private[blaze] object Http1ServerStage {
         scheduler)
 }
 
-@nowarn("cat=unused")
 private[blaze] class Http1ServerStage[F[_]](
     httpApp: HttpApp[F],
     requestAttrs: () => Vault,
@@ -95,9 +90,7 @@ private[blaze] class Http1ServerStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit
-    protected val F: ConcurrentEffect[F],
-    timer: Timer[F]) // The Timer is here for binary compatibility
+    scheduler: TickWheelExecutor)(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
   // micro-optimization: unwrap the routes and call its .run directly

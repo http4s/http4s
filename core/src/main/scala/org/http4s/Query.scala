@@ -50,7 +50,6 @@ final class Query private (value: Either[Vector[KeyValue], String])
     _pairs
   }
 
-  //restore binary compability
   private def this(vec: Vector[KeyValue]) = this(Left(vec))
 
   def apply(idx: Int): KeyValue = pairs(idx)
