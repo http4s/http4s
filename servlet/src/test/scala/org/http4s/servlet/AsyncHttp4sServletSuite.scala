@@ -55,11 +55,11 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
         .getLines()
         .mkString)
 
-  servletServer.test("Http4sBlockingServlet handle GET requests") { server =>
+  servletServer.test("AsyncHttp4sServlet handle GET requests") { server =>
     get(server, "simple").assertEquals("simple")
   }
 
-  servletServer.test("Http4sBlockingServlet handle POST requests") { server =>
+  servletServer.test("AsyncHttp4sServlet handle POST requests") { server =>
     import org.http4s.client.asynchttpclient._
 
     val contents = (1 to 14).map { i =>
@@ -80,7 +80,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
     }
   }
 
-  servletServer.test("Http4sBlockingServlet work for shifted IO") { server =>
+  servletServer.test("AsyncHttp4sServlet work for shifted IO") { server =>
     get(server, "shifted").assertEquals("shifted")
   }
 
