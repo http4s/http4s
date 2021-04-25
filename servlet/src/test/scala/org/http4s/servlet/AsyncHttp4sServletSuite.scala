@@ -60,21 +60,39 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
   }
 
   servletServer.test("AsyncHttp4sServlet handle POST requests") { server =>
-    import org.http4s.client.asynchttpclient._
-
     val contents = (1 to 14).map { i =>
       val number =
         scala.math.pow(2, i.toDouble).toInt - 1 //-1 for the end-of-line to make awk play nice
       s"$i $number ${"*".*(number)}\n"
     }.toList
 
-    AsyncHttpClient.resource[IO]().use { client =>
+    import org.asynchttpclient.Dsl._
+    import org.asynchttpclient.Response
+
+    Resource.make(IO(asyncHttpClient()))(c => IO(c.close())).use { client =>
       contents
         .traverse { content =>
-          val request =
-            Request[IO](Method.POST, Uri.unsafeFromString(s"http://127.0.0.1:$server/echo"))
-              .withEntity(content)
-          client.fetchAs[String](request)
+          IO {
+            client
+              .preparePost(s"http://127.0.0.1:$server/echo")
+              .setBody(content)
+              .execute()
+              .toCompletableFuture()
+          }.flatMap { cf =>
+            IO.cancelable[Response] { cb =>
+              val stage = cf.handle[Unit] {
+                case (response, null) => cb(Right(response))
+                case (_, t) => cb(Left(t))
+              }
+
+              IO {
+                stage.cancel(false)
+                ()
+              }
+            }
+          }.flatMap { response =>
+            IO(response.getResponseBody())
+          }
         }
         .assertEquals(contents)
     }

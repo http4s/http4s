@@ -365,11 +365,11 @@ lazy val servlet = libraryProject("servlet")
     libraryDependencies ++= Seq(
       javaxServletApi % Provided,
       jettyServer % Test,
-      jettyServlet % Test
+      jettyServlet % Test,
+      Http4sPlugin.asyncHttpClient % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
-  .dependsOn(asyncHttpClient % Test)
 
 lazy val jetty = libraryProject("jetty")
   .settings(
