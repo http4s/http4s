@@ -18,7 +18,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.{CancelToken, Concurrent, ConcurrentEffect, IO, Sync, Timer}
 import cats.syntax.all._
 
 import java.nio.ByteBuffer
@@ -40,6 +40,8 @@ import org.typelevel.vault._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
+
+import scala.annotation.nowarn
 
 private[blaze] object Http1ServerStage {
   def apply[F[_]](
@@ -82,6 +84,7 @@ private[blaze] object Http1ServerStage {
         scheduler)
 }
 
+@nowarn("cat=unused")
 private[blaze] class Http1ServerStage[F[_]](
     httpApp: HttpApp[F],
     requestAttrs: () => Vault,
@@ -92,7 +95,9 @@ private[blaze] class Http1ServerStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+    scheduler: TickWheelExecutor)(implicit
+    protected val F: ConcurrentEffect[F],
+    timer: Timer[F]) // The Timer is here for binary compatibility
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
   // micro-optimization: unwrap the routes and call its .run directly
@@ -196,14 +201,16 @@ private[blaze] class Http1ServerStage[F[_]](
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 
+            val theCancelToken = Some(
+              F.runCancelable(action) {
+                case Right(()) => IO.unit
+                case Left(t) =>
+                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                    closeConnection())
+              }.unsafeRunSync())
+
             parser.synchronized {
-              cancelToken = Some(
-                F.runCancelable(action) {
-                  case Right(()) => IO.unit
-                  case Left(t) =>
-                    IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                      closeConnection())
-                }.unsafeRunSync())
+              cancelToken = theCancelToken
             }
           }
         })
@@ -349,7 +356,11 @@ private[blaze] class Http1ServerStage[F[_]](
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
-        val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
+        val timeoutResponse = Concurrent[F].cancelable[Response[F]] { callback =>
+          val cancellable =
+            scheduler.schedule(() => callback(Right(Response.timeout[F])), executionContext, finite)
+          Sync[F].delay(cancellable.cancel())
+        }
         req => F.race(runApp(req), timeoutResponse).map(_.merge)
       case _ =>
         runApp

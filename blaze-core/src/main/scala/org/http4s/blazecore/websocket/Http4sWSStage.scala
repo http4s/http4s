@@ -29,6 +29,8 @@ import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.{
+  ReservedOpcodeException,
+  UnknownOpcodeException,
   WebSocket,
   WebSocketCombinedPipe,
   WebSocketFrame,
@@ -38,6 +40,7 @@ import org.http4s.websocket.WebSocketFrame._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
+import java.net.ProtocolException
 
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
@@ -105,19 +108,30 @@ private[http4s] class Http4sWSStage[F[_]](
         else F.unit
       } >> deadSignal.set(true)
 
-    readFrameTrampoline.flatMap {
-      case c: Close =>
-        for {
-          s <- F.delay(sentClose.get())
-          //If we sent a close signal, we don't need to reply with one
-          _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
-        } yield c
-      case p @ Ping(d) =>
-        //Reply to ping frame immediately
-        writeFrame(Pong(d), trampoline) >> F.pure(p)
-      case rest =>
-        F.pure(rest)
-    }
+    readFrameTrampoline
+      .recoverWith {
+        case t: ReservedOpcodeException =>
+          F.delay(logger.error(t)("Decoded a websocket frame with a reserved opcode")) *>
+            F.fromEither(Close(1003))
+        case t: UnknownOpcodeException =>
+          F.delay(logger.error(t)("Decoded a websocket frame with an unknown opcode")) *>
+            F.fromEither(Close(1002))
+        case t: ProtocolException =>
+          F.delay(logger.error(t)("Websocket protocol violation")) *> F.fromEither(Close(1002))
+      }
+      .flatMap {
+        case c: Close =>
+          for {
+            s <- F.delay(sentClose.get())
+            //If we sent a close signal, we don't need to reply with one
+            _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
+          } yield c
+        case p @ Ping(d) =>
+          //Reply to ping frame immediately
+          writeFrame(Pong(d), trampoline) >> F.pure(p)
+        case rest =>
+          F.pure(rest)
+      }
   }
 
   /** The websocket input stream
