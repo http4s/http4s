@@ -31,13 +31,11 @@ private[ember] object Parser {
 
   object MessageP {
 
-    private val cr: Byte = '\r'.toByte
-    private val lf: Byte = '\n'.toByte
-    private val DoubleCrlf: Seq[Byte] = Seq(cr, lf, cr, lf)
+    private[this] val doubleCrlf: Seq[Byte] = Seq(cr, lf, cr, lf)
 
     def parseMessage[F[_]](buffer: Array[Byte], read: Read[F], maxHeaderSize: Int)(implicit
         F: MonadThrow[F]): F[MessageP] = {
-      val endIndex = buffer.take(maxHeaderSize).indexOfSlice(DoubleCrlf)
+      val endIndex = buffer.take(maxHeaderSize).indexOfSlice(doubleCrlf)
       if (endIndex == -1 && buffer.length > maxHeaderSize) {
         F.raiseError(MessageTooLongError(maxHeaderSize))
       } else if (endIndex == -1) {
@@ -65,13 +63,10 @@ private[ember] object Parser {
 
   object HeaderP {
 
-    private val colon: Byte = ':'.toByte
-    private val cr: Byte = '\r'.toByte
-    private val lf: Byte = '\n'.toByte
-    private val space: Byte = ' '.toByte
-    private val contentLengthS = "Content-Length"
-    private val transferEncodingS = "Transfer-Encoding"
-    private val chunkedS = "chunked"
+    private[this] val colon: Byte = ':'.toByte
+    private[this] val contentLengthS = "Content-Length"
+    private[this] val transferEncodingS = "Transfer-Encoding"
+    private[this] val chunkedS = "chunked"
 
     def parseHeaders[F[_]](message: Array[Byte], initIndex: Int)(implicit
         F: MonadThrow[F]): F[HeaderP] = {
@@ -145,7 +140,7 @@ private[ember] object Parser {
     }
 
     final case class ParseHeadersError(cause: Throwable)
-        extends Throwable(
+        extends Exception(
           s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
           cause)
 
@@ -158,10 +153,6 @@ private[ember] object Parser {
     final case class ReqPrelude(method: Method, uri: Uri, version: HttpVersion, nextIndex: Int)
 
     object ReqPrelude {
-
-      private val space = ' '.toByte
-      private val cr: Byte = '\r'.toByte
-      private val lf: Byte = '\n'.toByte
 
       // Method SP URI SP HttpVersion CRLF - REST
       def parsePrelude[F[_]](message: Array[Byte])(implicit F: MonadThrow[F]): F[ReqPrelude] = {
@@ -392,12 +383,8 @@ private[ember] object Parser {
           RespPrelude(httpVersion, status, idx).pure[F]
       }
 
-      private val space = ' '.toByte
-      private val cr: Byte = '\r'.toByte
-      private val lf: Byte = '\n'.toByte
-
       case class RespPreludeError(message: String, cause: Option[Throwable])
-          extends Throwable(
+          extends Exception(
             s"Received Error while parsing prelude - Message: $message - ${cause.map(_.getMessage)}",
             cause.orNull)
     }
@@ -462,4 +449,8 @@ private[ember] object Parser {
     buff.++=(a2)
     buff.toArray
   }
+
+  private[this] val space = ' '.toByte
+  private[this] val cr: Byte = '\r'.toByte
+  private[this] val lf: Byte = '\n'.toByte
 }
