@@ -16,6 +16,7 @@
 
 package org.http4s
 package client
+package blaze
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
@@ -31,7 +32,7 @@ import scala.concurrent.duration.Duration
   * CPU time, SSL handshakes, etc. Because it can contain significant resources it
   * must have a mechanism to free resources associated with it.
   */
-trait ConnectionManager[F[_], A <: Connection[F]] {
+private trait ConnectionManager[F[_], A <: Connection[F]] {
 
   /** Bundle of the connection and whether its new or not */
   // Sealed, rather than final, because SI-4440.
@@ -54,7 +55,7 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
   def invalidate(connection: A): F[Unit]
 }
 
-object ConnectionManager {
+private object ConnectionManager {
 
   /** Create a [[ConnectionManager]] that creates new connections on each request
     *
