@@ -19,6 +19,11 @@ If you run into any difficulties please enable partial unification in your `buil
 scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
+## Requirements
+
+Running the **blaze** backend requires a modern, supported version of the JVM to build and run, as it relies on server
+APIs unavailable before JDK8u252. Any JDK newer than JDK8u252, including 9+ is supported.
+
 ## Code of Conduct
 
 http4s is proud to be a [Typelevel](https://typelevel.org/) incubator
