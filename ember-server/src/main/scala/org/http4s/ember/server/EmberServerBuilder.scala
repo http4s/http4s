@@ -185,7 +185,7 @@ object EmberServerBuilder {
     )
 
   private object Defaults {
-    val host: String = server.defaults.Host
+    val host: String = server.defaults.IPv4Host
     val port: Int = server.defaults.HttpPort
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
