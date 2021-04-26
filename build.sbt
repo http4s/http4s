@@ -366,6 +366,7 @@ lazy val servlet = libraryProject("servlet")
       javaxServletApi % Provided,
       jettyServer % Test,
       jettyServlet % Test,
+      Http4sPlugin.asyncHttpClient % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
