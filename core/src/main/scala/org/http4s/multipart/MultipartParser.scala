@@ -24,6 +24,7 @@ import fs2.io.file.Files
 import java.nio.file.{Path, StandardOpenOption}
 import org.typelevel.ci.CIString
 import fs2.RaiseThrowable
+import org.http4s.internal.bug
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -56,25 +57,27 @@ object MultipartParser {
       .map(Multipart(_, boundary))
   }
 
-  def parseToPartsStream[F[_]: Concurrent](
-      boundary: Boundary,
-      limit: Int = 1024): Pipe[F, Byte, Part[F]] = { st =>
+  def parseToPartsStream[F[_]](boundary: Boundary, limit: Int = 1024)(implicit
+      F: Concurrent[F]): Pipe[F, Byte, Part[F]] = { st =>
     st.through(
       parseEvents[F](boundary, limit)
     )
       // The left half is the part under construction, the right half is a part to be emitted.
-      .mapAccumulate[Option[Part[F]], Option[Part[F]]](None) { (acc, item) =>
+      .evalMapAccumulate[F, Option[Part[F]], Option[Part[F]]](None) { (acc, item) =>
         (acc, item) match {
           case (None, PartStart(headers)) =>
-            (Some(Part(headers, Stream.empty)), None)
+            F.pure((Some(Part(headers, Stream.empty)), None))
+          // Shouldn't happen if the `parseToEventsStream` contract holds.
+          case (None, (_: PartChunk | PartEnd)) =>
+            F.raiseError(bug("Missing PartStart"))
           case (Some(acc0), PartChunk(chunk)) =>
-            (Some(acc0.copy(body = acc0.body ++ Stream.chunk(chunk))), None)
+            F.pure((Some(acc0.copy(body = acc0.body ++ Stream.chunk(chunk))), None))
           case (Some(_), PartEnd) =>
             // Part done - emit it and start over.
-            (None, acc)
-          case _ =>
-            // Shouldn't happen if the `parseToEventsStream` contract holds.
-            sys.error("Unexpected state")
+            F.pure((None, acc))
+          // Shouldn't happen if the `parseToEventsStream` contract holds.
+          case (Some(_), _: PartStart) =>
+            F.raiseError(bug("Missing PartEnd"))
         }
       }
       .mapFilter(_._2)
@@ -489,9 +492,9 @@ object MultipartParser {
                   .flatMap { case (body, rest) =>
                     Pull.output1(Part(headers, body)).as(rest)
                   }
-              case _ =>
-                // Shouldn't happen if the `parseToEventsStream` contract holds.
-                sys.error("Unexpected state")
+              // Shouldn't happen if the `parseToEventsStream` contract holds.
+              case (_: PartChunk | PartEnd, _) =>
+                Pull.raiseError(bug("Missing PartStart"))
             }
           )
         )(_)
@@ -554,9 +557,9 @@ object MultipartParser {
                   .drain
               )
               .as(str)
+          // Shouldn't happen if the `parseToEventsStream` contract holds.
           case Some((_: PartStart, _)) | None =>
-            // Shouldn't happen if the `parseToEventsStream` contract holds.
-            sys.error("Unexpected state")
+            Pull.raiseError(bug("Missing PartEnd"))
         }
 
     // Consume `PartChunks` until the first `PartEnd`, accumulating the data in memory.
@@ -580,9 +583,9 @@ object MultipartParser {
             go(str, lacc ++ Stream.chunk(chnk), limitCTR + chnk.size)
           case Some((PartEnd, str)) =>
             Pull.pure((lacc, str))
+          // Shouldn't happen if the `parseToEventsStream` contract holds.
           case Some((_: PartStart, _)) | None =>
-            // Shouldn't happen if the `parseToEventsStream` contract holds.
-            sys.error("Unexpected state")
+            Pull.raiseError(bug("Missing PartEnd"))
         }
 
     go(stream, Stream.empty, 0)
