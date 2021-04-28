@@ -25,6 +25,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.circe._
 import _root_.io.circe._
 import _root_.org.http4s.ember.server.EmberServerBuilder
+import org.http4s.server.syntax.serverBuildable._
 
 object EmberServerSimpleExample extends IOApp {
 
@@ -36,8 +37,8 @@ object EmberServerSimpleExample extends IOApp {
       server <-
         EmberServerBuilder
           .default[IO]
-          .withHost(host)
-          .withPort(port)
+          .withHttpHost(host)
+          .withHttpPort(port)
           .withHttpApp(service[IO])
           .build
     } yield server

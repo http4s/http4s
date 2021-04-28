@@ -39,7 +39,7 @@ import org.http4s.server.{
   ServiceErrorHandler
 }
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.server.defaults
+import org.http4s.server._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.http4s.syntax.all._
 import org.http4s.tomcat.server.TomcatBuilder._
@@ -187,6 +187,12 @@ sealed class TomcatBuilder[F[_]] private (
   def withClassloader(classloader: ClassLoader): Self =
     copy(classloader = Some(classloader))
 
+  def withPort(port: Int): Self =
+    copy(socketAddress = InetSocketAddress.createUnresolved(socketAddress.getHostString, port))
+
+  def withHost(host: String): Self =
+    copy(socketAddress = InetSocketAddress.createUnresolved(host, socketAddress.getPort))
+
   override def resource: Resource[F, Server] =
     Resource(F.delay {
       val tomcat = new Tomcat
@@ -308,6 +314,21 @@ object TomcatBuilder {
     }
     def isSecure = false
   }
+
+  implicit def serverBuildableInstance[F[_]]: ServerBuildable[F, TomcatBuilder[F]] =
+    new ServerBuildable[F, TomcatBuilder[F]] {
+      override def resource(a: TomcatBuilder[F]): Resource[F, Server] =
+        a.resource
+
+      override def withHttpHost(a: TomcatBuilder[F])(host: String): TomcatBuilder[F] =
+        a.withHost(host)
+
+      override def withHttpPort(a: TomcatBuilder[F])(port: Int): TomcatBuilder[F] =
+        a.withPort(port)
+
+      override def withHttpApp(a: TomcatBuilder[F])(app: HttpApp[F]): TomcatBuilder[F] =
+        a.mountHttpApp(app, "/")
+    }
 }
 
 private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F]) => Unit)

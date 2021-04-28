@@ -250,6 +250,12 @@ class BlazeServerBuilder[F[_]] private (
   def withMaxConnections(maxConnections: Int): BlazeServerBuilder[F] =
     copy(maxConnections = maxConnections)
 
+  def withHost(host: String): BlazeServerBuilder[F] =
+    copy(socketAddress = InetSocketAddress.createUnresolved(host, socketAddress.getPort))
+
+  def withPort(port: Int): BlazeServerBuilder[F] =
+    copy(socketAddress = InetSocketAddress.createUnresolved(socketAddress.getHostString, port))
+
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
       engineConfig: Option[(SSLContext, SSLEngine => Unit)]
@@ -531,5 +537,20 @@ object BlazeServerBuilder {
       case SSLClientAuthMode.Required => engine.setNeedClientAuth(true)
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
+    }
+
+  implicit def serverBuildableInstance[F[_]]: ServerBuildable[F, BlazeServerBuilder[F]] =
+    new ServerBuildable[F, BlazeServerBuilder[F]] {
+      override def resource(a: BlazeServerBuilder[F]): Resource[F, Server] =
+        a.resource
+
+      override def withHttpHost(a: BlazeServerBuilder[F])(host: String = defaults.Host): BlazeServerBuilder[F] =
+        a.withHost(host)
+
+      override def withHttpPort(a: BlazeServerBuilder[F])(port: Int = defaults.HttpPort): BlazeServerBuilder[F] =
+        a.withPort(port)
+
+      override def withHttpApp(a: BlazeServerBuilder[F])(app: HttpApp[F]): BlazeServerBuilder[F] =
+        a.withHttpApp(app)
     }
 }

@@ -24,13 +24,14 @@ import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 import org.http4s._
-import org.http4s.server.Server
+import org.http4s.server._
 
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
+import org.http4s.server.ServerBuildable
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val host: String,
@@ -215,4 +216,19 @@ object EmberServerBuilder {
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
   }
+
+  implicit def serverBuildableInstance[F[_]]: ServerBuildable[F, EmberServerBuilder[F]] =
+    new ServerBuildable[F, EmberServerBuilder[F]] {
+      override def resource(a: EmberServerBuilder[F]): Resource[F, Server] =
+        a.build
+
+      override def withHttpHost(a: EmberServerBuilder[F])(host: String): EmberServerBuilder[F] =
+        a.withHost(host)
+
+      override def withHttpPort(a: EmberServerBuilder[F])(port: Int): EmberServerBuilder[F] =
+        a.withPort(port)
+
+      override def withHttpApp(a: EmberServerBuilder[F])(app: HttpApp[F]): EmberServerBuilder[F] =
+        a.withHttpApp(app)
+    }
 }
