@@ -545,11 +545,11 @@ object BlazeServerBuilder {
         a.resource
 
       override def withHttpHost(a: BlazeServerBuilder[F])(
-          host: String = defaults.Host): BlazeServerBuilder[F] =
+          host: String): BlazeServerBuilder[F] =
         a.withHost(host)
 
       override def withHttpPort(a: BlazeServerBuilder[F])(
-          port: Int = defaults.HttpPort): BlazeServerBuilder[F] =
+          port: Int): BlazeServerBuilder[F] =
         a.withPort(port)
 
       override def withHttpApp(a: BlazeServerBuilder[F])(app: HttpApp[F]): BlazeServerBuilder[F] =

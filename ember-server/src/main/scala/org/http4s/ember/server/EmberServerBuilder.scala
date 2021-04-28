@@ -31,7 +31,6 @@ import java.net.InetSocketAddress
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
-import org.http4s.server.ServerBuildable
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val host: String,
