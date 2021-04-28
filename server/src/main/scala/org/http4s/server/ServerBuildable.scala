@@ -77,7 +77,8 @@ trait ServerBuildable[F[_], A] {
     * [[cats.effect.Resource]] or [[fs2.Stream]] is not tenable.
     * [[resource]] or [[stream]] is recommended wherever possible.
     */
-  final def allocated(a: A)(implicit F: Bracket[F, Throwable]): F[(Server, F[Unit])] = resource(a).allocated
+  final def allocated(a: A)(implicit F: Bracket[F, Throwable]): F[(Server, F[Unit])] = resource(
+    a).allocated
 
   /** Bind the server to a given port and host. */
   final def bindHttp(a: A)(port: Int = defaults.HttpPort, host: String = defaults.Host): A =
@@ -126,7 +127,8 @@ object ServerBuildable {
   }
 
   trait ToServerBuildableOps extends Serializable {
-    implicit def toServerBuildableOps[F[_], A](target: A)(implicit tc: ServerBuildable[F, A]): Ops[F, A] =
+    implicit def toServerBuildableOps[F[_], A](target: A)(implicit
+        tc: ServerBuildable[F, A]): Ops[F, A] =
       new Ops[F, A] {
         override val typeClassInstance: ServerBuildable[F, A] = tc
         override def resource: Resource[F, Server] =
