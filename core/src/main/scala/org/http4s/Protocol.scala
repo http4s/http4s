@@ -17,7 +17,12 @@
 package org.http4s
 
 import org.typelevel.ci.CIString
+import cats.kernel.Eq
 
 final case class Protocol(name: CIString, version: Option[CIString]) {
   override def toString(): String = name.toString + version.map(_.toString).getOrElse("")
+}
+
+object Protocol {
+  implicit val catsEqInstance: Eq[Protocol] = Eq.fromUniversalEquals
 }

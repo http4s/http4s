@@ -27,6 +27,7 @@ import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
 import org.http4s.headers._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.durationToFinite
+import org.typelevel.ci._
 
 import scala.concurrent.duration.Duration
 import java.security.MessageDigest
@@ -35,17 +36,19 @@ import java.nio.charset.StandardCharsets
 import org.http4s.headers.Connection
 import org.http4s.websocket.WebSocketFrame
 import java.nio.ByteBuffer
+import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketSeparatePipe
 
 object WebSocketHelpers {
 
   private[this] val rfc6455Magic =
     "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(StandardCharsets.US_ASCII)
-  private[this] val supportedWebSocketVersion = 13
+  private[this] val supportedWebSocketVersion = 13L
 
-  private[this] val upgradeCi = "upgrade".ci
-  private[this] val webSocketCi = "websocket".ci
+  private[this] val upgradeCi = ci"upgrade"
+  private[this] val webSocketProtocol = Protocol(ci"websocket", None)
   private[this] val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
-  private[this] val upgradeWebSocket = Upgrade(NonEmptyList.of(webSocketCi))
+  private[this] val upgradeWebSocket = Upgrade(webSocketProtocol)
 
   // TODO: Express this in terms of Stream to leverage interrupt machinery
   def upgrade[F[_]](
@@ -63,7 +66,7 @@ object WebSocketHelpers {
           .map { accept =>
             val secWebSocketAccept = `Sec-WebSocket-Accept`(accept)
             val headers =
-              ctx.headers ++ Headers.of(connectionUpgrade, upgradeWebSocket, secWebSocketAccept)
+              ctx.headers ++ Headers(connectionUpgrade, upgradeWebSocket, secWebSocketAccept)
             Response[F](Status.SwitchingProtocols)
               .withHeaders(headers)
           }
@@ -93,38 +96,74 @@ object WebSocketHelpers {
     // TODO: make sure error semantics are correct and that resources are properly cleaned up
     // TODO: consider write/read failures and effect on outer connection
     // TODO: there is some shared code here with ServerHelpers
-    val writer = ctx.webSocket.send
-      .flatMap { frame =>
-        // TODO: frameToBuffer can throw
-        Stream
-          .iterable(frameTranscoder.frameToBuffer(frame).map { buffer =>
-            // TODO: improve
-            val bytes = new Array[Byte](buffer.remaining())
-            buffer.get(bytes)
-            Chunk.bytes(bytes)
-          })
-          .flatMap(Stream.chunk(_))
-      }
-      .through(socket.writes(durationToFinite(idleTimeout)))
+    ctx.webSocket match {
+      case WebSocketCombinedPipe(receiveSend, onClose) => 
+        // TODO: use onClose
+        // TODO: deduplicate both pipe paths
+        val readWrite = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
+          .through(decodeFrames(frameTranscoder))
+          .through(receiveSend)
+          .flatMap { frame =>
+            // TODO: frameToBuffer can throw
+            Stream
+              .iterable(frameTranscoder.frameToBuffer(frame).map { buffer =>
+                // TODO: improve
+                val bytes = new Array[Byte](buffer.remaining())
+                buffer.get(bytes)
+                Chunk.bytes(bytes)
+              })
+              .flatMap(Stream.chunk(_))
+          }
+          .through(socket.writes(durationToFinite(idleTimeout)))
 
-    val reader = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
-      .through(decodeFrames(frameTranscoder))
-      .through(ctx.webSocket.receive)
+        readWrite
+          .drain
+          .compile
+          .drain
+          .attempt
+          .flatMap {
+            case Left(err) =>
+              err.printStackTrace()
+              F.unit
+            case Right(()) =>
+              println("Connection ended")
+              F.unit
+          }
+      case WebSocketSeparatePipe(send, receive, onClose) => 
+        // TODO: use onClose
+        val writer = send
+          .flatMap { frame =>
+            // TODO: frameToBuffer can throw
+            Stream
+              .iterable(frameTranscoder.frameToBuffer(frame).map { buffer =>
+                // TODO: improve
+                val bytes = new Array[Byte](buffer.remaining())
+                buffer.get(bytes)
+                Chunk.bytes(bytes)
+              })
+              .flatMap(Stream.chunk(_))
+          }
+          .through(socket.writes(durationToFinite(idleTimeout)))
 
-    reader
-      .concurrently(writer)
-      .drain
-      .compile
-      .drain
-      .attempt
-      .flatMap {
-        case Left(err) =>
-          err.printStackTrace()
-          F.unit
-        case Right(()) =>
-          println("Connection ended")
-          F.unit
-      }
+        val reader = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
+          .through(decodeFrames(frameTranscoder))
+          .through(receive)
+
+        reader
+          .concurrently(writer)
+          .drain
+          .compile
+          .drain
+          .attempt
+          .flatMap {
+            case Left(err) =>
+              err.printStackTrace()
+              F.unit
+            case Right(()) =>
+              println("Connection ended")
+              F.unit
+          }
+    }
   }
 
   private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit
@@ -161,23 +200,23 @@ object WebSocketHelpers {
   }
 
   private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
-    val connection = req.headers.get(Connection) match {
+    val connection = req.headers.get[Connection] match {
       case Some(header) if header.values.contains_(upgradeCi) => Right(())
       case _ => Left(UpgradeRequired)
     }
 
-    val upgrade = req.headers.get(Upgrade) match {
-      case Some(header) if header.values.contains_(webSocketCi) => Right(())
+    val upgrade = req.headers.get[Upgrade] match {
+      case Some(header) if header.values.contains_(webSocketProtocol) => Right(())
       case _ => Left(UpgradeRequired)
     }
 
-    val version = req.headers.get(`Sec-WebSocket-Version`) match {
+    val version = req.headers.get[`Sec-WebSocket-Version`] match {
       case Some(header) if header.version == supportedWebSocketVersion => Right(())
       case Some(header) => Left(UnsupportedVersion(supportedWebSocketVersion, header.version))
       case None => Left(VersionNotFound)
     }
 
-    val key = req.headers.get(`Sec-WebSocket-Key`) match {
+    val key = req.headers.get[`Sec-WebSocket-Key`] match {
       case Some(header) => Right(header.value)
       case None => Left(KeyNotFound)
     }
@@ -204,7 +243,7 @@ object WebSocketHelpers {
   sealed abstract class ClientHandshakeError(val status: Status, val message: String)
   case object VersionNotFound
       extends ClientHandshakeError(Status.BadRequest, "Sec-WebSocket-Version header not present.")
-  final case class UnsupportedVersion(supported: Int, requested: Int)
+  final case class UnsupportedVersion(supported: Long, requested: Long)
       extends ClientHandshakeError(
         Status.UpgradeRequired,
         s"This server only supports WebSocket version $supported.")

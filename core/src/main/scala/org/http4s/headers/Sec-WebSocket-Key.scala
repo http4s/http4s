@@ -20,19 +20,19 @@ package headers
 import org.typelevel.ci._
 import org.http4s.internal.parsing.Rfc7230
 
-final case class `Sec-WebSocket-Accept`(accept: String)
+final case class `Sec-WebSocket-Key`(accept: String)
 
-object `Sec-WebSocket-Accept` {
+object `Sec-WebSocket-Key` {
 
-  def parse(s: String): ParseResult[`Sec-WebSocket-Accept`] =
+  def parse(s: String): ParseResult[`Sec-WebSocket-Key`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
 
   // TODO: RFC 6455 demands that this string be a non-empty base64 string
-  private[http4s] val parser = Rfc7230.token.map(`Sec-WebSocket-Accept`(_))
+  private[http4s] val parser = Rfc7230.token.map(`Sec-WebSocket-Key`(_))
 
-  implicit val headerInstance: Header[`Sec-WebSocket-Accept`, Header.Single] =
+  implicit val headerInstance: Header[`Sec-WebSocket-Key`, Header.Single] =
     Header.create(
-      ci"Sec-WebSocket-Accept",
+      ci"Sec-WebSocket-Key",
       _.accept,
       parse
     )
