@@ -22,14 +22,14 @@ import org.http4s.parser.AdditionalRules
 
 object `Sec-WebSocket-Version` {
   
-  def fromInt(version: Long): ParseResult[`Sec-WebSocket-Version`] =
+  def fromLong(version: Long): ParseResult[`Sec-WebSocket-Version`] =
     if (version >= 0)
       ParseResult.success(apply(version))
     else
       ParseResult.fail("Invalid version value", s"Version $version must be greater than or equal to 0")
 
   def unsafeFromLong(version: Long): `Sec-WebSocket-Version` =
-    fromInt(version).fold(throw _, identity)
+    fromLong(version).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Sec-WebSocket-Version`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)

@@ -18,7 +18,9 @@ package org.http4s
 package headers
 
 import org.typelevel.ci._
+import org.http4s.internal.parsing.Rfc7230
 
+// TODO: RFC 6455 demands that this string be a non-empty base64 string
 final case class `Sec-WebSocket-Accept`(accept: String)
 
 object `Sec-WebSocket-Accept` {
@@ -26,7 +28,7 @@ object `Sec-WebSocket-Accept` {
   def parse(s: String): ParseResult[`Sec-WebSocket-Accept`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
 
-  private[http4s] val parser = ???
+  private[http4s] val parser = Rfc7230.token.map(`Sec-WebSocket-Accept`(_))
 
   implicit val headerInstance: Header[`Sec-WebSocket-Accept`, Header.Single] =
     Header.create(
