@@ -97,7 +97,7 @@ object WebSocketHelpers {
     // TODO: consider write/read failures and effect on outer connection
     // TODO: there is some shared code here with ServerHelpers
     ctx.webSocket match {
-      case WebSocketCombinedPipe(receiveSend, onClose) => 
+      case WebSocketCombinedPipe(receiveSend, onClose) =>
         // TODO: use onClose
         // TODO: deduplicate both pipe paths
         val readWrite = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
@@ -116,11 +116,7 @@ object WebSocketHelpers {
           }
           .through(socket.writes(durationToFinite(idleTimeout)))
 
-        readWrite
-          .drain
-          .compile
-          .drain
-          .attempt
+        readWrite.drain.compile.drain.attempt
           .flatMap {
             case Left(err) =>
               err.printStackTrace()
@@ -129,7 +125,7 @@ object WebSocketHelpers {
               println("Connection ended")
               F.unit
           }
-      case WebSocketSeparatePipe(send, receive, onClose) => 
+      case WebSocketSeparatePipe(send, receive, onClose) =>
         // TODO: use onClose
         val writer = send
           .flatMap { frame =>
