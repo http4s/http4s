@@ -18,6 +18,7 @@ package org.http4s
 package headers
 
 import org.typelevel.ci._
+import org.http4s.parser.AdditionalRules
 
 object `Sec-WebSocket-Version` {
   
@@ -27,13 +28,13 @@ object `Sec-WebSocket-Version` {
     else
       ParseResult.fail("Invalid version value", s"Version $version must be greater than or equal to 0")
 
-  def unsafeFromInt(version: Long): `Sec-WebSocket-Version` =
+  def unsafeFromLong(version: Long): `Sec-WebSocket-Version` =
     fromInt(version).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Sec-WebSocket-Version`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
 
-  private[http4s] val parser = ???
+  private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
   
   implicit val headerInstance: Header[`Sec-WebSocket-Version`, Header.Single] =
     Header.createRendered(
@@ -42,14 +43,6 @@ object `Sec-WebSocket-Version` {
       parse
     )
 
-
-  def SEC_WEBSOCKET_VERSION(value: String): ParseResult[`Sec-WebSocket-Version`] =
-    new Http4sHeaderParser[`Sec-WebSocket-Version`](value) {
-      def entry =
-        rule {
-          Digits ~ EOL ~> ((t: String) => `Sec-WebSocket-Version`.unsafeFromInt(t.toInt))
-        }
-    }.parse
 }
 
 final case class `Sec-WebSocket-Version` private (version: Long)

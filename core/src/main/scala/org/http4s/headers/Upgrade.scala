@@ -41,7 +41,7 @@ object Upgrade {
   }
 
   implicit val headerInstance: Header[Upgrade, Header.Recurring] =
-    Header.render(
+    Header.createRendered(
       ci"Upgrade",
       _.values.map(_.toString),
       parse
