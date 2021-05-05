@@ -16,6 +16,7 @@
 
 package org.http4s.server.blaze
 
+import java.net.ProtocolException
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.stages.ByteToObjectStage
 import org.http4s.websocket.{FrameTranscoder, WebSocketFrame}
@@ -42,5 +43,6 @@ private class WebSocketDecoder
     * @return optional message if enough data was available
     */
   @throws[TranscodeError]
+  @throws[ProtocolException]
   def bufferToMessage(in: ByteBuffer): Option[WebSocketFrame] = Option(bufferToFrame(in))
 }
