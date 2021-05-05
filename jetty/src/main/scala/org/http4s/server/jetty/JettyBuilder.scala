@@ -405,7 +405,7 @@ sealed class JettyBuilder[F[_]] private (
 object JettyBuilder {
   def apply[F[_]: ConcurrentEffect] =
     new JettyBuilder[F](
-      socketAddress = defaults.SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress,
       threadPool = LazyThreadPool.newLazyThreadPool,
       threadPoolResourceOption = Some(
         JettyThreadPools.default[F]
