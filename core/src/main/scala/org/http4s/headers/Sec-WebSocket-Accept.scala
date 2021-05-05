@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,23 @@
  */
 
 package org.http4s
-package server
+package headers
 
-import cats.effect._
-import org.http4s.websocket.WebSocketContext
-import org.typelevel.vault.Key
+import org.typelevel.ci._
 
-package object websocket {
-  private[this] object Keys {
-    val WebSocket: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
-  }
+final case class `Sec-WebSocket-Accept`(accept: String)
 
-  def websocketKey[F[_]]: Key[WebSocketContext[F]] =
-    Keys.WebSocket.asInstanceOf[Key[WebSocketContext[F]]]
+object `Sec-WebSocket-Accept` {
+
+  def parse(s: String): ParseResult[`Sec-WebSocket-Accept`] =
+    ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
+
+  private[http4s] val parser = ???
+
+  implicit val headerInstance: Header[`Sec-WebSocket-Accept`, Header.Single] =
+    Header.create(
+      ci"Sec-WebSocket-Accept",
+      _.accept,
+      parse
+    )
 }

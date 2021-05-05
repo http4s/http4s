@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,27 @@
  */
 
 package org.http4s
-package server
+package headers
 
-import cats.effect._
-import org.http4s.websocket.WebSocketContext
-import org.typelevel.vault.Key
+import cats.data.NonEmptyList
+import org.typelevel.ci._
 
-package object websocket {
-  private[this] object Keys {
-    val WebSocket: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
-  }
+object Upgrade {
 
-  def websocketKey[F[_]]: Key[WebSocketContext[F]] =
-    Keys.WebSocket.asInstanceOf[Key[WebSocketContext[F]]]
+  def apply(head: CIString, tail: CIString*): Upgrade =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[Upgrade] =
+    ParseResult.fromParser(parser, "Invalid Upgrade header")(s)
+
+  private[http4s] val parser = ???
+
+  implicit val headerInstance: Header[Upgrade, Header.Recurring] =
+    Header.createRendered(
+      ci"Upgrade",
+      _.values,
+      parse
+    )
 }
+
+final case class Upgrade(values: NonEmptyList[CIString])

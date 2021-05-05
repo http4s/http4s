@@ -41,11 +41,10 @@ import scodec.bits.ByteVector
 
 private[server] object ServerHelpers {
 
-  private val closeCi = ci"close"
-
-  private val connectionCi = ci"connection"
-  private val close = Connection(NonEmptyList.of(closeCi))
-  private val keepAlive = Connection(NonEmptyList.one(ci"keep-alive"))
+  private[this] val closeCi = ci"close"
+  private[this] val connectionCi = ci"connection"
+  private[this] val close = Connection(NonEmptyList.of(closeCi))
+  private[this] val keepAlive = Connection(NonEmptyList.one(ci"keep-alive"))
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
@@ -147,8 +146,7 @@ private[server] object ServerHelpers {
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
-      postResp <- postProcessResponse(req, resp)
-    } yield (req, postResp, drain)
+    } yield (req, resp, drain)
   }
 
   private[internal] def send[F[_]: Sync](socket: Socket[F])(
@@ -202,7 +200,7 @@ private[server] object ServerHelpers {
       Stream
         .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
           case (buffer, reuse) =>
-            val initRead: F[Array[Byte]] = if (buffer.length > 0) {
+            val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
               // next request has already been (partially) received
               buffer.pure[F]
             } else if (reuse) {
@@ -228,13 +226,37 @@ private[server] object ServerHelpers {
                 requestVault)
             }
 
+            // TODO: fix the order of error handling?
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
-                send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
-                  drain.map {
-                    case Some(nextBuffer) => Some(((req, resp), (nextBuffer, true)))
-                    case None => None
-                  }
+                // TODO: Should we pay this cost for every HTTP request?
+                // TODO: there will likely be many upgrade paths here eventually
+
+                // Intercept the response for various upgrade paths
+                resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
+                  case Some(ctx) =>
+                    // TODO: Do we need to drain here? Is it unsound for clients to send extra bytes at this point?
+                    drain.flatMap {
+                      case Some(buffer) =>
+                        WebSocketHelpers
+                          .upgrade(
+                            socket,
+                            req,
+                            ctx,
+                            buffer,
+                            receiveBufferSize,
+                            idleTimeout,
+                            onWriteFailure)
+                          .as(None)
+                      case None => ???
+                    }
+                  case None =>
+                    for {
+                      nextResp <- postProcessResponse(req, resp)
+                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                      nextBuffer <- drain
+                    } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
+                }
               case Left(err) =>
                 err match {
                   case EmptyStreamError() =>
@@ -252,7 +274,7 @@ private[server] object ServerHelpers {
             .get[Connection]
             .exists(_.hasClose) || resp.headers.get[Connection].exists(_.hasClose))
         }
-        .drain ++ Stream.eval_(socket.close)
+        .drain
     }
   }
 
