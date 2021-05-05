@@ -18,24 +18,34 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.parse.Parser
+import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
 import org.typelevel.ci._
 
 object Upgrade {
 
-  def apply(head: CIString, tail: CIString*): Upgrade =
+  def apply(head: Protocol, tail: Protocol*): Upgrade =
     apply(NonEmptyList(head, tail.toList))
 
   def parse(s: String): ParseResult[Upgrade] =
     ParseResult.fromParser(parser, "Invalid Upgrade header")(s)
 
-  private[http4s] val parser = ???
+  private[http4s] val parser = {
+    import Parser.char
+    val protocol = (Rfc2616.token ~ (char('/') *> Rfc2616.token).?).map { case (name, version) => 
+      Protocol(CIString(name), version.map(CIString(_)))
+    } 
+    Rfc7230.headerRep1(protocol).map { (xs: NonEmptyList[Protocol]) =>
+      Upgrade(xs.head, xs.tail: _*)
+    }
+  }
 
   implicit val headerInstance: Header[Upgrade, Header.Recurring] =
-    Header.createRendered(
+    Header.render(
       ci"Upgrade",
-      _.values,
+      _.values.map(_.toString),
       parse
     )
 }
 
-final case class Upgrade(values: NonEmptyList[CIString])
+final case class Upgrade(values: NonEmptyList[Protocol])
