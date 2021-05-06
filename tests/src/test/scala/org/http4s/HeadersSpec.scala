@@ -99,6 +99,14 @@ class HeadersSpec extends Http4sSuite {
     assert(h3.equals(h5))
   }
 
+  test("Headers as ToRaw") {
+    val headers: Headers = Headers(
+      Cookie(RequestCookie("foo", "bar")),
+      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString)
+    )
+    assertEquals(Headers.apply(headers), headers)
+  }
+
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
   checkAll("Order[Headers]", OrderTests[Headers].order)
 }
