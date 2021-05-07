@@ -37,14 +37,7 @@ import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHo
 import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
-import org.http4s.server.{
-  DefaultServiceErrorHandler,
-  SSLClientAuthMode,
-  Server,
-  ServerBuilder,
-  ServiceErrorHandler,
-  defaults
-}
+import org.http4s.server._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.jetty.server.JettyBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
@@ -220,6 +213,12 @@ sealed class JettyBuilder[F[_]] private (
     */
   def withJettyHttpConfiguration(value: HttpConfiguration): Self =
     copy(jettyHttpConfiguration = value)
+
+  def withPort(port: Int): Self =
+    copy(socketAddress = InetSocketAddress.createUnresolved(socketAddress.getHostString, port))
+
+  def withHost(host: String): Self =
+    copy(socketAddress = InetSocketAddress.createUnresolved(host, socketAddress.getPort))
 
   private def getConnector(jetty: JServer): ServerConnector = {
 
@@ -403,6 +402,21 @@ object JettyBuilder {
     config.setRequestHeaderSize(defaults.MaxHeadersSize)
     config
   }
+
+  implicit def serverBuildableInstance[F[_]]: ServerBuildable[F, JettyBuilder[F]] =
+    new ServerBuildable[F, JettyBuilder[F]] {
+      override def resource(a: JettyBuilder[F]): Resource[F, Server] =
+        a.resource
+
+      override def withHttpHost(a: JettyBuilder[F])(host: String): JettyBuilder[F] =
+        a.withHost(host)
+
+      override def withHttpPort(a: JettyBuilder[F])(port: Int): JettyBuilder[F] =
+        a.withPort(port)
+
+      override def withHttpApp(a: JettyBuilder[F])(app: HttpApp[F]): JettyBuilder[F] =
+        a.mountHttpApp(app, "/")
+    }
 }
 
 private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
