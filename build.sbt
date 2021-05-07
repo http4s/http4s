@@ -155,9 +155,7 @@ lazy val server = libraryProject("server")
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
-    buildInfoKeys := Seq[BuildInfoKey](
-      resourceDirectory in Test,
-    ),
+    buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
     buildInfoPackage := "org.http4s.server.test",
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
@@ -562,7 +560,7 @@ lazy val docs = http4sProject("docs")
         scalafixRules,
         scalafixTests
       ),
-    mdocIn := (sourceDirectory in Compile).value / "mdoc",
+    mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
     Hugo / baseURL := {
@@ -742,7 +740,7 @@ lazy val scalafixInput = project
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
     scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) },
-    excludeFilter in headerSources := { _ => true },
+    headerSources / excludeFilter := { _ => true },
   )
   // Syntax matters as much as semantics here.
   .enablePlugins(NoPublishPlugin)
@@ -752,9 +750,9 @@ lazy val scalafixOutput = project
   .in(file("scalafix/output"))
   .settings(scalafixSettings)
   .settings(
-    skip in compile := true,
+    compile / skip := true,
     Compile / doc / sources := Nil,
-    excludeFilter in headerSources := { _ => true },
+    headerSources / excludeFilter := { _ => true },
   )
   // Auto-formatting prevents the tests from passing
   .enablePlugins(NoPublishPlugin)
@@ -765,7 +763,7 @@ lazy val scalafixTests = project
   .settings(commonSettings)
   .settings(scalafixSettings)
   .settings(
-    skip in publish := true,
+    publish / skip := true,
     libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafix % Test cross CrossVersion.full,
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInput / Compile / compile).value,
