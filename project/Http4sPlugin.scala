@@ -106,7 +106,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect*", revision="1.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect*", revision="1.*"),
 
-    excludeFilter.in(headerSources) := HiddenFileFilter ||
+    headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
         def accept(file: File) = {
           attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
@@ -315,7 +315,7 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
     val disciplineSpecs2 = "1.1.5"
-    val dropwizardMetrics = "4.1.20"
+    val dropwizardMetrics = "4.1.21"
     val fs2 = "2.5.5"
     val jacksonDatabind = "2.11.4"
     val jawn = "1.0.1"
@@ -338,7 +338,7 @@ object Http4sPlugin extends AutoPlugin {
     val prometheusClient = "0.8.1"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.3"
+    val scalacheck = "1.15.4"
     val scalacheckEffect = "0.7.1"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.4"
