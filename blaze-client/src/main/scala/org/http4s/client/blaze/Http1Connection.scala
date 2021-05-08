@@ -56,7 +56,7 @@ private final class Http1Connection[F[_]](
   private val parser =
     new BlazeHttp1ClientParser(maxResponseLineSize, maxHeaderLength, maxChunkSize, parserMode)
 
-  private val stageState = new AtomicReference[State](Idle)
+  private val stageState = new AtomicReference[State](Idle(None))
 
   override def isClosed: Boolean =
     stageState.get match {
@@ -64,7 +64,11 @@ private final class Http1Connection[F[_]](
       case _ => false
     }
 
-  override def isRecyclable: Boolean = stageState.get == Idle
+  override def isRecyclable: Boolean =
+    stageState.get match {
+      case Idle(_) => true
+      case _ => false
+    }
 
   override def shutdown(): Unit = stageShutdown()
 
@@ -107,9 +111,9 @@ private final class Http1Connection[F[_]](
   def resetRead(): Unit = {
     val state = stageState.get()
     val nextState = state match {
-      case Idle => Some(Idle)
+      case i: Idle => Some(i)
       case ReadWrite => Some(Write)
-      case Read => Some(Idle)
+      case Read => Some(Idle(Some(startIdleRead())))
       case _ => None
     }
 
@@ -123,9 +127,9 @@ private final class Http1Connection[F[_]](
   def resetWrite(): Unit = {
     val state = stageState.get()
     val nextState = state match {
-      case Idle => Some(Idle)
+      case i: Idle => Some(i)
       case ReadWrite => Some(Read)
-      case Write => Some(Idle)
+      case Write => Some(Idle(Some(startIdleRead())))
       case _ => None
     }
 
@@ -135,13 +139,23 @@ private final class Http1Connection[F[_]](
     }
   }
 
+  // #4798 We read from the channel while the connection is idle, in order to receive an EOF when the connection gets closed.
+  private def startIdleRead(): Future[ByteBuffer] = {
+    val f = channelRead()
+    f.onComplete {
+      case Failure(t) => shutdownWithError(t)
+      case _ =>
+    }(executionContext)
+    f
+  }
+
   def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
     F.defer[Response[F]] {
       stageState.get match {
-        case Idle =>
-          if (stageState.compareAndSet(Idle, ReadWrite)) {
+        case i @ Idle(idleRead) =>
+          if (stageState.compareAndSet(i, ReadWrite)) {
             logger.debug(s"Connection was idle. Running.")
-            executeRequest(req, idleTimeoutF)
+            executeRequest(req, idleTimeoutF, idleRead)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
             runRequest(req, idleTimeoutF)
@@ -160,7 +174,10 @@ private final class Http1Connection[F[_]](
 
   override protected def contentComplete(): Boolean = parser.contentComplete()
 
-  private def executeRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] = {
+  private def executeRequest(
+      req: Request[F],
+      idleTimeoutF: F[TimeoutException],
+      idleRead: Option[Future[ByteBuffer]]): F[Response[F]] = {
     logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
       case Left(e) =>
@@ -197,7 +214,11 @@ private final class Http1Connection[F[_]](
               }
 
             val response: F[Response[F]] = writeRequest.start >>
-              receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
+              receiveResponse(
+                mustClose,
+                doesntHaveBody = req.method == Method.HEAD,
+                idleTimeoutS,
+                idleRead)
 
             F.race(response, timeoutFiber.join)
               .flatMap[Response[F]] {
@@ -214,9 +235,15 @@ private final class Http1Connection[F[_]](
   private def receiveResponse(
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
-      idleTimeoutS: F[Either[Throwable, Unit]]): F[Response[F]] =
+      idleTimeoutS: F[Either[Throwable, Unit]],
+      idleRead: Option[Future[ByteBuffer]]): F[Response[F]] =
     F.async[Response[F]](cb =>
-      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS))
+      idleRead match {
+        case Some(read) =>
+          handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
+        case None =>
+          handleRead(channelRead(), cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
+      })
 
   // this method will get some data, and try to continue parsing using the implicit ec
   private def readAndParsePrelude(
@@ -225,7 +252,16 @@ private final class Http1Connection[F[_]](
       doesntHaveBody: Boolean,
       phase: String,
       idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
-    channelRead().onComplete {
+    handleRead(channelRead(), cb, closeOnFinish, doesntHaveBody, phase, idleTimeoutS)
+
+  private def handleRead(
+      read: Future[ByteBuffer],
+      cb: Callback[Response[F]],
+      closeOnFinish: Boolean,
+      doesntHaveBody: Boolean,
+      phase: String,
+      idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
+    read.onComplete {
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
       case Failure(EOF) =>
         stageState.get match {
@@ -380,7 +416,7 @@ private object Http1Connection {
 
   // ADT representing the state that the ClientStage can be in
   private sealed trait State
-  private case object Idle extends State
+  private final case class Idle(idleRead: Option[Future[ByteBuffer]]) extends State
   private case object ReadWrite extends State
   private case object Read extends State
   private case object Write extends State
