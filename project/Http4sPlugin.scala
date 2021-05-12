@@ -76,7 +76,7 @@ object Http4sPlugin extends AutoPlugin {
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 
-    excludeFilter.in(headerSources) := HiddenFileFilter ||
+    headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
         def accept(file: File) = {
           attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
@@ -282,7 +282,7 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.14.0-M5"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.4"
-    val dropwizardMetrics = "4.1.20"
+    val dropwizardMetrics = "4.1.21"
     val fs2 = "2.5.5"
     val ip4s = "2.0.2"
     val jacksonDatabind = "2.12.3"
@@ -304,7 +304,7 @@ object Http4sPlugin extends AutoPlugin {
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.3"
+    val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.1"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.0-RC1"
