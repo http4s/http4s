@@ -349,6 +349,7 @@ lazy val servlet = libraryProject("servlet")
       javaxServletApi % Provided,
       Http4sPlugin.jettyServer % Test,
       jettyServlet % Test,
+      Http4sPlugin.asyncHttpClient % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
@@ -581,7 +582,6 @@ lazy val examples = http4sProject("examples")
   // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
-  .enablePlugins(AlpnBootPlugin)
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",

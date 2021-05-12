@@ -414,7 +414,7 @@ object BlazeServerBuilder {
       F: ConcurrentEffect[F],
       timer: Timer[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
-      socketAddress = defaults.SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress,
       executionContext = executionContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
