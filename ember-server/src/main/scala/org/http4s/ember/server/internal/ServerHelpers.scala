@@ -260,10 +260,8 @@ private[server] object ServerHelpers {
                 }
             }
         }
-        .takeWhile { case (req, resp) =>
-          !(req.headers
-            .get(Connection)
-            .exists(_.hasClose) || resp.headers.get(Connection).exists(_.hasClose))
+        .takeWhile { case (_, resp) =>
+          resp.headers.get(Connection).exists(_.hasKeepAlive)
         }
         .drain ++ Stream.eval_(socket.close)
     }
