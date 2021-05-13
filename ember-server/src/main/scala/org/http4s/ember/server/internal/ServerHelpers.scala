@@ -178,24 +178,22 @@ private[server] object ServerHelpers {
     } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
   }
 
-  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean =
+  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
     // We know this is raw because we have not parsed any headers in the underlying alg.
     // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
+    def hasConnection(expected: String): Boolean =
+      headers.exists {
+        case Header.Raw(name, value) =>
+          name == connectionCi && value.toLowerCase.contains(expected)
+        case _ => false
+      }
+
     httpVersion match {
-      case HttpVersion.`HTTP/1.0` =>
-        headers.exists {
-          case Header.Raw(name, value) =>
-            name == connectionCi && value.toLowerCase.contains(keepAlive.value)
-          case _ => false
-        }
-      case HttpVersion.`HTTP/1.1` =>
-        !headers.exists {
-          case Header.Raw(name, value) =>
-            name == connectionCi && value.toLowerCase.contains(closeCi.value)
-          case _ => false
-        }
+      case HttpVersion.`HTTP/1.0` => hasConnection(keepAliveCi.value)
+      case HttpVersion.`HTTP/1.1` => !hasConnection(closeCi.value)
       case _ => false
     }
+  }
 
   private[internal] def runConnection[F[_]: Concurrent: Timer](
       socket: Socket[F],
