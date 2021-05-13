@@ -567,11 +567,11 @@ final class Response[F[_]] private (
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Self =
-    putHeaders(cookie.clearCookie)
+    addCookie(cookie.clearCookie)
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Self =
-    putHeaders(ResponseCookie(name, "").clearCookie)
+    addCookie(ResponseCookie(name, "").clearCookie)
 
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
