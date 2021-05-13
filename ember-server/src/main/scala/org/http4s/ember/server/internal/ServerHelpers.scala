@@ -170,23 +170,23 @@ private[server] object ServerHelpers {
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
     val connection: Connection =
-      if (isKeepAlive(req.httpVersion, req.headers, resp.headers)) keepAlive
+      if (isKeepAlive(req.httpVersion, req.headers)) keepAlive
       else close
     for {
       date <- HttpDate.current[F].map(Date(_))
     } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
   }
 
-  private[internal] def isKeepAlive(httpVersion: HttpVersion, requestHeaders: Headers, responseHeaders: Headers): Boolean = {
+  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
     // We know this is raw because we have not parsed any headers in the underlying alg.
     // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-    val hasKeepAlive = responseHeaders.exists {
+    val hasKeepAlive = headers.exists {
       case Header.Raw(name, values) => name == connectionCi && values.contains(keepAlive.value)
       case _ => false
     }
 
     // TODO: we only need to check this if keep-alive is absent, but is there some compiler/jit optimization that infers that dependency?
-    val hasClose = requestHeaders.exists {
+    val hasClose = headers.exists {
       case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.value)
       case _ => false
     }
