@@ -40,11 +40,12 @@ import scodec.bits.ByteVector
 
 private[server] object ServerHelpers {
 
-  private val closeCi = "close".ci
+  private[this] val closeCi = "close".ci
+  private[this] val keepAliveCi = "keep-alive".ci
 
-  private val connectionCi = "connection".ci
-  private val close = Connection(NonEmptyList.of(closeCi))
-  private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
+  private[this] val connectionCi = "connection".ci
+  private[this] val close = Connection(NonEmptyList.of(closeCi))
+  private[this] val keepAlive = Connection(NonEmptyList.one(keepAliveCi))
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
@@ -177,20 +178,24 @@ private[server] object ServerHelpers {
     } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
   }
 
-  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
+  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean =
     // We know this is raw because we have not parsed any headers in the underlying alg.
     // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-    val connection = headers.find {
-      case Header.Raw(name, values) => name == connectionCi
+    httpVersion match {
+      case HttpVersion.`HTTP/1.0` =>
+        headers.exists {
+          case Header.Raw(name, value) =>
+            name == connectionCi && value.toLowerCase.contains(keepAlive.value)
+          case _ => false
+        }
+      case HttpVersion.`HTTP/1.1` =>
+        !headers.exists {
+          case Header.Raw(name, value) =>
+            name == connectionCi && value.toLowerCase.contains(closeCi.value)
+          case _ => false
+        }
       case _ => false
     }
-
-    connection match {
-      case Some(header) if header.value.contains(keepAlive.value) => true
-      case Some(header) if header.value.contains(close.value) => false
-      case _ => httpVersion == HttpVersion.`HTTP/1.1`
-    }
-  }
 
   private[internal] def runConnection[F[_]: Concurrent: Timer](
       socket: Socket[F],
