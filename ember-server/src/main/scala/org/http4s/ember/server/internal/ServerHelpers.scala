@@ -180,18 +180,16 @@ private[server] object ServerHelpers {
   private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
     // We know this is raw because we have not parsed any headers in the underlying alg.
     // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-    val hasKeepAlive = headers.exists {
-      case Header.Raw(name, values) => name == connectionCi && values.contains(keepAlive.value)
+    val connection = headers.find {
+      case Header.Raw(name, values) => name == connectionCi
       case _ => false
     }
 
-    // TODO: we only need to check this if keep-alive is absent, but is there some compiler/jit optimization that infers that dependency?
-    val hasClose = headers.exists {
-      case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.value)
-      case _ => false
+    connection match {
+      case Some(header) if header.value.contains(keepAlive.value) => true
+      case Some(header) if header.value.contains(close.value) => false
+      case _ => httpVersion == HttpVersion.`HTTP/1.1`
     }
-
-    if (hasKeepAlive) true else if (hasClose) false else httpVersion == HttpVersion.`HTTP/1.1`
   }
 
   private[internal] def runConnection[F[_]: Concurrent: Timer](
