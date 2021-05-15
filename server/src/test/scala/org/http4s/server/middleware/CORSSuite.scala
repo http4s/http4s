@@ -25,6 +25,8 @@ import org.http4s.syntax.all._
 import org.http4s.Http4sSuite
 import org.typelevel.ci._
 
+import scala.concurrent.duration._
+
 class CORSSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
     case req if req.pathInfo == path"/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
@@ -34,14 +36,13 @@ class CORSSuite extends Http4sSuite {
   val cors1 = CORS(routes)
   val cors2 = CORS(
     routes,
-    CORSConfig(
-      anyOrigin = false,
-      allowCredentials = false,
-      maxAge = 0,
-      allowedOrigins = Set("http://allowed.com"),
-      allowedHeaders = Some(Set("User-Agent", "Keep-Alive", "Content-Type")),
-      exposedHeaders = Some(Set("x-header"))
-    )
+    CORSConfig.default
+      .withAnyOrigin(false)
+      .withAllowCredentials(false)
+      .withMaxAge(0.seconds)
+      .withAllowedOrigins(Set("http://allowed.com"))
+      .withAllowedHeaders(Some(Set("User-Agent", "Keep-Alive", "Content-Type")))
+      .withExposedHeaders(Some(Set("x-header")))
   )
 
   def headerCheck(h: Header.Raw): Boolean = h.name == ci"Access-Control-Max-Age"
