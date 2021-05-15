@@ -36,7 +36,7 @@ class CORSSuite extends Http4sSuite {
   val cors1 = CORS(routes)
   val cors2 = CORS(
     routes,
-    CORSConfigBuilder()
+    CORSConfig()
       .withAnyOrigin(false)
       .withAllowCredentials(false)
       .withMaxAge(0.seconds)

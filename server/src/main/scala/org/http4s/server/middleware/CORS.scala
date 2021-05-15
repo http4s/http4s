@@ -31,7 +31,7 @@ import scala.concurrent.duration._
   * to specify its behavior
   */
 
-final class CORSConfigBuilder private (
+final class CORSConfig private (
     val anyOrigin: Boolean,
     val allowCredentials: Boolean,
     val maxAge: FiniteDuration,
@@ -51,7 +51,7 @@ final class CORSConfigBuilder private (
       allowedMethods: Option[Set[Method]] = allowedMethods,
       allowedHeaders: Option[Set[String]] = allowedHeaders,
       exposedHeaders: Option[Set[String]] = exposedHeaders
-  ) = new CORSConfigBuilder(
+  ) = new CORSConfig(
     anyOrigin,
     allowCredentials,
     maxAge,
@@ -62,26 +62,31 @@ final class CORSConfigBuilder private (
     exposedHeaders
   )
 
-  def withAnyOrigin(anyOrigin: Boolean): CORSConfigBuilder = copy(anyOrigin = anyOrigin)
+  def withAnyOrigin(anyOrigin: Boolean): CORSConfig = copy(anyOrigin = anyOrigin)
 
-  def withAllowCredentials(allowCredentials: Boolean): CORSConfigBuilder = copy(allowCredentials = allowCredentials)
+  def withAllowCredentials(allowCredentials: Boolean): CORSConfig =
+    copy(allowCredentials = allowCredentials)
 
-  def withMaxAge(maxAge: FiniteDuration): CORSConfigBuilder = copy(maxAge = maxAge)
+  def withMaxAge(maxAge: FiniteDuration): CORSConfig = copy(maxAge = maxAge)
 
-  def withAnyMethod(anyMethod: Boolean): CORSConfigBuilder = copy(anyMethod = anyMethod)
+  def withAnyMethod(anyMethod: Boolean): CORSConfig = copy(anyMethod = anyMethod)
 
-  def withAllowedOrigins(allowedOrigins: String => Boolean): CORSConfigBuilder = copy(allowedOrigins = allowedOrigins)
+  def withAllowedOrigins(allowedOrigins: String => Boolean): CORSConfig =
+    copy(allowedOrigins = allowedOrigins)
 
-  def withAllowedMethods(allowedMethods: Option[Set[Method]]): CORSConfigBuilder = copy(allowedMethods = allowedMethods)
+  def withAllowedMethods(allowedMethods: Option[Set[Method]]): CORSConfig =
+    copy(allowedMethods = allowedMethods)
 
-  def withAllowedHeaders(allowedHeaders: Option[Set[String]]): CORSConfigBuilder = copy(allowedHeaders = allowedHeaders)
+  def withAllowedHeaders(allowedHeaders: Option[Set[String]]): CORSConfig =
+    copy(allowedHeaders = allowedHeaders)
 
-  def withExposedHeaders(exposedHeaders: Option[Set[String]]): CORSConfigBuilder = copy(exposedHeaders = exposedHeaders)
+  def withExposedHeaders(exposedHeaders: Option[Set[String]]): CORSConfig =
+    copy(exposedHeaders = exposedHeaders)
 }
 
-object CORSConfigBuilder {
+object CORSConfig {
 
-  def apply(): CORSConfigBuilder = new CORSConfigBuilder(
+  def apply(): CORSConfig = new CORSConfig(
     anyOrigin = true,
     allowCredentials = true,
     maxAge = 1.day,
@@ -103,7 +108,7 @@ object CORS {
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfigBuilder = CORSConfigBuilder())(implicit
+  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig())(implicit
       F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
