@@ -30,31 +30,80 @@ import scala.concurrent.duration._
   * You can give an instance of this class to the CORS middleware,
   * to specify its behavior
   */
-final case class CORSConfig(
-    anyOrigin: Boolean,
-    allowCredentials: Boolean,
-    maxAge: Long,
-    anyMethod: Boolean = true,
-    allowedOrigins: String => Boolean = _ => false,
-    allowedMethods: Option[Set[String]] = None,
-    allowedHeaders: Option[Set[String]] = Set("Content-Type", "Authorization", "*").some,
-    exposedHeaders: Option[Set[String]] = Set("*").some
-)
+
+final class CORSConfigBuilder private (
+    val anyOrigin: Boolean,
+    val allowCredentials: Boolean,
+    val maxAge: FiniteDuration,
+    val anyMethod: Boolean,
+    val allowedOrigins: String => Boolean,
+    val allowedMethods: Option[Set[Method]],
+    val allowedHeaders: Option[Set[String]],
+    val exposedHeaders: Option[Set[String]]
+) {
+
+  private def copy(
+      anyOrigin: Boolean = anyOrigin,
+      allowCredentials: Boolean = allowCredentials,
+      maxAge: FiniteDuration = maxAge,
+      anyMethod: Boolean = anyMethod,
+      allowedOrigins: String => Boolean = allowedOrigins,
+      allowedMethods: Option[Set[Method]] = allowedMethods,
+      allowedHeaders: Option[Set[String]] = allowedHeaders,
+      exposedHeaders: Option[Set[String]] = exposedHeaders
+  ) = new CORSConfigBuilder(
+    anyOrigin,
+    allowCredentials,
+    maxAge,
+    anyMethod,
+    allowedOrigins,
+    allowedMethods,
+    allowedHeaders,
+    exposedHeaders
+  )
+
+  def withAnyOrigin(anyOrigin: Boolean): CORSConfigBuilder = copy(anyOrigin = anyOrigin)
+
+  def withAllowCredentials(allowCredentials: Boolean): CORSConfigBuilder = copy(allowCredentials = allowCredentials)
+
+  def withMaxAge(maxAge: FiniteDuration): CORSConfigBuilder = copy(maxAge = maxAge)
+
+  def withAnyMethod(anyMethod: Boolean): CORSConfigBuilder = copy(anyMethod = anyMethod)
+
+  def withAllowedOrigins(allowedOrigins: String => Boolean): CORSConfigBuilder = copy(allowedOrigins = allowedOrigins)
+
+  def withAllowedMethods(allowedMethods: Option[Set[Method]]): CORSConfigBuilder = copy(allowedMethods = allowedMethods)
+
+  def withAllowedHeaders(allowedHeaders: Option[Set[String]]): CORSConfigBuilder = copy(allowedHeaders = allowedHeaders)
+
+  def withExposedHeaders(exposedHeaders: Option[Set[String]]): CORSConfigBuilder = copy(exposedHeaders = exposedHeaders)
+}
+
+object CORSConfigBuilder {
+
+  def apply(): CORSConfigBuilder = new CORSConfigBuilder(
+    anyOrigin = true,
+    allowCredentials = true,
+    maxAge = 1.day,
+    anyMethod = true,
+    allowedOrigins = _ => false,
+    allowedMethods = None,
+    allowedHeaders = Set("Content-Type", "Authorization", "*").some,
+    exposedHeaders = Set("*").some
+  )
+}
 
 object CORS {
   private[CORS] val logger = getLogger
 
   val defaultVaryHeader = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
 
-  def DefaultCORSConfig =
-    CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
-
   /** CORS middleware
     * This middleware provides clients with CORS information
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = DefaultCORSConfig)(implicit
+  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfigBuilder = CORSConfigBuilder())(implicit
       F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
@@ -88,7 +137,7 @@ object CORS {
             // TODO model me
             "Access-Control-Allow-Origin" -> origin,
             // TODO model me
-            "Access-Control-Max-Age" -> config.maxAge.toString
+            "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString
           )
       }
 
@@ -96,10 +145,10 @@ object CORS {
         (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
           case (true, true, _, _) => true
           case (true, false, _, acrm) =>
-            config.allowedMethods.exists(_.contains(acrm))
+            config.allowedMethods.exists(_.find(_.toString() === acrm).nonEmpty)
           case (false, true, origin, _) => config.allowedOrigins(origin)
           case (false, false, origin, acrm) =>
-            config.allowedMethods.exists(_.contains(acrm)) &&
+            config.allowedMethods.exists(_.find(_.toString() === acrm).nonEmpty) &&
               config.allowedOrigins(origin)
         }
 
