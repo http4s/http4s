@@ -28,6 +28,7 @@ import fs2.io.tls._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.vault.Vault
 import java.net.InetSocketAddress
+import java.util.Locale
 import org.http4s._
 import org.http4s.ember.core.Util.durationToFinite
 import org.http4s.ember.core.{Drain, EmptyStreamError, Encoder, Parser, Read}
@@ -184,7 +185,7 @@ private[server] object ServerHelpers {
     def hasConnection(expected: String): Boolean =
       headers.exists {
         case Header.Raw(name, value) =>
-          name == connectionCi && value.toLowerCase.contains(expected)
+          name == connectionCi && value.toLowerCase(Locale.ROOT).contains(expected)
         case _ => false
       }
 
