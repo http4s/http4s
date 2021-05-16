@@ -8,6 +8,76 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.23
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4810](https://github.com/http4s/http4s/pull/4810): Read from idle blaze-client connections to prevent retaining (and trying to use) half-closed connections.
+* [#4812](https://github.com/http4s/http4s/pull/4812): Remove request retry on EOF from blaze-client. This could theoretically resubmit non-idempotent requests. The problem the retry attempted to solve is mitigated by #4810.
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4793](https://github.com/http4s/http4s/pull/4793): Reset the idle timeout after `readRequest` completes, not when it's called.  Affects both blaze-server and blaze-client.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#4753](https://github.com/http4s/http4s/pull/4753): Distinguish between reserved and unknown websocket frame opcodes. Resolves a `MatchError`.
+* [#4792](https://github.com/http4s/http4s/pull/4792): Fixes HTTP/2 connections on modern JDKs by replacing legacy ALPN libraries.
+* [#4796](https://github.com/http4s/http4s/pull/4796): Reset idle timeout when `readRequest` completes, not when it's called.
+
+### Enhancements
+
+* [#4761](https://github.com/http4s/http4s/pull/4761): Use the `TickWheelExecutor` to schedule timeouts with less locking.  Change how the parser is acquired to reduce lock contention in `Http1ServerStage`.  Significant increases in throughput are observed on small requests with many cores.
+
+## http4s-circe
+
+### Enhancements
+
+* [#4736](https://github.com/http4s/http4s/pull/4736): Add `streamJsonArrayDecoder`
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#4735](https://github.com/http4s/http4s/pull/4735): Simplify message parsing by parsing everything up to the `\r\n` in one pass. The max header size and max prelude size settings should keep memory consumption limited.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#4750](https://github.com/http4s/http4s/pull/4750): Drain the socket's read buffer only after the response is written to the socket. Resolves several flavors of network error.
+
+## http4s-jetty
+
+### Bugfixes
+
+* [#4783](https://github.com/http4s/http4s/pull/4783): Fix bug with shared `ThreadPool` being destroyed. Prefer a `Resource[F, ThreadPool]` whose lifecycle shares Jetty's.  For compatibility, prevent the default from being destroyed.
+
+## http4s-server
+
+### Enhancements
+
+* [#4793](https://github.com/http4s/http4s/pull/4793): Make use of IPv4 vs. IPv6 as default address explicit. Applies to all backends.
+
+## Dependency updates
+
+* blaze-0.14.16
+* cats-2.6.1
+* cats-effect-2.5.1
+* dropwizard-metrics-4.2.0
+* discipline-core-1.1.5
+* jackson-databind-2.12.3
+* fs2-2.5.6
+* scalacheck-1.15.4
+* scodec-bits-1.1.27
+* tomcat-9.0.46
+
 # v0.21.22 (2021-04-06)
 
 ## http4s-blaze-client

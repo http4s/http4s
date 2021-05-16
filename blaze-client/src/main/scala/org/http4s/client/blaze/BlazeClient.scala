@@ -24,7 +24,6 @@ import cats.effect.implicits._
 import cats.syntax.all._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
-import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{IdleTimeoutStage, ResponseHeaderTimeoutStage}
 import org.log4s.getLogger
@@ -114,15 +113,6 @@ object BlazeClient {
                     case _ =>
                       F.delay(stageOpt.foreach(_.removeStage()))
                         .guarantee(manager.invalidate(next.connection))
-                  }
-                }
-                .recoverWith { case Command.EOF =>
-                  invalidate(next.connection).flatMap { _ =>
-                    if (next.fresh)
-                      F.raiseError(
-                        new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
-                    else
-                      loop
                   }
                 }
 

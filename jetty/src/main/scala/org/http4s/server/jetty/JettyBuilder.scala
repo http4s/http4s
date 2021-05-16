@@ -34,9 +34,8 @@ import org.eclipse.jetty.server.{
 }
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
-import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
+import org.eclipse.jetty.util.thread.ThreadPool
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.jetty.JettyBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
@@ -47,7 +46,8 @@ import scala.concurrent.duration._
 
 sealed class JettyBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
-    threadPool: ThreadPool,
+    private val threadPool: ThreadPool,
+    threadPoolResourceOption: Option[Resource[F, ThreadPool]],
     private val idleTimeout: Duration,
     private val asyncTimeout: Duration,
     shutdownTimeout: Duration,
@@ -64,6 +64,37 @@ sealed class JettyBuilder[F[_]] private (
   type Self = JettyBuilder[F]
 
   private[this] val logger = getLogger
+
+  @deprecated(message = "Retained for binary compatibility", since = "0.21.23")
+  private[JettyBuilder] def this(
+      socketAddress: InetSocketAddress,
+      threadPool: ThreadPool,
+      idleTimeout: Duration,
+      asyncTimeout: Duration,
+      shutdownTimeout: Duration,
+      servletIo: ServletIo[F],
+      sslConfig: SslConfig,
+      mounts: Vector[Mount[F]],
+      serviceErrorHandler: ServiceErrorHandler[F],
+      supportHttp2: Boolean,
+      banner: immutable.Seq[String],
+      jettyHttpConfiguration: HttpConfiguration
+  )(implicit F: ConcurrentEffect[F]) =
+    this(
+      socketAddress,
+      new UndestroyableThreadPool(threadPool),
+      None,
+      idleTimeout,
+      asyncTimeout,
+      shutdownTimeout,
+      servletIo,
+      sslConfig,
+      mounts,
+      serviceErrorHandler,
+      supportHttp2,
+      banner,
+      jettyHttpConfiguration
+    )
 
   @deprecated(message = "Retained for binary compatibility", since = "0.21.15")
   private[JettyBuilder] def this(
@@ -124,6 +155,7 @@ sealed class JettyBuilder[F[_]] private (
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
       threadPool: ThreadPool = threadPool,
+      threadPoolResourceOption: Option[Resource[F, ThreadPool]] = threadPoolResourceOption,
       idleTimeout: Duration = idleTimeout,
       asyncTimeout: Duration = asyncTimeout,
       shutdownTimeout: Duration = shutdownTimeout,
@@ -138,6 +170,7 @@ sealed class JettyBuilder[F[_]] private (
     new JettyBuilder(
       socketAddress,
       threadPool,
+      threadPoolResourceOption,
       idleTimeout,
       asyncTimeout,
       shutdownTimeout,
@@ -190,8 +223,28 @@ sealed class JettyBuilder[F[_]] private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
+  /** Set the [[org.eclipse.jetty.util.thread.ThreadPool]] that Jetty will use.
+    *
+    * It is recommended you use [[JettyThreadPools#resource]] to build this so
+    * that it will be gracefully shutdown when/if the Jetty server is
+    * shutdown.
+    */
+  def withThreadPoolResource(threadPoolResource: Resource[F, ThreadPool]): JettyBuilder[F] =
+    copy(threadPoolResourceOption = Some(threadPoolResource))
+
+  /** Set the [[org.eclipse.jetty.util.thread.ThreadPool]] that Jetty will use.
+    *
+    * @note You should prefer [[#withThreadPoolResource]] instead of this
+    *       method. If you invoke this method the provided
+    *       [[org.eclipse.jetty.util.thread.ThreadPool]] ''will not'' be
+    *       joined, stopped, or destroyed when/if the Jetty server stops. This
+    *       is to preserve the <= 0.21.23 semantics.
+    */
+  @deprecated(
+    message = "Please use withThreadPoolResource instead and see JettyThreadPools.",
+    since = "0.21.23")
   def withThreadPool(threadPool: ThreadPool): JettyBuilder[F] =
-    copy(threadPool = threadPool)
+    copy(threadPoolResourceOption = None, threadPool = new UndestroyableThreadPool(threadPool))
 
   override def mountServlet(
       servlet: HttpServlet,
@@ -288,71 +341,75 @@ sealed class JettyBuilder[F[_]] private (
     }
   }
 
-  def resource: Resource[F, Server[F]] =
-    Resource(F.delay {
-      val jetty = new JServer(threadPool)
-
-      val context = new ServletContextHandler()
-      context.setContextPath("/")
-
-      jetty.setHandler(context)
-
-      val connector = getConnector(jetty)
-
-      connector.setHost(socketAddress.getHostString)
-      connector.setPort(socketAddress.getPort)
-      connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
-      jetty.addConnector(connector)
-
-      // Jetty graceful shutdown does not work without a stats handler
-      val stats = new StatisticsHandler
-      stats.setHandler(jetty.getHandler)
-      jetty.setHandler(stats)
-
-      jetty.setStopTimeout(shutdownTimeout match {
-        case d: FiniteDuration => d.toMillis
-        case _ => 0L
-      })
-
-      for ((mount, i) <- mounts.zipWithIndex)
-        mount.f(context, i, this)
-
-      jetty.start()
-
-      val server = new Server[F] {
-        lazy val address: InetSocketAddress = {
-          val host = socketAddress.getHostString
-          val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-          new InetSocketAddress(host, port)
-        }
-
-        lazy val isSecure: Boolean = sslConfig.isSecure
-      }
-
-      banner.foreach(logger.info(_))
-      logger.info(
-        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
-
-      server -> shutdown(jetty)
-    })
-
-  private def shutdown(jetty: JServer): F[Unit] =
-    F.async[Unit] { cb =>
-      jetty.addLifeCycleListener(
-        new AbstractLifeCycle.AbstractLifeCycleListener {
-          override def lifeCycleStopped(ev: LifeCycle) = cb(Right(()))
-          override def lifeCycleFailure(ev: LifeCycle, cause: Throwable) = cb(Left(cause))
-        }
+  def resource: Resource[F, Server[F]] = {
+    // If threadPoolResourceOption is None, then use the value of
+    // threadPool.
+    val threadPoolR: Resource[F, ThreadPool] =
+      threadPoolResourceOption.getOrElse(
+        Resource.pure(threadPool)
       )
-      jetty.stop()
-    }
+    val serverR: ThreadPool => Resource[F, Server[F]] = (threadPool: ThreadPool) =>
+      JettyLifeCycle
+        .lifeCycleAsResource[F, JServer](
+          F.delay {
+            val jetty = new JServer(threadPool)
+            val context = new ServletContextHandler()
+
+            context.setContextPath("/")
+
+            jetty.setHandler(context)
+
+            val connector = getConnector(jetty)
+
+            connector.setHost(socketAddress.getHostString)
+            connector.setPort(socketAddress.getPort)
+            connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
+            jetty.addConnector(connector)
+
+            // Jetty graceful shutdown does not work without a stats handler
+            val stats = new StatisticsHandler
+            stats.setHandler(jetty.getHandler)
+            jetty.setHandler(stats)
+
+            jetty.setStopTimeout(shutdownTimeout match {
+              case d: FiniteDuration => d.toMillis
+              case _ => 0L
+            })
+
+            for ((mount, i) <- mounts.zipWithIndex)
+              mount.f(context, i, this)
+
+            jetty
+          }
+        )
+        .map((jetty: JServer) =>
+          new Server[F] {
+            lazy val address: InetSocketAddress = {
+              val host = socketAddress.getHostString
+              val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
+              new InetSocketAddress(host, port)
+            }
+
+            lazy val isSecure: Boolean = sslConfig.isSecure
+          })
+    for {
+      threadPool <- threadPoolR
+      server <- serverR(threadPool)
+      _ <- Resource.eval(banner.traverse_(value => F.delay(logger.info(value))))
+      _ <- Resource.eval(F.delay(logger.info(
+        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")))
+    } yield server
+  }
 }
 
 object JettyBuilder {
   def apply[F[_]: ConcurrentEffect] =
     new JettyBuilder[F](
       socketAddress = defaults.IPv4SocketAddress,
-      threadPool = new QueuedThreadPool(),
+      threadPool = LazyThreadPool.newLazyThreadPool,
+      threadPoolResourceOption = Some(
+        JettyThreadPools.default[F]
+      ),
       idleTimeout = defaults.IdleTimeout,
       asyncTimeout = defaults.ResponseTimeout,
       shutdownTimeout = defaults.ShutdownTimeout,

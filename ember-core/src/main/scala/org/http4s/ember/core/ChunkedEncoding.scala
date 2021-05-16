@@ -29,6 +29,7 @@ private[ember] object ChunkedEncoding {
   def decode[F[_]](
       head: Array[Byte],
       read: F[Option[Chunk[Byte]]],
+      maxHeaderSize: Int,
       maxChunkHeaderSize: Int,
       trailers: Deferred[F, Headers],
       rest: Ref[F, Option[Array[Byte]]])(implicit F: MonadThrow[F]): Stream[F, Byte] = {
@@ -37,7 +38,9 @@ private[ember] object ChunkedEncoding {
     def go(expect: Either[ByteVector, Long], head: Array[Byte]): Pull[F, Byte, Unit] = {
       val nextChunk = if (head.nonEmpty) Pull.pure(Some(Chunk.bytes(head))) else Pull.eval(read)
       nextChunk.flatMap {
-        case None => Pull.done
+        case None =>
+          // TODO: Check if we ended at a correct state?
+          Pull.done
         case Some(h) =>
           val bv = h.toByteVector
           expect match {
@@ -63,9 +66,9 @@ private[ember] object ChunkedEncoding {
                   case Some(0) =>
                     // Done With Message, Now Parse Trailers
                     Pull.eval(
-                      parseTrailers[F](maxChunkHeaderSize)(rem.toArray, read)
-                        .flatMap { case (hdrs, bytes) =>
-                          trailers.complete(hdrs) >> rest.set(Some(bytes))
+                      parseTrailers[F](maxHeaderSize)(rem.toArray, read)
+                        .flatMap { t =>
+                          trailers.complete(t.headers) >> rest.set(Some(t.rest))
                         }
                     ) >> Pull.done
                   case Some(sz) => go(Right(sz), rem.toArray)
@@ -92,24 +95,30 @@ private[ember] object ChunkedEncoding {
     go(Left(ByteVector.empty), head).stream
   }
 
+  final case class Trailers(headers: Headers, rest: Array[Byte])
+
+  private val emptyTrailingHeaders = Trailers(Headers.empty, Array.emptyByteArray)
+
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
-  )(head: Array[Byte], read: F[Option[Chunk[Byte]]]): F[(Headers, Array[Byte])] = {
-    val nextChunk =
-      if (head.nonEmpty) (Some(Chunk.bytes(head)): Option[Chunk[Byte]]).pure[F] else read
-    nextChunk.flatMap {
-      case None => (Headers.empty, Array.emptyByteArray).pure[F]
-      case Some(chunk) =>
-        if (chunk.isEmpty) parseTrailers(maxHeaderSize)(Array.emptyByteArray, read)
-        else if (chunk.toByteVector.startsWith(Shared.`\r\n`))
-          (Headers.empty, chunk.toArray.drop(`\r\n`.size.toInt)).pure[F]
-        else
-          Parser.HeaderP.parseHeaders(chunk.toArray, read, maxHeaderSize, None).map {
-            case (headers, _, _, bytes) =>
-              (headers, bytes)
-          }
+  )(buffer: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] =
+    if (buffer.startsWith(Shared.`\r\n`.toArray)) {
+      Trailers(Headers.empty, buffer.drop(`\r\n`.size.toInt)).pure[F]
+    } else if (buffer.length < 2) {
+      read.flatMap {
+        case None =>
+          // TODO: end of stream?
+          emptyTrailingHeaders.pure[F]
+        case Some(chunk) =>
+          parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
+      }
+    } else {
+      Parser.MessageP.parseMessage(buffer, read, maxHeaderSize).flatMap { message =>
+        Parser.HeaderP.parseHeaders(message.bytes, 0).map { headerP =>
+          Trailers(headerP.headers, message.rest)
+        }
+      }
     }
-  }
 
   private val lastChunk: Chunk[Byte] =
     Chunk.ByteVectorChunk((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
