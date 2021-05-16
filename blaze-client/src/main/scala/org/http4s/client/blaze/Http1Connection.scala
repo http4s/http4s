@@ -111,7 +111,6 @@ private final class Http1Connection[F[_]](
   def resetRead(): Unit = {
     val state = stageState.get()
     val nextState = state match {
-      case i: Idle => Some(i)
       case ReadWrite => Some(Write)
       case Read => Some(Idle(Some(startIdleRead())))
       case _ => None
@@ -127,7 +126,6 @@ private final class Http1Connection[F[_]](
   def resetWrite(): Unit = {
     val state = stageState.get()
     val nextState = state match {
-      case i: Idle => Some(i)
       case ReadWrite => Some(Read)
       case Write => Some(Idle(Some(startIdleRead())))
       case _ => None
