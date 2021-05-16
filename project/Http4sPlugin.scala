@@ -3,6 +3,7 @@ package org.http4s.sbt
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
+import com.typesafe.tools.mima.plugin.MimaKeys._
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
@@ -153,6 +154,13 @@ object Http4sPlugin extends AutoPlugin {
       },
 
     nowarnCompatAnnotationProvider := None,
+
+    mimaPreviousArtifacts := {
+      mimaPreviousArtifacts.value.filterNot(
+        // cursed release
+        _.revision == "0.21.10"
+      )
+    },
   )
 
   def extractApiVersion(version: String) = {
