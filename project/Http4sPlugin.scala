@@ -85,8 +85,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
-    // Unsure about binary compatibility
-    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.*"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn-json4s"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn-parser"),
@@ -316,7 +314,6 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineSpecs2 = "1.1.6"
     val dropwizardMetrics = "4.2.0"
     val fs2 = "2.5.6"
-    val jacksonDatabind = "2.11.4"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.40.v20210413"
@@ -376,7 +373,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Core                          = "co.fs2"                 %% "fs2-core"                  % V.fs2
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
-  lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % V.jawn
