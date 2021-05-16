@@ -25,6 +25,7 @@ import org.http4s.Method.OPTIONS
 import org.log4s.getLogger
 import org.typelevel.ci._
 import scala.concurrent.duration._
+import java.util.Objects
 
 /** CORS middleware config options.
   * You can give an instance of this class to the CORS middleware,
@@ -82,6 +83,32 @@ final class CORSConfig private (
 
   def withExposedHeaders(exposedHeaders: Option[Set[String]]): CORSConfig =
     copy(exposedHeaders = exposedHeaders)
+
+  override def equals(x: Any): Boolean = x match {
+    case config: CORSConfig =>
+      anyOrigin === config.anyOrigin &&
+        allowCredentials === config.allowCredentials &&
+        maxAge === config.maxAge &&
+        anyMethod === config.anyMethod &&
+        allowedMethods === config.allowedMethods &&
+        allowedHeaders === config.allowedHeaders &&
+        exposedHeaders === config.exposedHeaders
+    case _ => false
+  }
+
+  override def hashCode(): Int =
+    Objects.hashCode(
+      anyOrigin,
+      allowCredentials,
+      maxAge,
+      anyMethod,
+      allowedMethods,
+      allowedHeaders,
+      exposedHeaders
+    )
+
+  override def toString(): String = s"CORSConfig($anyOrigin,$allowCredentials,$maxAge," +
+    s"$anyMethod,$allowedOrigins,$allowedMethods,$allowedHeaders,$exposedHeaders)"
 }
 
 object CORSConfig {
