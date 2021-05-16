@@ -229,7 +229,6 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
       dropwizardMetricsJson,
-      jacksonDatabind,
     ))
   .dependsOn(
     core % "compile->compile",
