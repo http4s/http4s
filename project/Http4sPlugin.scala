@@ -85,10 +85,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
-    // Unsure about binary compatibility
-    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
-    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.1"),
-    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.2"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn-json4s"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn-parser"),
@@ -105,6 +101,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect*", revision="3.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect*", revision="1.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect*", revision="1.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang.modules", name = "scala-xml", revision="2.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
@@ -308,16 +305,15 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.16"
     val boopickle = "1.3.3"
-    val cats = "2.6.0"
-    val catsEffect = "2.5.0"
+    val cats = "2.6.1"
+    val catsEffect = "2.5.1"
     val catsEffectTesting = "0.5.3"
     val circe = "0.13.0"
     val cryptobits = "1.3"
-    val disciplineCore = "1.1.4"
-    val disciplineSpecs2 = "1.1.5"
-    val dropwizardMetrics = "4.1.21"
-    val fs2 = "2.5.5"
-    val jacksonDatabind = "2.11.4"
+    val disciplineCore = "1.1.5"
+    val disciplineSpecs2 = "1.1.6"
+    val dropwizardMetrics = "4.2.0"
+    val fs2 = "2.5.6"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.40.v20210413"
@@ -329,7 +325,7 @@ object Http4sPlugin extends AutoPlugin {
     val mockito = "3.5.15"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.0"
-    val munitDiscipline = "1.0.8"
+    val munitDiscipline = "1.0.9"
     val netty = "4.1.63.Final"
     val okio = "2.9.0"
     val okhttp = "4.9.1"
@@ -343,11 +339,11 @@ object Http4sPlugin extends AutoPlugin {
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.4"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.26"
+    val scodecBits = "1.1.27"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.11.0"
-    val tomcat = "9.0.45"
+    val tomcat = "9.0.46"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
@@ -377,7 +373,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Core                          = "co.fs2"                 %% "fs2-core"                  % V.fs2
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
-  lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % V.jawn

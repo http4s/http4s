@@ -199,7 +199,6 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
       dropwizardMetricsJson,
-      jacksonDatabind,
     ))
   .dependsOn(
     core % "compile->compile",
@@ -735,7 +734,7 @@ lazy val scalafixInput = project
       "http4s-client",
       "http4s-core",
       "http4s-dsl",
-    ).map("org.http4s" %% _ % "0.21.21"),
+    ).map("org.http4s" %% _ % "0.21.22"),
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
