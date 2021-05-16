@@ -54,12 +54,15 @@ it.
 ## Dependency updates
 
 * blaze-0.14.16
-* cats-2.5.0
-* cats-effect-2.4.1
-* dropwizard-metrics-4.1.21
-* fs2-2.5.5
+* cats-2.6.1
+* cats-effect-2.5.1
+* dropwizard-metrics-4.2.0
+* discipline-core-1.1.5
+* jackson-databind-2.12.3
+* fs2-2.5.6
 * scalacheck-1.15.4
-* scodec-bits-1.1.26
+* scodec-bits-1.1.27
+* tomcat-9.0.46
 
 # v0.21.22 (2021-04-06)
 
