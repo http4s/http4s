@@ -8,6 +8,59 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.23
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4793](https://github.com/http4s/http4s/pull/4793): Reset the idle timeout after `readRequest` completes, not when it's called.  Affects both blaze-server and blaze-client.
+
+## All servers
+
+### Enhancements
+
+* [#4793](https://github.com/http4s/http4s/pull/4793): Make use of IPv4 vs. IPv6 as default address explicit.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#4753](https://github.com/http4s/http4s/pull/4753): Distinguish between reserved and unknown websocket frame opcodes. Resolves a `MatchError`.
+* [#4792](https://github.com/http4s/http4s/pull/4792): Fixes HTTP/2 connections on modern JDKs by replacing legacy ALPN libraries.
+
+### Enhancements
+
+* [#4761](https://github.com/http4s/http4s/pull/4761): Use the `TickWheelExecutor` to schedule timeouts with less locking.  Change how the parser is acquired to reduce lock contention in `Http1ServerStage`.  Significant increases in throughput are observed on small requests with many cores.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#4750](https://github.com/http4s/http4s/pull/4750): Drain the socket's read buffer only after the response is written to the socket. Resolves several flavors of network error.
+
+## http4s-jetty
+
+### Bugfixes
+
+* [#4783](https://github.com/http4s/http4s/pull/4783): Fix bug with shared `ThreadPool` being destroyed. Prefer a `Resource[F, ThreadPool]` whose lifecycle shares Jetty's.  For compatibility, prevent the default from being destroyed.
+
+## http4s-circe
+
+### Enhancements
+
+* [#4736](https://github.com/http4s/http4s/pull/4736): Add `streamJsonArrayDecoder`
+
+## Dependency updates
+
+* blaze-0.14.16
+* cats-2.5.0
+* cats-effect-2.4.1
+* dropwizard-metrics-4.1.21
+* fs2-2.5.5
+* scalacheck-1.15.4
+* scodec-bits-1.1.26
+
 # v0.21.22 (2021-04-06)
 
 ## http4s-blaze-client
