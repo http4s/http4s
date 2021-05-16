@@ -90,6 +90,7 @@ final class CORSConfig private (
         allowCredentials === config.allowCredentials &&
         maxAge === config.maxAge &&
         anyMethod === config.anyMethod &&
+        allowedOrigins == config.allowedOrigins &&
         allowedMethods === config.allowedMethods &&
         allowedHeaders === config.allowedHeaders &&
         exposedHeaders === config.exposedHeaders
@@ -102,18 +103,19 @@ final class CORSConfig private (
       allowCredentials,
       maxAge,
       anyMethod,
+      allowedOrigins,
       allowedMethods,
       allowedHeaders,
       exposedHeaders
     )
 
-  override def toString(): String = s"CORSConfig($anyOrigin,$allowCredentials,$maxAge," +
-    s"$anyMethod,$allowedOrigins,$allowedMethods,$allowedHeaders,$exposedHeaders)"
+  override def toString(): String =
+    s"CORSConfig($anyOrigin,$allowCredentials,$maxAge,$anyMethod,$allowedOrigins,$allowedMethods,$allowedHeaders,$exposedHeaders)"
 }
 
 object CORSConfig {
 
-  def apply(): CORSConfig = new CORSConfig(
+  val default: CORSConfig = new CORSConfig(
     anyOrigin = true,
     allowCredentials = true,
     maxAge = 1.day,
