@@ -211,12 +211,15 @@ private final class Http1Connection[F[_]](
                 case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            val response: F[Response[F]] = writeRequest.start >>
-              receiveResponse(
+            val response: F[Response[F]] = for {
+              writeFiber <- writeRequest.start
+              response <- receiveResponse(
                 mustClose,
                 doesntHaveBody = req.method == Method.HEAD,
                 idleTimeoutS,
                 idleRead)
+              _ <- writeFiber.join
+            } yield response
 
             F.race(response, timeoutFiber.join)
               .flatMap[Response[F]] {
