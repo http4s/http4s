@@ -139,7 +139,7 @@ anything.  The right hand side of the request must return a
     IO(Response(Status.Ok))
 }
 // service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@a3e31da
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@2ce27de1
 // )
 </code></pre>
 
@@ -156,13 +156,13 @@ and experiment directly in the REPL.</p>
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@1762e52
+//   io.chrisdavenport.vault.Vault@663d335f
 // )
 
 val io = service.orNotFound.run(getRoot)
 // io: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8541/2047941851@72254701),
-//   cats.data.OptionT$$Lambda$8543/688498245@3f3a6071,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8540/1155748490@627861ba),
+//   cats.data.OptionT$$Lambda$8542/1682075591@781ebfdf,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -173,8 +173,8 @@ val io = service.orNotFound.run(getRoot)
 //       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
 //       cats.data.OptionT.getOrElse(OptionT.scala:99),
 //       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:49),
-//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:351),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:193),
+//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$4(Http1ServerStage.scala:364),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:200),
 //       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:114),
 //       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:114),
 //       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:48),
@@ -184,7 +184,7 @@ val io = service.orNotFound.run(getRoot)
 //       cats.effect.IO.unsafeRunTimed(IO.scala:338),
 //       cats.effect.IO.unsafeRunSync(IO.scala:256),
 //       cats.effect.SyncIO.unsafeRunSync(SyncIO.scala:51),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:199),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:205),
 //       java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1402),
 //       java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289),
 //       java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056),
@@ -212,7 +212,7 @@ run it.</p>
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@44f126ad
+//   io.chrisdavenport.vault.Vault@472cc848
 // )
 </code></pre>
 
@@ -236,7 +236,7 @@ applying a status code:</p>
 //     HttpVersion(1, 1),
 //     Headers(Content-Length: 0),
 //     Stream(..),
-//     io.chrisdavenport.vault.Vault@74c584df
+//     io.chrisdavenport.vault.Vault@4884ac39
 //   )
 // )
 val ok = okIo.unsafeRunSync()
@@ -245,7 +245,7 @@ val ok = okIo.unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@74c584df
+//   io.chrisdavenport.vault.Vault@4884ac39
 // )
 </code></pre>
 
@@ -260,7 +260,7 @@ service:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@2c00c809
+//   io.chrisdavenport.vault.Vault@69d06122
 // )
 </code></pre>
 
@@ -276,7 +276,7 @@ response:</p>
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@40551c10
+//   io.chrisdavenport.vault.Vault@64bdcb80
 // )
 </code></pre>
 
@@ -331,7 +331,7 @@ and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cook
 //       HttpVersion(1, 1),
 //       Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12),
 //       Stream(..),
-//       io.chrisdavenport.vault.Vault@ddc9ef9
+//       io.chrisdavenport.vault.Vault@45f231d7
 //     )
 //   ),
 //   &lt;function1&gt;,
@@ -352,23 +352,13 @@ and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cook
 //       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //       scala.Console$.withOut(Console.scala:167),
 //       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
-//       mdoc.internal.markdown.Processor.processDocument(Processor.scala:49),
-//       mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
-//       mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
-//       mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
-//       mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
-//       scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
-//       scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
-//       scala.collection.immutable.List.foldLeft(List.scala:91),
-//       mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
-//       mdoc.internal.cli.MainOps.run(MainOps.scala:177),
-//       mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
-// ...
+//       mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//       mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//     )
+//   )
+// )
 cookieResp.unsafeRunSync().headers
-// res6: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Wed, 07 Apr 2021 03:32:12 GMT; SameSite=Lax; Secure; HttpOnly)
+// res6: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Mon, 17 May 2021 05:09:34 GMT; SameSite=Lax; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
@@ -400,7 +390,7 @@ box:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 17),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@55e700e1
+//   io.chrisdavenport.vault.Vault@287aa834
 // )
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -410,7 +400,7 @@ Ok(&quot;binary&quot;.getBytes(UTF_8)).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/octet-stream, Content-Length: 6),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@7f8ddad4
+//   io.chrisdavenport.vault.Vault@42491568
 // )
 </code></pre>
 
@@ -445,7 +435,7 @@ effectful, unless we wrap it in <code>IO</code>:</p>
 suspended future is shifted to the correct thread pool.</p>
 
 <pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-// cs: ContextShift[IO] = cats.effect.internals.IOContextShift@49c7c32a
+// cs: ContextShift[IO] = cats.effect.internals.IOContextShift@3f6b3c43
 
 val io = Ok(IO.fromFuture(IO(Future {
   println(&quot;I run when the future is constructed.&quot;)
@@ -453,7 +443,7 @@ val io = Ok(IO.fromFuture(IO(Future {
 })))
 // io: IO[Response[IO]] = Bind(
 //   Async(
-//     cats.effect.internals.IOAsync$$$Lambda$8228/1031335716@1c4b7483,
+//     cats.effect.internals.IOAsync$$$Lambda$8231/2964182@345e45f9,
 //     false,
 //     StackTrace(
 //       List(
@@ -476,21 +466,23 @@ val io = Ok(IO.fromFuture(IO(Future {
 //         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //         scala.Console$.withOut(Console.scala:167),
 //         mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//         mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
-//         mdoc.internal.markdown.Processor.processDocument(Processor.scala:49),
-//         mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
-//         mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
-//         mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
-//         mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
-//         scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
-//         scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
-//         scala.collection.immutable.List.foldLeft(List.scala:91),
-//         mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
-//         mdoc.internal.cli.MainOps.run(MainOps.scala:177),
-//         mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
-//         mdoc.Main$.process(Main.scala:26),
+//         mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//         mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//       )
+//     )
+//   ),
+//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$9125/1458184499@5c3b41c,
+//   StackTrace(
+//     List(
+//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//       cats.effect.IO.flatMap(IO.scala:133),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
+//       org.http4s.dsl.impl.EntityResponseGenerator.apply(ResponseGenerator.scala:69),
+//       org.http4s.dsl.impl.EntityResponseGenerator.apply$(ResponseGenerator.scala:68),
+//       org.http4s.dsl.impl.Responses$OkOps.apply(Responses.scala:186),
 // ...
 io.unsafeRunSync()
 // I run when the future is constructed.
@@ -499,7 +491,7 @@ io.unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@2d95e18
+//   io.chrisdavenport.vault.Vault@48623f0c
 // )
 </code></pre>
 
@@ -512,7 +504,7 @@ of course prefer to operate in <code>F</code>s:</p>
 })
 // io: IO[Response[IO]] = Bind(
 //   Delay(&lt;function0&gt;),
-//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$9050/767674357@13e3bd31,
+//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$9125/1458184499@2e0d9b67,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -535,22 +527,11 @@ of course prefer to operate in <code>F</code>s:</p>
 //       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //       scala.Console$.withOut(Console.scala:167),
 //       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
-//       mdoc.internal.markdown.Processor.processDocument(Processor.scala:49),
-//       mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
-//       mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
-//       mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
-//       mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
-//       scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
-//       scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
-//       scala.collection.immutable.List.foldLeft(List.scala:91),
-//       mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
-//       mdoc.internal.cli.MainOps.run(MainOps.scala:177),
-//       mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
-//       mdoc.Main$.process(Main.scala:26),
-// ...
+//       mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//       mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//     )
+//   )
+// )
 io.unsafeRunSync()
 // I run when the IO is run.
 // res12: Response[IO] = Response(
@@ -558,7 +539,7 @@ io.unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 21),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@644af2f4
+//   io.chrisdavenport.vault.Vault@683a72d2
 // )
 </code></pre>
 
@@ -591,8 +572,8 @@ import scala.concurrent.duration._
 <pre><code class="language-scala">val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s =&gt; {IO{println(s); s}})).compile.drain
 // dripOutIO: IO[Unit] = Map(
 //   Bind(
-//     Delay(fs2.Stream$CompileOps$$Lambda$8643/515396573@23e27d92),
-//     fs2.Stream$Compiler$$anon$5$$Lambda$8645/113366097@6b83ce68,
+//     Delay(fs2.Stream$CompileOps$$Lambda$8699/608787350@7041589d),
+//     fs2.Stream$Compiler$$anon$5$$Lambda$8703/584139545@298283c6,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -627,7 +608,7 @@ import scala.concurrent.duration._
 //         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
 // ...
 dripOutIO.unsafeRunSync()
-// 107876867 nanoseconds208049322 nanoseconds308993179 nanoseconds410620236 nanoseconds511593189 nanoseconds612371064 nanoseconds713024638 nanoseconds814212116 nanoseconds915238593 nanoseconds1015812266 nanoseconds
+// 105870701 nanoseconds205653481 nanoseconds306560520 nanoseconds407510661 nanoseconds508582209 nanoseconds609447045 nanoseconds710428088 nanoseconds811249157 nanoseconds912124545 nanoseconds1016375114 nanoseconds
 </code></pre>
 
 <p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
@@ -642,7 +623,7 @@ transfer encoding:</p>
 //     HttpVersion(1, 1),
 //     Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked),
 //     Stream(..),
-//     io.chrisdavenport.vault.Vault@6587fc1c
+//     io.chrisdavenport.vault.Vault@6b96e332
 //   )
 // )
 </code></pre>
@@ -665,7 +646,7 @@ right side, the path info.  The following matches a request to <code>GET
   case GET -&gt; Root / &quot;hello&quot; =&gt; Ok(&quot;hello&quot;)
 }
 // res15: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@56697f0a
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@5001a070
 // )
 </code></pre>
 
@@ -740,7 +721,7 @@ val usersService = HttpRoutes.of[IO] {
     Ok(getUserName(userId))
 }
 // usersService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@665796b8
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@2a7e9f5d
 // )
 </code></pre>
 
@@ -769,7 +750,7 @@ val dailyWeatherService = HttpRoutes.of[IO] {
     Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
 }
 // dailyWeatherService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@13d2e494
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@175fa567
 // )
 
 println(GET(uri&quot;/weather/temperature/2016-11-05&quot;).flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync())
@@ -795,7 +776,7 @@ then parsing them as a <code>String</code> and <code>java.time.Year</code>.</p>
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@49ef9dee
+// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@4b0c5bcd
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 
@@ -806,7 +787,7 @@ val averageTemperatureService = HttpRoutes.of[IO] {
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
 }
 // averageTemperatureService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@54632af6
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@165360fc
 // )
 </code></pre>
 
@@ -833,7 +814,7 @@ import org.http4s.client.dsl.io._
 
 <pre><code class="language-scala">implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@e5b9494
+// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@4889811c
 
 object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Year](&quot;year&quot;)
 
@@ -850,7 +831,7 @@ val routes2 = HttpRoutes.of[IO] {
     }
 }
 // routes2: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@a29378f
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@221771f7
 // )
 </code></pre>
 
@@ -864,7 +845,7 @@ val routes2 = HttpRoutes.of[IO] {
 
 <pre><code class="language-scala">implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].emap(i =&gt; Try(Year.of(i)).toEither.leftMap(t =&gt; ParseFailure(t.getMessage, t.getMessage)))
-// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@3f1cdbc9
+// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@b6c944b
 
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year](&quot;year&quot;)
 
@@ -876,7 +857,7 @@ val routes = HttpRoutes.of[IO] {
     )
 }
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@72657246
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@635515a
 // )
 </code></pre>
 
@@ -902,7 +883,7 @@ val routes = HttpRoutes.of[IO] {
     }
 }
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8235/419830098@20c8b7aa
+//   org.http4s.HttpRoutes$$$Lambda$8238/110408375@230a1e1
 // )
 </code></pre>
 

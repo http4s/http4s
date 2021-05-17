@@ -93,7 +93,7 @@ http4s to try our service.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.13.4&quot; // Also supports 2.11.x and 2.12.x
 
-val http4sVersion = &quot;0.21.21&quot;
+val http4sVersion = &quot;0.21.22&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -133,15 +133,15 @@ val app = HttpRoutes.of[IO] {
     Ok(s&quot;Hello, $name.&quot;)
 }.orNotFound
 // app: cats.data.Kleisli[IO, Request[IO], Response[IO]] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$8335/534186661@7b3d1324
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$8338/594293747@5651862d
 // )
 
 val server = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;).withHttpApp(app).resource
 // server: Resource[IO, org.http4s.server.Server[IO]] = Bind(
 //   Allocate(
 //     Map(
-//       Delay(org.http4s.blazecore.package$$$Lambda$8339/529776777@1ce14cde),
-//       cats.effect.Resource$$$Lambda$8340/1807898038@7e6dfc6b,
+//       Delay(org.http4s.blazecore.package$$$Lambda$8342/692376371@28731250),
+//       cats.effect.Resource$$$Lambda$8343/817628245@4cb34eda,
 //       StackTrace(
 //         List(
 //           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -167,15 +167,14 @@ val server = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;
 //           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //           scala.Console$.withOut(Console.scala:167),
 //           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//           mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
-//           mdoc.internal.markdown.Processor.processDocument(Processor.scala:49),
-//           mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
-//           mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
-//           mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
-//           mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
-//           scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:...
+//           mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//           mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//         )
+//       )
+//     )
+//   ),
+//   org.http4s.server.blaze.BlazeServerBuilder$$Lambda$8344/1051831835@63e15cad
+// )
 </code></pre>
 
 <p>We&rsquo;ll start the server in the background.  The <code>IO.never</code> keeps it
@@ -185,7 +184,7 @@ running until we cancel the fiber.</p>
 // fiber: Fiber[IO, Nothing] = Tuple(
 //   Bind(
 //     Async(
-//       cats.effect.internals.IOAsync$$$Lambda$8228/1031335716@1bfe8d2b,
+//       cats.effect.internals.IOAsync$$$Lambda$8231/2964182@3e413b44,
 //       false,
 //       StackTrace(
 //         List(
@@ -266,9 +265,9 @@ and the URI we want:</p>
 // helloJames: IO[String] = Bind(
 //   Map(
 //     Delay(
-//       org.http4s.client.JavaNetClientBuilder$$Lambda$8418/1210838147@1da13c28
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8421/1438947231@615cf631
 //     ),
-//     cats.effect.Resource$$$Lambda$8374/1934406692@58076b29,
+//     cats.effect.Resource$$$Lambda$8378/1674617663@56f07a45,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -340,7 +339,7 @@ val greetingList = people.parTraverse(hello)
 // greetingList: IO[Vector[String]] = Map(
 //   Map(
 //     Async(&lt;function3&gt;, true, null),
-//     cats.data.Chain$$$Lambda$8432/819905771@3d960410,
+//     cats.data.Chain$$$Lambda$8435/1585620176@12764d4c,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -357,7 +356,7 @@ val greetingList = people.parTraverse(hello)
 //         cats.instances.VectorInstances$$anon$1.traverse(vector.scala:96),
 //         cats.instances.VectorInstances$$anon$1.traverse(vector.scala:15),
 //         cats.Parallel$.parTraverse(Parallel.scala:215),
-//         cats.syntax.ParallelTraversableOps$.parTraverse$extension(parallel.scala:112),
+//         cats.syntax.ParallelTraversableOps1$.parTraverse$extension(parallel.scala:135),
 //         repl.MdocSession$App.&lt;init&gt;(client.md:128),
 //         repl.MdocSession$.app(client.md:3),
 //         mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
@@ -369,15 +368,18 @@ val greetingList = people.parTraverse(hello)
 //         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //         scala.Console$.withOut(Console.scala:167),
 //         mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//         mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
-//         mdoc.internal.markdown.Processor.processDocument(Processor.scala:49),
-//         mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
-//         mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
-//         mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
-//         mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
-//         scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:12...
+//         mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//         mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//       )
+//     )
+//   ),
+//   cats.instances.VectorInstances$$anon$1$$Lambda$8436/163570608@6caeb033,
+//   StackTrace(
+//     List(
+//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+// ...
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -400,7 +402,7 @@ server.</li>
 //   Map(
 //     Map(
 //       Async(&lt;function3&gt;, true, null),
-//       cats.data.Chain$$$Lambda$8432/819905771@3d960410,
+//       cats.data.Chain$$$Lambda$8435/1585620176@12764d4c,
 //       StackTrace(
 //         List(
 //           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -417,7 +419,7 @@ server.</li>
 //           cats.instances.VectorInstances$$anon$1.traverse(vector.scala:96),
 //           cats.instances.VectorInstances$$anon$1.traverse(vector.scala:15),
 //           cats.Parallel$.parTraverse(Parallel.scala:215),
-//           cats.syntax.ParallelTraversableOps$.parTraverse$extension(parallel.scala:112),
+//           cats.syntax.ParallelTraversableOps1$.parTraverse$extension(parallel.scala:135),
 //           repl.MdocSession$App.&lt;init&gt;(client.md:128),
 //           repl.MdocSession$.app(client.md:3),
 //           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
@@ -429,13 +431,14 @@ server.</li>
 //           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //           scala.Console$.withOut(Console.scala:167),
 //           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//           mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
-//           mdoc.internal.markdown.Processor.processDocument(Processor.scala:49),
-//           mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
-//           mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
-//           mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
+//           mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//           mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//         )
+//       )
+//     ),
+//     cats.instances.VectorInstances$$anon$1$$Lambda$8436/163570608@6caeb033,
+//     StackTrace(
+//       List(
 // ...
 greetingsStringEffect.unsafeRunSync()
 // res1: String = &quot;&quot;&quot;Hello, Michael.
@@ -568,14 +571,14 @@ import com.codahale.metrics.SharedMetricRegistries
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@5b261f72
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@2efa7333
 val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
-// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@e27ce8a
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@66d7c590
 val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
 // requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
 
 val meteredClient = Metrics[IO](Dropwizard(registry, &quot;prefix&quot;), requestMethodClassifier)(httpClient)
-// meteredClient: Client[IO] = org.http4s.client.Client$$anon$1@11cdd83f
+// meteredClient: Client[IO] = org.http4s.client.Client$$anon$1@6f40f1ad
 </code></pre>
 
 <p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
@@ -600,7 +603,7 @@ import org.http4s.metrics.prometheus.Prometheus
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@5ac8c6d7
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@4f1c1c1e
 val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
 // requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
 
@@ -614,9 +617,9 @@ val meteredClient: Resource[IO, Client[IO]] =
 //     Map(
 //       Map(
 //         Delay(
-//           org.http4s.metrics.prometheus.Prometheus$$$Lambda$8815/741140191@31fe9f73
+//           org.http4s.metrics.prometheus.Prometheus$$$Lambda$8891/1030567761@32829d25
 //         ),
-//         cats.effect.Resource$$$Lambda$8372/1110473144@19d4458,
+//         cats.effect.Resource$$$Lambda$8376/1183844508@6aa135a0,
 //         StackTrace(
 //           List(
 //             cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -660,9 +663,9 @@ to add a label to every metric based on the <code>Request</code></p>
 // res3: IO[String] = Bind(
 //   Map(
 //     Delay(
-//       org.http4s.client.JavaNetClientBuilder$$Lambda$8418/1210838147@7eee7874
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8421/1438947231@2046cc0
 //     ),
-//     cats.effect.Resource$$$Lambda$8374/1934406692@620ce700,
+//     cats.effect.Resource$$$Lambda$8378/1674617663@2d577c72,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -726,7 +729,7 @@ import org.http4s.Method._
 //     HttpVersion(1, 1),
 //     Headers(Authorization: Bearer open sesame, Accept: application/json),
 //     Stream(..),
-//     io.chrisdavenport.vault.Vault@58a7753
+//     io.chrisdavenport.vault.Vault@418d4799
 //   )
 // )
 
@@ -745,10 +748,10 @@ httpClient.expect[String](request)
 //       HttpVersion(1, 1),
 //       Headers(Authorization: Bearer open sesame, Accept: application/json),
 //       Stream(..),
-//       io.chrisdavenport.vault.Vault@58a7753
+//       io.chrisdavenport.vault.Vault@418d4799
 //     )
 //   ),
-//   org.http4s.client.DefaultClient$$Lambda$8818/937875682@604bae95,
+//   org.http4s.client.DefaultClient$$Lambda$8894/368354318@10b9e308,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -773,9 +776,8 @@ httpClient.expect[String](request)
 //       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //       scala.Console$.withOut(Console.scala:167),
 //       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
+//       mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//       mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
 // ...
 </code></pre>
 
@@ -808,7 +810,7 @@ val postRequest = POST(
 //     HttpVersion(1, 1),
 //     Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
 //     Stream(..),
-//     io.chrisdavenport.vault.Vault@18472d22
+//     io.chrisdavenport.vault.Vault@665d2dd4
 //   )
 // )
 
@@ -827,10 +829,10 @@ httpClient.expect[AuthResponse](postRequest)
 //       HttpVersion(1, 1),
 //       Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
 //       Stream(..),
-//       io.chrisdavenport.vault.Vault@18472d22
+//       io.chrisdavenport.vault.Vault@665d2dd4
 //     )
 //   ),
-//   org.http4s.client.DefaultClient$$Lambda$8818/937875682@29bab39e,
+//   org.http4s.client.DefaultClient$$Lambda$8894/368354318@30a4c282,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -855,9 +857,8 @@ httpClient.expect[AuthResponse](postRequest)
 //       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //       scala.Console$.withOut(Console.scala:167),
 //       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-// ...
+//       mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//       mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:1...
 </code></pre>
 
 <h2 id="calls-to-a-json-api">Calls to a JSON API</h2>

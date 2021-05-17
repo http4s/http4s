@@ -137,6 +137,10 @@
                         <a class="object" href="JettyBuilder$.html" title=""></a>
                         <a class="class" href="" title=""></a>
                         <a href="" title="">JettyBuilder</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="JettyThreadPools$.html" title=""></a>
+                        <a href="JettyThreadPools$.html" title="">JettyThreadPools</a>
                       </li>
               </ul>
             </div>
@@ -167,7 +171,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.22/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.23/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -329,7 +333,7 @@ to process requests.  The second element of the tuple shuts
 down the backend when run.</p><p>Unlike <a href="#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#resource">resource</a> and <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#stream">stream</a>, there is no automatic
 release of the backend.  This function is intended for REPL
 sessions, tests, and other situations where composing a
-<a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html" class="extype" name="cats.effect.Resource">cats.effect.Resource</a> or <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.4/fs2-core_2.12-2.5.4-javadoc.jar/!/fs2/Stream.html" class="extype" name="fs2.Stream">fs2.Stream</a> is not tenable.
+<a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html" class="extype" name="cats.effect.Resource">cats.effect.Resource</a> or <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Stream.html" class="extype" name="fs2.Stream">fs2.Stream</a> is not tenable.
 <a href="#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#resource">resource</a> or <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#stream">stream</a> is recommended wherever possible.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -360,7 +364,7 @@ sessions, tests, and other situations where composing a
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">bindAny</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.Host</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+        <span class="name">bindAny</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.IPv4Host</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
@@ -376,7 +380,7 @@ sessions, tests, and other situations where composing a
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">bindHttp</span><span class="params">(<span name="port">port: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.HttpPort</a></span></span></span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.Host</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+        <span class="name">bindHttp</span><span class="params">(<span name="port">port: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.HttpPort</a></span></span></span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.IPv4Host</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
@@ -699,7 +703,7 @@ server is started and ready to accept requests.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serve</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.4/fs2-core_2.12-2.5.4-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://typelevel.org/cats-effect/api/cats/effect/ExitCode.html#cats.effect.ExitCode" class="extype" name="cats.effect.ExitCode">ExitCode</a>]</span>
+        <span class="name">serve</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://typelevel.org/cats-effect/api/cats/effect/ExitCode.html#cats.effect.ExitCode" class="extype" name="cats.effect.ExitCode">ExitCode</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server
@@ -717,7 +721,7 @@ that runs for the rest of the JVM's life.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.4/fs2-core_2.12-2.5.4-javadoc.jar/!/fs2/concurrent/Signal.html#fs2.concurrent.Signal" class="extype" name="fs2.concurrent.Signal">Signal</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <a href="https://typelevel.org/cats-effect/api/cats/effect/concurrent/Ref.html#cats.effect.concurrent.Ref" class="extype" name="cats.effect.concurrent.Ref">Ref</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://typelevel.org/cats-effect/api/cats/effect/ExitCode.html#cats.effect.ExitCode" class="extype" name="cats.effect.ExitCode">ExitCode</a>]</span>)</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.4/fs2-core_2.12-2.5.4-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://typelevel.org/cats-effect/api/cats/effect/ExitCode.html#cats.effect.ExitCode" class="extype" name="cats.effect.ExitCode">ExitCode</a>]</span>
+        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/concurrent/Signal.html#fs2.concurrent.Signal" class="extype" name="fs2.concurrent.Signal">Signal</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <a href="https://typelevel.org/cats-effect/api/cats/effect/concurrent/Ref.html#cats.effect.concurrent.Ref" class="extype" name="cats.effect.concurrent.Ref">Ref</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://typelevel.org/cats-effect/api/cats/effect/ExitCode.html#cats.effect.ExitCode" class="extype" name="cats.effect.ExitCode">ExitCode</a>]</span>)</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://typelevel.org/cats-effect/api/cats/effect/ExitCode.html#cats.effect.ExitCode" class="extype" name="cats.effect.ExitCode">ExitCode</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
@@ -735,7 +739,7 @@ Useful for servers with associated lifetime behaviors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.4/fs2-core_2.12-2.5.4-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</span>
+        <span class="name">stream</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Returns the backend as a single-element stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a single-element stream.  The stream
@@ -1017,10 +1021,10 @@ default <code>SSLParameters</code>
       <p class="shortcomment cmt">Configures the server with TLS, using the provided <code>SSLContext</code> and its
 default <code>SSLParameters</code>
 </p>
-    </li><li name="org.http4s.server.jetty.JettyBuilder#withThreadPool" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withThreadPool(threadPool:org.eclipse.jetty.util.thread.ThreadPool):org.http4s.server.jetty.JettyBuilder[F]"></a><a id="withThreadPool(ThreadPool):JettyBuilder[F]"></a>
+    </li><li name="org.http4s.server.jetty.JettyBuilder#withThreadPoolResource" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withThreadPoolResource(threadPoolResource:cats.effect.Resource[F,org.eclipse.jetty.util.thread.ThreadPool]):org.http4s.server.jetty.JettyBuilder[F]"></a><a id="withThreadPoolResource(Resource[F,ThreadPool]):JettyBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#withThreadPool(threadPool:org.eclipse.jetty.util.thread.ThreadPool):org.http4s.server.jetty.JettyBuilder[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#withThreadPoolResource(threadPoolResource:cats.effect.Resource[F,org.eclipse.jetty.util.thread.ThreadPool]):org.http4s.server.jetty.JettyBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1029,10 +1033,13 @@ default <code>SSLParameters</code>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withThreadPool</span><span class="params">(<span name="threadPool">threadPool: <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html#org.eclipse.jetty.util.thread.ThreadPool" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">ThreadPool</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]</span>
+        <span class="name">withThreadPoolResource</span><span class="params">(<span name="threadPoolResource">threadPoolResource: <a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html#cats.effect.Resource" class="extype" name="cats.effect.Resource">Resource</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html#org.eclipse.jetty.util.thread.ThreadPool" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">ThreadPool</a>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Set the <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">org.eclipse.jetty.util.thread.ThreadPool</a> that Jetty will use.</p><div class="fullcomment"><div class="comment cmt"><p>Set the <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">org.eclipse.jetty.util.thread.ThreadPool</a> that Jetty will use.</p><p>It is recommended you use <a href="JettyThreadPools$.html#resource[F[_]](value:F[org.eclipse.jetty.util.thread.ThreadPool])(implicitF:cats.effect.Async[F]):cats.effect.Resource[F,org.eclipse.jetty.util.thread.ThreadPool]" class="extmbr" name="org.http4s.server.jetty.JettyThreadPools#resource">JettyThreadPools#resource</a> to build this so
+that it will be gracefully shutdown when/if the Jetty server is
+shutdown.
+</p></div></div>
     </li><li name="org.http4s.server.ServerBuilder#withoutBanner" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withoutBanner:ServerBuilder.this.Self"></a><a id="withoutBanner:Self"></a>
       <span class="permalink">
@@ -1127,6 +1134,30 @@ default <code>SSLParameters</code>
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-RC3)</i> Use <code>withSslContext</code> (note lowercase). To request client certificates, use <code>withSslContextAndParameters, calling either </code>.setWantClientAuth(true)<code> or </code>setNeedClientAuth(true)<code> on the </code>SSLParameters<code>.</code></p></dd></dl></div>
+    </li><li name="org.http4s.server.jetty.JettyBuilder#withThreadPool" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withThreadPool(threadPool:org.eclipse.jetty.util.thread.ThreadPool):org.http4s.server.jetty.JettyBuilder[F]"></a><a id="withThreadPool(ThreadPool):JettyBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#withThreadPool(threadPool:org.eclipse.jetty.util.thread.ThreadPool):org.http4s.server.jetty.JettyBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.23) Please use withThreadPoolResource instead and see JettyThreadPools.">withThreadPool</span><span class="params">(<span name="threadPool">threadPool: <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html#org.eclipse.jetty.util.thread.ThreadPool" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">ThreadPool</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Set the <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">org.eclipse.jetty.util.thread.ThreadPool</a> that Jetty will use.</p><div class="fullcomment"><div class="comment cmt"><p>Set the <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">org.eclipse.jetty.util.thread.ThreadPool</a> that Jetty will use.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.23)</i> Please use withThreadPoolResource instead and see JettyThreadPools.</p></dd><dt>Note</dt><dd><span class="cmt"><p>You should prefer <a href="#withThreadPoolResource(threadPoolResource:cats.effect.Resource[F,org.eclipse.jetty.util.thread.ThreadPool]):org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder#withThreadPoolResource">#withThreadPoolResource</a> instead of this
+      method. If you invoke this method the provided
+      <a href="https://www.eclipse.org/jetty/javadoc/jetty-9/org/eclipse/jetty/util/thread/ThreadPool.html" class="extype" name="org.eclipse.jetty.util.thread.ThreadPool">org.eclipse.jetty.util.thread.ThreadPool</a> <i>will not</i> be
+      joined, stopped, or destroyed when/if the Jetty server stops. This
+      is to preserve the &lt;= 0.21.23 semantics.</p></span></dd></dl></div>
     </li></ol>
             </div>
         </div>
