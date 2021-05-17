@@ -25,7 +25,7 @@ import org.http4s.Method.OPTIONS
 import org.log4s.getLogger
 import org.typelevel.ci._
 import scala.concurrent.duration._
-import java.util.Objects
+import scala.util.hashing.MurmurHash3
 
 /** CORS middleware config options.
   * You can give an instance of this class to the CORS middleware,
@@ -97,23 +97,25 @@ final class CORSConfig private (
     case _ => false
   }
 
-  override def hashCode(): Int =
-    Objects.hash(
-      anyOrigin,
-      allowCredentials,
-      maxAge,
-      anyMethod,
-      allowedOrigins,
-      allowedMethods,
-      allowedHeaders,
-      exposedHeaders
-    )
+  override def hashCode(): Int = {
+    var hash = CORSConfig.hashSeed
+    hash = MurmurHash3.mix(hash, anyOrigin.##)
+    hash = MurmurHash3.mix(hash, allowCredentials.##)
+    hash = MurmurHash3.mix(hash, maxAge.##)
+    hash = MurmurHash3.mix(hash, anyMethod.##)
+    hash = MurmurHash3.mix(hash, allowedOrigins.##)
+    hash = MurmurHash3.mix(hash, allowedMethods.##)
+    hash = MurmurHash3.mix(hash, allowedHeaders.##)
+    hash = MurmurHash3.mixLast(hash, exposedHeaders.##)
+    hash
+  }
 
   override def toString(): String =
     s"CORSConfig($anyOrigin,$allowCredentials,$maxAge,$anyMethod,$allowedOrigins,$allowedMethods,$allowedHeaders,$exposedHeaders)"
 }
 
 object CORSConfig {
+  private val hashSeed = MurmurHash3.stringHash("CORSConfig")
 
   val default: CORSConfig = new CORSConfig(
     anyOrigin = true,
