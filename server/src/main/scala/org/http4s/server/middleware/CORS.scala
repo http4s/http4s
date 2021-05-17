@@ -98,7 +98,7 @@ final class CORSConfig private (
   }
 
   override def hashCode(): Int =
-    Objects.hashCode(
+    Objects.hash(
       anyOrigin,
       allowCredentials,
       maxAge,
