@@ -181,10 +181,10 @@ object CORS {
         (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
           case (true, true, _, _) => true
           case (true, false, _, acrm) =>
-            config.allowedMethods.exists(_.find(_.toString() === acrm).nonEmpty)
+            config.allowedMethods.exists(_.find(_.name === acrm).nonEmpty)
           case (false, true, origin, _) => config.allowedOrigins(origin)
           case (false, false, origin, acrm) =>
-            config.allowedMethods.exists(_.find(_.toString() === acrm).nonEmpty) &&
+            config.allowedMethods.exists(_.find(_.name === acrm).nonEmpty) &&
               config.allowedOrigins(origin)
         }
 
