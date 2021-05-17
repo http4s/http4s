@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.http4s.client.blaze
+package org.http4s.blaze.client
 
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.{SSLContext, X509TrustManager}
-import org.http4s.BuildInfo
+import org.http4s.{BuildInfo, ProductId}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.headers.`User-Agent`
-import org.http4s.ProductId
 import scala.concurrent.duration._
 
-private[blaze] object bits {
+private[http4s] object bits {
   // Some default objects
   val DefaultResponseHeaderTimeout: Duration = 10.seconds
   val DefaultTimeout: Duration = 60.seconds

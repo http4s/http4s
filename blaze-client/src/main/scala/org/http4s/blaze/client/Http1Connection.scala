@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect._
 import cats.effect.implicits._
@@ -29,12 +29,12 @@ import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
+import org.http4s.client.RequestKey
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
 import org.typelevel.vault._
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 private final class Http1Connection[F[_]](
@@ -49,7 +49,7 @@ private final class Http1Connection[F[_]](
 )(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
-  import org.http4s.client.blaze.Http1Connection._
+  import Http1Connection._
 
   override def name: String = getClass.getName
   private val parser =

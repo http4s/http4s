@@ -3,6 +3,7 @@ rule = v0_22
 */
 package fix
 
+import org.http4s.blaze.client._
 import org.http4s.client.asynchttpclient._
 import org.http4s.client.jetty._
 import org.http4s.server.jetty._
@@ -24,4 +25,7 @@ object RewritePackagesTests {
 
   val asyncHttpClient = AsyncHttpClient
   val asyncHttpClientQualified = org.http4s.client.asynchttpclient.AsyncHttpClient
+
+  val blazeClient = BlazeClient
+  val blazeClientQualified = org.http4s.blaze.client.BlazeClient
 }

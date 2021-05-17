@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.blaze
+package org.http4s.blaze.client
 
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution
