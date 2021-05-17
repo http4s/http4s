@@ -8,7 +8,9 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.23
+# v0.21.23 (2021-05-16)
+
+This is the final planned release in the 0.21 series.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
 
 ## http4s-blaze-client
 
