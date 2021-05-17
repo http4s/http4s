@@ -22,7 +22,7 @@ it.
 
 ### Bugfixes
 
-* [#4793](https://github.com/http4s/http4s/pull/4793): Reset the idle timeout after `readRequest` completes, not when it's called.  Affects both blaze-server and blaze-client.
+* [#4796](https://github.com/http4s/http4s/pull/4796): Reset the idle timeout after `readRequest` completes, not when it's called.  Affects both blaze-server and blaze-client.
 
 ## http4s-blaze-server
 
