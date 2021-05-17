@@ -28,6 +28,7 @@ import fs2.io.tls._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.vault.Vault
 import java.net.InetSocketAddress
+import java.util.Locale
 import org.http4s._
 import org.http4s.ember.core.Util.durationToFinite
 import org.http4s.ember.core.{Drain, EmptyStreamError, Encoder, Parser, Read}
@@ -40,11 +41,12 @@ import scodec.bits.ByteVector
 
 private[server] object ServerHelpers {
 
-  private val closeCi = "close".ci
+  private[this] val closeCi = "close".ci
+  private[this] val keepAliveCi = "keep-alive".ci
 
-  private val connectionCi = "connection".ci
-  private val close = Connection(NonEmptyList.of(closeCi))
-  private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
+  private[this] val connectionCi = "connection".ci
+  private[this] val close = Connection(NonEmptyList.of(closeCi))
+  private[this] val keepAlive = Connection(NonEmptyList.one(keepAliveCi))
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
@@ -169,18 +171,29 @@ private[server] object ServerHelpers {
   private[internal] def postProcessResponse[F[_]: Timer: Monad](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
-    val reqHasClose = req.headers.exists {
-      // We know this is raw because we have not parsed any headers in the underlying alg.
-      // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-      case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.value)
-      case _ => false
-    }
     val connection: Connection =
-      if (reqHasClose) close
-      else keepAlive
+      if (isKeepAlive(req.httpVersion, req.headers)) keepAlive
+      else close
     for {
       date <- HttpDate.current[F].map(Date(_))
     } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
+  }
+
+  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
+    // We know this is raw because we have not parsed any headers in the underlying alg.
+    // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
+    def hasConnection(expected: String): Boolean =
+      headers.exists {
+        case Header.Raw(name, value) =>
+          name == connectionCi && value.toLowerCase(Locale.ROOT).contains(expected)
+        case _ => false
+      }
+
+    httpVersion match {
+      case HttpVersion.`HTTP/1.0` => hasConnection(keepAliveCi.value)
+      case HttpVersion.`HTTP/1.1` => !hasConnection(closeCi.value)
+      case _ => false
+    }
   }
 
   private[internal] def runConnection[F[_]: Concurrent: Timer](
@@ -246,10 +259,8 @@ private[server] object ServerHelpers {
                 }
             }
         }
-        .takeWhile { case (req, resp) =>
-          !(req.headers
-            .get(Connection)
-            .exists(_.hasClose) || resp.headers.get(Connection).exists(_.hasClose))
+        .takeWhile { case (_, resp) =>
+          resp.headers.get(Connection).exists(_.hasKeepAlive)
         }
         .drain ++ Stream.eval_(socket.close)
     }
