@@ -273,9 +273,9 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.0-M3"
+    val blaze = "0.15.0-M4"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.1.3"
+    val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
     val catsEffect = "2.5.1"
     val catsParse = "0.3.4"
@@ -286,12 +286,12 @@ object Http4sPlugin extends AutoPlugin {
     val fs2 = "2.5.6"
     val ip4s = "2.0.3"
     val jawn = "1.1.2"
-    val jawnFs2 = "1.1.2"
+    val jawnFs2 = "1.1.3"
     val jetty = "9.4.40.v20210413"
-    val keypool = "0.3.3"
+    val keypool = "0.3.5"
     val literally = "1.0.2"
     val logback = "1.2.3"
-    val log4cats = "1.3.0"
+    val log4cats = "1.3.1"
     val log4s = "1.10.0-RC1"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.3"
@@ -313,7 +313,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.46"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.10"
+    val vault = "2.1.11"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
