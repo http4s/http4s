@@ -25,7 +25,6 @@ import java.util.concurrent.TimeoutException
 import org.http4s._
 import org.http4s.syntax.all._
 import org.http4s.client.ConnectionFailure
-import org.specs2.execute.StandardResults.pending
 import scala.concurrent.duration._
 
 class BlazeClientSuite extends BlazeClientBase {
@@ -120,7 +119,7 @@ class BlazeClientSuite extends BlazeClientBase {
     resp.assert
   }
 
-  test("Blaze Http1Client should cancel infinite request on completion") {
+  test("Blaze Http1Client should cancel infinite request on completion".ignore) {
     val addresses = jettyServer().addresses
     val address = addresses.head
     val name = address.getHostName
@@ -137,7 +136,6 @@ class BlazeClientSuite extends BlazeClientBase {
         }
       }
       .assertEquals(())
-    pending
   }
 
   test("Blaze Http1Client should doesn't leak connection on timeout") {
