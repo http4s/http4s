@@ -8,6 +8,67 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.0-M8
+
+## http4s-async-http-client
+
+### Breaking changes
+
+* [#4749](https://github.com/http4s/http4s/pull/4749): Rename package from `org.http4s.client.asynchttpclient` to `org.http4s.asynchttpclient.client`
+
+## http4s-client
+
+### Breaking changes
+
+* [#4747](https://github.com/http4s/http4s/pull/4747): Move `ConnectionManager`, `PoolManager`, and `WaitQueueTimeoutException` into blaze-client and make private. It did not prove to be a generally useful connection pool outside blaze.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4757](https://github.com/http4s/http4s/pull/4757): Response is no longer a case class. It is not a proper product type, and no equality should be implied given the streaming bodies.
+
+### Bug fixes
+
+* [#4739](https://github.com/http4s/http4s/pull/4739): Postpone using query model until we need it.  Helps with various corner cases linked in the ticket.
+* [#4756](https://github.com/http4s/http4s/pull/4756): Tweak default `responseColor` of `Logger.colored` so it can be called.
+* [#4824](https://github.com/http4s/http4s/pull/4824): Fix `Message#removeCookie` to allow removing multiple cookies.
+
+### Enhancements
+
+* [#4797](https://github.com/http4s/http4s/pull/4797): Add `Header.ToRaw[Headers]` instance
+
+## http4s-jetty-client
+
+### Breaking changes
+
+* [#4743](https://github.com/http4s/http4s/pull/4743): Rename package from `org.http4s.client.jetty` to `org.http4s.jetty.client`
+
+## http4s-jetty-server
+
+### Breaking changes
+
+* [#4743](https://github.com/http4s/http4s/pull/4743): Rename package from `org.http4s.server.jetty` to `org.http4s.jetty.server`
+* [#4746](https://github.com/http4s/http4s/pull/4746): Module renamed from `http4s-jetty` to `http4s-jetty-server`.
+
+## http4s-server
+
+### Breaking changes
+
+* [#4785](https://github.com/http4s/http4s/pull/4785): Remove unsued `Functor[G]` parameter to `AutoSlash` middleware
+
+## Dependency updates
+
+* cats-parse-0.3.3
+* case-insensitive-1.1.3
+* ip4s-2.0.2
+* jawn-1.1.2
+* jawn-fs2-1.1.2
+* literally-1.0.1
+* log4cats-1.3.0
+* log4s-1.10.0-M7
+* vault-2.1.10
+
 # v0.21.23 (2021-05-16)
 
 This is the final planned release in the 0.21 series.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
@@ -64,6 +125,10 @@ This is the final planned release in the 0.21 series.  Bugfixes and community su
 * [#4783](https://github.com/http4s/http4s/pull/4783): Fix bug with shared `ThreadPool` being destroyed. Prefer a `Resource[F, ThreadPool]` whose lifecycle shares Jetty's.  For compatibility, prevent the default from being destroyed.
 
 ## http4s-server
+
+### Breaking changes
+
+* [#4827](https://github.com/http4s/http4s/pull/4827): Convert `CORSConfig` from a case class to an abstract type for future binary compatibility
 
 ### Enhancements
 
