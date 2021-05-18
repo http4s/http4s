@@ -362,11 +362,11 @@ private[blaze] class Http1ServerStage[F[_]](
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
-        val timeoutResponse = F.asyncF[Response[F]] { cb =>
+        val timeoutResponse = F.async[Response[F]] { cb =>
           F.delay {
             val cancellable =
               scheduler.schedule(() => cb(Right(Response.timeout[F])), executionContext, finite)
-            F.delay(cancellable.cancel())
+            Some(F.delay(cancellable.cancel()))
           }
         }
         req => F.race(runApp(req), timeoutResponse).map(_.merge)

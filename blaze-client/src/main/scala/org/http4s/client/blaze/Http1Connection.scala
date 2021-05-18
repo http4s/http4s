@@ -254,6 +254,7 @@ private final class Http1Connection[F[_]](
               "Initial Read",
               idleTimeoutS)
         }
+        None
       }
     }
 

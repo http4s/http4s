@@ -197,7 +197,7 @@ private[server] object ServerHelpers {
     }
   }
 
-  private[internal] def runConnection[F[_]: Concurrent: Timer](
+  private[internal] def runConnection[F[_]: Temporal](
       socket: Socket[F],
       logger: Logger[F],
       idleTimeout: Duration,

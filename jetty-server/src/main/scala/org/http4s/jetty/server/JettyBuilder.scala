@@ -36,6 +36,7 @@ import org.eclipse.jetty.server.{
 }
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
 import org.http4s.server.{
@@ -270,7 +271,7 @@ sealed class JettyBuilder[F[_]] private (
       dispatcher <- Dispatcher[F]
       jettyThreadPool <- threadPoolResourceOption.getOrElse(Resource.pure(threadPool))
       jettyServer <- Resource(F.delay {
-        val jetty = new JServer(threadPool)
+        val jetty = new JServer(jettyThreadPool)
 
         val context = new ServletContextHandler()
         context.setContextPath("/")
@@ -301,9 +302,6 @@ sealed class JettyBuilder[F[_]] private (
 
         jetty -> shutdown(jetty)
       })
-      _ <- Resource.eval(banner.traverse_(value => F.delay(logger.info(value))))
-      _ <- Resource.eval(F.delay(logger.info(
-        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")))
       server = new Server {
         lazy val address: InetSocketAddress = {
           val host = socketAddress.getHostString
@@ -313,6 +311,9 @@ sealed class JettyBuilder[F[_]] private (
 
         lazy val isSecure: Boolean = sslConfig.isSecure
       }
+      _ <- Resource.eval(banner.traverse_(value => F.delay(logger.info(value))))
+      _ <- Resource.eval(F.delay(logger.info(
+        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")))
     } yield server
 
   private def shutdown(jetty: JServer): F[Unit] =
@@ -324,66 +325,6 @@ sealed class JettyBuilder[F[_]] private (
         }
       )
     }
-
-  def resource: Resource[F, Server] = {
-    // If threadPoolResourceOption is None, then use the value of
-    // threadPool.
-    val threadPoolR: Resource[F, ThreadPool] =
-      threadPoolResourceOption.getOrElse(
-        Resource.pure(threadPool)
-      )
-    val serverR: ThreadPool => Resource[F, Server] = (threadPool: ThreadPool) =>
-      JettyLifeCycle
-        .lifeCycleAsResource[F, JServer](
-          F.delay {
-            val jetty = new JServer(threadPool)
-            val context = new ServletContextHandler()
-
-            context.setContextPath("/")
-
-            jetty.setHandler(context)
-
-            val connector = getConnector(jetty)
-
-            connector.setHost(socketAddress.getHostString)
-            connector.setPort(socketAddress.getPort)
-            connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
-            jetty.addConnector(connector)
-
-            // Jetty graceful shutdown does not work without a stats handler
-            val stats = new StatisticsHandler
-            stats.setHandler(jetty.getHandler)
-            jetty.setHandler(stats)
-
-            jetty.setStopTimeout(shutdownTimeout match {
-              case d: FiniteDuration => d.toMillis
-              case _ => 0L
-            })
-
-            for ((mount, i) <- mounts.zipWithIndex)
-              mount.f(context, i, this)
-
-            jetty
-          }
-        )
-        .map((jetty: JServer) =>
-          new Server {
-            lazy val address: InetSocketAddress = {
-              val host = socketAddress.getHostString
-              val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-              new InetSocketAddress(host, port)
-            }
-
-            lazy val isSecure: Boolean = sslConfig.isSecure
-          })
-    for {
-      threadPool <- threadPoolR
-      server <- serverR(threadPool)
-      _ <- Resource.eval(banner.traverse_(value => F.delay(logger.info(value))))
-      _ <- Resource.eval(F.delay(logger.info(
-        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")))
-    } yield server
-  }
 }
 
 object JettyBuilder {
