@@ -111,6 +111,31 @@ val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
 check[String](response, Status.NotFound, Some("Not found"))
 ```
 
+### Using client
+
+Having HttpApp you can build a client for testing purposes. Following the example above we could define our HttpApp like this:
+```scala mdoc:nest
+val httpApp: HttpApp[IO] = service[IO](success).orNotFound
+```
+From this, we can obtain the `Client` instance using `Client.fromHttpApp` and then use it to test our sever/app.
+
+
+```scala mdoc:nest
+val client = Client.fromHttpApp(httpApp)
+val request: Request[IO] = Request(method = Method.GET, uri = uri"/user/not-used")
+val expectedJson = Json.obj(
+      ("name", Json.fromString("johndoe")),
+      ("age", Json.fromBigInt(42))
+)
+val client: Client[IO] = Client.fromHttpApp(httpApp)
+val resp: IO[Json]     = client.expect(request)
+assert(resp.unsafeRunSync() == expectedJson)
+```
+
+
+
+
+
 ## Conclusion
 
 The above documentation demonstrated how to define an HttpService[F], pass `Request`'s, and then 
