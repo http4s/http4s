@@ -15,20 +15,21 @@
  */
 
 package org.http4s
-package server
 package blaze
+package server
 
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
+import munit.TestOptions
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
+import org.http4s.multipart.Multipart
+import org.http4s.server.Server
+import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 import scala.io.Source
-import org.http4s.multipart.Multipart
-import scala.concurrent.ExecutionContext.global
-import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift

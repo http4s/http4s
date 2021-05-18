@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.server.blaze
+package org.http4s.blaze.server
 
 import cats.effect._
 import cats.syntax.all._
@@ -32,7 +32,7 @@ import org.typelevel.ci._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
+private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit val F: ConcurrentEffect[F]
 
   override protected def renderResponse(

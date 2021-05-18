@@ -1,6 +1,7 @@
 package fix
 
 import org.http4s.blaze.client._
+import org.http4s.blaze.server._
 import org.http4s.asynchttpclient.client._
 import org.http4s.jetty.client._
 import org.http4s.jetty.server._
@@ -25,4 +26,7 @@ object RewritePackagesTests {
 
   val blazeClient = BlazeClient
   val blazeClientQualified = org.http4s.blaze.client.BlazeClient
+
+  val blazeServerBuilder = BlazeServerBuilder
+  val blazeServerBuilderQualified = org.http4s.blaze.client.BlazeServerBuilder
 }

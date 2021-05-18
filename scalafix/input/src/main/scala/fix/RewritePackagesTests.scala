@@ -28,4 +28,7 @@ object RewritePackagesTests {
 
   val blazeClient = BlazeClient
   val blazeClientQualified = org.http4s.client.blaze.BlazeClient
+  
+  val blazeBuilder = BlazeServerBuilder
+  val blazeBuilderQualified = org.http4s.blaze.server.BlazeServerBuilder
 }

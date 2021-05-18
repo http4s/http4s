@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s.server.blaze
+package org.http4s.blaze.server
 
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLSession
 
 @deprecated("Moved to org.http4s.internal.tls", "0.21.19")
-private[blaze] object SSLContextFactory {
+private[http4s] object SSLContextFactory {
   def getCertChain(sslSession: SSLSession): List[X509Certificate] =
     org.http4s.internal.tls.getCertChain(sslSession)
 
