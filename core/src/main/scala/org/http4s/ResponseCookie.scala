@@ -48,8 +48,8 @@ final case class ResponseCookie(
     writer
   }
 
-  def clearCookie: headers.`Set-Cookie` =
-    headers.`Set-Cookie`(copy(content = "", expires = Some(HttpDate.Epoch)))
+  def clearCookie: ResponseCookie =
+    copy(content = "", expires = Some(HttpDate.Epoch))
 
   private def withExpires(expires: HttpDate): ResponseCookie =
     copy(expires = Some(expires))
