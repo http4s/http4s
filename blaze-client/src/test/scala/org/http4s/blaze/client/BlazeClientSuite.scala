@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.client
-package blaze
+package org.http4s.blaze
+package client
 
 import cats.effect._
 import cats.effect.concurrent.Deferred
@@ -23,8 +23,8 @@ import cats.syntax.all._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
 import org.http4s._
+import org.http4s.client.{ConnectionFailure, RequestKey}
 import org.http4s.syntax.all._
-import org.http4s.client.ConnectionFailure
 import scala.concurrent.duration._
 
 class BlazeClientSuite extends BlazeClientBase {

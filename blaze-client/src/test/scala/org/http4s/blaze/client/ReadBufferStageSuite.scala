@@ -15,14 +15,14 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import java.util.concurrent.atomic.AtomicInteger
 import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder, TailStage}
 import org.http4s.blazecore.util.FutureUnit
-import scala.concurrent.{Await, Awaitable, Future, Promise}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Awaitable, Future, Promise}
 
 class ReadBufferStageSuite extends Http4sSuite {
   test("Launch read request on startup") {

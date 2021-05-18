@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s.client
+package org.http4s
 package blaze
+package client
 
-sealed abstract class ParserMode extends Product with Serializable
+import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
+import org.http4s.blaze.pipeline.TailStage
+import org.http4s.client.Connection
 
-object ParserMode {
-  case object Strict extends ParserMode
-  case object Lenient extends ParserMode
+private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
+  def runRequest(req: Request[F], idleTimeout: F[TimeoutException]): F[Response[F]]
 }

@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect._
 import java.net.InetSocketAddress
@@ -28,9 +28,10 @@ import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.internal.SSLContextOption
-import org.http4s.headers.`User-Agent`
 import org.http4s.blazecore.util.fromFutureNoShift
+import org.http4s.client.{ConnectionFailure, RequestKey}
+import org.http4s.headers.`User-Agent`
+import org.http4s.internal.SSLContextOption
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}

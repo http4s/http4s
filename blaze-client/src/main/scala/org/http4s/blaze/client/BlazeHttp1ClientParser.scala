@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.blaze
+package org.http4s.blaze.client
 
 import cats.syntax.all._
 import java.nio.ByteBuffer

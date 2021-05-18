@@ -15,13 +15,25 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
-import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
-import org.http4s.blaze.pipeline.TailStage
+import cats.effect._
+import cats.syntax.all._
+import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
 
-private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
-  def runRequest(req: Request[F], idleTimeout: F[TimeoutException]): F[Response[F]]
+private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])(
+    implicit F: Sync[F])
+    extends ConnectionManager[F, A] {
+  def borrow(requestKey: RequestKey): F[NextConnection] =
+    builder(requestKey).map(NextConnection(_, fresh = true))
+
+  override def shutdown: F[Unit] =
+    F.unit
+
+  override def invalidate(connection: A): F[Unit] =
+    F.delay(connection.shutdown())
+
+  override def release(connection: A): F[Unit] =
+    invalidate(connection)
 }

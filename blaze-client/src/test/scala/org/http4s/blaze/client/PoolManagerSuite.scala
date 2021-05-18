@@ -15,15 +15,16 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect._
 import com.comcast.ip4s._
 import fs2.Stream
+import org.http4s.client.{Connection, RequestKey}
 import org.http4s.syntax.AllSyntax
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class PoolManagerSuite extends Http4sSuite with AllSyntax {
   val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.Ipv4Address(ipv4"127.0.0.1")))
