@@ -420,7 +420,7 @@ class BlazeServerBuilder[F[_]] private (
 object BlazeServerBuilder {
   def apply[F[_]](executionContext: ExecutionContext)(implicit F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
-      socketAddress = defaults.SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress,
       executionContext = executionContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,

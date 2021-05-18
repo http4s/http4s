@@ -116,6 +116,11 @@ object Header {
         val values = List(Header.Raw(CIString(kv._1), kv._2))
       }
 
+    implicit def headersToRaw(h: Headers): Header.ToRaw =
+      new Header.ToRaw {
+        val values = h.headers
+      }
+
     implicit def modelledHeadersToRaw[H](h: H)(implicit
         H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {

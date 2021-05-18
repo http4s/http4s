@@ -4,6 +4,7 @@ import dotty.tools.sbtplugin.DottyPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
+import com.typesafe.tools.mima.plugin.MimaKeys._
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
@@ -121,6 +122,13 @@ object Http4sPlugin extends AutoPlugin {
       },
 
     nowarnCompatAnnotationProvider := None,
+
+    mimaPreviousArtifacts := {
+      mimaPreviousArtifacts.value.filterNot(
+        // cursed release
+        _.revision == "0.21.10"
+      )
+    },
   )
 
   def extractApiVersion(version: String) = {
@@ -279,13 +287,13 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.0-M3"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.1.3"
-    val cats = "2.6.0"
+    val cats = "2.6.1"
     val catsEffect = "3.1.0"
-    val catsParse = "0.3.2"
+    val catsParse = "0.3.3"
     val circe = "0.14.0-M5"
     val cryptobits = "1.3"
-    val disciplineCore = "1.1.4"
-    val dropwizardMetrics = "4.1.20"
+    val disciplineCore = "1.1.5"
+    val dropwizardMetrics = "4.2.0"
     val fs2 = "3.0.2"
     val ip4s = "3.0.2"
     val jacksonDatabind = "2.12.3"
@@ -299,7 +307,7 @@ object Http4sPlugin extends AutoPlugin {
     val log4s = "1.10.0-M7"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.2"
-    val munitDiscipline = "1.0.8"
+    val munitDiscipline = "1.0.9"
     val netty = "4.1.63.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
@@ -307,14 +315,14 @@ object Http4sPlugin extends AutoPlugin {
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.3"
+    val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.1"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.0-RC1"
-    val scodecBits = "1.1.26"
+    val scodecBits = "1.1.27"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
-    val tomcat = "9.0.45"
+    val tomcat = "9.0.46"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.0.2"
@@ -348,7 +356,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
-  lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn

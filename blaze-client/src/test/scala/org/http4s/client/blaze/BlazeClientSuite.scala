@@ -119,7 +119,7 @@ class BlazeClientSuite extends BlazeClientBase {
     resp.assertEquals(true)
   }
 
-  test("Blaze Http1Client should cancel infinite request on completion") {
+  test("Blaze Http1Client should cancel infinite request on completion".ignore) {
     val addresses = jettyServer().addresses
     val address = addresses(0)
     val name = address.getHostName
