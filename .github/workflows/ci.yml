@@ -69,10 +69,6 @@ jobs:
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
-      - name: Check unused compile dependencies
-        if: matrix.scala != '3.0.0'
-        run: sbt ++${{ matrix.scala }} unusedCompileDependenciesTest
-
       - name: Run tests
         run: sbt ++${{ matrix.scala }} test
 

@@ -13,14 +13,14 @@ ThisBuild / publishFullName   := "Ross A. Baker"
 
 ThisBuild / githubWorkflowBuild := Seq(
       // todo remove once salafmt properly supports scala3
-      WorkflowStep
-        .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
+      WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
       WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
       WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
       WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-      WorkflowStep.Sbt(
-        List("unusedCompileDependenciesTest"),
-        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
+      // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
+      // WorkflowStep.Sbt(
+        // List("unusedCompileDependenciesTest"),
+        // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
       WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
       WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
     )
