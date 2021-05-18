@@ -8,7 +8,7 @@ import java.io.File
 import java.io.PrintWriter
 import org.http4s.Uri
 import org.http4s.circe._
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import sbt._
 import sbt.Keys.scalaSource
 import scala.concurrent.ExecutionContext.global
