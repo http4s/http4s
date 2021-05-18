@@ -36,7 +36,9 @@ private[ember] object ChunkedEncoding {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
     def go(expect: Either[ByteVector, Long], head: Array[Byte]): Pull[F, Byte, Unit] = {
-      val nextChunk = if (head.nonEmpty) Pull.pure(Some(Chunk.byteVector(ByteVector.apply(head)))) else Pull.eval(read)
+      val nextChunk =
+        if (head.nonEmpty) Pull.pure(Some(Chunk.byteVector(ByteVector.apply(head))))
+        else Pull.eval(read)
       nextChunk.flatMap {
         case None =>
           // TODO: Check if we ended at a correct state?

@@ -298,7 +298,7 @@ sealed class JettyBuilder[F[_]] private (
           mount.f(context, i, this, dispatcher)
 
         jetty.start()
-        
+
         jetty -> shutdown(jetty)
       })
       _ <- Resource.eval(banner.traverse_(value => F.delay(logger.info(value))))

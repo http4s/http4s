@@ -246,7 +246,13 @@ private final class Http1Connection[F[_]](
           case Some(read) =>
             handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
           case None =>
-            handleRead(channelRead(), cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
+            handleRead(
+              channelRead(),
+              cb,
+              closeOnFinish,
+              doesntHaveBody,
+              "Initial Read",
+              idleTimeoutS)
         }
       }
     }
