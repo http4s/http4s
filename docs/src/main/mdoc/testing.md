@@ -76,8 +76,8 @@ val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
 )
 
 val expectedJson = Json.obj(
-  ("name", Json.fromString("johndoe")),
-  ("age",  Json.fromBigInt(42))
+      "name" := "johndoe",
+      "age" := 42
 )
 
 check[Json](response, Status.Ok, Some(expectedJson))
@@ -124,8 +124,8 @@ From this, we can obtain the `Client` instance using `Client.fromHttpApp` and th
 val client = Client.fromHttpApp(httpApp)
 val request: Request[IO] = Request(method = Method.GET, uri = uri"/user/not-used")
 val expectedJson = Json.obj(
-      ("name", Json.fromString("johndoe")),
-      ("age", Json.fromBigInt(42))
+      "name" := "johndoe",
+      "age" := 42
 )
 val client: Client[IO] = Client.fromHttpApp(httpApp)
 val resp: IO[Json]     = client.expect(request)
