@@ -118,6 +118,7 @@ Having HttpApp you can build a client for testing purposes. Following the exampl
 ```scala mdoc:nest
 val httpApp: HttpApp[IO] = service[IO](success).orNotFound
 ```
+
 From this, we can obtain the `Client` instance using `Client.fromHttpApp` and then use it to test our sever/app.
 
 ```scala mdoc:nest
