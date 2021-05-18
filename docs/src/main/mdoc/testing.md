@@ -132,10 +132,6 @@ val resp: IO[Json]     = client.expect(request)
 assert(resp.unsafeRunSync() == expectedJson)
 ```
 
-
-
-
-
 ## Conclusion
 
 The above documentation demonstrated how to define an HttpService[F], pass `Request`'s, and then 
