@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect.IO
 import org.http4s.blaze.channel.ChannelOptions

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.client
-package blaze
+package org.http4s.blaze
+package client
 
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
+import org.http4s.client.RequestKey
 import org.http4s.headers.`User-Agent`
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

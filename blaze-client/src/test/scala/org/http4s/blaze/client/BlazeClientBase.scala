@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.client
-package blaze
+package org.http4s.blaze
+package client
 
 import cats.effect._
 import javax.net.ssl.SSLContext
@@ -23,6 +23,7 @@ import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.client.JettyScaffold
 import org.http4s.client.testroutes.GetRoutes
 import scala.concurrent.duration._
 

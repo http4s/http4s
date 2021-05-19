@@ -15,13 +15,13 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
-
+import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 

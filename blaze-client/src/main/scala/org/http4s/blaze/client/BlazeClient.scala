@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.implicits._
@@ -25,6 +25,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{IdleTimeoutStage, ResponseHeaderTimeoutStage}
+import org.http4s.client.{Client, RequestKey}
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

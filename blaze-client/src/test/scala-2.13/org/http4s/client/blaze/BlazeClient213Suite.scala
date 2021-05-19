@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s._
+import org.http4s.blaze.client.BlazeClientBase
 import scala.concurrent.duration._
 import scala.util.Random
 

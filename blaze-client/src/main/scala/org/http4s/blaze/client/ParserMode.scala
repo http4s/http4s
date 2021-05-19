@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.blaze
 package client
-package blaze
 
-import cats.effect._
-import cats.syntax.all._
+sealed abstract class ParserMode extends Product with Serializable
 
-private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])(
-    implicit F: Sync[F])
-    extends ConnectionManager[F, A] {
-  def borrow(requestKey: RequestKey): F[NextConnection] =
-    builder(requestKey).map(NextConnection(_, fresh = true))
-
-  override def shutdown: F[Unit] =
-    F.unit
-
-  override def invalidate(connection: A): F[Unit] =
-    F.delay(connection.shutdown())
-
-  override def release(connection: A): F[Unit] =
-    invalidate(connection)
+object ParserMode {
+  case object Strict extends ParserMode
+  case object Lenient extends ParserMode
 }

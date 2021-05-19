@@ -15,24 +15,28 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import fs2.Stream
+import fs2.concurrent.Queue
+import org.http4s.blaze.pipeline.Command.EOF
+
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import org.http4s.blaze.client.bits.DefaultUserAgent
+import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, TestHead}
-import org.http4s.client.blaze.bits.DefaultUserAgent
+import org.http4s.client.RequestKey
 import org.http4s.headers.`User-Agent`
 import org.http4s.syntax.all._
 import org.http4s.testing.DispatcherIOFixture
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
 

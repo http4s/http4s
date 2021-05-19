@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.effect._
 import cats.effect.kernel.Deferred
@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, SlowTestHead}
+import org.http4s.client.{Client, RequestKey}
 import org.http4s.syntax.all._
 import org.http4s.testing.DispatcherIOFixture
 

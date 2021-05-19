@@ -71,7 +71,7 @@ A good default choice is the `BlazeClientBuilder`.  The
 `BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
 ```scala mdoc
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import org.http4s.client._
 import scala.concurrent.ExecutionContext.global
 ```

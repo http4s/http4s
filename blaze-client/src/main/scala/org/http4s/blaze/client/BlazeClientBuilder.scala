@@ -15,27 +15,24 @@
  */
 
 package org.http4s
-package client
 package blaze
+package client
 
 import cats.syntax.all._
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Dispatcher
+import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousChannelGroup
-
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.client.{Client, ConnectionBuilder, RequestKey, defaults}
 import org.http4s.headers.`User-Agent`
-import org.http4s.internal.SSLContextOption
-import org.http4s.ProductId
-import org.http4s.internal.BackendBuilder
+import org.http4s.internal.{BackendBuilder, SSLContextOption}
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import java.net.InetSocketAddress
 
 /** @param sslContext Some custom `SSLContext`, or `None` if the
   * default SSL context is to be lazily instantiated.
