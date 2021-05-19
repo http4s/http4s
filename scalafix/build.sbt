@@ -59,8 +59,7 @@ lazy val input = project.settings(
       "http4s-jetty",
       "http4s-jetty-client",
       "http4s-okhttp-client",
-      "http4s-async-http-client",
-      "http4s-blaze-client"
+      "http4s-async-http-client"
     ).map("org.http4s" %% _ % "0.21.18"),
   skip in publish := true
 )
