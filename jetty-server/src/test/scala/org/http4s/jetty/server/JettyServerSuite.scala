@@ -79,14 +79,13 @@ class JettyServerSuite extends Http4sSuite {
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
     }
 
-  jettyServer.test("ChannelOptions should route requests on the service executor") {
-    server =>
-      get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
+  jettyServer.test("ChannelOptions should route requests on the service executor") { server =>
+    get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
   }
 
-  jettyServer.test(
-    "ChannelOptions should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
+  jettyServer.test("ChannelOptions should execute the service task on the service executor") {
+    server =>
+      get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
   }
 
   jettyServer.test("ChannelOptions should be able to echo its input") { server =>
