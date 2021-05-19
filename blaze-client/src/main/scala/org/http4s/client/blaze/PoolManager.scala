@@ -16,13 +16,13 @@
 
 package org.http4s
 package client
+package blaze
 
 import cats.syntax.all._
 import cats.effect._
 import cats.effect.syntax.all._
 import cats.effect.std.Semaphore
 import java.time.Instant
-import java.util.concurrent.TimeoutException
 import org.log4s.getLogger
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -35,9 +35,6 @@ final case class WaitQueueFullFailure() extends RuntimeException {
 
   override def getMessage: String = "Wait queue is full"
 }
-
-case object WaitQueueTimeoutException
-    extends TimeoutException("In wait queue for too long, timing out request.")
 
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],

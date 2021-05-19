@@ -27,8 +27,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import cats.effect.unsafe.implicits.global
 
-/** A simple stage t
-  * o help test websocket requests
+/** A simple stage to help test websocket requests
   *
   * This is really disgusting code but bear with me here:
   * `java.util.LinkedBlockingDeque` does NOT have nodes with

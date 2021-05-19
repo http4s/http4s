@@ -205,10 +205,10 @@ private[blaze] class Http1ServerStage[F[_]](
                     closeConnection())
               }
 
+            val token = Some(dispatcher.unsafeToFutureCancelable(action)._2)
+
             parser.synchronized {
-              // TODO: review blocking compared to CE2
-              val (_, token) = dispatcher.unsafeToFutureCancelable(action)
-              cancelToken = Some(token)
+              cancelToken = token
             }
 
             ()
@@ -362,7 +362,13 @@ private[blaze] class Http1ServerStage[F[_]](
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
-        val timeoutResponse = F.sleep(finite).as(Response.timeout[F])
+        val timeoutResponse = F.async[Response[F]] { cb =>
+          F.delay {
+            val cancellable =
+              scheduler.schedule(() => cb(Right(Response.timeout[F])), executionContext, finite)
+            Some(F.delay(cancellable.cancel()))
+          }
+        }
         req => F.race(runApp(req), timeoutResponse).map(_.merge)
       case _ =>
         runApp

@@ -38,7 +38,7 @@ import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
+import org.eclipse.jetty.util.thread.ThreadPool
 import org.http4s.server.{
   DefaultServiceErrorHandler,
   SSLClientAuthMode,
@@ -57,7 +57,8 @@ import scala.concurrent.duration._
 
 sealed class JettyBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
-    threadPool: ThreadPool,
+    private val threadPool: ThreadPool,
+    threadPoolResourceOption: Option[Resource[F, ThreadPool]],
     private val idleTimeout: Duration,
     private val asyncTimeout: Duration,
     shutdownTimeout: Duration,
@@ -78,6 +79,7 @@ sealed class JettyBuilder[F[_]] private (
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
       threadPool: ThreadPool = threadPool,
+      threadPoolResourceOption: Option[Resource[F, ThreadPool]] = threadPoolResourceOption,
       idleTimeout: Duration = idleTimeout,
       asyncTimeout: Duration = asyncTimeout,
       shutdownTimeout: Duration = shutdownTimeout,
@@ -92,6 +94,7 @@ sealed class JettyBuilder[F[_]] private (
     new JettyBuilder(
       socketAddress,
       threadPool,
+      threadPoolResourceOption,
       idleTimeout,
       asyncTimeout,
       shutdownTimeout,
@@ -144,8 +147,28 @@ sealed class JettyBuilder[F[_]] private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
+  /** Set the [[org.eclipse.jetty.util.thread.ThreadPool]] that Jetty will use.
+    *
+    * It is recommended you use [[JettyThreadPools#resource]] to build this so
+    * that it will be gracefully shutdown when/if the Jetty server is
+    * shutdown.
+    */
+  def withThreadPoolResource(threadPoolResource: Resource[F, ThreadPool]): JettyBuilder[F] =
+    copy(threadPoolResourceOption = Some(threadPoolResource))
+
+  /** Set the [[org.eclipse.jetty.util.thread.ThreadPool]] that Jetty will use.
+    *
+    * @note You should prefer [[#withThreadPoolResource]] instead of this
+    *       method. If you invoke this method the provided
+    *       [[org.eclipse.jetty.util.thread.ThreadPool]] ''will not'' be
+    *       joined, stopped, or destroyed when/if the Jetty server stops. This
+    *       is to preserve the <= 0.21.23 semantics.
+    */
+  @deprecated(
+    message = "Please use withThreadPoolResource instead and see JettyThreadPools.",
+    since = "0.21.23")
   def withThreadPool(threadPool: ThreadPool): JettyBuilder[F] =
-    copy(threadPool = threadPool)
+    copy(threadPoolResourceOption = None, threadPool = new UndestroyableThreadPool(threadPool))
 
   override def mountServlet(
       servlet: HttpServlet,
@@ -244,9 +267,11 @@ sealed class JettyBuilder[F[_]] private (
   }
 
   def resource: Resource[F, Server] =
-    Dispatcher[F].flatMap(dispatcher =>
-      Resource(F.delay {
-        val jetty = new JServer(threadPool)
+    for {
+      dispatcher <- Dispatcher[F]
+      jettyThreadPool <- threadPoolResourceOption.getOrElse(Resource.pure(threadPool))
+      jettyServer <- Resource(F.delay {
+        val jetty = new JServer(jettyThreadPool)
 
         val context = new ServletContextHandler()
         context.setContextPath("/")
@@ -275,22 +300,21 @@ sealed class JettyBuilder[F[_]] private (
 
         jetty.start()
 
-        val server = new Server {
-          lazy val address: InetSocketAddress = {
-            val host = socketAddress.getHostString
-            val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-            new InetSocketAddress(host, port)
-          }
-
-          lazy val isSecure: Boolean = sslConfig.isSecure
+        jetty -> shutdown(jetty)
+      })
+      server = new Server {
+        lazy val address: InetSocketAddress = {
+          val host = socketAddress.getHostString
+          val port = jettyServer.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
+          new InetSocketAddress(host, port)
         }
 
-        banner.foreach(logger.info(_))
-        logger.info(
-          s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
-
-        server -> shutdown(jetty)
-      }))
+        lazy val isSecure: Boolean = sslConfig.isSecure
+      }
+      _ <- Resource.eval(banner.traverse_(value => F.delay(logger.info(value))))
+      _ <- Resource.eval(F.delay(logger.info(
+        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")))
+    } yield server
 
   private def shutdown(jetty: JServer): F[Unit] =
     F.async_[Unit] { cb =>
@@ -300,15 +324,17 @@ sealed class JettyBuilder[F[_]] private (
           override def lifeCycleFailure(ev: LifeCycle, cause: Throwable) = cb(Left(cause))
         }
       )
-      jetty.stop()
     }
 }
 
 object JettyBuilder {
   def apply[F[_]: Async] =
     new JettyBuilder[F](
-      socketAddress = defaults.SocketAddress,
-      threadPool = new QueuedThreadPool(),
+      socketAddress = defaults.IPv4SocketAddress,
+      threadPool = LazyThreadPool.newLazyThreadPool,
+      threadPoolResourceOption = Some(
+        JettyThreadPools.default[F]
+      ),
       idleTimeout = defaults.IdleTimeout,
       asyncTimeout = defaults.ResponseTimeout,
       shutdownTimeout = defaults.ShutdownTimeout,
