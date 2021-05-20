@@ -15,22 +15,23 @@
  */
 
 package org.http4s
-package server
 package blaze
+package server
 
 import cats.effect.{ConcurrentEffect, Timer}
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
-import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
 import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
+import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.server.ServiceErrorHandler
 import org.typelevel.vault._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 /** Facilitates the use of ALPN when using blaze http2 support */
-private[blaze] object ProtocolSelector {
+private[http4s] object ProtocolSelector {
   def apply[F[_]](
       engine: SSLEngine,
       httpApp: HttpApp[F],

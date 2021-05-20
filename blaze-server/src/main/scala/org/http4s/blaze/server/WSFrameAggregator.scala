@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s.server.blaze
+package org.http4s.blaze.server
 
-import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.util.Execution._
 import java.net.ProtocolException
+import org.http4s.blaze.pipeline.MidStage
+import org.http4s.blaze.server.WSFrameAggregator.Accumulator
+import org.http4s.blaze.util.Execution._
 import org.http4s.internal.bug
-import org.http4s.server.blaze.WSFrameAggregator.Accumulator
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 import scala.annotation.tailrec

@@ -15,33 +15,32 @@
  */
 
 package org.http4s
-package server
 package blaze
+package server
 
 import cats.effect.{CancelToken, Concurrent, ConcurrentEffect, IO, Sync}
 import cats.syntax.all._
-
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
-import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
-import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
+import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
+import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
+import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
 import org.typelevel.ci._
 import org.typelevel.vault._
-
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
-private[blaze] object Http1ServerStage {
+private[http4s] object Http1ServerStage {
   def apply[F[_]](
       routes: HttpApp[F],
       attributes: () => Vault,

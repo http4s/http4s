@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package server
 package blaze
+package server
 
 import cats.effect._
 import fs2.Stream._

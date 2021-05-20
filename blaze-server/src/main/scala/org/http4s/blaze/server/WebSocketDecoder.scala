@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s.server.blaze
+package org.http4s.blaze.server
 
 import java.net.ProtocolException
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.stages.ByteToObjectStage
-import org.http4s.websocket.{FrameTranscoder, WebSocketFrame}
 import org.http4s.websocket.FrameTranscoder.TranscodeError
+import org.http4s.websocket.{FrameTranscoder, WebSocketFrame}
 
 private class WebSocketDecoder
     extends FrameTranscoder(isClient = false)

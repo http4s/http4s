@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.server.blaze
+package org.http4s.blaze.server
 
 import cats.effect.{ContextShift, IO, Resource}
 import fs2.io.tls.TLSParameters
@@ -26,10 +26,10 @@ import org.http4s.dsl.io._
 import org.http4s.server.{Server, ServerRequestKeys}
 import org.http4s.testing.ErrorReporting
 import org.http4s.{Http4sSuite, HttpApp}
+import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try
-import scala.concurrent.ExecutionContext.global
 
 /** Test cases for mTLS support in blaze server
   */
