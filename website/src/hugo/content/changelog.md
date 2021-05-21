@@ -10,7 +10,7 @@ it.
 
 # v1.0.0-M22 (2021-05-21)
 
-Functionally equivalent to v0.23.0-M1.  Restores the latest code to the latest tag for people who use Scala Steward.
+Functionally equivalent to v0.23.0-M1.  Keeps the 1.0 milestones current as we continue our roadmap.
 
 # v0.23.0-M1 (2021-05-21)
 
