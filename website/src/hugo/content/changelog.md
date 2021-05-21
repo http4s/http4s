@@ -8,6 +8,29 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.0-M8 (2021-05-21)
+
+Includes the changes of v0.21.23.  This is the first release with support for Scala 3.0.0.  We intend to make this a production release as soon as circe-0.14 is out.
+
+There are several package renames in the backends.  To help, we've provided a Scalafix:
+
+1. Add to your `projects/plugins.sbt`:
+
+   ```scala
+   addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.28")
+   ```
+
+2. Run the following:
+
+   ```sh
+   sbt ";scalafixEnable; scalafix github:http4s/http4s/v0_22"
+   ```
+
+## Crossbuilds
+
+* Adds Scala 3
+* Drops Scala-3.0.0-RC2
+
 # v1.0.0-M21 (2021-04-10)
 
 Contains all the changes of v0.22.0-M7.
