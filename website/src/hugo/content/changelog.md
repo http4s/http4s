@@ -20,6 +20,84 @@ Contains all the changes of v0.22.0-M7.
 * log4cats-2.0.1
 * vault-3.0.1
 
+# v0.22.0-M8
+
+## http4s-async-http-client
+
+### Breaking changes
+
+* [#4854](https://github.com/http4s/http4s/pull/485)4: Rename package from `org.http4s.client.asynchttpclient` to `org.http4s.asynchttpclient`
+
+## http4s-client
+
+### Breaking changes
+
+* [#4747](https://github.com/http4s/http4s/pull/4747): Move `ConnectionManager`, `PoolManager`, and `WaitQueueTimeoutException` into blaze-client and make private. It did not prove to be a generally useful connection pool outside blaze.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4757](https://github.com/http4s/http4s/pull/4757): Response is no longer a case class. It is not a proper product type, and no equality should be implied given the streaming bodies.
+
+### Bug fixes
+
+* [#4739](https://github.com/http4s/http4s/pull/4739): Postpone using query model until we need it.  Helps with various corner cases linked in the ticket.
+* [#4756](https://github.com/http4s/http4s/pull/4756): Tweak default `responseColor` of `Logger.colored` so it can be called.
+* [#4824](https://github.com/http4s/http4s/pull/4824): Fix `Message#removeCookie` to allow removing multiple cookies.
+
+### Enhancements
+
+* [#4797](https://github.com/http4s/http4s/pull/4797): Add `Header.ToRaw[Headers]` instance
+
+## http4s-blaze-client
+
+### Breaking changes
+
+* [#4838](https://github.com/http4s/http4s/pull/4838): Rename package from `org.http4s.client.blaze` to `org.http4s.blaze.client`
+
+## http4s-blaze-server
+
+### Breaking changes
+
+* [#4847](https://github.com/http4s/http4s/pull/4847): Rename package from `org.http4s.server.blaze` to `org.http4s.blaze.server`
+
+## http4s-jetty-client
+
+### Breaking changes
+
+* [#4743](https://github.com/http4s/http4s/pull/4743): Rename package from `org.http4s.client.jetty` to `org.http4s.jetty.client`
+
+## http4s-jetty-server
+
+### Breaking changes
+
+* [#4743](https://github.com/http4s/http4s/pull/4743): Rename package from `org.http4s.server.jetty` to `org.http4s.jetty.server`
+* [#4746](https://github.com/http4s/http4s/pull/4746): Module renamed from `http4s-jetty` to `http4s-jetty-server`.
+
+## http4s-server
+
+### Breaking changes
+
+* [#4785](https://github.com/http4s/http4s/pull/4785): Remove unsued `Functor[G]` parameter to `AutoSlash` middleware
+* [#4827](https://github.com/http4s/http4s/pull/4827): Convert `CORSConfig` from a case class to an abstract type for future binary compatibility
+
+## Dependency updates
+
+* blaze-0.15.0
+* cats-parse-0.3.4
+* case-insensitive-1.1.4
+* circe-0.14.0-M7
+* ip4s-2.0.3
+* jawn-1.1.2
+* jawn-fs2-1.1.3
+* keypool-0.3.5
+* literally-1.0.2
+* log4cats-1.3.1
+* log4s-1.10.0-M7
+* scala-xml-2.0.0
+* vault-2.1.13
+
 # v0.21.23 (2021-05-16)
 
 This is the final planned release in the 0.21 series.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.

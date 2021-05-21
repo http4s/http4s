@@ -20,7 +20,7 @@ being served.
 
 ```scala mdoc
 import cats.effect._
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
 import org.http4s.syntax.kleisli._
