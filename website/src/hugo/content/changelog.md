@@ -8,9 +8,30 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.0-M1
+
+We are opening an 0.23 series to offer full support for Scala 3 and Cats-Effect 3 while giving ourselves a bit more time to finish our more ambitious goals for 1.0.  We will release v0.23.0 with production support as soon as circe-0.14 is out.
+
+This release picks up from v1.0.0-M21 with its Cats-Effect 3 support, and includes all improvements from v0.22.0-M8.
+
+## Documentation
+
+* [#4845](https://github.com/http4s/http4s/pull/4845): Mention `Client.fromHttpApp`
+
+## Dependency updates
+
+* cats-effect-3.1.0
+* fs2-3.0.4
+* ip4s-3.0.2
+* jawn-fs2-2.0.2
+* keypool-0.4.5
+* log4cats-2.1.1
+* scalacheck-effect-1.0.2
+* vault-3.0.3
+
 # v0.22.0-M8 (2021-05-21)
 
-Includes the changes of v0.21.23.  This is the first release with support for Scala 3.0.0.  We intend to make this a production release as soon as circe-0.14 is out.
+Includes the changes of v0.21.23.  This is the first release with support for Scala 3.0.0.  We will release v0.22.0 with production support as circe-0.14 is out.
 
 There are several package renames in the backends.  To help, we've provided a Scalafix:
 
@@ -30,20 +51,6 @@ There are several package renames in the backends.  To help, we've provided a Sc
 
 * Adds Scala 3
 * Drops Scala-3.0.0-RC2
-
-# v1.0.0-M21 (2021-04-10)
-
-Contains all the changes of v0.22.0-M7.
-
-## Dependency updates
-
-* cats-effect-3.0.1
-* jawn-fs2-2.0.1
-* keypool-0.4.1
-* log4cats-2.0.1
-* vault-3.0.1
-
-# v0.22.0-M8
 
 ## http4s-async-http-client
 
@@ -194,6 +201,18 @@ This is the final planned release in the 0.21 series.  Bugfixes and community su
 * scalacheck-1.15.4
 * scodec-bits-1.1.27
 * tomcat-9.0.46
+
+# v1.0.0-M21 (2021-04-10)
+
+Contains all the changes of v0.22.0-M7.
+
+## Dependency updates
+
+* cats-effect-3.0.1
+* jawn-fs2-2.0.1
+* keypool-0.4.1
+* log4cats-2.0.1
+* vault-3.0.1
 
 # v0.22.0-M7 (2021-04-10)
 

@@ -19,19 +19,15 @@ title: Versions
   in the official support channels.  Patches may be released with
   a working pull request accompanied by a tale of woe.
 
-## Roadmap update
+## Which version is right for me?
 
-* 0.21.x remains the production version.  Binary-compatible changes
-  will continue to originate here.
-* 0.22.x will be the first http4s release series cross-compiled for
-  Scala 3 (Dotty).  Some breaking changes were necessary, so we're
-  taking this opportunity to pull in all our improvements since v0.21
-  was frozen in February 2020.  This release series will remain on
-  Cats-Effect 2.
-* 1.0.x represents our port to Cats-Effect 3.  It should otherwise be
-  closely track 0.22.x.  The parallel releases will give users the
-  flexibility to upgrade to Scala 3 or to Cats-Effect 3, independently,
-  in either order.
+* _I'm on Scala 2, and milestones scare me:_ {{% latestInSeries "0.21" %}}
+* _I'll upgrade to Scala 3 before Cats-Effect 3:_ {{% latestInSeries "0.22" %}}
+* _I'm ready for Cats-Effect 3:_ {{% latestInSeries "0.23" %}}
+* _I'm new here, pick one:_ {{% latestInSeries "0.23" %}}
+* _I live on the bleeding edge:_ {{% latestInSeries "1.0" %}}
+
+##
 
 <table class="table table-responsive table-hover">
   <thead>
@@ -56,7 +52,19 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
-	  <td class="text-center"><i class="fa fa-gear"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td>2.x</td>
+	  <td>3.x</td>
+	  <td>1.8+</td>
+	</tr>
+	<tr>
+	  <td><a href="/v0.23">{{% latestInSeries "0.23" %}}</a></td>
+	  <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td>2.x</td>
 	  <td>3.x</td>
 	  <td>1.8+</td>
