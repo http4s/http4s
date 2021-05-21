@@ -20,5 +20,16 @@ import scalafix.v1._
 
 class v0_22 extends SemanticRule("v0_22") {
   override def fix(implicit doc: SemanticDocument): Patch =
-    (new RewritePackages).fix
+    rewritePackages
+
+  def rewritePackages(implicit doc: SemanticDocument): Patch =
+    Patch.replaceSymbols(
+      "org.http4s.server.tomcat" -> "org.http4s.tomcat.server",
+      "org.http4s.server.jetty" -> "org.http4s.jetty.server",
+      "org.http4s.client.jetty" -> "org.http4s.jetty.client",
+      "org.http4s.client.okhttp" -> "org.http4s.okhttp.client",
+      "org.http4s.client.asynchttpclient" -> "org.http4s.asynchttpclient",
+      "org.http4s.client.blaze" -> "org.http4s.blaze.client",
+      "org.http4s.server.blaze" -> "org.http4s.blaze.server",
+    )
 }
