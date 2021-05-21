@@ -32,12 +32,12 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
 
   def bindSocketAddress(socketAddress: InetSocketAddress): Self
 
-  final def bindHttp(port: Int = defaults.HttpPort, host: String = defaults.Host): Self =
+  final def bindHttp(port: Int = defaults.HttpPort, host: String = defaults.IPv4Host): Self =
     bindSocketAddress(InetSocketAddress.createUnresolved(host, port))
 
-  final def bindLocal(port: Int): Self = bindHttp(port, defaults.Host)
+  final def bindLocal(port: Int): Self = bindHttp(port, defaults.IPv4Host)
 
-  final def bindAny(host: String = defaults.Host): Self = bindHttp(0, host)
+  final def bindAny(host: String = defaults.IPv4Host): Self = bindHttp(0, host)
 
   /** Sets the handler for errors thrown invoking the service.  Is not
     * guaranteed to be invoked on errors on the server backend, such as

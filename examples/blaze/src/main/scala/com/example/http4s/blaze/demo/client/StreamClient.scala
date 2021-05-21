@@ -19,7 +19,7 @@ package com.example.http4s.blaze.demo.client
 import cats.effect.{Async, ExitCode, IO, IOApp}
 import com.example.http4s.blaze.demo.StreamUtils
 import io.circe.Json
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.{Request, Uri}
 import org.typelevel.jawn.Facade
 

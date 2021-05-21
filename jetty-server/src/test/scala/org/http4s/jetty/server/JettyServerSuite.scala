@@ -79,14 +79,13 @@ class JettyServerSuite extends Http4sSuite {
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
     }
 
-  jettyServer.test("ChannelOptions should should route requests on the service executor") {
-    server =>
-      get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
+  jettyServer.test("ChannelOptions should route requests on the service executor") { server =>
+    get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
   }
 
-  jettyServer.test(
-    "ChannelOptions should should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
+  jettyServer.test("ChannelOptions should execute the service task on the service executor") {
+    server =>
+      get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
   }
 
   jettyServer.test("ChannelOptions should be able to echo its input") { server =>
@@ -94,7 +93,7 @@ class JettyServerSuite extends Http4sSuite {
     post(server, "/echo", input).map(_.startsWith(input)).assert
   }
 
-  jettyServer.test("Timeout not fire prematurely") { server =>
+  jettyServer.test("Timeout should not fire prematurely") { server =>
     get(server, "/slow").assertEquals("slow")
   }
 

@@ -18,7 +18,7 @@ package com.example.http4s.blaze
 
 import cats.effect._
 import org.http4s._
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
