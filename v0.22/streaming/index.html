@@ -141,8 +141,8 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 <p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.22.0-M7&quot;,
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.0-M5&quot;
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.22.0-M8&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.0-M7&quot;
 )
 </code></pre>
 
@@ -160,7 +160,7 @@ example as a bonus!</p>
 <p>Putting it all together into a small app that will print the JSON objects forever:</p>
 
 <pre><code class="language-scala">import org.http4s._
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import org.http4s.client.oauth1
 import org.http4s.implicits._
 import cats.effect._

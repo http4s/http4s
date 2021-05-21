@@ -117,38 +117,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
-    </li><li name="org.http4s.server.blaze" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="blaze"></a><a id="blaze:blaze"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/index.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="../blaze/index.html"><span class="name">blaze</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.server">server</a></dd></dl></div>
-    </li><li name="org.http4s.server.jetty" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="jetty"></a><a id="jetty:jetty"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/jetty/index.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="../jetty/index.html"><span class="name">jetty</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.server">server</a></dd></dl></div>
     </li><li name="org.http4s.server.middleware" visbl="pub" class="indented4 current" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="middleware"></a><a id="middleware:middleware"></a>
       <span class="permalink">
@@ -194,7 +162,7 @@
                         <a class="object" href="CORS$.html" title=""></a>
                         <a href="CORS$.html" title="">CORS</a>
                       </li><li class="current-entities indented4">
-                        <span class="separator"></span>
+                        <a class="object" href="CORSConfig$.html" title=""></a>
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
                       </li><li class="current-entities indented4">
@@ -335,22 +303,6 @@
       <p class="shortcomment cmt">Helpers for serving static content from http4s</p><div class="fullcomment"><div class="comment cmt"><p>Helpers for serving static content from http4s</p><p>Note that these tools are relatively primitive and a dedicated server should be used
 for serious static content serving.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.server">server</a></dd></dl></div>
-    </li><li name="org.http4s.server.tomcat" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="tomcat"></a><a id="tomcat:tomcat"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/index.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="../tomcat/index.html"><span class="name">tomcat</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.server">server</a></dd></dl></div>
     </li><li name="org.http4s.server.websocket" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="websocket"></a><a id="websocket:websocket"></a>
       <span class="permalink">
@@ -431,7 +383,7 @@ for serious static content serving.
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="CORSConfigextendsProductwithSerializable"></a><a id="CORSConfig:CORSConfig"></a>
+      <a id="CORSConfigextendsAnyRef"></a><a id="CORSConfig:CORSConfig"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/CORSConfig.html" title="Permalink">
         <i class="material-icons"></i>
@@ -439,10 +391,10 @@ for serious static content serving.
     </span>
       <span class="modifier_kind">
         <span class="modifier">final </span>
-        <span class="kind">case class</span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name">CORSConfig</span></a><span class="params">(<span name="anyOrigin">anyOrigin: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="allowCredentials">allowCredentials: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxAge">maxAge: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="anyMethod">anyMethod: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>, <span name="allowedOrigins">allowedOrigins: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">_ =&gt; false</span></span>, <span name="allowedMethods">allowedMethods: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>, <span name="allowedHeaders">allowedHeaders: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="defval" name="Set(&quot;Content-Type&quot;, &quot;Authorization&quot;, &quot;*&quot;).some">...</span></span>, <span name="exposedHeaders">exposedHeaders: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">Set(&quot;*&quot;).some</span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name">CORSConfig</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">CORS middleware config options.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware config options.
@@ -541,6 +493,22 @@ backs the response body, you can't actually use either
       </span>
       <span class="symbol">
         <a title="" href="CORS$.html"><span class="name">CORS</span></a>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CORSConfig"></a><a id="CORSConfig:CORSConfig"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSConfig$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CORSConfig$.html"><span class="name">CORSConfig</span></a>
       </span>
       
       

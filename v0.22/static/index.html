@@ -101,7 +101,7 @@ remove dot segments, to prevent attackers from reading files not contained in th
 being served.</p>
 
 <pre><code class="language-scala">import cats.effect._
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
 import org.http4s.syntax.kleisli._
@@ -190,7 +190,7 @@ deliver them from there. For example, for all resources in the classpath under <
 
 <pre><code class="language-scala">val routes = resourceServiceBuilder[IO](&quot;/assets&quot;, blocker).toRoutes
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$9676/1949298315@47d40e79
+//   org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$9669/1550835510@76e48414
 // )
 </code></pre>
 
@@ -205,7 +205,7 @@ val routes = HttpRoutes.of[IO] {
     static(path, blocker, request)
 }
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8194/656707957@5767915e
+//   org.http4s.HttpRoutes$$$Lambda$8189/910303383@edbe2b4
 // )
 </code></pre>
 
@@ -231,7 +231,7 @@ def isJsAsset(asset: WebjarAsset): Boolean =
 
 val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker).withWebjarAssetFilter(isJsAsset).toRoutes
 // webjars: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$9678/920976259@1e5d2f20
+//   org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$9671/1873953097@6664746c
 // )
 </code></pre>
 

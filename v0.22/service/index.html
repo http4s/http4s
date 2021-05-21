@@ -93,7 +93,7 @@ and calling it with http4s&rsquo; client.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.13.4&quot; // Also supports 2.12.x
 
-val http4sVersion = &quot;0.22.0-M7&quot;
+val http4sVersion = &quot;0.22.0-M8&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -154,7 +154,7 @@ greet.</p>
     Ok(s&quot;Hello, $name.&quot;)
 }
 // helloWorldService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8194/656707957@66541daa
+//   org.http4s.HttpRoutes$$$Lambda$8189/910303383@7ae69cf5
 // )
 </code></pre>
 
@@ -187,7 +187,7 @@ val tweetService = HttpRoutes.of[IO] {
     getTweet(tweetId).flatMap(Ok(_))
 }
 // tweetService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8194/656707957@6a5606c9
+//   org.http4s.HttpRoutes$$$Lambda$8189/910303383@5173a587
 // )
 </code></pre>
 
@@ -208,21 +208,21 @@ with chained methods, each returning a new builder.</p>
 <p><code>scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)</code></p>
 
 <pre><code class="language-scala">import cats.syntax.all._
-import org.http4s.server.blaze._
+import org.http4s.blaze.server._
 import org.http4s.implicits._
 import org.http4s.server.Router
 </code></pre>
 
 <pre><code class="language-scala">val services = tweetService &lt;+&gt; helloWorldService
 // services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.KleisliSemigroupK$$Lambda$8195/11644561@3696412f
+//   cats.data.KleisliSemigroupK$$Lambda$8190/425126064@455fb2ab
 // )
 val httpApp = Router(&quot;/&quot; -&gt; helloWorldService, &quot;/api&quot; -&gt; services).orNotFound
 // httpApp: cats.data.Kleisli[IO, Request[IO], Response[IO]] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$8435/210144352@613cacbe
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$8426/1874331380@75369fcb
 // )
 val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;).withHttpApp(httpApp)
-// serverBuilder: BlazeServerBuilder[IO] = org.http4s.server.blaze.BlazeServerBuilder@2743547e
+// serverBuilder: BlazeServerBuilder[IO] = org.http4s.blaze.server.BlazeServerBuilder@3bf9b4ac
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -235,7 +235,7 @@ associates the specified routes with this http server instance.</p>
 // fiber: Fiber[IO, Nothing] = Tuple(
 //   Bind(
 //     Async(
-//       cats.effect.internals.IOAsync$$$Lambda$8187/401854732@7d796e11,
+//       cats.effect.internals.IOAsync$$$Lambda$8182/790945531@77ea71c9,
 //       false,
 //       StackTrace(
 //         List(
@@ -302,7 +302,7 @@ SIGTERM is received.</p>
 import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.server.blaze._
+import org.http4s.blaze.server._
 import scala.concurrent.ExecutionContext.global
 </code></pre>
 

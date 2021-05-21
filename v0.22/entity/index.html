@@ -140,12 +140,12 @@ case class Video(body: String) extends Resp
 <pre><code class="language-scala">val response = Ok(&quot;&quot;).map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
 // response: IO[Response[IO]] = Map(
 //   Pure(
-//     Response(
+//     (
 //       Status(200),
 //       HttpVersion(1, 1),
 //       Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 0),
 //       Stream(..),
-//       org.typelevel.vault.Vault@70a5edf5
+//       org.typelevel.vault.Vault@a132c9e
 //     )
 //   ),
 //   &lt;function1&gt;,
@@ -166,35 +166,25 @@ case class Video(body: String) extends Resp
 //       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
 //       scala.Console$.withOut(Console.scala:167),
 //       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:182),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:149),
-//       mdoc.internal.markdown.Processor.processDocument(Processor.scala:49),
-//       mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
-//       mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
-//       mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
-//       mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
-//       scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
-//       scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
-//       scala.collection.immutable.List.foldLeft(List.scala:91),
-//       mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
-//       mdoc.internal.cli.MainOps.run(MainOps.scala:177),
-//       mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
-// ...
+//       mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//       mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//     )
+//   )
+// )
 val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { (m: Media[IO]) =&gt;
   EitherT {
     m.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
   }
 }
-// audioDec: EntityDecoder[IO, Audio] = org.http4s.EntityDecoder$$anon$7@5d3129a
+// audioDec: EntityDecoder[IO, Audio] = org.http4s.EntityDecoder$$anon$7@7ecf942b
 val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { (m: Media[IO]) =&gt;
   EitherT {
     m.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
   }
 }
-// videoDec: EntityDecoder[IO, Video] = org.http4s.EntityDecoder$$anon$7@46530aa1
+// videoDec: EntityDecoder[IO, Video] = org.http4s.EntityDecoder$$anon$7@6154b784
 implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-// bothDec: EntityDecoder[IO, Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@6302ecbf
+// bothDec: EntityDecoder[IO, Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@5402d269
 println(response.flatMap(_.as[Resp]).unsafeRunSync())
 // Audio()
 </code></pre>
