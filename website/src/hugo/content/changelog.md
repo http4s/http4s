@@ -10,6 +10,13 @@ it.
 
 # v0.22.0-M8
 
+Includes the changes of v0.21.23.  We intend to make this a final release as soon as circe-0.14 is out.
+
+## Crossbuilds
+
+* Adds Scala 3
+* Drops Scala-3.0.0-RC2
+
 ## http4s-async-http-client
 
 ### Breaking changes
