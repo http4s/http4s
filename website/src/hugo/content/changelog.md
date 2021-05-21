@@ -26,7 +26,7 @@ Contains all the changes of v0.22.0-M7.
 
 ### Breaking changes
 
-* [#4749](https://github.com/http4s/http4s/pull/4749): Rename package from `org.http4s.client.asynchttpclient` to `org.http4s.asynchttpclient.client`
+* [#4854](https://github.com/http4s/http4s/pull/485)4: Rename package from `org.http4s.client.asynchttpclient` to `org.http4s.asynchttpclient`
 
 ## http4s-client
 
@@ -50,6 +50,18 @@ Contains all the changes of v0.22.0-M7.
 
 * [#4797](https://github.com/http4s/http4s/pull/4797): Add `Header.ToRaw[Headers]` instance
 
+## http4s-blaze-client
+
+### Breaking changes
+
+* [#4838](https://github.com/http4s/http4s/pull/4838): Rename package from `org.http4s.client.blaze` to `org.http4s.blaze.client`
+
+## http4s-blaze-server
+
+### Breaking changes
+
+* [#4847](https://github.com/http4s/http4s/pull/4847): Rename package from `org.http4s.server.blaze` to `org.http4s.blaze.server`
+
 ## http4s-jetty-client
 
 ### Breaking changes
@@ -68,18 +80,23 @@ Contains all the changes of v0.22.0-M7.
 ### Breaking changes
 
 * [#4785](https://github.com/http4s/http4s/pull/4785): Remove unsued `Functor[G]` parameter to `AutoSlash` middleware
+* [#4827](https://github.com/http4s/http4s/pull/4827): Convert `CORSConfig` from a case class to an abstract type for future binary compatibility
 
 ## Dependency updates
 
-* cats-parse-0.3.3
-* case-insensitive-1.1.3
-* ip4s-2.0.2
+* blaze-0.15.0
+* cats-parse-0.3.4
+* case-insensitive-1.1.4
+* circe-0.14.0-M7
+* ip4s-2.0.3
 * jawn-1.1.2
-* jawn-fs2-1.1.2
-* literally-1.0.1
-* log4cats-1.3.0
+* jawn-fs2-1.1.3
+* keypool-0.3.5
+* literally-1.0.2
+* log4cats-1.3.1
 * log4s-1.10.0-M7
-* vault-2.1.10
+* scala-xml-2.0.0
+* vault-2.1.13
 
 # v0.21.23 (2021-05-16)
 
@@ -137,10 +154,6 @@ This is the final planned release in the 0.21 series.  Bugfixes and community su
 * [#4783](https://github.com/http4s/http4s/pull/4783): Fix bug with shared `ThreadPool` being destroyed. Prefer a `Resource[F, ThreadPool]` whose lifecycle shares Jetty's.  For compatibility, prevent the default from being destroyed.
 
 ## http4s-server
-
-### Breaking changes
-
-* [#4827](https://github.com/http4s/http4s/pull/4827): Convert `CORSConfig` from a case class to an abstract type for future binary compatibility
 
 ### Enhancements
 
