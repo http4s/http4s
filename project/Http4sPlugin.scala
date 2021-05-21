@@ -24,7 +24,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.5"
+  val scala_213 = "2.13.6"
   val scala_212 = "2.12.13"
   val scala_3 = "3.0.0"
 
@@ -76,6 +76,13 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
+    // CE3
+    dependencyUpdatesFilter -= moduleFilter(name = "log4cats-*", revision = "2.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "ip4s-*", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "cats-effect*", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
@@ -295,7 +302,7 @@ object Http4sPlugin extends AutoPlugin {
     val ip4s = "2.0.3"
     val jawn = "1.1.2"
     val jawnFs2 = "1.1.3"
-    val jetty = "9.4.40.v20210413"
+    val jetty = "9.4.41.v20210516"
     val keypool = "0.3.5"
     val literally = "1.0.2"
     val logback = "1.2.3"
@@ -304,7 +311,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.3"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.63.Final"
+    val netty = "4.1.65.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.10.0-RC2"
