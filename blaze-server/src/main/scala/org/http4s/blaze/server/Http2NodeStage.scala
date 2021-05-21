@@ -15,23 +15,24 @@
  */
 
 package org.http4s
-package server
 package blaze
+package server
 
 import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
+import fs2._
 import java.util.Locale
 import java.util.concurrent.TimeoutException
-import org.http4s.{Method => HMethod}
-import org.http4s.blaze.http.{HeaderNames, Headers}
 import org.http4s.blaze.http.http2._
+import org.http4s.blaze.http.{HeaderNames, Headers}
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.{End, Http2Writer}
+import org.http4s.server.ServiceErrorHandler
+import org.http4s.{Method => HMethod}
 import org.typelevel.vault._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext

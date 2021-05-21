@@ -21,9 +21,9 @@ import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2._
 import org.http4s._
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.websocket._
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._

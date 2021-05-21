@@ -15,8 +15,8 @@
  */
 
 package org.http4s
-package server
 package blaze
+package server
 
 import cats.{Alternative, Applicative}
 import cats.data.Kleisli
@@ -29,31 +29,25 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import java.util.concurrent.ThreadFactory
-import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, SSLParameters, TrustManagerFactory}
-import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
-import org.http4s.blaze.channel.{
-  ChannelOptions,
-  DefaultPoolSize,
-  ServerChannel,
-  ServerChannelGroup,
-  SocketConnection
-}
+import javax.net.ssl._
+import org.http4s.blaze.channel._
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blaze.server.BlazeServerBuilder._
 import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.internal.threads.threadFactory
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
-import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.server.blaze.BlazeServerBuilder._
+import org.http4s.server._
 import org.log4s.getLogger
 import org.typelevel.vault._
 import scala.collection.immutable
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
 
 /** BlazeServerBuilder is the component for the builder pattern aggregating

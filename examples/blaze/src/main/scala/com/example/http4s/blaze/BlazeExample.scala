@@ -19,8 +19,8 @@ package com.example.http4s.blaze
 import cats.effect._
 import com.example.http4s.ExampleService
 import org.http4s.HttpApp
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.{Router, Server}
-import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
 import scala.concurrent.ExecutionContext.global
 

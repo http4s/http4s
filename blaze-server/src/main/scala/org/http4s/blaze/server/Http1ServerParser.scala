@@ -15,7 +15,7 @@
  */
 
 package org.http4s
-package server.blaze
+package blaze.server
 
 import cats.effect._
 import cats.syntax.all._
@@ -25,7 +25,7 @@ import org.typelevel.vault._
 import scala.collection.mutable.ListBuffer
 import scala.util.Either
 
-private[blaze] final class Http1ServerParser[F[_]](
+private[http4s] final class Http1ServerParser[F[_]](
     logger: Logger,
     maxRequestLine: Int,
     maxHeadersLen: Int)(implicit F: Async[F])

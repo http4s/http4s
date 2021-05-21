@@ -15,12 +15,12 @@
  */
 
 package org.http4s
-package server
 package blaze
+package server
 
-import cats.syntax.all._
 import cats.effect._
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
+import cats.syntax.all._
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
@@ -30,6 +30,7 @@ import org.http4s.internal.threads._
 import scala.concurrent.duration._
 import scala.io.Source
 import org.http4s.multipart.Multipart
+import org.http4s.server.Server
 import scala.concurrent.ExecutionContext, ExecutionContext.global
 import munit.TestOptions
 
