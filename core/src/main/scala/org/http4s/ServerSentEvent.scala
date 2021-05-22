@@ -30,6 +30,9 @@ final case class ServerSentEvent(
     retry: Option[Long] = None
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
+    data.linesIterator.foreach { dataLine =>
+      writer << "data: " << dataLine << "\n"
+    }
     writer << "data: " << data << "\n"
     eventType.foreach(writer << "event: " << _ << "\n")
     id match {
