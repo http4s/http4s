@@ -33,7 +33,6 @@ final case class ServerSentEvent(
     data.linesIterator.foreach { dataLine =>
       writer << "data: " << dataLine << "\n"
     }
-    writer << "data: " << data << "\n"
     eventType.foreach(writer << "event: " << _ << "\n")
     id match {
       case None =>

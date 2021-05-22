@@ -23,6 +23,10 @@ import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
 import org.scalacheck.effect._
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
 class ServerSentEventSpec extends Http4sSuite {
   import ServerSentEvent._
 
@@ -117,6 +121,11 @@ class ServerSentEventSpec extends Http4sSuite {
         .through(ServerSentEvent.decoder)
         .compile
         .toVector
+      val f = roundTrip.unsafeToFuture()
+      val rt = Await.result(f, Duration(10, TimeUnit.SECONDS))
+      if ( rt != sses ) {
+        toString
+      }
       roundTrip.assertEquals(sses)
     }
   }
@@ -124,6 +133,19 @@ class ServerSentEventSpec extends Http4sSuite {
   test("encode should handle leading spaces") {
     // This is a pathological case uncovered by scalacheck
     val sse = ServerSentEvent(" a", Some(" b"), Some(EventId(" c")), Some(1L))
+    Stream
+      .emit(sse)
+      .covary[IO]
+      .through(ServerSentEvent.encoder)
+      .through(ServerSentEvent.decoder)
+      .compile
+      .last
+      .assertEquals(Some(sse))
+  }
+
+  test("encode should handle multi-line strings") {
+    // This is a pathological case uncovered by scalacheck
+    val sse = ServerSentEvent("a\nb\nc a", Some(" b"), Some(EventId(" c")), Some(1L))
     Stream
       .emit(sse)
       .covary[IO]
