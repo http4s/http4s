@@ -23,7 +23,6 @@ import java.net.URL
 import java.nio.file.Files
 
 import org.http4s.Status._
-import org.http4s.headers.ETag.EntityTag
 import org.http4s.headers._
 import cats.data.Nested
 import java.net.UnknownHostException
@@ -33,11 +32,11 @@ class StaticFileSuite extends Http4sSuite {
     def check(f: File, tpe: Option[MediaType]): IO[Boolean] =
       StaticFile.fromFile[IO](f, testBlocker).value.map { r =>
         r.isDefined &&
-        r.flatMap(_.headers.get(`Content-Type`)) == tpe.map(t => `Content-Type`(t)) &&
+        r.flatMap(_.headers.get[`Content-Type`]) == tpe.map(t => `Content-Type`(t)) &&
         // Other headers must be present
-        r.flatMap(_.headers.get(`Last-Modified`)).isDefined &&
-        r.flatMap(_.headers.get(`Content-Length`)).isDefined &&
-        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) === Some(f.length())
+        r.flatMap(_.headers.get[`Last-Modified`]).isDefined &&
+        r.flatMap(_.headers.get[`Content-Length`]).isDefined &&
+        r.flatMap(_.headers.get[`Content-Length`].map(_.length)) === Some(f.length())
       }
 
     val tests = List(
@@ -106,7 +105,7 @@ class StaticFileSuite extends Http4sSuite {
   test("handle an empty file") {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
-    StaticFile.fromFile[IO](emptyFile, testBlocker).value.map(_.isDefined).assertEquals(true)
+    StaticFile.fromFile[IO](emptyFile, testBlocker).value.map(_.isDefined).assert
   }
 
   test("Don't send unmodified files") {
@@ -193,7 +192,7 @@ class StaticFileSuite extends Http4sSuite {
           .value
           .flatMap { r =>
             // Length is only 1 byte
-            assertEquals(r.flatMap(_.headers.get(`Content-Length`).map(_.length)), Some(1L))
+            assertEquals(r.flatMap(_.headers.get[`Content-Length`].map(_.length)), Some(1L))
             // get the Body to check the actual size
             r.map(_.body.compile.toVector.map(_.length)).traverse(_.assertEquals(1))
           }
@@ -232,7 +231,7 @@ class StaticFileSuite extends Http4sSuite {
         .flatMap { r =>
           // Length of the body must match
           assertEquals(
-            r.flatMap(_.headers.get(`Content-Length`).map(_.length)),
+            r.flatMap(_.headers.get[`Content-Length`].map(_.length)),
             Some(fileSize.toLong - 1L))
           // get the Body to check the actual size
           r.map(_.body.compile.toVector)
@@ -245,7 +244,7 @@ class StaticFileSuite extends Http4sSuite {
                       .equals(
                         bytes.toArray,
                         java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1)))
-                  .assertEquals(true)
+                  .assert
             }
             .getOrElse(IO.raiseError(new RuntimeException("test error")))
         }

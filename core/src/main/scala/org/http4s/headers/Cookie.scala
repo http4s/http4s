@@ -18,20 +18,45 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse.Parser
+import org.http4s.util.{Renderable, Writer}
+import org.http4s.Header
+import org.typelevel.ci._
 
-object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Cookie] =
-    HttpHeaderParser.COOKIE(s)
-}
+object Cookie {
+  def apply(head: RequestCookie, tail: RequestCookie*): `Cookie` =
+    apply(NonEmptyList(head, tail.toList))
 
-final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.RecurringRenderable {
-  override def key: Cookie.type = Cookie
-  type Value = RequestCookie
-  override def renderValue(writer: Writer): writer.type = {
-    values.head.render(writer)
-    values.tail.foreach(writer << "; " << _)
-    writer
+  def parse(s: String): ParseResult[Cookie] =
+    ParseResult.fromParser(parser, "Invalid Cookie header")(s)
+
+  private[http4s] val parser: Parser[Cookie] = {
+    import Parser.{char, string}
+
+    /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
+    val cookieString = (RequestCookie.parser ~ (string("; ") *> RequestCookie.parser).rep0).map {
+      case (head, tail) =>
+        Cookie(NonEmptyList(head, tail))
+    }
+
+    /* We also see trailing semi-colons in the wild, and grudgingly tolerate them
+     * here. */
+    cookieString <* char(';').?
   }
+
+  implicit val headerInstance: Header[Cookie, Header.Recurring] =
+    Header.createRendered(
+      ci"Cookie",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            writer.addNel(h.values, sep = "; ")
+        },
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
+    (a, b) => Cookie(a.values.concatNel(b.values))
 }
+
+final case class Cookie(values: NonEmptyList[RequestCookie])

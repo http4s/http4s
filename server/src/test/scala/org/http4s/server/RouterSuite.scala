@@ -50,7 +50,8 @@ class RouterSuite extends Http4sSuite {
 
   def middleware(routes: HttpRoutes[IO]): HttpRoutes[IO] =
     Kleisli((r: Request[IO]) =>
-      if (r.uri.query.containsQueryParam("block")) OptionT.liftF(Ok(r.uri.path)) else routes(r))
+      if (r.uri.query.containsQueryParam("block")) OptionT.liftF(Ok(r.uri.path.renderString))
+      else routes(r))
 
   val service = Router[IO](
     "/numbers" -> numbers,
@@ -80,7 +81,7 @@ class RouterSuite extends Http4sSuite {
           b =!= "bee" && b =!= "one" && res.status === NotFound
         }
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("support root mappings") {
@@ -118,6 +119,6 @@ class RouterSuite extends Http4sSuite {
     val router = Router[IO]("/foo" -> notFound)
     router(Request[IO](uri = uri"/bar")).value
       .map(_ == Option.empty[Response[IO]])
-      .assertEquals(true)
+      .assert
   }
 }

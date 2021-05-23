@@ -17,7 +17,8 @@
 package org.http4s
 
 import cats.{Contravariant, Show}
-import cats.effect.{Blocker, ContextShift, Effect, Sync}
+import cats.data.NonEmptyList
+import cats.effect.{Blocker, ContextShift, Sync}
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import fs2.io.file.readAll
@@ -51,10 +52,10 @@ trait EntityEncoder[F[_], A] { self =>
     }
 
   /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
+  def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def charset: Option[Charset] = headers.get(`Content-Type`).flatMap(_.charset)
+  def charset: Option[Charset] = headers.get[`Content-Type`].flatMap(_.charset)
 
   /** Generate a new EntityEncoder that will contain the `Content-Type` header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] =
@@ -78,8 +79,8 @@ object EntityEncoder {
     }
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: Header*)(f: A => Entity[F]): EntityEncoder[F, A] = {
-    val hdrs = if (hs.nonEmpty) Headers(hs.toList) else Headers.empty
+  def encodeBy[F[_], A](hs: Header.ToRaw*)(f: A => Entity[F]): EntityEncoder[F, A] = {
+    val hdrs = if (hs.nonEmpty) Headers(hs: _*) else Headers.empty
     encodeBy(hdrs)(f)
   }
 
@@ -87,7 +88,7 @@ object EntityEncoder {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
+  def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
       Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
@@ -118,11 +119,11 @@ object EntityEncoder {
         Entity(a.flatMap(W.toEntity(_).body))
 
       override def headers: Headers =
-        W.headers.get(`Transfer-Encoding`) match {
+        W.headers.get[`Transfer-Encoding`] match {
           case Some(transferCoding) if transferCoding.hasChunked =>
             W.headers
           case _ =>
-            W.headers.put(`Transfer-Encoding`(TransferCoding.chunked))
+            W.headers.add(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]))
         }
     }
 
@@ -150,20 +151,19 @@ object EntityEncoder {
     * the content length without running the stream.
     */
   implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
-    encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { body =>
+    encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
       Entity(body, None)
     }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]](
-      blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] =
+  def fileEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, File] =
     filePathEncoder[F](blocker).contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
-    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
+    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
       Entity(readAll[F](p, blocker, 4096)) //2 KB :P
     }
 

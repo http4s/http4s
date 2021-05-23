@@ -22,11 +22,10 @@ import cats.syntax.all._
 import java.time.{Instant, LocalDate, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
-import scala.runtime.AbstractFunction1
 
 final case class QueryParameterKey(value: String) extends AnyVal
 
-object QueryParameterKey extends AbstractFunction1[String, QueryParameterKey] {
+object QueryParameterKey {
   implicit lazy val showInstance: Show[QueryParameterKey] =
     Show.show(_.value)
 
@@ -39,7 +38,7 @@ object QueryParameterKey extends AbstractFunction1[String, QueryParameterKey] {
 
 final case class QueryParameterValue(value: String) extends AnyVal
 
-object QueryParameterValue extends AbstractFunction1[String, QueryParameterValue] {
+object QueryParameterValue {
   implicit lazy val showInstance: Show[QueryParameterValue] =
     Show.show(_.value)
 
@@ -52,9 +51,13 @@ object QueryParameterValue extends AbstractFunction1[String, QueryParameterValue
 
 /** type class defining the key of a query parameter
   * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
+  *
+  * Any [[QueryParam]] instance is also a valid [[QueryParamKeyLike]] instance
+  * where the same key is used for all values.
   */
-trait QueryParam[T] {
+trait QueryParam[T] extends QueryParamKeyLike[T] {
   def key: QueryParameterKey
+  override final def getKey(t: T): QueryParameterKey = key
 }
 
 object QueryParam {

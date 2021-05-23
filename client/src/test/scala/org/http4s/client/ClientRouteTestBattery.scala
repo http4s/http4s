@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.io._
+import java.util.Locale
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
@@ -50,19 +51,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       }
     }
 
-  def clientFixture: FunFixture[(JettyScaffold, Client[IO])] =
-    ResourceFixture(((JettyScaffold[IO](1, false, testServlet), clientResource)).tupled)
-
   // Need to override the context shift from munitCatsEffect
   // This is only required for JettyClient
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
-  clientFixture.test(s"$name Repeat a simple request") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  val jetty = resourceSuiteFixture("server", JettyScaffold[IO](1, false, testServlet))
+  val client = resourceSuiteFixture("client", clientResource)
+
+  test(s"$name Repeat a simple request") {
+    val address = jetty().addresses.head
     val path = GetRoutes.SimplePath
 
     def fetchBody =
-      client.toKleisli(_.as[String]).local { (uri: Uri) =>
+      client().toKleisli(_.as[String]).local { (uri: Uri) =>
         Request(uri = uri)
       }
 
@@ -73,46 +74,46 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       .assert
   }
 
-  clientFixture.test(s"$name POST an empty body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST an empty body") {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(uri)
-    val body = client.expect[String](req)
+    val body = client().expect[String](req)
     body.assertEquals("")
   }
 
-  clientFixture.test(s"$name POST a normal body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST a normal body") {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST("This is normal.", uri)
-    val body = client.expect[String](req)
+    val body = client().expect[String](req)
     body.assertEquals("This is normal.")
   }
 
-  clientFixture.test(s"$name POST a chunked body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST a chunked body".flaky) {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(Stream("This is chunked.").covary[IO], uri)
-    val body = client.expect[String](req)
+    val body = client().expect[String](req)
     body.assertEquals("This is chunked.")
   }
 
-  clientFixture.test(s"$name POST a multipart body") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name POST a multipart body") {
+    val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
-    val req = POST(multipart, uri).map(_.withHeaders(multipart.headers))
-    val body = client.expect[String](req)
+    val req = POST(multipart, uri).withHeaders(multipart.headers)
+    val body = client().expect[String](req)
     body.map(_.contains("This is text.")).assert
   }
 
-  clientFixture.test(s"$name Execute GET") { case (jetty, client) =>
-    val address = jetty.addresses.head
+  test(s"$name Execute GET") {
+    val address = jetty().addresses.head
     GetRoutes.getPaths.toList.traverse { case (path, expected) =>
       val name = address.getHostName
       val port = address.getPort
       val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
-      client
+      client()
         .run(req)
         .use(resp => checkResponse(resp, expected))
         .assert
@@ -120,13 +121,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
-    val hs = rec.headers.toList
+    // This isn't a generically safe normalization for all header, but
+    // it's close enough for our purposes
+    def normalizeHeaderValue(h: Header.Raw) =
+      Header.Raw(h.name, h.value.replace("; ", ";").toLowerCase(Locale.ROOT))
+
     for {
       _ <- IO(rec.status).assertEquals(expected.status)
       body <- rec.body.compile.to(Array)
       expBody <- expected.body.compile.to(Array)
       _ <- IO(body).map(Arrays.equals(_, expBody)).assert
-      _ <- IO(expected.headers.forall(h => hs.exists(_ == h))).assert
+      headers = rec.headers.headers.map(normalizeHeaderValue)
+      expectedHeaders = expected.headers.headers.map(normalizeHeaderValue)
+      _ <- IO(expectedHeaders.diff(headers)).assertEquals(Nil)
       _ <- IO(rec.httpVersion).assertEquals(expected.httpVersion)
     } yield true
   }

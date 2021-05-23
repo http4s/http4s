@@ -18,21 +18,20 @@ package org.http4s
 
 import cats.{Applicative, Functor}
 import cats.data.EitherT
-import cats.syntax.all._
 
 object DecodeResult {
   def apply[F[_], A](fa: F[Either[DecodeFailure, A]]): DecodeResult[F, A] =
     EitherT(fa)
 
   def success[F[_], A](fa: F[A])(implicit F: Functor[F]): DecodeResult[F, A] =
-    EitherT(fa.map(Right(_)))
+    EitherT.right[DecodeFailure](fa)
 
-  def success[F[_], A](a: A)(implicit F: Applicative[F]): DecodeResult[F, A] =
-    EitherT(F.pure(Right(a)))
+  def successT[F[_], A](a: A)(implicit F: Applicative[F]): DecodeResult[F, A] =
+    EitherT.rightT[F, DecodeFailure](a)
 
   def failure[F[_], A](fe: F[DecodeFailure])(implicit F: Functor[F]): DecodeResult[F, A] =
-    EitherT(fe.map(Left(_)))
+    EitherT.left[A](fe)
 
-  def failure[F[_], A](e: DecodeFailure)(implicit F: Applicative[F]): DecodeResult[F, A] =
-    EitherT(F.pure(Left(e)))
+  def failureT[F[_], A](e: DecodeFailure)(implicit F: Applicative[F]): DecodeResult[F, A] =
+    EitherT.leftT[F, A](e)
 }

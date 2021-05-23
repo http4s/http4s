@@ -17,16 +17,23 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.{Renderer, Writer}
+import cats.parse.Parser
+import org.typelevel.ci._
 
-object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[Date] =
-    HttpHeaderParser.DATE(s)
+object Date {
+  def parse(s: String): ParseResult[Date] =
+    ParseResult.fromParser(parser, "Invalid Date header")(s)
+
+  /* `Date = HTTP-date` */
+  private[http4s] val parser: Parser[`Date`] =
+    HttpDate.parser.map(apply)
+
+  implicit val headerInstance: Header[Date, Header.Single] =
+    Header.createRendered(
+      ci"Date",
+      _.date,
+      parse
+    )
 }
 
-final case class Date(date: HttpDate) extends Header.Parsed {
-  def key: Date.type = Date
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class Date(date: HttpDate)

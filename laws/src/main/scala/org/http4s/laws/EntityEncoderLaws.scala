@@ -23,7 +23,7 @@ import cats.laws._
 import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}
 
 trait EntityEncoderLaws[F[_], A] {
-  implicit def F: Sync[F]
+  implicit def F: Effect[F]
 
   implicit def encoder: EntityEncoder[F, A]
 
@@ -36,15 +36,15 @@ trait EntityEncoderLaws[F[_], A] {
     } yield contentLength.fold(true)(_ === bodyLength)) <-> F.pure(true)
 
   def noContentLengthInStaticHeaders: Boolean =
-    encoder.headers.get(`Content-Length`).isEmpty
+    encoder.headers.get[`Content-Length`].isEmpty
 
   def noTransferEncodingInStaticHeaders: Boolean =
-    encoder.headers.get(`Transfer-Encoding`).isEmpty
+    encoder.headers.get[`Transfer-Encoding`].isEmpty
 }
 
 object EntityEncoderLaws {
   def apply[F[_], A](implicit
-      F0: Sync[F],
+      F0: Effect[F],
       entityEncoderFA: EntityEncoder[F, A]
   ): EntityEncoderLaws[F, A] =
     new EntityEncoderLaws[F, A] {

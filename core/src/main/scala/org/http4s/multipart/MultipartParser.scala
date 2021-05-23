@@ -22,6 +22,7 @@ import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.{readAll, writeAll}
 import java.nio.file.{Files, Path, StandardOpenOption}
+import org.typelevel.ci.CIString
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -95,7 +96,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteMatch[F[_]: Sync](
+  private def splitCompleteMatch[F[_]](
       middleChunked: Boolean,
       sti: Int,
       i: Int,
@@ -123,7 +124,7 @@ object MultipartParser {
     * Jose messed up hard like 5 patches ago and now it breaks bincompat to
     * remove.
     */
-  private def splitPartialMatch[F[_]: Sync](
+  private def splitPartialMatch[F[_]](
       middleChunked: Boolean,
       currState: Int,
       i: Int,
@@ -152,7 +153,7 @@ object MultipartParser {
     * incomplete match, or ignored (as such excluding the sequence
     * from the subsequent split stream).
     */
-  private[http4s] def splitOnChunk[F[_]: Sync](
+  private[http4s] def splitOnChunk[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
@@ -382,7 +383,8 @@ object MultipartParser {
           .map { string =>
             val ix = string.indexOf(':')
             if (ix >= 0)
-              headers.put(Header(string.substring(0, ix), string.substring(ix + 1).trim))
+              headers.put(
+                Header.Raw(CIString(string.substring(0, ix)), string.substring(ix + 1).trim))
             else
               headers
           }
@@ -395,8 +397,7 @@ object MultipartParser {
         }
       }
 
-    tailrecParse(strim, Headers.empty).stream.compile
-      .fold(Headers.empty)(_ ++ _)
+    tailrecParse(strim, Headers.empty).stream.compile.foldMonoid
   }
 
   /** Spit our `Stream[F, Byte]` into two halves.
@@ -405,9 +406,7 @@ object MultipartParser {
     *
     * This method _always_ caps
     */
-  private def splitHalf[F[_]: Sync](
-      values: Array[Byte],
-      stream: Stream[F, Byte]): SplitStream[F] = {
+  private def splitHalf[F[_]](values: Array[Byte], stream: Stream[F, Byte]): SplitStream[F] = {
     def go(
         s: Stream[F, Byte],
         state: Int,
@@ -446,7 +445,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteLimited[F[_]: Sync](
+  private def splitCompleteLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       sti: Int,
@@ -484,7 +483,7 @@ object MultipartParser {
     * Else, if the whole block is a partial match,
     * add it to the carry over
     */
-  private[http4s] def splitPartialLimited[F[_]: Sync](
+  private[http4s] def splitPartialLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       currState: Int,
@@ -506,7 +505,7 @@ object MultipartParser {
       (currState, acc, carry ++ Stream.chunk(c), 0)
   }
 
-  private[http4s] def splitOnChunkLimited[F[_]: Sync](
+  private[http4s] def splitOnChunkLimited[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],

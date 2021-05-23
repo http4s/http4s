@@ -17,4 +17,39 @@
 package org.http4s
 package headers
 
-object `Content-Language` extends HeaderKey.Default
+import cats.data.NonEmptyList
+import cats.parse.{Parser, Rfc5234}
+import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import org.typelevel.ci._
+
+object `Content-Language` {
+  def apply(head: LanguageTag, tail: LanguageTag*): `Content-Language` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`Content-Language`] =
+    ParseResult.fromParser(parser, "Invalid Content-Language header")(s)
+
+  private[http4s] val parser: Parser[headers.`Content-Language`] = {
+    val languageTag: Parser[LanguageTag] =
+      (Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0).map {
+        case (main: String, sub: collection.Seq[String]) =>
+          LanguageTag(main, QValue.One, sub.toList)
+      }
+    Rfc7230.headerRep1(languageTag).map { tags =>
+      headers.`Content-Language`(tags)
+    }
+  }
+
+  implicit val headerInstance: Header[`Content-Language`, Header.Recurring] =
+    Header.createRendered(
+      ci"Content-Language",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Content-Language`] =
+    (a, b) => `Content-Language`(a.values.concatNel(b.values))
+}
+
+//RFC - https://tools.ietf.org/html/rfc3282#page-2
+final case class `Content-Language`(values: NonEmptyList[LanguageTag])

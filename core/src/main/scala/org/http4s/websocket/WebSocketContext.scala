@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.websocket
-
-import org.http4s.{Headers, Response}
+package org.http4s
+package websocket
 
 final case class WebSocketContext[F[_]](
     webSocket: WebSocket[F],

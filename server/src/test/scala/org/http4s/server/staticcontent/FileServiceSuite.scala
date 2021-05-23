@@ -24,6 +24,7 @@ import fs2._
 import java.io.File
 import java.nio.file._
 import org.http4s.syntax.all._
+import org.http4s.headers.`Content-Range`
 import org.http4s.headers.Range.SubRange
 import org.http4s.server.middleware.TranslateUri
 
@@ -56,6 +57,11 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
+  test("Return a 404 for a resource under an existing file") {
+    val req = Request[IO](uri = uri"/testresource.txt/test")
+    routes.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
+  }
+
   test("Decodes path segments") {
     val req = Request[IO](uri = uri"/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
@@ -72,7 +78,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
@@ -88,7 +94,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
         systemPath = systemPath.toString,
         blocker = testBlocker
       ))
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
@@ -98,7 +104,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
@@ -114,7 +120,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
         systemPath = Paths.get(defaultSystemPath).resolve("test").toString,
         blocker = testBlocker
       ))
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
@@ -131,7 +137,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
         pathPrefix = "/prefix",
         blocker = testBlocker
       ))
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
@@ -141,7 +147,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("///" + absPath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assertEquals(true) *>
+    IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
@@ -153,9 +159,8 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assertEquals(true) *>
-      IO(Files.isSymbolicLink(Paths.get(defaultSystemPath).resolve("symlink")))
-        .assertEquals(true) *>
+    IO(file.exists()).assert *>
+      IO(Files.isSymbolicLink(Paths.get(defaultSystemPath).resolve("symlink"))).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.Ok) *>
       Stream
         .eval(routes.orNotFound(req))
@@ -175,7 +180,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
           _ === "<html>Hello!</html>" && res.status === Status.Ok
         }
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("Return index.html if request points to '/'") {
@@ -186,7 +191,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
     rb.flatMap { res =>
       res.as[String].map(_ === "<html>Hello!</html>" && res.status === Status.Ok)
-    }.assertEquals(true)
+    }.assert
   }
 
   test("Return index.html if request points to a directory") {
@@ -196,7 +201,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     rb.flatMap { case (_, re) =>
       re.as[String]
         .map(_ === "<html>Hello!</html>" && re.status === Status.Ok)
-    }.assertEquals(true)
+    }.assert
   }
 
   test("Not find missing file") {
@@ -255,9 +260,8 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       routes.orNotFound(req).map(_.status).assertEquals(Status.RangeNotSatisfiable) *>
         routes
           .orNotFound(req)
-          .map(_.headers.toList.exists(
-            _ === headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
-          .assertEquals(true)
+          .map(_.headers.get[`Content-Range`])
+          .assertEquals(Some(headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
     }
   }
 
@@ -267,7 +271,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("handle a relative system path") {
     val s = fileService(FileService.Config[IO](".", blocker = testBlocker))
-    IO(Paths.get(".").resolve("build.sbt").toFile.exists()).assertEquals(true) *>
+    IO(Paths.get(".").resolve("build.sbt").toFile.exists()).assert *>
       s.orNotFound(Request[IO](uri = uri"/build.sbt")).map(_.status).assertEquals(Status.Ok)
   }
 

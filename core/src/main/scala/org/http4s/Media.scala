@@ -17,7 +17,6 @@
 package org.http4s
 
 import cats.MonadThrow
-import cats.syntax.all._
 import fs2.{RaiseThrowable, Stream}
 import fs2.text.utf8Decode
 import org.http4s.headers._
@@ -26,18 +25,6 @@ trait Media[F[_]] {
   def body: EntityBody[F]
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
-
-  @deprecated(
-    "Can go into an infinite loop for charsets other than UTF-8. Replaced by bodyText",
-    "0.21.5")
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
-    charset.getOrElse(defaultCharset) match {
-      case Charset.`UTF-8` =>
-        // suspect this one is more efficient, though this is superstition
-        body.through(utf8Decode)
-      case cs =>
-        body.through(util.decode(cs))
-    }
 
   final def bodyText(implicit
       RT: RaiseThrowable[F],
@@ -51,10 +38,10 @@ trait Media[F[_]] {
     }
 
   final def contentType: Option[`Content-Type`] =
-    headers.get(`Content-Type`)
+    headers.get[`Content-Type`]
 
   final def contentLength: Option[Long] =
-    headers.get(`Content-Length`).map(_.length)
+    headers.get[`Content-Length`].map(_.length)
 
   final def charset: Option[Charset] =
     contentType.flatMap(_.charset)
@@ -79,8 +66,7 @@ trait Media[F[_]] {
     * @return the effect which will generate the A
     */
   final def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
-    // n.b. this will be better with redeem in Cats-2.0
-    attemptAs.leftWiden[Throwable].rethrowT
+    F.rethrow(attemptAs.value)
 }
 
 object Media {

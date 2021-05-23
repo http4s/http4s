@@ -63,9 +63,6 @@ trait Client[F[_]] {
     */
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A]
 
-  @deprecated("Use toKleisli", "0.18")
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A]
-
   /** Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
@@ -75,17 +72,6 @@ trait Client[F[_]] {
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpApp: HttpApp[F]
-
-  /** Returns this client as an [[HttpService]].  It is the
-    * responsibility of callers of this service to run the response
-    * body to dispose of the underlying HTTP connection.
-    *
-    * This is intended for use in proxy servers. `run`, `fetchAs`,
-    * [[toKleisli]] and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
-    */
-  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
-  def toHttpService: HttpService[F]
 
   /** Run the request as a stream.  The response lifecycle is equivalent
     * to the returned Stream's.
@@ -168,9 +154,6 @@ trait Client[F[_]] {
     */
   def successful(req: F[Request[F]]): F[Boolean]
 
-  @deprecated("Use expect", "0.14")
-  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
-
   /** Submits a GET request, and provides a callback to process the response.
     *
     * @param uri The URI to GET
@@ -187,28 +170,14 @@ trait Client[F[_]] {
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
-  /** Submits a GET request and decodes the response.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
-    */
-  @deprecated("Use expect", "0.14")
-  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
-
-  @deprecated("Use expect", "0.14")
-  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
-
-  @deprecated("Use expect", "0.14")
-  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T]
-
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(implicit b: BracketThrow[F]): Client[G] = {
-    val _ = b // Unused as of cats-effect-2.1.3
+  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
       ).mapK(fk)
         .map(_.mapK(fk)))
-  }
 }
 
 object Client {
@@ -251,7 +220,7 @@ object Client {
           val req0 =
             addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
           Resource
-            .liftF(app(req0))
+            .eval(app(req0))
             .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
             .map(resp => resp.copy(body = go(resp.body).stream))
         }
@@ -263,7 +232,7 @@ object Client {
     */
   def liftKleisli[F[_]: BracketThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { (req: Request[Kleisli[F, A, *]]) =>
-      Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>
+      Resource.eval(Kleisli.ask[F, A]).flatMap { a =>
         client
           .run(req.mapK(Kleisli.applyK(a)))
           .mapK(Kleisli.liftK[F, A])
@@ -273,12 +242,15 @@ object Client {
 
   private def addHostHeaderIfUriIsAbsolute[F[_]](req: Request[F]): Request[F] =
     req.uri.host match {
-      case Some(host) if req.headers.get(Host).isEmpty =>
+      case Some(host) if req.headers.get[Host].isEmpty =>
         req.withHeaders(req.headers.put(Host(host.value, req.uri.port)))
       case _ => req
     }
 }
 
-final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {
-  override def getMessage: String = s"unexpected HTTP status: $status"
+final case class UnexpectedStatus(status: Status, requestMethod: Method, requestUri: Uri)
+    extends RuntimeException
+    with NoStackTrace {
+  override def getMessage: String =
+    s"unexpected HTTP status: $status for request $requestMethod $requestUri"
 }

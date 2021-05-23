@@ -20,29 +20,29 @@ package middleware
 
 import cats.Functor
 import cats.data.Kleisli
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.Stream.chunk
-import fs2.compress.deflate
+import fs2.compression.deflate
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
 import org.http4s.headers._
 import org.log4s.getLogger
-import scala.annotation.nowarn
 
 object GZip {
   private[this] val logger = getLogger
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor, G[_]: Functor](
+  def apply[F[_]: Functor, G[_]: Sync](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
-      req.headers.get(`Accept-Encoding`) match {
+      req.headers.get[`Accept-Encoding`] match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
           http(req).map(zipOrPass(_, bufferSize, level, isZippable))
         case _ => http(req)
@@ -50,8 +50,8 @@ object GZip {
     }
 
   def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {
-    val contentType = resp.headers.get(`Content-Type`)
-    resp.headers.get(`Content-Encoding`).isEmpty &&
+    val contentType = resp.headers.get[`Content-Type`]
+    resp.headers.get[`Content-Encoding`].isEmpty &&
     (contentType.isEmpty || contentType.get.mediaType.compressible ||
       (contentType.get.mediaType eq MediaType.application.`octet-stream`))
   }
@@ -60,7 +60,7 @@ object GZip {
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
       ContentCoding.`x-gzip`)
 
-  private def zipOrPass[F[_]: Functor](
+  private def zipOrPass[F[_]: Sync](
       response: Response[F],
       bufferSize: Int,
       level: Int,
@@ -70,8 +70,7 @@ object GZip {
       case resp => resp // Don't touch it, Content-Encoding already set
     }
 
-  @nowarn("cat=deprecation")
-  private def zipResponse[F[_]: Functor](
+  private def zipResponse[F[_]: Sync](
       bufferSize: Int,
       level: Int,
       resp: Response[F]): Response[F] = {
@@ -89,7 +88,7 @@ object GZip {
           )) ++
       chunk(trailerFinish(trailerGen))
     resp
-      .removeHeader(`Content-Length`)
+      .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
       .copy(body = b)
   }

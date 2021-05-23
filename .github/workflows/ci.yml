@@ -24,9 +24,10 @@ jobs:
   build:
     name: Build and Test
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12, 2.13.3]
+        scala: [2.12.13, 2.13.5, 3.0.0]
         java: [adopt@1.8, adopt@1.11, adopt@1.15]
     runs-on: ${{ matrix.os }}
     steps:
@@ -56,6 +57,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
+        if: matrix.scala != '3.0.0'
         run: sbt ++${{ matrix.scala }} scalafmtCheckAll
 
       - name: Check headers
@@ -66,9 +68,6 @@ jobs:
 
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
-
-      - name: Check unused dependencies
-        run: sbt ++${{ matrix.scala }} unusedCompileDependenciesTest
 
       - name: Run tests
         run: sbt ++${{ matrix.scala }} test
@@ -83,7 +82,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.3]
+        scala: [2.13.5]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -114,7 +113,10 @@ jobs:
 
       - run: git status
 
-      - run: sbt ++${{ matrix.scala }} release
+      - run: sbt ++${{ matrix.scala }} +publish
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
       - name: Setup Hugo
         run: |
@@ -132,7 +134,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.12 website/makeSite website/ghpagesPushSite
+          sbt ++2.12.13 website/makeSite website/ghpagesPushSite
 
                 
 
@@ -145,7 +147,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.12 docs/makeSite docs/ghpagesPushSite
+          sbt ++2.12.13 docs/makeSite docs/ghpagesPushSite
 
                 
 
@@ -154,7 +156,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12]
+        scala: [2.12.13]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -183,7 +185,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12]
+        scala: [2.12.13]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -206,3 +208,40 @@ jobs:
       
       - name: Build docs
         run: sbt ++${{ matrix.scala }} docs/makeSite
+
+  scalafix:
+    name: Scalafix
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        scala: [2.12.13, 2.13.5, 3.0.0]
+        java: [adopt@1.8]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Cache sbt
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier/cache/v1
+            ~/.cache/coursier/v1
+            ~/AppData/Local/Coursier/Cache/v1
+            ~/Library/Caches/Coursier/v1
+          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+
+      - name: Scalafix tests
+        if: matrix.scala == '2.13.5'
+        run: |
+          cd scalafix
+          sbt ci

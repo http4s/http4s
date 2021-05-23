@@ -70,7 +70,7 @@ trait EntityDecoder[F[_], T] { self =>
       F: Monad[F]): EntityDecoder[F, T] =
     transformWith {
       case Left(e) => f(e)
-      case Right(r) => DecodeResult.success(r)
+      case Right(r) => DecodeResult.successT(r)
     }
 
   def bimap[T2](f: DecodeFailure => DecodeFailure, s: T => T2)(implicit
@@ -177,9 +177,9 @@ object EntityDecoder {
         if (strict)
           m.contentType match {
             case Some(c) if matchesMediaType(c.mediaType) => f(m)
-            case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
+            case Some(c) => DecodeResult.failureT(MediaTypeMismatch(c.mediaType, consumes))
             case None if matchesMediaType(UndefinedMediaType) => f(m)
-            case None => DecodeResult.failure(MediaTypeMissing(consumes))
+            case None => DecodeResult.failureT(MediaTypeMissing(consumes))
           }
         else
           f(m)
@@ -190,13 +190,6 @@ object EntityDecoder {
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Sync](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
     DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
-
-  @deprecated(
-    "Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText",
-    "0.21.5")
-  def decodeString[F[_]](
-      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
-    m.bodyAsText.compile.string
 
   /** Decodes a message to a String */
   def decodeText[F[_]](

@@ -17,4 +17,39 @@
 package org.http4s
 package headers
 
-object `Max-Forwards` extends HeaderKey.Default
+import org.http4s.parser.AdditionalRules
+import org.typelevel.ci._
+
+/** Request header, used with the TRACE and OPTION request methods,
+  * that gives an upper bound on how many times the request can be
+  * forwarded by a proxy before it is rejected.
+  *
+  * [[https://tools.ietf.org/html/rfc7231#section-5.1.2 RFC-7231]]
+  */
+sealed abstract case class `Max-Forwards`(count: Long)
+
+object `Max-Forwards` {
+  private class MaxForwardsImpl(length: Long) extends `Max-Forwards`(length)
+
+  val zero: `Max-Forwards` = new MaxForwardsImpl(0)
+
+  def fromLong(length: Long): ParseResult[`Max-Forwards`] =
+    if (length >= 0L) ParseResult.success(new MaxForwardsImpl(length))
+    else ParseResult.fail("Invalid Max-Forwards", length.toString)
+
+  def unsafeFromLong(length: Long): `Max-Forwards` =
+    fromLong(length).fold(throw _, identity)
+
+  def parse(s: String): ParseResult[`Max-Forwards`] =
+    ParseResult.fromParser(parser, "Invalid Max-Forwards header")(s)
+
+  private[http4s] val parser = AdditionalRules.NonNegativeLong.mapFilter(l => fromLong(l).toOption)
+
+  implicit val headerInstance: Header[`Max-Forwards`, Header.Single] =
+    Header.createRendered(
+      ci"Max-Forwards",
+      _.count,
+      parse
+    )
+
+}

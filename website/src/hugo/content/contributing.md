@@ -52,7 +52,7 @@ This runs:
   builds the static site.
 * `mimaReportBinaryIssues`: checks for binary compatibility changes,
   which are relevant past patch release .0.
-  
+
 [SBT]: http://www.scala-sbt.org/0.13/tutorial/Setup.html
 [Hugo]: https://gohugo.io/getting-started/installing/
 
@@ -70,15 +70,15 @@ your PR fails due to formatting, run `;test:scalafmt`.
 
 #### IntelliJ IDEA specific settings
 
-To setup IntelliJ IDEA to conform with the formatting used in this project, 
+To setup IntelliJ IDEA to conform with the formatting used in this project,
 the following settings should be changed from the default.
 
 Under `Settings > Editor > Code Style > Scala`:
 
-* Set `Formatter` to `scalafmt`. The default path for the `.scalafmt.conf` 
+* Set `Formatter` to `scalafmt`. The default path for the `.scalafmt.conf`
 file should work, if not, point it to the `.scalafmt.conf` in the root of
 the project.
-* In the `Imports` tab, in the `Import layout` pane, delete all entries, 
+* In the `Imports` tab, in the `Import layout` pane, delete all entries,
 except for `all other imports`. This disables the grouping and sorting of
 imports that IntelliJ does by default.
 
@@ -107,10 +107,10 @@ replacements from libraries such as Scalaz or Dogs.
 
 When a list must not be empty, use `cats.data.NonEmptyList`.
 
-#### `CaseInsensitiveString`
+#### `CIString`
 
 Many parts of the HTTP spec require case-insensitive semantics. Use
-`org.http4s.util.CaseInsensitiveString` to represent these. This is important to
+`org.typelevel.ci.CIString` to represent these. This is important to
 get correct matching semantics when using case class extractors.
 
 ### Case classes
@@ -136,11 +136,11 @@ case class Foo(seconds: Long)
 object Foo {
   def fromFiniteDuration(d: FiniteDuration): Foo =
     apply(d.toSeconds)
-    
+
   def fromString(s: String): ParseResult[Foo] =
     try s.toLong
-    catch { case e: NumberFormatException => 
-      new ParseFailure("not a long") 
+    catch { case e: NumberFormatException =>
+      new ParseFailure("not a long")
     }
 }
 ```
@@ -156,7 +156,7 @@ All constructors that are partial on their input should be prefixed with `unsafe
 def fromLong(l: Long): ParseResult[Foo] =
   if (l < 0) Left(ParseFailure("l must be non-negative"))
   else Right(new Foo(l))
-def unsafeFromLong(l: Long): Foo = 
+def unsafeFromLong(l: Long): Foo =
   fromLong(l).fold(throw _, identity)
 
 // Bad
@@ -186,16 +186,16 @@ Apache License 2.0.
 ## Tests
 
 * Tests for http4s-core go into the `tests` module.
-* Tests should extend `Http4sSpec`.  `Http4sSpec` extends [Specs2]
+* Tests should extend `Http4sSuite`.  `Http4sSuite` extends [MUnit]
   with all syntax, standard instances, and helpers for convenience.
-* We use Specs2's integration with [ScalaCheck] for property testing.
+* We use MUnit's integration with [ScalaCheck] for property testing.
   We prefer property tests where feasible, complemented by example
   tests where they increase clarity or confidence.
 * We encourage the addition of arbitrary instances to
   `org.http4s.testing.Http4sArbitraries` to support richer property
   testing.
 
-[Specs2]: https://etorreborre.github.io/specs2/
+[MUnit]: https://scalameta.org/munit/
 [ScalaCheck]: https://www.scalacheck.org/
 
 ## Documentation
@@ -228,6 +228,53 @@ documentation as part of the build.
 All pages have an edit link at the top right for direct editing of the
 markdown via GitHub.  Be aware that the Travis build will fail if invalid
 code is added.
+
+### Running the common or versioned site locally
+
+To run common or versioned site locally you need [Hugo] version 0.26 (since
+this is what CI uses) installed.
+
+### Running common site locally
+
+In your terminal run this command (in root folder of http4s):
+
+```sh
+hugo -s website/src/hugo server -p 4000
+```
+
+Now you can open browser at http://localhost:4000/ to see local version
+of common site.
+
+If the site looks broken make sure you have Hugo version compatible with
+version 0.26.
+
+Hugo server will automatically detect any changes in Hugo content files
+located in `website/src/hugo/content` and it will reload corresponding
+pages automatically.
+
+### Running versioned site locally
+
+In your terminal run these commands (in root folder of http4s):
+
+```sh
+sbt docs/makeSite
+hugo -s docs/src/hugo server -p 4000
+```
+
+Now you can open browser http://localhost:4000/v0.22 to see local version
+of versioned site.
+
+If the site looks broken make sure you have Hugo version compatible with
+version 0.26.
+
+When you change content files located at `docs/src/main/mdoc` you need
+to run:
+
+```sh
+sbt docs/mdoc
+```
+
+for Hugo server to picks up your changes.
 
 ## Submit a pull request
 

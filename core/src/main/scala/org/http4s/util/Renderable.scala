@@ -17,12 +17,17 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
+
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.http4s.Header
+import org.typelevel.ci.CIString
+
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
+import org.http4s.internal.CharPredicate
 
 /** A type class that describes how to efficiently render a type
   * @tparam T the type which will be rendered
@@ -38,6 +43,8 @@ trait Renderer[T] {
 }
 
 object Renderer {
+  @inline def apply[A](implicit ev: Renderer[A]): Renderer[A] = ev
+
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
@@ -73,6 +80,28 @@ object Renderer {
           case Right(b) => rb.render(writer, b)
         }
     }
+
+  implicit val ciStringRenderer: Renderer[CIString] = new Renderer[CIString] {
+    override def render(writer: Writer, ciString: CIString): writer.type =
+      writer << ciString
+  }
+
+  implicit def nelRenderer[T: Renderer]: Renderer[NonEmptyList[T]] =
+    new Renderer[NonEmptyList[T]] {
+      override def render(writer: Writer, values: NonEmptyList[T]): writer.type =
+        writer.addNel(values)
+    }
+
+  implicit def setRenderer[T: Renderer]: Renderer[Set[T]] =
+    new Renderer[Set[T]] {
+      override def render(writer: Writer, values: Set[T]): writer.type =
+        writer.addSet(values)
+    }
+
+  implicit def headerSelectRenderer[A](implicit select: Header.Select[A]): Renderer[A] =
+    new Renderer[A] {
+      override def render(writer: Writer, t: A): writer.type = writer << select.toRaw(t)
+    }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
@@ -105,7 +134,7 @@ object Writer {
 /** Efficiently accumulate [[Renderable]] representations */
 trait Writer {
   def append(s: String): this.type
-  def append(ci: CaseInsensitiveString): this.type = append(ci.toString)
+  def append(ci: CIString): this.type = append(ci.toString)
   def append(char: Char): this.type = append(char.toString)
   def append(float: Float): this.type = append(float.toString)
   def append(double: Double): this.type = append(double.toString)
@@ -132,6 +161,17 @@ trait Writer {
     go(0)
     this << '"'
   }
+  //Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
+  def eligibleOnly(s: String, keep: CharPredicate, placeholder: Char): this.type = {
+    @tailrec def rec(ix: Int = 0): this.type =
+      if (ix < s.length) {
+        val c = s.charAt(ix)
+        if (keep(c)) this << c
+        else this << placeholder
+        rec(ix + 1)
+      } else this
+    rec()
+  }
 
   def addStrings(
       s: collection.Seq[String],
@@ -146,9 +186,9 @@ trait Writer {
     append(end)
   }
 
-  def addStringNel(
-      s: NonEmptyList[String],
-      sep: String = "",
+  def addNel[T: Renderer](
+      s: NonEmptyList[T],
+      sep: String = ", ",
       start: String = "",
       end: String = ""): this.type = {
     append(start)
@@ -159,7 +199,7 @@ trait Writer {
 
   def addSet[T: Renderer](
       s: collection.Set[T],
-      sep: String = "",
+      sep: String = ", ",
       start: String = "",
       end: String = ""): this.type = {
     append(start)
@@ -172,7 +212,7 @@ trait Writer {
 
   final def <<(s: String): this.type = append(s)
   final def <<#(s: String): this.type = quote(s)
-  final def <<(s: CaseInsensitiveString): this.type = append(s)
+  final def <<(s: CIString): this.type = append(s)
   final def <<(char: Char): this.type = append(char)
   final def <<(float: Float): this.type = append(float)
   final def <<(double: Double): this.type = append(double)

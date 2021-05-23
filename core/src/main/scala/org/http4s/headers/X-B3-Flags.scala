@@ -17,12 +17,23 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse.Parser0
+import cats.parse.Numbers
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`X-B3-Flags`] =
-    HttpHeaderParser.X_B3_FLAGS(s)
+object `X-B3-Flags` {
+
+  def parse(s: String): ParseResult[`X-B3-Flags`] =
+    ParseResult.fromParser(parser, "Invalid X-B3-Flags header")(s)
+
+  private[http4s] val parser: Parser0[`X-B3-Flags`] =
+    Numbers.digits
+      .mapFilter { str =>
+        try Some(str.toLong)
+        catch { case _: NumberFormatException => None }
+      }
+      .map(fromLong)
 
   sealed trait Flag extends Product with Serializable {
     def longValue: Long
@@ -58,11 +69,19 @@ object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Sing
 
     `X-B3-Flags`(flags)
   }
+
+  implicit val headerInstance: Header[`X-B3-Flags`, Header.Single] =
+    Header.createRendered(
+      ci"X-B3-Flags",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            writer.append(h.flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
+
+        },
+      parse
+    )
+
 }
 
-final case class `X-B3-Flags`(flags: Set[`X-B3-Flags`.Flag]) extends Header.Parsed {
-  override def key: `X-B3-Flags`.type = `X-B3-Flags`
-
-  override def renderValue(writer: Writer): writer.type =
-    writer.append(flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
-}
+final case class `X-B3-Flags`(flags: Set[`X-B3-Flags`.Flag])

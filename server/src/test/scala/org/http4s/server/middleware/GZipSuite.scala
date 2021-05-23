@@ -40,15 +40,15 @@ class GZipSuite extends Http4sSuite {
       .orNotFound(req)
       .map { resp =>
         resp.status === Status.Ok &&
-        resp.headers.get(`Content-Encoding`).isEmpty
+        resp.headers.get[`Content-Encoding`].isEmpty
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("encodes random content-type if given isZippable is true") {
     val response = "Response string"
     val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
-      Ok(response, Header("Content-Type", "random-type; charset=utf-8"))
+      Ok(response, "Content-Type" -> "random-type; charset=utf-8")
     }
 
     val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = _ => true)
@@ -63,11 +63,11 @@ class GZipSuite extends Http4sSuite {
     gZIPStream.write(response.getBytes)
     gZIPStream.close()
 
-    actual.map(Arrays.equals(_, byteStream.toByteArray)).assertEquals(true)
+    actual.map(Arrays.equals(_, byteStream.toByteArray)).assert
   }
 
   test("encoding") {
-    PropF.forAllF { vector: Vector[Array[Byte]] =>
+    PropF.forAllF { (vector: Vector[Array[Byte]]) =>
       val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
         Ok(Stream.emits(vector).covary[IO])
       }
@@ -83,7 +83,7 @@ class GZipSuite extends Http4sSuite {
       gzipStream.close()
       val expected = byteArrayStream.toByteArray
 
-      actual.map(Arrays.equals(_, expected)).assertEquals(true)
+      actual.map(Arrays.equals(_, expected)).assert
     }
   }
 }

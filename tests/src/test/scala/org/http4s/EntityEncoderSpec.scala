@@ -27,95 +27,103 @@ import java.io._
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 import org.http4s.headers._
+import org.http4s.laws.discipline.arbitrary._
 import scala.concurrent.duration._
 
-class EntityEncoderSpec extends Http4sSpec {
-  "EntityEncoder" should {
-    "render streams" in {
+class EntityEncoderSpec extends Http4sSuite {
+  {
+    test("EntityEncoder should render streams") {
       val helloWorld: Stream[IO, String] = Stream("hello", "world")
-      writeToString(helloWorld) must_== "helloworld"
+      writeToString(helloWorld).assertEquals("helloworld")
     }
 
-    "render streams with chunked transfer encoding" in {
-      EntityEncoder[IO, Stream[IO, String]].headers.get(`Transfer-Encoding`) must beLike {
-        case Some(coding) => coding.hasChunked must beTrue
+    test("EntityEncoder should render streams with chunked transfer encoding") {
+      EntityEncoder[IO, Stream[IO, String]].headers.get[`Transfer-Encoding`] match {
+        case Some(coding: `Transfer-Encoding`) => assert(coding.hasChunked)
+        case _ => fail("Match failed")
       }
     }
 
-    "render streams with chunked transfer encoding without wiping out other encodings" in {
+    test(
+      "EntityEncoder should render streams with chunked transfer encoding without wiping out other encodings") {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => Entity.empty)
-      implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
-        case Some(coding) =>
-          coding must_== `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked)
+      implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get[`Transfer-Encoding`] match {
+        case Some(coding: `Transfer-Encoding`) =>
+          assertEquals(coding, `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked))
+        case _ => fail("Match failed")
       }
     }
 
-    "render streams with chunked transfer encoding without duplicating chunked transfer encoding" in {
+    test(
+      "EntityEncoder should render streams with chunked transfer encoding without duplicating chunked transfer encoding") {
       trait Foo
-      implicit val FooEncoder =
+      implicit val FooEncoder: EntityEncoder[IO, Foo] =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
           Entity.empty)
-      EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) must beLike {
-        case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
+      EntityEncoder[IO, Stream[IO, Foo]].headers.get[`Transfer-Encoding`] match {
+        case Some(coding: `Transfer-Encoding`) =>
+          assertEquals(coding, `Transfer-Encoding`(TransferCoding.chunked))
+        case _ => fail("Match failed")
       }
     }
 
-    "render entity bodies with chunked transfer encoding" in {
-      EntityEncoder[IO, EntityBody[IO]].headers.get(`Transfer-Encoding`) must beSome(
-        `Transfer-Encoding`(TransferCoding.chunked))
+    test("EntityEncoder should render entity bodies with chunked transfer encoding") {
+      assert(
+        EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`] == Some(
+          `Transfer-Encoding`(TransferCoding.chunked)))
     }
 
-    "render files" in {
+    test("EntityEncoder should render files") {
       val tmpFile = File.createTempFile("http4s-test-", ".txt")
-      try {
-        val w = new FileWriter(tmpFile)
-        try w.write("render files test")
-        finally w.close()
-        writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlocker)) must_== "render files test"
-      } finally {
-        tmpFile.delete()
-        ()
-      }
+      val w = new FileWriter(tmpFile)
+      try w.write("render files test")
+      finally w.close()
+      writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlocker))
+        .guarantee(IO.delay(tmpFile.delete()).void)
+        .assertEquals("render files test")
+
     }
 
-    "render input streams" in {
+    test("EntityEncoder should render input streams") {
       val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
-      writeToString(IO(inputStream))(
-        EntityEncoder.inputStreamEncoder(testBlocker)) must_== "input stream"
+      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder(testBlocker))
+        .assertEquals("input stream")
     }
 
-    "render readers" in {
+    test("EntityEncoder should render readers") {
       val reader = new StringReader("string reader")
-      writeToString(IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== "string reader"
+      writeToString(IO(reader))(EntityEncoder.readerEncoder(testBlocker))
+        .assertEquals("string reader")
     }
 
-    "render very long readers" in {
-      skipped
+    test("EntityEncoder should render very long readers".ignore) {
       // This tests is very slow. Debugging seems to indicate that the issue is at fs2
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlocker)) must_== longString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker))
+        .assertEquals(longString)
     }
 
-    "render readers with UTF chars" in {
+    test("EntityEncoder should render readers with UTF chars") {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlocker)) must_== utfString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker))
+        .assertEquals(utfString)
     }
 
-    "give the content type" in {
-      EntityEncoder[IO, String].contentType must beSome(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`))
-      EntityEncoder[IO, Array[Byte]].contentType must beSome(
-        `Content-Type`(MediaType.application.`octet-stream`))
+    test("EntityEncoder should give the content type") {
+      assertEquals(
+        EntityEncoder[IO, String].contentType,
+        Some(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)))
+      assertEquals(
+        EntityEncoder[IO, Array[Byte]].contentType,
+        Some(`Content-Type`(MediaType.application.`octet-stream`)))
     }
 
-    "work with local defined EntityEncoders" in {
+    test("EntityEncoder should work with local defined EntityEncoders") {
       sealed case class ModelA(name: String, color: Int)
       sealed case class ModelB(name: String, id: Long)
 
@@ -124,8 +132,8 @@ class EntityEncoderSpec extends Http4sSpec {
       implicit val w2: EntityEncoder[IO, ModelB] =
         EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
 
-      EntityEncoder[IO, ModelA] must_== w1
-      EntityEncoder[IO, ModelB] must_== w2
+      assertEquals(EntityEncoder[IO, ModelA], w1)
+      assertEquals(EntityEncoder[IO, ModelB], w2)
     }
   }
 

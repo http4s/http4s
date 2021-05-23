@@ -17,15 +17,86 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.{Header, HeaderKey, ParseResult}
+import cats.parse.{Parser, Parser0}
+import org.http4s._
+import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token}
 
-object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Link] =
-    HttpHeaderParser.LINK(s)
+import java.nio.charset.StandardCharsets
+import org.http4s.Header
+import org.typelevel.ci._
+
+object Link {
+
+  def apply(head: LinkValue, tail: LinkValue*): Link =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[Link] =
+    ParseResult.fromParser(parser, "Invalid Link header")(s)
+
+  private[http4s] val parser: Parser[Link] = {
+    import cats.parse.Parser._
+
+    sealed trait LinkParam
+    final case class Rel(value: String) extends LinkParam
+    final case class Rev(value: String) extends LinkParam
+    final case class Title(value: String) extends LinkParam
+    final case class Type(value: MediaRange) extends LinkParam
+
+    // https://tools.ietf.org/html/rfc3986#section-4.1
+    val linkValue: Parser0[LinkValue] =
+      Uri.Parser.uriReference(StandardCharsets.UTF_8).map { uri =>
+        headers.LinkValue(uri)
+      }
+
+    val linkParam: Parser0[LinkParam] = {
+      val relParser = (string("rel=") *> token.orElse(quotedString))
+        .map { rel =>
+          Rel(rel)
+        }
+
+      val revParser = (string("rev=") *> token.orElse(quotedString)).map { rev =>
+        Rev(rev)
+      }
+
+      val titleParser = (string("title=") *> token.orElse(quotedString)).map { title =>
+        Title(title)
+      }
+
+      val typeParser = {
+        val mediaRange = string("type=") *> MediaRange.parser.orElse(
+          string("\"") *> MediaRange.parser <* string("\""))
+        mediaRange.map(tpe => Type(tpe))
+      }
+
+      relParser.orElse(revParser).orElse(titleParser).orElse(typeParser)
+    }
+
+    val linkValueWithAttr: Parser[LinkValue] =
+      ((char('<') *> linkValue <* char('>')) ~ (char(';') *> ows *> linkParam).rep0).map {
+        case (linkValue, linkParams) =>
+          linkParams.foldLeft(linkValue) { case (lv, lp) =>
+            lp match {
+              case Rel(rel) =>
+                if (lv.rel.isDefined) lv else lv.copy(rel = Some(rel))
+              case Rev(rev) => lv.copy(rev = Some(rev))
+              case Title(title) => lv.copy(title = Some(title))
+              case Type(tpe) => lv.copy(`type` = Some(tpe))
+            }
+          }
+      }
+
+    headerRep1(linkValueWithAttr).map(links => Link(links.head, links.tail: _*))
+  }
+
+  implicit val headerInstance: Header[Link, Header.Recurring] =
+    Header.createRendered(
+      ci"Link",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Link] =
+    (a, b) => Link(a.values.concatNel(b.values))
 }
 
-final case class Link(values: NonEmptyList[LinkValue]) extends Header.RecurringRenderable {
-  override def key: Link.type = Link
-  type Value = LinkValue
-}
+final case class Link(values: NonEmptyList[LinkValue])

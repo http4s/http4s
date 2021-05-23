@@ -25,11 +25,12 @@ import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
+import org.typelevel.ci._
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
-  def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
+  def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
   def filename: Option[String] =
-    headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
+    headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
 
   override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
@@ -46,36 +47,35 @@ object Part {
   def empty[F[_]]: Part[F] =
     Part(Headers.empty, EmptyBody)
 
-  def formData[F[_]](name: String, value: String, headers: Header*): Part[F] =
+  def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
-      Headers(`Content-Disposition`("form-data", Map("name" -> name)) :: headers.toList),
+      Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
       Stream.emit(value).through(utf8Encode))
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       file: File,
       blocker: Blocker,
-      headers: Header*): Part[F] =
+      headers: Header.ToRaw*): Part[F] =
     fileData(name, file.getName, readAll[F](file.toPath, blocker, ChunkSize), headers: _*)
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       resource: URL,
       blocker: Blocker,
-      headers: Header*): Part[F] =
+      headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), blocker, headers: _*)
 
-  def fileData[F[_]: Sync](
+  def fileData[F[_]](
       name: String,
       filename: String,
       entityBody: EntityBody[F],
-      headers: Header*): Part[F] =
+      headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(
-        `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) ::
-          Header("Content-Transfer-Encoding", "binary") ::
-          headers.toList
-      ),
+        `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
+        "Content-Transfer-Encoding" -> "binary"
+      ).put(headers: _*),
       entityBody
     )
 
@@ -88,6 +88,6 @@ object Part {
       filename: String,
       in: => InputStream,
       blocker: Blocker,
-      headers: Header*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
+      headers: Header.ToRaw*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
     fileData(name, filename, readInputStream(F.delay(in), ChunkSize, blocker), headers: _*)
 }

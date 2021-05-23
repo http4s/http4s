@@ -22,13 +22,14 @@ import cats.effect.IO
 import cats.Eq
 import cats.effect.laws.util.TestContext
 import org.http4s.headers.`Content-Type`
-// import org.http4s.laws.discipline.EntityCodecTests
+import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.MediaType
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
+import org.http4s.booPickle.implicits._
 
-class BoopickleSuite extends Http4sSuite with BooPickleInstances {
-  implicit val testContext = TestContext()
+class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
+  implicit val testContext: TestContext = TestContext()
 
   trait Fruit {
     val weight: Double
@@ -50,8 +51,8 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances {
   implicit val fruitPickler: Pickler[Fruit] =
     compositePickler[Fruit].addConcreteType[Banana].addConcreteType[Kiwi].addConcreteType[Carambola]
 
-  implicit val encoder = booEncoderOf[IO, Fruit]
-  implicit val decoder = booOf[IO, Fruit]
+  implicit val encoder: EntityEncoder[IO, Fruit] = booEncoderOf[IO, Fruit]
+  implicit val decoder: EntityDecoder[IO, Fruit] = booOf[IO, Fruit]
 
   implicit val fruitArbitrary: Arbitrary[Fruit] = Arbitrary {
     for {
@@ -64,13 +65,13 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances {
 
   test("have octet-stream content type") {
     assertEquals(
-      encoder.headers.get(`Content-Type`),
+      encoder.headers.get[`Content-Type`],
       Some(`Content-Type`(MediaType.application.`octet-stream`)))
   }
 
   test("have octect-stream content type") {
     assertEquals(
-      booEncoderOf[IO, Fruit].headers.get(`Content-Type`),
+      booEncoderOf[IO, Fruit].headers.get[`Content-Type`],
       Some(`Content-Type`(MediaType.application.`octet-stream`)))
   }
 
@@ -80,5 +81,5 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances {
     result.value.map(assertEquals(_, Right(Banana(10.0))))
   }
 
-  // checkAll("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodec)
+  checkAllF("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodecF)
 }

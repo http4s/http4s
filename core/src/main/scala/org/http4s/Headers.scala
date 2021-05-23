@@ -16,107 +16,55 @@
 
 package org.http4s
 
-import cats.{Eq, Eval, Foldable, Monoid, Order, Show}
+import cats.{Monoid, Order, Show}
+import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.headers.`Set-Cookie`
-import org.http4s.syntax.string._
-import org.http4s.util.CaseInsensitiveString
-import scala.collection.mutable.ListBuffer
+import org.typelevel.ci._
+import scala.collection.mutable
 
 /** A collection of HTTP Headers */
-final class Headers private (private val headers: List[Header]) extends AnyVal {
-  def toList: List[Header] = headers
+final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
-  def isEmpty: Boolean = headers.isEmpty
+  def transform(f: List[Header.Raw] => List[Header.Raw]): Headers =
+    Headers(f(headers))
 
-  def nonEmpty: Boolean = headers.nonEmpty
-
-  def drop(n: Int): Headers = if (n == 0) this else new Headers(headers.drop(n))
-
-  def iterator: Iterator[Header] = headers.iterator
-
-  /** Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+  /** TODO revise scaladoc
+    * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
     *
     * @param key [[HeaderKey.Extractable]] that can identify the required header
     * @return a scala.Option possibly containing the resulting header of type key.HeaderT
-    * @see [[Header]] object and get([[org.http4s.util.CaseInsensitiveString]])
+    * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
     */
-  def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
+  def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
+    ev.from(headers)
 
-  @deprecated(
-    "Use response.cookies instead. Set-Cookie is unique among HTTP headers in that it can be repeated but can't be joined by a ','. This will return only the first Set-Cookie header. `response.cookies` will return the complete list.",
-    "0.16.0-RC1"
-  )
-  def get(key: `Set-Cookie`.type): Option[`Set-Cookie`] =
-    key.from(this).headOption
-
-  /** Attempt to get a [[org.http4s.Header]] from this collection of headers
+  /** TODO revise scaladoc
+    * Attempt to get a [[org.http4s.Header]] from this collection of headers
     *
     * @param key name of the header to find
     * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
     */
-  def get(key: CaseInsensitiveString): Option[Header] = headers.find(_.name == key)
+  def get(key: CIString): Option[NonEmptyList[Header.Raw]] = headers.filter(_.name == key).toNel
 
-  /** Make a new collection adding the specified headers, replacing existing headers of singleton type
-    * The passed headers are assumed to contain no duplicate Singleton headers.
+  /** Make a new collection adding the specified headers, replacing existing `Single` headers.
     *
-    * @param in multiple [[Header]] to append to the new collection
+    * @param in multiple heteregenous headers [[Header]] to append to the new collection, see [[Header.ToRaw]]
     * @return a new [[Headers]] containing the sum of the initial and input headers
     */
-  def put(in: Header*): Headers =
-    if (in.isEmpty) this
-    else if (this.isEmpty) new Headers(in.toList)
-    else this ++ Headers(in.toList)
+  def put(in: Header.ToRaw*): Headers =
+    this ++ Headers(in.values)
 
-  /** Concatenate the two collections
-    * If the resulting collection is of Headers type, duplicate Singleton headers will be removed from
-    * this Headers collection.
-    *
-    * @param that collection to append
-    * @tparam B type contained in collection `that`
-    * @tparam That resulting type of the new collection
-    */
-  def ++(that: Headers): Headers =
-    if (that.isEmpty) this
-    else if (this.isEmpty) that
+  def ++(those: Headers): Headers =
+    if (those.headers.isEmpty) this
+    else if (this.headers.isEmpty) those
     else {
-      val hs = that.toList
-      val acc = new ListBuffer[Header]
-      this.headers.foreach { orig =>
-        orig.parsed match {
-          case _: Header.Recurring => acc += orig
-          case _: `Set-Cookie` => acc += orig
-          case h if !hs.exists(_.name == h.name) => acc += orig
-          case _ => // NOOP, drop non recurring header that already exists
-        }
-      }
-
-      val h = new Headers(acc.prependToList(hs))
-      h
+      val thoseNames = mutable.Set.empty[CIString]
+      those.headers.foreach(h => thoseNames.add(h.name))
+      Headers(headers.filterNot(h => thoseNames.contains(h.name)) ++ those.headers)
     }
 
-  def filterNot(f: Header => Boolean): Headers =
-    Headers(headers.filterNot(f))
-
-  def filter(f: Header => Boolean): Headers =
-    Headers(headers.filter(f))
-
-  def collectFirst[B](f: PartialFunction[Header, B]): Option[B] =
-    headers.collectFirst(f)
-
-  def foldMap[B: Monoid](f: Header => B): B =
-    headers.foldMap(f)
-
-  def foldLeft[A](z: A)(f: (A, Header) => A): A =
-    headers.foldLeft(z)(f)
-
-  def foldRight[A](z: Eval[A])(f: (Header, Eval[A]) => Eval[A]): Eval[A] =
-    Foldable[List].foldRight(headers, z)(f)
-
-  def foreach(f: Header => Unit): Unit =
-    headers.foreach(f)
-
-  def size: Int = headers.size
+  def add[H: Header[*, Header.Recurring]](h: H): Headers =
+    Headers(this.headers ++ Header.ToRaw.modelledHeadersToRaw(h).values)
 
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
@@ -124,57 +72,41 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
     *  https://tools.ietf.org/html/rfc7231#section-3.3
     */
   def removePayloadHeaders: Headers =
-    filterNot(h => Headers.PayloadHeaderKeys(h.name))
+    transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
 
   def redactSensitive(
-      redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains): Headers =
-    Headers(headers.map {
-      case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
-      case h => h
-    })
-
-  def exists(f: Header => Boolean): Boolean =
-    headers.exists(f)
-
-  def forall(f: Header => Boolean): Boolean =
-    headers.forall(f)
-
-  def find(f: Header => Boolean): Option[Header] =
-    headers.find(f)
-
-  def count(f: Header => Boolean): Int =
-    headers.count(f)
-
-  override def toString: String =
-    Headers.headersShow.show(this)
-}
-
-object Headers {
-  val empty = apply(List.empty)
-
-  def of(headers: Header*): Headers =
-    Headers(headers.toList)
-
-  @deprecated("Use Headers.of", "0.20.0")
-  def apply(headers: Header*): Headers =
-    of(headers: _*)
-
-  /** Create a new Headers collection from the headers */
-  // def apply(headers: Header*): Headers = Headers(headers.toList)
-
-  /** Create a new Headers collection from the headers */
-  def apply(headers: List[Header]): Headers = new Headers(headers)
-
-  implicit val headersShow: Show[Headers] =
-    Show.show[Headers] {
-      _.iterator.map(_.show).mkString("Headers(", ", ", ")")
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+    transform {
+      _.map {
+        case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
+        case h => h
+      }
     }
 
-  @deprecated(message = "Please use HeadersOrder instead", since = "0.21.12")
-  def HeadersEq: Eq[Headers] = HeadersOrder
+  def foreach(f: Header.Raw => Unit): Unit = headers.foreach(f)
+
+  override def toString: String =
+    this.show
+}
+object Headers {
+  val empty = Headers(List.empty[Header.Raw])
+
+  /** Creates a new Headers collection.
+    * The [[Header.ToRaw]] machinery allows the creation of Headers with
+    * variadic and heteregenous arguments, provided they are either:
+    * - A value of type `A`  which has a `Header[A]` in scope
+    * - A (name, value) pair of `String`
+    * - A `Header.Raw`
+    * - A `Foldable` (`List`, `Option`, etc) of the above.
+    */
+  def apply(headers: Header.ToRaw*): Headers =
+    new Headers(headers.values)
+
+  implicit val headersShow: Show[Headers] =
+    _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")
 
   implicit lazy val HeadersOrder: Order[Headers] =
-    Order.by(_.toList)
+    Order.by(_.headers)
 
   implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
     def empty: Headers = Headers.empty
@@ -183,15 +115,15 @@ object Headers {
   }
 
   private val PayloadHeaderKeys = Set(
-    "Content-Length".ci,
-    "Content-Range".ci,
-    "Trailer".ci,
-    "Transfer-Encoding".ci
+    ci"Content-Length",
+    ci"Content-Range",
+    ci"Trailer",
+    ci"Transfer-Encoding"
   )
 
   val SensitiveHeaders = Set(
-    "Authorization".ci,
-    "Cookie".ci,
-    "Set-Cookie".ci
+    ci"Authorization",
+    ci"Cookie",
+    ci"Set-Cookie"
   )
 }

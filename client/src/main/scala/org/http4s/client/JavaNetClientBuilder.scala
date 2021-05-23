@@ -26,6 +26,7 @@ import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.typelevel.ci.CIString
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, blocking}
 
@@ -118,15 +119,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
           _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
           _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-          _ <- F.delay(req.headers.foreach {
-            case Header(name, value) =>
-              conn.setRequestProperty(name.value, value)
-            case h: Header.Parsed =>
-              // Appease 2.13.4's exhaustiveness checker
-              conn.setRequestProperty(h.name.value, h.value)
-            case Header.Raw(name, value) =>
-              // Appease 2.13.4's exhaustiveness checker
-              conn.setRequestProperty(name.value, value)
+          _ <- F.delay(req.headers.foreach { case Header.Raw(name, value) =>
+            conn.setRequestProperty(name.toString, value)
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
           _ <- F.delay(conn.setDoInput(true))
@@ -134,13 +128,13 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         } yield resp
 
       for {
-        url <- Resource.liftF(F.delay(new URL(req.uri.toString)))
+        url <- Resource.eval(F.delay(new URL(req.uri.toString)))
         conn <- Resource.make(openConnection(url)) { conn =>
           F.delay(conn.getInputStream().close()).recoverWith { case _: IOException =>
             F.delay(Option(conn.getErrorStream()).foreach(_.close()))
           }
         }
-        resp <- Resource.liftF(respond(conn))
+        resp <- Resource.eval(respond(conn))
       } yield resp
     }
 
@@ -156,7 +150,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
-            .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
+            .flatMap { case (k, vs) => vs.asScala.map(Header.Raw(CIString(k), _)) }
             .toList
         ))
     } yield Response(status = status, headers = headers, body = readBody(conn))

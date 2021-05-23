@@ -17,15 +17,18 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse.{Parser, Parser0}
+import org.http4s.internal.parsing.Rfc7230.ows
+import org.http4s.parser.AdditionalRules
+import org.http4s.util.{Renderable, Writer}
+import org.http4s.Header
+import org.typelevel.ci._
+
 import scala.concurrent.duration.FiniteDuration
 
 /** Defined by http://tools.ietf.org/html/rfc6797
   */
-object `Strict-Transport-Security`
-    extends HeaderKey.Internal[`Strict-Transport-Security`]
-    with HeaderKey.Singleton {
+object `Strict-Transport-Security` {
   private[headers] class StrictTransportSecurityImpl(
       maxAge: Long,
       includeSubDomains: Boolean,
@@ -56,23 +59,54 @@ object `Strict-Transport-Security`
     fromLong(maxAge, includeSubDomains, preload).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Strict-Transport-Security`] =
-    HttpHeaderParser.STRICT_TRANSPORT_SECURITY(s)
+    ParseResult.fromParser(parser, "Invalid Strict-Transport-Security header")(s)
+
+  private[http4s] val parser: Parser0[`Strict-Transport-Security`] = {
+    val maxAge: Parser[`Strict-Transport-Security`] =
+      (Parser.ignoreCase("max-age=") *> AdditionalRules.NonNegativeLong).map { (age: Long) =>
+        `Strict-Transport-Security`
+          .unsafeFromLong(maxAge = age, includeSubDomains = false, preload = false)
+      }
+
+    sealed trait StsAttribute
+    case object IncludeSubDomains extends StsAttribute
+    case object Preload extends StsAttribute
+
+    val stsAttributes: Parser0[StsAttribute] = Parser
+      .ignoreCase("includeSubDomains")
+      .as(IncludeSubDomains)
+      .orElse(Parser.ignoreCase("preload").as(Preload))
+
+    (maxAge ~ (Parser.string(";") *> ows *> stsAttributes).rep0).map { case (sts, attributes) =>
+      attributes.foldLeft(sts) {
+        case (sts, IncludeSubDomains) => sts.withIncludeSubDomains(true)
+        case (sts, Preload) => sts.withPreload(true)
+      }
+    }
+  }
+
+  implicit val headerInstance: Header[`Strict-Transport-Security`, Header.Single] =
+    Header.createRendered(
+      ci"Strict-Transport-Security",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << "max-age=" << h.maxAge
+            if (h.includeSubDomains) writer << "; includeSubDomains"
+            if (h.preload) writer << "; preload"
+            writer
+          }
+
+        },
+      parse
+    )
+
 }
 
 sealed abstract case class `Strict-Transport-Security`(
     maxAge: Long,
     includeSubDomains: Boolean = true,
-    preload: Boolean = false)
-    extends Header.Parsed {
-  override def key: `Strict-Transport-Security`.type = `Strict-Transport-Security`
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << "max-age=" << maxAge
-    if (includeSubDomains) writer << "; includeSubDomains"
-    if (preload) writer << "; preload"
-    writer
-  }
-
+    preload: Boolean = false) {
   def withIncludeSubDomains(includeSubDomains: Boolean): `Strict-Transport-Security` =
     new `Strict-Transport-Security`.StrictTransportSecurityImpl(
       this.maxAge,

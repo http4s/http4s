@@ -19,16 +19,15 @@ package org.http4s
 import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import cats.effect.IO
+import cats.effect.{IO, Sync}
+import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
 import java.io.File
-import java.net.{InetAddress, InetSocketAddress}
-
 import org.http4s.headers._
 import org.log4s.getLogger
-import _root_.io.chrisdavenport.vault._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
+import org.typelevel.vault._
 
 import scala.util.hashing.MurmurHash3
 
@@ -58,8 +57,8 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withHeaders(headers: Headers): Self =
     change(headers = headers)
 
-  def withHeaders(headers: Header*): Self =
-    withHeaders(Headers(headers.toList))
+  def withHeaders(headers: Header.ToRaw*): Self =
+    withHeaders(Headers(headers: _*))
 
   def withAttributes(attributes: Vault): Self =
     change(attributes = attributes)
@@ -88,10 +87,11 @@ sealed trait Message[F[_]] extends Media[F] { self =>
               Message.logger.warn(s"Attempt to provide a negative content length of $l")
               w.headers
             },
-            cl => Headers(cl :: w.headers.toList))
+            cl => Headers(cl, w.headers.headers))
+
       case None => w.headers
     }
-    change(body = entity.body, headers = headers ++ hs)
+    change(body = entity.body, headers = headers.transform(_ ++ hs.headers))
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
@@ -117,27 +117,19 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @param f predicate
     * @return a new message object which has only headers that satisfy the predicate
     */
-  def filterHeaders(f: Header => Boolean): Self =
-    transformHeaders(_.filter(f))
+  def filterHeaders(f: Header.Raw => Boolean): Self =
+    transformHeaders(_.transform(_.filter(f)))
 
-  def removeHeader(key: HeaderKey): Self =
-    filterHeaders(_.isNot(key))
+  def removeHeader(key: CIString): Self =
+    transformHeaders(_.transform(_.filterNot(_.name == key)))
+
+  def removeHeader[A](implicit h: Header[A, _]): Self =
+    removeHeader(h.name)
 
   /** Add the provided headers to the existing headers, replacing those of the same header name
-    * The passed headers are assumed to contain no duplicate Singleton headers.
     */
-  def putHeaders(headers: Header*): Self =
+  def putHeaders(headers: Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
-
-  /** Replace the existing headers with those provided */
-  @deprecated("Use withHeaders instead", "0.20.0-M2")
-  def replaceAllHeaders(headers: Headers): Self =
-    withHeaders(headers)
-
-  /** Replace the existing headers with those provided */
-  @deprecated("Use withHeaders instead", "0.20.0-M2")
-  def replaceAllHeaders(headers: Header*): Self =
-    withHeaders(headers: _*)
 
   def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
     withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
@@ -149,7 +141,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * F might not complete until the entire body has been consumed.
     */
   def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
-    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
+    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
 
   // Specific header methods
 
@@ -161,13 +153,13 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     putHeaders(contentType)
 
   def withoutContentType: Self =
-    filterHeaders(_.isNot(`Content-Type`))
+    removeHeader[`Content-Type`]
 
   def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
     contentTypeO.fold(withoutContentType)(withContentType)
 
   def isChunked: Boolean =
-    headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))
+    headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
 
   // Attribute methods
 
@@ -216,13 +208,13 @@ object Message {
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-final class Request[F[_]](
-    val method: Method = Method.GET,
-    val uri: Uri = Uri(path = "/"),
-    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    val headers: Headers = Headers.empty,
-    val body: EntityBody[F] = EmptyBody,
-    val attributes: Vault = Vault.empty
+final class Request[F[_]] private (
+    val method: Method,
+    val uri: Uri,
+    val httpVersion: HttpVersion,
+    val headers: Headers,
+    val body: EntityBody[F],
+    val attributes: Vault
 ) extends Message[F]
     with Product
     with Serializable {
@@ -280,11 +272,14 @@ final class Request[F[_]](
     uri.path.splitAt(caret)
 
   private def caret =
-    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
+  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "0.22.0-M1")
   def withPathInfo(pi: String): Self =
+    withPathInfo(Uri.Path.unsafeFromString(pi))
+  def withPathInfo(pi: Uri.Path): Self =
     // Don't use withUri, which clears the caret
-    copy(uri = uri.withPath(scriptName + pi))
+    copy(uri = uri.withPath(scriptName.concat(pi)))
 
   def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
@@ -294,9 +289,7 @@ final class Request[F[_]](
     *
     * Supported cURL-Parameters are: -X, -H
     */
-  def asCurl(
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
-      : String = {
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
 
     /*
      * escapes characters that are used in the curl-command, such as '
@@ -308,9 +301,9 @@ final class Request[F[_]](
       s"'${escapeQuotationMarks(uri.renderString)}'",
       headers
         .redactSensitive(redactHeadersWhen)
-        .toList
+        .headers
         .map { header =>
-          s"-H '${escapeQuotationMarks(header.toString)}'"
+          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
         }
         .mkString(" ")
     )
@@ -351,60 +344,60 @@ final class Request[F[_]](
     * headers formatted per HTTP/1 and HTTP/2, or even both at the same time.
     */
   def cookies: List[RequestCookie] =
-    headers.get(Cookie).fold(List.empty[RequestCookie])(_.values.toList)
+    headers.get[Cookie].fold(List.empty[RequestCookie])(_.values.toList)
 
   /** Add a Cookie header for the provided [[org.http4s.headers.Cookie]] */
   def addCookie(cookie: RequestCookie): Self =
-    headers
-      .get(Cookie)
-      .fold(putHeaders(Cookie(NonEmptyList.of(cookie)))) { preExistingCookie =>
-        removeHeader(Cookie).putHeaders(
-          Header(
-            Cookie.name.value,
-            s"${preExistingCookie.value}; ${cookie.name}=${cookie.content}"))
-      }
+    putHeaders {
+      headers
+        .get[Cookie]
+        .fold(Cookie(NonEmptyList.of(cookie))) { preExistingCookie =>
+          Cookie(preExistingCookie.values.append(cookie))
+        }
+    }
 
   /** Add a Cookie header with the provided values */
   def addCookie(name: String, content: String): Self =
     addCookie(RequestCookie(name, content))
 
   def authType: Option[AuthScheme] =
-    headers.get(Authorization).map(_.credentials.authScheme)
+    headers.get[Authorization].map(_.credentials.authScheme)
 
   private def connectionInfo: Option[Connection] = attributes.lookup(Keys.ConnectionInfo)
 
-  def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
+  def remote: Option[SocketAddress[IpAddress]] = connectionInfo.map(_.remote)
 
   /** Returns the the X-Forwarded-For value if present, else the remote address.
     */
-  def from: Option[InetAddress] =
+  def from: Option[IpAddress] =
     headers
-      .get(`X-Forwarded-For`)
-      .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
+      .get[`X-Forwarded-For`]
+      .fold(remote.map(_.host))(_.values.head)
 
-  def remoteAddr: Option[String] = remote.map(_.getHostString)
+  def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
-  def remoteHost: Option[String] = remote.map(_.getHostName)
+  def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
+    val inetAddress = remote.map(_.host.toInetAddress)
+    F.delay(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
+  }
 
-  def remotePort: Option[Int] = remote.map(_.getPort)
+  def remotePort: Option[Port] = remote.map(_.port)
 
   def remoteUser: Option[String] = None
 
-  def server: Option[InetSocketAddress] = connectionInfo.map(_.local)
+  def server: Option[SocketAddress[IpAddress]] = connectionInfo.map(_.local)
 
-  def serverAddr: String =
+  def serverAddr: Option[IpAddress] =
     server
-      .map(_.getHostString)
-      .orElse(uri.host.map(_.value))
-      .orElse(headers.get(Host).map(_.host))
-      .getOrElse(InetAddress.getLocalHost.getHostName)
+      .map(_.host)
+      .orElse(uri.host.flatMap(_.toIpAddress))
+      .orElse(headers.get[Host].flatMap(h => IpAddress.fromString(h.host)))
 
-  def serverPort: Int =
+  def serverPort: Option[Port] =
     server
-      .map(_.getPort)
-      .orElse(uri.port)
-      .orElse(headers.get(Host).flatMap(_.port))
-      .getOrElse(80)
+      .map(_.port)
+      .orElse(uri.port.flatMap(Port.fromInt))
+      .orElse(headers.get[Host].flatMap(_.port.flatMap(Port.fromInt)))
 
   /** Whether the Request was received over a secure medium */
   def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
@@ -440,19 +433,10 @@ final class Request[F[_]](
 
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
-  override def equals(that: Any): Boolean =
-    (this eq that.asInstanceOf[Object]) || (that match {
-      case that: Request[_] =>
-        (this.method == that.method) &&
-          (this.uri == that.uri) &&
-          (this.httpVersion == that.httpVersion) &&
-          (this.headers == that.headers) &&
-          (this.body == that.body) &&
-          (this.attributes == that.attributes)
-      case _ => false
-    })
-
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Request[F]]
+  def canEqual(that: Any): Boolean = that match {
+    case _: Request[_] => true
+    case _ => false
+  }
 
   def productArity: Int = 6
 
@@ -472,9 +456,22 @@ final class Request[F[_]](
 }
 
 object Request {
+
+  /** Representation of an incoming HTTP message
+    *
+    * A Request encapsulates the entirety of the incoming HTTP request including the
+    * status line, headers, and a possible request body.
+    *
+    * @param method [[Method.GET]], [[Method.POST]], etc.
+    * @param uri representation of the request URI
+    * @param httpVersion the HTTP version
+    * @param headers collection of [[Header]]s
+    * @param body fs2.Stream[F, Byte] defining the body of the request
+    * @param attributes Immutable Map used for carrying additional information in a type safe fashion
+    */
   def apply[F[_]](
       method: Method = Method.GET,
-      uri: Uri = Uri(path = "/"),
+      uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,
@@ -490,21 +487,20 @@ object Request {
     )
 
   def unapply[F[_]](
-      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
-    message match {
-      case request: Request[F] =>
-        Some(
-          (
-            request.method,
-            request.uri,
-            request.httpVersion,
-            request.headers,
-            request.body,
-            request.attributes))
-      case _ => None
-    }
+      request: Request[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+    Some(
+      (
+        request.method,
+        request.uri,
+        request.httpVersion,
+        request.headers,
+        request.body,
+        request.attributes))
 
-  final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
+  final case class Connection(
+      local: SocketAddress[IpAddress],
+      remote: SocketAddress[IpAddress],
+      secure: Boolean)
 
   object Keys {
     val PathInfoCaret: Key[Int] = Key.newKey[IO, Int].unsafeRunSync()
@@ -523,13 +519,15 @@ object Request {
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
-final case class Response[F[_]](
-    status: Status = Status.Ok,
-    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: Headers = Headers.empty,
-    body: EntityBody[F] = EmptyBody,
-    attributes: Vault = Vault.empty)
-    extends Message[F] {
+final class Response[F[_]] private (
+    val status: Status,
+    val httpVersion: HttpVersion,
+    val headers: Headers,
+    val body: EntityBody[F],
+    val attributes: Vault)
+    extends Message[F]
+    with Product
+    with Serializable {
   type SelfF[F0[_]] = Response[F0]
 
   def mapK[G[_]](f: F ~> G): Response[G] =
@@ -559,7 +557,7 @@ final case class Response[F[_]](
 
   /** Add a Set-Cookie header for the provided [[ResponseCookie]] */
   def addCookie(cookie: ResponseCookie): Self =
-    putHeaders(`Set-Cookie`(cookie))
+    transformHeaders(_.add(`Set-Cookie`(cookie)))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Self =
@@ -569,34 +567,93 @@ final case class Response[F[_]](
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Self =
-    putHeaders(cookie.clearCookie)
+    addCookie(cookie.clearCookie)
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Self =
-    putHeaders(ResponseCookie(name, "").clearCookie)
+    addCookie(ResponseCookie(name, "").clearCookie)
 
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion.
     */
   def cookies: List[ResponseCookie] =
-    `Set-Cookie`.from(headers).map(_.cookie)
+    headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
+
+  override def hashCode(): Int = MurmurHash3.productHash(this)
+
+  def copy(
+      status: Status = this.status,
+      httpVersion: HttpVersion = this.httpVersion,
+      headers: Headers = this.headers,
+      body: EntityBody[F] = this.body,
+      attributes: Vault = this.attributes
+  ): Response[F] =
+    Response[F](
+      status = status,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body,
+      attributes = attributes
+    )
+
+  def canEqual(that: Any): Boolean =
+    that match {
+      case _: Response[F] => true
+      case _ => false
+    }
+
+  def productArity: Int = 5
+
+  def productElement(n: Int): Any =
+    n match {
+      case 0 => status
+      case 1 => httpVersion
+      case 2 => headers
+      case 3 => body
+      case 4 => attributes
+      case _ => throw new IndexOutOfBoundsException()
+    }
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
 }
 
 object Response {
+
+  /** Representation of the HTTP response to send back to the client
+    *
+    * @param status [[Status]] code and message
+    * @param headers [[Headers]] containing all response headers
+    * @param body EntityBody[F] representing the possible body of the response
+    * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+    *                   parameters which may be used by the http4s backend for
+    *                   additional processing such as java.io.File object
+    */
+  def apply[F[_]](
+      status: Status = Status.Ok,
+      httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+      headers: Headers = Headers.empty,
+      body: EntityBody[F] = EmptyBody,
+      attributes: Vault = Vault.empty): Response[F] =
+    new Response(status, httpVersion, headers, body, attributes)
+
+  def unapply[F[_]](
+      response: Response[F]): Option[(Status, HttpVersion, Headers, EntityBody[F], Vault)] =
+    Some(
+      (response.status, response.httpVersion, response.headers, response.body, response.attributes))
+
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
       body = Stream("Not found").through(utf8Encode),
       headers = Headers(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`) :: `Content-Length`.unsafeFromLong(
-          9L) :: Nil)
+        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
+        `Content-Length`.unsafeFromLong(9L)
+      )
     )
 
-  def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
+  def notFound[F[_]]: Response[F] = pureNotFound.covary[F].copy(body = pureNotFound.body.covary[F])
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
       encoder: EntityEncoder[F, String]): F[Response[F]] =

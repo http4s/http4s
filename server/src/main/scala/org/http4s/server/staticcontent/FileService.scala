@@ -22,12 +22,12 @@ import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
 import cats.syntax.all._
 import java.io.File
-import java.nio.file.NoSuchFileException
-import java.nio.file.{LinkOption, Path, Paths}
+import java.nio.file.{Files, LinkOption, NoSuchFileException, Path, Paths}
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
+import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success, Try}
 
@@ -42,7 +42,7 @@ object FileService {
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param blockingExecutionContext `ExecutionContext` to use for blocking I/O
+    * @param blocker to use for blocking I/O
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
@@ -70,29 +70,31 @@ object FileService {
     object BadTraversal extends Exception with NoStackTrace
     Try(Paths.get(config.systemPath).toRealPath()) match {
       case Success(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli { case request =>
-          def resolvedPath: OptionT[F, Path] =
-            request.pathInfo.split("/") match {
-              case Array() => OptionT.some(rootPath)
-              case Array(head, segments @ _*) if head.isEmpty =>
-                OptionT
-                  .liftF(F.catchNonFatal {
-                    segments.foldLeft(rootPath) {
-                      case (_, "" | "." | "..") => throw BadTraversal
-                      case (path, segment) =>
-                        path.resolve(Uri.decode(segment, plusIsSpace = true))
-                    }
-                  })
-              case _ => OptionT.none
-            }
+        TranslateUri(config.pathPrefix)(Kleisli { request =>
+          def resolvedPath: OptionT[F, Path] = {
+            val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+            if (request.pathInfo.isEmpty) OptionT.some(rootPath)
+            else
+              OptionT
+                .liftF(F.catchNonFatal {
+                  segments.foldLeft(rootPath) {
+                    case (_, "" | "." | "..") => throw BadTraversal
+                    case (path, segment) =>
+                      path.resolve(segment)
+                  }
+                })
+          }
           resolvedPath
-            .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
+            .flatMapF(path =>
+              F.delay(
+                if (Files.exists(path, LinkOption.NOFOLLOW_LINKS))
+                  Some(path.toRealPath(LinkOption.NOFOLLOW_LINKS))
+                else None))
             .collect { case path if path.startsWith(rootPath) => path.toFile }
             .flatMap(f => config.pathCollector(f, config, request))
             .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-            .recoverWith {
-              case _: NoSuchFileException => OptionT.none
-              case BadTraversal => OptionT.some(Response(Status.BadRequest))
+            .recoverWith { case BadTraversal =>
+              OptionT.some(Response(Status.BadRequest))
             }
         })
 
@@ -111,7 +113,7 @@ object FileService {
   private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(implicit
       F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
-    OptionT(F.suspend {
+    OptionT(F.defer {
       if (file.isDirectory)
         StaticFile
           .fromFile(new File(file, "index.html"), config.blocker, Some(req))
@@ -136,11 +138,19 @@ object FileService {
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(implicit
       F: Sync[F],
-      cs: ContextShift[F]): F[Option[Response[F]]] =
-    req.headers.get(Range) match {
+      cs: ContextShift[F]): F[Option[Response[F]]] = {
+    def nope: F[Option[Response[F]]] = F.delay(file.length()).map { size =>
+      Some(
+        Response[F](
+          status = Status.RangeNotSatisfiable,
+          headers = Headers
+            .apply(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
+    }
+
+    req.headers.get[Range] match {
       case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
         if (validRange(s, e, file.length))
-          F.suspend {
+          F.defer {
             val size = file.length()
             val start = if (s >= 0) s else math.max(0, size + s)
             val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
@@ -155,20 +165,21 @@ object FileService {
                 Some(req),
                 StaticFile.calcETag)
               .map { resp =>
-                val hs: Headers = resp.headers
+                val hs = resp.headers
                   .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
                 resp.copy(status = Status.PartialContent, headers = hs)
               }
               .value
           }
-        else
-          F.delay(file.length()).map { size =>
-            Some(
-              Response[F](
-                status = Status.RangeNotSatisfiable,
-                headers = Headers
-                  .of(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
-          }
-      case _ => F.pure(None)
+        else nope
+      case _ =>
+        req.headers.get(ci"Range") match {
+          case Some(_) =>
+            // It exists, but it didn't parse
+            nope
+          case None =>
+            F.pure(None)
+        }
     }
+  }
 }

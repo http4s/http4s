@@ -17,14 +17,24 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.{Renderer, Writer}
+import cats.parse.Parser
+import org.typelevel.ci._
 
-object `If-Modified-Since`
-    extends HeaderKey.Internal[`If-Modified-Since`]
-    with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`If-Modified-Since`] =
-    HttpHeaderParser.IF_MODIFIED_SINCE(s)
+object `If-Modified-Since` {
+  def parse(s: String): ParseResult[`If-Modified-Since`] =
+    ParseResult.fromParser(parser, "Invalid If-Modified-Since header")(s)
+
+  /* `If-Modified-Since = HTTP-date` */
+  private[http4s] val parser: Parser[`If-Modified-Since`] =
+    HttpDate.parser.map(apply)
+
+  implicit val headerInstance: Header[`If-Modified-Since`, Header.Single] =
+    Header.createRendered(
+      ci"If-Modified-Since",
+      _.date,
+      parse
+    )
+
 }
 
 /** {{
@@ -35,8 +45,4 @@ object `If-Modified-Since`
   *
   * [[https://tools.ietf.org/html/rfc7232#section-3.3 RFC-7232]]
   */
-final case class `If-Modified-Since`(date: HttpDate) extends Header.Parsed {
-  override def key: `If-Modified-Since`.type = `If-Modified-Since`
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class `If-Modified-Since`(date: HttpDate)

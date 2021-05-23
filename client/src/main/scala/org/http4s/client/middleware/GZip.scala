@@ -18,20 +18,20 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.BracketThrow
+import cats.data.NonEmptyList
+import cats.effect.{BracketThrow, Sync}
 import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
-import scala.annotation.nowarn
+import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 
 /** Client middleware for enabling gzip.
   */
 object GZip {
   private val supportedCompressions =
-    Seq(ContentCoding.gzip.coding, ContentCoding.deflate.coding).mkString(", ")
+    NonEmptyList.of(ContentCoding.gzip, ContentCoding.deflate)
 
-  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit
-      F: BracketThrow[F]): Client[F] =
+  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Sync[F]): Client[F] =
     Client[F] { req =>
       val reqWithEncoding = addHeaders(req)
       val responseResource = client.run(reqWithEncoding)
@@ -42,27 +42,29 @@ object GZip {
     }
 
   private def addHeaders[F[_]](req: Request[F]): Request[F] =
-    req.headers.get(`Accept-Encoding`) match {
+    req.headers.get[`Accept-Encoding`] match {
       case Some(_) =>
         req
       case _ =>
-        req.withHeaders(
-          req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
+        req.putHeaders(`Accept-Encoding`(supportedCompressions))
     }
 
-  @nowarn("cat=deprecation")
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: BracketThrow[F]): Response[F] =
-    response.headers.get(`Content-Encoding`) match {
+      F: Sync[F]): Response[F] =
+    response.headers.get[`Content-Encoding`] match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
-          _.through(fs2.compress.gunzip(bufferSize))
-        response.withBodyStream(response.body.through(decompressWith(gunzip)))
+          _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
+        response
+          .filterHeaders(nonCompressionHeader)
+          .withBodyStream(response.body.through(decompressWith(gunzip)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
-        val deflate: Pipe[F, Byte, Byte] = fs2.compress.deflate(bufferSize)
-        response.withBodyStream(response.body.through(decompressWith(deflate)))
+        val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(bufferSize)
+        response
+          .filterHeaders(nonCompressionHeader)
+          .withBodyStream(response.body.through(decompressWith(deflate)))
 
       case _ =>
         response
@@ -82,6 +84,10 @@ object GZip {
         case EmptyBodyException => Stream.empty
         case error => Stream.raiseError(error)
       }
+
+  private def nonCompressionHeader(header: Header.Raw): Boolean =
+    header.name != ci"Content-Encoding" &&
+      header.name != ci"Content-Length"
 
   private object EmptyBodyException extends Throwable with NoStackTrace
 }

@@ -29,7 +29,7 @@ import org.http4s.{
   Uri,
   jawn
 }
-import org.typelevel.jawn.support.play.Parser.facade
+import org.http4s.play.Parser.facade
 import play.api.libs.json._
 
 trait PlayInstances {
@@ -39,15 +39,15 @@ trait PlayInstances {
         .reads(json)
         .fold(
           _ =>
-            DecodeResult.failure(InvalidMessageBodyFailure(s"Could not decode JSON: $json", None)),
-          DecodeResult.success(_)
+            DecodeResult.failureT(InvalidMessageBodyFailure(s"Could not decode JSON: $json", None)),
+          DecodeResult.successT(_)
         )
     }
 
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JsValue] =
     jawn.jawnDecoder[F, JsValue]
 
-  def jsonEncoderOf[F[_]: EntityEncoder[*[_], String], A: Writes]: EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_], A: Writes]: EntityEncoder[F, A] =
     jsonEncoder[F].contramap[A](Json.toJson(_))
 
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, JsValue] =
@@ -59,17 +59,14 @@ trait PlayInstances {
       .withContentType(`Content-Type`(MediaType.application.json))
 
   implicit val writesUri: Writes[Uri] =
-    Writes.contravariantfunctorWrites.contramap[String, Uri](implicitly[Writes[String]], _.toString)
+    Writes.of[String].contramap(_.toString)
 
   implicit val readsUri: Reads[Uri] =
-    implicitly[Reads[String]].flatMap { str =>
+    Reads.of[String].flatMap { str =>
       Uri
         .fromString(str)
         .fold(
-          _ =>
-            new Reads[Uri] {
-              def reads(json: JsValue): JsResult[Uri] = JsError("Invalid uri")
-            },
+          _ => Reads(_ => JsError("Invalid uri")),
           Reads.pure(_)
         )
     }

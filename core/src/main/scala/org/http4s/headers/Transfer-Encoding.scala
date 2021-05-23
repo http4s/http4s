@@ -18,19 +18,37 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.syntax.eq._
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser
+import cats.syntax.all._
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.Header
+import org.typelevel.ci._
 
-object `Transfer-Encoding`
-    extends HeaderKey.Internal[`Transfer-Encoding`]
-    with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[`Transfer-Encoding`] =
-    HttpHeaderParser.TRANSFER_ENCODING(s)
+object `Transfer-Encoding` {
+
+  def apply(head: TransferCoding, tail: TransferCoding*): `Transfer-Encoding` =
+    apply(NonEmptyList(head, tail.toList))
+
+  val name = ci"Transfer-Encoding"
+
+  def parse(s: String): ParseResult[`Transfer-Encoding`] =
+    ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")(s)
+
+  private[http4s] val parser: Parser[`Transfer-Encoding`] =
+    Rfc7230.headerRep1(TransferCoding.parser).map(apply)
+
+  implicit val headerInstance: Header[`Transfer-Encoding`, Header.Recurring] =
+    Header.createRendered(
+      name,
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Transfer-Encoding`] =
+    (a, b) => `Transfer-Encoding`(a.values.concatNel(b.values))
+
 }
 
-final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding])
-    extends Header.RecurringRenderable {
-  override def key: `Transfer-Encoding`.type = `Transfer-Encoding`
+final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) {
   def hasChunked: Boolean = values.exists(_ === TransferCoding.chunked)
-  type Value = TransferCoding
 }

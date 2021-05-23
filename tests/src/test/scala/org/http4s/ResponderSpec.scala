@@ -18,104 +18,120 @@ package org.http4s
 
 import cats.effect.IO
 import org.http4s.Charset._
-import org.http4s.implicits._
 import org.http4s.headers._
-import org.specs2.mutable.Specification
+import org.typelevel.ci._
 
-class ResponderSpec extends Specification {
+class ResponderSpec extends Http4sSuite {
   val resp = Response[IO](Status.Ok)
 
-  "Responder" should {
-    "Change status" in {
-      val resp = Response[IO](Status.Ok)
+  test("Responder should Change status") {
+    val resp = Response[IO](Status.Ok)
 
-      resp.status must_== (Status.Ok)
+    assertEquals(resp.status, Status.Ok)
 
-      resp.withStatus(Status.BadGateway).status must_== (Status.BadGateway)
-    }
+    assertEquals(resp.withStatus(Status.BadGateway).status, Status.BadGateway)
+  }
 
-    "Replace content type" in {
-      resp.contentType should be(None)
-      val c1 = resp
-        .putHeaders(`Content-Length`.unsafeFromLong(4))
-        .withContentType(`Content-Type`(MediaType.text.plain))
-        .putHeaders(Host("foo"))
+  test("Responder should Replace content type") {
+    assert(resp.contentType.isEmpty)
+    val c1 = resp
+      .putHeaders(`Content-Length`.unsafeFromLong(4))
+      .withContentType(`Content-Type`(MediaType.text.plain))
+      .putHeaders(Host("foo"))
 
-      c1.headers.count(_.is(`Content-Type`)) must_== 1
-      c1.headers.count(_.is(`Content-Length`)) must_== 1
-      (c1.headers.toList must have).length(3)
-      c1.contentType must beSome(`Content-Type`(MediaType.text.plain))
+    assertEquals(c1.headers.headers.count(_.name == ci"Content-Type"), 1)
+    assertEquals(c1.headers.headers.count(_.name == ci"Content-Length"), 1)
+    assertEquals(c1.headers.headers.length, 3)
+    assertEquals(c1.contentType, Some(`Content-Type`(MediaType.text.plain)))
 
-      val c2 = c1.withContentType(`Content-Type`(MediaType.application.json, `UTF-8`))
+    val c2 = c1.withContentType(`Content-Type`(MediaType.application.json, `UTF-8`))
 
-      c2.contentType must beSome(`Content-Type`(MediaType.application.json, `UTF-8`))
-      c2.headers.count(_.is(`Content-Type`)) must_== 1
-      c2.headers.count(_.is(`Content-Length`)) must_== 1
-      c2.headers.count(_.is(Host)) must_== 1
-    }
+    assertEquals(c2.contentType, Some(`Content-Type`(MediaType.application.json, `UTF-8`)))
+    assertEquals(c2.headers.headers.count(_.name == ci"Content-Type"), 1)
+    assertEquals(c2.headers.headers.count(_.name == ci"Content-Length"), 1)
+    assertEquals(c2.headers.headers.count(_.name == ci"Host"), 1)
+  }
 
-    "Remove headers" in {
-      val wHeader = resp.putHeaders(Connection("close".ci))
-      wHeader.headers.get(Connection) must beSome(Connection("close".ci))
+  test("Responder should Remove headers") {
+    val wHeader = resp.putHeaders(Connection(ci"close"))
+    val maybeHeaderT = wHeader.headers.get[Connection]
+    assertEquals(maybeHeaderT, Some(Connection(ci"close")))
 
-      val newHeaders = wHeader.removeHeader(Connection)
-      newHeaders.headers.get(Connection) must beNone
-    }
+    val newHeaders = wHeader.removeHeader[Connection]
+    assert(newHeaders.headers.get[Connection].isEmpty)
+  }
 
-    "Replace all headers" in {
-      val wHeader =
-        resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
-      (wHeader.headers.toList must have).length(3)
+  test("Responder should Replace all headers") {
+    val wHeader =
+      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+    assertEquals(wHeader.headers.headers.length, 3)
 
-      val newHeaders = wHeader.withHeaders(Date(HttpDate.Epoch))
-      (newHeaders.headers.toList must have).length(1)
-      newHeaders.headers.get(Connection) must beNone
-    }
+    val newHeaders = wHeader.withHeaders(Date(HttpDate.Epoch))
+    assertEquals(newHeaders.headers.headers.length, 1)
+    assert(newHeaders.headers.get[Connection].isEmpty)
+  }
 
-    "Replace all headers II" in {
-      val wHeader =
-        resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
-      (wHeader.headers.toList must have).length(3)
+  test("Responder should Replace all headers II") {
+    val wHeader =
+      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+    assertEquals(wHeader.headers.headers.length, 3)
 
-      val newHeaders = wHeader.withHeaders(Headers.of(Date(HttpDate.Epoch)))
-      (newHeaders.headers.toList must have).length(1)
-      newHeaders.headers.get(Connection) must beNone
-    }
+    val newHeaders = wHeader.withHeaders(Headers(Date(HttpDate.Epoch)))
+    assertEquals(newHeaders.headers.headers.length, 1)
+    assert(newHeaders.headers.get[Connection].isEmpty)
+  }
 
-    "Filter headers" in {
-      val wHeader =
-        resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
-      (wHeader.headers.toList must have).length(3)
+  test("Responder should Filter headers") {
+    val wHeader =
+      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+    assertEquals(wHeader.headers.headers.length, 3)
 
-      val newHeaders = wHeader.filterHeaders(_.name != "Connection".ci)
-      (newHeaders.headers.toList must have).length(2)
-      newHeaders.headers.get(Connection) must beNone
-    }
+    val newHeaders = wHeader.filterHeaders(_.name != ci"Connection")
+    assertEquals(newHeaders.headers.headers.length, 2)
+    assert(newHeaders.headers.get[Connection].isEmpty)
+  }
 
-    "Set cookie from tuple" in {
-      resp.addCookie("foo", "bar").cookies must_== List(ResponseCookie("foo", "bar"))
-    }
+  test("Responder should Set cookie from tuple") {
+    assertEquals(resp.addCookie("foo", "bar").cookies, List(ResponseCookie("foo", "bar")))
+  }
 
-    "Set cookie from Cookie" in {
-      resp.addCookie(ResponseCookie("foo", "bar")).cookies must_== List(
-        ResponseCookie("foo", "bar"))
-    }
+  test("Responder should Set cookie from Cookie") {
+    assertEquals(
+      resp.addCookie(ResponseCookie("foo", "bar")).cookies,
+      List(ResponseCookie("foo", "bar")))
+  }
 
-    "Set multiple cookies" in {
+  test("Responder should Set multiple cookies") {
+    assertEquals(
       resp
         .addCookie(ResponseCookie("foo", "bar"))
         .addCookie(ResponseCookie("baz", "quux"))
-        .cookies must_== List(
+        .cookies,
+      List(
         ResponseCookie("foo", "bar"),
         ResponseCookie("baz", "quux")
       )
-    }
+    )
+  }
 
-    "Remove cookie" in {
-      val cookie = ResponseCookie("foo", "bar")
-      resp.removeCookie(cookie).cookies must_== List(
-        ResponseCookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
+  test("Responder should Remove cookie") {
+    val cookie = ResponseCookie("foo", "bar")
+    assertEquals(
+      resp.removeCookie(cookie).cookies,
+      List(
+        ResponseCookie("foo", "", expires = Option(HttpDate.Epoch))
+      ))
+  }
+
+  test("Responder should Remove multiple cookies") {
+    val cookie1 = ResponseCookie("foo1", "bar")
+    val cookie2 = ResponseCookie("foo2", "baz")
+    assertEquals(
+      resp.removeCookie(cookie1).removeCookie(cookie2).cookies,
+      List(
+        ResponseCookie("foo1", "", expires = Option(HttpDate.Epoch)),
+        ResponseCookie("foo2", "", expires = Option(HttpDate.Epoch))
       )
-    }
+    )
   }
 }

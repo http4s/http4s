@@ -36,11 +36,12 @@ class ChunkAggregatorSuite extends Http4sSuite {
         TransferCoding.deflate,
         TransferCoding.gzip,
         TransferCoding.identity))
-  implicit val transferCodingArbitrary = Arbitrary(transferCodingGen.map(_.toList))
+  implicit val transferCodingArbitrary: Arbitrary[List[TransferCoding]] = Arbitrary(
+    transferCodingGen.map(_.toList))
 
   def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
     Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
-      .map(_.removeHeader(`Content-Length`))
+      .map(_.removeHeader[`Content-Length`])
 
   def httpRoutes(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpRoutes[IO] =
     HttpRoutes.liftF(OptionT.liftF(response(body, transferCodings)))
@@ -63,7 +64,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
   test("handle an empty body") {
     checkRoutesResponse(httpRoutes(EmptyBody, Nil)) { response =>
       response.body.compile.toVector.map(_.isEmpty && response.contentLength.isEmpty)
-    }.assertEquals(true)
+    }.assert
   }
 
   test("handle a none") {
@@ -73,7 +74,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
       .run(Request())
       .value
       .map(_ == Option.empty[Response[IO]])
-      .assertEquals(true)
+      .assert
   }
 
   test("handle chunks") {
@@ -86,7 +87,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
           _ === chunks.foldMap(_.toVector) &&
           (if (totalChunksSize > 0) {
              response.contentLength === Some(totalChunksSize.toLong) &&
-             response.headers.get(`Transfer-Encoding`).map(_.values) === NonEmptyList
+             response.headers.get[`Transfer-Encoding`].map(_.values) === NonEmptyList
                .fromList(transferCodings)
            } else true)
         }
@@ -94,8 +95,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
       (
         checkRoutesResponse(httpRoutes(body, transferCodings))(check),
         checkAppResponse(httpApp(body, transferCodings))(check)
-      ).mapN(_ && _)
-        .assertEquals(true)
+      ).mapN(_ && _).assert
     }
   }
 }

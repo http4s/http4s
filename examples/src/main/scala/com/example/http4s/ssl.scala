@@ -60,7 +60,7 @@ object ssl {
     import dsl._
 
     HttpApp[F] { request =>
-      request.headers.get(Host) match {
+      request.headers.get[Host] match {
         case Some(Host(host @ _, _)) =>
           val baseUri = request.uri.copy(
             scheme = Scheme.https.some,

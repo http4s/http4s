@@ -82,8 +82,8 @@ Putting it all together into a small app that will print the JSON objects foreve
 
 ```scala mdoc:reset:silent
 import org.http4s._
-import org.http4s.ember.client._
 import org.http4s.client.oauth1
+import org.http4s.ember.client._
 import org.http4s.implicits._
 import cats.effect._
 import fs2.Stream

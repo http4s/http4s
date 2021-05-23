@@ -19,11 +19,11 @@ package org.http4s.ember.client
 import cats.effect._
 import org.http4s._
 import org.http4s.client._
-import io.chrisdavenport.keypool._
+import org.typelevel.keypool._
 
 final class EmberClient[F[_]] private[client] (
     private val client: Client[F],
-    private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])]
+    private val pool: KeyPool[F, RequestKey, EmberConnection[F]]
 )(implicit F: BracketThrow[F])
     extends DefaultClient[F] {
 

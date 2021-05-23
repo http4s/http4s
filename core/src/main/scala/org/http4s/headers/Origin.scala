@@ -18,34 +18,21 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Parser, Parser0, Rfc5234}
+import org.http4s.Uri.RegName
 import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-sealed abstract class Origin extends Header.Parsed {
-  def key: Origin.type =
-    Origin
-}
+sealed abstract class Origin
 
-object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
+object Origin {
   // An Origin header may be the string "null", representing an "opaque origin":
   // https://stackoverflow.com/questions/42239643/when-does-firefox-set-the-origin-header-to-null-in-post-requests
-  case object Null extends Origin {
-    def renderValue(writer: Writer): writer.type =
-      writer << "null"
-  }
+  case object Null extends Origin
 
   // If the Origin is not "null", it is a non-empty list of Hosts:
   // http://tools.ietf.org/html/rfc6454#section-7
-  final case class HostList(hosts: NonEmptyList[Host]) extends Origin {
-    def renderValue(writer: Writer): writer.type = {
-      writer << hosts.head
-      hosts.tail.foreach { host =>
-        writer << " "
-        writer << host
-      }
-      writer
-    }
-  }
+  final case class HostList(hosts: NonEmptyList[Host]) extends Origin
 
   // A host in an Origin header isn't a full URI.
   // It only contains a scheme, a host, and an optional port.
@@ -60,6 +47,53 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
       toUri.render(writer)
   }
 
-  override def parse(s: String): ParseResult[Origin] =
-    HttpHeaderParser.ORIGIN(s)
+  private[http4s] val parser: Parser0[Origin] = {
+    import Parser.{`end`, char, string, until}
+    import Rfc5234.{alpha, digit}
+
+    val unknownScheme =
+      alpha ~ Parser.oneOf(List(alpha, digit, char('+'), char('-'), char('.'))).rep0
+    val http = string("http")
+    val https = string("https")
+    val scheme = List(https, http, unknownScheme)
+      .reduceLeft(_ orElse _)
+      .string
+      .map(Uri.Scheme.unsafeFromString)
+    val stringHost = until(char(':').orElse(`end`)).map(RegName.apply)
+    val bracketedIpv6 = char('[') *> Uri.Parser.ipv6Address <* char(']')
+    val host = List(bracketedIpv6, Uri.Parser.ipv4Address, stringHost).reduceLeft(_ orElse _)
+    val port = char(':') *> digit.rep.string.map(_.toInt)
+    val nullHost = (string("null") *> `end`).orElse(`end`).as(Origin.Null)
+
+    val singleHost = ((scheme <* string("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
+      Origin.Host(sch, host, port)
+    }
+
+    nullHost.orElse(singleHost.repSep(char(' ')).map(hosts => Origin.HostList(hosts)))
+  }
+
+  def parse(s: String): ParseResult[Origin] =
+    ParseResult.fromParser(parser, "Invalid Origin header")(s)
+
+  implicit val headerInstance: Header[Origin, Header.Single] =
+    Header.createRendered(
+      ci"Origin",
+      v =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            v match {
+              case HostList(hosts) =>
+                writer << hosts.head
+                hosts.tail.foreach { host =>
+                  writer << " "
+                  writer << host
+                }
+                writer
+              case Null => writer << "null"
+            }
+
+        },
+      parse
+    )
+
 }

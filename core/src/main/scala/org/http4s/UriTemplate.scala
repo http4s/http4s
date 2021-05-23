@@ -54,7 +54,7 @@ final case class UriTemplate(
     */
   def expandFragment[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     if (fragment.isEmpty) this
-    else copy(fragment = expandFragmentN(fragment, name, String.valueOf(value)))
+    else copy(fragment = expandFragmentN(fragment, name, QueryParamEncoder[T].encode(value).value))
 
   /** Replaces any expansion type in `path` that matches the given `name`. If no
     * matching `expansion` could be found the same instance will be returned.
@@ -218,7 +218,6 @@ object UriTemplate {
       case Authority(Some(u), h, Some(p)) => s"${renderUserInfo(u)}@${renderHost(h)}:${p}"
       case Authority(None, h, Some(p)) => renderHost(h) + ":" + p
       case Authority(_, h, _) => renderHost(h)
-      case _ => ""
     }
 
   protected def renderUserInfo(u: UserInfo): String =
@@ -233,7 +232,6 @@ object UriTemplate {
       case RegName(n) => n.toString
       case a: Ipv4Address => a.value
       case a: Ipv6Address => "[" + a.value + "]"
-      case _ => ""
     }
 
   protected def renderScheme(s: Scheme): String =
@@ -329,7 +327,6 @@ object UriTemplate {
           case VarExp(ns) => elements.append("{" + ns.mkString(",") + "}")
           case ReservedExp(ns) => elements.append("{+" + ns.mkString(",") + "}")
           case PathExp(ns) => elements.append("{/" + ns.mkString(",") + "}")
-          case u => throw new IllegalStateException(s"type ${u.getClass.getName} not supported")
         }
         elements.mkString
     }
@@ -345,8 +342,6 @@ object UriTemplate {
       case UriTemplate(_, _, path, Nil, f) => renderPath(path) + renderFragment(f)
       case UriTemplate(_, _, path, query, f) =>
         renderPath(path) + renderQuery(query) + renderFragment(f)
-
-      case _ => ""
     }
 
   protected def renderUriTemplate(t: UriTemplate): String =
@@ -355,7 +350,6 @@ object UriTemplate {
       case UriTemplate(Some(_), Some(_), Nil, Nil, Nil) => renderSchemeAndAuthority(t)
       case UriTemplate(scheme @ _, authority @ _, path @ _, params @ _, fragment @ _) =>
         renderSchemeAndAuthority(t) + renderPathAndQueryAndFragment(t)
-      case _ => ""
     }
 
   protected def fragmentExp(f: FragmentDef): Boolean =
@@ -402,12 +396,22 @@ object UriTemplate {
       case UriTemplate(s, a, Nil, q, Nil) => Uri(s, a, query = buildQuery(q))
       case UriTemplate(s, a, Nil, q, f) =>
         Uri(s, a, query = buildQuery(q), fragment = Some(renderFragmentIdentifier(f)))
-      case UriTemplate(s, a, p, Nil, Nil) => Uri(s, a, renderPath(p))
-      case UriTemplate(s, a, p, q, Nil) => Uri(s, a, renderPath(p), buildQuery(q))
+      case UriTemplate(s, a, p, Nil, Nil) => Uri(s, a, Uri.Path.unsafeFromString(renderPath(p)))
+      case UriTemplate(s, a, p, q, Nil) =>
+        Uri(s, a, Uri.Path.unsafeFromString(renderPath(p)), buildQuery(q))
       case UriTemplate(s, a, p, Nil, f) =>
-        Uri(s, a, renderPath(p), fragment = Some(renderFragmentIdentifier(f)))
+        Uri(
+          s,
+          a,
+          Uri.Path.unsafeFromString(renderPath(p)),
+          fragment = Some(renderFragmentIdentifier(f)))
       case UriTemplate(s, a, p, q, f) =>
-        Uri(s, a, renderPath(p), buildQuery(q), Some(renderFragmentIdentifier(f)))
+        Uri(
+          s,
+          a,
+          Uri.Path.unsafeFromString(renderPath(p)),
+          buildQuery(q),
+          Some(renderFragmentIdentifier(f)))
     }
 
   sealed trait PathDef

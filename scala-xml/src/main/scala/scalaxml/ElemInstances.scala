@@ -19,7 +19,7 @@ package scalaxml
 
 import cats.effect.Sync
 import cats.syntax.all._
-import java.io.StringReader
+import java.io.{ByteArrayInputStream, StringWriter}
 import javax.xml.parsers.SAXParserFactory
 
 import cats.data.EitherT
@@ -35,8 +35,12 @@ trait ElemInstances {
       charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
     EntityEncoder
       .stringEncoder[F]
-      .contramap[Elem](xml => xml.buildString(false))
-      .withContentType(`Content-Type`(MediaType.application.xml))
+      .contramap[Elem] { node =>
+        val sw = new StringWriter
+        XML.write(sw, node, charset.nioCharset.name, true, null)
+        sw.toString
+      }
+      .withContentType(`Content-Type`(MediaType.application.xml).withCharset(charset))
 
   /** Handles a message body as XML.
     *
@@ -47,16 +51,17 @@ trait ElemInstances {
   implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.text.xml, MediaType.text.html, MediaType.application.xml) { msg =>
+      val source = new InputSource()
+      msg.charset.foreach(cs => source.setEncoding(cs.nioCharset.name))
+
       collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
-        val source = new InputSource(
-          new StringReader(
-            new String(chunk.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
+        source.setByteStream(new ByteArrayInputStream(chunk.toArray))
         val saxParser = saxFactory.newSAXParser()
         EitherT(
           F.delay(XML.loadXML(source, saxParser)).attempt
         ).leftFlatMap {
           case e: SAXParseException =>
-            DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
+            DecodeResult.failureT(MalformedMessageBodyFailure("Invalid XML", Some(e)))
           case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
         }
       }

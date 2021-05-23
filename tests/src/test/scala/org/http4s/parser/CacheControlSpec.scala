@@ -18,13 +18,11 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Cache-Control`
-import org.http4s.CacheDirective.{`max-age`, `max-stale`, `min-fresh`, `private`, `s-maxage`, _}
-import org.http4s.syntax.string._
-import org.specs2.mutable.Specification
+import org.http4s.CacheDirective._
+import org.typelevel.ci._
 import scala.concurrent.duration._
 
-class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] {
-  def hparse(value: String): ParseResult[`Cache-Control`] = HttpHeaderParser.CACHE_CONTROL(value)
+class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Control`] {
 
   // Default values
   val valueless = List(
@@ -43,7 +41,7 @@ class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Cont
     `stale-while-revalidate`(4.seconds))
 
   val strdirectives =
-    List(`private`("Foo".ci :: Nil), `private`(Nil), `no-cache`("Foo".ci :: Nil), `no-cache`())
+    List(`private`(ci"Foo" :: Nil), `private`(Nil), `no-cache`(ci"Foo" :: Nil), `no-cache`())
 
   val others = List(
     `max-stale`(None),
@@ -51,30 +49,29 @@ class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Cont
     CacheDirective("Foo", None),
     CacheDirective("Foo", Some("Bar")))
 
-  "CacheControl parser" should {
-    "Generate correct directive values" in {
-      valueless.foreach { v =>
-        v.value must be_==(v.name.toString)
-      }
-
-      numberdirectives.zipWithIndex.foreach { case (v, i) =>
-        v.value must be_==(s"${v.name}=$i")
-      }
-
-      `max-stale`(None).value must be_==("max-stale")
-      `max-stale`(Some(2.seconds)).value must be_==("max-stale=2")
-
-      CacheDirective("Foo", Some("Bar")).value must be_==("Foo=\"Bar\"")
-      CacheDirective("Foo", None).value must be_==("Foo")
+  test("CacheControl parser should Generate correct directive values") {
+    valueless.foreach { v =>
+      assertEquals(v.value, v.name.toString)
     }
 
-    "Parse cache headers" in {
-      val all = valueless ::: numberdirectives ::: strdirectives ::: others
+    numberdirectives.zipWithIndex.foreach { case (v, i) =>
+      assertEquals(v.value, s"${v.name}=$i")
+    }
 
-      foreach(all) { d =>
-        val h = `Cache-Control`(d)
-        parse(h.value) must be_==(h)
-      }
+    assertEquals(`max-stale`(None).value, "max-stale")
+    assertEquals(`max-stale`(Some(2.seconds)).value, "max-stale=2")
+
+    assertEquals(CacheDirective("Foo", Some("Bar")).value, "Foo=\"Bar\"")
+    assertEquals(CacheDirective("Foo", None).value, "Foo")
+  }
+
+  test("CacheControl parser should Parse cache headers") {
+    val all = valueless ::: numberdirectives ::: strdirectives ::: others
+
+    all.foreach { d =>
+      val h = `Cache-Control`(d)
+      assertEquals(roundTrip(h), h)
     }
   }
+
 }

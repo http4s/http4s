@@ -30,7 +30,7 @@ import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 
 class EntityLimiterSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
-    case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
+    case r if r.pathInfo == path"/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }
 
   val b = chunk(Chunk.bytes("hello".getBytes(StandardCharsets.UTF_8)))
@@ -54,7 +54,7 @@ class EntityLimiterSuite extends Http4sSuite {
 
   test("Chain correctly with other HttpRoutes") {
     val routes2 = HttpRoutes.of[IO] {
-      case r if r.uri.path == "/echo2" =>
+      case r if r.pathInfo == path"/echo2" =>
         r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
     }
 

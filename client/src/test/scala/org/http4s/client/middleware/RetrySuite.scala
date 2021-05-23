@@ -18,15 +18,18 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{IO, Resource}
 import cats.effect.concurrent.{Ref, Semaphore}
+import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
+import org.http4s.headers.`Idempotency-Key`
 import org.http4s.laws.discipline.ArbitraryInstances._
-import scala.concurrent.duration._
+import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF
+import org.scalacheck.Gen
+
+import scala.concurrent.duration._
 
 class RetrySuite extends Http4sSuite {
   val app = HttpRoutes
@@ -90,7 +93,35 @@ class RetrySuite extends Http4sSuite {
     }
   }
 
-  def resubmit(method: Method)(
+  test("is error or retriable status should return true on a response with a retriable status") {
+    val statusGen = Gen.oneOf(RetryPolicy.RetriableStatuses)
+    PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
+      IO.pure(
+        RetryPolicy.isErrorOrRetriableStatus(Response[IO](status).asRight)
+      ).assertEquals(true)
+    }
+  }
+
+  test("is error or status should return true on a response with a supported status") {
+    val statusGen = Gen.oneOf(Status.registered)
+    PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
+      IO.pure(
+        RetryPolicy.isErrorOrStatus(Response[IO](status).asRight, Set(status))
+      ).assertEquals(true)
+    }
+  }
+
+  test(
+    "is error or status should return false when a response does not match the supported status") {
+    val statusGen = Gen.oneOf(Status.registered)
+    PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
+      IO.pure(
+        RetryPolicy.isErrorOrStatus(Response[IO](status).asRight, Set.empty[Status])
+      ).assertEquals(false)
+    }
+  }
+
+  def resubmit(method: Method, headers: Headers = Headers.empty)(
       retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
     Ref[IO]
       .of(false)
@@ -99,7 +130,9 @@ class RetrySuite extends Http4sSuite {
           case false => ref.update(_ => true) *> IO.pure("")
           case true => IO.pure("OK")
         })
-        val req = Request[IO](method, uri"http://localhost/status-from-body").withEntity(body)
+        val req = Request[IO](method, uri"http://localhost/status-from-body")
+          .withHeaders(headers)
+          .withEntity(body)
         val policy = RetryPolicy[IO](
           (attempts: Int) =>
             if (attempts >= 2) None
@@ -112,6 +145,10 @@ class RetrySuite extends Http4sSuite {
   test("default retriable should defaultRetriable does not resubmit bodies on idempotent methods") {
     resubmit(POST)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
   }
+  test("default retriable should defaultRetriable resubmits bodies on idempotent header") {
+    resubmit(POST, Headers(`Idempotency-Key`("key")))(RetryPolicy.defaultRetriable)
+      .assertEquals(Status.Ok)
+  }
   test("default retriable should defaultRetriable resubmits bodies on idempotent methods") {
     resubmit(PUT)(RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
   }
@@ -120,12 +157,12 @@ class RetrySuite extends Http4sSuite {
   }
 
   test("default retriable should retry exceptions") {
-    val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(new Exception("boom"))))
+    val failClient = Client[IO](_ => Resource.eval(IO.raiseError(new Exception("boom"))))
     countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(2)
   }
 
   test("default retriable should not retry a TimeoutException") {
-    val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(WaitQueueTimeoutException)))
+    val failClient = Client[IO](_ => Resource.eval(IO.raiseError(WaitQueueTimeoutException)))
     countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(1)
   }
 

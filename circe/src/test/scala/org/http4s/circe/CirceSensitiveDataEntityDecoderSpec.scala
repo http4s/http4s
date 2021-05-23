@@ -20,8 +20,7 @@ import cats.data.EitherT
 import cats.effect.IO
 import io.circe.{Decoder, HCursor, Json}
 import io.circe.syntax._
-import org.http4s.{DecodeFailure, InvalidMessageBodyFailure, Response, Status}
-import munit.CatsEffectSuite
+import org.http4s.{DecodeFailure, Http4sSuite, InvalidMessageBodyFailure, Response, Status}
 
 object CirceSensitiveDataEntityDecoderSpec {
 
@@ -35,7 +34,7 @@ object CirceSensitiveDataEntityDecoderSpec {
 
 }
 
-class CirceSensitiveDataEntityDecoderSpec extends CatsEffectSuite {
+class CirceSensitiveDataEntityDecoderSpec extends Http4sSuite {
 
   import CirceSensitiveDataEntityDecoderSpec.Person
   import CirceSensitiveDataEntityDecoder.circeEntityDecoder
@@ -46,7 +45,7 @@ class CirceSensitiveDataEntityDecoderSpec extends CatsEffectSuite {
     val response: Response[IO] = Response[IO](status = Status.Ok).withEntity[Json](json)
     val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]
     val result: IO[Either[DecodeFailure, Person]] = attmptedAs.value
-    result.map { it: Either[DecodeFailure, Person] =>
+    result.map { (it: Either[DecodeFailure, Person]) =>
       it match {
         case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
           assertEquals(details, "Could not decode JSON: <REDACTED>")
@@ -61,7 +60,7 @@ class CirceSensitiveDataEntityDecoderSpec extends CatsEffectSuite {
     val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]
     val result: IO[Either[DecodeFailure, Person]] = attmptedAs.value
 
-    result.map { it: Either[DecodeFailure, Person] =>
+    result.map { (it: Either[DecodeFailure, Person]) =>
       it match {
         case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
           assertEquals(details, "Could not decode JSON: <REDACTED>")

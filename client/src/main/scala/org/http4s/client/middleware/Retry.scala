@@ -20,12 +20,13 @@ package middleware
 
 import cats.effect.{Concurrent, Resource, Timer}
 import cats.syntax.all._
+import org.http4s.Status._
+import org.http4s.headers.{`Idempotency-Key`, `Retry-After`}
+import org.log4s.getLogger
+import org.typelevel.ci.CIString
+
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import org.http4s.Status._
-import org.http4s.headers.`Retry-After`
-import org.http4s.util.CaseInsensitiveString
-import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
@@ -34,7 +35,7 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
@@ -44,7 +45,7 @@ object Retry {
               logger.info(
                 s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
               dispose >> F.pure(
-                nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
+                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`]))
             case None =>
               F.pure(Resource.make(F.pure(response))(_ => dispose))
           }
@@ -60,12 +61,12 @@ object Retry {
               logger.info(e)(
                 s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
               )
-              F.pure(Resource.liftF(F.raiseError(e)))
+              F.pure(Resource.eval(F.raiseError(e)))
           }
       })
 
-    def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
-      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+    def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
+      val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
       val uri = request.uri.renderString
       val method = request.method
       s"method=$method uri=$uri headers=$headers"
@@ -86,7 +87,7 @@ object Retry {
           }
           .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
-      Resource.liftF(T.sleep(sleepDuration)) *> prepareLoop(req, attempts + 1)
+      Resource.eval(T.sleep(sleepDuration)) *> prepareLoop(req, attempts + 1)
     }
 
     Client(prepareLoop(_, 1))
@@ -125,15 +126,16 @@ object RetryPolicy {
     GatewayTimeout
   )
 
-  /** Returns true if the request method is idempotent and the result is
-    * either a throwable or has one of the `RetriableStatuses`.
+  /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)
+    * and the result is either a throwable or has one of the `RetriableStatuses`.
     *
     * Caution: if the request body is effectful, the effects will be
     * run twice.  The most common symptom of this will be resubmitting
     * an idempotent request.
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    req.method.isIdempotent && isErrorOrRetriableStatus(result)
+    (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
+      isErrorOrRetriableStatus(result)
 
   @deprecated("Use defaultRetriable instead", "0.19.0")
   def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
@@ -151,9 +153,14 @@ object RetryPolicy {
   def recklesslyRetriable[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     isErrorOrRetriableStatus(result)
 
+  /** Returns true if parameter is a Left or if the response contains a retriable status(as per HTTP spec) */
   def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+    isErrorOrStatus(result, RetriableStatuses)
+
+  /** Like `isErrorOrRetriableStatus` but allows the caller to specify which statuses are considered retriable */
+  def isErrorOrStatus[F[_]](result: Either[Throwable, Response[F]], status: Set[Status]): Boolean =
     result match {
-      case Right(resp) => RetriableStatuses(resp.status)
+      case Right(resp) => status(resp.status)
       case Left(WaitQueueTimeoutException) => false
       case _ => true
     }

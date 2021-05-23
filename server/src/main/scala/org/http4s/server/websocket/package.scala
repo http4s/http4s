@@ -17,9 +17,9 @@
 package org.http4s
 package server
 
-import org.http4s.websocket.WebSocketContext
-import io.chrisdavenport.vault._
 import cats.effect._
+import org.http4s.websocket.WebSocketContext
+import org.typelevel.vault.Key
 
 package object websocket {
   private[this] object Keys {

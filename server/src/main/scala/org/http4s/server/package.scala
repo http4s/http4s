@@ -20,13 +20,13 @@ import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
 import cats.effect.IO
+import org.typelevel.vault._
+import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
-import org.http4s.syntax.string._
 import org.log4s.getLogger
+import org.typelevel.ci._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-import io.chrisdavenport.vault._
-import java.net.{InetAddress, InetSocketAddress}
 
 package object server {
   object defaults {
@@ -37,8 +37,29 @@ package object server {
          | |_||_\__|\__| .__/ |_|/__/
          |             |_|""".stripMargin.split("\n").toList
 
+    val IPv4Host: String =
+      InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
+    val IPv6Host: String =
+      InetAddress
+        .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
+        .getHostAddress
+
+    @deprecated(
+      message =
+        "Please use IPv4Host or IPv6Host. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
+      since = "0.21.23")
     val Host = InetAddress.getLoopbackAddress.getHostAddress
     val HttpPort = 8080
+
+    val IPv4SocketAddress: InetSocketAddress =
+      InetSocketAddress.createUnresolved(IPv4Host, HttpPort)
+    val IPv6SocketAddress: InetSocketAddress =
+      InetSocketAddress.createUnresolved(IPv6Host, HttpPort)
+
+    @deprecated(
+      message =
+        "Please use IPv4SocketAddress or IPv6SocketAddress. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
+      since = "0.21.23")
     val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
@@ -51,6 +72,9 @@ package object server {
 
     /** Default max size of all headers. */
     val MaxHeadersSize: Int = 40 * 1024
+
+    /** Default max connections */
+    val MaxConnections: Int = 1024
   }
 
   object ServerRequestKeys {
@@ -90,11 +114,6 @@ package object server {
     */
   type ContextMiddleware[F[_], T] =
     Middleware[OptionT[F, *], ContextRequest[F, T], Response[F], Request[F], Response[F]]
-
-  /** Old name for SSLConfig
-    */
-  @deprecated("Use SSLConfig", "2016-12-31")
-  type SSLBits = SSLConfig
 
   object AuthMiddleware {
     def apply[F[_]: Monad, T](
@@ -164,9 +183,8 @@ package object server {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection("close".ci) ::
-                `Content-Length`.zero ::
-                Nil
+              Connection(ci"close"),
+              `Content-Length`.zero
             )))
     }
 }

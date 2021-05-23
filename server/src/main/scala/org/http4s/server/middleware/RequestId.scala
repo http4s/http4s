@@ -19,14 +19,13 @@ package org.http4s
 package server
 package middleware
 
-import org.http4s.{Header, Http, Request, Response}
 import cats.{FlatMap, ~>}
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, OptionT}
+import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.{IO, Sync}
 import cats.syntax.all._
-import org.http4s.util.{CaseInsensitiveString => CIString}
-import io.chrisdavenport.vault.Key
+import org.typelevel.ci._
+import org.typelevel.vault.Key
 import java.util.UUID
 
 /** Propagate a `X-Request-Id` header to the response, generate a UUID
@@ -35,7 +34,7 @@ import java.util.UUID
   */
 object RequestId {
 
-  private[this] val requestIdHeader = CIString("X-Request-ID")
+  private[this] val requestIdHeader = ci"X-Request-ID"
 
   val requestIdAttrKey: Key[String] = Key.newKey[IO, String].unsafeRunSync()
 
@@ -47,9 +46,9 @@ object RequestId {
   )(http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
-        header <- req.headers.get(headerName) match {
+        header <- req.headers.get(headerName).map(_.head) match {
           case None => G.delay(Header.Raw(headerName, UUID.randomUUID().toString()))
-          case Some(header) => G.pure[Header](header)
+          case Some(header) => G.pure(header)
         }
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
@@ -65,7 +64,7 @@ object RequestId {
       for {
         header <- fk(req.headers.get(headerName) match {
           case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
-          case Some(header) => F.pure[Header](header)
+          case Some(NonEmptyList(header, _)) => F.pure(header)
         })
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))

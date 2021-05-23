@@ -92,7 +92,7 @@ object DigestAuth {
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
       req: Request[F])(implicit F: Applicative[F]): F[AuthReply[A]] =
-    req.headers.get(Authorization) match {
+    req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
       case Some(_) =>

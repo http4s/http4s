@@ -23,17 +23,21 @@ import cats.effect.laws.util.TestContext
 import cats.syntax.all._
 import fs2.Stream
 import io.circe._
+import io.circe.jawn.CirceSupportParser
 import io.circe.syntax._
+import io.circe.testing.instances._
 import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
+import org.http4s.laws.discipline.EntityCodecTests
+import cats.data.EitherT
+import org.typelevel.jawn.ParseException
 
-// Originally based on ArgonautSuite
-class CirceSuite extends JawnDecodeSupportSuite[Json] {
-  implicit val testContext = TestContext()
+class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
+  implicit val testContext: TestContext = TestContext()
 
   val CirceInstancesWithCustomErrors = CirceInstances.builder
     .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
@@ -74,9 +78,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
   val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
   test("json encoder should have json content type") {
-    assertEquals(
-      jsonEncoder[IO].headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoder[IO].headers.get[`Content-Type`]
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("json encoder should write compact JSON") {
@@ -98,9 +101,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
   }
 
   test("jsonEncoderOf should have json content type") {
-    assertEquals(
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[IO, Foo].headers.get[`Content-Type`]
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("jsonEncoderOf should write compact JSON") {
@@ -127,10 +129,9 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
   ).lift[IO]
 
   test("stream json array encoder should have json content type") {
-    assertEquals(
-      streamJsonArrayEncoder[IO].headers
-        .get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = streamJsonArrayEncoder[IO].headers
+      .get[`Content-Type`]
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("stream json array encoder should write compact JSON") {
@@ -165,10 +166,9 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
   ).lift[IO]
 
   test("stream json array encoder of should have json content type") {
-    assertEquals(
-      streamJsonArrayEncoderOf[IO, Foo].headers
-        .get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = streamJsonArrayEncoderOf[IO, Foo].headers
+      .get[`Content-Type`]
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("stream json array encoder of should write compact JSON") {
@@ -198,11 +198,73 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     writeToString[Stream[IO, Foo]](Stream.empty)(streamJsonArrayEncoderOf).assertEquals("[]")
   }
 
+  test("stream json array decoder should decode JSON stream") {
+    (for {
+      stream <- streamJsonArrayDecoder[IO].decode(
+        Media(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+          Headers("content-type" -> "application/json")
+        ),
+        true
+      )
+      list <- EitherT(
+        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
+    } yield list).value.assertEquals(
+      Right(
+        List(
+          """{"test1":"CirceSupport"}""",
+          """{"test2":"CirceSupport"}"""
+        )))
+  }
+
+  test(
+    "stream json array decoder should fail if `content-type: application/json` header is not present") {
+    val result = streamJsonArrayDecoder[IO].decode(
+      Media(
+        Stream.fromIterator[IO](
+          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+        Headers.empty
+      ),
+      true
+    )
+    result.value.assertEquals(Left(MediaTypeMissing(Set(MediaType.application.json))))
+  }
+
+  test("stream json array decoder should not fail on improper JSON") {
+    val result = streamJsonArrayDecoder[IO].decode(
+      Media(
+        Stream.fromIterator[IO](
+          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+        Headers("content-type" -> "application/json")
+      ),
+      true
+    )
+    result.value.map(_.isRight).assertEquals(true)
+  }
+
+  test("stream json array decoder should return stream that fails when run on improper JSON") {
+    (for {
+      stream <- streamJsonArrayDecoder[IO].decode(
+        Media(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+          Headers("content-type" -> "application/json")
+        ),
+        true
+      )
+      list <- EitherT(
+        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
+    } yield list).value.attempt
+      .assertEquals(Left(
+        ParseException("expected json value got 'C...' (line 1, column 36)", 35, 1, 36)))
+  }
+
   test("json handle the optionality of asNumber") {
     // From ArgonautSuite, which tests similar things:
     // TODO Urgh.  We need to make testing these smoother.
     // https://github.com/http4s/http4s/issues/157
-    def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync().toArray
+    def getBody(body: EntityBody[IO]): IO[Array[Byte]] = body.compile.to(Array)
     val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
     val body = req
       .decode { (json: Json) =>
@@ -211,7 +273,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
           .pure[IO]
       }
       .map(_.body)
-    body.map(b => new String(getBody(b), StandardCharsets.UTF_8)).assertEquals("157")
+    body.flatMap(getBody).map(b => new String(b, StandardCharsets.UTF_8)).assertEquals("157")
   }
 
   test("jsonOf should decode JSON from a Circe decoder") {
@@ -251,15 +313,13 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
     val result = accumulatingJsonOf[IO, Bar]
       .decode(Request[IO]().withEntity(json), strict = true)
-    result.value
-      .map {
-        case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.value.map {
+      case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => true
+      case _ => false
+    }.assert
   }
 
-  test("stream json array encoder of should fail with custom message from a decoder") {
+  test("accumulatingJsonOf should fail with custom message from a decoder") {
     val result = CirceInstancesWithCustomErrors
       .accumulatingJsonOf[IO, Bar]
       .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
@@ -280,7 +340,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
 
   test("Message[F].decodeJson[A] should fail on invalid json") {
     val req = Request[IO]().withEntity(List(13, 14).asJson)
-    req.decodeJson[Foo].attempt.map(_.isLeft).assertEquals(true)
+    req.decodeJson[Foo].attempt.map(_.isLeft).assert
   }
 
   test("CirceEntityEncDec should decode json without defining EntityDecoder") {
@@ -295,6 +355,49 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     writeToString(foo).assertEquals("""{"bar":42}""")
   }
 
+  test("should successfully decode when parser allows duplicate keys") {
+    val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
+      .withCirceSupportParser(
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
+      .build
+    val req = Request[IO]()
+      .withEntity("""{"bar": 1, "bar":2}""")
+      .withContentType(`Content-Type`(MediaType.application.json))
+
+    val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
+    val result = decoder.decode(req, true).value
+
+    result
+      .map {
+        case Right(Foo(2)) => true
+        case _ => false
+      }
+      .assertEquals(true)
+  }
+
+  test("should should error out when parser does not allow duplicate keys") {
+    val circeInstanceNotAllowingDuplicateKeys = CirceInstances.builder
+      .withCirceSupportParser(
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false))
+      .build
+    val req = Request[IO]()
+      .withEntity("""{"bar": 1, "bar":2}""")
+      .withContentType(`Content-Type`(MediaType.application.json))
+
+    val decoder = circeInstanceNotAllowingDuplicateKeys.jsonOf[IO, Foo]
+    val result = decoder.decode(req, true).value
+    result
+      .map {
+        case Left(
+              MalformedMessageBodyFailure(
+                "Invalid JSON",
+                Some(ParsingFailure("Invalid json, duplicate key name found: bar", _)))) =>
+          true
+        case _ => false
+      }
+      .assertEquals(true)
+  }
+
   test("CirceInstances.builder should handle JSON parsing errors") {
     val req = Request[IO]()
       .withEntity("broken json")
@@ -303,12 +406,10 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
     val result = decoder.decode(req, true).value
 
-    result
-      .map {
-        case Left(_: MalformedMessageBodyFailure) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.map {
+      case Left(_: MalformedMessageBodyFailure) => true
+      case _ => false
+    }.assert
   }
 
   test("CirceInstances.builder should handle JSON decoding errors") {
@@ -318,13 +419,11 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
     val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
     val result = decoder.decode(req, true).value
 
-    result
-      .map {
-        case Left(_: InvalidMessageBodyFailure) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    result.map {
+      case Left(_: InvalidMessageBodyFailure) => true
+      case _ => false
+    }.assert
   }
 
-  // checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
+  checkAllF("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodecF)
 }

@@ -50,7 +50,8 @@ class ContextRouterSuite extends Http4sSuite {
 
   def middleware(routes: ContextRoutes[Unit, IO]): ContextRoutes[Unit, IO] =
     Kleisli((r: ContextRequest[IO, Unit]) =>
-      if (r.req.uri.query.containsQueryParam("block")) OptionT.liftF(Ok(r.req.uri.path))
+      if (r.req.uri.query.containsQueryParam("block"))
+        OptionT.liftF(Ok(r.req.uri.path.renderString))
       else routes(r))
 
   val service = ContextRouter[IO, Unit](
@@ -84,7 +85,7 @@ class ContextRouterSuite extends Http4sSuite {
           b =!= "bee" && b =!= "one" && resp.status === NotFound
         }
       }
-      .assertEquals(true)
+      .assert
   }
 
   test("support root mappings") {
@@ -126,6 +127,6 @@ class ContextRouterSuite extends Http4sSuite {
     val router = ContextRouter[IO, Unit]("/foo" -> notFound)
     router(ContextRequest((), Request[IO](uri = uri"/bar"))).value
       .map(_ == Option.empty[Response[IO]])
-      .assertEquals(true)
+      .assert
   }
 }

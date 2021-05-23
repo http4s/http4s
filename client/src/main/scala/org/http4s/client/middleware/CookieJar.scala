@@ -65,10 +65,10 @@ object CookieJar {
   ): Client[F] =
     Client { req =>
       for {
-        _ <- Resource.liftF(alg.evictExpired)
-        modRequest <- Resource.liftF(alg.enrichRequest(req))
+        _ <- Resource.eval(alg.evictExpired)
+        modRequest <- Resource.eval(alg.enrichRequest(req))
         out <- client.run(modRequest)
-        _ <- Resource.liftF(
+        _ <- Resource.eval(
           out.cookies
             .map(r => r.domain.fold(r.copy(domain = req.uri.host.map(_.value)))(_ => r))
             .traverse_(alg.addCookie(_, req.uri))
@@ -204,7 +204,7 @@ object CookieJar {
       r.uri.host.forall { authority =>
         authority.renderString.contains(s)
       })
-    val pathApplies = c.path.forall(s => r.uri.path.contains(s))
+    val pathApplies = c.path.forall(s => r.uri.path.renderString.contains(s))
 
     val secureSatisfied =
       if (c.secure)

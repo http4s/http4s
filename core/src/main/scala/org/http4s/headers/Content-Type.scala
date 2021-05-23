@@ -17,16 +17,53 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse.Parser
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
+object `Content-Type` {
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` =
     apply(mediaType, Some(charset))
   def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
 
-  override def parse(s: String): ParseResult[`Content-Type`] =
-    HttpHeaderParser.CONTENT_TYPE(s)
+  def parse(s: String): ParseResult[`Content-Type`] =
+    ParseResult.fromParser(parser, "Invalid Content-Type header")(s)
+
+  private[http4s] val parser: Parser[`Content-Type`] =
+    (MediaRange.parser ~ MediaRange.mediaTypeExtensionParser.rep0).map {
+      case (range: MediaRange, exts: Seq[(String, String)]) =>
+        val mediaType = range match {
+          case m: MediaType => m
+          case _ =>
+            throw new ParseFailure(
+              "Invalid Content-Type header",
+              "Content-Type header doesn't support media ranges")
+        }
+
+        val (ext, charset) =
+          exts.foldLeft((Map.empty[String, String], None: Option[Charset])) {
+            case ((ext, charset), p @ (k, v)) =>
+              if (k == "charset") (ext, Charset.fromString(v).toOption)
+              else (ext + p, charset)
+          }
+
+        `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
+    }
+
+  implicit val headerInstance: Header[`Content-Type`, Header.Single] =
+    Header.createRendered(
+      ci"Content-Type",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            h.charset match {
+              case Some(cs) => writer << h.mediaType << "; charset=" << cs
+              case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, h.mediaType)
+            }
+        },
+      parse
+    )
+
 }
 
 /** {{{
@@ -38,15 +75,7 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
   *
   * [[https://tools.ietf.org/html/rfc7231#section-3.1.1.5 RFC-7231]]
   */
-final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset])
-    extends Header.Parsed {
-  override def key: `Content-Type`.type = `Content-Type`
-  override def renderValue(writer: Writer): writer.type =
-    charset match {
-      case Some(cs) => writer << mediaType << "; charset=" << cs
-      case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, mediaType)
-    }
-
+final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset]) {
   def withMediaType(mediaType: MediaType): `Content-Type` =
     if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
   def withCharset(charset: Charset): `Content-Type` =

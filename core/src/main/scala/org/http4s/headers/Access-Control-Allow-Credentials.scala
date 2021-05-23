@@ -17,4 +17,25 @@
 package org.http4s
 package headers
 
-object `Access-Control-Allow-Credentials` extends HeaderKey.Default
+import cats.parse.Parser
+import org.typelevel.ci._
+
+object `Access-Control-Allow-Credentials` {
+  def parse(s: String): ParseResult[`Access-Control-Allow-Credentials`] =
+    ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Credentials header")(s)
+
+  private[http4s] val parser = Parser.string("true").as(`Access-Control-Allow-Credentials`())
+
+  implicit val headerInstance: Header[`Access-Control-Allow-Credentials`, Header.Single] =
+    Header.create(
+      ci"Access-Control-Allow-Credentials",
+      _.value,
+      parse
+    )
+}
+
+// https://fetch.spec.whatwg.org/#http-access-control-allow-credentials
+// This Header can only take the true value
+final case class `Access-Control-Allow-Credentials`() {
+  val value: String = "true"
+}

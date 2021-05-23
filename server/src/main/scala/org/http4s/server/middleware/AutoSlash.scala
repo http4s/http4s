@@ -18,7 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Functor, Monad, MonoidK}
+import cats.{Monad, MonoidK}
 import cats.data.Kleisli
 import cats.syntax.all._
 
@@ -30,20 +30,17 @@ import cats.syntax.all._
   */
 object AutoSlash {
   def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(implicit
-      F: MonoidK[F],
-      G: Functor[G]): Kleisli[F, Request[G], B] = {
-    val _ = G // for binary compatibility in 0.20, remove on master
+      F: MonoidK[F]): Kleisli[F, Request[G], B] =
     Kleisli { req =>
       http(req) <+> {
         val pathInfo = req.pathInfo
 
-        if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/')
+        if (pathInfo.isEmpty)
           F.empty
         else
-          http.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
+          http.apply(req.withPathInfo(pathInfo.dropEndsWithSlash))
       }
     }
-  }
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)

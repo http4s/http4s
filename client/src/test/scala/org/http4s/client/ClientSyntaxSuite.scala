@@ -30,15 +30,15 @@ import org.http4s.headers.Accept
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val app = HttpRoutes
     .of[IO] {
-      case r if r.method == GET && r.pathInfo == "/" =>
+      case r if r.method == GET && r.pathInfo == path"/" =>
         Response[IO](Ok).withEntity("hello").pure[IO]
-      case r if r.method == PUT && r.pathInfo == "/put" =>
+      case r if r.method == PUT && r.pathInfo == path"/put" =>
         Response[IO](Created).withEntity(r.body).pure[IO]
-      case r if r.method == GET && r.pathInfo == "/echoheaders" =>
-        r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
-          Response[IO](Ok).withEntity(m.toString).pure[IO]
+      case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
+        r.headers.get[Accept].fold(IO.pure(Response[IO](BadRequest))) { m =>
+          Response[IO](Ok).withEntity(m.renderString).pure[IO]
         }
-      case r if r.pathInfo == "/status/500" =>
+      case r if r.pathInfo == path"/status/500" =>
         Response[IO](InternalServerError).withEntity("Oops").pure[IO]
     }
     .orNotFound
@@ -58,10 +58,10 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val disposingClient = Client { (req: Request[IO]) =>
       Resource.make(app(req))(_ => dispose)
     }
-    f(disposingClient).attempt.map(_ => disposed).assertEquals(true)
+    f(disposingClient).attempt.map(_ => disposed).assert
   }
 
-  test("Client should ggmatch responses to Uris with get") {
+  test("Client should match responses to Uris with get") {
     client
       .get(req.uri) {
         case Ok(_) => IO.pure("Ok")
@@ -70,7 +70,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals("Ok")
   }
 
-  test("Client should ggmatch responses to requests with run") {
+  test("Client should match responses to requests with run") {
     client
       .run(req)
       .use {
@@ -80,43 +80,43 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals("Ok")
   }
 
-  test("Client should ggget disposes of the response on success") {
+  test("Client should get disposes of the response on success") {
     assertDisposes(_.get(req.uri) { _ =>
       IO.unit
     })
   }
 
-  test("Client should ggget disposes of the response on failure") {
+  test("Client should get disposes of the response on failure") {
     assertDisposes(_.get(req.uri) { _ =>
       IO.raiseError(SadTrombone)
     })
   }
 
-  test("Client should ggget disposes of the response on uncaught exception") {
+  test("Client should get disposes of the response on uncaught exception") {
     assertDisposes(_.get(req.uri) { _ =>
       sys.error("Don't do this at home, kids")
     })
   }
 
-  test("Client should ggrun disposes of the response on success") {
+  test("Client should run disposes of the response on success") {
     assertDisposes(_.run(req).use { _ =>
       IO.unit
     })
   }
 
-  test("Client should ggrun disposes of the response on failure") {
+  test("Client should run disposes of the response on failure") {
     assertDisposes(_.run(req).use { _ =>
       IO.raiseError(SadTrombone)
     })
   }
 
-  test("Client should ggrun disposes of the response on uncaught exception") {
+  test("Client should run disposes of the response on uncaught exception") {
     assertDisposes(_.run(req).use { _ =>
       sys.error("Don't do this at home, kids")
     })
   }
 
-  test("Client should ggrun that does not match results in failed task") {
+  test("Client should run that does not match results in failed task") {
     client
       .run(req)
       .use(PartialFunction.empty)
@@ -125,14 +125,14 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
         case Left(_: MatchError) => true
         case _ => false
       }
-      .assertEquals(true)
+      .assert
   }
 
-  test("Client should ggfetch Uris with expect") {
+  test("Client should fetch Uris with expect") {
     client.expect[String](req.uri).assertEquals("hello")
   }
 
-  test("Client should ggfetch Uris with expectOr") {
+  test("Client should fetch Uris with expectOr") {
     client
       .expectOr[String](req.uri) { _ =>
         IO.pure(SadTrombone)
@@ -140,11 +140,11 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals("hello")
   }
 
-  test("Client should ggfetch requests with expect") {
+  test("Client should fetch requests with expect") {
     client.expect[String](req).assertEquals("hello")
   }
 
-  test("Client should ggfetch requests with expectOr") {
+  test("Client should fetch requests with expectOr") {
     client
       .expectOr[String](req) { _ =>
         IO.pure(SadTrombone)
@@ -152,11 +152,11 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals("hello")
   }
 
-  test("Client should ggfetch request tasks with expect") {
+  test("Client should fetch request tasks with expect") {
     client.expect[String](IO.pure(req)).assertEquals("hello")
   }
 
-  test("Client should ggfetch request tasks with expectOr") {
+  test("Client should fetch request tasks with expectOr") {
     client
       .expectOr[String](IO.pure(req)) { _ =>
         IO.pure(SadTrombone)
@@ -164,47 +164,52 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals("hello")
   }
 
-  test("Client should ggstatus returns the status for a request") {
+  test("Client should status returns the status for a request") {
     client.status(req).assertEquals(Status.Ok)
   }
 
-  test("Client should ggstatus returns the status for a request task") {
+  test("Client should status returns the status for a request task") {
     client.status(IO.pure(req)).assertEquals(Status.Ok)
   }
 
-  test("Client should ggsuccessful returns the success of the status for a request") {
-    client.successful(req).assertEquals(true)
+  test("Client should successful returns the success of the status for a request") {
+    client.successful(req).assert
   }
 
-  test("Client should ggsuccessful returns the success of the status for a request task") {
-    client.successful(IO.pure(req)).assertEquals(true)
+  test("Client should successful returns the success of the status for a request task") {
+    client.successful(IO.pure(req)).assert
   }
 
-  test("Client should ggstatus returns the status for a request") {
+  test("Client should status returns the status for a request") {
     client.status(req).assertEquals(Status.Ok)
   }
 
-  test("Client should ggstatus returns the status for a request task") {
+  test("Client should status returns the status for a request task") {
     client.status(IO.pure(req)).assertEquals(Status.Ok)
   }
 
-  test("Client should ggsuccessful returns the success of the status for a request") {
-    client.successful(req).assertEquals(true)
+  test("Client should successful returns the success of the status for a request") {
+    client.successful(req).assert
   }
 
-  test("Client should ggsuccessful returns the success of the status for a request task") {
-    client.successful(IO.pure(req)).assertEquals(true)
+  test("Client should successful returns the success of the status for a request task") {
+    client.successful(IO.pure(req)).assert
   }
 
   test(
-    "Client should ggreturn an unexpected status when expecting a URI returns unsuccessful status") {
+    "Client should return an unexpected status when expecting a URI returns unsuccessful status") {
     client
       .expect[String](uri"http://www.foo.com/status/500")
       .attempt
-      .assertEquals(Left(UnexpectedStatus(Status.InternalServerError)))
+      .assertEquals(
+        Left(
+          UnexpectedStatus(
+            Status.InternalServerError,
+            Method.GET,
+            Uri.unsafeFromString("http://www.foo.com/status/500"))))
   }
 
-  test("Client should gghandle an unexpected status when calling a URI with expectOr") {
+  test("Client should handle an unexpected status when calling a URI with expectOr") {
     case class Boom(status: Status, body: String) extends Exception
     client
       .expectOr[String](uri"http://www.foo.com/status/500") { resp =>
@@ -214,38 +219,38 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals(Left(Boom(InternalServerError, "Oops")))
   }
 
-  test("Client should ggadd Accept header on expect") {
+  test("Client should add Accept header on expect") {
     client.expect[String](uri"http://www.foo.com/echoheaders").assertEquals("Accept: text/*")
   }
 
-  test("Client should ggadd Accept header on expect for requests") {
+  test("Client should add Accept header on expect for requests") {
     client
       .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
-  test("Client should ggadd Accept header on expect for requests") {
+  test("Client should add Accept header on expect for requests") {
     client
       .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
-  test("Client should ggcombine entity decoder media types correctly") {
+  test("Client should combine entity decoder media types correctly") {
     // This is more of an EntityDecoder spec
     val edec =
-      EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.success("foo!"))
+      EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.successT("foo!"))
     client
       .expect(Request[IO](GET, uri"http://www.foo.com/echoheaders"))(
         EntityDecoder.text[IO].orElse(edec))
       .assertEquals("Accept: text/*, image/jpeg")
   }
 
-  test("Client should ggreturn empty with expectOption and not found") {
+  test("Client should return empty with expectOption and not found") {
     client
       .expectOption[String](Request[IO](GET, uri"http://www.foo.com/random-not-found"))
       .assertEquals(Option.empty[String])
   }
-  test("Client should ggreturn expected value with expectOption and a response") {
+  test("Client should return expected value with expectOption and a response") {
     client
       .expectOption[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals(
@@ -253,7 +258,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       )
   }
 
-  test("Client should ggstream returns a stream") {
+  test("Client should stream returns a stream") {
     client
       .stream(req)
       .flatMap(_.body.through(fs2.text.utf8Decode))
@@ -262,38 +267,38 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals(Vector("hello"))
   }
 
-  test("Client should ggstreaming disposes of the response on success") {
+  test("Client should streaming disposes of the response on success") {
     assertDisposes(_.stream(req).compile.drain)
   }
 
-  test("Client should ggstreaming disposes of the response on failure") {
+  test("Client should streaming disposes of the response on failure") {
     assertDisposes(_.stream(req).flatMap(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
   }
 
-  test("Client should ggtoService disposes of the response on success") {
+  test("Client should toService disposes of the response on success") {
     assertDisposes(_.toKleisli(_ => IO.unit).run(req))
   }
 
-  test("Client should ggtoService disposes of the response on failure") {
+  test("Client should toService disposes of the response on failure") {
     assertDisposes(_.toKleisli(_ => IO.raiseError(SadTrombone)).run(req))
   }
 
-  test("Client should ggtoHttpApp disposes the response if the body is run") {
+  test("Client should toHttpApp disposes the response if the body is run") {
     assertDisposes(_.toHttpApp.flatMapF(_.body.compile.drain).run(req))
   }
 
-  test("Client should ggtoHttpApp disposes of the response if the body is run, even if it fails") {
+  test("Client should toHttpApp disposes of the response if the body is run, even if it fails") {
     assertDisposes(
       _.toHttpApp
         .flatMapF(_.body.flatMap(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
         .run(req))
   }
 
-  test("Client should ggtoHttpApp allows the response to be read") {
+  test("Client should toHttpApp allows the response to be read") {
     client.toHttpApp(req).flatMap(_.as[String]).assertEquals("hello")
   }
 
-  test("Client should ggtoHttpApp disposes of resources in reverse order of acquisition") {
+  test("Client should toHttpApp disposes of resources in reverse order of acquisition") {
     Ref[IO]
       .of(Vector.empty[Int])
       .flatMap { released =>
@@ -308,7 +313,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals(Vector(3, 2, 1))
   }
 
-  test("Client should ggtoHttpApp releases acquired resources on failure") {
+  test("Client should toHttpApp releases acquired resources on failure") {
     Ref[IO]
       .of(Vector.empty[Int])
       .flatMap { released =>
@@ -317,7 +322,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
             _ <- List(1, 2, 3).traverse { i =>
               Resource(IO.pure(() -> released.update(_ :+ i)))
             }
-            _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
+            _ <- Resource.eval[IO, Unit](IO.raiseError(SadTrombone))
           } yield Response()
         }.toHttpApp(req).flatMap(_.as[Unit]).attempt >> released.get
       }

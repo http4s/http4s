@@ -22,7 +22,7 @@ import org.http4s.Status.{NotFound, Successful}
 import org.http4s.circe._
 import org.http4s.syntax.all._
 import org.http4s.client.Client
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
 import scala.concurrent.ExecutionContext.global
 
 object ClientExample extends IOApp {
@@ -43,7 +43,7 @@ object ClientExample extends IOApp {
       // Match on response code!
       val page2 = client.get(uri"http://http4s.org/resources/foo.json") {
         case Successful(resp) =>
-          // decodeJson is defined for Json4s, Argonuat, and Circe, just need the right decoder!
+          // decodeJson is defined for Circe, just need the right decoder!
           resp.decodeJson[Foo].map("Received response: " + _)
         case NotFound(_) => IO.pure("Not Found!!!")
         case resp => IO.pure("Failed: " + resp.status)

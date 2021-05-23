@@ -18,152 +18,249 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import java.net.InetAddress
+import com.comcast.ip4s._
 import org.http4s.headers._
-import org.http4s.headers.ETag.EntityTag
+import org.http4s.syntax.header._
+import org.http4s.EntityTag.{Strong, Weak}
+import org.typelevel.ci._
 
-class SimpleHeadersSpec extends Http4sSpec {
-  "SimpleHeaders" should {
-    "parse Connection" in {
-      val header = Connection("closed".ci)
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-    }
+class SimpleHeadersSpec extends Http4sSuite {
+  test("parse Accept-Patch") {
+    def parse(value: String) = `Accept-Patch`.parse(value)
 
-    "parse Content-Length" in {
-      val header = `Content-Length`.unsafeFromLong(4)
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+    val header =
+      `Accept-Patch`(
+        NonEmptyList.of(new MediaType("text", "example", extensions = Map("charset" -> "utf-8"))))
+    assertEquals(parse(header.value), Right(header))
+    val multipleMediaTypes =
+      `Accept-Patch`(
+        NonEmptyList
+          .of(new MediaType("application", "example"), new MediaType("text", "example")))
+    assertEquals(parse(multipleMediaTypes.value), Right(multipleMediaTypes))
 
-      val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must beLeft
-    }
+    assert(parse("foo; bar").isLeft)
+  }
 
-    "parse Content-Encoding" in {
-      val header = `Content-Encoding`(ContentCoding.`pack200-gzip`)
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-    }
+  test("parse Access-Control-Allow-Headers") {
 
-    "parse Content-Disposition" in {
-      val header = `Content-Disposition`("foo", Map("one" -> "two", "three" -> "four"))
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-
-      val bad = Header(header.name.toString, "foo; bar")
-      HttpHeaderParser.parseHeader(bad) must beLeft
-    }
-
-    "parse Date" in { // mills are lost, get rid of them
-      val header = Date(HttpDate.Epoch).toRaw.parsed
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-
-      val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must beLeft
-    }
-
-    "parse Host" in {
-      val header1 = Host("foo", Some(5))
-      HttpHeaderParser.parseHeader(header1.toRaw) must beRight(header1)
-
-      val header2 = Host("foo", None)
-      HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
-
-      val bad = Header(header1.name.toString, "foo:bar")
-      HttpHeaderParser.parseHeader(bad) must beLeft
-    }
-
-    "parse Last-Modified" in {
-      val header = `Last-Modified`(HttpDate.Epoch).toRaw.parsed
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-
-      val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must beLeft
-    }
-
-    "parse If-Modified-Since" in {
-      val header = `If-Modified-Since`(HttpDate.Epoch).toRaw.parsed
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-
-      val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must beLeft
-    }
-
-    "parse ETag" in {
-      ETag.EntityTag("hash", weak = true).toString() must_== "W/\"hash\""
-      ETag.EntityTag("hash", weak = false).toString() must_== "\"hash\""
-
-      val headers = Seq(ETag("hash"), ETag("hash", true))
-
-      foreach(headers) { header =>
-        HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-      }
-    }
-
-    "parse If-None-Match" in {
-      val headers = Seq(
-        `If-None-Match`(EntityTag("hash")),
-        `If-None-Match`(EntityTag("123-999")),
-        `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
-        `If-None-Match`(EntityTag("123-999", weak = true), EntityTag("hash")),
-        `If-None-Match`.`*`
+    val header = `Access-Control-Allow-Headers`(
+      NonEmptyList.of(
+        ci"Accept",
+        ci"Expires",
+        ci"X-Custom-Header",
+        ci"*"
       )
-      foreach(headers) { header =>
-        HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-      }
+    )
+
+    assertEquals(`Access-Control-Allow-Headers`.parse(header.toRaw.value), Right(header))
+
+    val invalidHeaderValue = "(non-token-name), non[&token]name"
+    assert(`Access-Control-Allow-Headers`.parse(invalidHeaderValue).isLeft)
+  }
+
+  test("parse Access-Control-Expose-Headers") {
+    val header = `Access-Control-Expose-Headers`(
+      NonEmptyList.of(
+        ci"Content-Length",
+        ci"Authorization",
+        ci"X-Custom-Header",
+        ci"*"
+      )
+    )
+    assertEquals(`Access-Control-Expose-Headers`.parse(header.toRaw.value), Right(header))
+
+    val invalidHeaderValue = "(non-token-name), non[&token]name"
+    assert(`Access-Control-Expose-Headers`.parse(invalidHeaderValue).isLeft)
+  }
+
+  test("parse Connection") {
+    val header = Connection(ci"closed")
+    assertEquals(Connection.parse(header.toRaw.value), Right(header))
+  }
+
+  test("Parse Content-Length") {
+    assertEquals(`Content-Length`.parse("4"), Right(`Content-Length`.unsafeFromLong(4)))
+    assert(`Content-Length`.parse("foo").isLeft)
+  }
+
+  test("SimpleHeaders should parse Content-Encoding") {
+    val header = `Content-Encoding`(ContentCoding.`pack200-gzip`)
+    assertEquals(`Content-Encoding`.parse(header.value), Right(header))
+  }
+
+  test("SimpleHeaders should parse Content-Disposition") {
+    val header = `Content-Disposition`("foo", Map(ci"one" -> "two", ci"three" -> "four"))
+    val parse = `Content-Disposition`.parse(_)
+    assertEquals(parse(header.value), Right(header))
+
+    assert(parse("foo; bar").isLeft)
+  }
+
+  test("SimpleHeaders should parse Date") { // mills are lost, get rid of them
+    val header = Date(HttpDate.Epoch)
+    val stringRepr = "Thu, 01 Jan 1970 00:00:00 GMT"
+    assertEquals(Date(HttpDate.Epoch).value, stringRepr)
+    assertEquals(Date.parse(stringRepr), Right(header))
+
+    assert(Date.parse("foo").isLeft)
+  }
+
+  test("SimpleHeaders should parse Host") {
+    val header1 = headers.Host("foo", Some(5))
+    assertEquals(headers.Host.parse("foo:5"), Right(header1))
+
+    val header2 = headers.Host("foo", None)
+    assertEquals(headers.Host.parse("foo"), Right(header2))
+
+    assert(headers.Host.parse("foo:bar").isLeft)
+  }
+
+  test("parse Access-Control-Allow-Credentials") {
+    assert(`Access-Control-Allow-Credentials`.parse("false").isLeft)
+    // it is case sensitive
+    assert(`Access-Control-Allow-Credentials`.parse("True").isLeft)
+  }
+
+  test("SimpleHeaders should parse Last-Modified") {
+
+    val header = `Last-Modified`(HttpDate.Epoch)
+    val stringRepr = "Thu, 01 Jan 1970 00:00:00 GMT"
+    assertEquals(header.value, stringRepr)
+    assertEquals(Header[`Last-Modified`].parse(stringRepr), Right(header))
+
+    assert(Header[`Last-Modified`].parse("foo").isLeft)
+  }
+
+  test("SimpleHeaders should parse ETag") {
+    assertEquals(ETag.EntityTag("hash", Weak).toString(), "W/\"hash\"")
+    assertEquals(ETag.EntityTag("hash", Strong).toString(), "\"hash\"")
+
+    val headers = Seq("\"hash\"", "W/\"hash\"")
+
+    headers.foreach { header =>
+      assertEquals(ETag.parse(header).map(_.value), Right(header))
     }
+  }
 
-    "parse Transfer-Encoding" in {
-      val header = `Transfer-Encoding`(TransferCoding.chunked)
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
-
-      val header2 = `Transfer-Encoding`(TransferCoding.compress)
-      HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
+  test("SimpleHeaders should parse If-None-Match") {
+    val headers = Seq(
+      `If-None-Match`(EntityTag("hash")),
+      `If-None-Match`(EntityTag("123-999")),
+      `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
+      `If-None-Match`(EntityTag("123-999", Weak), EntityTag("hash")),
+      `If-None-Match`.`*`
+    )
+    headers.foreach { header =>
+      assertEquals(`If-None-Match`.parse(header.value), Right(header))
     }
+  }
 
-    "parse User-Agent" in {
-      val header = `User-Agent`(AgentProduct("foo", Some("bar")), List(AgentComment("foo")))
-      header.value must_== "foo/bar (foo)"
+  test("parse Max-Forwards") {
+    val headers = Seq(
+      `Max-Forwards`.unsafeFromLong(0),
+      `Max-Forwards`.unsafeFromLong(100)
+    )
+    headers.foreach { header =>
+      assertEquals(Header[`Max-Forwards`].parse(header.value), Right(header))
+    }
+  }
 
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+  test("SimpleHeaders should parse Transfer-Encoding") {
+    val header = `Transfer-Encoding`(TransferCoding.chunked)
+    assertEquals(`Transfer-Encoding`.parse(header.value), Right(header))
 
-      val header2 = `User-Agent`(
-        AgentProduct("foo"),
-        List(AgentProduct("bar", Some("biz")), AgentComment("blah")))
-      header2.value must_== "foo bar/biz (blah)"
-      HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
+    val header2 = `Transfer-Encoding`(TransferCoding.compress)
+    assertEquals(`Transfer-Encoding`.parse(header2.value), Right(header2))
+  }
 
-      val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
-      HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must beRight(
+  test("SimpleHeaders should parse User-Agent") {
+    val header = `User-Agent`(ProductId("foo", Some("bar")), List(ProductId("foo")))
+    assertEquals(header.value, "foo/bar foo")
+
+    assertEquals(`User-Agent`.parse(header.value), Right(header))
+
+    val header2 =
+      `User-Agent`(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
+    assertEquals(header2.value, "foo bar/biz (blah)")
+    assertEquals(`User-Agent`.parse(header2.value), Right(header2))
+
+    val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
+
+    val headerraw = Header.Raw(`User-Agent`.name, headerstr)
+
+    val parsed = `User-Agent`.parse(headerraw.value)
+    assertEquals(
+      parsed,
+      Right(
         `User-Agent`(
-          AgentProduct("Mozilla", Some("5.0")),
+          ProductId("Mozilla", Some("5.0")),
           List(
-            AgentComment("Android; Mobile; rv:30.0"),
-            AgentProduct("Gecko", Some("30.0")),
-            AgentProduct("Firefox", Some("30.0"))
+            ProductComment("Android; Mobile; rv:30.0"),
+            ProductId("Gecko", Some("30.0")),
+            ProductId("Firefox", Some("30.0"))
           )
         )
       )
-    }
-
-    "parse X-Forwarded-For" in {
-      // ipv4
-      val header2 = `X-Forwarded-For`(
-        NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress)))
-      HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
-
-      // ipv6
-      val header3 = `X-Forwarded-For`(
-        NonEmptyList.of(
-          Some(InetAddress.getByName("::1")),
-          Some(InetAddress.getByName("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))))
-      HttpHeaderParser.parseHeader(header3.toRaw) must beRight(header3)
-
-      // "unknown"
-      val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
-      HttpHeaderParser.parseHeader(header4.toRaw) must beRight(header4)
-
-      val bad = Header("x-forwarded-for", "foo")
-      HttpHeaderParser.parseHeader(bad) must beLeft
-
-      val bad2 = Header("x-forwarded-for", "256.56.56.56")
-      HttpHeaderParser.parseHeader(bad2) must beLeft
-    }
+    )
+    assertEquals(parsed.map(_.value), Right(headerstr))
   }
+
+  test("parse Server") {
+    val header = Server(ProductId("foo", Some("bar")), List(ProductComment("foo")))
+    assertEquals(header.value, "foo/bar (foo)")
+
+    assertEquals(Server.parse(header.toRaw.value), Right(header))
+
+    val header2 =
+      Server(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
+    assertEquals(header2.value, "foo bar/biz (blah)")
+    assertEquals(Server.parse(header2.toRaw.value), Right(header2))
+
+    val headerstr = "nginx/1.14.0 (Ubuntu)"
+    assertEquals(
+      Server.parse(headerstr),
+      Right(
+        Server(
+          ProductId("nginx", Some("1.14.0")),
+          List(
+            ProductComment("Ubuntu")
+          )
+        )
+      ))
+
+    val headerstr2 = "CERN/3.0 libwww/2.17"
+    assertEquals(
+      Server.parse(headerstr2),
+      Right(
+        Server(
+          ProductId("CERN", Some("3.0")),
+          List(
+            ProductId("libwww", Some("2.17"))
+          )
+        )
+      )
+    )
+  }
+
+  test("SimpleHeaders should parse X-Forwarded-For") {
+    // ipv4
+    val header2 = `X-Forwarded-For`(NonEmptyList.of(Some(ipv4"127.0.0.1")))
+    assertEquals(`X-Forwarded-For`.parse(header2.toRaw.value), Right(header2))
+
+    // ipv6
+    val header3 = `X-Forwarded-For`(
+      NonEmptyList.of(Some(ipv6"::1"), Some(ipv6"2001:0db8:85a3:0000:0000:8a2e:0370:7334")))
+    assertEquals(`X-Forwarded-For`.parse(header3.toRaw.value), Right(header3))
+
+    // "unknown"
+    val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
+    assertEquals(`X-Forwarded-For`.parse(header4.toRaw.value), Right(header4))
+
+    val bad = "foo"
+    assert(`X-Forwarded-For`.parse(bad).isLeft)
+
+    val bad2 = "256.56.56.56"
+    assert(`X-Forwarded-For`.parse(bad2).isLeft)
+  }
+
 }

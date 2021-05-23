@@ -17,4 +17,30 @@
 package org.http4s
 package headers
 
-object `Access-Control-Expose-Headers` extends HeaderKey.Default
+import cats.data.NonEmptyList
+import org.http4s.internal.parsing.Rfc7230
+import org.typelevel.ci._
+
+object `Access-Control-Expose-Headers` {
+
+  def apply(head: CIString, tail: CIString*): `Access-Control-Expose-Headers` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`Access-Control-Expose-Headers`] =
+    ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers header")(s)
+
+  private[http4s] val parser =
+    Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
+
+  implicit val headerInstance: Header[`Access-Control-Expose-Headers`, Header.Recurring] =
+    Header.createRendered(
+      ci"Access-Control-Expose-Headers",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Expose-Headers`] =
+    (a, b) => `Access-Control-Expose-Headers`(a.values.concatNel(b.values))
+}
+
+final case class `Access-Control-Expose-Headers`(values: NonEmptyList[CIString])

@@ -16,18 +16,19 @@
 
 package org.http4s.metrics.dropwizard
 
-import cats.effect.IO
+import cats.effect.{Clock, IO}
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.metrics.dropwizard.util._
 import org.http4s.server.middleware.Metrics
 import org.http4s.{Http4sSuite, HttpRoutes, Request, Status}
+
 import java.util.Arrays
 
 class DropwizardServerMetricsSuite extends Http4sSuite {
   test("register a 2xx response") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](uri = uri"/ok")
@@ -56,7 +57,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register a 4xx response") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test2")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
 
@@ -86,7 +87,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register a 5xx response") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test3")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](uri = uri"/internal-server-error")
@@ -115,7 +116,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register a GET request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test4")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](method = GET, uri = uri"/ok")
@@ -144,7 +145,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register a POST request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](method = POST, uri = uri"/ok")
@@ -173,7 +174,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register a PUT request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](method = PUT, uri = uri"/ok")
@@ -202,7 +203,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register a DELETE request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test7")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](method = DELETE, uri = uri"/ok")
@@ -231,7 +232,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register an error") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test8")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](method = GET, uri = uri"/error")
@@ -253,7 +254,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("register an abnormal termination") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test9")
     val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
     val req = Request[IO](method = GET, uri = uri"/abnormal-termination")
@@ -278,7 +279,7 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
   }
 
   test("use the provided request classifier") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val classifierFunc = (_: Request[IO]) => Some("classifier")
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test10")
     val meteredRoutes =

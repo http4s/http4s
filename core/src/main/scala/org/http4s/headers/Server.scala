@@ -17,4 +17,45 @@
 package org.http4s
 package headers
 
-object Server extends HeaderKey.Default
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
+
+object Server {
+
+  def apply(id: ProductId, tail: ProductIdOrComment*): Server =
+    apply(id, tail.toList)
+
+  val name = ci"Server"
+
+  def parse(s: String): ParseResult[Server] =
+    ParseResult.fromParser(parser, "Invalid Server header")(s)
+
+  private[http4s] val parser =
+    ProductIdOrComment.serverAgentParser.map {
+      case (product: ProductId, tokens: List[ProductIdOrComment]) =>
+        Server(product, tokens)
+    }
+
+  implicit val headerInstance: Header[Server, Header.Single] =
+    Header.createRendered(
+      name,
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.product
+            h.rest.foreach {
+              case p: ProductId => writer << ' ' << p
+              case ProductComment(c) => writer << ' ' << '(' << c << ')'
+            }
+            writer
+          }
+        },
+      parse
+    )
+
+}
+
+/** Server header
+  * https://tools.ietf.org/html/rfc7231#section-7.4.2
+  */
+final case class Server(product: ProductId, rest: List[ProductIdOrComment])

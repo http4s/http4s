@@ -17,40 +17,52 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.{Renderable, Renderer, Writer}
+import org.http4s.Header
+import org.typelevel.ci._
 
-object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`User-Agent`] =
-    HttpHeaderParser.USER_AGENT(s)
-}
+object `User-Agent` {
 
-sealed trait AgentToken extends Renderable
+  def apply(id: ProductId, tail: ProductIdOrComment*): `User-Agent` =
+    apply(id, tail.toList)
 
-final case class AgentProduct(name: String, version: Option[String] = None) extends AgentToken {
-  override def render(writer: Writer): writer.type = {
-    writer << name
-    version.foreach { v =>
-      writer << '/' << v
+  val name = ci"User-Agent"
+
+  def parse(s: String): ParseResult[`User-Agent`] =
+    ParseResult.fromParser(parser, "Invalid User-Agent header")(s)
+
+  private[http4s] val parser =
+    ProductIdOrComment.serverAgentParser.map {
+      case (product: ProductId, tokens: List[ProductIdOrComment]) =>
+        `User-Agent`(product, tokens)
     }
-    writer
-  }
-}
-final case class AgentComment(comment: String) extends AgentToken {
-  override def renderString: String = comment
-  override def render(writer: Writer): writer.type = writer << comment
-}
 
-final case class `User-Agent`(product: AgentProduct, other: List[AgentToken] = Nil)
-    extends Header.Parsed {
-  def key: `User-Agent`.type = `User-Agent`
+  implicit val headerInstance: Header[`User-Agent`, Header.Single] =
+    Header.createRendered(
+      name,
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.product
+            h.rest.foreach {
+              case p: ProductId => writer << ' ' << p
+              case ProductComment(c) => writer << ' ' << '(' << c << ')'
+            }
+            writer
+          }
 
-  override def renderValue(writer: Writer): writer.type = {
-    writer << product
-    other.foreach {
-      case p: AgentProduct => writer << ' ' << p
-      case AgentComment(c) => writer << ' ' << '(' << c << ')'
+        },
+      parse
+    )
+
+  implicit def convert(implicit select: Header.Select[`User-Agent`]): Renderer[`User-Agent`] =
+    new Renderer[`User-Agent`] {
+      override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
     }
-    writer
-  }
+
 }
+
+/** User-Agent header
+  * [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
+  */
+final case class `User-Agent`(product: ProductId, rest: List[ProductIdOrComment])

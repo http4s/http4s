@@ -19,7 +19,7 @@ package blaze
 
 import cats.effect._
 import fs2._
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import scala.concurrent.ExecutionContext.global
 
 object BlazeSslExampleWithRedirect extends IOApp {
@@ -40,6 +40,6 @@ object BlazeSslExampleWithRedirectApp {
       .withHttpApp(ssl.redirectApp(8443))
       .serve
 
-  def sslStream[F[_]: ConcurrentEffect: ContextShift: Timer]: Stream[F, ExitCode] =
+  def sslStream[F[_]: ConcurrentEffect: Timer]: Stream[F, ExitCode] =
     Stream.eval(BlazeSslExampleApp.builder[F]).flatMap(_.serve)
 }

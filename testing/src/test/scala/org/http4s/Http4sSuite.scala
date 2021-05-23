@@ -20,16 +20,35 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
-import org.http4s.internal.threads.newBlockingPool
-import org.http4s.internal.threads.newDaemonPool
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
+import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import scala.concurrent.ExecutionContext
 import munit._
 
 /** Common stack for http4s' munit based tests
   */
 trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
+  // The default munit EC causes an IllegalArgumentException in
+  // BatchExecutor on Scala 2.12.
+  override val munitExecutionContext =
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
 
-  val testBlocker: Blocker = Http4sSpec.TestBlocker
+  private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
+
+  override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
+
+  def registerSuiteFixture[A](fixture: Fixture[A]) = {
+    suiteFixtures += fixture
+    fixture
+  }
+
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
+    ResourceSuiteLocalFixture(name, resource))
+
+  val testBlocker: Blocker = Http4sSuite.TestBlocker
+
+  // allow flaky tests on ci
+  override def munitFlakyOK = sys.env.get("CI").isDefined
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -50,11 +69,22 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
 
 object Http4sSuite {
   val TestBlocker: Blocker =
-    Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
+    Blocker.liftExecutorService(newBlockingPool("http4s-suite-blocking"))
 
   val TestExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-suite", timeout = true))
 
   val TestContextShift: ContextShift[IO] =
     IO.contextShift(TestExecutionContext)
+
+  val TestScheduler: ScheduledExecutorService = {
+    val s =
+      new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
+    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+    s.allowCoreThreadTimeOut(true)
+    s
+  }
+
+  val TestTimer: Timer[IO] =
+    IO.timer(TestExecutionContext, TestScheduler)
 }

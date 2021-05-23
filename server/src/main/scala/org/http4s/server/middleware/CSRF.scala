@@ -29,10 +29,10 @@ import java.time.Clock
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
-import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.headers.{Host, Referer, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
+import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 
 /** Middleware to avoid Cross-site request forgery attacks.
@@ -68,7 +68,7 @@ import scala.util.control.NoStackTrace
   * @param clock clock used as a nonce
   */
 final class CSRF[F[_], G[_]] private[middleware] (
-    headerName: CaseInsensitiveString,
+    headerName: CIString,
     cookieSettings: CSRF.CookieSettings,
     clock: Clock,
     onFailure: Response[G],
@@ -237,7 +237,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
   def onfailureF: F[Response[G]] = F.pure(onFailure)
 
   def getHeaderToken(r: Request[G]): Option[String] =
-    r.headers.get(headerName).map(_.value)
+    r.headers.get(headerName).map(_.head.value)
 
   def embedInResponseCookie(r: Response[G], token: CSRFToken): Response[G] =
     r.addCookie(createResponseCookie(token))
@@ -256,7 +256,7 @@ object CSRF {
       headerCheck: Request[G] => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
-      headerName = CaseInsensitiveString("X-Csrf-Token"),
+      headerName = ci"X-Csrf-Token",
       cookieSettings = CookieSettings(
         cookieName = "csrf-token",
         secure = false,
@@ -304,7 +304,7 @@ object CSRF {
   ///
 
   class CSRFBuilder[F[_], G[_]] private[middleware] (
-      headerName: CaseInsensitiveString,
+      headerName: CIString,
       cookieSettings: CSRF.CookieSettings,
       clock: Clock,
       onFailure: Response[G],
@@ -314,7 +314,7 @@ object CSRF {
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
   )(implicit F: Sync[F], G: Applicative[G]) {
     private def copy(
-        headerName: CaseInsensitiveString = headerName,
+        headerName: CIString = headerName,
         cookieSettings: CookieSettings = cookieSettings,
         clock: Clock = clock,
         onFailure: Response[G] = onFailure,
@@ -334,7 +334,7 @@ object CSRF {
         csrfCheck
       )
 
-    def withHeaderName(headerName: CaseInsensitiveString): CSRFBuilder[F, G] =
+    def withHeaderName(headerName: CIString): CSRFBuilder[F, G] =
       copy(headerName = headerName)
     def withClock(clock: Clock): CSRFBuilder[F, G] = copy(clock = clock)
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
@@ -378,7 +378,7 @@ object CSRF {
       httpOnly: Boolean,
       domain: Option[String] = None,
       path: Option[String] = None,
-      sameSite: SameSite = SameSite.Lax,
+      sameSite: Option[SameSite] = Some(SameSite.Lax),
       extension: Option[String] = None
   )
 
@@ -399,7 +399,7 @@ object CSRF {
           .value
           .map(_.fold(_ => none[String], _.values.get(fieldName).flatMap(_.uncons.map(_._1))))
 
-      r.headers.get(headers.`Content-Type`) match {
+      r.headers.get[`Content-Type`] match {
         case Some(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`, _)) =>
           nt(extractToken)
         case _ => F.pure(none[String])
@@ -420,7 +420,7 @@ object CSRF {
   private[CSRF] def lift(s: String): CSRFToken = s.asInstanceOf[CSRFToken]
   def unlift(s: CSRFToken): String = s.asInstanceOf[String]
 
-  final case object CSRFCheckFailed extends Exception("CSRF Check failed") with NoStackTrace
+  case object CSRFCheckFailed extends Exception("CSRF Check failed") with NoStackTrace
   type CSRFCheckFailed = CSRFCheckFailed.type
 
   /** Check origin matches our proposed origin.
@@ -438,21 +438,21 @@ object CSRF {
       sc: Scheme,
       port: Option[Int]): Boolean =
     r.headers
-      .get(Origin)
+      .get(ci"Origin")
       .flatMap(o =>
         //Hack to get around 2.11 compat
-        Uri.fromString(o.value) match {
+        Uri.fromString(o.head.value) match {
           case Right(uri) => Some(uri)
           case Left(_) => None
         })
       .exists(u =>
         u.host.exists(_.value == host) && u.scheme.contains(sc) && u.port == port) || r.headers
-      .get(Referer)
+      .get[Referer]
       .exists(u =>
         u.uri.host.exists(_.value == host) && u.uri.scheme.contains(sc) && u.uri.port == port)
 
   def proxyOriginCheck[F[_]](r: Request[F], host: Host, xff: `X-Forwarded-For`): Boolean =
-    r.headers.get(Host).contains(host) || r.headers.get(`X-Forwarded-For`).contains(xff)
+    r.headers.get[Host].contains(host) || r.headers.get[`X-Forwarded-For`].contains(xff)
 
   ///
 
@@ -485,8 +485,8 @@ object CSRF {
   private[middleware] def cookieFromHeaders[F[_]](
       request: Request[F],
       cookieName: String): Option[RequestCookie] =
-    HCookie
-      .from(request.headers)
+    request.headers
+      .get[HCookie]
       .flatMap(_.values.find(_.name == cookieName))
 
   /** A Constant-time string equality */

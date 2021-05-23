@@ -33,7 +33,7 @@ import cats.syntax.all._
   * scala> case class Foo(a: String, b: Boolean)
   * scala> case class Bar(fs: List[Foo], f: Foo, d: Boolean)
   * scala>
-  * scala> implicit val fooMapper = (
+  * scala> implicit val fooMapper: FormDataDecoder[Foo] = (
   *      |   field[String]("a"),
   *      |   field[Boolean]("b")
   *      | ).mapN(Foo.apply)

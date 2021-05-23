@@ -181,10 +181,12 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
 ```scala mdoc:silent:nest
+import org.http4s.headers.Cookie
+
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
-    header <- headers.Cookie.from(request.headers).toRight("Cookie parsing error")
+    header <- request.headers.get[Cookie].toRight("Cookie parsing error")
     cookie <- header.values.toList.find(_.name == "authcookie").toRight("Couldn't find the authcookie")
     token <- crypto.validateSignedToken(cookie.content).toRight("Cookie invalid")
     message <- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
@@ -200,11 +202,12 @@ way that your [SPA] understands. Retrieve the header value in the `authUser`
 function.
 
 ```scala mdoc:silent:nest
+import org.http4s.syntax.header._
 import org.http4s.headers.Authorization
 
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
-    header <- request.headers.get(Authorization).toRight("Couldn't find an Authorization header")
+    header <- request.headers.get[Authorization].toRight("Couldn't find an Authorization header")
     token <- crypto.validateSignedToken(header.value).toRight("Invalid token")
     message <- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
   } yield message

@@ -54,8 +54,7 @@ So far, there was no change. That's because an `Origin` header is required
 in the requests and it must include a scheme. This, of course, is the responsibility of the caller.
 
 ```scala mdoc
-val originHeader = Header("Origin", "https://somewhere.com")
-val corsRequest = request.putHeaders(originHeader)
+val corsRequest = request.putHeaders("Origin" -> "https://somewhere.com")
 
 corsService.orNotFound(corsRequest).unsafeRunSync()
 ```
@@ -73,9 +72,9 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```scala mdoc
-val googleGet = Request[IO](Method.GET, uri"/", headers = Headers.of(Header("Origin", "https://google.com")))
-val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers.of(Header("Origin", "https://yahoo.com")))
-val duckPost = Request[IO](Method.POST, uri"/", headers = Headers.of(Header("Origin", "https://duckduckgo.com")))
+val googleGet = Request[IO](Method.GET, uri"/", headers = Headers("Origin" -> "https://google.com"))
+val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers("Origin" -> "https://yahoo.com"))
+val duckPost = Request[IO](Method.POST, uri"/", headers = Headers("Origin" -> "https://duckduckgo.com"))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`
@@ -86,12 +85,12 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc
-val methodConfig = CORSConfig(
-  anyOrigin = true,
-  anyMethod = false,
-  allowedMethods = Some(Set("GET", "POST")),
-  allowCredentials = true,
-  maxAge = 1.day.toSeconds)
+val methodConfig = CORSConfig.default
+                     .withAnyOrigin(false)
+                     .withAnyMethod(false)
+                     .withAllowedMethods(Some(Set(Method.GET, Method.POST)))
+                     .withAllowCredentials(true)
+                     .withMaxAge(1.seconds)
 
 val corsMethodSvc = CORS(service, methodConfig)
 
@@ -105,11 +104,11 @@ Next, we'll create a configuration that limits the origins to "yahoo.com" and
 "duckduckgo.com". allowedOrigins can use any expression that resolves into a boolean.
 
 ```scala mdoc
-val originConfig = CORSConfig(
-  anyOrigin = false,
-  allowedOrigins = Set("https://yahoo.com", "https://duckduckgo.com"),
-  allowCredentials = false,
-  maxAge = 1.day.toSeconds)
+val originConfig = CORSConfig.default
+                     .withAnyOrigin(false)
+                     .withAllowedOrigins(Set("https://yahoo.com", "https://duckduckgo.com"))
+                     .withAllowCredentials(false)
+                     .withMaxAge(1.seconds)
 
 val corsOriginSvc = CORS(service, originConfig)
 

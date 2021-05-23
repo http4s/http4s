@@ -16,153 +16,289 @@
 
 package org.http4s.ember.server.internal
 
-import fs2._
-import fs2.concurrent._
+import cats._
+import cats.data.NonEmptyList
+import cats.effect._
+import cats.effect.concurrent._
+import cats.effect.implicits._
+import cats.syntax.all._
+import com.comcast.ip4s.SocketAddress
+import fs2.Stream
 import fs2.io.tcp._
 import fs2.io.tls._
-import cats.effect._
-import cats.syntax.all._
-import scala.concurrent.duration._
 import java.net.InetSocketAddress
+import java.util.Locale
 import org.http4s._
-import org.http4s.implicits._
+import org.http4s.ember.core.Util.durationToFinite
+import org.http4s.ember.core.{Drain, EmptyStreamError, Encoder, Parser, Read}
 import org.http4s.headers.{Connection, Date}
-import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.org.http4s.ember.core.Util.readWithTimeout
-import _root_.io.chrisdavenport.log4cats.Logger
-import cats.data.NonEmptyList
+import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
+import org.http4s.server.{SecureSession, ServerRequestKeys}
+import org.typelevel.ci._
+import org.typelevel.log4cats.Logger
+import org.typelevel.vault.Vault
+import scala.concurrent.duration._
+import scodec.bits.ByteVector
 
 private[server] object ServerHelpers {
 
-  private val closeCi = "close".ci
+  private[this] val closeCi = ci"close"
+  private[this] val keepAliveCi = ci"keep-alive"
+  private[this] val connectionCi = ci"connection"
+  private[this] val close = Connection(NonEmptyList.of(closeCi))
+  private[this] val keepAlive = Connection(NonEmptyList.one(keepAliveCi))
 
-  private val connectionCi = "connection".ci
-  private val close = Connection(NonEmptyList.of(closeCi))
-  private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
+  private val serverFailure =
+    Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
   def server[F[_]: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
       sg: SocketGroup,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      ready: Deferred[F, Either[Throwable, Unit]],
       shutdown: Shutdown[F],
       // Defaults
-      onError: Throwable => Response[F] = { (_: Throwable) =>
-        Response[F](Status.InternalServerError)
-      },
+      errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      maxConcurrency: Int = Int.MaxValue,
-      receiveBufferSize: Int = 256 * 1024,
-      maxHeaderSize: Int = 10 * 1024,
-      requestHeaderReceiveTimeout: Duration = 5.seconds,
-      idleTimeout: Duration = 60.seconds,
+      maxConcurrency: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit F: Concurrent[F], C: Clock[F]): Stream[F, Nothing] = {
-    def socketReadRequest(
-        socket: Socket[F],
-        requestHeaderReceiveTimeout: Duration,
-        receiveBufferSize: Int,
-        isReused: Boolean
-    ): F[Request[F]] = {
-      val (initial, readDuration) = (requestHeaderReceiveTimeout, idleTimeout, isReused) match {
-        case (fin: FiniteDuration, idle: FiniteDuration, true) => (true, idle + fin)
-        case (fin: FiniteDuration, _, false) => (true, fin)
-        case _ => (false, Duration.Zero)
-      }
+  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
 
-      SignallingRef[F, Boolean](initial).flatMap { timeoutSignal =>
-        C.realTime(MILLISECONDS)
-          .flatMap(now =>
-            Parser.Request
-              .parser(maxHeaderSize)(
-                readWithTimeout[F](socket, now, readDuration, timeoutSignal.get, receiveBufferSize)
-              )
-              .flatMap { req =>
-                timeoutSignal.set(false).as(req)
-              })
-      }
-    }
-
-    def upgradeSocket(
-        socketInit: Socket[F],
-        tlsInfoOpt: Option[(TLSContext, TLSParameters)]): Resource[F, Socket[F]] =
-      tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
-        context
-          .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
-          .widen[Socket[F]]
-      }
-
-    def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
-      for {
-        req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
-        resp <- httpApp.run(req).handleError(onError)
-      } yield (req, resp)
-
-    def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
-      Encoder
-        .respToBytes[F](resp)
-        .through(socket.writes())
-        .compile
-        .drain
+    val server: Stream[F, Resource[F, Socket[F]]] =
+      Stream
+        .resource(
+          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
         .attempt
-        .flatMap {
-          case Left(err) => onWriteFailure(request, resp, err)
-          case Right(()) => Sync[F].pure(())
-        }
+        .evalTap(e => ready.complete(e.void))
+        .rethrow
+        .flatMap { case (_, clients) => clients }
 
-    def postProcessResponse(req: Request[F], resp: Response[F]): F[Response[F]] = {
-      val reqHasClose = req.headers.exists {
-        // We know this is raw because we have not parsed any headers in the underlying alg.
-        // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-        case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.value)
-        case _ => false
-      }
-      val connection: Connection =
-        if (reqHasClose) close
-        else keepAlive
-      for {
-        date <- HttpDate.current[F].map(Date(_))
-      } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
-    }
-
-    def withUpgradedSocket(socket: Socket[F]): Stream[F, Nothing] =
-      (Stream(false) ++ Stream(true).repeat)
-        .flatMap { isReused =>
-          Stream
-            .eval(runApp(socket, isReused).attempt)
-            .evalMap {
-              case Right((req, resp)) =>
-                postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
-              case other => other.pure[F]
-            }
-            .evalTap {
-              case Right((request, response)) => send(socket)(Some(request), response)
-              case Left(err) => send(socket)(None, onError(err))
-            }
-        }
-        .takeWhile {
-          case Left(_) => false
-          case Right((req, resp)) =>
-            !(
-              req.headers.get(Connection).exists(_.hasClose) ||
-                resp.headers.get(Connection).exists(_.hasClose)
-            )
-        }
-        .drain
-
-    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+    val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
-      // Divorce the scopes of the server stream and handler streams so the
-      // former can be terminated while handlers complete.
-      .prefetch
       .map { connect =>
         shutdown.trackConnection >>
           Stream
-            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
-            .flatMap(withUpgradedSocket(_))
+            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt, logger)))
+            .flatMap(
+              runConnection(
+                _,
+                logger,
+                idleTimeout,
+                receiveBufferSize,
+                maxHeaderSize,
+                requestHeaderReceiveTimeout,
+                httpApp,
+                errorHandler,
+                onWriteFailure
+              ))
       }
-      .parJoin(maxConcurrency)
-      .drain
+
+    StreamForking.forking(streams, maxConcurrency)
   }
+
+  // private[internal] def reachedEndError[F[_]: Sync](
+  //     socket: Socket[F],
+  //     idleTimeout: Duration,
+  //     receiveBufferSize: Int): Stream[F, Byte] =
+  //   Stream.repeatEval(socket.read(receiveBufferSize, durationToFinite(idleTimeout))).flatMap {
+  //     case None =>
+  //       Stream.raiseError(new EOFException("Unexpected EOF - socket.read returned None") with NoStackTrace)
+  //     case Some(value) => Stream.chunk(value)
+  //   }
+
+  private[internal] def upgradeSocket[F[_]: Concurrent: ContextShift](
+      socketInit: Socket[F],
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      logger: Logger[F]
+  ): Resource[F, Socket[F]] =
+    tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
+      context
+        .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
+        .widen[Socket[F]]
+    }
+
+  private[internal] def runApp[F[_]: Concurrent: Timer](
+      buffer: Array[Byte],
+      read: Read[F],
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      httpApp: HttpApp[F],
+      errorHandler: Throwable => F[Response[F]],
+      requestVault: Vault): F[(Request[F], Response[F], Drain[F])] = {
+
+    val parse = Parser.Request.parser(maxHeaderSize)(buffer, read)
+    val parseWithHeaderTimeout =
+      durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration =>
+        parse.timeoutTo(
+          duration,
+          ApplicativeThrow[F].raiseError(
+            new java.util.concurrent.TimeoutException(
+              s"Timed Out on EmberServer Header Receive Timeout: $duration"))))
+
+    for {
+      tmp <- parseWithHeaderTimeout
+      (req, drain) = tmp
+      resp <- httpApp
+        .run(req.withAttributes(requestVault))
+        .handleErrorWith(errorHandler)
+        .handleError(_ => serverFailure.covary[F])
+      postResp <- postProcessResponse(req, resp)
+    } yield (req, postResp, drain)
+  }
+
+  private[internal] def send[F[_]: Sync](socket: Socket[F])(
+      request: Option[Request[F]],
+      resp: Response[F],
+      idleTimeout: Duration,
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]): F[Unit] =
+    Encoder
+      .respToBytes[F](resp)
+      .through(socket.writes(durationToFinite(idleTimeout)))
+      .compile
+      .drain
+      .attempt
+      .flatMap {
+        case Left(err) =>
+          onWriteFailure(request, resp, err)
+        case Right(()) => Sync[F].pure(())
+      }
+
+  private[internal] def postProcessResponse[F[_]: Timer: Monad](
+      req: Request[F],
+      resp: Response[F]): F[Response[F]] = {
+    val connection: Connection =
+      if (isKeepAlive(req.httpVersion, req.headers)) keepAlive
+      else close
+    for {
+      date <- HttpDate.current[F].map(Date(_))
+    } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
+  }
+
+  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
+    // We know this is raw because we have not parsed any headers in the underlying alg.
+    // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
+    def hasConnection(expected: String): Boolean =
+      headers.headers.exists {
+        case Header.Raw(name, value) =>
+          name == connectionCi && value.toLowerCase(Locale.ROOT).contains(expected)
+        case _ => false
+      }
+
+    httpVersion match {
+      case HttpVersion.`HTTP/1.0` => hasConnection(keepAliveCi.toString)
+      case HttpVersion.`HTTP/1.1` => !hasConnection(closeCi.toString)
+      case _ => false
+    }
+  }
+
+  private[internal] def runConnection[F[_]: Concurrent: Timer](
+      socket: Socket[F],
+      logger: Logger[F],
+      idleTimeout: Duration,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      httpApp: HttpApp[F],
+      errorHandler: Throwable => F[org.http4s.Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
+  ): Stream[F, Nothing] = {
+    type State = (Array[Byte], Boolean)
+    val _ = logger
+    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
+      Stream
+        .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
+          case (buffer, reuse) =>
+            val initRead: F[Array[Byte]] = if (buffer.length > 0) {
+              // next request has already been (partially) received
+              buffer.pure[F]
+            } else if (reuse) {
+              // the connection is keep-alive, but we don't have any bytes.
+              // we want to be on the idle timeout until the next request is received.
+              read.flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmptyStreamError())
+              }
+            } else {
+              // first request begins immediately
+              Array.emptyByteArray.pure[F]
+            }
+
+            val result = initRead.flatMap { initBuffer =>
+              runApp(
+                initBuffer,
+                read,
+                maxHeaderSize,
+                requestHeaderReceiveTimeout,
+                httpApp,
+                errorHandler,
+                requestVault)
+            }
+
+            result.attempt.flatMap {
+              case Right((req, resp, drain)) =>
+                send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
+                  drain.map {
+                    case Some(nextBuffer) => Some(((req, resp), (nextBuffer, true)))
+                    case None => None
+                  }
+              case Left(err) =>
+                err match {
+                  case EmptyStreamError() =>
+                    Applicative[F].pure(None)
+                  case err =>
+                    errorHandler(err)
+                      .handleError(_ => serverFailure.covary[F])
+                      .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+                      .as(None)
+                }
+            }
+        }
+        .takeWhile { case (_, resp) =>
+          resp.headers.get[Connection].exists(_.hasKeepAlive)
+        }
+        .drain ++ Stream.eval_(socket.close)
+    }
+  }
+
+  private def mkRequestVault[F[_]: Applicative](socket: Socket[F]) =
+    (mkConnectionInfo(socket), mkSecureSession(socket)).mapN(_ ++ _)
+
+  private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =
+    (socket.localAddress, socket.remoteAddress).mapN {
+      case (local: InetSocketAddress, remote: InetSocketAddress) =>
+        Vault.empty.insert(
+          Request.Keys.ConnectionInfo,
+          Request.Connection(
+            local = SocketAddress.fromInetSocketAddress(local),
+            remote = SocketAddress.fromInetSocketAddress(remote),
+            secure = socket.isInstanceOf[TLSSocket[F]]
+          )
+        )
+      case _ =>
+        Vault.empty
+    }
+
+  private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =
+    socket match {
+      case socket: TLSSocket[F] =>
+        socket.session
+          .map { session =>
+            (
+              Option(session.getId).map(ByteVector(_).toHex),
+              Option(session.getCipherSuite),
+              Option(session.getCipherSuite).map(deduceKeyLength),
+              Some(getCertChain(session))
+            ).mapN(SecureSession.apply)
+          }
+          .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
+      case _ =>
+        Vault.empty.pure[F]
+    }
 }
