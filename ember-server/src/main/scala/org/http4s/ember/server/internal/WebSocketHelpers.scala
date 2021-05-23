@@ -90,32 +90,29 @@ object WebSocketHelpers {
       receiveBufferSize: Int,
       idleTimeout: Duration)(implicit F: Concurrent[F]): F[Unit] = {
     val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    val write = socket.writes(durationToFinite(idleTimeout))
     val frameTranscoder = new FrameTranscoder(false)
+
+    val incoming = Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read)
 
     // TODO: make sure error semantics are correct and that resources are properly cleaned up
     // TODO: consider write/read failures and effect on outer connection
     // TODO: there is some shared code here with ServerHelpers
     ctx.webSocket match {
       case WebSocketCombinedPipe(receiveSend, onClose) =>
-        // TODO: use onClose
         // TODO: deduplicate both pipe paths
-        val readWrite = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
+        val readWrite = incoming
           .through(decodeFrames(frameTranscoder))
           .through(receiveSend)
-          .flatMap { frame =>
-            // TODO: frameToBuffer can throw
-            Stream
-              .iterable(frameTranscoder.frameToBuffer(frame).map { buffer =>
-                // TODO: improve
-                val bytes = new Array[Byte](buffer.remaining())
-                buffer.get(bytes)
-                Chunk.bytes(bytes)
-              })
-              .flatMap(Stream.chunk(_))
-          }
-          .through(socket.writes(durationToFinite(idleTimeout)))
+          .through(encodeFrames(frameTranscoder))
+          .through(write)
 
-        readWrite.drain.compile.drain.attempt
+        readWrite
+          .onFinalize(onClose)
+          .drain
+          .compile
+          .drain
+          .attempt
           .flatMap {
             case Left(err) =>
               err.printStackTrace()
@@ -125,27 +122,17 @@ object WebSocketHelpers {
               F.unit
           }
       case WebSocketSeparatePipe(send, receive, onClose) =>
-        // TODO: use onClose
         val writer = send
-          .flatMap { frame =>
-            // TODO: frameToBuffer can throw
-            Stream
-              .iterable(frameTranscoder.frameToBuffer(frame).map { buffer =>
-                // TODO: improve
-                val bytes = new Array[Byte](buffer.remaining())
-                buffer.get(bytes)
-                Chunk.bytes(bytes)
-              })
-              .flatMap(Stream.chunk(_))
-          }
-          .through(socket.writes(durationToFinite(idleTimeout)))
+          .through(encodeFrames(frameTranscoder))
+          .through(write)
 
-        val reader = (Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read))
+        val reader = incoming
           .through(decodeFrames(frameTranscoder))
           .through(receive)
 
         reader
           .concurrently(writer)
+          .onFinalize(onClose)
           .drain
           .compile
           .drain
@@ -160,6 +147,20 @@ object WebSocketHelpers {
           }
     }
   }
+
+  private def encodeFrames[F[_]](frameTranscoder: FrameTranscoder): Pipe[F, WebSocketFrame, Byte] = stream =>
+    stream.flatMap { frame =>
+      // TODO: frameToBuffer can throw
+      val chunks = frameTranscoder.frameToBuffer(frame).map { buffer =>
+        // TODO: improve
+        val bytes = new Array[Byte](buffer.remaining())
+        buffer.get(bytes)
+        Chunk.bytes(bytes)
+      }
+      Stream
+        .iterable(chunks)
+        .flatMap(Stream.chunk(_))
+    }
 
   private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit
       F: Concurrent[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
