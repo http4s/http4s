@@ -17,6 +17,7 @@
 package org.http4s
 package syntax
 
+import cats.data.NonEmptyList
 import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
@@ -38,11 +39,11 @@ final class HeaderOps[A](val a: A, header: Header[A, _]) {
 }
 
 final class SelectOpsOne[A](val a: A)(implicit ev: Header.Select[A]) {
-  def toRaw: Header.Raw = ev.toRawOne(a)
+  def toRaw: Header.Raw = ev.toRaw1(a)
   def renderString: String = Renderer.renderString(a)
 }
 
 final class SelectOpsMultiple[A, H[_]](val a: H[A])(implicit ev: Header.Select.Aux[A, H]) {
-  def toRaw: Header.Raw = ev.toRaw(a)
+  def toRaw: NonEmptyList[Header.Raw] = ev.toRaw(a)
   //def renderString: String = Renderer.renderString(a) //TODO
 }
