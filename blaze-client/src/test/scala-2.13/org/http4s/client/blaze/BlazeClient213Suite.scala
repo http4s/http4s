@@ -23,15 +23,12 @@ import cats.syntax.all._
 import fs2.Stream
 import org.http4s._
 import org.http4s.blaze.client.BlazeClientBase
-
-import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 import scala.util.Random
 
 class BlazeClient213Suite extends BlazeClientBase {
-  override def munitTimeout: Duration = new FiniteDuration(50, TimeUnit.SECONDS)
 
-  test("reset request timeout") {
+  test("reset request timeout".flaky) {
     val addresses = jettyServer().addresses
     val address = addresses.head
     val name = address.getHostName
@@ -104,7 +101,7 @@ class BlazeClient213Suite extends BlazeClientBase {
     }.assert
   }
 
-  test("Blaze Http1Client should behave and not deadlock on failures with parSequence") {
+  test("Blaze Http1Client should behave and not deadlock on failures with parSequence".flaky) {
     val addresses = jettyServer().addresses
     mkClient(3).use { client =>
       val failedHosts = addresses.map { address =>
