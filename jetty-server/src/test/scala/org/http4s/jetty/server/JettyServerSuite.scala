@@ -100,7 +100,7 @@ class JettyServerSuite extends Http4sSuite {
     get(server, "/slow").assertEquals("slow")
   }
 
-  jettyServer.test("Timeout should fire on timeout") { server =>
+  jettyServer.test("Timeout should fire on timeout".flaky) { server =>
     get(server, "/never").intercept[IOException]
   }
 
