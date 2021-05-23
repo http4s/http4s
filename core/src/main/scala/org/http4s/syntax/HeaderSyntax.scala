@@ -39,7 +39,7 @@ final class HeaderOps[A](val a: A, header: Header[A, _]) {
 }
 
 final class SelectOpsOne[A](val a: A)(implicit ev: Header.Select[A]) {
-  def toRaw: Header.Raw = ev.toRaw1(a)
+  def toRaw1: Header.Raw = ev.toRaw1(a)
   def renderString: String = Renderer.renderString(a)
 }
 

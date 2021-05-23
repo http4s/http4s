@@ -52,7 +52,7 @@ class SimpleHeadersSpec extends Http4sSuite {
       )
     )
 
-    assertEquals(`Access-Control-Allow-Headers`.parse(header.toRaw.value), Right(header))
+    assertEquals(`Access-Control-Allow-Headers`.parse(header.toRaw1.value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
     assert(`Access-Control-Allow-Headers`.parse(invalidHeaderValue).isLeft)
@@ -67,7 +67,7 @@ class SimpleHeadersSpec extends Http4sSuite {
         ci"*"
       )
     )
-    assertEquals(`Access-Control-Expose-Headers`.parse(header.toRaw.value), Right(header))
+    assertEquals(`Access-Control-Expose-Headers`.parse(header.toRaw1.value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
     assert(`Access-Control-Expose-Headers`.parse(invalidHeaderValue).isLeft)
@@ -75,7 +75,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
   test("parse Connection") {
     val header = Connection(ci"closed")
-    assertEquals(Connection.parse(header.toRaw.value), Right(header))
+    assertEquals(Connection.parse(header.toRaw1.value), Right(header))
   }
 
   test("Parse Content-Length") {
@@ -209,12 +209,12 @@ class SimpleHeadersSpec extends Http4sSuite {
     val header = Server(ProductId("foo", Some("bar")), List(ProductComment("foo")))
     assertEquals(header.value, "foo/bar (foo)")
 
-    assertEquals(Server.parse(header.toRaw.value), Right(header))
+    assertEquals(Server.parse(header.toRaw1.value), Right(header))
 
     val header2 =
       Server(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
     assertEquals(header2.value, "foo bar/biz (blah)")
-    assertEquals(Server.parse(header2.toRaw.value), Right(header2))
+    assertEquals(Server.parse(header2.toRaw1.value), Right(header2))
 
     val headerstr = "nginx/1.14.0 (Ubuntu)"
     assertEquals(
@@ -245,16 +245,16 @@ class SimpleHeadersSpec extends Http4sSuite {
   test("SimpleHeaders should parse X-Forwarded-For") {
     // ipv4
     val header2 = `X-Forwarded-For`(NonEmptyList.of(Some(ipv4"127.0.0.1")))
-    assertEquals(`X-Forwarded-For`.parse(header2.toRaw.value), Right(header2))
+    assertEquals(`X-Forwarded-For`.parse(header2.toRaw1.value), Right(header2))
 
     // ipv6
     val header3 = `X-Forwarded-For`(
       NonEmptyList.of(Some(ipv6"::1"), Some(ipv6"2001:0db8:85a3:0000:0000:8a2e:0370:7334")))
-    assertEquals(`X-Forwarded-For`.parse(header3.toRaw.value), Right(header3))
+    assertEquals(`X-Forwarded-For`.parse(header3.toRaw1.value), Right(header3))
 
     // "unknown"
     val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
-    assertEquals(`X-Forwarded-For`.parse(header4.toRaw.value), Right(header4))
+    assertEquals(`X-Forwarded-For`.parse(header4.toRaw1.value), Right(header4))
 
     val bad = "foo"
     assert(`X-Forwarded-For`.parse(bad).isLeft)
