@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.{Monoid, Order, Show}
-import cats.data.NonEmptyList
+import cats.data.{Ior, NonEmptyList}
 import cats.syntax.all._
 import org.typelevel.ci._
 import scala.collection.mutable
@@ -37,6 +37,17 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     */
   def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
     ev.from(headers).flatMap(_.toOption)
+
+  /** TODO revise scaladoc
+    * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+    *
+    * @param key [[HeaderKey.Extractable]] that can identify the required header
+    * @return a scala.Option possibly containing the resulting header of type key.HeaderT and/or any parse errors.
+    * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
+    */
+  def getWithWarnings[A](implicit
+      ev: Header.Select[A]): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
+    ev.from(headers)
 
   /** TODO revise scaladoc
     * Attempt to get a [[org.http4s.Header]] from this collection of headers
