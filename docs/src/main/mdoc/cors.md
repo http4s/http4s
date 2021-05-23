@@ -85,12 +85,12 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc
-val methodConfig = CORSConfig(
-  anyOrigin = true,
-  anyMethod = false,
-  allowedMethods = Some(Set("GET", "POST")),
-  allowCredentials = true,
-  maxAge = 1.day.toSeconds)
+val methodConfig = CORSConfig.default
+                     .withAnyOrigin(false)
+                     .withAnyMethod(false)
+                     .withAllowedMethods(Some(Set(Method.GET, Method.POST)))
+                     .withAllowCredentials(true)
+                     .withMaxAge(1.seconds)
 
 val corsMethodSvc = CORS(service, methodConfig)
 
@@ -104,11 +104,11 @@ Next, we'll create a configuration that limits the origins to "yahoo.com" and
 "duckduckgo.com". allowedOrigins can use any expression that resolves into a boolean.
 
 ```scala mdoc
-val originConfig = CORSConfig(
-  anyOrigin = false,
-  allowedOrigins = Set("https://yahoo.com", "https://duckduckgo.com"),
-  allowCredentials = false,
-  maxAge = 1.day.toSeconds)
+val originConfig = CORSConfig.default
+                     .withAnyOrigin(false)
+                     .withAllowedOrigins(Set("https://yahoo.com", "https://duckduckgo.com"))
+                     .withAllowCredentials(false)
+                     .withMaxAge(1.seconds)
 
 val corsOriginSvc = CORS(service, originConfig)
 

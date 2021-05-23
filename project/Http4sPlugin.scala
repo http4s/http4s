@@ -4,6 +4,7 @@ import dotty.tools.sbtplugin.DottyPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
+import com.typesafe.tools.mima.plugin.MimaKeys._
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
@@ -25,7 +26,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.5"
   val scala_212 = "2.12.13"
-  val scala_3 = "3.0.0-RC2"
+  val scala_3 = "3.0.0"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -75,8 +76,15 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
+    // CE3
+    dependencyUpdatesFilter -= moduleFilter(name = "log4cats-*", revision = "2.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "ip4s-*", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "cats-effect*", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
 
-    excludeFilter.in(headerSources) := HiddenFileFilter ||
+    headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
         def accept(file: File) = {
           attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
@@ -121,6 +129,13 @@ object Http4sPlugin extends AutoPlugin {
       },
 
     nowarnCompatAnnotationProvider := None,
+
+    mimaPreviousArtifacts := {
+      mimaPreviousArtifacts.value.filterNot(
+        // cursed release
+        _.revision == "0.21.10"
+      )
+    },
   )
 
   def extractApiVersion(version: String) = {
@@ -273,49 +288,48 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.0-M3"
+    val blaze = "0.15.0"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.1.2"
-    val cats = "2.5.0"
-    val catsEffect = "2.4.1"
+    val caseInsensitive = "1.1.4"
+    val cats = "2.6.1"
+    val catsEffect = "2.5.1"
     val catsMtl = "1.1.3"
-    val catsParse = "0.3.2"
-    val circe = "0.14.0-M5"
+    val catsParse = "0.3.4"
+    val circe = "0.14.0-M7"
     val cryptobits = "1.3"
-    val disciplineCore = "1.1.4"
-    val dropwizardMetrics = "4.1.18"
-    val fs2 = "2.5.4"
-    val ip4s = "2.0.1"
-    val jacksonDatabind = "2.12.3"
-    val jawn = "1.1.1"
-    val jawnFs2 = "1.1.1"
-    val jetty = "9.4.39.v20210325"
-    val keypool = "0.3.3"
-    val literally = "1.0.0"
+    val disciplineCore = "1.1.5"
+    val dropwizardMetrics = "4.2.0"
+    val fs2 = "2.5.6"
+    val ip4s = "2.0.3"
+    val jawn = "1.1.2"
+    val jawnFs2 = "1.1.3"
+    val jetty = "9.4.41.v20210516"
+    val keypool = "0.3.5"
+    val literally = "1.0.2"
     val logback = "1.2.3"
-    val log4cats = "1.2.2"
-    val log4s = "1.10.0-M6"
+    val log4cats = "1.3.1"
+    val log4s = "1.10.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "1.0.1"
-    val munitDiscipline = "1.0.7"
-    val netty = "4.1.63.Final"
+    val munitCatsEffect = "1.0.3"
+    val munitDiscipline = "1.0.9"
+    val netty = "4.1.65.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.10.0-RC2"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.3"
-    val scalacheckEffect = "1.0.0"
+    val scalacheck = "1.15.4"
+    val scalacheckEffect = "1.0.2"
     val scalatags = "0.9.4"
-    val scalaXml = "2.0.0-RC1"
-    val scodecBits = "1.1.25"
+    val scalaXml = "2.0.0"
+    val scodecBits = "1.1.27"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
-    val tomcat = "9.0.45"
+    val tomcat = "9.0.46"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.9"
+    val vault = "2.1.13"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
@@ -345,7 +359,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
-  lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn

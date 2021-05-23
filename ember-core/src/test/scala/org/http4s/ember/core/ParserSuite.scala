@@ -26,11 +26,10 @@ import cats.effect.concurrent._
 import cats.data.OptionT
 import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
-import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires
 import org.typelevel.ci._
 
-class ParsingSpec extends Http4sSuite {
+class ParsingSuite extends Http4sSuite {
   object Helpers {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
@@ -220,7 +219,7 @@ class ParsingSpec extends Http4sSuite {
       .map(Helpers.httpifyString)
       .through(text.utf8Encode)
 
-    (for {
+    for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Request.parser[IO](Int.MaxValue)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
@@ -230,7 +229,10 @@ class ParsingSpec extends Http4sSuite {
         .through(text.utf8Decode)
         .compile
         .string
-    } yield body == "hello" && rest == "everything after the body").assert
+    } yield {
+      assertEquals(body, "hello")
+      assertEquals(rest, "everything after the body")
+    }
   }
 
   test("Parser.Request.parser should parse two requests in a row") {
@@ -343,7 +345,7 @@ class ParsingSpec extends Http4sSuite {
       .map(Helpers.httpifyString)
       .through(text.utf8Encode)
 
-    (for {
+    for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
@@ -354,7 +356,10 @@ class ParsingSpec extends Http4sSuite {
         .through(text.utf8Decode)
         .compile
         .string
-    } yield body == "hello" && rest == "everything after the body").assert
+    } yield {
+      assertEquals(body, "hello")
+      assertEquals(rest, "everything after the body")
+    }
   }
 
   test("Header Parser should handle headers in a section") {
@@ -365,30 +370,18 @@ class ParsingSpec extends Http4sSuite {
     val asHttp = Helpers.httpifyString(base)
     val bv = asHttp.getBytes()
 
-    val (headers, rest, chunked, length) = Parser.HeaderP.headersInSection(bv) match {
-      case Parser.HeaderP.ParseHeadersCompleted(headers, rest, chunked, length) =>
-        (headers, rest, chunked, length)
-      case _ => ???
+    Parser.HeaderP.parseHeaders[IO](bv, 0).map { headerP =>
+      assert(
+        headerP.headers.headers == List(
+          Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
+          Header.Raw(ci"Content-Length", "11"))
+      )
+      assert(!headerP.chunked)
+      assert(headerP.contentLength == Some(11L))
     }
-
-    assertEquals(
-      headers.headers,
-      List(
-        Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
-        Header.Raw(ci"Content-Length", "11"))
-    )
-    assert(
-      rest.isEmpty
-    )
-    assert(
-      !chunked
-    )
-    assert(
-      length == Some(11L)
-    )
   }
 
-  test("Header Parser should Handle weird chunking") {
+  test("Message Parser should Handle weird chunking") {
     val defaultMaxHeaderLength = 4096
     val respS =
       Stream(
@@ -403,17 +396,14 @@ class ParsingSpec extends Http4sSuite {
 
     val result = for {
       take <- Helpers.taking[IO, Byte](byteStream)
-      headers <- Parser.HeaderP
-        .parseHeaders(Array.emptyByteArray, take, defaultMaxHeaderLength, None)
-        .map(_._1)
-    } yield headers.headers
+      message <- Parser.MessageP
+        .parseMessage(Array.emptyByteArray, take, defaultMaxHeaderLength)
+    } yield message
 
-    result.assertEquals(
-      List(
-        Header.Raw(ci"Content-Type", "text/plain"),
-        Header.Raw(ci"Transfer-Encoding", "chunked"),
-        Header.Raw(ci"Trailer", "Expires")
-      ))
+    result
+      .map(_.bytes.toList)
+      .assertEquals(
+        respS.compile.string.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList)
   }
 
   test("Request Prelude should parse an expected value") {
@@ -423,15 +413,10 @@ class ParsingSpec extends Http4sSuite {
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
 
-    Parser.Request.ReqPrelude.preludeInSection(bv) match {
-      case ParsePreludeComplete(method, uri, httpVersion, rest) =>
-        assert(method == Method.GET)
-        assert(uri == uri"/")
-        assert(httpVersion == HttpVersion.`HTTP/1.1`)
-        assert(rest.isEmpty)
-      case _ => fail("Parse Error")
-      // case ParsePreludeError(throwable, method, uri, httpVersion) =>
-      // case ParsePreludeIncomlete(idx, bv, buffer, method, uri, httpVersion) =>
+    Parser.Request.ReqPrelude.parsePrelude[IO](bv).map { prelude =>
+      assert(prelude.method == Method.GET)
+      assert(prelude.uri == uri"/")
+      assert(prelude.version == HttpVersion.`HTTP/1.1`)
     }
   }
 
@@ -441,16 +426,9 @@ class ParsingSpec extends Http4sSuite {
         |""".stripMargin
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
-    Parser.Response.RespPrelude.preludeInSection(bv) match {
-      case Parser.Response.RespPrelude.RespPreludeComplete(version, status, rest) =>
-        assert(version == HttpVersion.`HTTP/1.1`)
-        assert(
-          status == Status.Ok
-        )
-        assert(
-          rest.isEmpty
-        )
-      case _ => fail("Parse Error")
+    Parser.Response.RespPrelude.parsePrelude[IO](bv).map { prelude =>
+      assert(prelude.version == HttpVersion.`HTTP/1.1`)
+      assert(prelude.status == Status.Ok)
     }
   }
 
@@ -548,5 +526,28 @@ class ParsingSpec extends Http4sSuite {
       _ <- body._1.compile.drain
       _ <- body._1.compile.drain.intercept[Throwable]
     } yield ()
+  }
+
+  test("Parser.Message.parser should raise an error if prelude/header message is too long") {
+    val raw =
+      """POST /foo HTTP/1.1
+          |Host: localhost:8080
+          |User-Agent: curl/7.64.1
+          |Accept: */*
+          |Content-Length: 5
+          |
+          |helloeverything after the body""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .covary[IO]
+      .map(Helpers.httpifyString)
+      .through(text.utf8Encode)
+
+    Helpers.taking[IO, Byte](byteStream).flatMap { take =>
+      Parser.MessageP
+        .parseMessage[IO](Array.emptyByteArray, take, 10)
+        .intercept[Parser.MessageP.MessageTooLongError]
+    }
   }
 }

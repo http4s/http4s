@@ -208,13 +208,13 @@ object Message {
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-final class Request[F[_]](
-    val method: Method = Method.GET,
-    val uri: Uri = Uri(path = Uri.Path.Root),
-    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    val headers: Headers = Headers.empty,
-    val body: EntityBody[F] = EmptyBody,
-    val attributes: Vault = Vault.empty
+final class Request[F[_]] private (
+    val method: Method,
+    val uri: Uri,
+    val httpVersion: HttpVersion,
+    val headers: Headers,
+    val body: EntityBody[F],
+    val attributes: Vault
 ) extends Message[F]
     with Product
     with Serializable {
@@ -433,18 +433,6 @@ final class Request[F[_]](
 
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
-  override def equals(that: Any): Boolean =
-    (this eq that.asInstanceOf[Object]) || (that match {
-      case that: Request[_] =>
-        (this.method == that.method) &&
-          (this.uri == that.uri) &&
-          (this.httpVersion == that.httpVersion) &&
-          (this.headers == that.headers) &&
-          (this.body == that.body) &&
-          (this.attributes == that.attributes)
-      case _ => false
-    })
-
   def canEqual(that: Any): Boolean = that match {
     case _: Request[_] => true
     case _ => false
@@ -468,6 +456,19 @@ final class Request[F[_]](
 }
 
 object Request {
+
+  /** Representation of an incoming HTTP message
+    *
+    * A Request encapsulates the entirety of the incoming HTTP request including the
+    * status line, headers, and a possible request body.
+    *
+    * @param method [[Method.GET]], [[Method.POST]], etc.
+    * @param uri representation of the request URI
+    * @param httpVersion the HTTP version
+    * @param headers collection of [[Header]]s
+    * @param body fs2.Stream[F, Byte] defining the body of the request
+    * @param attributes Immutable Map used for carrying additional information in a type safe fashion
+    */
   def apply[F[_]](
       method: Method = Method.GET,
       uri: Uri = Uri(path = Uri.Path.Root),
@@ -486,19 +487,15 @@ object Request {
     )
 
   def unapply[F[_]](
-      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
-    message match {
-      case request: Request[F] =>
-        Some(
-          (
-            request.method,
-            request.uri,
-            request.httpVersion,
-            request.headers,
-            request.body,
-            request.attributes))
-      case _ => None
-    }
+      request: Request[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+    Some(
+      (
+        request.method,
+        request.uri,
+        request.httpVersion,
+        request.headers,
+        request.body,
+        request.attributes))
 
   final case class Connection(
       local: SocketAddress[IpAddress],
@@ -522,13 +519,15 @@ object Request {
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
-final case class Response[F[_]](
-    status: Status = Status.Ok,
-    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: Headers = Headers.empty,
-    body: EntityBody[F] = EmptyBody,
-    attributes: Vault = Vault.empty)
-    extends Message[F] {
+final class Response[F[_]] private (
+    val status: Status,
+    val httpVersion: HttpVersion,
+    val headers: Headers,
+    val body: EntityBody[F],
+    val attributes: Vault)
+    extends Message[F]
+    with Product
+    with Serializable {
   type SelfF[F0[_]] = Response[F0]
 
   def mapK[G[_]](f: F ~> G): Response[G] =
@@ -568,11 +567,11 @@ final case class Response[F[_]](
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Self =
-    putHeaders(cookie.clearCookie)
+    addCookie(cookie.clearCookie)
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Self =
-    putHeaders(ResponseCookie(name, "").clearCookie)
+    addCookie(ResponseCookie(name, "").clearCookie)
 
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
@@ -581,11 +580,69 @@ final case class Response[F[_]](
   def cookies: List[ResponseCookie] =
     headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
 
+  override def hashCode(): Int = MurmurHash3.productHash(this)
+
+  def copy(
+      status: Status = this.status,
+      httpVersion: HttpVersion = this.httpVersion,
+      headers: Headers = this.headers,
+      body: EntityBody[F] = this.body,
+      attributes: Vault = this.attributes
+  ): Response[F] =
+    Response[F](
+      status = status,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body,
+      attributes = attributes
+    )
+
+  def canEqual(that: Any): Boolean =
+    that match {
+      case _: Response[F] => true
+      case _ => false
+    }
+
+  def productArity: Int = 5
+
+  def productElement(n: Int): Any =
+    n match {
+      case 0 => status
+      case 1 => httpVersion
+      case 2 => headers
+      case 3 => body
+      case 4 => attributes
+      case _ => throw new IndexOutOfBoundsException()
+    }
+
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
 }
 
 object Response {
+
+  /** Representation of the HTTP response to send back to the client
+    *
+    * @param status [[Status]] code and message
+    * @param headers [[Headers]] containing all response headers
+    * @param body EntityBody[F] representing the possible body of the response
+    * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+    *                   parameters which may be used by the http4s backend for
+    *                   additional processing such as java.io.File object
+    */
+  def apply[F[_]](
+      status: Status = Status.Ok,
+      httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+      headers: Headers = Headers.empty,
+      body: EntityBody[F] = EmptyBody,
+      attributes: Vault = Vault.empty): Response[F] =
+    new Response(status, httpVersion, headers, body, attributes)
+
+  def unapply[F[_]](
+      response: Response[F]): Option[(Status, HttpVersion, Headers, EntityBody[F], Vault)] =
+    Some(
+      (response.status, response.httpVersion, response.headers, response.body, response.attributes))
+
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
@@ -596,7 +653,7 @@ object Response {
       )
     )
 
-  def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
+  def notFound[F[_]]: Response[F] = pureNotFound.covary[F].copy(body = pureNotFound.body.covary[F])
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
       encoder: EntityEncoder[F, String]): F[Response[F]] =

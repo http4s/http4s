@@ -251,7 +251,7 @@ sealed class TomcatBuilder[F[_]] private (
 object TomcatBuilder {
   def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
     new TomcatBuilder[F](
-      socketAddress = defaults.SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress,
       externalExecutor = None,
       idleTimeout = defaults.IdleTimeout,
       asyncTimeout = defaults.ResponseTimeout,

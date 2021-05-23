@@ -26,36 +26,121 @@ import org.http4s.Method.OPTIONS
 import org.log4s.getLogger
 import org.typelevel.ci._
 import scala.concurrent.duration._
+import scala.util.hashing.MurmurHash3
 
 /** CORS middleware config options.
   * You can give an instance of this class to the CORS middleware,
   * to specify its behavior
   */
-final case class CORSConfig(
-    anyOrigin: Boolean,
-    allowCredentials: Boolean,
-    maxAge: Long,
-    anyMethod: Boolean = true,
-    allowedOrigins: String => Boolean = _ => false,
-    allowedMethods: Option[Set[String]] = None,
-    allowedHeaders: Option[Set[String]] = Set("Content-Type", "Authorization", "*").some,
-    exposedHeaders: Option[Set[String]] = Set("*").some
-)
+
+final class CORSConfig private (
+    val anyOrigin: Boolean,
+    val allowCredentials: Boolean,
+    val maxAge: FiniteDuration,
+    val anyMethod: Boolean,
+    val allowedOrigins: String => Boolean,
+    val allowedMethods: Option[Set[Method]],
+    val allowedHeaders: Option[Set[String]],
+    val exposedHeaders: Option[Set[String]]
+) {
+
+  private def copy(
+      anyOrigin: Boolean = anyOrigin,
+      allowCredentials: Boolean = allowCredentials,
+      maxAge: FiniteDuration = maxAge,
+      anyMethod: Boolean = anyMethod,
+      allowedOrigins: String => Boolean = allowedOrigins,
+      allowedMethods: Option[Set[Method]] = allowedMethods,
+      allowedHeaders: Option[Set[String]] = allowedHeaders,
+      exposedHeaders: Option[Set[String]] = exposedHeaders
+  ) = new CORSConfig(
+    anyOrigin,
+    allowCredentials,
+    maxAge,
+    anyMethod,
+    allowedOrigins,
+    allowedMethods,
+    allowedHeaders,
+    exposedHeaders
+  )
+
+  def withAnyOrigin(anyOrigin: Boolean): CORSConfig = copy(anyOrigin = anyOrigin)
+
+  def withAllowCredentials(allowCredentials: Boolean): CORSConfig =
+    copy(allowCredentials = allowCredentials)
+
+  def withMaxAge(maxAge: FiniteDuration): CORSConfig = copy(maxAge = maxAge)
+
+  def withAnyMethod(anyMethod: Boolean): CORSConfig = copy(anyMethod = anyMethod)
+
+  def withAllowedOrigins(allowedOrigins: String => Boolean): CORSConfig =
+    copy(allowedOrigins = allowedOrigins)
+
+  def withAllowedMethods(allowedMethods: Option[Set[Method]]): CORSConfig =
+    copy(allowedMethods = allowedMethods)
+
+  def withAllowedHeaders(allowedHeaders: Option[Set[String]]): CORSConfig =
+    copy(allowedHeaders = allowedHeaders)
+
+  def withExposedHeaders(exposedHeaders: Option[Set[String]]): CORSConfig =
+    copy(exposedHeaders = exposedHeaders)
+
+  override def equals(x: Any): Boolean = x match {
+    case config: CORSConfig =>
+      anyOrigin === config.anyOrigin &&
+        allowCredentials === config.allowCredentials &&
+        maxAge === config.maxAge &&
+        anyMethod === config.anyMethod &&
+        allowedOrigins == config.allowedOrigins &&
+        allowedMethods === config.allowedMethods &&
+        allowedHeaders === config.allowedHeaders &&
+        exposedHeaders === config.exposedHeaders
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    var hash = CORSConfig.hashSeed
+    hash = MurmurHash3.mix(hash, anyOrigin.##)
+    hash = MurmurHash3.mix(hash, allowCredentials.##)
+    hash = MurmurHash3.mix(hash, maxAge.##)
+    hash = MurmurHash3.mix(hash, anyMethod.##)
+    hash = MurmurHash3.mix(hash, allowedOrigins.##)
+    hash = MurmurHash3.mix(hash, allowedMethods.##)
+    hash = MurmurHash3.mix(hash, allowedHeaders.##)
+    hash = MurmurHash3.mixLast(hash, exposedHeaders.##)
+    hash
+  }
+
+  override def toString(): String =
+    s"CORSConfig($anyOrigin,$allowCredentials,$maxAge,$anyMethod,$allowedOrigins,$allowedMethods,$allowedHeaders,$exposedHeaders)"
+}
+
+object CORSConfig {
+  private val hashSeed = MurmurHash3.stringHash("CORSConfig")
+
+  val default: CORSConfig = new CORSConfig(
+    anyOrigin = true,
+    allowCredentials = true,
+    maxAge = 1.day,
+    anyMethod = true,
+    allowedOrigins = _ => false,
+    allowedMethods = None,
+    allowedHeaders = Set("Content-Type", "Authorization", "*").some,
+    exposedHeaders = Set("*").some
+  )
+}
 
 object CORS {
   private[CORS] val logger = getLogger
 
   val defaultVaryHeader = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
 
-  def DefaultCORSConfig =
-    CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
-
   /** CORS middleware
     * This middleware provides clients with CORS information
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_], G[_]](http: F[Response[G]], config: CORSConfig = DefaultCORSConfig)(implicit
+  def apply[F[_], G[_]](http: F[Response[G]], config: CORSConfig = CORSConfig.default)(implicit
       F: Monad[F],
       A: Ask[F, Request[G]]): F[Response[G]] =
     A.ask.flatMap { req =>
@@ -90,7 +175,7 @@ object CORS {
             // TODO model me
             "Access-Control-Allow-Origin" -> origin,
             // TODO model me
-            "Access-Control-Max-Age" -> config.maxAge.toString
+            "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString
           )
       }
 
@@ -98,10 +183,10 @@ object CORS {
         (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
           case (true, true, _, _) => true
           case (true, false, _, acrm) =>
-            config.allowedMethods.exists(_.contains(acrm))
+            config.allowedMethods.exists(_.find(_.name === acrm).nonEmpty)
           case (false, true, origin, _) => config.allowedOrigins(origin)
           case (false, false, origin, acrm) =>
-            config.allowedMethods.exists(_.contains(acrm)) &&
+            config.allowedMethods.exists(_.find(_.name === acrm).nonEmpty) &&
               config.allowedOrigins(origin)
         }
 

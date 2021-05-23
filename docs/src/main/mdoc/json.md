@@ -217,7 +217,7 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
-import org.http4s.server.blaze._
+import org.http4s.blaze.server._
 import org.http4s.implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -251,7 +251,7 @@ Now let's make a client for the service above:
 
 ```scala mdoc:silent
 import org.http4s.client.dsl.io._
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import cats.effect.IO
 import io.circe.generic.auto._
 import fs2.Stream
