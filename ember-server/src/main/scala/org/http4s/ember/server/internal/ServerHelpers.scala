@@ -172,6 +172,7 @@ private[server] object ServerHelpers {
     val reqHasClose = req.headers.headers.exists { case Header.Raw(name, values) =>
       // TODO This will do weird shit in the odd case that close is
       // not a single, lowercase word
+      // also, any string that contains close is admissible
       name == connectionCi && values.contains(closeCi.toString)
     }
     val connection: Connection =
@@ -235,7 +236,6 @@ private[server] object ServerHelpers {
                 // Intercept the response for various upgrade paths
                 resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
                   case Some(ctx) =>
-                    // TODO: Do we need to drain here? Is it unsound for clients to send extra bytes at this point?
                     drain.flatMap {
                       case Some(buffer) =>
                         WebSocketHelpers
@@ -248,7 +248,8 @@ private[server] object ServerHelpers {
                             idleTimeout,
                             onWriteFailure)
                           .as(None)
-                      case None => ???
+                      case None =>
+                        Concurrent[F].pure(None)
                     }
                   case None =>
                     for {

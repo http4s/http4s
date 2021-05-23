@@ -196,7 +196,7 @@ object WebSocketHelpers {
 
   private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
     val connection = req.headers.get[Connection] match {
-      case Some(header) if header.values.contains_(upgradeCi) => Either.unit
+      case Some(header) if header.hasUpgrade => Either.unit
       case _ => Left(UpgradeRequired)
     }
 
