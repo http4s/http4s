@@ -148,19 +148,20 @@ object WebSocketHelpers {
     }
   }
 
-  private def encodeFrames[F[_]](frameTranscoder: FrameTranscoder): Pipe[F, WebSocketFrame, Byte] = stream =>
-    stream.flatMap { frame =>
-      // TODO: frameToBuffer can throw
-      val chunks = frameTranscoder.frameToBuffer(frame).map { buffer =>
-        // TODO: improve
-        val bytes = new Array[Byte](buffer.remaining())
-        buffer.get(bytes)
-        Chunk.bytes(bytes)
+  private def encodeFrames[F[_]](frameTranscoder: FrameTranscoder): Pipe[F, WebSocketFrame, Byte] =
+    stream =>
+      stream.flatMap { frame =>
+        // TODO: frameToBuffer can throw
+        val chunks = frameTranscoder.frameToBuffer(frame).map { buffer =>
+          // TODO: improve
+          val bytes = new Array[Byte](buffer.remaining())
+          buffer.get(bytes)
+          Chunk.bytes(bytes)
+        }
+        Stream
+          .iterable(chunks)
+          .flatMap(Stream.chunk(_))
       }
-      Stream
-        .iterable(chunks)
-        .flatMap(Stream.chunk(_))
-    }
 
   private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit
       F: Concurrent[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
