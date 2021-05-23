@@ -36,7 +36,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
     */
   def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
-    ev.from(headers)
+    ev.from(headers).flatMap(_.toOption)
 
   /** TODO revise scaladoc
     * Attempt to get a [[org.http4s.Header]] from this collection of headers

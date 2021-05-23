@@ -154,9 +154,7 @@ object Header {
 
     /** Selects this header from a list of [[Header.Raw]]
       */
-    def from(headers: List[Header.Raw]): Option[F[A]]
-
-    def fromSafe(headers: List[Header.Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]]
+    def from(headers: List[Header.Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]]
   }
   trait LowPrio {
     implicit def recurringHeadersNoMerge[A](implicit
@@ -170,13 +168,10 @@ object Header {
         def toRaw(a: F[A]): Header.Raw =
           Header.Raw(h.name, a.map(h.value).mkString_(", "))
 
-        def from(headers: List[Header.Raw]): Option[NonEmptyList[A]] =
-          headers.collect(Function.unlift(Select.fromRaw(_))).toNel
-
-        def fromSafe(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]] =
+        def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]] =
           headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]) {
             (a, raw) =>
-              Select.fromRawSafe(raw) match {
+              Select.fromRaw(raw) match {
                 case Some(aa) => a |+| aa.bimap(NonEmptyList.one, NonEmptyList.one).some
                 case None => a
               }
@@ -186,10 +181,7 @@ object Header {
   object Select extends LowPrio {
     type Aux[A, G[_]] = Select[A] { type F[B] = G[B] }
 
-    def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[A] =
-      (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value).toOption
-
-    def fromRawSafe[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[Ior[ParseFailure, A]] =
+    def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[Ior[ParseFailure, A]] =
       (h.name == Header[A].name).guard[Option].as(Header[A].parse(h.value).toIor)
 
     implicit def singleHeaders[A](implicit
@@ -202,11 +194,8 @@ object Header {
 
         def toRaw(a: A): Header.Raw = toRawOne(a)
 
-        def from(headers: List[Header.Raw]): Option[A] =
-          headers.collectFirst(Function.unlift(fromRaw(_)))
-
-        def fromSafe(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
-          headers.collectFirst(Function.unlift(fromRawSafe(_).map(_.leftMap(NonEmptyList.one))))
+        def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
+          headers.collectFirst(Function.unlift(fromRaw(_).map(_.leftMap(NonEmptyList.one))))
       }
 
     implicit def recurringHeadersWithMerge[A: Semigroup](implicit
@@ -219,17 +208,9 @@ object Header {
 
         def toRaw(a: F[A]): Header.Raw = toRawOne(a)
 
-        def from(headers: List[Header.Raw]): Option[A] =
-          headers.foldLeft(Option.empty[A]) { (a, raw) =>
-            fromRaw(raw) match {
-              case Some(aa) => a |+| aa.some
-              case None => a
-            }
-          }
-
-        def fromSafe(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
+        def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
           headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], F[A]]]) { (a, raw) =>
-            fromRawSafe(raw) match {
+            fromRaw(raw) match {
               case Some(aa) => a |+| aa.leftMap(NonEmptyList.one).some
               case None => a
             }
