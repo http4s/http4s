@@ -38,11 +38,10 @@ import org.http4s.websocket.WebSocketFrame
 import java.nio.ByteBuffer
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketSeparatePipe
+import org.http4s.websocket.Rfc6455
 
 object WebSocketHelpers {
 
-  private[this] val rfc6455Magic =
-    "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(StandardCharsets.US_ASCII)
   private[this] val supportedWebSocketVersion = 13L
 
   private[this] val upgradeCi = ci"upgrade"
@@ -121,7 +120,7 @@ object WebSocketHelpers {
             case Left(err) =>
               err.printStackTrace()
               F.unit
-            case Right(()) =>
+            case Right(_) =>
               println("Connection ended")
               F.unit
           }
@@ -155,7 +154,7 @@ object WebSocketHelpers {
             case Left(err) =>
               err.printStackTrace()
               F.unit
-            case Right(()) =>
+            case Right(_) =>
               println("Connection ended")
               F.unit
           }
@@ -197,17 +196,17 @@ object WebSocketHelpers {
 
   private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
     val connection = req.headers.get[Connection] match {
-      case Some(header) if header.values.contains_(upgradeCi) => Right(())
+      case Some(header) if header.values.contains_(upgradeCi) => Either.unit
       case _ => Left(UpgradeRequired)
     }
 
     val upgrade = req.headers.get[Upgrade] match {
-      case Some(header) if header.values.contains_(webSocketProtocol) => Right(())
+      case Some(header) if header.values.contains_(webSocketProtocol) => Either.unit
       case _ => Left(UpgradeRequired)
     }
 
     val version = req.headers.get[`Sec-WebSocket-Version`] match {
-      case Some(header) if header.version == supportedWebSocketVersion => Right(())
+      case Some(header) if header.version == supportedWebSocketVersion => Either.unit
       case Some(header) => Left(UnsupportedVersion(supportedWebSocketVersion, header.version))
       case None => Left(VersionNotFound)
     }
@@ -224,7 +223,7 @@ object WebSocketHelpers {
     val crypt = MessageDigest.getInstance("SHA-1")
     crypt.reset()
     crypt.update(value.getBytes(StandardCharsets.US_ASCII))
-    crypt.update(rfc6455Magic)
+    crypt.update(Rfc6455.handshakeMagicBytes)
     val bytes = crypt.digest()
     Base64.getEncoder.encodeToString(bytes)
   }
