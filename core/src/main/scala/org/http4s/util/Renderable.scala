@@ -100,7 +100,7 @@ object Renderer {
 
   implicit def headerSelectRenderer[A](implicit select: Header.Select[A]): Renderer[A] =
     new Renderer[A] {
-      override def render(writer: Writer, t: A): writer.type = writer << select.toRawOne(t)
+      override def render(writer: Writer, t: A): writer.type = writer << select.toRaw1(t)
     }
 }
 

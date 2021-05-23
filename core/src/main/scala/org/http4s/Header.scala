@@ -147,10 +147,10 @@ object Header {
 
     /** Transform this header into a [[Header.Raw]]
       */
-    def toRawOne(a: A): Header.Raw
+    def toRaw1(a: A): Header.Raw
 
     /** Transform this (potentially repeating) header into a [[Header.Raw]] */
-    def toRaw(a: F[A]): Header.Raw
+    def toRaw(a: F[A]): NonEmptyList[Header.Raw]
 
     /** Selects this header from a list of [[Header.Raw]]
       */
@@ -162,11 +162,11 @@ object Header {
       new Select[A] {
         type F[B] = NonEmptyList[B]
 
-        def toRawOne(a: A): Header.Raw =
+        def toRaw1(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
 
-        def toRaw(a: F[A]): Header.Raw =
-          Header.Raw(h.name, a.map(h.value).mkString_(", "))
+        def toRaw(as: F[A]): NonEmptyList[Header.Raw] =
+          as.map(a => Header.Raw(h.name, h.value(a)))
 
         def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]] =
           headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]) {
@@ -189,10 +189,11 @@ object Header {
       new Select[A] {
         type F[B] = B
 
-        def toRawOne(a: A): Header.Raw =
+        def toRaw1(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
 
-        def toRaw(a: A): Header.Raw = toRawOne(a)
+        def toRaw(a: A): NonEmptyList[Header.Raw] =
+          NonEmptyList.one(toRaw1(a))
 
         def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
           headers.collectFirst(Function.unlift(fromRaw(_).map(_.leftMap(NonEmptyList.one))))
@@ -203,10 +204,11 @@ object Header {
       new Select[A] {
         type F[B] = B
 
-        def toRawOne(a: A): Header.Raw =
+        def toRaw1(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
 
-        def toRaw(a: F[A]): Header.Raw = toRawOne(a)
+        def toRaw(a: A): NonEmptyList[Header.Raw] =
+          NonEmptyList.one(toRaw1(a))
 
         def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
           headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], F[A]]]) { (a, raw) =>
