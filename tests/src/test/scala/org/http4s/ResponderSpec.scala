@@ -122,4 +122,16 @@ class ResponderSpec extends Http4sSuite {
         ResponseCookie("foo", "", expires = Option(HttpDate.Epoch))
       ))
   }
+
+  test("Responder should Remove multiple cookies") {
+    val cookie1 = ResponseCookie("foo1", "bar")
+    val cookie2 = ResponseCookie("foo2", "baz")
+    assertEquals(
+      resp.removeCookie(cookie1).removeCookie(cookie2).cookies,
+      List(
+        ResponseCookie("foo1", "", expires = Option(HttpDate.Epoch)),
+        ResponseCookie("foo2", "", expires = Option(HttpDate.Epoch))
+      )
+    )
+  }
 }
