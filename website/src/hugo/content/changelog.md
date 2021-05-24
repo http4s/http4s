@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.0-RC1
+
+Includes the changes of v0.22.0-RC1.
+
+## http4s-core
+
+### Noteworthy refactoring
+
+* [#4773](https://github.com/http4s/http4s/pull/4787): Refactor the internals of the `Multipart` parser.
+
 # v0.22.0-RC1
 
 ## http4s-core
