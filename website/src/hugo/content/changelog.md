@@ -20,6 +20,10 @@ it.
   * `Header.Select#from` now returns an `Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]`. The `Ior` lets us return both a value and "warnings" when a repeating header contains both valid and invalid entries.
   * Add `Headers#getWithWarnings` to return the `Ior` result.
 
+## Dependency updates
+
+* play-json-2.9.2 (downgrade)
+
 ### Bugfixes
 
 * [#4873](https://github.com/http4s/http4s/pull/4873): Catch exceptions in `ParseResult.fromParser`. Don't throw when parsing a media range in the `Content-Type` parser.
