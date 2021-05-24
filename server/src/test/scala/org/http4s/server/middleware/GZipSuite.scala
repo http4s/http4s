@@ -21,12 +21,12 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import fs2._
-import java.io.ByteArrayOutputStream
-import java.util.zip.GZIPOutputStream
-import org.http4s.dsl.io._
-import org.http4s.syntax.all._
-import org.http4s.headers._
+import java.io.ByteArrayInputStream
 import java.util.Arrays
+import java.util.zip.GZIPInputStream
+import org.http4s.dsl.io._
+import org.http4s.headers._
+import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF
 
 class GZipSuite extends Http4sSuite {
@@ -58,12 +58,12 @@ class GZipSuite extends Http4sSuite {
     val actual: IO[Array[Byte]] =
       gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
-    val byteStream = new ByteArrayOutputStream(response.length)
-    val gZIPStream = new GZIPOutputStream(byteStream)
-    gZIPStream.write(response.getBytes)
-    gZIPStream.close()
-
-    actual.map(Arrays.equals(_, byteStream.toByteArray)).assert
+    actual.map { bytes =>
+      val gzipStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
+      val decoded = new Array[Byte](response.length)
+      gzipStream.read(decoded)
+      Arrays.equals(response.getBytes(), decoded)
+    }.assert
   }
 
   test("encoding") {
@@ -77,13 +77,12 @@ class GZipSuite extends Http4sSuite {
       val actual: IO[Array[Byte]] =
         gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
-      val byteArrayStream = new ByteArrayOutputStream()
-      val gzipStream = new GZIPOutputStream(byteArrayStream)
-      vector.foreach(gzipStream.write)
-      gzipStream.close()
-      val expected = byteArrayStream.toByteArray
-
-      actual.map(Arrays.equals(_, expected)).assert
+      actual.map { bytes =>
+        val gzipStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
+        val decoded = new Array[Byte](vector.map(_.length).sum)
+        gzipStream.read(decoded)
+        Arrays.equals(Array.concat(vector: _*), decoded)
+      }.assert
     }
   }
 }
