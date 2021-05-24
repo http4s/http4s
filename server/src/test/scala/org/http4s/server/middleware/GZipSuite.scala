@@ -28,7 +28,6 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF
-import scala.util.Properties
 
 class GZipSuite extends Http4sSuite {
   test("fall through if the route doesn't match") {
