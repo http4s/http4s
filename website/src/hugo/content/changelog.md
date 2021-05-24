@@ -8,6 +8,32 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.0-RC1
+
+Includes the changes of v0.22.0-RC1.
+
+## http4s-core
+
+### Noteworthy refactoring
+
+* [#4773](https://github.com/http4s/http4s/pull/4787): Refactor the internals of the `Multipart` parser.
+
+# v0.22.0-RC1
+
+## http4s-core
+
+### Breaking changes
+
+* [#4787](https://github.com/http4s/http4s/pull/4787): Various header selection refinements:
+  * `Header.Select#toRaw` now takes an `F[A]` and returns a `NonEmptyList[Header.Raw]`. This is necessary because headers without a `Semigroup` (e.g., `Set-Cookie`) can't be combined into a single header value.
+  * The old `Header.Select#toRaw` is renamed to `toRaw1`.  This version still accepts a single value and returns a single raw header.
+  * `Header.Select#from` now returns an `Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]`. The `Ior` lets us return both a value and "warnings" when a repeating header contains both valid and invalid entries.
+  * Add `Headers#getWithWarnings` to return the `Ior` result.
+
+### Bugfixes
+
+* [#4873](https://github.com/http4s/http4s/pull/4873): Catch exceptions in `ParseResult.fromParser`. Don't throw when parsing a media range in the `Content-Type` parser.
+
 # v1.0.0-M22 (2021-05-21)
 
 Functionally equivalent to v0.23.0-M1.  Keeps the 1.0 milestones current as we continue our roadmap.
