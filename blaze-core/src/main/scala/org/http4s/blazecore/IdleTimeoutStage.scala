@@ -21,7 +21,6 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.{Cancelable, Execution, TickWheelExecutor}
-import org.log4s.getLogger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
@@ -31,7 +30,6 @@ final private[http4s] class IdleTimeoutStage[A](
     exec: TickWheelExecutor,
     ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
-  private[this] val logger = getLogger
 
   @volatile private var cb: Callback[TimeoutException] = null
 

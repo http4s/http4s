@@ -21,12 +21,12 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import fs2._
-import java.io.ByteArrayOutputStream
-import java.util.zip.GZIPOutputStream
-import org.http4s.dsl.io._
-import org.http4s.syntax.all._
-import org.http4s.headers._
+import java.io.ByteArrayInputStream
 import java.util.Arrays
+import java.util.zip.GZIPInputStream
+import org.http4s.dsl.io._
+import org.http4s.headers._
+import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF
 import scala.util.Properties
 
@@ -46,14 +46,7 @@ class GZipSuite extends Http4sSuite {
       .assert
   }
 
-  // TODO: This test fails since fs2 and GZIPOutputStream disagree on the OS
-  // byte in the gzip header
-  // fs2: 1F 8B 08 00 00 00 00 00 00 00
-  // gos: 1F 8B 08 00 00 00 00 00 00 FF
-  // The last byte is the OS, 00 is FAT filesystem, while FF is unknown
   test("encodes random content-type if given isZippable is true") {
-    assume(Properties.javaVersion != "16", "this test is skipped on JVM 16")
-
     val response = "Response string"
     val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
       Ok(response, "Content-Type" -> "random-type; charset=utf-8")
@@ -66,18 +59,15 @@ class GZipSuite extends Http4sSuite {
     val actual: IO[Array[Byte]] =
       gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
-    val byteStream = new ByteArrayOutputStream(response.length)
-    val gZIPStream = new GZIPOutputStream(byteStream)
-    gZIPStream.write(response.getBytes)
-    gZIPStream.close()
-
-    actual.map(Arrays.equals(_, byteStream.toByteArray)).assert
+    actual.map { bytes =>
+      val gzipStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
+      val decoded = new Array[Byte](response.length)
+      gzipStream.read(decoded)
+      Arrays.equals(response.getBytes(), decoded)
+    }.assert
   }
 
-  // TODO: see above
   test("encoding") {
-    assume(Properties.javaVersion != "16", "this test is skipped on JVM 16")
-
     PropF.forAllF { (vector: Vector[Array[Byte]]) =>
       val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
         Ok(Stream.emits(vector).covary[IO])
@@ -88,13 +78,12 @@ class GZipSuite extends Http4sSuite {
       val actual: IO[Array[Byte]] =
         gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
-      val byteArrayStream = new ByteArrayOutputStream()
-      val gzipStream = new GZIPOutputStream(byteArrayStream)
-      vector.foreach(gzipStream.write)
-      gzipStream.close()
-      val expected = byteArrayStream.toByteArray
-
-      actual.map(Arrays.equals(_, expected)).assert
+      actual.map { bytes =>
+        val gzipStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
+        val decoded = new Array[Byte](vector.map(_.length).sum)
+        gzipStream.read(decoded)
+        Arrays.equals(Array.concat(vector: _*), decoded)
+      }.assert
     }
   }
 }
