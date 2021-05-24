@@ -93,7 +93,7 @@ class ForwardedRenderersSuite extends munit.ScalaCheckSuite with ForwardedArbitr
     val headerInit = Forwarded.name.toString + ": "
 
     forAll { (fwd: Forwarded) =>
-      val rendered = Renderer.renderString(fwd.toRaw)
+      val rendered = Renderer.renderString(fwd.toRaw1)
       assert(rendered.startsWith(headerInit))
 
       assertEquals(Forwarded.parse(rendered.drop(headerInit.length)), Right(fwd))

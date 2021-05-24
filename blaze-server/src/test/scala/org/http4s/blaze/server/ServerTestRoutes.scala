@@ -28,12 +28,12 @@ import org.typelevel.ci._
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   //TODO: bring back well-typed value once all headers are moved to new model
-  val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw
-  val connClose = Connection(ci"close").toRaw
-  val connKeep = Connection(ci"keep-alive").toRaw
-  val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw
+  val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw1
+  val connClose = Connection(ci"close").toRaw1
+  val connKeep = Connection(ci"keep-alive").toRaw1
+  val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw1
 
-  def length(l: Long) = `Content-Length`.unsafeFromLong(l).toRaw
+  def length(l: Long) = `Content-Length`.unsafeFromLong(l).toRaw1
   def testRequestResults: Seq[(String, (Status, Set[Header.Raw], String))] =
     Seq(
       ("GET /get HTTP/1.0\r\n\r\n", (Status.Ok, Set(length(3), textPlain), "get")),
