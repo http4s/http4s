@@ -36,7 +36,7 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
         assertEquals(a.renderString, s"${a.name}: ${a.value}")
       },
       """header matches itself""" -> forAll { (a: A) =>
-        assertEquals(Headers(a.toRaw).get[A].get.asInstanceOf[A], a)
+        assertEquals(Headers(a.toRaw1).get[A].get.asInstanceOf[A], a)
       },
       """header does not match arbitrary name""" -> forAll { (a: A, noise: String) =>
         noise.nonEmpty ==> {
