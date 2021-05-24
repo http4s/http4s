@@ -17,6 +17,7 @@
 package org.http4s
 package syntax
 
+import cats.data.NonEmptyList
 import org.http4s.util.Renderer
 import org.typelevel.ci.CIString
 
@@ -24,8 +25,12 @@ trait HeaderSyntax {
   implicit def http4sHeaderSyntax[A](a: A)(implicit header: Header[A, _]): HeaderOps[A] =
     new HeaderOps(a, header)
 
-  implicit def http4sSelectSyntax[A](a: A)(implicit select: Header.Select[A]): SelectOps[A] =
-    new SelectOps(a)
+  implicit def http4sSelectSyntaxOne[A](a: A)(implicit select: Header.Select[A]): SelectOpsOne[A] =
+    new SelectOpsOne(a)
+
+  implicit def http4sSelectSyntaxMultiple[A, H[_]](a: H[A])(implicit
+      select: Header.Select.Aux[A, H]): SelectOpsMultiple[A, H] =
+    new SelectOpsMultiple[A, H](a)
 }
 
 final class HeaderOps[A](val a: A, header: Header[A, _]) {
@@ -33,7 +38,12 @@ final class HeaderOps[A](val a: A, header: Header[A, _]) {
   def name: CIString = header.name
 }
 
-final class SelectOps[A](val a: A)(implicit ev: Header.Select[A]) {
-  def toRaw: Header.Raw = ev.toRaw(a)
+final class SelectOpsOne[A](val a: A)(implicit ev: Header.Select[A]) {
+  def toRaw1: Header.Raw = ev.toRaw1(a)
   def renderString: String = Renderer.renderString(a)
+}
+
+final class SelectOpsMultiple[A, H[_]](val a: H[A])(implicit ev: Header.Select.Aux[A, H]) {
+  def toRaw: NonEmptyList[Header.Raw] = ev.toRaw(a)
+  //def renderString: String = Renderer.renderString(a) //TODO
 }
