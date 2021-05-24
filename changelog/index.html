@@ -91,6 +91,45 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v1-0-0-m23">v1.0.0-M23</h1>
+
+<p>Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap.</p>
+
+<h1 id="v0-23-0-rc1">v0.23.0-RC1</h1>
+
+<p>Includes the changes of v0.22.0-RC1.</p>
+
+<h2 id="http4s-core">http4s-core</h2>
+
+<h3 id="noteworthy-refactoring">Noteworthy refactoring</h3>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/4787">#4773</a>: Refactor the internals of the <code>Multipart</code> parser.</li>
+</ul>
+
+<h1 id="v0-22-0-rc1">v0.22.0-RC1</h1>
+
+<h2 id="http4s-core-1">http4s-core</h2>
+
+<h3 id="breaking-changes">Breaking changes</h3>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/4787">#4787</a>: Various header selection refinements:
+
+<ul>
+<li><code>Header.Select#toRaw</code> now takes an <code>F[A]</code> and returns a <code>NonEmptyList[Header.Raw]</code>. This is necessary because headers without a <code>Semigroup</code> (e.g., <code>Set-Cookie</code>) can&rsquo;t be combined into a single header value.</li>
+<li>The old <code>Header.Select#toRaw</code> is renamed to <code>toRaw1</code>.  This version still accepts a single value and returns a single raw header.</li>
+<li><code>Header.Select#from</code> now returns an <code>Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]</code>. The <code>Ior</code> lets us return both a value and &ldquo;warnings&rdquo; when a repeating header contains both valid and invalid entries.</li>
+<li>Add <code>Headers#getWithWarnings</code> to return the <code>Ior</code> result.</li>
+</ul></li>
+</ul>
+
+<h3 id="bugfixes">Bugfixes</h3>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/4873">#4873</a>: Catch exceptions in <code>ParseResult.fromParser</code>. Don&rsquo;t throw when parsing a media range in the <code>Content-Type</code> parser.</li>
+</ul>
+
 <h1 id="v1-0-0-m22-2021-05-21">v1.0.0-M22 (2021-05-21)</h1>
 
 <p>Functionally equivalent to v0.23.0-M1.  Keeps the 1.0 milestones current as we continue our roadmap.</p>
@@ -149,7 +188,7 @@ it.</p>
 
 <h2 id="http4s-async-http-client">http4s-async-http-client</h2>
 
-<h3 id="breaking-changes">Breaking changes</h3>
+<h3 id="breaking-changes-1">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/485">#4854</a>4: Rename package from <code>org.http4s.client.asynchttpclient</code> to <code>org.http4s.asynchttpclient</code></li>
@@ -157,15 +196,15 @@ it.</p>
 
 <h2 id="http4s-client">http4s-client</h2>
 
-<h3 id="breaking-changes-1">Breaking changes</h3>
+<h3 id="breaking-changes-2">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4747">#4747</a>: Move <code>ConnectionManager</code>, <code>PoolManager</code>, and <code>WaitQueueTimeoutException</code> into blaze-client and make private. It did not prove to be a generally useful connection pool outside blaze.</li>
 </ul>
 
-<h2 id="http4s-core">http4s-core</h2>
+<h2 id="http4s-core-2">http4s-core</h2>
 
-<h3 id="breaking-changes-2">Breaking changes</h3>
+<h3 id="breaking-changes-3">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4757">#4757</a>: Response is no longer a case class. It is not a proper product type, and no equality should be implied given the streaming bodies.</li>
@@ -187,7 +226,7 @@ it.</p>
 
 <h2 id="http4s-blaze-client">http4s-blaze-client</h2>
 
-<h3 id="breaking-changes-3">Breaking changes</h3>
+<h3 id="breaking-changes-4">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4838">#4838</a>: Rename package from <code>org.http4s.client.blaze</code> to <code>org.http4s.blaze.client</code></li>
@@ -195,7 +234,7 @@ it.</p>
 
 <h2 id="http4s-blaze-server">http4s-blaze-server</h2>
 
-<h3 id="breaking-changes-4">Breaking changes</h3>
+<h3 id="breaking-changes-5">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4847">#4847</a>: Rename package from <code>org.http4s.server.blaze</code> to <code>org.http4s.blaze.server</code></li>
@@ -203,7 +242,7 @@ it.</p>
 
 <h2 id="http4s-jetty-client">http4s-jetty-client</h2>
 
-<h3 id="breaking-changes-5">Breaking changes</h3>
+<h3 id="breaking-changes-6">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4743">#4743</a>: Rename package from <code>org.http4s.client.jetty</code> to <code>org.http4s.jetty.client</code></li>
@@ -211,7 +250,7 @@ it.</p>
 
 <h2 id="http4s-jetty-server">http4s-jetty-server</h2>
 
-<h3 id="breaking-changes-6">Breaking changes</h3>
+<h3 id="breaking-changes-7">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4743">#4743</a>: Rename package from <code>org.http4s.server.jetty</code> to <code>org.http4s.jetty.server</code></li>
@@ -220,7 +259,7 @@ it.</p>
 
 <h2 id="http4s-server">http4s-server</h2>
 
-<h3 id="breaking-changes-7">Breaking changes</h3>
+<h3 id="breaking-changes-8">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4785">#4785</a>: Remove unsued <code>Functor[G]</code> parameter to <code>AutoSlash</code> middleware</li>
@@ -251,7 +290,7 @@ it.</p>
 
 <h2 id="http4s-blaze-client-1">http4s-blaze-client</h2>
 
-<h3 id="bugfixes">Bugfixes</h3>
+<h3 id="bugfixes-1">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4810">#4810</a>: Read from idle blaze-client connections to prevent retaining (and trying to use) half-closed connections.</li>
@@ -261,7 +300,7 @@ it.</p>
 
 <h2 id="http4s-blaze-core">http4s-blaze-core</h2>
 
-<h3 id="bugfixes-1">Bugfixes</h3>
+<h3 id="bugfixes-2">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4796">#4796</a>: Reset the idle timeout after <code>readRequest</code> completes, not when it&rsquo;s called.  Affects both blaze-server and blaze-client.</li>
@@ -269,7 +308,7 @@ it.</p>
 
 <h2 id="http4s-blaze-server-1">http4s-blaze-server</h2>
 
-<h3 id="bugfixes-2">Bugfixes</h3>
+<h3 id="bugfixes-3">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4753">#4753</a>: Distinguish between reserved and unknown websocket frame opcodes. Resolves a <code>MatchError</code>.</li>
@@ -301,7 +340,7 @@ it.</p>
 
 <h2 id="http4s-ember-server">http4s-ember-server</h2>
 
-<h3 id="bugfixes-3">Bugfixes</h3>
+<h3 id="bugfixes-4">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4750">#4750</a>: Drain the socket&rsquo;s read buffer only after the response is written to the socket. Resolves several flavors of network error.</li>
@@ -310,7 +349,7 @@ it.</p>
 
 <h2 id="http4s-jetty">http4s-jetty</h2>
 
-<h3 id="bugfixes-4">Bugfixes</h3>
+<h3 id="bugfixes-5">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4783">#4783</a>: Fix bug with shared <code>ThreadPool</code> being destroyed. Prefer a <code>Resource[F, ThreadPool]</code> whose lifecycle shares Jetty&rsquo;s.  For compatibility, prevent the default from being destroyed.</li>
@@ -435,9 +474,9 @@ it.</p>
 
 <p>Includes all the changes of v0.21.21.</p>
 
-<h2 id="http4s-core-1">http4s-core</h2>
+<h2 id="http4s-core-3">http4s-core</h2>
 
-<h3 id="breaking-changes-8">Breaking changes</h3>
+<h3 id="breaking-changes-9">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4588">#4588</a>: Additional consistency in modeled headers around <code>.value</code> (removed in favor of the typeclass) and <code>.parse</code> (present on the companion)</li>
@@ -451,7 +490,7 @@ it.</p>
 
 <h2 id="http4s-dsl">http4s-dsl</h2>
 
-<h3 id="breaking-changes-9">Breaking changes</h3>
+<h3 id="breaking-changes-10">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4640">#4640</a>: Change <code>apply(Headers.ToRaw*)</code> syntax to <code>headers(Headers.Raw)</code>. The overload from 0.21 was ambiguous with the new header model in 0.22.</li>
@@ -459,7 +498,7 @@ it.</p>
 
 <h2 id="http4s-boopickle">http4s-boopickle</h2>
 
-<h3 id="breaking-changes-10">Breaking changes</h3>
+<h3 id="breaking-changes-11">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4590">#4590</a>: Move implicits to <code>org.http4s.booPickle.implicits._</code>. The thinking is evolving here, and this is likely to be reverted before 0.22.0 final.</li>
@@ -467,7 +506,7 @@ it.</p>
 
 <h2 id="http4s-scala-xml">http4s-scala-xml</h2>
 
-<h3 id="breaking-changes-11">Breaking changes</h3>
+<h3 id="breaking-changes-12">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4621">#4621</a>: Revert the <code>implicits</code> decoding back to how it was in 0.21.  Set up safer defaults for the default <code>SAXParserFactory</code>, corresponding to what will be in scala-xml-2.0.</li>
@@ -497,7 +536,7 @@ it.</p>
 
 <h2 id="http4s-server-2">http4s-server</h2>
 
-<h3 id="bugfixes-5">Bugfixes</h3>
+<h3 id="bugfixes-6">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4646">#4638</a>: In <code>Caching</code> middleware, don&rsquo;t send <code>private</code> alongside <code>no-store</code>. These are contradictory directives.</li>
@@ -514,7 +553,7 @@ it.</p>
 
 <h2 id="http4s-ember-server-2">http4s-ember-server</h2>
 
-<h3 id="bugfixes-6">Bugfixes</h3>
+<h3 id="bugfixes-7">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4637">#4637</a>: On reused connections, wait for the idle period, not the shorter header timeout, for the next byte.</li>
@@ -530,7 +569,7 @@ it.</p>
 
 <h2 id="http4s-scala-xml-1">http4s-scala-xml</h2>
 
-<h3 id="bugfixes-7">Bugfixes</h3>
+<h3 id="bugfixes-8">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4620">#4620</a>: Make XML chraset inference compliant with RFC7303</li>
@@ -562,7 +601,7 @@ it.</p>
 
 <p>This is the first release with Scala 3 support.  Scala 3.0.0-RC1 is supported for all modules except http4s-boopickle, http4s-scalatags, and http4s-twirl.</p>
 
-<h2 id="http4s-core-2">http4s-core</h2>
+<h2 id="http4s-core-4">http4s-core</h2>
 
 <h3 id="breaking">Breaking</h3>
 
@@ -603,9 +642,9 @@ it.</p>
 
 <p>Includes changes from v0.22.0-M4.</p>
 
-<h2 id="http4s-core-3">http4s-core</h2>
+<h2 id="http4s-core-5">http4s-core</h2>
 
-<h3 id="breaking-changes-12">Breaking changes</h3>
+<h3 id="breaking-changes-13">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4516">#4516</a>: Replace <code>Defer: Applicative</code> constraint with <code>Monad</code> in <code>HttpRoutes.of</code> and <code>ContextRoutes.of</code>.  This should be source compatible for nearly all users.  Users who can&rsquo;t abide this constraint can use <code>.strict</code>, at the cost of efficiency in combinining routes.</li>
@@ -628,7 +667,7 @@ it.</p>
 
 <h2 id="http4s-ember-server-3">http4s-ember-server</h2>
 
-<h3 id="breaking-changes-13">Breaking changes</h3>
+<h3 id="breaking-changes-14">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4471">#4471</a>: <code>EmberServerBuilder</code> takes an ip4s <code>Option[Host]</code> and <code>Port</code> in its config instead of <code>String</code> and <code>Int</code>.</li>
@@ -655,9 +694,9 @@ it.</p>
 
 <p>Includes changes from v0.21.19 and v0.21.20.</p>
 
-<h2 id="http4s-core-4">http4s-core</h2>
+<h2 id="http4s-core-6">http4s-core</h2>
 
-<h3 id="breaking-changes-14">Breaking changes</h3>
+<h3 id="breaking-changes-15">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4242">#4242</a>: Replace internal models of IPv4, IPv6, <code>java.net.InetAddress</code>, and <code>java.net.SocketAddress</code> with ip4s.  This affects the URI authority, various headers, and message attributes that refer to IP addresses and hostnames.</li>
@@ -669,7 +708,7 @@ it.</p>
 
 <h2 id="http4s-laws">http4s-laws</h2>
 
-<h3 id="breaking-changes-15">Breaking changes</h3>
+<h3 id="breaking-changes-16">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4519">#4519</a>: Drop unused <code>Arbitrary</code> and <code>Shrink</code> constraints on <code>LawAdapter#booleanPropF</code>. This is source compatible.</li>
@@ -677,7 +716,7 @@ it.</p>
 
 <h2 id="http4s-server-3">http4s-server</h2>
 
-<h3 id="breaking-changes-16">Breaking changes</h3>
+<h3 id="breaking-changes-17">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4519">#4519</a>: Drop unused <code>Functor</code> constraints in <code>HSTS</code>, <code>Jsonp</code>, <code>PushSupport</code>, <code>TranslateUri</code>, and <code>UriTranslation</code> middlewares. Drop unused <code>Sync</code> and <code>ContextShift</code> constraints in <code>staticcontent</code> package. These are source compatible.</li>
@@ -685,7 +724,7 @@ it.</p>
 
 <h2 id="http4s-server-4">http4s-server</h2>
 
-<h3 id="breaking-changes-17">Breaking changes</h3>
+<h3 id="breaking-changes-18">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4519">#4519</a>: Drop unused <code>Async</code> constraint in <code>ServletContainer</code>. Drop unused <code>ContextShift</code> in <code>ServletContextSyntax</code>. These are source compatible.</li>
@@ -693,7 +732,7 @@ it.</p>
 
 <h2 id="http4s-async-http-client-1">http4s-async-http-client</h2>
 
-<h3 id="breaking-changes-18">Breaking changes</h3>
+<h3 id="breaking-changes-19">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4519">#4519</a>: Drop unused <code>Sync</code> constraint on <code>AsyncHttpClientStats</code>. This is source compatible.</li>
@@ -701,7 +740,7 @@ it.</p>
 
 <h2 id="http4s-prometheus">http4s-prometheus</h2>
 
-<h3 id="breaking-changes-19">Breaking changes</h3>
+<h3 id="breaking-changes-20">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4519">#4519</a>: Drop unused <code>Sync</code> constraint on <code>PrometheusExportService</code>. This is source compatible.</li>
@@ -725,7 +764,7 @@ it.</p>
 
 <h2 id="http4s-play-json-2">http4s-play-json</h2>
 
-<h3 id="breaking-changes-20">Breaking changes</h3>
+<h3 id="breaking-changes-21">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4371">#4371</a>: Replace jawn-play with an internal copy of the facade to work around <code>withDottyCompat</code> issues.</li>
@@ -733,7 +772,7 @@ it.</p>
 
 <h2 id="http4s-scala-xml-2">http4s-scala-xml</h2>
 
-<h3 id="breaking-changes-21">Breaking changes</h3>
+<h3 id="breaking-changes-22">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4380">#4380</a>: Move the implicits from the root package to a Cats-like encoding.  Suggest replacing <code>import org.http4s.scalaxml._</code> with <code>import org.http4s.scalaxml.implicits._</code>.</li>
@@ -759,7 +798,7 @@ it.</p>
 
 <h1 id="v0-21-20-2021-03-02">v0.21.20 (2021-03-02)</h1>
 
-<h2 id="http4s-core-5">http4s-core</h2>
+<h2 id="http4s-core-7">http4s-core</h2>
 
 <h3 id="enhancements-13">Enhancements</h3>
 
@@ -776,7 +815,7 @@ it.</p>
 
 <h2 id="http4s-ember-core-1">http4s-ember-core</h2>
 
-<h3 id="bugfixes-8">Bugfixes</h3>
+<h3 id="bugfixes-9">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4429">#4429</a>, <a href="https://github.com/http4s/http4s/pull/4466">#4466</a>: Fix a few corner cases in the parser with respect to chunk boundaries</li>
@@ -804,7 +843,7 @@ it.</p>
 
 <h1 id="v0-21-19-2021-02-13">v0.21.19 (2021-02-13)</h1>
 
-<h2 id="http4s-core-6">http4s-core</h2>
+<h2 id="http4s-core-8">http4s-core</h2>
 
 <h3 id="deprecations-1">Deprecations</h3>
 
@@ -814,7 +853,7 @@ it.</p>
 
 <h2 id="http4s-client-2">http4s-client</h2>
 
-<h3 id="bugfixes-9">Bugfixes</h3>
+<h3 id="bugfixes-10">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4403">#4403</a>: Remove <code>Content-Coding</code> and <code>Content-Length</code> headers after decompressing in the <code>GZip</code> middleware.</li>
@@ -822,7 +861,7 @@ it.</p>
 
 <h2 id="http4s-ember-core-2">http4s-ember-core</h2>
 
-<h3 id="bugfixes-10">Bugfixes</h3>
+<h3 id="bugfixes-11">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4348">#4348</a>: Handle partially read bodies in persistent connections when the connection is recycled.</li>
@@ -907,7 +946,7 @@ it.</p>
 
 <h2 id="http4s-okhttp-client">http4s-okhttp-client</h2>
 
-<h3 id="breaking-changes-22">Breaking changes</h3>
+<h3 id="breaking-changes-23">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4299">#4299</a>: Manage the <code>Dispatcher</code> internally in <code>OkHttpBuilder</code>. <code>create</code> becomes a private method.</li>
@@ -929,7 +968,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w">GHSA-xhv5-w9c5-2r2w</a>: Additionally to the fix in v0.21.17, drops support for NIO2.</li>
 </ul>
 
-<h2 id="http4s-core-7">http4s-core</h2>
+<h2 id="http4s-core-9">http4s-core</h2>
 
 <h3 id="enhancements-17">Enhancements</h3>
 
@@ -937,7 +976,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/4286">#4286</a>: Improve performance by using <code>oneOf</code> and caching a URI parser. This was an identified new hotspot in v0.22.0-M1.</li>
 </ul>
 
-<h3 id="breaking-changes-23">Breaking changes</h3>
+<h3 id="breaking-changes-24">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4259">#4259</a>: Regenerate <code>MimeDb</code> from the IANA database. This shifts around some constants in a binary incompatible way, but almost nobody will notice.</li>
@@ -946,7 +985,7 @@ it.</p>
 
 <h2 id="http4s-prometheus-1">http4s-prometheus</h2>
 
-<h3 id="breaking-changes-24">Breaking changes</h3>
+<h3 id="breaking-changes-25">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4273">#4273</a>: Change metric names from <code>_count</code> to <code>_count_total</code> to match Prometheus&rsquo; move to the OpenMetrics standard.  Your metrics names will change!  See <a href="https://github.com/prometheus/client_java/pull/615">prometheus/client_java#615</a> for more details from the Prometheus team.</li>
@@ -985,7 +1024,7 @@ it.</p>
 
 <h2 id="http4s-ember-server-5">http4s-ember-server</h2>
 
-<h3 id="bugfixes-11">Bugfixes</h3>
+<h3 id="bugfixes-12">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4281">#4281</a>: Add backpressure to ember startup, so the server is up before <code>use</code> returns.</li>
@@ -1008,7 +1047,7 @@ it.</p>
 
 <h2 id="http4s-servlet-1">http4s-servlet</h2>
 
-<h3 id="bugfixes-12">Bugfixes</h3>
+<h3 id="bugfixes-13">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4309">#4309</a>: Call <code>GenericServlet.init</code> when intializing an <code>Http4sServlet</code>.  Avoids <code>NullPointerExceptions</code> from the <code>ServletConfig</code>.</li>
@@ -1031,9 +1070,9 @@ it.</p>
 
 <p>This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 development, please see the new 0.22.x series.  Everything in 0.22.0-M1, including the cats-parse port, is here.</p>
 
-<h2 id="http4s-core-8">http4s-core</h2>
+<h2 id="http4s-core-10">http4s-core</h2>
 
-<h3 id="breaking-changes-25">Breaking changes</h3>
+<h3 id="breaking-changes-26">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3784">#3784</a>, <a href="https://github.com/http4s/http4s/pull/3784">#3865</a>: Inexhaustively,
@@ -1057,7 +1096,7 @@ it.</p>
 
 <h2 id="http4s-laws-1">http4s-laws</h2>
 
-<h3 id="breaking-changes-26">Breaking changes</h3>
+<h3 id="breaking-changes-27">Breaking changes</h3>
 
 <ul>
 <li><p><a href="https://github.com/http4s/http4s/pull/3807">#3807</a>: Several arbitraries and cogens now require a <code>Dispatcher</code> and a <code>TestContext</code>.</p>
@@ -1091,7 +1130,7 @@ it.</p>
 
 <h2 id="http4s-async-http-client-2">http4s-async-http-client</h2>
 
-<h3 id="breaking-changes-27">Breaking changes</h3>
+<h3 id="breaking-changes-28">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4149">#4149</a>: <code>ConcurrentEffect</code> constraint relaxed to <code>Async</code>. <code>apply</code> method changed to <code>fromClient</code> and returns a <code>Resource</code> to account for the <code>Dispatcher</code>.</li>
@@ -1099,7 +1138,7 @@ it.</p>
 
 <h2 id="http4s-blaze-core-2">http4s-blaze-core</h2>
 
-<h3 id="breaking-changes-28">Breaking changes</h3>
+<h3 id="breaking-changes-29">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3894">#3894</a>: Most <code>Effect</code> constraints relaxed to <code>Async</code>.</li>
@@ -1107,7 +1146,7 @@ it.</p>
 
 <h2 id="http4s-blaze-server-5">http4s-blaze-server</h2>
 
-<h3 id="breaking-changes-29">Breaking changes</h3>
+<h3 id="breaking-changes-30">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4097">#4097</a>, <a href="https://github.com/http4s/http4s/pull/4137">#4137</a>: <code>ConcurrentEffect</code> constraint relaxed to <code>Async</code>. Remove deprecated <code>BlazeBuilder</code></li>
@@ -1115,7 +1154,7 @@ it.</p>
 
 <h2 id="http4s-blaze-client-3">http4s-blaze-client</h2>
 
-<h3 id="breaking-changes-30">Breaking changes</h3>
+<h3 id="breaking-changes-31">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4097">#4097</a>: <code>ConcurrentEffect</code> constraint relaxed to <code>Async</code></li>
@@ -1123,7 +1162,7 @@ it.</p>
 
 <h2 id="http4s-ember-client-2">http4s-ember-client</h2>
 
-<h3 id="breaking-changes-31">Breaking changes</h3>
+<h3 id="breaking-changes-32">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4256">#4256</a>: <code>Concurrent: Timer: ContextShift</code> constraint turned to <code>Async</code></li>
@@ -1131,7 +1170,7 @@ it.</p>
 
 <h2 id="http4s-ember-server-6">http4s-ember-server</h2>
 
-<h3 id="breaking-changes-32">Breaking changes</h3>
+<h3 id="breaking-changes-33">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4256">#4256</a>: <code>Concurrent: Timer: ContextShift</code> constraint turned to <code>Async</code></li>
@@ -1139,7 +1178,7 @@ it.</p>
 
 <h2 id="http4s-okhttp-client-1">http4s-okhttp-client</h2>
 
-<h3 id="breaking-changes-33">Breaking changes</h3>
+<h3 id="breaking-changes-34">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4102">#4102</a>, <a href="https://github.com/http4s/http4s/pull/4136">#4136</a>:
@@ -1152,7 +1191,7 @@ it.</p>
 
 <h2 id="http4s-servlet-2">http4s-servlet</h2>
 
-<h3 id="breaking-changes-34">Breaking changes</h3>
+<h3 id="breaking-changes-35">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4175">#4175</a>: Servlets naow take a <code>Dispatcher</code>. The blocker is removed from <code>BlockingIo</code>. <code>ConcurrentEffect</code> constraint relaxed to <code>Async</code>.</li>
@@ -1160,7 +1199,7 @@ it.</p>
 
 <h2 id="http4s-jetty-client-1">http4s-jetty-client</h2>
 
-<h3 id="breaking-changes-35">Breaking changes</h3>
+<h3 id="breaking-changes-36">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4165">#4165</a>: <code>ConcurrentEffect</code> constraint relaxed to <code>Async</code></li>
@@ -1168,7 +1207,7 @@ it.</p>
 
 <h2 id="http4s-jetty-1">http4s-jetty</h2>
 
-<h3 id="breaking-changes-36">Breaking changes</h3>
+<h3 id="breaking-changes-37">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4191">#4191</a>: <code>ConcurrentEffect</code> constraint relaxed to <code>Async</code></li>
@@ -1176,7 +1215,7 @@ it.</p>
 
 <h2 id="http4s-tomcat">http4s-tomcat</h2>
 
-<h3 id="breaking-changes-37">Breaking changes</h3>
+<h3 id="breaking-changes-38">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4216">#4216</a>: <code>ConcurrentEffect</code> constraint relaxed to <code>Async</code></li>
@@ -1184,7 +1223,7 @@ it.</p>
 
 <h2 id="http4s-jawn">http4s-jawn</h2>
 
-<h3 id="breaking-changes-38">Breaking changes</h3>
+<h3 id="breaking-changes-39">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3871">#3871</a>: <code>Sync</code> constraints relaxed to <code>Concurrent</code></li>
@@ -1192,7 +1231,7 @@ it.</p>
 
 <h2 id="http4s-argonaut-2">http4s-argonaut</h2>
 
-<h3 id="breaking-changes-39">Breaking changes</h3>
+<h3 id="breaking-changes-40">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3961">#3961</a>: <code>Sync</code> constraints relaxed to <code>Concurrent</code></li>
@@ -1200,7 +1239,7 @@ it.</p>
 
 <h2 id="http4s-circe-1">http4s-circe</h2>
 
-<h3 id="breaking-changes-40">Breaking changes</h3>
+<h3 id="breaking-changes-41">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3965">#3965</a>: <code>Sync</code> constraints relaxed to to <code>Concurrent</code>.</li>
@@ -1208,7 +1247,7 @@ it.</p>
 
 <h2 id="http4s-json4s-1">http4s-json4s</h2>
 
-<h3 id="breaking-changes-41">Breaking changes</h3>
+<h3 id="breaking-changes-42">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3885">#3885</a>: <code>Sync</code> constraints relaxed to to <code>Concurrent</code>.</li>
@@ -1216,7 +1255,7 @@ it.</p>
 
 <h2 id="http4s-play-json-3">http4s-play-json</h2>
 
-<h3 id="breaking-changes-42">Breaking changes</h3>
+<h3 id="breaking-changes-43">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3962">#3962</a>: <code>Sync</code> constraints relaxed to to <code>Concurrent</code>.</li>
@@ -1224,7 +1263,7 @@ it.</p>
 
 <h2 id="http4s-scala-xml-3">http4s-scala-xml</h2>
 
-<h3 id="breaking-changes-43">Breaking changes</h3>
+<h3 id="breaking-changes-44">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4054">#4054</a>: <code>Sync</code> constraints relaxed to to <code>Concurrent</code>.</li>
@@ -1232,7 +1271,7 @@ it.</p>
 
 <h2 id="http4s-boopickle-1">http4s-boopickle</h2>
 
-<h3 id="breaking-changes-44">Breaking changes</h3>
+<h3 id="breaking-changes-45">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3852">#3871</a>: <code>Sync</code> constraints relaxed to <code>Concurrent</code></li>
@@ -1272,9 +1311,9 @@ it.</p>
 <li>Users who need a stable release should remain on the 0.21 series for now.</li>
 </ul>
 
-<h2 id="http4s-core-9">http4s-core</h2>
+<h2 id="http4s-core-11">http4s-core</h2>
 
-<h3 id="breaking-changes-45">Breaking changes</h3>
+<h3 id="breaking-changes-46">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3855">#3855</a>: All parboiled2 parsers are replaced by cats-parse.  parboiled2 was not part of the public API, nor are our cats-parse parsers.  Users may observe a difference in the error messages and subtle semantic changes.  We&rsquo;ve attempted to minimize them, but this is a significant underlying change.  See also: <a href="https://github.com/http4s/http4s/pull/3897">#3897</a>, <a href="https://github.com/http4s/http4s/pull/3901">#3901</a>, <a href="https://github.com/http4s/http4s/pull/3954">#3954</a>, <a href="https://github.com/http4s/http4s/pull/3958">#3958</a>, <a href="https://github.com/http4s/http4s/pull/3995">#3995</a>, <a href="https://github.com/http4s/http4s/pull/4023">#4023</a>, <a href="https://github.com/http4s/http4s/pull/4001">#4001</a>, <a href="https://github.com/http4s/http4s/pull/4013">#4013</a>, <a href="https://github.com/http4s/http4s/pull/4042">#4042</a>, <a href="https://github.com/http4s/http4s/pull/3982">#3982</a>, <a href="https://github.com/http4s/http4s/pull/4071">#4071</a>, <a href="https://github.com/http4s/http4s/pull/4017">#4017</a>, <a href="https://github.com/http4s/http4s/pull/4132">#4132</a>, <a href="https://github.com/http4s/http4s/pull/4154">#4154</a>, <a href="https://github.com/http4s/http4s/pull/4200">#4200</a>, <a href="https://github.com/http4s/http4s/pull/4202">#4202</a>, <a href="https://github.com/http4s/http4s/pull/4206">#4206</a>, <a href="https://github.com/http4s/http4s/pull/4201">#4201</a>, <a href="https://github.com/http4s/http4s/pull/4208">#4208</a>, <a href="https://github.com/http4s/http4s/pull/4235">#4235</a>, <a href="https://github.com/http4s/http4s/pull/4147">#4147</a>, <a href="https://github.com/http4s/http4s/pull/4238">#4238</a> <a href="https://github.com/http4s/http4s/pull/4243">#4238</a></li>
@@ -1285,7 +1324,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/4145">#4145</a>: Port macros in <code>org.http4s.syntax.literals</code> to Scala 3.  Deprecated macros that were on various companion objects will not be in the Scala 3 releases.</li>
 </ul>
 
-<h3 id="bugfixes-13">Bugfixes</h3>
+<h3 id="bugfixes-14">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4017">#4017</a>: Render a final <code>-</code> in a byte ranges without an end value</li>
@@ -1293,7 +1332,7 @@ it.</p>
 
 <h2 id="http4s-laws-2">http4s-laws</h2>
 
-<h3 id="breaking-changes-46">Breaking changes</h3>
+<h3 id="breaking-changes-47">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4144">#4144</a>: Add <code>LawsAdapter</code> to create <code>PropF</code> for effectful properties.  Restate various Entity codec laws in terms of it.</li>
@@ -1302,7 +1341,7 @@ it.</p>
 
 <h2 id="http4s-server-6">http4s-server</h2>
 
-<h3 id="breaking-changes-47">Breaking changes</h3>
+<h3 id="breaking-changes-48">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4164">#4164</a>: Removed deprecated <code>SSLConfig</code>, <code>KeyStoreBits</code>, <code>SSLContextBits</code>, and <code>SSLBits</code>.</li>
@@ -1310,7 +1349,7 @@ it.</p>
 
 <h2 id="http4s-testing">http4s-testing</h2>
 
-<h3 id="breaking-changes-48">Breaking changes</h3>
+<h3 id="breaking-changes-49">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4164">#4164</a>: No longer a publicly published package. All public API was previously deprecated.</li>
@@ -1356,7 +1395,7 @@ it.</p>
 
 <h2 id="http4s-laws-3">http4s-laws</h2>
 
-<h3 id="bugfixes-14">Bugfixes</h3>
+<h3 id="bugfixes-15">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4243">#4243</a>: Don&rsquo;t generate ipv6 addresses with only one section shorted by <code>::</code></li>
@@ -1364,7 +1403,7 @@ it.</p>
 
 <h2 id="http4s-blaze-core-3">http4s-blaze-core</h2>
 
-<h3 id="bugfixes-15">Bugfixes</h3>
+<h3 id="bugfixes-16">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4143">#4143</a>: Fix race condition that leads to <code>WritePendingException</code>. A tradeoff of this change is that some connections that were previously reused must now be closed.</li>
@@ -1372,7 +1411,7 @@ it.</p>
 
 <h2 id="http4s-blaze-client-4">http4s-blaze-client</h2>
 
-<h3 id="bugfixes-16">Bugfixes</h3>
+<h3 id="bugfixes-17">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4152">#4152</a>: Omit implicit <code>Content-Length: 0</code> header when rendering GET, DELETE, CONNECT, and TRACE requests.</li>
@@ -1380,7 +1419,7 @@ it.</p>
 
 <h2 id="http4s-ember-client-3">http4s-ember-client</h2>
 
-<h3 id="bugfixes-17">Bugfixes</h3>
+<h3 id="bugfixes-18">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4179">#4179</a>: Render requests in &ldquo;origin form&rdquo;, so the request line contains only the path of the request, and host information is only in the Host header.  We were previously rendering the fulll URI on the request line, which the spec mandates all servers to handle, but clients should not send when not speaking to a proxy.</li>
@@ -1428,7 +1467,7 @@ it.</p>
 
 <h1 id="v0-21-15-2020-12-31">v0.21.15 (2020-12-31)</h1>
 
-<h2 id="http4s-core-10">http4s-core</h2>
+<h2 id="http4s-core-12">http4s-core</h2>
 
 <h3 id="enhancements-25">Enhancements</h3>
 
@@ -1489,9 +1528,9 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v1-0-0-m9-2020-12-12">v1.0.0-M9 (2020-12-12)</h1>
 
-<h2 id="http4s-core-11">http4s-core</h2>
+<h2 id="http4s-core-13">http4s-core</h2>
 
-<h3 id="breaking-changes-49">Breaking changes</h3>
+<h3 id="breaking-changes-50">Breaking changes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3913">#3913</a>: Regenerated the <code>MimeDb</code> trait from the IANA registry. This shifts a few constants around and is binary breaking, but the vast majority of users won&rsquo;t notice.</li>
@@ -1505,9 +1544,9 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v0-21-14-2020-12-11">v0.21.14 (2020-12-11)</h1>
 
-<h2 id="http4s-core-12">http4s-core</h2>
+<h2 id="http4s-core-14">http4s-core</h2>
 
-<h3 id="bugfixes-18">Bugfixes</h3>
+<h3 id="bugfixes-19">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3966">#3966</a>: In <code>Link</code> header, retain the first <code>rel</code> attribute when multiple are present</li>
@@ -1531,7 +1570,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h2 id="http4s-okhttp-client-2">http4s-okhttp-client</h2>
 
-<h3 id="bugfixes-19">Bugfixes</h3>
+<h3 id="bugfixes-20">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/4006">#4006</a>: Set <code>Content-Length</code> header on requests where available instead of always chunking</li>
@@ -1539,7 +1578,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h2 id="http4s-metrics">http4s-metrics</h2>
 
-<h3 id="bugfixes-20">Bugfixes</h3>
+<h3 id="bugfixes-21">Bugfixes</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3977">#3977</a>: Changes from <code>BracketRequestResponse</code> middleware may address reported leaks in <code>decreaseActiveRequests</code>.  Corrects a bug in <code>recordHeadersTime</code>.  Also can now record times for abnormal terminations.</li>
@@ -1566,7 +1605,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v1-0-0-m8-2020-11-26">v1.0.0-M8 (2020-11-26)</h1>
 
-<h2 id="breaking-changes-50">Breaking changes</h2>
+<h2 id="breaking-changes-51">Breaking changes</h2>
 
 <h3 id="http4s-client-6">http4s-client</h3>
 
@@ -1576,7 +1615,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v0-21-13-2020-11-25">v0.21.13 (2020-11-25)</h1>
 
-<h2 id="bugfixes-21">Bugfixes</h2>
+<h2 id="bugfixes-22">Bugfixes</h2>
 
 <h3 id="most-modules">Most modules</h3>
 
@@ -1592,9 +1631,9 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v0-21-12-2020-11-25">v0.21.12 (2020-11-25)</h1>
 
-<h2 id="bugfixes-22">Bugfixes</h2>
+<h2 id="bugfixes-23">Bugfixes</h2>
 
-<h3 id="http4s-core-13">http4s-core</h3>
+<h3 id="http4s-core-15">http4s-core</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3911">#3911</a>: Support raw query strings. Formerly, all query strings were stored as a vector of key-value pairs, which was lossy in the percent-encoding of sub-delimiter characters (e.g., &lsquo;+&rsquo; vs &lsquo;%2B&rsquo;).  Queries constructed with <code>.fromString</code> will be rendered as-is, for APIs that assign special meaning to sub-delimiters.</li>
@@ -1609,7 +1648,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h2 id="enhancements-31">Enhancements</h2>
 
-<h3 id="http4s-core-14">http4s-core</h3>
+<h3 id="http4s-core-16">http4s-core</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3902">#3902</a>: Add <code>Hash</code> and <code>BoundedEnumerable</code> instances for <code>HttpVersion</code></li>
@@ -1625,7 +1664,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h1 id="v1-0-0-m7-2020-11-20">v1.0.0-M7 (2020-11-20)</h1>
 
-<h2 id="breaking-changes-51">Breaking changes</h2>
+<h2 id="breaking-changes-52">Breaking changes</h2>
 
 <h3 id="http4s-dsl-1">http4s-dsl</h3>
 
@@ -1643,7 +1682,7 @@ o* <a href="https://github.com/http4s/http4s/pull/4037">#4037</a>: Normalize som
 
 <h2 id="enhancements-32">Enhancements</h2>
 
-<h3 id="http4s-core-15">http4s-core</h3>
+<h3 id="http4s-core-17">http4s-core</h3>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3864">#3864</a>: Cache a <code>Right</code> of the common <code>HttpVersion</code>s for its <code>ParseResult</code>.</li>
@@ -1702,7 +1741,7 @@ Proceed directly to 0.21.11.</p>
 
 <h1 id="v1-0-0-m6-2020-11-11">v1.0.0-M6 (2020-11-11)</h1>
 
-<h2 id="breaking-changes-52">Breaking changes</h2>
+<h2 id="breaking-changes-53">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3758">#3758</a>: Refactor query param infix operators for deprecations in Scala 2.13. Not source breaking.</li>
@@ -1711,7 +1750,7 @@ Proceed directly to 0.21.11.</p>
 
 <h1 id="v0-21-9-2020-11-11">v0.21.9 (2020-11-11)</h1>
 
-<h2 id="bugfixes-23">Bugfixes</h2>
+<h2 id="bugfixes-24">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3757">#3757</a>: Restore mixin forwarders in <code>Http4sDsl</code> for binary compatibility back to v0.21.0.  These were removed in v0.21.6 by <a href="https://github.com/http4s/http4s/pull/3492">#3492</a>, but not caught by an older version of MiMa.</li>
@@ -1751,14 +1790,14 @@ Proceed directly to 0.21.11.</p>
 
 <h1 id="v1-0-0-m5-2020-10-16">v1.0.0-M5 (2020-10-16)</h1>
 
-<h2 id="bugfixes-24">Bugfixes</h2>
+<h2 id="bugfixes-25">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3638">#3714</a>: Use correct prefix when composing with <code>Router</code></li>
 <li><a href="https://github.com/http4s/http4s/pull/3738">#3738</a>: In <code>PrometheusExportService</code>, correctly match the <code>/metrics</code> endpoint</li>
 </ul>
 
-<h2 id="breaking-changes-53">Breaking changes</h2>
+<h2 id="breaking-changes-54">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3649">#3649</a>: Make <code>QueryParam</code> a subclass of <code>QueryParamLike</code></li>
@@ -1786,7 +1825,7 @@ Proceed directly to 0.21.11.</p>
 <li><a href="https://github.com/http4s/http4s/security/advisories/GHSA-8hxh-r6f7-jf45">GHSA-8hxh-r6f7-jf45</a>: The version of Netty used by async-http-client is affected by <a href="https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-564897">CVE-2020-11612</a>.  A server we connect to with http4s-async-http-client could theoretically respond with a large or malicious compressed stream and exhaust memory in the client JVM. This does not affect any release in the 1.x series.</li>
 </ul>
 
-<h2 id="bugfixes-25">Bugfixes</h2>
+<h2 id="bugfixes-26">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3666">#3666</a>: In CSRF middleware, always use the <code>onFailure</code> handler instead of a hardcoded 403 response</li>
@@ -1843,7 +1882,7 @@ Proceed directly to 0.21.11.</p>
 <p>This milestone merges the changes in 0.21.7.
 It is not binary compatible with 1.0.0-M3</p>
 
-<h2 id="breaking-changes-54">Breaking changes</h2>
+<h2 id="breaking-changes-55">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3577">#3577</a>: Add a model of the <code>Max-Forwards</code> header.</li>
@@ -1867,7 +1906,7 @@ It is not binary compatible with 1.0.0-M3</p>
 
 <h1 id="v0-21-7-2020-08-08">v0.21.7 (2020-08-08)</h1>
 
-<h2 id="bugfixes-26">Bugfixes</h2>
+<h2 id="bugfixes-27">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3548">#3548</a>: Fixes <code>IllegalStateException</code> when a path matches a directory in <code>ResourceService</code></li>
@@ -1923,7 +1962,7 @@ It is binary compatible with 1.0.0-M2.</p>
 
 <h1 id="v0-21-6-2020-06-27">v0.21.6 (2020-06-27)</h1>
 
-<h2 id="bugfixes-27">Bugfixes</h2>
+<h2 id="bugfixes-28">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3538">#3538</a>: In ember, fix request and response parser to recognize chunked transfer encoding. In chunked messages, bodies were incorrectly empty.</li>
@@ -1950,7 +1989,7 @@ It is not binary compatible with prior releases.</p>
 
 <p>Unpublished. The release build from the tag failed, and the fix required a new tag.</p>
 
-<h2 id="breaking-changes-55">Breaking changes</h2>
+<h2 id="breaking-changes-56">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3174">#3174</a>: Drop http4s-prometheus dependency on http4s-dsl</li>
@@ -2025,7 +2064,7 @@ It is not binary compatible with prior releases.</p>
 <li><a href="https://github.com/http4s/http4s/pull/3372">#3372</a>: <code>http4s-scalafix</code>: starting with this release, we have integrated Scalafix rules into the build.  All our Scalafix rules will be published as both snapshots and with core releases.  The http4s-scalafix version is equivalent to the output version of the scalafix rules.  The scalafix rules are intended to assist migrations with deprecations (within this series) and breaking changes (in the upcoming push to 1.0).</li>
 </ul>
 
-<h2 id="bugfixes-28">Bugfixes</h2>
+<h2 id="bugfixes-29">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3476">#3476</a>: Fix crash of <code>GZip</code> client middleware on responses to <code>HEAD</code> requests</li>
@@ -2097,7 +2136,7 @@ It is not binary compatible with prior releases.</p>
 
 <p>This release is fully backward compatible with 0.21.3.</p>
 
-<h2 id="bugfixes-29">Bugfixes</h2>
+<h2 id="bugfixes-30">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3338">#3338</a>: Avoid incorrectly responding with an empty body in http4s-async-http-client</li>
@@ -2148,13 +2187,13 @@ This is the final planned release in the 0.20 series.</p>
 <p>This release is backward compatible with 0.20, except for http4s-jetty.
 This incompatibility will be corrected in 0.20.23.</p>
 
-<h2 id="breaking-changes-56">Breaking changes</h2>
+<h2 id="breaking-changes-57">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3333">#3333</a>: Add Http2c support to jetty-server. This accidentally broke binary compatibility, and will be patched in v0.20.23.</li>
 </ul>
 
-<h2 id="bugfixes-30">Bugfixes</h2>
+<h2 id="bugfixes-31">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3326">#3326</a>: In <code>WebjarService</code>, do not use OS-specific directory separators</li>
@@ -2208,7 +2247,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This release is fully backward compatible with 0.21.2.</p>
 
-<h1 id="bugfixes-31">Bugfixes</h1>
+<h1 id="bugfixes-32">Bugfixes</h1>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3243">#3243</a>: Write ember-client request to socket before reading response</li>
@@ -2330,7 +2369,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This release is fully backward compatible with 0.20.18.</p>
 
-<h2 id="bugfixes-32">Bugfixes</h2>
+<h2 id="bugfixes-33">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3199">#3199</a>: When <code>Uri#withPath</code> is called without a slash and an authority is defined, add a slash to separate them.</li>
@@ -2351,7 +2390,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This release is fully backward compatible with 0.20.17.</p>
 
-<h2 id="bugfixes-33">Bugfixes</h2>
+<h2 id="bugfixes-34">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3178">#3178</a>: In <code>TomcatBuilder</code>, use the correct values for the <code>clientAuth</code> connector attribute.</li>
@@ -2413,7 +2452,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This release is binary incompatible with 0.21.0-RC2, but is source compatible.</p>
 
-<h2 id="breaking-changes-57">Breaking changes</h2>
+<h2 id="breaking-changes-58">Breaking changes</h2>
 
 <h3 id="binary">Binary</h3>
 
@@ -2425,7 +2464,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This release is binary incompatible with 0.21.0-RC2, but should be source compatible, with deprecations.</p>
 
-<h2 id="breaking-changes-58">Breaking changes</h2>
+<h2 id="breaking-changes-59">Breaking changes</h2>
 
 <h3 id="binary-1">Binary</h3>
 
@@ -2450,7 +2489,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 <li><a href="https://github.com/http4s/http4s/pull/3140">#3140</a>: Deprecate <code>JettyBuilder#withSSL</code>, to match <code>BlazeServerBuilder</code>. It&rsquo;s still necessary in Tomcat, which doesn&rsquo;t take a <code>ServletContext</code>.  Deprecate <code>SSLConfig</code>, <code>KeyStoreBits</code>, and <code>SSLContextBits</code>, which had already been removed from public API.</li>
 </ul>
 
-<h2 id="bugfixes-34">Bugfixes</h2>
+<h2 id="bugfixes-35">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3140">#3140</a>: In <code>TomcatBuilder</code>, fix mapping of <code>SSLClientAuthMode</code> to Tomcat&rsquo;s connector API.</li>
@@ -2472,7 +2511,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-21-0-rc2-2020-01-27">v0.21.0-RC2 (2020-01-27)</h1>
 
-<h2 id="breaking-changes-59">Breaking changes</h2>
+<h2 id="breaking-changes-60">Breaking changes</h2>
 
 <h3 id="binary-and-source">Binary and source</h3>
 
@@ -2493,7 +2532,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 <li><a href="https://github.com/http4s/http4s/pull/3087">#3087</a>: Deprecate the public http4s-testing module.  This was mostly Specs2 matchers, the majority of which block threads.  This is not to be confused with http4s-laws, which depends only on Discipline and is still maintained.</li>
 </ul>
 
-<h2 id="bugfixes-35">Bugfixes</h2>
+<h2 id="bugfixes-36">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3105">#3105</a>: Fix &ldquo;cannot have more than one pending write request&rdquo; error in blaze-server web sockets.</li>
@@ -2511,7 +2550,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This release is fully compatible with 0.20.16.</p>
 
-<h2 id="bugfixes-36">Bugfixes</h2>
+<h2 id="bugfixes-37">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3105">#3105</a>: Fix &ldquo;cannot have more than one pending write request&rdquo; error in blaze-server web sockets.</li>
@@ -2534,7 +2573,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-21-0-rc1-2020-01-21">v0.21.0-RC1 (2020-01-21)</h1>
 
-<h2 id="breaking-changes-60">Breaking changes</h2>
+<h2 id="breaking-changes-61">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3012">#3012</a>: Use <code>HttpApp</code> instead of <code>HttpRoutes</code> in <code>Http4sServlet</code>. The servlet builders themselves retain compatibility.</li>
@@ -2580,13 +2619,13 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-20-16-2020-01-21">v0.20.16 (2020-01-21)</h1>
 
-<h2 id="bugfixes-37">Bugfixes</h2>
+<h2 id="bugfixes-38">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3086">#3086</a>: Fix connection leak in blaze-client pool manager when the next request in the queue is expired.</li>
 </ul>
 
-<h2 id="breaking-changes-61">Breaking changes</h2>
+<h2 id="breaking-changes-62">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/3053">#3053</a>: Deprecate <code>HttpDate.now</code>, which is not referentially transparent. Prefer <code>HttpDate.current</code>.</li>
@@ -2711,7 +2750,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-21-0-m5-2019-09-19">v0.21.0-M5 (2019-09-19)</h1>
 
-<h2 id="breaking-changes-62">Breaking changes</h2>
+<h2 id="breaking-changes-63">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2815">#2815</a>: Allow <code>Allow</code> header to specify an empty set of methods.</li>
@@ -2750,7 +2789,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-20-11-2019-09-19">v0.20.11 (2019-09-19)</h1>
 
-<h2 id="breaking-changes-63">Breaking changes</h2>
+<h2 id="breaking-changes-64">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2792">#2792</a>: Drop support for Scala 2.13.0-M5. Users of Scala 2.13 should be on a stable release of Scala on the http4s-0.21 release series.</li>
@@ -2791,7 +2830,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-20-10-2019-08-14">v0.20.10 (2019-08-14)</h1>
 
-<h2 id="breaking-changes-64">Breaking changes</h2>
+<h2 id="breaking-changes-65">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2785">#2785</a>: Use <code>F[A]</code> instead of <code>G[A]</code> in the DSL&rsquo;s <code>EntityResponseGenerator</code>. This change is binary compatible, but not source compatible for users of <code>Http4sDsl2</code> where <code>F</code> is not <code>G</code>. This is uncommon.</li>
@@ -2822,7 +2861,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-21-0-m3-2019-08-02">v0.21.0-M3 (2019-08-02)</h1>
 
-<h2 id="breaking-changes-65">Breaking changes</h2>
+<h2 id="breaking-changes-66">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2572">#2572</a>: Make <code>Http1Stage</code> private to <code>org.http4s</code>, which we highly doubt anybody extended directly anyway.</li>
@@ -2910,7 +2949,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This release drops support for Scala 2.11 and adds the <code>http4s-ember-server</code> and <code>http4s-ember-client</code> backends.  Ember is new and experimental, but we intend for it to become the reference implementation.  Notably, it only requires a <code>Concurrent</code> constraint.</p>
 
-<h2 id="bugfixes-38">Bugfixes</h2>
+<h2 id="bugfixes-39">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2691">#2691</a>: Fix deadlock in client by releasing current connection before retrying in <code>Retry</code> client middleware.  The constraint is upgraded to <code>Concurrent</code>.</li>
@@ -2919,7 +2958,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2704">#2704</a>: Remove unused <code>Sync</code> constraint on <code>Part.formData</code>.</li>
 </ul>
 
-<h2 id="breaking-changes-66">Breaking changes</h2>
+<h2 id="breaking-changes-67">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2654">#2654</a>: Extract an http4s-laws module from http4s-testing, with no dependency on Specs2.  The arbitraries, laws, and tests are now laid out in a similar structure to cats and cats-effect.</li>
@@ -3008,7 +3047,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-21-0-m1-2019-06-17">v0.21.0-M1 (2019-06-17)</h1>
 
-<h2 id="breaking-changes-67">Breaking changes</h2>
+<h2 id="breaking-changes-68">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2565">#2565</a>: Change constraint on server <code>Metrics</code> from <code>Effect</code> to <code>Sync</code></li>
@@ -3217,13 +3256,13 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <p>This marks the end of active support for the 0.18 series.  Further releases in that series will require a pull request and an accompanying tale of woe.</p>
 
-<h2 id="breaking-changes-68">Breaking changes</h2>
+<h2 id="breaking-changes-69">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2506">#2506</a>: Raise <code>DecodeFailure</code> with <code>MonadError</code> in <code>Message#as</code> rather than relying on effect to catch in <code>fold</code>. Requires a new <code>MonadError</code> constraint.</li>
 </ul>
 
-<h2 id="bugfixes-39">Bugfixes</h2>
+<h2 id="bugfixes-40">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2502">#2502</a>: Stop relying on undefined behavior of <code>fold</code> to catch errors in client.</li>
@@ -3266,7 +3305,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-20-0-rc1-2019-04-03">v0.20.0-RC1 (2019-04-03)</h1>
 
-<h2 id="breaking-changes-69">Breaking changes</h2>
+<h2 id="breaking-changes-70">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2471">#2471</a>: <code>Headers</code> is no longer an <code>Iterable[Header]</code></li>
@@ -3302,7 +3341,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 </ul></li>
 </ul>
 
-<h2 id="bugfixes-40">Bugfixes</h2>
+<h2 id="bugfixes-41">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2470">#2470</a>: Don&rsquo;t wait indefinitely if a request timeout happens while borrowing a connection in blaze-client.</li>
@@ -3335,7 +3374,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-20-0-m7-2019-03-20">v0.20.0-M7 (2019-03-20)</h1>
 
-<h2 id="bugfixes-41">Bugfixes</h2>
+<h2 id="bugfixes-42">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2450">#2450</a>: Fix <code>CirceInstances.builder</code> initialization, which referenced unintialized eager vals.</li>
@@ -3402,7 +3441,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 
 <h1 id="v0-20-0-m6-2019-02-16">v0.20.0-M6 (2019-02-16)</h1>
 
-<h2 id="breaking-changes-70">Breaking changes</h2>
+<h2 id="breaking-changes-71">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2369">#2369</a>: Make <code>log</code> operation on logging middlewares return an <code>F[Unit]</code> to support pure logging.</li>
@@ -3414,7 +3453,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2419">#2419</a>: Relax constraint on <code>Retry</code> middleware from <code>Effect</code> to <code>Sync</code></li>
 </ul>
 
-<h2 id="bugfixes-42">Bugfixes</h2>
+<h2 id="bugfixes-43">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2421">#2421</a>: Fix buggy use of <code>toString</code> in async-http-client when rendering URIs.</li>
@@ -3485,7 +3524,7 @@ This incompatibility will be corrected in 0.20.23.</p>
 <p>Consider the blaze beta and all other modules RC quality. Don&rsquo;t forget
 there is a scalafix to assist migration from 0.18!</p>
 
-<h2 id="breaking-changes-71">Breaking changes</h2>
+<h2 id="breaking-changes-72">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2308">#2308</a>: Change <code>allocate</code> to <code>allocated</code> on backend builders for consistency with <code>cats.effect.Resource#allocated</code>.</li>
@@ -3532,7 +3571,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m4-2018-12-05">v0.20.0-M4 (2018-12-05)</h1>
 
-<h2 id="bugfixes-43">Bugfixes</h2>
+<h2 id="bugfixes-44">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2283">#2283</a>: Fix client metrics bug that decremented active requests and recorded time before the resource was released.</li>
@@ -3581,7 +3620,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m3-2018-11-13">v0.20.0-M3 (2018-11-13)</h1>
 
-<h2 id="breaking-changes-72">Breaking changes</h2>
+<h2 id="breaking-changes-73">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2228">#2228</a>: Support more attributes for the response cookie in <code>CSRF</code> middleware. Configuration is now done through a builder, similar to backends.</li>
@@ -3590,7 +3629,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2262">#2197</a>: Require <code>Signal</code> rather than <code>SignallingRef</code> in <code>serveWhile</code></li>
 </ul>
 
-<h2 id="bugfixes-44">Bugfixes</h2>
+<h2 id="bugfixes-45">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2260">#2260</a>: Fix leak in blaze-client on a canceled connection</li>
@@ -3636,7 +3675,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
 </ul>
 
-<h2 id="breaking-changes-73">Breaking changes</h2>
+<h2 id="breaking-changes-74">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2207">#2207</a>: Remove <code>PathNormalizer</code>. The functionality is now on <code>Uri.removeDotSegments</code>.</li>
@@ -3723,7 +3762,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <p>Due to the inadvertent release of 0.19.0, we have opened a new minor version.  The stable release with MiMa enforcement will be v0.20.0.</p>
 
-<h2 id="breaking-changes-74">Breaking changes</h2>
+<h2 id="breaking-changes-75">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2159">#2159</a>: Add a <code>responseHeaderTimeout</code> property to <code>BlazeServerBuilder</code>. Responses that timeout are completed with <code>Response.timeout</code>, which defaults to 503 Service Unavailable.  <code>BlazeServerBuilder</code> now requires a <code>Timer[F]</code>.</li>
@@ -3817,7 +3856,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m4-2018-10-05">v0.19.0-M4 (2018-10-05)</h1>
 
-<h2 id="breaking-changes-75">Breaking changes</h2>
+<h2 id="breaking-changes-76">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2137">#2137</a>: Remove <code>ExecutionContext</code> argument to jetty-client in favor of the <code>ContextShift[F]</code>.</li>
@@ -3879,7 +3918,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m3-2018-09-27">v0.19.0-M3 (2018-09-27)</h1>
 
-<h2 id="breaking-changes-76">Breaking changes</h2>
+<h2 id="breaking-changes-77">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2081">#2081</a>: Remove <code>OkHttp</code> code redundant with <code>OkHttpBuilder</code>.</li>
@@ -3922,7 +3961,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="bugfixes-45">Bugfixes</h2>
+<h2 id="bugfixes-46">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2069">#2069</a>: Add proper <code>withMaxTotalConnections</code> method to <code>BlazeClientBuilder</code> in place of misnamed <code>withIdleTimeout</code> overload.</li>
@@ -4001,7 +4040,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m2-2018-09-07">v0.19.0-M2 (2018-09-07)</h1>
 
-<h2 id="breaking-changes-77">Breaking changes</h2>
+<h2 id="breaking-changes-78">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1802">#1802</a>: Race servlet requests against the <code>AsyncContext.timeout</code>. <code>JettyBuilder</code> and <code>TomcatBuilder</code> now require a <code>ConcurrentEffect</code> instance.</li>
@@ -4111,7 +4150,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2062">#2062</a>: Eliminate &ldquo;unhandled inbund command: Disconnected&rdquo;` warnings in blaze-server</li>
 </ul>
 
-<h2 id="bugfixes-46">Bugfixes</h2>
+<h2 id="bugfixes-47">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2024">#2027</a>: Miscellaneous websocket fixes
@@ -5939,7 +5978,7 @@ connections instead of maximum idle connections.</li>
 
 <h1 id="v0-6-0-2015-01-27">v0.6.0 (2015-01-27)</h1>
 
-<h2 id="http4s-core-16">http4s-core</h2>
+<h2 id="http4s-core-18">http4s-core</h2>
 
 <ul>
 <li>Remove ResponseBuilder in favor of Response companion.</li>
