@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.data.{Kleisli, OptionT}
-import cats.{Applicative, Defer, Monad}
+import cats.{Applicative, Monad}
 import cats.syntax.all._
 
 object ContextRoutes {
@@ -32,8 +32,8 @@ object ContextRoutes {
     * @return an [[ContextRoutes]] that wraps `run`
     */
   def apply[T, F[_]](run: ContextRequest[F, T] => OptionT[F, Response[F]])(implicit
-      F: Defer[F]): ContextRoutes[T, F] =
-    Kleisli(req => OptionT(F.defer(run(req).value)))
+      F: Monad[F]): ContextRoutes[T, F] =
+    Kleisli(req => OptionT(F.unit >> run(req).value))
 
   /** Lifts a partial function into an [[ContextRoutes]].  The application of the
     * partial function is suspended in `F` to permit more efficient combination

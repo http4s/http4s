@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats._
+import cats.syntax.all._
 import cats.data.Kleisli
 
 /** Functions for creating [[Http]] kleislis. */
@@ -31,8 +32,8 @@ object Http {
     * @param run the function to lift
     * @return an [[Http]] that suspends `run`.
     */
-  def apply[F[_], G[_]](run: Request[G] => F[Response[G]])(implicit F: Defer[F]): Http[F, G] =
-    Kleisli(req => F.defer(run(req)))
+  def apply[F[_], G[_]](run: Request[G] => F[Response[G]])(implicit F: Monad[F]): Http[F, G] =
+    Kleisli(req => F.unit >> run(req))
 
   /** Lifts an effectful [[Response]] into an [[Http]] kleisli.
     *
@@ -66,6 +67,6 @@ object Http {
     * being applied to `fa`
     */
   def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(implicit
-      F: Defer[F]): Http[F, G] =
-    Kleisli(req => F.defer(fa.run(f(req))))
+      F: Monad[F]): Http[F, G] =
+    Kleisli(req => F.unit >> fa.run(f(req)))
 }
