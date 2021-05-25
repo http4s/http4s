@@ -50,7 +50,7 @@ object StaticFile {
   ): OptionT[F, Response[F]] =
     fromPath(Path(url), req)
 
-  def fromResource[F[_]: Sync](
+  def fromResource[F[_]: Sync: Files](
       name: String,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
@@ -90,9 +90,13 @@ object StaticFile {
       )
   }
 
-  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit
-      F: Sync[F]
-  ): OptionT[F, Response[F]] = {
+  def fromURL[F[_]: Sync: Files](
+      url: URL,
+      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+    fromURL(url, req, calcETag[F])
+
+  def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: File => F[String])(implicit
+      F: Sync[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
     OptionT.apply(F.defer {
@@ -106,29 +110,30 @@ object StaticFile {
         val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
         if (expired) {
-          val len = urlConn.getContentLengthLong
-          val headers = Headers(
-            lastmod.map(`Last-Modified`(_)),
-            nameToContentType(url.getPath),
-            if (len >= 0) `Content-Length`.unsafeFromLong(len)
-            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]),
-          )
-
-          F.blocking(urlConn.getInputStream)
-            .redeem(
-              recover = {
-                case _: FileNotFoundException => None
-                case other => throw other
-              },
-              f = { inputStream =>
-                Some(
-                  Response(
-                    headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize),
-                  )
-                )
-              },
+          etagCalculator(file).map(ETag(_)).flatMap { etag =>
+            val len = urlConn.getContentLengthLong
+            val headers = Headers(
+              lastmod.map(`Last-Modified`(_)),
+              nameToContentType(url.getPath),
+              etag,
+              if (len >= 0) `Content-Length`.unsafeFromLong(len)
+              else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
             )
+            F.blocking(urlConn.getInputStream)
+              .redeem(
+                recover = {
+                  case _: FileNotFoundException => None
+                  case other => throw other
+                },
+                f = { inputStream =>
+                  Some(
+                    Response(
+                      headers = headers,
+                      body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
+                    ))
+                }
+              )
+          }
         } else
           F.blocking(urlConn.getInputStream.close())
             .handleError(_ => ())
