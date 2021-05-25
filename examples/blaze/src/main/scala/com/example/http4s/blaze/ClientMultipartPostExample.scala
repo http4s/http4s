@@ -21,7 +21,7 @@ import java.net.URL
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.client.Client
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._

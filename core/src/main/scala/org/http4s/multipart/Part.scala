@@ -40,8 +40,8 @@ object Part {
 
   @deprecated(
     """Empty parts are not allowed by the multipart spec, see: https://tools.ietf.org/html/rfc7578#section-4.2
-       Moreover, it allows the creation of potentially incorrect multipart bodies
-    """.stripMargin,
+
+Moreover, it allows the creation of potentially incorrect multipart bodies""",
     "0.18.12"
   )
   def empty[F[_]]: Part[F] =

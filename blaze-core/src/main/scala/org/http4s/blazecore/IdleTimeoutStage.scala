@@ -18,10 +18,10 @@ package org.http4s
 package blazecore
 
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.{AtomicReference}
+import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
-import org.log4s.getLogger
+import org.http4s.blaze.util.{Cancelable, Execution, TickWheelExecutor}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
 
@@ -30,7 +30,6 @@ final private[http4s] class IdleTimeoutStage[A](
     exec: TickWheelExecutor,
     ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
-  private[this] val logger = getLogger
 
   @volatile private var cb: Callback[TimeoutException] = null
 
@@ -47,10 +46,8 @@ final private[http4s] class IdleTimeoutStage[A](
     }
   }
 
-  override def readRequest(size: Int): Future[A] = {
-    resetTimeout()
-    channelRead(size)
-  }
+  override def readRequest(size: Int): Future[A] =
+    channelRead(size).andThen { case _ => resetTimeout() }(Execution.directec)
 
   override def writeRequest(data: A): Future[Unit] = {
     resetTimeout()

@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import java.util.concurrent.TimeoutException
 import scala.concurrent.duration.DurationLong
 
 package object client extends ClientTypes {
@@ -32,3 +33,6 @@ trait ClientTypes {
 
   type Middleware[F[_]] = Client[F] => Client[F]
 }
+
+case object WaitQueueTimeoutException
+    extends TimeoutException("In wait queue for too long, timing out request.")

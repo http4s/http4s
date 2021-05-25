@@ -20,10 +20,10 @@ import cats.effect._
 import com.codahale.metrics.{Timer => _, _}
 import com.example.http4s.ExampleService
 import org.http4s.HttpApp
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.metrics.dropwizard._
 import org.http4s.server.{HttpMiddleware, Router, Server}
-import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.Metrics
 import scala.concurrent.ExecutionContext.global
 

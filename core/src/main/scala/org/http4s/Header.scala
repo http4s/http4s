@@ -5,6 +5,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
 import org.http4s.util.{Renderer, Writer}
+import cats.data.Ior
 
 /** Typeclass representing an HTTP header, which all the http4s
   * default headers satisfy.
@@ -116,6 +117,11 @@ object Header {
         val values = List(Header.Raw(CIString(kv._1), kv._2))
       }
 
+    implicit def headersToRaw(h: Headers): Header.ToRaw =
+      new Header.ToRaw {
+        val values = h.headers
+      }
+
     implicit def modelledHeadersToRaw[H](h: H)(implicit
         H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
@@ -141,11 +147,14 @@ object Header {
 
     /** Transform this header into a [[Header.Raw]]
       */
-    def toRaw(a: A): Header.Raw
+    def toRaw1(a: A): Header.Raw
+
+    /** Transform this (potentially repeating) header into a [[Header.Raw]] */
+    def toRaw(a: F[A]): NonEmptyList[Header.Raw]
 
     /** Selects this header from a list of [[Header.Raw]]
       */
-    def from(headers: List[Header.Raw]): Option[F[A]]
+    def from(headers: List[Header.Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]]
   }
   trait LowPrio {
     implicit def recurringHeadersNoMerge[A](implicit
@@ -153,27 +162,41 @@ object Header {
       new Select[A] {
         type F[B] = NonEmptyList[B]
 
-        def toRaw(a: A): Header.Raw =
+        def toRaw1(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
 
-        def from(headers: List[Header.Raw]): Option[NonEmptyList[A]] =
-          headers.collect(Function.unlift(Select.fromRaw(_))).toNel
+        def toRaw(as: F[A]): NonEmptyList[Header.Raw] =
+          as.map(a => Header.Raw(h.name, h.value(a)))
+
+        def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]] =
+          headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]) {
+            (a, raw) =>
+              Select.fromRaw(raw) match {
+                case Some(aa) => a |+| aa.bimap(NonEmptyList.one, NonEmptyList.one).some
+                case None => a
+              }
+          }
       }
   }
   object Select extends LowPrio {
-    def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[A] =
-      (h.name == Header[A].name).guard[Option] >> Header[A].parse(h.value).toOption
+    type Aux[A, G[_]] = Select[A] { type F[B] = G[B] }
+
+    def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[Ior[ParseFailure, A]] =
+      (h.name == Header[A].name).guard[Option].as(Header[A].parse(h.value).toIor)
 
     implicit def singleHeaders[A](implicit
         h: Header[A, Header.Single]): Select[A] { type F[B] = B } =
       new Select[A] {
         type F[B] = B
 
-        def toRaw(a: A): Header.Raw =
+        def toRaw1(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
 
-        def from(headers: List[Header.Raw]): Option[A] =
-          headers.collectFirst(Function.unlift(fromRaw(_)))
+        def toRaw(a: A): NonEmptyList[Header.Raw] =
+          NonEmptyList.one(toRaw1(a))
+
+        def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
+          headers.collectFirst(Function.unlift(fromRaw(_).map(_.leftMap(NonEmptyList.one))))
       }
 
     implicit def recurringHeadersWithMerge[A: Semigroup](implicit
@@ -181,13 +204,16 @@ object Header {
       new Select[A] {
         type F[B] = B
 
-        def toRaw(a: A): Header.Raw =
+        def toRaw1(a: A): Header.Raw =
           Header.Raw(h.name, h.value(a))
 
-        def from(headers: List[Header.Raw]): Option[A] =
-          headers.foldLeft(Option.empty[A]) { (a, raw) =>
+        def toRaw(a: A): NonEmptyList[Header.Raw] =
+          NonEmptyList.one(toRaw1(a))
+
+        def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
+          headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], F[A]]]) { (a, raw) =>
             fromRaw(raw) match {
-              case Some(aa) => a |+| aa.some
+              case Some(aa) => a |+| aa.leftMap(NonEmptyList.one).some
               case None => a
             }
           }

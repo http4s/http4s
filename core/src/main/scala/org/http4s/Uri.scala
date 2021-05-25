@@ -16,7 +16,7 @@ import cats.kernel.Semigroup
 import cats.parse.{Parser0, Parser => P}
 import cats.syntax.all._
 import com.comcast.ip4s
-import java.net.{Inet4Address, Inet6Address}
+import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.charset.StandardCharsets
@@ -654,7 +654,7 @@ object Uri extends UriPlatform {
     def toByteArray: Array[Byte] =
       address.toBytes
 
-    def toInet6Address: Inet6Address =
+    def toInetAddress: InetAddress =
       address.toInetAddress
 
     def value: String =

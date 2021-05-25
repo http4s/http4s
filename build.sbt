@@ -5,22 +5,22 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, scala_3)
+ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
-ThisBuild / baseVersion := "0.22"
+ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
 ThisBuild / githubWorkflowBuild := Seq(
       // todo remove once salafmt properly supports scala3
-      WorkflowStep
-        .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
+      WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
       WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
       WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
       WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-      WorkflowStep.Sbt(
-        List("unusedCompileDependenciesTest"),
-        name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
+      // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
+      // WorkflowStep.Sbt(
+        // List("unusedCompileDependenciesTest"),
+        // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
       WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
       WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
     )
@@ -43,8 +43,6 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 enablePlugins(SonatypeCiReleasePlugin)
 
 versionIntroduced := Map(
-  // There is, and will hopefully not be, an 0.22.0. But this hushes
-  // MiMa for now while we bootstrap Dotty support.
   scala_3 -> "0.22.0",
 )
 
@@ -230,7 +228,6 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
       dropwizardMetricsJson,
-      jacksonDatabind,
     ))
   .dependsOn(
     core % "compile->compile",
@@ -298,8 +295,17 @@ lazy val blazeClient = libraryProject("blaze-client")
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.canEqual"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productArity"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productElement"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productElementName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productElementNames"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productIterator"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productPrefix"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.reset"),
+      ProblemFilters.exclude[FinalMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.toString"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.blaze.Http1Connection$Running$"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.client.blaze.Http1Connection$Idle$"),
     ),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
@@ -350,6 +356,7 @@ lazy val servlet = libraryProject("servlet")
       javaxServletApi % Provided,
       Http4sPlugin.jettyServer % Test,
       jettyServlet % Test,
+      Http4sPlugin.asyncHttpClient % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
@@ -403,7 +410,7 @@ lazy val boopickle = libraryProject("boopickle")
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.withDottyCompat(scalaVersion.value),
+      Http4sPlugin.boopickle.cross(CrossVersion.for3Use2_13)
     ),
     compile / skip := isDotty.value,
     publish / skip := isDotty.value
@@ -427,7 +434,7 @@ lazy val playJson = libraryProject("play-json")
     description := "Provides Play json codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.playJson.withDottyCompat(scalaVersion.value),
+      Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
     ),
     publish / skip := isDotty.value,
     compile / skip := isDotty.value
@@ -452,7 +459,7 @@ lazy val twirl = http4sProject("twirl")
     libraryDependencies := {
       libraryDependencies.value.map {
         case module if module.name == "twirl-api" =>
-          module.withDottyCompat(scalaVersion.value)
+          module.cross(CrossVersion.for3Use2_13)
         case module => module
       }
     },
@@ -466,7 +473,7 @@ lazy val scalatags = http4sProject("scalatags")
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      scalatagsApi.withDottyCompat(scalaVersion.value),
+      scalatagsApi.cross(CrossVersion.for3Use2_13)
     ),
     publish / skip := isDotty.value
   )
@@ -582,7 +589,6 @@ lazy val examples = http4sProject("examples")
   // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
-  .enablePlugins(AlpnBootPlugin)
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",

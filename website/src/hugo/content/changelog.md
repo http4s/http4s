@@ -8,6 +8,238 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M23
+
+Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap.
+
+# v0.23.0-RC1
+
+Includes the changes of v0.22.0-RC1.
+
+## http4s-core
+
+### Noteworthy refactoring
+
+* [#4773](https://github.com/http4s/http4s/pull/4787): Refactor the internals of the `Multipart` parser.
+
+# v0.22.0-RC1
+
+## http4s-core
+
+### Breaking changes
+
+* [#4787](https://github.com/http4s/http4s/pull/4787): Various header selection refinements:
+  * `Header.Select#toRaw` now takes an `F[A]` and returns a `NonEmptyList[Header.Raw]`. This is necessary because headers without a `Semigroup` (e.g., `Set-Cookie`) can't be combined into a single header value.
+  * The old `Header.Select#toRaw` is renamed to `toRaw1`.  This version still accepts a single value and returns a single raw header.
+  * `Header.Select#from` now returns an `Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]`. The `Ior` lets us return both a value and "warnings" when a repeating header contains both valid and invalid entries.
+  * Add `Headers#getWithWarnings` to return the `Ior` result.
+
+## Dependency updates
+
+* play-json-2.9.2 (downgrade)
+
+### Bugfixes
+
+* [#4873](https://github.com/http4s/http4s/pull/4873): Catch exceptions in `ParseResult.fromParser`. Don't throw when parsing a media range in the `Content-Type` parser.
+
+# v1.0.0-M22 (2021-05-21)
+
+Functionally equivalent to v0.23.0-M1.  Keeps the 1.0 milestones current as we continue our roadmap.
+
+# v0.23.0-M1 (2021-05-21)
+
+We are opening an 0.23 series to offer full support for Scala 3 and Cats-Effect 3 while giving ourselves a bit more time to finish our more ambitious goals for 1.0.  We will release v0.23.0 with production support as soon as circe-0.14 is out.
+
+This release picks up from v1.0.0-M21 with its Cats-Effect 3 support, and includes all improvements from v0.22.0-M8.
+
+## Documentation
+
+* [#4845](https://github.com/http4s/http4s/pull/4845): Mention `Client.fromHttpApp`
+
+## Dependency updates
+
+* cats-effect-3.1.0
+* fs2-3.0.4
+* ip4s-3.0.2
+* jawn-fs2-2.0.2
+* keypool-0.4.5
+* log4cats-2.1.1
+* scalacheck-effect-1.0.2
+* vault-3.0.3
+
+# v0.22.0-M8 (2021-05-21)
+
+Includes the changes of v0.21.23.  This is the first release with support for Scala 3.0.0.  We will release v0.22.0 with production support as circe-0.14 is out.
+
+There are several package renames in the backends.  To help, we've provided a Scalafix:
+
+1. Add to your `projects/plugins.sbt`:
+
+   ```scala
+   addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.28")
+   ```
+
+2. Run the following:
+
+   ```sh
+   sbt ";scalafixEnable; scalafix github:http4s/http4s/v0_22"
+   ```
+
+## Crossbuilds
+
+* Adds Scala 3
+* Drops Scala-3.0.0-RC2
+
+## http4s-async-http-client
+
+### Breaking changes
+
+* [#4854](https://github.com/http4s/http4s/pull/485)4: Rename package from `org.http4s.client.asynchttpclient` to `org.http4s.asynchttpclient`
+
+## http4s-client
+
+### Breaking changes
+
+* [#4747](https://github.com/http4s/http4s/pull/4747): Move `ConnectionManager`, `PoolManager`, and `WaitQueueTimeoutException` into blaze-client and make private. It did not prove to be a generally useful connection pool outside blaze.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4757](https://github.com/http4s/http4s/pull/4757): Response is no longer a case class. It is not a proper product type, and no equality should be implied given the streaming bodies.
+
+### Bug fixes
+
+* [#4739](https://github.com/http4s/http4s/pull/4739): Postpone using query model until we need it.  Helps with various corner cases linked in the ticket.
+* [#4756](https://github.com/http4s/http4s/pull/4756): Tweak default `responseColor` of `Logger.colored` so it can be called.
+* [#4824](https://github.com/http4s/http4s/pull/4824): Fix `Message#removeCookie` to allow removing multiple cookies.
+
+### Enhancements
+
+* [#4797](https://github.com/http4s/http4s/pull/4797): Add `Header.ToRaw[Headers]` instance
+
+## http4s-blaze-client
+
+### Breaking changes
+
+* [#4838](https://github.com/http4s/http4s/pull/4838): Rename package from `org.http4s.client.blaze` to `org.http4s.blaze.client`
+
+## http4s-blaze-server
+
+### Breaking changes
+
+* [#4847](https://github.com/http4s/http4s/pull/4847): Rename package from `org.http4s.server.blaze` to `org.http4s.blaze.server`
+
+## http4s-jetty-client
+
+### Breaking changes
+
+* [#4743](https://github.com/http4s/http4s/pull/4743): Rename package from `org.http4s.client.jetty` to `org.http4s.jetty.client`
+
+## http4s-jetty-server
+
+### Breaking changes
+
+* [#4743](https://github.com/http4s/http4s/pull/4743): Rename package from `org.http4s.server.jetty` to `org.http4s.jetty.server`
+* [#4746](https://github.com/http4s/http4s/pull/4746): Module renamed from `http4s-jetty` to `http4s-jetty-server`.
+
+## http4s-server
+
+### Breaking changes
+
+* [#4785](https://github.com/http4s/http4s/pull/4785): Remove unsued `Functor[G]` parameter to `AutoSlash` middleware
+* [#4827](https://github.com/http4s/http4s/pull/4827): Convert `CORSConfig` from a case class to an abstract type for future binary compatibility
+
+## Dependency updates
+
+* blaze-0.15.0
+* cats-parse-0.3.4
+* case-insensitive-1.1.4
+* circe-0.14.0-M7
+* ip4s-2.0.3
+* jawn-1.1.2
+* jawn-fs2-1.1.3
+* keypool-0.3.5
+* literally-1.0.2
+* log4cats-1.3.1
+* log4s-1.10.0-M7
+* scala-xml-2.0.0
+* vault-2.1.13
+
+# v0.21.23 (2021-05-16)
+
+This is the final planned release in the 0.21 series.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4810](https://github.com/http4s/http4s/pull/4810): Read from idle blaze-client connections to prevent retaining (and trying to use) half-closed connections.
+* [#4812](https://github.com/http4s/http4s/pull/4812): Remove request retry on EOF from blaze-client. This could theoretically resubmit non-idempotent requests. The problem the retry attempted to solve is mitigated by #4810.
+* [#4815](https://github.com/http4s/http4s/pull/4815): Fix "`IdleTimeoutStage` isn't connected" errors by waiting for the final write to finish before returning the connection to the pool.
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#4796](https://github.com/http4s/http4s/pull/4796): Reset the idle timeout after `readRequest` completes, not when it's called.  Affects both blaze-server and blaze-client.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#4753](https://github.com/http4s/http4s/pull/4753): Distinguish between reserved and unknown websocket frame opcodes. Resolves a `MatchError`.
+* [#4792](https://github.com/http4s/http4s/pull/4792): Fixes HTTP/2 connections on modern JDKs by replacing legacy ALPN libraries.
+* [#4796](https://github.com/http4s/http4s/pull/4796): Reset idle timeout when `readRequest` completes, not when it's called.
+
+### Enhancements
+
+* [#4761](https://github.com/http4s/http4s/pull/4761): Use the `TickWheelExecutor` to schedule timeouts with less locking.  Change how the parser is acquired to reduce lock contention in `Http1ServerStage`.  Significant increases in throughput are observed on small requests with many cores.
+
+## http4s-circe
+
+### Enhancements
+
+* [#4736](https://github.com/http4s/http4s/pull/4736): Add `streamJsonArrayDecoder`
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#4735](https://github.com/http4s/http4s/pull/4735): Simplify message parsing by parsing everything up to the `\r\n` in one pass. The max header size and max prelude size settings should keep memory consumption limited.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#4750](https://github.com/http4s/http4s/pull/4750): Drain the socket's read buffer only after the response is written to the socket. Resolves several flavors of network error.
+* [#4823](https://github.com/http4s/http4s/pull/4823): Implement persistent connection logic for HTTP/1.0 requests.
+
+## http4s-jetty
+
+### Bugfixes
+
+* [#4783](https://github.com/http4s/http4s/pull/4783): Fix bug with shared `ThreadPool` being destroyed. Prefer a `Resource[F, ThreadPool]` whose lifecycle shares Jetty's.  For compatibility, prevent the default from being destroyed.
+
+## http4s-server
+
+### Enhancements
+
+* [#4793](https://github.com/http4s/http4s/pull/4793): Make use of IPv4 vs. IPv6 as default address explicit. Applies to all backends.
+
+## Dependency updates
+
+* blaze-0.14.16
+* cats-2.6.1
+* cats-effect-2.5.1
+* dropwizard-metrics-4.2.0
+* discipline-core-1.1.5
+* jackson-databind-2.12.3
+* fs2-2.5.6
+* scalacheck-1.15.4
+* scodec-bits-1.1.27
+* tomcat-9.0.46
+
 # v1.0.0-M21 (2021-04-10)
 
 Contains all the changes of v0.22.0-M7.

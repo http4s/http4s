@@ -64,7 +64,7 @@ class HeadersSpec extends Http4sSuite {
     val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2"))
     val hs = Headers(clength) ++ Headers(h1, h2)
     assertEquals(hs.headers.count(_.name == `Set-Cookie`.name), 2)
-    assertEquals(hs.headers.exists(_ == clength.toRaw), true)
+    assertEquals(hs.headers.exists(_ == clength.toRaw1), true)
   }
 
   // TODO this isn't really "raw headers" anymore
@@ -97,6 +97,14 @@ class HeadersSpec extends Http4sSuite {
     assert(!h1.equals(h3))
     assert(!h3.equals(h4))
     assert(h3.equals(h5))
+  }
+
+  test("Headers as ToRaw") {
+    val headers: Headers = Headers(
+      Cookie(RequestCookie("foo", "bar")),
+      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString)
+    )
+    assertEquals(Headers.apply(headers), headers)
   }
 
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)

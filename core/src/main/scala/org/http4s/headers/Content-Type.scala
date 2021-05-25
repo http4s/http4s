@@ -30,14 +30,12 @@ object `Content-Type` {
     ParseResult.fromParser(parser, "Invalid Content-Type header")(s)
 
   private[http4s] val parser: Parser[`Content-Type`] =
-    (MediaRange.parser ~ MediaRange.mediaTypeExtensionParser.rep0).map {
+    (MediaRange.parser ~ MediaRange.mediaTypeExtensionParser.rep0).flatMap {
       case (range: MediaRange, exts: Seq[(String, String)]) =>
-        val mediaType = range match {
-          case m: MediaType => m
+        val mediaTypeParser = range match {
+          case m: MediaType => Parser.pure(m)
           case _ =>
-            throw new ParseFailure(
-              "Invalid Content-Type header",
-              "Content-Type header doesn't support media ranges")
+            Parser.failWith("Content-Type header doesn't support media ranges")
         }
 
         val (ext, charset) =
@@ -47,7 +45,9 @@ object `Content-Type` {
               else (ext + p, charset)
           }
 
-        `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
+        mediaTypeParser.map { mediaType =>
+          `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
+        }
     }
 
   implicit val headerInstance: Header[`Content-Type`, Header.Single] =
