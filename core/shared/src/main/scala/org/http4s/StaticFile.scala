@@ -143,6 +143,14 @@ object StaticFile {
   }
 
   @deprecated("Use calculateETag", "0.23.5")
+  private def calcETagURL[F[_]](implicit F: Sync[F]): URL => F[ETag] = url => {
+    val urlConn = url.openConnection
+    for {
+      lastModified <- F.blocking(urlConn.getLastModified.toHexString)
+      contentLength <- F.blocking(urlConn.getContentLengthLong.toHexString)
+    } yield ETag(s"$lastModified-$contentLength")
+  }
+
   def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
       Files[F]
@@ -160,15 +168,6 @@ object StaticFile {
             s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}"
           else ""
         )
-
-  @deprecated("Use fromPath", "0.23.5")
-  def calcETagURL[F[_]: Sync]: URL => F[ETag] = url => {
-    val urlConn = url.openConnection
-    for {
-      lastModified <- F.blocking(urlConn.getLastModified.toHexString)
-      contentLength <- F.blocking(urlConn.getContentLength.toHexString)
-    } yield ETag(s"$lastModified-$contentLength")
-  }
 
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
