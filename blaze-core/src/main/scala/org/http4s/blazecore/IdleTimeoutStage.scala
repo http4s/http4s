@@ -25,6 +25,7 @@ import org.log4s.getLogger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
+import scala.util.control.NonFatal
 
 final private[http4s] class IdleTimeoutStage[A](
     timeout: FiniteDuration,
@@ -83,7 +84,7 @@ final private[http4s] class IdleTimeoutStage[A](
       case r: RuntimeException if r.getMessage == "TickWheelExecutor is shutdown" =>
         logger.warn(s"Resetting timeout after tickwheelexecutor is shutdown")
         cancelTimeout()
-      case e => throw e
+      case NonFatal(e) => throw e
     }
 
   private def cancelTimeout(): Unit =
