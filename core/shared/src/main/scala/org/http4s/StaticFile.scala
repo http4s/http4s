@@ -164,7 +164,10 @@ object StaticFile {
   @deprecated("Use fromPath", "0.23.5")
   def calcETagURL[F[_]: Sync]: URL => F[ETag] = url => {
     val urlConn = url.openConnection
-    ETag(s"${urlConn.getLastModified.toHexString}-${urlConn.getContentLengthLong.toHexString}").pure
+    for {
+      lastModified <- F.blocking(urlConn.getLastModified.toHexString)
+      contentLength <- F.blocking(urlConn.getContentLength.toHexString)
+    } yield ETag(s"$lastModified-$contentLength")
   }
 
   def fromFile[F[_]: Files: MonadThrow](
