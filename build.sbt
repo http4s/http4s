@@ -276,6 +276,8 @@ lazy val emberClient = libraryProject("ember-client")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.requestKeyToSocketWithKey"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.requestToSocketWithKey"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
