@@ -78,7 +78,13 @@ final private[http4s] class IdleTimeoutStage[A](
   }
 
   private def resetTimeout(): Unit =
-    setAndCancel(exec.schedule(killSwitch, ec, timeout))
+    try setAndCancel(exec.schedule(killSwitch, ec, timeout))
+    catch {
+      case r: RuntimeException if r.getMessage == "TickWheelExecutor is shutdown" =>
+        logger.warn(s"Resetting timeout after tickwheelexecutor is shutdown")
+        cancelTimeout()
+      case e => throw e
+    }
 
   private def cancelTimeout(): Unit =
     setAndCancel(NoOpCancelable)
