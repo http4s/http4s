@@ -107,11 +107,9 @@ final class EmberClientBuilder[F[_]: Async] private (
 
   def build: Resource[F, Client[F]] =
     for {
-      sg <- sgOpt.fold(Network.forAsync.socketGroup())(_.pure[Resource[F, *]])
+      sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
       tlsContextOptWithDefault <- Resource.eval(
-        tlsContextOpt
-          .fold(TLSContext.Builder.forAsync.system.attempt.map(_.toOption))(_.some.pure[F])
-      )
+        tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F]))
       builder =
         KeyPoolBuilder
           .apply[F, RequestKey, EmberConnection[F]](
