@@ -80,9 +80,9 @@ object StaticFile {
   def fromURL[F[_]: Sync: Files](
       url: URL,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromURL(url, req, calcETag[F])
+    fromURL(url, req, calcETagURL[F])
 
-  def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: File => F[String])(implicit
+  def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: URL => F[ETag])(implicit
       F: Sync[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
@@ -97,7 +97,7 @@ object StaticFile {
         val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
         if (expired) {
-          etagCalculator(file).map(ETag(_)).flatMap { etag =>
+          etagCalculator(url).flatMap { etag =>
             val len = urlConn.getContentLengthLong
             val headers = Headers(
               lastmod.map(`Last-Modified`(_)),
@@ -135,6 +135,11 @@ object StaticFile {
         .isFile(f.toPath())
         .map(isFile =>
           if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+
+  def calcETagURL[F[_]: Sync]: URL => F[ETag] = url => {
+    val urlConn = url.openConnection
+    ETag(s"${urlConn.getLastModified.toHexString}-${urlConn.getContentLengthLong.toHexString}").pure
+  }
 
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
