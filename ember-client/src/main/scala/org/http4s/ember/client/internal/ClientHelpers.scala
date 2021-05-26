@@ -42,6 +42,7 @@ private[client] object ClientHelpers {
   def requestToSocketWithKey[F[_]: Concurrent: ContextShift](
       request: Request[F],
       tlsContextOpt: Option[TLSContext],
+      enableEndpointValiation: Boolean,
       sg: SocketGroup,
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] = {
@@ -49,6 +50,7 @@ private[client] object ClientHelpers {
     requestKeyToSocketWithKey[F](
       requestKey,
       tlsContextOpt,
+      enableEndpointValiation,
       sg,
       additionalSocketOptions
     )
@@ -57,6 +59,7 @@ private[client] object ClientHelpers {
   def requestKeyToSocketWithKey[F[_]: Concurrent: ContextShift](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext],
+      enableEndpointValiation: Boolean,
       sg: SocketGroup,
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] =
@@ -73,7 +76,11 @@ private[client] object ClientHelpers {
             tlsContext
               .client(
                 initSocket,
-                TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
+                TLSParameters(
+                  serverNames = Some(List(new SNIHostName(address.getHostName))),
+                  endpointIdentificationAlgorithm =
+                    if (enableEndpointValiation) Some("HTTPS") else None)
+              )
               .widen[Socket[F]]
           }
         else initSocket.pure[Resource[F, *]]
