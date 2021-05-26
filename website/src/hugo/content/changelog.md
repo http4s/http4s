@@ -8,7 +8,9 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.0-RC1
+# v0.22.0-RC1 (2021-05-26)
+
+Includes the changes of 0.21.24, including the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
 
 ## http4s-core
 
