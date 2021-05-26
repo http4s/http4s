@@ -35,7 +35,13 @@ it.
 
 0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
 
+Contains a vulnerability fix for `StaticFile.fromUrl`.
+
 ## http4s-blaze-core
+
+### Vulnerability fixes
+
+* [GHSA-6h7w-fc84-x7p6](https://github.com/http4s/http4s/security/advisories/GHSA-6h7w-fc84-x7p6): Don't leak the existence of a directory serverside when using `StaticFile.fromUrl` with non-file URLs.
 
 ### Enhancements
 
