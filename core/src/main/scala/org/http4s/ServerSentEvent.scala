@@ -29,11 +29,11 @@ final case class ServerSentEvent(
     eventType: Option[String] = None,
     id: Option[EventId] = None,
     retry: Option[Long] = None,
-    comments: Option[String] = None,
+    comment: Option[String] = None,
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
     data.foreach (writer << "data: " << _ << "\n")
-    comments.foreach (writer << ": " << _ << "\n")
+    comment.foreach (writer << ": " << _ << "\n")
     eventType.foreach(writer << "event: " << _ << "\n")
     id match {
       case None =>
@@ -80,11 +80,11 @@ object ServerSentEvent {
         eventType: Option[String],
         id: Option[EventId],
         retry: Option[Long],
-        comments: LineBuffer,
+        commentBuffer: LineBuffer,
         stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
       //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
       def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
-        val sse = ServerSentEvent(dataBuffer.reify, eventType, id, retry, comments.reify)
+        val sse = ServerSentEvent(dataBuffer.reify, eventType, id, retry, commentBuffer.reify)
         Pull.output1(sse) >> go(emptyBuffer, None, None, None, emptyBuffer, stream)
       }
 
@@ -94,19 +94,19 @@ object ServerSentEvent {
           stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
         field match {
           case "" =>
-            go(dataBuffer, eventType, id, retry, comments.append(value), stream)
+            go(dataBuffer, eventType, id, retry, commentBuffer.append(value), stream)
           case "event" =>
-            go(dataBuffer, Some(value), id, retry, comments, stream)
+            go(dataBuffer, Some(value), id, retry, commentBuffer, stream)
           case "data" =>
-            go(dataBuffer.append(value), eventType, id, retry, comments, stream)
+            go(dataBuffer.append(value), eventType, id, retry, commentBuffer, stream)
           case "id" =>
             val newId = EventId(value)
-            go(dataBuffer, eventType, Some(newId), retry, comments, stream)
+            go(dataBuffer, eventType, Some(newId), retry, commentBuffer, stream)
           case "retry" =>
             val newRetry = Try(value.toLong).toOption.orElse(retry)
-            go(dataBuffer, eventType, id, newRetry, comments, stream)
+            go(dataBuffer, eventType, id, newRetry, commentBuffer, stream)
           case _ =>
-            go(dataBuffer, eventType, id, retry, comments, stream)
+            go(dataBuffer, eventType, id, retry, commentBuffer, stream)
         }
 
       stream.pull.uncons1.flatMap {

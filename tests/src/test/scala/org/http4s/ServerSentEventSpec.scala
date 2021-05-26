@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
-import fs2.{Pure, Stream}
+import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
@@ -58,7 +58,7 @@ class ServerSentEventSpec extends Http4sSuite {
       .toVector
       .assertEquals(
         Vector(
-          ServerSentEvent(comments = "hello".some)
+          ServerSentEvent(comment = "hello".some)
         ))
   }
 
@@ -79,7 +79,7 @@ class ServerSentEventSpec extends Http4sSuite {
       .compile
       .toVector
       .assertEquals(Vector(
-        ServerSentEvent(data = "first event".some, id = Some(EventId("1")), comments = Some("test stream")),
+        ServerSentEvent(data = "first event".some, id = Some(EventId("1")), comment = Some("test stream")),
         ServerSentEvent(data = "second event".some, id = Some(EventId.reset)),
         ServerSentEvent(data = " third event".some, id = None)
       ))
