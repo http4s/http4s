@@ -8,9 +8,9 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M23
+# v1.0.0-M23 (2021-05-26)
 
-Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap.
+Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap. Includes the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
 
 # v0.23.0-RC1 (2021-05-26)
 
