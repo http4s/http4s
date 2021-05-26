@@ -82,7 +82,10 @@ class ServerSentEventSpec extends Http4sSuite {
       .compile
       .toVector
       .assertEquals(Vector(
-        ServerSentEvent(data = "first event".some, id = Some(EventId("1")), comment = Some("test stream")),
+        ServerSentEvent(
+          data = "first event".some,
+          id = Some(EventId("1")),
+          comment = Some("test stream")),
         ServerSentEvent(data = "second event".some, id = Some(EventId.reset)),
         ServerSentEvent(data = " third event".some, id = None)
       ))
@@ -144,7 +147,11 @@ class ServerSentEventSpec extends Http4sSuite {
 
   test("encode should handle leading spaces") {
     // This is a pathological case uncovered by scalacheck
-    val sse = ServerSentEvent(" a".some, Some(" b"), Some(EventId(" c")), Some(FiniteDuration(1, TimeUnit.MILLISECONDS)))
+    val sse = ServerSentEvent(
+      " a".some,
+      Some(" b"),
+      Some(EventId(" c")),
+      Some(FiniteDuration(1, TimeUnit.MILLISECONDS)))
     Stream
       .emit(sse)
       .covary[IO]

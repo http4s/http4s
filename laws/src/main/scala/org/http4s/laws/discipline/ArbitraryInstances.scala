@@ -594,29 +594,35 @@ private[http4s] trait ArbitraryInstances {
       getArbitrary[String].suchThat { s =>
         !s.contains("\r") && !s.contains("\n")
       }
-    Arbitrary(for {
-      data <- frequency(
-        8 -> singleLineString.map(Some.apply),
-        1 -> None
-      )
-      comment <- frequency(
-        1 -> singleLineString.map(Some.apply),
-        8 -> None
-      )
-      event <- frequency(
-        4 -> None,
-        1 -> singleLineString.map(Some.apply)
-      )
-      id <- frequency(
-        8 -> None,
-        1 -> Some(EventId.reset),
-        1 -> singleLineString.suchThat(_.nonEmpty).map(id => Some(EventId(id)))
-      )
-      retry <- frequency(
-        4 -> None,
-        1 -> posNum[Long].map(Some.apply)
-      )
-    } yield ServerSentEvent(data, event, id, retry.map(FiniteDuration(_, TimeUnit.MILLISECONDS)), comment))
+    Arbitrary(
+      for {
+        data <- frequency(
+          8 -> singleLineString.map(Some.apply),
+          1 -> None
+        )
+        comment <- frequency(
+          1 -> singleLineString.map(Some.apply),
+          8 -> None
+        )
+        event <- frequency(
+          4 -> None,
+          1 -> singleLineString.map(Some.apply)
+        )
+        id <- frequency(
+          8 -> None,
+          1 -> Some(EventId.reset),
+          1 -> singleLineString.suchThat(_.nonEmpty).map(id => Some(EventId(id)))
+        )
+        retry <- frequency(
+          4 -> None,
+          1 -> posNum[Long].map(Some.apply)
+        )
+      } yield ServerSentEvent(
+        data,
+        event,
+        id,
+        retry.map(FiniteDuration(_, TimeUnit.MILLISECONDS)),
+        comment))
   }
 
   // https://tools.ietf.org/html/rfc2234#section-6
