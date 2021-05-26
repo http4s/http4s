@@ -67,10 +67,9 @@ object ServerSentEvent {
 
   def decoder[F[_]]: Pipe[F, Byte, ServerSentEvent] = {
     case class LineBuffer(lines: Chain[String] = Chain.empty) {
-      def append(line: String): LineBuffer = {
+      def append(line: String): LineBuffer =
         // val scrubbed = if (line.endsWith("\n")) line.dropRight(1) else line
         copy(lines = lines :+ line)
-      }
       def reify =
         if (lines.nonEmpty) {
           Some(lines.iterator.mkString("\n"))
