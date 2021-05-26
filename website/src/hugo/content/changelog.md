@@ -45,6 +45,7 @@ Includes the changes of v0.22.0-RC1.
   * The old `Header.Select#toRaw` is renamed to `toRaw1`.  This version still accepts a single value and returns a single raw header.
   * `Header.Select#from` now returns an `Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]`. The `Ior` lets us return both a value and "warnings" when a repeating header contains both valid and invalid entries.
   * Add `Headers#getWithWarnings` to return the `Ior` result.
+* [#4788](https://github.com/http4s/http4s/pull/4788): Extend `ServerSentEvent` with comments.  The `data` field is now optional. `retry` is changed from a `Long` to a `FiniteDuration`.  `data` spanning multiple lines are now rendered as multiple `data:` fields per the spec.
 
 ### Bugfixes
 
@@ -52,6 +53,7 @@ Includes the changes of v0.22.0-RC1.
 
 ## Dependency updates
 
+* blaze-0.15.1
 * circe-0.14.0
 * play-json-2.9.2 (downgrade)
 
