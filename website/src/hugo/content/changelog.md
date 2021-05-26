@@ -27,6 +27,7 @@ it.
 
 ## Dependency updates
 
+* blaze-0.15.1
 * circe-0.14.0
 * play-json-2.9.2 (downgrade)
 

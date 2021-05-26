@@ -287,7 +287,7 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.0"
+    val blaze = "0.15.1"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
