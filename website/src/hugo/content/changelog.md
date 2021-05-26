@@ -54,7 +54,7 @@ Includes the changes of v0.22.0-RC1.
 ## Dependency updates
 
 * blaze-0.15.1
-* circe-0.14.0
+* circe-0.14.1
 * play-json-2.9.2 (downgrade)
 
 # v0.21.24 (2021-05-26)
