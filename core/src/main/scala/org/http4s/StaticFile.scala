@@ -82,7 +82,7 @@ object StaticFile {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
     OptionT.apply(F.defer {
-      if (file.isDirectory())
+      if (url.getProtocol === "file" && file.isDirectory())
         F.pure(none[Response[F]])
       else {
         val urlConn = url.openConnection

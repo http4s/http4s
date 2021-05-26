@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.23.0-RC1
+# v0.23.0-RC1 (2021-05-26)
 
 Includes the changes of v0.22.0-RC1.
 
@@ -34,7 +34,9 @@ Includes the changes of v0.22.0-RC1.
 
 * [#4882](https://github.com/http4s/http4s/pull/4882): Use `Network` instead of `Network.forAsync` to get the socket group.
 
-# v0.22.0-RC1
+# v0.22.0-RC1 (2021-05-26)
+
+Includes the changes of 0.21.24, including the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
 
 ## http4s-core
 
@@ -61,7 +63,13 @@ Includes the changes of v0.22.0-RC1.
 
 0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
 
+Contains a vulnerability fix for `StaticFile.fromUrl`.
+
 ## http4s-blaze-core
+
+### Vulnerability fixes
+
+* [GHSA-6h7w-fc84-x7p6](https://github.com/http4s/http4s/security/advisories/GHSA-6h7w-fc84-x7p6): Don't leak the existence of a directory serverside when using `StaticFile.fromUrl` with non-file URLs.
 
 ### Enhancements
 
