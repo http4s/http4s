@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.data.Chain
 import fs2._
 import fs2.text.{utf8Decode, utf8Encode}
 import java.util.regex.Pattern
@@ -24,13 +25,15 @@ import org.http4s.util.{Renderable, Writer}
 import scala.util.Try
 
 final case class ServerSentEvent(
-    data: String,
+    data: Option[String] = None,
     eventType: Option[String] = None,
     id: Option[EventId] = None,
-    retry: Option[Long] = None
+    retry: Option[Long] = None,
+    comments: Option[String] = None,
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
-    writer << "data: " << data << "\n"
+    data.foreach (writer << "data: " << _ << "\n")
+    comments.foreach (writer << ": " << _ << "\n")
     eventType.foreach(writer << "event: " << _ << "\n")
     id match {
       case None =>
@@ -46,7 +49,7 @@ final case class ServerSentEvent(
 }
 
 object ServerSentEvent {
-  val empty = ServerSentEvent("")
+  val empty = ServerSentEvent()
 
   final case class EventId(value: String)
 
@@ -58,42 +61,52 @@ object ServerSentEvent {
   private val FieldSeparator =
     Pattern.compile(""": ?""")
 
+
   def decoder[F[_]]: Pipe[F, Byte, ServerSentEvent] = {
+    case class LineBuffer(lines: Chain[String] = Chain.empty) {
+      def append(line: String) : LineBuffer = {
+        val scrubbed = if (line.endsWith("\n")) line.dropRight(1) else line
+        copy(lines = lines :+ line)
+      }
+      def reify =
+        if ( lines.nonEmpty ) {
+          Some(lines.iterator.mkString("\n"))
+        } else
+          None
+    }
+    val emptyBuffer = LineBuffer()
     def go(
-        dataBuffer: StringBuilder,
+        dataBuffer: LineBuffer,
         eventType: Option[String],
         id: Option[EventId],
         retry: Option[Long],
+        comments: LineBuffer,
         stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
       //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
-      def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
-        dataBuffer.toString match {
-          case "" =>
-            // We just proved dataBuffer is empty, so we can reuse it
-            go(dataBuffer, None, None, None, stream)
-          case s =>
-            val data = if (s.endsWith("\n")) s.dropRight(1) else s
-            val sse = ServerSentEvent(data, eventType, id, retry)
-            Pull.output1(sse) >> go(new StringBuilder, None, None, None, stream)
-        }
+      def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
+        val sse = ServerSentEvent(dataBuffer.reify, eventType, id, retry, comments.reify)
+        Pull.output1(sse) >> go(emptyBuffer, None, None, None, emptyBuffer, stream)
+      }
 
       def handleLine(
           field: String,
           value: String,
           stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
         field match {
+          case "" =>
+            go(dataBuffer, eventType, id, retry, comments.append(value), stream)
           case "event" =>
-            go(dataBuffer, Some(value), id, retry, stream)
+            go(dataBuffer, Some(value), id, retry, comments, stream)
           case "data" =>
-            go(dataBuffer.append(value).append("\n"), eventType, id, retry, stream)
+            go(dataBuffer.append(value), eventType, id, retry, comments, stream)
           case "id" =>
             val newId = EventId(value)
-            go(dataBuffer, eventType, Some(newId), retry, stream)
+            go(dataBuffer, eventType, Some(newId), retry, comments, stream)
           case "retry" =>
             val newRetry = Try(value.toLong).toOption.orElse(retry)
-            go(dataBuffer, eventType, id, newRetry, stream)
+            go(dataBuffer, eventType, id, newRetry, comments, stream)
           case _ =>
-            go(dataBuffer, eventType, id, retry, stream)
+            go(dataBuffer, eventType, id, retry, comments, stream)
         }
 
       stream.pull.uncons1.flatMap {
@@ -101,8 +114,6 @@ object ServerSentEvent {
           Pull.done
         case Some(("", stream)) =>
           dispatch(stream)
-        case Some((s, stream)) if s.startsWith(":") =>
-          go(dataBuffer, eventType, id, retry, stream)
         case Some((s, stream)) =>
           FieldSeparator.split(s, 2) match {
             case Array(field, value) =>
@@ -113,8 +124,9 @@ object ServerSentEvent {
       }
     }
 
-    stream =>
-      go(new StringBuilder, None, None, None, stream.through(utf8Decode.andThen(text.lines))).stream
+    stream => {
+      go(emptyBuffer, None, None, None, emptyBuffer, stream.through(utf8Decode.andThen(text.lines))).stream
+    }
   }
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =

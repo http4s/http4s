@@ -17,7 +17,8 @@
 package org.http4s
 
 import cats.effect.IO
-import fs2.Stream
+import cats.implicits.catsSyntaxOptionId
+import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
 import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
@@ -26,8 +27,10 @@ import org.scalacheck.effect._
 class ServerSentEventSpec extends Http4sSuite {
   import ServerSentEvent._
 
-  def toStream(s: String): Stream[IO, Byte] =
-    Stream.emit(s).through(utf8Encode)
+  def toStream(s: String): Stream[IO, Byte] = {
+    val scrubbed = s.dropWhile(_.isWhitespace)
+    Stream.emit(scrubbed).through(utf8Encode)
+  }
 
   test("decode should decode multi-line messages") {
     val stream = toStream("""
@@ -41,7 +44,21 @@ class ServerSentEventSpec extends Http4sSuite {
       .toVector
       .assertEquals(
         Vector(
-          ServerSentEvent(data = "YHOO\n+2\n10")
+          ServerSentEvent(data = "YHOO\n+2\n10".some)
+        ))
+  }
+
+  test("a lone comment is a valid event") {
+    val stream = toStream("""
+      |: hello
+      |""".stripMargin('|'))
+    stream
+      .through(ServerSentEvent.decoder)
+      .compile
+      .toVector
+      .assertEquals(
+        Vector(
+          ServerSentEvent(comments = "hello".some)
         ))
   }
 
@@ -62,9 +79,9 @@ class ServerSentEventSpec extends Http4sSuite {
       .compile
       .toVector
       .assertEquals(Vector(
-        ServerSentEvent(data = "first event", id = Some(EventId("1"))),
-        ServerSentEvent(data = "second event", id = Some(EventId.reset)),
-        ServerSentEvent(data = " third event", id = None)
+        ServerSentEvent(data = "first event".some, id = Some(EventId("1")), comments = Some("test stream")),
+        ServerSentEvent(data = "second event".some, id = Some(EventId.reset)),
+        ServerSentEvent(data = " third event".some, id = None)
       ))
   }
 
@@ -84,9 +101,9 @@ class ServerSentEventSpec extends Http4sSuite {
       .toVector
       .assertEquals(
         Vector(
-          ServerSentEvent(data = ""),
-          ServerSentEvent(data = "\n"),
-          ServerSentEvent(data = "")
+          ServerSentEvent(data = "".some),
+          ServerSentEvent(data = "\n".some),
+          ServerSentEvent(data = "".some)
         ))
   }
 
@@ -103,8 +120,8 @@ class ServerSentEventSpec extends Http4sSuite {
       .toVector
       .assertEquals(
         Vector(
-          ServerSentEvent(data = "test"),
-          ServerSentEvent(data = "test")
+          ServerSentEvent(data = "test".some),
+          ServerSentEvent(data = "test".some)
         ))
   }
 
@@ -115,6 +132,7 @@ class ServerSentEventSpec extends Http4sSuite {
         .covary[IO]
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
+        .dropLast
         .compile
         .toVector
       roundTrip.assertEquals(sses)
@@ -123,19 +141,20 @@ class ServerSentEventSpec extends Http4sSuite {
 
   test("encode should handle leading spaces") {
     // This is a pathological case uncovered by scalacheck
-    val sse = ServerSentEvent(" a", Some(" b"), Some(EventId(" c")), Some(1L))
+    val sse = ServerSentEvent(" a".some, Some(" b"), Some(EventId(" c")), Some(1L))
     Stream
       .emit(sse)
       .covary[IO]
       .through(ServerSentEvent.encoder)
       .through(ServerSentEvent.decoder)
+      .dropLast
       .compile
       .last
       .assertEquals(Some(sse))
   }
 
   val eventStream: Stream[IO, ServerSentEvent] =
-    Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString))
+    Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString.some))
   test("EntityEncoder[ServerSentEvent] should set Content-Type to text/event-stream") {
     assertEquals(
       Response[IO]().withEntity(eventStream).contentType,
@@ -148,6 +167,7 @@ class ServerSentEventSpec extends Http4sSuite {
         .withEntity(eventStream)
         .body
         .through(ServerSentEvent.decoder)
+        .dropLast
         .compile
         .toVector
       e <- eventStream.compile.toVector
