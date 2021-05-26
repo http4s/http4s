@@ -29,15 +29,15 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 final case class ServerSentEvent(
-  data: Option[String] = None,
-  eventType: Option[String] = None,
-  id: Option[EventId] = None,
-  retry: Option[FiniteDuration] = None,
-  comment: Option[String] = None,
+    data: Option[String] = None,
+    eventType: Option[String] = None,
+    id: Option[EventId] = None,
+    retry: Option[FiniteDuration] = None,
+    comment: Option[String] = None
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
-    data.foreach (writer << "data: " << _ << "\n")
-    comment.foreach (writer << ": " << _ << "\n")
+    data.foreach(writer << "data: " << _ << "\n")
+    comment.foreach(writer << ": " << _ << "\n")
     eventType.foreach(writer << "event: " << _ << "\n")
     id match {
       case None =>
@@ -65,15 +65,14 @@ object ServerSentEvent {
   private val FieldSeparator =
     Pattern.compile(""": ?""")
 
-
   def decoder[F[_]]: Pipe[F, Byte, ServerSentEvent] = {
     case class LineBuffer(lines: Chain[String] = Chain.empty) {
-      def append(line: String) : LineBuffer = {
+      def append(line: String): LineBuffer = {
         val scrubbed = if (line.endsWith("\n")) line.dropRight(1) else line
         copy(lines = lines :+ line)
       }
       def reify =
-        if ( lines.nonEmpty ) {
+        if (lines.nonEmpty) {
           Some(lines.iterator.mkString("\n"))
         } else
           None
@@ -88,7 +87,12 @@ object ServerSentEvent {
         stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
       //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
       def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
-        val sse = ServerSentEvent(dataBuffer.reify, eventType, id, retry.map(FiniteDuration(_, TimeUnit.MILLISECONDS)), commentBuffer.reify)
+        val sse = ServerSentEvent(
+          dataBuffer.reify,
+          eventType,
+          id,
+          retry.map(FiniteDuration(_, TimeUnit.MILLISECONDS)),
+          commentBuffer.reify)
         Pull.output1(sse) >> go(emptyBuffer, None, None, None, emptyBuffer, stream)
       }
 
@@ -128,9 +132,14 @@ object ServerSentEvent {
       }
     }
 
-    stream => {
-      go(emptyBuffer, None, None, None, emptyBuffer, stream.through(utf8Decode.andThen(text.lines))).stream
-    }
+    stream =>
+      go(
+        emptyBuffer,
+        None,
+        None,
+        None,
+        emptyBuffer,
+        stream.through(utf8Decode.andThen(text.lines))).stream
   }
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =
