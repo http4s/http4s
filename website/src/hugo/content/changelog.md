@@ -10,7 +10,7 @@ it.
 
 # v0.23.0-RC1 (2021-05-26)
 
-Includes the changes of v0.22.0-RC1.
+Includes the changes of v0.22.0-RC1, including the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
 
 ## http4s-core
 
