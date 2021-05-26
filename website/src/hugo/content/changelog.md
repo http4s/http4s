@@ -18,9 +18,25 @@ Includes the changes of v0.22.0-RC1.
 
 ## http4s-core
 
+### Breaking changes
+
+* [#4884](https://github.com/http4s/http4s/pull/4884): Use `Monad` instead of `Defer` constraints on `HttpApp`, `HttpRoutes`, `AuthedRoutes`, `ContextRoutes`, and related syntax. This avoids diverging implicits when only a `Concurrent` constraint is available in Cats-Effect-3.
+
 ### Noteworthy refactoring
 
 * [#4773](https://github.com/http4s/http4s/pull/4787): Refactor the internals of the `Multipart` parser.
+
+## http4s-ember-client
+
+### Noteworthy refactoring
+
+* [#4882](https://github.com/http4s/http4s/pull/4882): Use `Network` instead of `Network.forAsync` to get the socket group.
+
+## http4s-ember-server
+
+### Noteworthy refactoring
+
+* [#4882](https://github.com/http4s/http4s/pull/4882): Use `Network` instead of `Network.forAsync` to get the socket group.
 
 # v0.22.0-RC1
 
@@ -34,13 +50,34 @@ Includes the changes of v0.22.0-RC1.
   * `Header.Select#from` now returns an `Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]`. The `Ior` lets us return both a value and "warnings" when a repeating header contains both valid and invalid entries.
   * Add `Headers#getWithWarnings` to return the `Ior` result.
 
-## Dependency updates
-
-* play-json-2.9.2 (downgrade)
-
 ### Bugfixes
 
 * [#4873](https://github.com/http4s/http4s/pull/4873): Catch exceptions in `ParseResult.fromParser`. Don't throw when parsing a media range in the `Content-Type` parser.
+
+## Dependency updates
+
+* circe-0.14.0
+* play-json-2.9.2 (downgrade)
+
+# v0.21.24 (2021-05-26)
+
+0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
+
+## http4s-blaze-core
+
+### Enhancements
+
+* [#4880](https://github.com/http4s/http4s/pull/4880): Handle exceptions when the tick wheel executor is shutdown as a warning instead of a stack trace error.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4881](https://github.com/http4s/http4s/pull/4881): Add `checkEndpointIdentification` flag to Ember. When true, sets `HTTPS` as the endpoint validation algorithm. Defaults to true.
+
+## Dependency Updates
+
+* blaze-0.14.17
 
 # v1.0.0-M22 (2021-05-21)
 
