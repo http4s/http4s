@@ -29,6 +29,7 @@ import cats.syntax.all._
 import com.comcast.ip4s
 import com.comcast.ip4s.Arbitraries._
 import fs2.{Pure, Stream}
+
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
@@ -41,6 +42,8 @@ import org.scalacheck.Gen._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
+
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
@@ -613,7 +616,7 @@ private[http4s] trait ArbitraryInstances {
         4 -> None,
         1 -> posNum[Long].map(Some.apply)
       )
-    } yield ServerSentEvent(data, event, id, retry, comment))
+    } yield ServerSentEvent(data, event, id, retry.map(FiniteDuration(_, TimeUnit.MILLISECONDS)), comment))
   }
 
   // https://tools.ietf.org/html/rfc2234#section-6

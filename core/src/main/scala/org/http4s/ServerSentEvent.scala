@@ -19,17 +19,21 @@ package org.http4s
 import cats.data.Chain
 import fs2._
 import fs2.text.{utf8Decode, utf8Encode}
+
 import java.util.regex.Pattern
 import org.http4s.ServerSentEvent._
 import org.http4s.util.{Renderable, Writer}
+
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 final case class ServerSentEvent(
-    data: Option[String] = None,
-    eventType: Option[String] = None,
-    id: Option[EventId] = None,
-    retry: Option[Long] = None,
-    comment: Option[String] = None,
+  data: Option[String] = None,
+  eventType: Option[String] = None,
+  id: Option[EventId] = None,
+  retry: Option[FiniteDuration] = None,
+  comment: Option[String] = None,
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
     data.foreach (writer << "data: " << _ << "\n")
@@ -40,7 +44,7 @@ final case class ServerSentEvent(
       case Some(EventId.reset) => writer << "id\n"
       case Some(EventId(id)) => writer << "id: " << id << "\n"
     }
-    retry.foreach(writer << "retry: " << _ << "\n")
+    retry.foreach(writer << "retry: " << _.toMillis << "\n")
     writer << "\n"
   }
 
@@ -84,7 +88,7 @@ object ServerSentEvent {
         stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
       //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
       def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
-        val sse = ServerSentEvent(dataBuffer.reify, eventType, id, retry, commentBuffer.reify)
+        val sse = ServerSentEvent(dataBuffer.reify, eventType, id, retry.map(FiniteDuration(_, TimeUnit.MILLISECONDS)), commentBuffer.reify)
         Pull.output1(sse) >> go(emptyBuffer, None, None, None, emptyBuffer, stream)
       }
 

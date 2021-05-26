@@ -24,6 +24,9 @@ import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
 import org.scalacheck.effect._
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
+
 class ServerSentEventSpec extends Http4sSuite {
   import ServerSentEvent._
 
@@ -141,7 +144,7 @@ class ServerSentEventSpec extends Http4sSuite {
 
   test("encode should handle leading spaces") {
     // This is a pathological case uncovered by scalacheck
-    val sse = ServerSentEvent(" a".some, Some(" b"), Some(EventId(" c")), Some(1L))
+    val sse = ServerSentEvent(" a".some, Some(" b"), Some(EventId(" c")), Some(FiniteDuration(1, TimeUnit.MILLISECONDS)))
     Stream
       .emit(sse)
       .covary[IO]
