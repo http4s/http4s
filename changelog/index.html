@@ -144,6 +144,7 @@ it.</p>
 <li><code>Header.Select#from</code> now returns an <code>Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]</code>. The <code>Ior</code> lets us return both a value and &ldquo;warnings&rdquo; when a repeating header contains both valid and invalid entries.</li>
 <li>Add <code>Headers#getWithWarnings</code> to return the <code>Ior</code> result.</li>
 </ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/4788">#4788</a>: Extend <code>ServerSentEvent</code> with comments.  The <code>data</code> field is now optional. <code>retry</code> is changed from a <code>Long</code> to a <code>FiniteDuration</code>.  <code>data</code> spanning multiple lines are now rendered as multiple <code>data:</code> fields per the spec.</li>
 </ul>
 
 <h3 id="bugfixes">Bugfixes</h3>
@@ -155,7 +156,8 @@ it.</p>
 <h2 id="dependency-updates">Dependency updates</h2>
 
 <ul>
-<li>circe-0.14.0</li>
+<li>blaze-0.15.1</li>
+<li>circe-0.14.1</li>
 <li>play-json-2.9.2 (downgrade)</li>
 </ul>
 
