@@ -29,14 +29,37 @@ Includes the changes of v0.22.0-RC1.
   * The old `Header.Select#toRaw` is renamed to `toRaw1`.  This version still accepts a single value and returns a single raw header.
   * `Header.Select#from` now returns an `Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]`. The `Ior` lets us return both a value and "warnings" when a repeating header contains both valid and invalid entries.
   * Add `Headers#getWithWarnings` to return the `Ior` result.
-
-## Dependency updates
-
-* play-json-2.9.2 (downgrade)
+* [#4788](https://github.com/http4s/http4s/pull/4788): Extend `ServerSentEvent` with comments.  The `data` field is now optional. `retry` is changed from a `Long` to a `FiniteDuration`.  `data` spanning multiple lines are now rendered as multiple `data:` fields per the spec.
 
 ### Bugfixes
 
 * [#4873](https://github.com/http4s/http4s/pull/4873): Catch exceptions in `ParseResult.fromParser`. Don't throw when parsing a media range in the `Content-Type` parser.
+
+## Dependency updates
+
+* blaze-0.15.1
+* circe-0.14.1
+* play-json-2.9.2 (downgrade)
+
+# v0.21.24 (2021-05-26)
+
+0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
+
+## http4s-blaze-core
+
+### Enhancements
+
+* [#4880](https://github.com/http4s/http4s/pull/4880): Handle exceptions when the tick wheel executor is shutdown as a warning instead of a stack trace error.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4881](https://github.com/http4s/http4s/pull/4881): Add `checkEndpointIdentification` flag to Ember. When true, sets `HTTPS` as the endpoint validation algorithm. Defaults to true.
+
+## Dependency Updates
+
+* blaze-0.14.17
 
 # v0.23.0-M1 (2021-05-21)
 
