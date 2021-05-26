@@ -8,6 +8,26 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.24 (2021-05-26)
+
+0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
+
+## http4s-blaze-core
+
+### Enhancements
+
+* [#4880](https://github.com/http4s/http4s/pull/4880): Handle exceptions when the tick wheel executor is shutdown as a warning instead of a stack trace error.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4881](https://github.com/http4s/http4s/pull/4881): Add `checkEndpointIdentification` flag to Ember. When true, sets `HTTPS` as the endpoint validation algorithm. Defaults to true.
+
+## Dependency Updates
+
+* blaze-0.14.17
+
 # v0.22.0-RC1
 
 ## http4s-core
