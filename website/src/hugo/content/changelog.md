@@ -14,9 +14,25 @@ Includes the changes of v0.22.0-RC1.
 
 ## http4s-core
 
+### Breaking changes
+
+* [#4884](https://github.com/http4s/http4s/pull/4884): Use `Monad` instead of `Defer` constraints on `HttpApp`, `HttpRoutes`, `AuthedRoutes`, `ContextRoutes`, and related syntax. This avoids diverging implicits when only a `Concurrent` constraint is available in Cats-Effect-3.
+
 ### Noteworthy refactoring
 
 * [#4773](https://github.com/http4s/http4s/pull/4787): Refactor the internals of the `Multipart` parser.
+
+## http4s-ember-client
+
+### Noteworthy refactoring
+
+* [#4882](https://github.com/http4s/http4s/pull/4882): Use `Network` instead of `Network.forAsync` to get the socket group.
+
+## http4s-ember-server
+
+### Noteworthy refactoring
+
+* [#4882](https://github.com/http4s/http4s/pull/4882): Use `Network` instead of `Network.forAsync` to get the socket group.
 
 # v0.22.0-RC1
 
