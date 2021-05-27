@@ -250,7 +250,7 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
         WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        // WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -273,7 +273,7 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
         siteBuildJob("website"),
-        // siteBuildJob("docs")
+        siteBuildJob("docs")
       ),
     )
   }
