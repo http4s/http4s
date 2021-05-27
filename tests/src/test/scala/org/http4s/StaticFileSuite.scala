@@ -268,12 +268,26 @@ class StaticFileSuite extends Http4sSuite {
     len.assertEquals(Some(24005L))
   }
 
-  test("return none from a URL that is a directory") {
+  test("return none from a file URL that is a directory") {
     // val url = getClass.getResource("/foo")
     StaticFile
       .fromURL[IO](getClass.getResource("/foo"))
       .value
       .assertEquals(None)
+  }
+
+  test("not return none from an HTTP URL whose path is a directory") {
+    // We need a universal directory that also exists as a resource on
+    // a server.  Creating a temp directory would be better, but then
+    // we need an HTTP server that responds to a wildcard path.
+    //
+    // Or we can be lazy and just use `/`.
+    assume(new File("/").isDirectory, "/ is not a directory")
+    StaticFile
+      .fromURL[IO](new URL("https://github.com//"), testBlocker)
+      .value
+      .map(_.fold(Status.NotFound)(_.status))
+      .assertEquals(Status.Ok)
   }
 
   test("return none from a URL that points to a resource that does not exist") {
