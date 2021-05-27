@@ -284,7 +284,7 @@ class StaticFileSuite extends Http4sSuite {
     // Or we can be lazy and just use `/`.
     assume(new File("/").isDirectory, "/ is not a directory")
     StaticFile
-      .fromURL[IO](new URL("https://github.com//"), testBlocker)
+      .fromURL[IO](new URL("https://github.com//"))
       .value
       .map(_.fold(Status.NotFound)(_.status))
       .assertEquals(Status.Ok)
