@@ -20,10 +20,11 @@ libraryDependencies ++= Seq(
 And we need some imports.
 
 ```scala mdoc:silent
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import cats.effect.IO
 ```
 
 Let's make a simple service that will be exposed and wrapped with HSTS.

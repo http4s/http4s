@@ -34,16 +34,7 @@ import org.http4s.implicits._
 import org.http4s.blaze.server._
 ```
 
-Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
-[[`ContextShift`]].  The following lines are not necessary if you are
-in an [[`IOApp`]]:
-
-```scala mdoc:silent:nest
-import scala.concurrent.ExecutionContext.global
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
-```
-
+Blaze needs an [[`Async`]] instance, which is defined for [[`IO`]].
 Finish setting up our server:
 
 ```scala mdoc:nest
@@ -61,6 +52,8 @@ We'll start the server in the background.  The `IO.never` keeps it
 running until we cancel the fiber.
 
 ```scala mdoc:nest
+import cats.effect.unsafe.implicits.global
+
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
@@ -73,11 +66,11 @@ A good default choice is the `BlazeClientBuilder`.  The
 ```scala mdoc
 import org.http4s.blaze.client._
 import org.http4s.client._
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext
 ```
 
 ```scala mdoc:silent
-BlazeClientBuilder[IO](global).resource.use { client =>
+BlazeClientBuilder[IO](ExecutionContext.global).resource.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
   // automatically each time the `IO` is run.
@@ -91,16 +84,8 @@ client, it does not need to be shut down.  Like the blaze-client, and
 any other http4s backend, it presents the exact same `Client`
 interface!
 
-It uses blocking IO and is less suited for production, but it is
-highly useful in a REPL:
-
 ```scala mdoc:silent:nest
-import cats.effect.Blocker
-import java.util.concurrent._
-
-val blockingPool = Executors.newFixedThreadPool(5)
-val blocker = Blocker.liftExecutorService(blockingPool)
-val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
+val httpClient: Client[IO] = JavaNetClientBuilder[IO].create
 ```
 
 ### Describing a call
@@ -239,7 +224,6 @@ import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
 ```scala mdoc:nest
-implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
@@ -269,7 +253,6 @@ import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
 ```
 ```scala mdoc:nest
-implicit val clock = Clock.create[IO]
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
 val meteredClient: Resource[IO, Client[IO]] =
@@ -375,16 +358,11 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-```scala mdoc:nest:invisible
-blockingPool.shutdown()
-```
 
 [service]: ../service
 [entity]: ../entity
 [json]: ../json
-[`ContextShift`]: https://typelevel.org/cats-effect/datatypes/contextshift.html
-[`ConcurrentEffect`]: https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html
-[`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
+[`Async`]: https://typelevel.org/cats-effect/docs/typeclasses/async
 [middleware]: ../middleware
 [Follow Redirect]: ../api/org/http4s/client/middleware/FollowRedirect$
 [Retry]: ../api/org/http4s/client/middleware/Retry$

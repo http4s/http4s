@@ -19,10 +19,12 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
+import org.http4s.client.Client
 ```
 
 ```scala mdoc
@@ -34,7 +36,7 @@ trait UserRepo[F[_]] {
 }
 
 def service[F[_]](repo: UserRepo[F])(
-      implicit F: Effect[F]
+      implicit F: Async[F]
 ): HttpRoutes[F] = HttpRoutes.of[F] {
   case GET -> Root / "user" / id =>
     repo.find(id).map {
@@ -122,14 +124,13 @@ val httpApp: HttpApp[IO] = service[IO](success).orNotFound
 From this, we can obtain the `Client` instance using `Client.fromHttpApp` and then use it to test our sever/app.
 
 ```scala mdoc:nest
-val client = Client.fromHttpApp(httpApp)
 val request: Request[IO] = Request(method = Method.GET, uri = uri"/user/not-used")
 val expectedJson = Json.obj(
-      "name" := "johndoe",
-      "age" := 42
+    "name" := "johndoe",
+    "age" := 42
 )
 val client: Client[IO] = Client.fromHttpApp(httpApp)
-val resp: IO[Json]     = client.expect(request)
+val resp: IO[Json]     = client.expect[Json](request)
 assert(resp.unsafeRunSync() == expectedJson)
 ```
 

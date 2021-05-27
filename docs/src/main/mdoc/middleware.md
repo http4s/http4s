@@ -26,6 +26,7 @@ and some imports.
 ```scala mdoc:silent
 import cats.data.Kleisli
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -176,8 +177,8 @@ import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
+
 ```scala mdoc
-implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 
 val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(apiService)
@@ -198,15 +199,14 @@ We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
 ```scala mdoc:silent
-import cats.effect.{Clock, IO, Resource}
+import cats.effect.{IO, Resource}
 import org.http4s.HttpRoutes
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.server.Router
 import org.http4s.server.middleware.Metrics
 ```
-```scala mdoc:nest
-implicit val clock = Clock.create[IO]
 
+```scala mdoc:nest
 val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   for {
     metricsSvc <- PrometheusExportService.build[IO]
@@ -216,7 +216,6 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
       "/" -> metricsSvc.routes
     )
   } yield router
-  
 ```
 
 ### X-Request-ID Middleware

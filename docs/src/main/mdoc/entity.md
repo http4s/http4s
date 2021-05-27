@@ -45,10 +45,11 @@ Decoders' content types are used when chaining decoders with `orElse` in order t
 determine which of the chained decoders are to be used.
 
 ```scala mdoc:silent
+import cats._, cats.effect._, cats.implicits._, cats.data._
+import cats.effect.unsafe.implicits.global
 import org.http4s._
 import org.http4s.headers.`Content-Type`
 import org.http4s.dsl.io._
-import cats._, cats.effect._, cats.implicits._, cats.data._
 
 sealed trait Resp
 case class Audio(body: String) extends Resp

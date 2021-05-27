@@ -35,12 +35,11 @@ $ sbt console
 
 We'll need the following imports to get started:
 
-```scala mdoc:silent
+```scala mdoc:nest
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
-// Provided by `cats.effect.IOApp`
-implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -214,10 +213,10 @@ NoContent("does not compile")
 
 #### Asynchronous responses
 
-While http4s prefers `F[_]: Effect`, you may be working with libraries that
+While http4s prefers `F[_]: Async`, you may be working with libraries that
 use standard library `Future`s.  Some relevant imports:
 
-```scala mdoc
+```scala mdoc:silent
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -229,16 +228,19 @@ Note: unlike `IO`, wrapping a side effect in `Future` does not
 suspend it, and the resulting expression would still be side
 effectful, unless we wrap it in `IO`:
 
-`IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
-suspended future is shifted to the correct thread pool.
+```scala mdoc:nest
+import cats.effect.unsafe.implicits.global
+
+implicit val executionContext: ExecutionContext = 
+  scala.concurrent.ExecutionContext.Implicits.global
+```
 
 ```scala mdoc:nest
-implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-
 val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })))
+
 io.unsafeRunSync()
 ```
 
@@ -471,7 +473,6 @@ To accept an optional query parameter a `OptionalQueryParamDecoderMatcher` can b
 
 ```scala mdoc:silent
 import java.time.Year
-import org.http4s.client.dsl.io._
 ```
 
 ```scala mdoc:nest

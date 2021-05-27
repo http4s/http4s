@@ -34,6 +34,7 @@ Let's create a function to produce a simple JSON greeting with circe. First, the
 
 ```scala mdoc:silent
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 import io.circe._
 import io.circe.literal._
 import org.http4s._
@@ -210,6 +211,7 @@ proper greeting.
 
 ```scala mdoc:silent:reset
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -220,14 +222,10 @@ import org.http4s.dsl.io._
 import org.http4s.blaze.server._
 import org.http4s.implicits._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits
 
 case class User(name: String)
 case class Hello(greeting: String)
-
-// Needed by `BlazeServerBuilder`. Provided by `IOApp`.
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
 
 implicit val decoder = jsonOf[IO, User]
 
@@ -241,7 +239,7 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080).withHttpApp(jsonApp).resource
+val server = BlazeServerBuilder[IO](Implicits.global).bindHttp(8080).withHttpApp(jsonApp).resource
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
@@ -261,7 +259,7 @@ def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
   val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
   // Create a client
-  BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
+  BlazeClientBuilder[IO](Implicits.global).stream.flatMap { httpClient =>
     // Decode a Hello response
     Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
   }

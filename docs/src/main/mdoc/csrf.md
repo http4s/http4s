@@ -20,6 +20,7 @@ And we need some imports.
 
 ```scala mdoc:silent
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
