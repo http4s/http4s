@@ -20,7 +20,6 @@ import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.{SSLContext, X509TrustManager}
 import org.http4s.{BuildInfo, ProductId}
-import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.headers.`User-Agent`
 import scala.concurrent.duration._
 
@@ -32,9 +31,6 @@ private[http4s] object bits {
   val DefaultUserAgent = Some(`User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version))))
   val DefaultMaxTotalConnections = 10
   val DefaultMaxWaitQueueLimit = 256
-
-  @deprecated("Use org.http4s.blazecore.tickWheelResource", "0.19.1")
-  lazy val ClientTickWheel = new TickWheelExecutor()
 
   /** Caution: trusts all certificates and disables endpoint identification */
   lazy val TrustingSslContext: SSLContext = {

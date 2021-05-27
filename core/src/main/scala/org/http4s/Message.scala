@@ -65,10 +65,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   // Body methods
 
-  @deprecated("Use withEntity", "0.19")
-  def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): F[Self] =
-    F.pure(withEntity(b))
-
   /** Replace the body of this message with a new body
     *
     * @param b body to attach to this method

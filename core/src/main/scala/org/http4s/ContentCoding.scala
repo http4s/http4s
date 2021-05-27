@@ -24,14 +24,6 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
     with Renderable {
   def withQValue(q: QValue): ContentCoding = new ContentCoding(coding, q)
 
-  @deprecated("Use `Accept-Encoding`.isSatisfiedBy(encoding)", "0.16.1")
-  def satisfies(encoding: ContentCoding): Boolean = encoding.satisfiedBy(this)
-
-  @deprecated("Use `Accept-Encoding`.isSatisfiedBy(encoding)", "0.16.1")
-  def satisfiedBy(encoding: ContentCoding): Boolean =
-    (this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding)) &&
-      qValue.isAcceptable && encoding.qValue.isAcceptable
-
   def matches(encoding: ContentCoding): Boolean =
     this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding)
 

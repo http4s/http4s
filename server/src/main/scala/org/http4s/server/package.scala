@@ -94,12 +94,6 @@ package object server {
     */
   type Middleware[F[_], A, B, C, D] = Kleisli[F, A, B] => Kleisli[F, C, D]
 
-  object Middleware {
-    @deprecated("Construct manually instead", "0.18")
-    def apply[F[_], A, B, C, D](f: (C, Kleisli[F, A, B]) => F[D]): Middleware[F, A, B, C, D] =
-      service => Kleisli(req => f(req, service))
-  }
-
   /** An HTTP middleware converts an [[HttpRoutes]] to another.
     */
   type HttpMiddleware[F[_]] =
