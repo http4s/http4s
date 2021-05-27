@@ -164,16 +164,6 @@ object QueryParamEncoder {
       formatter.format(zdt)
     }
 
-  @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
-  def encodeBy[T, U](f: T => U)(implicit
-      qpe: QueryParamEncoder[U]
-  ): QueryParamEncoder[T] =
-    qpe.contramap(f)
-
-  @deprecated("Use QueryParamEncoder[String].contramap(f)", "0.16")
-  def encode[T](f: T => String): QueryParamEncoder[T] =
-    stringQueryParamEncoder.contramap(f)
-
   def fromShow[T](implicit
       sh: Show[T]
   ): QueryParamEncoder[T] =
@@ -297,12 +287,6 @@ object QueryParamDecoder {
       def combineK[A](a: QueryParamDecoder[A], b: QueryParamDecoder[A]) =
         a.orElse(b)
     }
-
-  @deprecated("Use QueryParamDecoder[T].map(f)", "0.16")
-  def decodeBy[U, T](f: T => U)(implicit
-      qpd: QueryParamDecoder[T]
-  ): QueryParamDecoder[U] =
-    qpd.map(f)
 
   /** A decoder that always succeeds. */
   def success[A](a: A): QueryParamDecoder[A] =

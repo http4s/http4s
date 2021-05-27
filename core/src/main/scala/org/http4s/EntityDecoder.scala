@@ -209,10 +209,6 @@ object EntityDecoder {
   implicit def binary[F[_]: Concurrent]: EntityDecoder[F, Chunk[Byte]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
-  @deprecated("Use `binary` instead", "0.19.0-M2")
-  def binaryChunk[F[_]: Concurrent]: EntityDecoder[F, Chunk[Byte]] =
-    binary[F]
-
   implicit def byteArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.toArray)
 

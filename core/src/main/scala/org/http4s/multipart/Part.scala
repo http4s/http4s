@@ -38,15 +38,6 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Med
 object Part {
   private val ChunkSize = 8192
 
-  @deprecated(
-    """Empty parts are not allowed by the multipart spec, see: https://tools.ietf.org/html/rfc7578#section-4.2
-
-Moreover, it allows the creation of potentially incorrect multipart bodies""",
-    "0.18.12"
-  )
-  def empty[F[_]]: Part[F] =
-    Part(Headers.empty, EmptyBody)
-
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),

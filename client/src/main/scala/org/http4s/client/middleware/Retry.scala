@@ -145,10 +145,6 @@ object RetryPolicy {
     (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
       isErrorOrRetriableStatus(result)
 
-  @deprecated("Use defaultRetriable instead", "0.19.0")
-  def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    defaultRetriable(req, result)
-
   /** Like [[defaultRetriable]], but returns true even if the request method
     * is not idempotent.  This is useful if failed requests are assumed to
     * have not reached their destination, which is a dangerous assumption.

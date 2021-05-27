@@ -92,10 +92,6 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   * distinguishes this from other `EntityResponseGenerator`s.
   */
 trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGenerator[F, G] {
-  @deprecated("Use `apply(Location(location))` instead", "0.18.0-M2")
-  def apply(uri: Uri)(implicit F: Applicative[F]): F[Response[G]] =
-    apply(Location(uri))
-
   def apply(location: Location)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status = status, headers = Headers(`Content-Length`.zero, location)))
 
@@ -115,15 +111,6 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
   * distinguishes this from other `ResponseGenerator`s.
   */
 trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
-  @deprecated("Use ``apply(`WWW-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
-  def apply(challenge: Challenge, challenges: Challenge*)(implicit
-      F: Applicative[F]): F[Response[G]] =
-    F.pure(
-      Response[G](
-        status = status,
-        headers = Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
-      ))
-
   def apply(authenticate: `WWW-Authenticate`, headers: Header.ToRaw*)(implicit
       F: Applicative[F]): F[Response[G]] =
     F.pure(
@@ -164,15 +151,6 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   * distinguishes this from other `EntityResponseGenerator`s.
   */
 trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
-  @deprecated("Use ``apply(`Proxy-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
-  def apply(challenge: Challenge, challenges: Challenge*)(implicit
-      F: Applicative[F]): F[Response[G]] =
-    F.pure(
-      Response[G](
-        status = status,
-        headers = Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
-      ))
-
   def apply(authenticate: `Proxy-Authenticate`, headers: Header.ToRaw*)(implicit
       F: Applicative[F]): F[Response[G]] =
     F.pure(
