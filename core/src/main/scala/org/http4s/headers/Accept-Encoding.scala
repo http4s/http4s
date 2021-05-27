@@ -48,10 +48,6 @@ object `Accept-Encoding` {
 }
 
 final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) {
-  @deprecated("Has confusing semantics in the presence of splat. Do not use.", "0.16.1")
-  def preferred: ContentCoding =
-    values.tail.fold(values.head)((a, b) => if (a.qValue >= b.qValue) a else b)
-
   def qValue(coding: ContentCoding): QValue = {
     def specific =
       values.toList.collectFirst {

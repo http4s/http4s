@@ -16,14 +16,13 @@
 
 package org.http4s.server.middleware
 
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
 import org.http4s._
-import org.http4s.syntax.kleisli._
 import org.http4s.headers.{Date => HDate}
+import org.http4s.syntax.all._
 
 class DateSuite extends Http4sSuite {
-  implicit val timer: Timer[IO] = Http4sSuite.TestTimer
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] { case _ =>
     Response[IO](Status.Ok).pure[IO]

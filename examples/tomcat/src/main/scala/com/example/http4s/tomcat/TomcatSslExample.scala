@@ -27,15 +27,12 @@ object TomcatSslExample extends IOApp {
 }
 
 object TomcatSslExampleApp {
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): TomcatBuilder[F] =
+  def builder[F[_]: Async]: TomcatBuilder[F] =
     TomcatExampleApp
-      .builder[F](blocker)
+      .builder[F]
       .bindHttp(8443)
       .withSSL(ssl.storeInfo, ssl.keyManagerPassword)
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
-    for {
-      blocker <- Blocker[F]
-      server <- builder[F](blocker).resource
-    } yield server
+  def resource[F[_]: Async]: Resource[F, Server] =
+    builder[F].resource
 }

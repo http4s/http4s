@@ -26,14 +26,16 @@ import org.http4s._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
-import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.WebSocketHandshake
 import org.typelevel.ci._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import cats.effect.std.{Dispatcher, Semaphore}
 
 private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit val F: ConcurrentEffect[F]
+  protected implicit val F: Async[F]
+
+  implicit val dispatcher: Dispatcher[F]
 
   override protected def renderResponse(
       req: Request[F],
@@ -50,19 +52,24 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
           WebSocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
-              unsafeRunAsync {
+              val fa =
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
                       Connection(ci"close"),
                       "Sec-WebSocket-Version" -> "13"
                     ))
-              } {
-                case Right(resp) =>
-                  IO(super.renderResponse(req, resp, cleanup))
-                case Left(_) =>
-                  IO.unit
-              }
+                  .attempt
+                  .flatMap {
+                    case Right(resp) =>
+                      F.delay(super.renderResponse(req, resp, cleanup))
+                    case Left(_) =>
+                      F.unit
+                  }
+
+              dispatcher.unsafeRunAndForget(fa)
+
+              ()
 
             case Right(hdrs) => // Successful handshake
               val sb = new StringBuilder
@@ -83,10 +90,19 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case Success(_) =>
                   logger.debug("Switching pipeline segments for websocket")
 
-                  val deadSignal = F.toIO(SignallingRef[F, Boolean](false)).unsafeRunSync()
+                  val deadSignal = dispatcher.unsafeRunSync(SignallingRef[F, Boolean](false))
+                  val writeSemaphore = dispatcher.unsafeRunSync(Semaphore[F](1L))
                   val sentClose = new AtomicBoolean(false)
                   val segment =
-                    LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal))
+                    LeafBuilder(
+                      new Http4sWSStage[F](
+                        wsContext.webSocket,
+                        sentClose,
+                        deadSignal,
+                        writeSemaphore,
+                        dispatcher
+                      )
+                    ) // TODO: there is a constructor
                       .prepend(new WSFrameAggregator)
                       .prepend(new WebSocketDecoder)
 

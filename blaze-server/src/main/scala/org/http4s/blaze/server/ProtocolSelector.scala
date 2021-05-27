@@ -18,7 +18,8 @@ package org.http4s
 package blaze
 package server
 
-import cats.effect.{ConcurrentEffect, Timer}
+import cats.effect.Async
+import cats.effect.std.Dispatcher
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
@@ -43,9 +44,8 @@ private[http4s] object ProtocolSelector {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F],
-      timer: Timer[F]): ALPNServerSelector = {
+      scheduler: TickWheelExecutor,
+      dispatcher: Dispatcher[F])(implicit F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(
@@ -58,7 +58,8 @@ private[http4s] object ProtocolSelector {
             serviceErrorHandler,
             responseHeaderTimeout,
             idleTimeout,
-            scheduler
+            scheduler,
+            dispatcher
           ))
       }
 
@@ -85,7 +86,8 @@ private[http4s] object ProtocolSelector {
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        dispatcher
       )
 
     def preference(protos: Set[String]): String =

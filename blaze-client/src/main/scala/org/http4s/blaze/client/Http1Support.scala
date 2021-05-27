@@ -18,7 +18,8 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect._
+import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
@@ -53,8 +54,9 @@ final private class Http1Support[F[_]](
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
     connectTimeout: Duration,
+    dispatcher: Dispatcher[F],
     getAddress: RequestKey => Either[Throwable, InetSocketAddress]
-)(implicit F: ConcurrentEffect[F]) {
+)(implicit F: Async[F]) {
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
     asynchronousChannelGroup,
@@ -99,7 +101,8 @@ final private class Http1Support[F[_]](
       maxChunkSize = maxChunkSize,
       chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
-      userAgent = userAgent
+      userAgent = userAgent,
+      dispatcher = dispatcher
     )
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {

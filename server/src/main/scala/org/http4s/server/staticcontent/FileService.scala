@@ -19,7 +19,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.kernel.Async
 import cats.syntax.all._
 import java.io.File
 import java.nio.file.{Files, LinkOption, NoSuchFileException, Path, Paths}
@@ -47,26 +47,24 @@ object FileService {
     */
   final case class Config[F[_]](
       systemPath: String,
-      blocker: Blocker,
       pathCollector: PathCollector[F],
       pathPrefix: String,
       bufferSize: Int,
       cacheStrategy: CacheStrategy[F])
 
   object Config {
-    def apply[F[_]: Sync: ContextShift](
+    def apply[F[_]: Async](
         systemPath: String,
-        blocker: Blocker,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
       val pathCollector: PathCollector[F] = filesOnly
-      Config(systemPath, blocker, pathCollector, pathPrefix, bufferSize, cacheStrategy)
+      Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
   }
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Sync[F]): HttpRoutes[F] = {
+  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     Try(Paths.get(config.systemPath).toRealPath()) match {
       case Success(rootPath) =>
@@ -111,19 +109,18 @@ object FileService {
   }
 
   private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
+      F: Async[F]): OptionT[F, Response[F]] =
     OptionT(F.defer {
       if (file.isDirectory)
         StaticFile
-          .fromFile(new File(file, "index.html"), config.blocker, Some(req))
+          .fromFile(new File(file, "index.html"), Some(req))
           .value
       else if (!file.isFile) F.pure(None)
       else
         OptionT(getPartialContentFile(file, config, req))
           .orElse(
             StaticFile
-              .fromFile(file, config.bufferSize, config.blocker, Some(req), StaticFile.calcETag)
+              .fromFile(file, config.bufferSize, Some(req), StaticFile.calcETag)
               .map(_.putHeaders(AcceptRangeHeader))
           )
           .value
@@ -137,8 +134,7 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): F[Option[Response[F]]] = {
+      F: Async[F]): F[Option[Response[F]]] = {
     def nope: F[Option[Response[F]]] = F.delay(file.length()).map { size =>
       Some(
         Response[F](
@@ -156,14 +152,7 @@ object FileService {
             val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
 
             StaticFile
-              .fromFile(
-                file,
-                start,
-                end + 1,
-                config.bufferSize,
-                config.blocker,
-                Some(req),
-                StaticFile.calcETag)
+              .fromFile(file, start, end + 1, config.bufferSize, Some(req), StaticFile.calcETag)
               .map { resp =>
                 val hs = resp.headers
                   .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))

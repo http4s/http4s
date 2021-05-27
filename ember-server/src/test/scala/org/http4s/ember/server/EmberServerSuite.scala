@@ -25,7 +25,7 @@ import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 
-import java.net.BindException
+import java.net.{BindException, ConnectException}
 
 class EmberServerSuite extends Http4sSuite {
 
@@ -65,6 +65,14 @@ class EmberServerSuite extends Http4sSuite {
     client
       .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
       .assertEquals(Status.Ok)
+  }
+
+  client.test("server shuts down after exiting resource scope") { client =>
+    serverResource.use(server => IO.pure(server.address)).flatMap { address =>
+      client
+        .get(s"http://${address.getHostName}:${address.getPort}")(_.status.pure[IO])
+        .intercept[ConnectException]
+    }
   }
 
   server().test("server startup fails if address is already in use") { case _ =>

@@ -16,9 +16,8 @@
 
 package org.http4s.ember.server.internal
 
-import cats.syntax.all._
 import cats.effect.IO
-import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.kernel.{Deferred, Ref}
 import fs2.Stream
 import munit._
 
@@ -46,7 +45,7 @@ class StreamForkingSuite extends CatsEffectSuite {
   test("outer stream can terminate and finalize before inner streams complete") {
     Deferred[IO, Unit]
       .flatMap { gate =>
-        val stream = Stream.bracket(IO.unit)(_ => gate.complete(())) >> Stream(
+        val stream = Stream.bracket(IO.unit)(_ => gate.complete(()).void) >> Stream(
           Stream.eval(gate.get)
         )
 

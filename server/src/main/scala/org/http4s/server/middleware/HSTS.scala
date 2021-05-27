@@ -33,8 +33,7 @@ object HSTS {
     includeSubDomains = true,
     preload = false)
 
-  def apply[F[_]: Functor, G[_], A](
-      http: F[Response[G]]): F[Response[G]] =
+  def apply[F[_]: Functor, G[_], A](http: F[Response[G]]): F[Response[G]] =
     apply(http, defaultHSTSPolicy)
 
   def apply[F[_]: Functor, G[_], A](

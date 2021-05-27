@@ -19,20 +19,51 @@ package blaze
 package server
 
 import cats.effect._
+import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
 import cats.syntax.all._
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
-import munit.TestOptions
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
-import org.http4s.multipart.Multipart
-import org.http4s.server.Server
-import scala.concurrent.ExecutionContext.global
+import org.http4s.internal.threads._
 import scala.concurrent.duration._
 import scala.io.Source
+import org.http4s.multipart.Multipart
+import org.http4s.server.Server
+import scala.concurrent.ExecutionContext, ExecutionContext.global
+import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
+
+  override implicit val ioRuntime: IORuntime = {
+    val TestScheduler: ScheduledExecutorService = {
+      val s =
+        new ScheduledThreadPoolExecutor(
+          2,
+          threadFactory(i => s"blaze-server-suite-scheduler-$i", true))
+      s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+      s.allowCoreThreadTimeOut(true)
+      s
+    }
+
+    val blockingPool = newBlockingPool("blaze-server-suite-blocking")
+    val computePool = newDaemonPool("blaze-server-suite-compute", timeout = true)
+    val scheduledExecutor = TestScheduler
+    IORuntime.apply(
+      ExecutionContext.fromExecutor(computePool),
+      ExecutionContext.fromExecutor(blockingPool),
+      Scheduler.fromScheduledExecutor(scheduledExecutor),
+      () => {
+        blockingPool.shutdown()
+        computePool.shutdown()
+        scheduledExecutor.shutdown()
+      },
+      IORuntimeConfig()
+    )
+  }
+
+  override def afterAll(): Unit = ioRuntime.shutdown()
 
   def builder =
     BlazeServerBuilder[IO](global)
@@ -72,26 +103,25 @@ class BlazeServerSuite extends Http4sSuite {
       (_: TestOptions, _: Server) => IO.unit,
       (_: Server) => IO.sleep(100.milliseconds) *> IO.unit)
 
-  // This should be in IO and shifted but I'm tired of fighting this.
-  def get(server: Server, path: String): IO[String] = IO {
+  def get(server: Server, path: String): IO[String] = IO.blocking {
     Source
       .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
       .getLines()
       .mkString
   }
 
-  // This should be in IO and shifted but I'm tired of fighting this.
   def getStatus(server: Server, path: String): IO[Status] = {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     for {
-      conn <- IO(url.openConnection().asInstanceOf[HttpURLConnection])
+      conn <- IO.blocking(url.openConnection().asInstanceOf[HttpURLConnection])
       _ = conn.setRequestMethod("GET")
-      status <- IO.fromEither(Status.fromInt(conn.getResponseCode()))
+      status <- IO
+        .blocking(conn.getResponseCode())
+        .flatMap(code => IO.fromEither(Status.fromInt(code)))
     } yield status
   }
 
-  // This too
-  def post(server: Server, path: String, body: String): IO[String] = IO {
+  def post(server: Server, path: String, body: String): IO[String] = IO.blocking {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -102,13 +132,12 @@ class BlazeServerSuite extends Http4sSuite {
     Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
   }
 
-  // This too
   def postChunkedMultipart(
       server: Server,
       path: String,
       boundary: String,
       body: String): IO[String] =
-    IO {
+    IO.blocking {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -121,11 +150,11 @@ class BlazeServerSuite extends Http4sSuite {
     }
 
   blazeServer.test("route requests on the service executor".flaky) { server =>
-    get(server, "/thread/routing").map(_.startsWith("http4s-suite-")).assert
+    get(server, "/thread/routing").map(_.startsWith("blaze-server-suite-compute-")).assert
   }
 
   blazeServer.test("execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
+    get(server, "/thread/effect").map(_.startsWith("blaze-server-suite-compute-")).assert
   }
 
   blazeServer.test("be able to echo its input") { server =>

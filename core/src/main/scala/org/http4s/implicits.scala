@@ -16,4 +16,4 @@
 
 package org.http4s
 
-object implicits extends syntax.AllSyntaxBinCompat
+object implicits extends syntax.AllSyntax

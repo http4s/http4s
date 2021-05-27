@@ -16,8 +16,8 @@
 
 package org.http4s.blaze.server
 
-import cats.effect.{ContextShift, IO, Resource}
-import fs2.io.tls.TLSParameters
+import cats.effect.{IO, Resource}
+import fs2.io.net.tls.TLSParameters
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
@@ -34,7 +34,6 @@ import scala.util.Try
 /** Test cases for mTLS support in blaze server
   */
 class BlazeServerMtlsSpec extends Http4sSuite {
-
   {
     val hostnameVerifier: HostnameVerifier = new HostnameVerifier {
       override def verify(s: String, sslSession: SSLSession): Boolean = true
@@ -43,7 +42,6 @@ class BlazeServerMtlsSpec extends Http4sSuite {
     //For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
     HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier)
   }
-  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   def builder: BlazeServerBuilder[IO] =
     BlazeServerBuilder[IO](global)

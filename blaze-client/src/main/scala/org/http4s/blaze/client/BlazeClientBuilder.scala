@@ -18,8 +18,9 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect._
 import cats.syntax.all._
+import cats.effect.kernel.{Async, Resource}
+import cats.effect.std.Dispatcher
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
@@ -58,7 +59,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions,
     val customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]]
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: Async[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
@@ -210,10 +211,11 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   def resource: Resource[F, Client[F]] =
     for {
+      dispatcher <- Dispatcher[F]
       scheduler <- scheduler
       _ <- Resource.eval(verifyAllTimeoutsAccuracy(scheduler))
       _ <- Resource.eval(verifyTimeoutRelations())
-      manager <- connectionManager(scheduler)
+      manager <- connectionManager(scheduler, dispatcher)
     } yield BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
@@ -262,8 +264,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         logger.warn(s"requestTimeout ($requestTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
 
-  private def connectionManager(scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
+  private def connectionManager(scheduler: TickWheelExecutor, dispatcher: Dispatcher[F])(implicit
+      F: Async[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
@@ -279,6 +281,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       userAgent = userAgent,
       channelOptions = channelOptions,
       connectTimeout = connectTimeout,
+      dispatcher = dispatcher,
       getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
     ).makeClient
     Resource.make(
@@ -300,7 +303,7 @@ object BlazeClientBuilder {
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
     */
-  def apply[F[_]: ConcurrentEffect](executionContext: ExecutionContext): BlazeClientBuilder[F] =
+  def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,

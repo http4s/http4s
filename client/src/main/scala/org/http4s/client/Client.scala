@@ -20,12 +20,11 @@ package client
 import cats.~>
 import cats.data.Kleisli
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.syntax.all._
 import fs2._
 import java.io.IOException
 import org.http4s.headers.Host
-import org.http4s.syntax.kleisli._
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
@@ -77,12 +76,6 @@ trait Client[F[_]] {
     * to the returned Stream's.
     */
   def stream(req: Request[F]): Stream[F, Response[F]]
-
-  @deprecated("Use `client.stream(req).flatMap(f)`", "0.19.0-M4")
-  def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A]
-
-  @deprecated("Use `Stream.eval(req).flatMap(client.stream).flatMap(f)`", "0.19.0-M4")
-  def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A]
@@ -172,7 +165,8 @@ trait Client[F[_]] {
 
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): Client[G] =
+  def translate[G[_]: Async](fk: F ~> G)(gK: G ~> F)(implicit
+      F: MonadCancel[F, Throwable]): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
@@ -182,26 +176,17 @@ trait Client[F[_]] {
 
 object Client {
   def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
-      F: BracketThrow[F]): Client[F] =
+      F: MonadCancelThrow[F]): Client[F] =
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }
-
-  /** Creates a client from the specified service.  Useful for generating
-    * pre-determined responses for requests in testing.
-    *
-    * @param service the service to respond to requests to this client
-    */
-  @deprecated("Use fromHttpApp instead. Call service.orNotFound to turn into an HttpApp.", "0.19")
-  def fromHttpService[F[_]](service: HttpRoutes[F])(implicit F: Sync[F]): Client[F] =
-    fromHttpApp(service.orNotFound)
 
   /** Creates a client from the specified [[HttpApp]].  Useful for
     * generating pre-determined responses for requests in testing.
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Sync[F]): Client[F] =
+  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] =
     Client { (req: Request[F]) =>
       Resource.suspend {
         Ref[F].of(false).map { disposed =>
@@ -230,7 +215,7 @@ object Client {
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
-  def liftKleisli[F[_]: BracketThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
+  def liftKleisli[F[_]: MonadCancelThrow, A](client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { (req: Request[Kleisli[F, A, *]]) =>
       Resource.eval(Kleisli.ask[F, A]).flatMap { a =>
         client

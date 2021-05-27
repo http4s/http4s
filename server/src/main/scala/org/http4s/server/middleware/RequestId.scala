@@ -22,7 +22,7 @@ package middleware
 import cats.{FlatMap, ~>}
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{IO, Sync}
+import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
 import org.typelevel.ci._
 import org.typelevel.vault.Key
@@ -36,7 +36,7 @@ object RequestId {
 
   private[this] val requestIdHeader = ci"X-Request-ID"
 
-  val requestIdAttrKey: Key[String] = Key.newKey[IO, String].unsafeRunSync()
+  val requestIdAttrKey: Key[String] = Key.newKey[SyncIO, String].unsafeRunSync()
 
   def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
     apply(requestIdHeader)(http)

@@ -30,18 +30,16 @@ object BlazeExample extends IOApp {
 }
 
 object BlazeExampleApp {
-  def httpApp[F[_]: Effect: ContextShift: Timer](blocker: Blocker): HttpApp[F] =
+  def httpApp[F[_]: Async]: HttpApp[F] =
     Router(
-      "/http4s" -> ExampleService[F](blocker).routes
+      "/http4s" -> ExampleService[F].routes
     ).orNotFound
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
-    for {
-      blocker <- Blocker[F]
-      app = httpApp[F](blocker)
-      server <- BlazeServerBuilder[F](global)
-        .bindHttp(8080)
-        .withHttpApp(app)
-        .resource
-    } yield server
+  def resource[F[_]: Async]: Resource[F, Server] = {
+    val app = httpApp[F]
+    BlazeServerBuilder[F](global)
+      .bindHttp(8080)
+      .withHttpApp(app)
+      .resource
+  }
 }

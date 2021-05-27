@@ -40,7 +40,7 @@ class EntityDecoderSuite extends Http4sSuite {
     body.compile.toVector.map(_.toArray)
 
   def strBody(body: String): Stream[IO, Byte] =
-    chunk(Chunk.bytes(body.getBytes(StandardCharsets.UTF_8)))
+    chunk(Chunk.array(body.getBytes(StandardCharsets.UTF_8)))
 
   val req = Response[IO](Ok).withEntity("foo").pure[IO]
   test("flatMapR with success") {
@@ -328,7 +328,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val request = Request[IO]().withEntity("whatever")
 
-  test("apply should invoke the function with  the right on a success") {
+  test("apply should invoke the function with the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
       EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
     IO.async[String] { cb =>
@@ -337,8 +337,7 @@ class EntityDecoderSuite extends Http4sSuite {
           cb(Right(s))
           IO.pure(Response())
         }
-        .unsafeRunSync()
-      ()
+        .as(None)
     }.assertEquals("hooray")
   }
 
@@ -389,14 +388,14 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val binData: Array[Byte] = "Bytes 10111".getBytes
 
-  def readFile(in: File): IO[Array[Byte]] = IO {
+  def readFile(in: File): IO[Array[Byte]] = IO.blocking {
     val os = new FileInputStream(in)
     val data = new Array[Byte](in.length.asInstanceOf[Int])
     os.read(data)
     data
   }
 
-  def readTextFile(in: File): IO[String] = IO {
+  def readTextFile(in: File): IO[String] = IO.blocking {
     val os = new InputStreamReader(new FileInputStream(in))
     val data = new Array[Char](in.length.asInstanceOf[Int])
     os.read(data, 0, in.length.asInstanceOf[Int])
@@ -404,14 +403,14 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-    route(req.withBodyStream(chunk(Chunk.bytes(binData))))
+    route(req.withBodyStream(chunk(Chunk.array(binData))))
 
   test("A File EntityDecoder should write a text file from a byte string") {
     Resource
       .make(IO(File.createTempFile("foo", "bar")))(f => IO(f.delete()).void)
       .use { tmpFile =>
         val response = mockServe(Request()) { req =>
-          req.decodeWith(EntityDecoder.textFile(tmpFile, testBlocker), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.textFile(tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
@@ -428,7 +427,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .make(IO(File.createTempFile("foo", "bar")))(f => IO(f.delete()).void)
       .use { tmpFile =>
         val response = mockServe(Request()) { case req =>
-          req.decodeWith(EntityDecoder.binFile(tmpFile, testBlocker), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.binFile(tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
@@ -455,9 +454,9 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("binary EntityDecoder should concat Chunks") {
     val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
-    val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
+    val body = chunk(Chunk.array(d1)) ++ chunk(Chunk.array(d2))
     val msg = Request[IO](body = body)
-    val expected = Chunk.bytes(Array[Byte](1, 2, 3, 4, 5, 6))
+    val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
     EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
   }
 
@@ -484,7 +483,7 @@ class EntityDecoderSuite extends Http4sSuite {
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
-      Chunk.bytes(json.value.getBytes()))
+      Chunk.array(json.value.getBytes()))
 
 // TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]
 //  {

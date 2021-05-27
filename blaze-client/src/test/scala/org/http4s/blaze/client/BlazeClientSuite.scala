@@ -18,7 +18,6 @@ package org.http4s.blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
@@ -45,7 +44,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
     val resp = mkClient(1).use(_.expect[String](u))
-    resp.map(_.length > 0).assert
+    resp.map(_.length > 0).assertEquals(true)
   }
 
   test("Blaze Http1Client should reject https requests when no SSLContext is configured") {
@@ -56,16 +55,17 @@ class BlazeClientSuite extends BlazeClientBase {
     val resp = mkClient(1, sslContextOption = None)
       .use(_.expect[String](u))
       .attempt
-    resp.map {
-      case Left(_: ConnectionFailure) => true
-      case _ => false
-    }.assert
+    resp
+      .map {
+        case Left(_: ConnectionFailure) => true
+        case _ => false
+      }
+      .assertEquals(true)
   }
 
   test("Blaze Http1Client should obey response header timeout") {
-
     val addresses = jettyServer().addresses
-    val address = addresses.head
+    val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
     mkClient(1, responseHeaderTimeout = 100.millis)
@@ -78,7 +78,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should unblock waiting connections") {
     val addresses = jettyServer().addresses
-    val address = addresses.head
+    val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
     mkClient(1, responseHeaderTimeout = 20.seconds)
@@ -90,12 +90,12 @@ class BlazeClientSuite extends BlazeClientBase {
         } yield r
       }
       .map(_.isRight)
-      .assert
+      .assertEquals(true)
   }
 
   test("Blaze Http1Client should drain waiting connections after shutdown") {
     val addresses = jettyServer().addresses
-    val address = addresses.head
+    val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
 
@@ -113,21 +113,21 @@ class BlazeClientSuite extends BlazeClientBase {
           .start
 
         // Wait 100 millis to shut down
-        IO.sleep(100.millis) *> resp.flatMap(_.join)
+        IO.sleep(100.millis) *> resp.flatMap(_.joinWithNever)
       }
 
-    resp.assert
+    resp.assertEquals(true)
   }
 
   test("Blaze Http1Client should cancel infinite request on completion".ignore) {
     val addresses = jettyServer().addresses
-    val address = addresses.head
+    val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
         mkClient(1, requestTimeout = 10.seconds).use { client =>
-          val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
+          val body = Stream(0.toByte).repeat.onFinalizeWeak[IO](reqClosed.complete(()).void)
           val req = Request[IO](
             method = Method.POST,
             uri = Uri.fromString(s"http://$name:$port/").yolo
@@ -165,12 +165,7 @@ class BlazeClientSuite extends BlazeClientBase {
       .use { client =>
         client.status(Request[IO](uri = uri"http://example.invalid/"))
       }
-      .attempt
-      .map {
-        case Left(e: ConnectionFailure) =>
-          e.getMessage === "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
-        case _ => false
-      }
-      .assert
+      .interceptMessage[ConnectionFailure](
+        "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
   }
 }

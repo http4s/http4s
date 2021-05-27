@@ -17,8 +17,8 @@
 package org.http4s
 
 package object syntax {
-  object all extends AllSyntaxBinCompat
-  object kleisli extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliSyntaxBinCompat1
+  object all extends AllSyntax
+  object kleisli extends KleisliSyntax
   object literals extends LiteralsSyntax
   object string extends StringSyntax
   object header extends HeaderSyntax

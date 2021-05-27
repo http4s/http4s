@@ -18,7 +18,7 @@ package org.http4s
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s.Method._

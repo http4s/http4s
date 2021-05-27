@@ -1,6 +1,5 @@
 package org.http4s.sbt
 
-import dotty.tools.sbtplugin.DottyPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -24,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.5"
+  val scala_213 = "2.13.6"
   val scala_212 = "2.12.13"
   val scala_3 = "3.0.0"
 
@@ -76,13 +75,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
-    // CE3
-    dependencyUpdatesFilter -= moduleFilter(name = "log4cats-*", revision = "2.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "ip4s-*", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "cats-effect*", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
@@ -258,7 +250,7 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
         WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+        // WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -275,11 +267,14 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
         sitePublishStep("website"),
-        sitePublishStep("docs")
+        // sitePublishStep("docs")
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
+      githubWorkflowAddedJobs := Seq(
+        siteBuildJob("website"),
+        // siteBuildJob("docs")
+      ),
     )
   }
 
@@ -288,26 +283,27 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.0"
+    val blaze = "0.15.1"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
-    val catsEffect = "2.5.1"
+    val catsEffect = "3.1.1"
     val catsMtl = "1.2.1"
     val catsParse = "0.3.4"
-    val circe = "0.14.0-M7"
+    val circe = "0.14.1"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.0"
-    val fs2 = "2.5.6"
-    val ip4s = "2.0.3"
+    val fs2 = "3.0.4"
+    val ip4s = "3.0.3"
+    val jacksonDatabind = "2.12.3"
     val jawn = "1.1.2"
-    val jawnFs2 = "1.1.3"
+    val jawnFs2 = "2.0.2"
     val jetty = "9.4.41.v20210516"
-    val keypool = "0.3.5"
+    val keypool = "0.4.5"
     val literally = "1.0.2"
     val logback = "1.2.3"
-    val log4cats = "1.3.1"
+    val log4cats = "2.1.1"
     val log4s = "1.10.0"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.3"
@@ -315,7 +311,7 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.65.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
-    val playJson = "2.10.0-RC2"
+    val playJson = "2.9.2"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
@@ -329,7 +325,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.46"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.13"
+    val vault = "3.0.3"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
@@ -340,7 +336,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val caseInsensitiveTesting           = "org.typelevel"          %% "case-insensitive-testing"  % V.caseInsensitive
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
+  lazy val catsEffectStd                    = "org.typelevel"          %% "cats-effect-std"           % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
+  lazy val catsEffectTestkit                = "org.typelevel"          %% "cats-effect-testkit"       % V.catsEffect
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
   lazy val catsMtl                          = "org.typelevel"          %% "cats-mtl"                  % V.catsMtl
   lazy val catsParse                        = "org.typelevel"          %% "cats-parse"                % V.catsParse
@@ -360,7 +358,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
+  lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % V.jetty
@@ -378,7 +376,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
-  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-2"       % V.munitCatsEffect
+  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-3"       % V.munitCatsEffect
   lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val nettyBuffer                      = "io.netty"               %  "netty-buffer"              % V.netty
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty

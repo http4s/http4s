@@ -21,6 +21,7 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 import fs2._
+
 import java.io.File
 import org.http4s.headers._
 import org.http4s.syntax.literals._
@@ -28,8 +29,6 @@ import org.http4s.EntityEncoder._
 import org.typelevel.ci._
 
 class MultipartSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
-
   val url = uri"https://example.com/path/to/some/where"
 
   implicit def partIOEq: Eq[Part[IO]] =
@@ -85,7 +84,7 @@ class MultipartSuite extends Http4sSuite {
 
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
         val field2 = Part
-          .fileData[IO]("image", file, Http4sSuite.TestBlocker, `Content-Type`(MediaType.image.png))
+          .fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
 
         val multipart = Multipart[IO](Vector(field1, field2))
 
@@ -189,7 +188,7 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO](Http4sSuite.TestBlocker))
+  multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO]())
 
   def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
 

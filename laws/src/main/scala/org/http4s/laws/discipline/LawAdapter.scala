@@ -16,9 +16,7 @@
 
 package org.http4s.laws.discipline
 
-import cats.Eq
-import cats.effect._
-import cats.effect.implicits._
+import cats.{Eq, MonadThrow}
 import cats.laws.IsEq
 import cats.syntax.all._
 import org.scalacheck.Arbitrary
@@ -29,16 +27,15 @@ import munit.CatsEffectAssertions._
 
 trait LawAdapter {
 
-  def booleanPropF[F[_]: Effect, A](propLabel: String, prop: => Boolean): (String, PropF[F]) =
+  def booleanPropF[F[_]: MonadThrow, A](propLabel: String, prop: => Boolean): (String, PropF[F]) =
     propLabel -> PropF.boolean(prop)
 
-  def isEqPropF[F[_]: Effect, A: Arbitrary: Shrink, B: Eq](
-      propLabel: String,
-      prop: A => IsEq[F[B]]): (String, PropF[IO]) =
+  def isEqPropF[F[_], A: Arbitrary: Shrink, B: Eq](propLabel: String, prop: A => IsEq[F[B]])(
+      implicit F: MonadThrow[F]): (String, PropF[F]) =
     propLabel -> PropF
       .forAllF { (a: A) =>
         val isEq = prop(a)
-        (isEq.lhs, isEq.rhs).mapN(_ === _).toIO.assert
+        (isEq.lhs, isEq.rhs).mapN(_ === _).flatMap(b => F.catchOnly[AssertionError](assert(b)))
       }
       .map(p => p.copy(labels = p.labels + propLabel))
 

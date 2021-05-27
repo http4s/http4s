@@ -30,20 +30,17 @@ object JettyExample extends IOApp {
 }
 
 object JettyExampleApp {
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): JettyBuilder[F] = {
+  def builder[F[_]: Async]: JettyBuilder[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
 
     JettyBuilder[F]
       .bindHttp(8080)
-      .mountService(metrics(ExampleService[F](blocker).routes), "/http4s")
+      .mountService(metrics(ExampleService[F].routes), "/http4s")
       .mountService(metricsService(metricsRegistry), "/metrics")
       .mountFilter(NoneShallPass, "/black-knight/*")
   }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
-    for {
-      blocker <- Blocker[F]
-      server <- builder[F](blocker).resource
-    } yield server
+  def resource[F[_]: Async]: Resource[F, Server] =
+    builder[F].resource
 }

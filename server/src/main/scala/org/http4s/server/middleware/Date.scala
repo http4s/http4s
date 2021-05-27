@@ -16,7 +16,6 @@
 
 package org.http4s.server.middleware
 
-import cats._
 import cats.syntax.all._
 import cats.effect._
 
@@ -27,7 +26,7 @@ import org.http4s.headers.{Date => HDate}
   * by the service.
   */
 object Date {
-  def apply[F[_]: Monad: Clock, G[_], A](http: F[Response[G]]): F[Response[G]] =
+  def apply[F[_]: Temporal, G[_], A](http: F[Response[G]]): F[Response[G]] =
     for {
       resp <- http
       header <- resp.headers
@@ -37,9 +36,9 @@ object Date {
         )(_.pure[F])
     } yield resp.putHeaders(header)
 
-  def httpRoutes[F[_]: Monad: Clock](routes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Temporal](routes: HttpRoutes[F]): HttpRoutes[F] =
     apply(routes)
 
-  def httpApp[F[_]: Monad: Clock](app: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: Temporal](app: HttpApp[F]): HttpApp[F] =
     apply(app)
 }

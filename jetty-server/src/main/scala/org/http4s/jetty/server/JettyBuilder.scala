@@ -19,6 +19,8 @@ package jetty
 package server
 
 import cats.effect._
+import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.util
@@ -66,7 +68,7 @@ sealed class JettyBuilder[F[_]] private (
     supportHttp2: Boolean,
     banner: immutable.Seq[String],
     jettyHttpConfiguration: HttpConfiguration
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: Async[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
   type Self = JettyBuilder[F]
@@ -171,7 +173,7 @@ sealed class JettyBuilder[F[_]] private (
       servlet: HttpServlet,
       urlMapping: String,
       name: Option[String] = None): Self =
-    copy(mounts = mounts :+ Mount[F] { (context, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (context, index, _, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
@@ -182,7 +184,7 @@ sealed class JettyBuilder[F[_]] private (
       name: Option[String],
       dispatches: util.EnumSet[DispatcherType]
   ): Self =
-    copy(mounts = mounts :+ Mount[F] { (context, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (context, index, _, _) =>
       val filterName = name.getOrElse(s"filter-$index")
       val filterHolder = new FilterHolder(filter)
       filterHolder.setName(filterName)
@@ -193,12 +195,13 @@ sealed class JettyBuilder[F[_]] private (
     mountHttpApp(service.orNotFound, prefix)
 
   def mountHttpApp(service: HttpApp[F], prefix: String): Self =
-    copy(mounts = mounts :+ Mount[F] { (context, index, builder) =>
+    copy(mounts = mounts :+ Mount[F] { (context, index, builder, dispatcher) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        serviceErrorHandler = builder.serviceErrorHandler
+        serviceErrorHandler = builder.serviceErrorHandler,
+        dispatcher
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
@@ -266,10 +269,8 @@ sealed class JettyBuilder[F[_]] private (
     // If threadPoolResourceOption is None, then use the value of
     // threadPool.
     val threadPoolR: Resource[F, ThreadPool] =
-      threadPoolResourceOption.getOrElse(
-        Resource.pure(threadPool)
-      )
-    val serverR: ThreadPool => Resource[F, Server] = (threadPool: ThreadPool) =>
+      threadPoolResourceOption.getOrElse(Resource.pure(threadPool))
+    val serverR = (threadPool: ThreadPool, dispatcher: Dispatcher[F]) =>
       JettyLifeCycle
         .lifeCycleAsResource[F, JServer](
           F.delay {
@@ -298,7 +299,7 @@ sealed class JettyBuilder[F[_]] private (
             })
 
             for ((mount, i) <- mounts.zipWithIndex)
-              mount.f(context, i, this)
+              mount.f(context, i, this, dispatcher)
 
             jetty
           }
@@ -314,17 +315,19 @@ sealed class JettyBuilder[F[_]] private (
             lazy val isSecure: Boolean = sslConfig.isSecure
           })
     for {
+      dispatcher <- Dispatcher[F]
       threadPool <- threadPoolR
-      server <- serverR(threadPool)
+      server <- serverR(threadPool, dispatcher)
       _ <- Resource.eval(banner.traverse_(value => F.delay(logger.info(value))))
       _ <- Resource.eval(F.delay(logger.info(
-        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")))
+        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}"
+      )))
     } yield server
   }
 }
 
 object JettyBuilder {
-  def apply[F[_]: ConcurrentEffect] =
+  def apply[F[_]: Async] =
     new JettyBuilder[F](
       socketAddress = defaults.IPv4SocketAddress,
       threadPool = LazyThreadPool.newLazyThreadPool,
@@ -431,4 +434,5 @@ object JettyBuilder {
   }
 }
 
-private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
+private final case class Mount[F[_]](
+    f: (ServletContextHandler, Int, JettyBuilder[F], Dispatcher[F]) => Unit)

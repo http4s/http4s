@@ -19,23 +19,26 @@ package blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
+import cats.effect.kernel.Deferred
+import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import fs2.Stream
-import fs2.concurrent.Queue
+import org.http4s.blaze.pipeline.Command.EOF
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.client.bits.DefaultUserAgent
-import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, TestHead}
+import org.http4s.BuildInfo
 import org.http4s.client.RequestKey
 import org.http4s.headers.`User-Agent`
 import org.http4s.syntax.all._
+import org.http4s.testing.DispatcherIOFixture
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class Http1ClientStageSuite extends Http4sSuite {
+class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
+
   val trampoline = org.http4s.blaze.util.Execution.trampoline
 
   val www_foo_test = uri"http://www.foo.test"
@@ -49,15 +52,21 @@ class Http1ClientStageSuite extends Http4sSuite {
 
   private val fooConnection =
     ResourceFixture[Http1Connection[IO]] {
-      Resource[IO, Http1Connection[IO]] {
-        IO {
-          val connection = mkConnection(FooRequestKey)
-          (connection, IO.delay(connection.shutdown()))
+      for {
+        dispatcher <- Dispatcher[IO]
+        connection <- Resource[IO, Http1Connection[IO]] {
+          IO {
+            val connection = mkConnection(FooRequestKey, dispatcher)
+            (connection, IO.delay(connection.shutdown()))
+          }
         }
-      }
+      } yield connection
     }
 
-  private def mkConnection(key: RequestKey, userAgent: Option[`User-Agent`] = None) =
+  private def mkConnection(
+      key: RequestKey,
+      dispatcher: Dispatcher[IO],
+      userAgent: Option[`User-Agent`] = None) =
     new Http1Connection[IO](
       key,
       executionContext = trampoline,
@@ -66,16 +75,17 @@ class Http1ClientStageSuite extends Http4sSuite {
       maxChunkSize = Int.MaxValue,
       chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
-      userAgent = userAgent
+      userAgent = userAgent,
+      dispatcher = dispatcher
     )
 
   private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  private def bracketResponse[T](req: Request[IO], resp: String)(
+  private def bracketResponse[T](req: Request[IO], resp: String, dispatcher: Dispatcher[IO])(
       f: Response[IO] => IO[T]): IO[T] = {
-    val stage = mkConnection(FooRequestKey)
-    IO.suspend {
+    val stage = mkConnection(FooRequestKey, dispatcher)
+    IO.defer {
       val h = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
         b.put(chr.toByte).flip()
@@ -108,10 +118,10 @@ class Http1ClientStageSuite extends Http4sSuite {
           b
         }
         .noneTerminate
-        .through(q.enqueue)
+        .through(_.evalMap(q.offer))
         .compile
         .drain).start
-      req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
+      req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(()).void))
       response <- stage.runRequest(req0, IO.never)
       result <- response.as[String]
       _ <- IO(h.stageShutdown())
@@ -123,29 +133,30 @@ class Http1ClientStageSuite extends Http4sSuite {
   private def getSubmission(
       req: Request[IO],
       resp: String,
+      dispatcher: Dispatcher[IO],
       userAgent: Option[`User-Agent`] = None): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
-    val tail = mkConnection(key, userAgent)
+    val tail = mkConnection(key, dispatcher, userAgent)
     getSubmission(req, resp, tail)
   }
 
-  test("Run a basic request".flaky) {
-    getSubmission(FooRequest, resp).map { case (request, response) =>
+  dispatcher.test("Run a basic request".flaky) { dispatcher =>
+    getSubmission(FooRequest, resp, dispatcher).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
-      assert(statusLine == "GET / HTTP/1.1")
-      assert(response == "done")
+      assertEquals(statusLine, "GET / HTTP/1.1")
+      assertEquals(response, "done")
     }
   }
 
-  test("Submit a request line with a query".flaky) {
+  dispatcher.test("Submit a request line with a query".flaky) { dispatcher =>
     val uri = "/huh?foo=bar"
     val Right(parsed) = Uri.fromString("http://www.foo.test" + uri)
     val req = Request[IO](uri = parsed)
 
-    getSubmission(req, resp).map { case (request, response) =>
+    getSubmission(req, resp, dispatcher).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
-      assert(statusLine == "GET " + uri + " HTTP/1.1")
-      assert(response == "done")
+      assertEquals(statusLine, "GET " + uri + " HTTP/1.1")
+      assertEquals(response, "done")
     }
   }
 
@@ -156,7 +167,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     (for {
-      done <- Deferred[IO, Unit]
+      done <- IO.deferred[Unit]
       _ <- tail.runRequest(FooRequest, done.complete(()) >> IO.never) // we remain in the body
       _ <- tail.runRequest(FooRequest, IO.never)
     } yield ()).intercept[Http1Connection.InProgressException.type]
@@ -174,39 +185,39 @@ class Http1ClientStageSuite extends Http4sSuite {
       .intercept[InvalidBodyException]
   }
 
-  test("Interpret a lack of length with a EOF as a valid message") {
+  dispatcher.test("Interpret a lack of length with a EOF as a valid message") { dispatcher =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-    getSubmission(FooRequest, resp).map(_._2).assertEquals("done")
+    getSubmission(FooRequest, resp, dispatcher).map(_._2).assertEquals("done")
   }
 
-  test("Utilize a provided Host header".flaky) {
+  dispatcher.test("Utilize a provided Host header".flaky) { dispatcher =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     val req = FooRequest.withHeaders(headers.Host("bar.test"))
 
-    getSubmission(req, resp).map { case (request, response) =>
+    getSubmission(req, resp, dispatcher).map { case (request, response) =>
       val requestLines = request.split("\r\n").toList
       assert(requestLines.contains("Host: bar.test"))
       assertEquals(response, "done")
     }
   }
 
-  test("Insert a User-Agent header".flaky) {
+  dispatcher.test("Insert a User-Agent header".flaky) { dispatcher =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-    getSubmission(FooRequest, resp, DefaultUserAgent).map { case (request, response) =>
+    getSubmission(FooRequest, resp, dispatcher, DefaultUserAgent).map { case (request, response) =>
       val requestLines = request.split("\r\n").toList
       assert(requestLines.contains(s"User-Agent: http4s-blaze/${BuildInfo.version}"))
       assertEquals(response, "done")
     }
   }
 
-  test("Use User-Agent header provided in Request".flaky) {
+  dispatcher.test("Use User-Agent header provided in Request".flaky) { dispatcher =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
     val req = FooRequest.withHeaders(`User-Agent`(ProductId("myagent")))
 
-    getSubmission(req, resp).map { case (request, response) =>
+    getSubmission(req, resp, dispatcher).map { case (request, response) =>
       val requestLines = request.split("\r\n").toList
       assert(requestLines.contains("User-Agent: myagent"))
       assertEquals(response, "done")
@@ -224,25 +235,25 @@ class Http1ClientStageSuite extends Http4sSuite {
   }
 
   // TODO fs2 port - Currently is elevating the http version to 1.1 causing this test to fail
-  test("Allow an HTTP/1.0 request without a Host header".ignore) {
+  dispatcher.test("Allow an HTTP/1.0 request without a Host header".ignore) { dispatcher =>
     val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
 
     val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
 
-    getSubmission(req, resp).map { case (request, response) =>
+    getSubmission(req, resp, dispatcher).map { case (request, response) =>
       assert(!request.contains("Host:"))
       assertEquals(response, "done")
     }
   }
 
-  test("Support flushing the prelude") {
+  dispatcher.test("Support flushing the prelude") { dispatcher =>
     val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
     /*
      * We flush the prelude first to test connection liveness in pooled
      * scenarios before we consume the body.  Make sure we can handle
      * it.  Ensure that we still get a well-formed response.
      */
-    getSubmission(req, resp).map(_._2).assertEquals("done")
+    getSubmission(req, resp, dispatcher).map(_._2).assertEquals("done")
   }
 
   fooConnection.test("Not expect body if request was a HEAD request") { tail =>
@@ -272,8 +283,8 @@ class Http1ClientStageSuite extends Http4sSuite {
 
     val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
-    test("Support trailer headers") {
-      val hs = bracketResponse(req, resp) { (response: Response[IO]) =>
+    dispatcher.test("Support trailer headers") { dispatcher =>
+      val hs: IO[Headers] = bracketResponse(req, resp, dispatcher) { (response: Response[IO]) =>
         for {
           _ <- response.as[String]
           hs <- response.trailerHeaders
@@ -283,8 +294,8 @@ class Http1ClientStageSuite extends Http4sSuite {
       hs.map(_.headers.mkString).assertEquals("Foo: Bar")
     }
 
-    test("Fail to get trailers before they are complete") {
-      val hs = bracketResponse(req, resp) { (response: Response[IO]) =>
+    dispatcher.test("Fail to get trailers before they are complete") { dispatcher =>
+      val hs: IO[Headers] = bracketResponse(req, resp, dispatcher) { (response: Response[IO]) =>
         for {
           hs <- response.trailerHeaders
         } yield hs

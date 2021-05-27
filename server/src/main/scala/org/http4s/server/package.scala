@@ -19,12 +19,12 @@ package org.http4s
 import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
-import cats.effect.IO
-import org.typelevel.vault._
+import cats.effect.SyncIO
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.log4s.getLogger
 import org.typelevel.ci._
+import org.typelevel.vault._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
@@ -79,7 +79,7 @@ package object server {
 
   object ServerRequestKeys {
     val SecureSession: Key[Option[SecureSession]] =
-      Key.newKey[IO, Option[SecureSession]].unsafeRunSync()
+      Key.newKey[SyncIO, Option[SecureSession]].unsafeRunSync()
   }
 
   /** A middleware is a function of one [[Service]] to another, possibly of a
@@ -93,12 +93,6 @@ package object server {
     * @tparam D the response type of the resulting service
     */
   type Middleware[F[_], A, B, C, D] = Kleisli[F, A, B] => Kleisli[F, C, D]
-
-  object Middleware {
-    @deprecated("Construct manually instead", "0.18")
-    def apply[F[_], A, B, C, D](f: (C, Kleisli[F, A, B]) => F[D]): Middleware[F, A, B, C, D] =
-      service => Kleisli(req => f(req, service))
-  }
 
   /** An HTTP middleware converts an [[HttpRoutes]] to another.
     */

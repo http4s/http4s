@@ -56,7 +56,7 @@ private[jetty] object JettyLifeCycle {
     * internally, e.g. due to some internal error occurring.
     */
   private[this] def stopLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
-    F.async[Unit] { cb =>
+    F.async_[Unit] { cb =>
       lifeCycle.addLifeCycleListener(
         new AbstractLifeCycleListener {
           override def lifeCycleStopped(a: LifeCycle): Unit =
@@ -96,7 +96,7 @@ private[jetty] object JettyLifeCycle {
     * (or starting) this will fail.
     */
   private[this] def startLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
-    F.async[Unit] { cb =>
+    F.async_[Unit] { cb =>
       lifeCycle.addLifeCycleListener(
         new AbstractLifeCycleListener {
           override def lifeCycleStarted(a: LifeCycle): Unit =

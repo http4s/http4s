@@ -80,7 +80,8 @@ object ParseResult {
 
   private[http4s] def fromParser[A](parser: Parser0[A], errorMessage: => String)(
       s: String): ParseResult[A] =
-    parser.parseAll(s).leftMap(e => ParseFailure(errorMessage, e.toString))
+    try parser.parseAll(s).leftMap(e => ParseFailure(errorMessage, e.toString))
+    catch { case p: ParseFailure => p.asLeft[A] }
 
   implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] =
     catsStdInstancesForEither[ParseFailure]

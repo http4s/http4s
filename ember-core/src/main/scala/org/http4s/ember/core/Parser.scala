@@ -17,14 +17,14 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.effect.{MonadThrow => _, _}
-import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.kernel.{Concurrent, Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
+import scodec.bits.ByteVector
 
 private[ember] object Parser {
 
@@ -398,7 +398,9 @@ private[ember] object Parser {
       if (contentLength > 0) {
         if (buffer.length >= contentLength) {
           val (body, rest) = buffer.splitAt(contentLength.toInt)
-          (Stream.chunk(Chunk.bytes(body)).covary[F], (Some(rest): Option[Array[Byte]]).pure[F])
+          (
+            Stream.chunk(Chunk.byteVector(ByteVector(body))).covary[F],
+            (Some(rest): Option[Array[Byte]]).pure[F])
             .pure[F]
         } else {
           val unread = contentLength - buffer.length
@@ -425,7 +427,7 @@ private[ember] object Parser {
             // followup: Check if there are bytes immediately available without blocking
             val drain: Drain[F] = state.get.map(_.toOption)
 
-            (Stream.chunk(Chunk.bytes(buffer)) ++ bodyStream, drain)
+            (Stream.chunk(Chunk.byteVector(ByteVector(buffer))) ++ bodyStream, drain)
           }
         }
       } else {

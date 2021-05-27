@@ -18,10 +18,11 @@ package org.http4s
 package blaze
 package server
 
-import cats.data.Kleisli
-import cats.effect.{ConcurrentEffect, Resource, Sync, Timer}
-import cats.syntax.all._
 import cats.{Alternative, Applicative}
+import cats.data.Kleisli
+import cats.effect.{Async, Resource, Sync}
+import cats.effect.std.Dispatcher
+import cats.syntax.all._
 import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -49,7 +50,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
 
-/** BlazeBuilder is the component for the builder pattern aggregating
+/** BlazeServerBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
   *
   * Variables:
@@ -101,7 +102,7 @@ class BlazeServerBuilder[F[_]] private (
     banner: immutable.Seq[String],
     maxConnections: Int,
     val channelOptions: ChannelOptions
-)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+)(implicit protected val F: Async[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
   type Self = BlazeServerBuilder[F]
@@ -245,7 +246,8 @@ class BlazeServerBuilder[F[_]] private (
 
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
-      engineConfig: Option[(SSLContext, SSLEngine => Unit)]
+      engineConfig: Option[(SSLContext, SSLEngine => Unit)],
+      dispatcher: Dispatcher[F]
   )(conn: SocketConnection): Future[LeafBuilder[ByteBuffer]] = {
     def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => Vault =
       (conn.local, conn.remote) match {
@@ -296,7 +298,8 @@ class BlazeServerBuilder[F[_]] private (
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        dispatcher
       )
 
     def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -311,7 +314,8 @@ class BlazeServerBuilder[F[_]] private (
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        dispatcher
       )
 
     Future.successful {
@@ -334,59 +338,68 @@ class BlazeServerBuilder[F[_]] private (
     }
   }
 
-  def resource: Resource[F, Server] =
-    tickWheelResource.flatMap { scheduler =>
-      def resolveAddress(address: InetSocketAddress) =
-        if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
-        else address
+  def resource: Resource[F, Server] = {
+    def resolveAddress(address: InetSocketAddress) =
+      if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
+      else address
 
-      val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
-        NIO1SocketServerGroup
-          .fixed(
-            workerThreads = connectorPoolSize,
-            bufferSize = bufferSize,
-            channelOptions = channelOptions,
-            selectorThreadFactory = selectorThreadFactory,
-            maxConnections = maxConnections
-          )
-      })(factory => F.delay(factory.closeGroup()))
+    val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
+      NIO1SocketServerGroup
+        .fixed(
+          workerThreads = connectorPoolSize,
+          bufferSize = bufferSize,
+          channelOptions = channelOptions,
+          selectorThreadFactory = selectorThreadFactory,
+          maxConnections = maxConnections
+        )
+    })(factory => F.delay(factory.closeGroup()))
 
-      def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
-        Resource.make(
-          for {
-            ctxOpt <- sslConfig.makeContext
-            engineCfg = ctxOpt.map(ctx => (ctx, sslConfig.configureEngine _))
-            address = resolveAddress(socketAddress)
-          } yield factory.bind(address, pipelineFactory(scheduler, engineCfg)).get
-        )(serverChannel => F.delay(serverChannel.close()))
+    def mkServerChannel(
+        factory: ServerChannelGroup,
+        scheduler: TickWheelExecutor,
+        dispatcher: Dispatcher[F]): Resource[F, ServerChannel] =
+      Resource.make(
+        for {
+          ctxOpt <- sslConfig.makeContext
+          engineCfg = ctxOpt.map(ctx => (ctx, sslConfig.configureEngine _))
+          address = resolveAddress(socketAddress)
+        } yield factory.bind(address, pipelineFactory(scheduler, engineCfg, dispatcher)).get
+      )(serverChannel => F.delay(serverChannel.close()))
 
-      def logStart(server: Server): Resource[F, Unit] =
-        Resource.eval(F.delay {
-          Option(banner)
-            .filter(_.nonEmpty)
-            .map(_.mkString("\n", "\n", ""))
-            .foreach(logger.info(_))
+    def logStart(server: Server): Resource[F, Unit] =
+      Resource.eval(F.delay {
+        Option(banner)
+          .filter(_.nonEmpty)
+          .map(_.mkString("\n", "\n", ""))
+          .foreach(logger.info(_))
 
-          logger.info(
-            s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
-        })
+        logger.info(
+          s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
+      })
 
-      Resource.eval(verifyTimeoutRelations()) >>
-        mkFactory
-          .flatMap(mkServerChannel)
-          .map[F, Server] { serverChannel =>
-            new Server {
-              val address: InetSocketAddress =
-                serverChannel.socketAddress
+    for {
+      // blaze doesn't have graceful shutdowns, which means it may continue to submit effects,
+      // ever after the server has acknowledged shutdown, so we just need to allocate
+      dispatcher <- Resource.eval(Dispatcher[F].allocated.map(_._1))
+      scheduler <- tickWheelResource
 
-              val isSecure = sslConfig.isSecure
+      _ <- Resource.eval(verifyTimeoutRelations())
 
-              override def toString: String =
-                s"BlazeServer($address)"
-            }
-          }
-          .flatTap(logStart)
-    }
+      factory <- mkFactory
+      serverChannel <- mkServerChannel(factory, scheduler, dispatcher)
+      server = new Server {
+        val address: InetSocketAddress =
+          serverChannel.socketAddress
+
+        val isSecure = sslConfig.isSecure
+
+        override def toString: String =
+          s"BlazeServer($address)"
+      }
+
+      _ <- logStart(server)
+    } yield server
+  }
 
   private def verifyTimeoutRelations(): F[Unit] =
     F.delay {
@@ -399,13 +412,7 @@ class BlazeServerBuilder[F[_]] private (
 }
 
 object BlazeServerBuilder {
-  @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
-  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
-    apply(ExecutionContext.global)
-
-  def apply[F[_]](executionContext: ExecutionContext)(implicit
-      F: ConcurrentEffect[F],
-      timer: Timer[F]): BlazeServerBuilder[F] =
+  def apply[F[_]](executionContext: ExecutionContext)(implicit F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.IPv4SocketAddress,
       executionContext = executionContext,

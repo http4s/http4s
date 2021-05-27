@@ -16,16 +16,14 @@
 
 package org.http4s.ember.core
 
-import cats.effect._
-import fs2.concurrent.Queue
+import cats.effect.std.Queue
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
 import fs2._
-import cats.effect.concurrent._
+import cats.effect._
 import cats.data.OptionT
 import cats.syntax.all._
-import fs2.Chunk.ByteVectorChunk
 import org.http4s.headers.Expires
 import org.typelevel.ci._
 
@@ -37,9 +35,9 @@ class ParsingSuite extends Http4sSuite {
     def taking[F[_]: Concurrent, A](stream: Stream[F, A]): F[F[Option[Chunk[A]]]] =
       for {
         q <- Queue.unbounded[F, Option[Chunk[A]]]
-        _ <- stream.chunks.map(Some(_)).evalMap(q.enqueue1(_)).compile.drain.void
-        _ <- q.enqueue1(None)
-      } yield q.dequeue1
+        _ <- stream.chunks.map(Some(_)).evalMap(q.offer(_)).compile.drain.void
+        _ <- q.offer(None)
+      } yield q.take
 
     // Only for Use with Text Requests
     def parseRequestRig[F[_]: Concurrent](s: String): F[Request[F]] = {
@@ -68,7 +66,7 @@ class ParsingSuite extends Http4sSuite {
       )
     }
 
-    def forceScopedParsing[F[_]: Sync](s: String): Stream[F, Byte] = {
+    def forceScopedParsing[F[_]: Concurrent](s: String): Stream[F, Byte] = {
       val pivotPoint = s.trim().length - 1
       val firstChunk = s.substring(0, pivotPoint).replace("\n", "\r\n")
       val secondChunk = s.substring(pivotPoint, s.length).replace("\n", "\r\n")
@@ -225,7 +223,7 @@ class ParsingSuite extends Http4sSuite {
       body <- result._1.body.through(text.utf8Decode).compile.string
       rest <- Stream
         .eval(result._2)
-        .flatMap(chunk => Stream.chunk(Chunk.bytes(chunk.get)))
+        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
         .through(text.utf8Decode)
         .compile
         .string
@@ -261,7 +259,7 @@ class ParsingSuite extends Http4sSuite {
     val baseBv = ByteVector.fromBase64(base).get
 
     (for {
-      take <- Helpers.taking[IO, Byte](Stream.chunk(ByteVectorChunk(baseBv)))
+      take <- Helpers.taking[IO, Byte](Stream.chunk(Chunk.byteVector(baseBv)))
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
@@ -352,7 +350,7 @@ class ParsingSuite extends Http4sSuite {
       body <- result._1.body.through(text.utf8Decode).compile.string
       rest <- Stream
         .eval(result._2)
-        .flatMap(chunk => Stream.chunk(Chunk.bytes(chunk.get)))
+        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
         .through(text.utf8Decode)
         .compile
         .string

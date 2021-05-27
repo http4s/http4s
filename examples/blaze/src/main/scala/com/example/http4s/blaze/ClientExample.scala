@@ -23,37 +23,46 @@ import org.http4s.circe._
 import org.http4s.syntax.all._
 import org.http4s.client.Client
 import org.http4s.blaze.client.BlazeClientBuilder
-import scala.concurrent.ExecutionContext.global
 
 object ClientExample extends IOApp {
-  def getSite(client: Client[IO]): IO[Unit] =
-    IO {
-      val page: IO[String] = client.expect[String](uri"https://www.google.com/")
+  def printGooglePage(client: Client[IO]): IO[Unit] = {
+    val page: IO[String] = client.expect[String](uri"https://www.google.com/")
+    IO.parSequenceN(2)((1 to 2).toList.map { _ =>
+      for {
+        // each execution of the effect will refetch the page!
+        pageContent <- page
+        firstBytes = pageContent.take(72)
+        _ <- IO.println(firstBytes)
+      } yield ()
+    }).as(())
+  }
 
-      for (_ <- 1 to 2)
-        println(
-          page.map(_.take(72)).unsafeRunSync()
-        ) // each execution of the effect will refetch the page!
+  def matchOnResponseCode(client: Client[IO]): IO[Unit] = {
+    final case class Foo(bar: String)
 
-      // We can do much more: how about decoding some JSON to a scala object
-      // after matching based on the response status code?
-
-      final case class Foo(bar: String)
-
+    for {
       // Match on response code!
-      val page2 = client.get(uri"http://http4s.org/resources/foo.json") {
+      page <- client.get(uri"http://http4s.org/resources/foo.json") {
         case Successful(resp) =>
           // decodeJson is defined for Circe, just need the right decoder!
           resp.decodeJson[Foo].map("Received response: " + _)
         case NotFound(_) => IO.pure("Not Found!!!")
         case resp => IO.pure("Failed: " + resp.status)
       }
+      _ <- IO.println(page)
+    } yield ()
+  }
 
-      println(page2.unsafeRunSync())
-    }
+  def getSite(client: Client[IO]): IO[Unit] =
+    for {
+      _ <- printGooglePage(client)
+      // We can do much more: how about decoding some JSON to a scala object
+      // after matching based on the response status code?
+      _ <- matchOnResponseCode(client)
+    } yield ()
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeClientBuilder[IO](global).resource
+    BlazeClientBuilder[IO](scala.concurrent.ExecutionContext.global).resource
       .use(getSite)
       .as(ExitCode.Success)
 }

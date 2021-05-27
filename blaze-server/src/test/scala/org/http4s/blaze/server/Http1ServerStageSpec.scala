@@ -19,9 +19,10 @@ package blaze
 package server
 
 import cats.data.Kleisli
+import cats.syntax.eq._
 import cats.effect._
-import cats.effect.concurrent.Deferred
-import cats.syntax.all._
+import cats.effect.kernel.Deferred
+import cats.effect.std.Dispatcher
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.Command.Connected
@@ -38,11 +39,26 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
-
   implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext
-  val tickWheel = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
+  val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
     IO.delay(twe.shutdown())
   })
+
+  // todo replace with DispatcherIOFixture
+  val dispatcher = new Fixture[Dispatcher[IO]]("dispatcher") {
+
+    private var d: Dispatcher[IO] = null
+    private var shutdown: IO[Unit] = null
+    def apply() = d
+    override def beforeAll(): Unit = {
+      val dispatcherAndShutdown = Dispatcher[IO].allocated.unsafeRunSync()
+      shutdown = dispatcherAndShutdown._2
+      d = dispatcherAndShutdown._1
+    }
+    override def afterAll(): Unit =
+      shutdown.unsafeRunSync()
+  }
+  override def munitFixtures = List(dispatcher)
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -60,7 +76,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   }
 
   def runRequest(
-      tickWheel: TickWheelExecutor,
+      tw: TickWheelExecutor,
       req: Seq[String],
       httpApp: HttpApp[IO],
       maxReqLine: Int = 4 * 1024,
@@ -78,7 +94,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       silentErrorHandler,
       30.seconds,
       30.seconds,
-      tickWheel
+      tw,
+      dispatcher()
     )
 
     pipeline.LeafBuilder(httpStage).base(head)
@@ -94,7 +111,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
     .orNotFound
 
-  tickWheel.test("Http1ServerStage: Invalid Lengths should fail on too long of a request line") {
+  fixture.test("Http1ServerStage: Invalid Lengths should fail on too long of a request line") {
     tickwheel =>
       runRequest(tickwheel, Seq(req), routes, maxReqLine = 1).result.map { buff =>
         val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
@@ -103,7 +120,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test("Http1ServerStage: Invalid Lengths should fail on too long of a header") {
+  fixture.test("Http1ServerStage: Invalid Lengths should fail on too long of a header") {
     tickwheel =>
       (runRequest(tickwheel, Seq(req), routes, maxHeaders = 1).result).map { buff =>
         val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
@@ -115,7 +132,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   ServerTestRoutes.testRequestResults.zipWithIndex.foreach {
     case ((req, (status, headers, resp)), i) =>
       if (i == 7 || i == 8) // Awful temporary hack
-        tickWheel.test(
+        fixture.test(
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
             .split("\r\n\r\n")(0)}\n") { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
@@ -124,7 +141,7 @@ class Http1ServerStageSpec extends Http4sSuite {
 
         }
       else
-        tickWheel.test(
+        fixture.test(
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
             .split("\r\n\r\n")(0)}\n") { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
@@ -155,44 +172,42 @@ class Http1ServerStageSpec extends Http4sSuite {
         (s, close, r)
       }
 
-  tickWheel.test("Http1ServerStage: Errors should Deal with synchronous errors") { tw =>
+  fixture.test("Http1ServerStage: Errors should Deal with synchronous errors") { tw =>
     val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
       assert(s == InternalServerError && c)
     }
   }
 
-  tickWheel.test("Http1ServerStage: Errors should Call toHttpResponse on synchronous errors") {
-    tw =>
-      val path = "GET /sync/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      runError(tw, path).map { case (s, c, _) =>
-        assert(s == UnprocessableEntity && !c)
-      }
+  fixture.test("Http1ServerStage: Errors should Call toHttpResponse on synchronous errors") { tw =>
+    val path = "GET /sync/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+    runError(tw, path).map { case (s, c, _) =>
+      assert(s == UnprocessableEntity && !c)
+    }
   }
 
-  tickWheel.test("Http1ServerStage: Errors should Deal with asynchronous errors") { tw =>
+  fixture.test("Http1ServerStage: Errors should Deal with asynchronous errors") { tw =>
     val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
       assert(s == InternalServerError && c)
     }
   }
 
-  tickWheel.test("Http1ServerStage: Errors should Call toHttpResponse on asynchronous errors") {
-    tw =>
-      val path = "GET /async/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      runError(tw, path).map { case (s, c, _) =>
-        assert(s == UnprocessableEntity && !c)
-      }
+  fixture.test("Http1ServerStage: Errors should Call toHttpResponse on asynchronous errors") { tw =>
+    val path = "GET /async/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+    runError(tw, path).map { case (s, c, _) =>
+      assert(s == UnprocessableEntity && !c)
+    }
   }
 
-  tickWheel.test("Http1ServerStage: Errors should Handle parse error") { tw =>
+  fixture.test("Http1ServerStage: Errors should Handle parse error") { tw =>
     val path = "THIS\u0000IS\u0000NOT\u0000HTTP"
     runError(tw, path).map { case (s, c, _) =>
       assert(s == BadRequest && c)
     }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Do not send `Transfer-Encoding: identity` response") { tw =>
     val routes = HttpRoutes
       .of[IO] { case _ =>
@@ -217,7 +232,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Do not send an entity or entity-headers for a status that doesn't permit it") {
     tw =>
       val routes: HttpApp[IO] = HttpRoutes
@@ -241,7 +256,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test("Http1ServerStage: routes should Add a date header") { tw =>
+  fixture.test("Http1ServerStage: routes should Add a date header") { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
         IO.pure(Response(body = req.body))
@@ -258,7 +273,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
   }
 
-  tickWheel.test("Http1ServerStage: routes should Honor an explicitly added date header") { tw =>
+  fixture.test("Http1ServerStage: routes should Honor an explicitly added date header") { tw =>
     val dateHeader = Date(HttpDate.Epoch)
     val routes = HttpRoutes
       .of[IO] { case req =>
@@ -278,7 +293,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Handle routes that echos full request body for non-chunked") {
     tw =>
       val routes = HttpRoutes
@@ -295,11 +310,11 @@ class Http1ServerStageSpec extends Http4sSuite {
         // Both responses must succeed
         assertEquals(
           parseAndDropDate(buff),
-          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw), "done"))
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done"))
       }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Handle routes that consumes the full request body for non-chunked") {
     tw =>
       val routes = HttpRoutes
@@ -321,15 +336,15 @@ class Http1ServerStageSpec extends Http4sSuite {
           (
             Ok,
             Set(
-              H.`Content-Length`.unsafeFromLong(8 + 4).toRaw,
-              H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw
+              H.`Content-Length`.unsafeFromLong(8 + 4).toRaw1,
+              H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1
             ),
             "Result: done")
         )
       }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Maintain the connection if the body is ignored but was already read to completion by the Http1Stage") {
     tw =>
       val routes = HttpRoutes
@@ -344,8 +359,8 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw,
-          H.`Content-Length`.unsafeFromLong(3).toRaw
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
+          H.`Content-Length`.unsafeFromLong(3).toRaw1
         )
         // Both responses must succeed
         assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
@@ -353,7 +368,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Drop the connection if the body is ignored and was not read to completion by the Http1Stage") {
     tw =>
       val routes = HttpRoutes
@@ -370,8 +385,8 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw,
-          H.`Content-Length`.unsafeFromLong(3).toRaw
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
+          H.`Content-Length`.unsafeFromLong(3).toRaw1
         )
         // Both responses must succeed
         assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
@@ -379,7 +394,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Handle routes that runs the request body for non-chunked") {
     tw =>
       val routes = HttpRoutes
@@ -395,8 +410,8 @@ class Http1ServerStageSpec extends Http4sSuite {
 
       (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
         val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw,
-          H.`Content-Length`.unsafeFromLong(3).toRaw
+          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
+          H.`Content-Length`.unsafeFromLong(3).toRaw1
         )
         // Both responses must succeed
         assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
@@ -405,7 +420,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   }
 
   // Think of this as drunk HTTP pipelining
-  tickWheel.test("Http1ServerStage: routes should Not die when two requests come in back to back") {
+  fixture.test("Http1ServerStage: routes should Not die when two requests come in back to back") {
     tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
@@ -421,15 +436,15 @@ class Http1ServerStageSpec extends Http4sSuite {
         // Both responses must succeed
         assertEquals(
           dropDate(ResponseParser.parseBuffer(buff)),
-          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw), "done")
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done")
         )
         assertEquals(
           dropDate(ResponseParser.parseBuffer(buff)),
-          (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw), "total"))
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw1), "total"))
       }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Handle using the request body as the response body") { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
@@ -445,10 +460,10 @@ class Http1ServerStageSpec extends Http4sSuite {
       // Both responses must succeed
       assertEquals(
         dropDate(ResponseParser.parseBuffer(buff)),
-        (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw), "done"))
+        (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done"))
       assertEquals(
         dropDate(ResponseParser.parseBuffer(buff)),
-        (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw), "total"))
+        (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw1), "total"))
     }
   }
 
@@ -477,7 +492,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
     .orNotFound
 
-  tickWheel.test("Http1ServerStage: routes should Handle trailing headers") { tw =>
+  fixture.test("Http1ServerStage: routes should Handle trailing headers") { tw =>
     (runRequest(tw, Seq(req("foo")), routes2).result).map { buff =>
       val results = dropDate(ResponseParser.parseBuffer(buff))
       assertEquals(results._1, Ok)
@@ -485,7 +500,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
   }
 
-  tickWheel.test(
+  fixture.test(
     "Http1ServerStage: routes should Fail if you use the trailers before they have resolved") {
     tw =>
       (runRequest(tw, Seq(req("bar")), routes2).result).map { buff =>
@@ -494,14 +509,14 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test("Http1ServerStage: routes should cancels on stage shutdown".flaky) { tw =>
+  fixture.test("Http1ServerStage: routes should cancels on stage shutdown".flaky) { tw =>
     Deferred[IO, Unit]
       .flatMap { canceled =>
         Deferred[IO, Unit].flatMap { gate =>
           val req =
             "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
           val app: HttpApp[IO] = HttpApp { _ =>
-            gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+            gate.complete(()) >> canceled.complete(()) >> IO.never[Response[IO]]
           }
           for {
             head <- IO(runRequest(tw, List(req), app))
@@ -513,7 +528,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       }
   }
 
-  tickWheel.test("Http1ServerStage: routes should Disconnect if we read an EOF") { tw =>
+  fixture.test("Http1ServerStage: routes should Disconnect if we read an EOF") { tw =>
     val head = runRequest(tw, Seq.empty, Kleisli.liftF(Ok("")))
     head.result.map { _ =>
       assert(head.closeCauses == Seq(None))

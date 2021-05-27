@@ -55,7 +55,8 @@ object `User-Agent` {
       parse
     )
 
-  implicit def convert(implicit select: Header.Select[`User-Agent`]): Renderer[`User-Agent`] =
+  implicit def convert(implicit
+      select: Header.Select.Aux[`User-Agent`, cats.Id]): Renderer[`User-Agent`] =
     new Renderer[`User-Agent`] {
       override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
     }

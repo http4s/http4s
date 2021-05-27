@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.multipart
+package org.http4s
+package multipart
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.instances.string._
 import fs2._
 import org.http4s._
@@ -28,7 +28,6 @@ import org.typelevel.ci._
 import java.nio.charset.StandardCharsets
 
 class MultipartParserSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
 
@@ -43,10 +42,10 @@ class MultipartParserSuite extends Http4sSuite {
 
     def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =
       if (s.length <= 1)
-        acc ++ Stream.chunk(Chunk.bytes(s.getBytes()))
+        acc ++ Stream.chunk(Chunk.array(s.getBytes()))
       else {
         val (l, r) = s.splitAt(rand.nextInt(s.length - 1) + 1)
-        jumbleAccum(r, acc ++ Stream.chunk(Chunk.bytes(l.getBytes)))
+        jumbleAccum(r, acc ++ Stream.chunk(Chunk.array(l.getBytes)))
       }
 
     jumbleAccum(str, Stream.empty)
@@ -683,9 +682,9 @@ class MultipartParserSuite extends Http4sSuite {
 
   multipartParserTests(
     "mixed file parser",
-    MultipartParser.parseStreamedFile[IO](_, Http4sSuite.TestBlocker),
-    MultipartParser.parseStreamedFile[IO](_, Http4sSuite.TestBlocker, _),
-    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSuite.TestBlocker)
+    MultipartParser.parseStreamedFile[IO](_),
+    MultipartParser.parseStreamedFile[IO](_, _),
+    MultipartParser.parseToPartsStreamedFile[IO](_)
   )
 
   test("Multipart mixed file parser: truncate parts when limit set") {
@@ -706,8 +705,7 @@ class MultipartParserSuite extends Http4sSuite {
 
     val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
     val results =
-      unspool(input).through(
-        MultipartParser.parseStreamedFile[IO](boundaryTest, Http4sSuite.TestBlocker, maxParts = 1))
+      unspool(input).through(MultipartParser.parseStreamedFile[IO](boundaryTest, maxParts = 1))
 
     results.compile.last
       .map(_.get)
@@ -741,11 +739,7 @@ class MultipartParserSuite extends Http4sSuite {
     val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
     val results = unspool(input).through(
       MultipartParser
-        .parseStreamedFile[IO](
-          boundaryTest,
-          Http4sSuite.TestBlocker,
-          maxParts = 1,
-          failOnLimit = true))
+        .parseStreamedFile[IO](boundaryTest, maxParts = 1, failOnLimit = true))
 
     results.compile.last
       .map(_.get)

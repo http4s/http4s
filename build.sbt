@@ -5,9 +5,9 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, scala_3)
+ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
-ThisBuild / baseVersion := "0.22"
+ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
@@ -43,8 +43,6 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 enablePlugins(SonatypeCiReleasePlugin)
 
 versionIntroduced := Map(
-  // There is, and will hopefully not be, an 0.22.0. But this hushes
-  // MiMa for now while we bootstrap Dotty support.
   scala_3 -> "0.22.0",
 )
 
@@ -114,7 +112,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= Seq(
       caseInsensitive,
       catsCore,
-      catsEffect,
+      catsEffectStd,
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
@@ -140,7 +138,8 @@ lazy val laws = libraryProject("laws")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
-      catsEffectLaws,
+      catsEffect,
+      catsEffectTestkit,
       catsLaws,
       disciplineCore,
       ip4sTestKit,
@@ -159,12 +158,12 @@ lazy val testing = libraryProject("testing")
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck,
       munitCatsEffect,
       munitDiscipline,
+      scalacheck,
       scalacheckEffect,
       scalacheckEffectMunit,
-    ),
+    ).map(_ % Test),
   )
   .dependsOn(laws)
 
@@ -426,7 +425,7 @@ lazy val circe = libraryProject("circe")
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
-      circeTesting % Test,
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
