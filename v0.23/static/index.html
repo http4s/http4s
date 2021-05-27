@@ -161,7 +161,7 @@ deliver them from there. For example, for all resources in the classpath under <
 
 <pre><code class="language-scala">val routes = resourceServiceBuilder[IO](&quot;/assets&quot;).toRoutes
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$13155/70857661@6eced7ab
+//   org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$14207/1871219298@297bce3
 // )
 </code></pre>
 
@@ -176,7 +176,7 @@ val routes = HttpRoutes.of[IO] {
     static(path, request)
 }
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$10766/2088507387@5bd89b24
+//   org.http4s.HttpRoutes$$$Lambda$11864/1904835497@487a4536
 // )
 </code></pre>
 
@@ -201,7 +201,7 @@ def isJsAsset(asset: WebjarAsset): Boolean =
 
 val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO].withWebjarAssetFilter(isJsAsset).toRoutes
 // webjars: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$13157/1093196043@76ce9662
+//   org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$14209/1693466749@6e16fa3c
 // )
 </code></pre>
 

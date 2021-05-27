@@ -116,7 +116,7 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 
 <pre><code class="language-scala">case class User(name: String, age: Int)  
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@4f182a6f
+// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@171b0cb9
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -156,14 +156,14 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@62b22399
+// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@744b085c
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$11530/1864662570@45ebe26b),
-//   cats.data.OptionT$$Lambda$11538/1968566837@4d0c2096
+//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$12630/106407056@1efb90b2),
+//   cats.data.OptionT$$Lambda$12636/1198173867@7596be3d
 // )
 
 val expectedJson = Json.obj(
@@ -181,14 +181,14 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@43c9300a 
+// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@3aa71af2 
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$11530/1864662570@30146d01),
-//   cats.data.OptionT$$Lambda$11538/1968566837@2af639d2
+//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$12630/106407056@1682ec12),
+//   cats.data.OptionT$$Lambda$12636/1198173867@543e8070
 // )
 
 check[Json](response, Status.NotFound, None)
@@ -200,14 +200,14 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@6d2b48a 
+// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@1419bb9c 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/not-a-matching-path&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$11530/1864662570@c118d3a),
-//   cats.data.OptionT$$Lambda$11538/1968566837@1f7e95dc
+//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$12630/106407056@16eb4367),
+//   cats.data.OptionT$$Lambda$12636/1198173867@1788cfd4
 // )
 
 check[String](response, Status.NotFound, Some(&quot;Not found&quot;))
@@ -220,7 +220,7 @@ check[String](response, Status.NotFound, Some(&quot;Not found&quot;))
 
 <pre><code class="language-scala">val httpApp: HttpApp[IO] = service[IO](success).orNotFound
 // httpApp: HttpApp[IO] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$10998/2091405068@45d0748
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$12097/764621117@3715f055
 // )
 </code></pre>
 
@@ -235,7 +235,7 @@ val request: Request[IO] = Request(method = Method.GET, uri = uri&quot;/user/not
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@173895ad
+//   org.typelevel.vault.Vault@6e097870
 // )
 val expectedJson = Json.obj(
       &quot;name&quot; := &quot;johndoe&quot;,
@@ -243,14 +243,14 @@ val expectedJson = Json.obj(
 )
 // expectedJson: Json = JObject(object[name -&gt; &quot;johndoe&quot;,age -&gt; 42])
 val client: Client[IO] = Client.fromHttpApp(httpApp)
-// client: Client[IO] = org.http4s.client.Client$$anon$1@17c0b22d
+// client: Client[IO] = org.http4s.client.Client$$anon$1@2235fead
 val resp: IO[Json]     = client.expect[Json](request)
 // resp: IO[Json] = FlatMap(
 //   Map(
-//     Delay(cats.effect.IO$$$Lambda$11009/2011388646@7cfb057c),
-//     org.http4s.client.Client$$$Lambda$13219/2118743349@10702aec
+//     Delay(cats.effect.IO$$$Lambda$12108/1611544620@73927350),
+//     org.http4s.client.Client$$$Lambda$14271/1897753085@6b1da22f
 //   ),
-//   cats.effect.kernel.Resource$$Lambda$11018/739899770@433650b2
+//   cats.effect.kernel.Resource$$Lambda$12117/1876877402@4ef28dc4
 // )
 assert(resp.unsafeRunSync() == expectedJson)
 </code></pre>
