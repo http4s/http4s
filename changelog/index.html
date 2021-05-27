@@ -91,13 +91,13 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v1-0-0-m23">v1.0.0-M23</h1>
+<h1 id="v1-0-0-m23-2021-05-26">v1.0.0-M23 (2021-05-26)</h1>
 
-<p>Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap.</p>
+<p>Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap. Includes the <a href="https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6">vulnerability fix</a> to <code>StaticFile.fromUrl</code>.</p>
 
-<h1 id="v0-23-0-rc1">v0.23.0-RC1</h1>
+<h1 id="v0-23-0-rc1-2021-05-26">v0.23.0-RC1 (2021-05-26)</h1>
 
-<p>Includes the changes of v0.22.0-RC1.</p>
+<p>Includes the changes of v0.22.0-RC1, including the <a href="https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6">vulnerability fix</a> to <code>StaticFile.fromUrl</code>.</p>
 
 <h2 id="http4s-core">http4s-core</h2>
 
@@ -129,7 +129,9 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/4882">#4882</a>: Use <code>Network</code> instead of <code>Network.forAsync</code> to get the socket group.</li>
 </ul>
 
-<h1 id="v0-22-0-rc1">v0.22.0-RC1</h1>
+<h1 id="v0-22-0-rc1-2021-05-26">v0.22.0-RC1 (2021-05-26)</h1>
+
+<p>Includes the changes of 0.21.24, including the <a href="https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6">vulnerability fix</a> to <code>StaticFile.fromUrl</code>.</p>
 
 <h2 id="http4s-core-1">http4s-core</h2>
 
@@ -165,7 +167,15 @@ it.</p>
 
 <p>0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.</p>
 
+<p>Contains a vulnerability fix for <code>StaticFile.fromUrl</code>.</p>
+
 <h2 id="http4s-blaze-core">http4s-blaze-core</h2>
+
+<h3 id="vulnerability-fixes">Vulnerability fixes</h3>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/security/advisories/GHSA-6h7w-fc84-x7p6">GHSA-6h7w-fc84-x7p6</a>: Don&rsquo;t leak the existence of a directory serverside when using <code>StaticFile.fromUrl</code> with non-file URLs.</li>
+</ul>
 
 <h3 id="enhancements">Enhancements</h3>
 
