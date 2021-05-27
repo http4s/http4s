@@ -52,7 +52,8 @@ trait BlazeClientBase extends Http4sSuite {
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
         GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(resp) =>
+          case Some(response) =>
+            val resp = response.unsafeRunSync()
             srv.setStatus(resp.status.code)
             resp.headers.foreach { h =>
               srv.addHeader(h.name.toString, h.value)
