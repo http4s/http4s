@@ -28,6 +28,13 @@ libraryDependencies ++= Seq(
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ```
 
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent:nest
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+```
+
 ## Sending raw JSON
 
 Let's create a function to produce a simple JSON greeting with circe. First, the imports:
@@ -225,10 +232,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 case class User(name: String)
 case class Hello(greeting: String)
 
-// Needed by `BlazeServerBuilder`. Provided by `IOApp`.
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
-
 implicit val decoder = jsonOf[IO, User]
 
 val jsonApp = HttpRoutes.of[IO] {
@@ -242,6 +245,10 @@ val jsonApp = HttpRoutes.of[IO] {
 }.orNotFound
 
 val server = BlazeServerBuilder[IO](global).bindHttp(8080).withHttpApp(jsonApp).resource
+
+// This is typically provided by IOApp
+implicit val runtime: cats.effect.unsafe.IORuntime = cats.effect.unsafe.IORuntime.global
+
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 

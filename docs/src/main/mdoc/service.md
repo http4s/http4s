@@ -56,12 +56,11 @@ Wherever you are in your studies, let's create our first
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You also will need a `ContextShift` and a `Timer`.  These come for
-free if you are in an `IOApp`.
+If you're in a REPL, we also need a runtime.  This comes for free in `IOApp`:
 
-```scala mdoc:silent
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
+```scala mdoc:silent:nest
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
 Using the [http4s-dsl], we can construct an `HttpRoutes` by pattern

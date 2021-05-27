@@ -26,6 +26,13 @@ import org.http4s.implicits._
 import org.http4s.server.middleware._
 ```
 
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent:nest
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+```
+
 Let's start by making a simple service.
 
 ```scala mdoc
