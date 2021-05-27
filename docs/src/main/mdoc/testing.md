@@ -25,6 +25,13 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 ```
 
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent:nest
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+```
+
 ```scala mdoc
 case class User(name: String, age: Int) 
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
@@ -34,7 +41,7 @@ trait UserRepo[F[_]] {
 }
 
 def service[F[_]](repo: UserRepo[F])(
-      implicit F: Effect[F]
+      implicit F: Async[F]
 ): HttpRoutes[F] = HttpRoutes.of[F] {
   case GET -> Root / "user" / id =>
     repo.find(id).map {
@@ -122,14 +129,15 @@ val httpApp: HttpApp[IO] = service[IO](success).orNotFound
 From this, we can obtain the `Client` instance using `Client.fromHttpApp` and then use it to test our sever/app.
 
 ```scala mdoc:nest
-val client = Client.fromHttpApp(httpApp)
+import org.http4s.client.Client
+
 val request: Request[IO] = Request(method = Method.GET, uri = uri"/user/not-used")
 val expectedJson = Json.obj(
       "name" := "johndoe",
       "age" := 42
 )
 val client: Client[IO] = Client.fromHttpApp(httpApp)
-val resp: IO[Json]     = client.expect(request)
+val resp: IO[Json]     = client.expect[Json](request)
 assert(resp.unsafeRunSync() == expectedJson)
 ```
 
