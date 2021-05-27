@@ -6,12 +6,12 @@
 
   <title>http4s | Testing</title>
 
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.23/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.23/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.23/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.23/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.23/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.23/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.23/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.23/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.23/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.23/css/style.css" >
 </head>
 
   <body>
@@ -116,7 +116,7 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 
 <pre><code class="language-scala">case class User(name: String, age: Int)  
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@171b0cb9
+// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@329a2cfe
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -156,14 +156,14 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@744b085c
+// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@47c58546
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$12630/106407056@1efb90b2),
-//   cats.data.OptionT$$Lambda$12636/1198173867@7596be3d
+//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$17815/646004363@172d6ea6),
+//   cats.data.OptionT$$Lambda$17823/1577214905@529ce576
 // )
 
 val expectedJson = Json.obj(
@@ -181,14 +181,14 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@3aa71af2 
+// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@3182de07 
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$12630/106407056@1682ec12),
-//   cats.data.OptionT$$Lambda$12636/1198173867@543e8070
+//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$17815/646004363@5a0682c4),
+//   cats.data.OptionT$$Lambda$17823/1577214905@26a28f7c
 // )
 
 check[Json](response, Status.NotFound, None)
@@ -200,14 +200,14 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@1419bb9c 
+// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@1320798b 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/not-a-matching-path&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$12630/106407056@16eb4367),
-//   cats.data.OptionT$$Lambda$12636/1198173867@1788cfd4
+//   FlatMap(Pure(()), cats.syntax.FlatMapOps$$$Lambda$17815/646004363@3475ff0e),
+//   cats.data.OptionT$$Lambda$17823/1577214905@5a0b5be6
 // )
 
 check[String](response, Status.NotFound, Some(&quot;Not found&quot;))
@@ -220,7 +220,7 @@ check[String](response, Status.NotFound, Some(&quot;Not found&quot;))
 
 <pre><code class="language-scala">val httpApp: HttpApp[IO] = service[IO](success).orNotFound
 // httpApp: HttpApp[IO] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$12097/764621117@3715f055
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$17314/2020906500@6860f6b4
 // )
 </code></pre>
 
@@ -235,7 +235,7 @@ val request: Request[IO] = Request(method = Method.GET, uri = uri&quot;/user/not
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@6e097870
+//   org.typelevel.vault.Vault@781c3612
 // )
 val expectedJson = Json.obj(
       &quot;name&quot; := &quot;johndoe&quot;,
@@ -243,14 +243,14 @@ val expectedJson = Json.obj(
 )
 // expectedJson: Json = JObject(object[name -&gt; &quot;johndoe&quot;,age -&gt; 42])
 val client: Client[IO] = Client.fromHttpApp(httpApp)
-// client: Client[IO] = org.http4s.client.Client$$anon$1@2235fead
+// client: Client[IO] = org.http4s.client.Client$$anon$1@638a2b90
 val resp: IO[Json]     = client.expect[Json](request)
 // resp: IO[Json] = FlatMap(
 //   Map(
-//     Delay(cats.effect.IO$$$Lambda$12108/1611544620@73927350),
-//     org.http4s.client.Client$$$Lambda$14271/1897753085@6b1da22f
+//     Delay(cats.effect.IO$$$Lambda$17325/377376184@63de886c),
+//     org.http4s.client.Client$$$Lambda$19411/1318014248@c6407f5
 //   ),
-//   cats.effect.kernel.Resource$$Lambda$12117/1876877402@4ef28dc4
+//   cats.effect.kernel.Resource$$Lambda$17334/94967737@15d10ccd
 // )
 assert(resp.unsafeRunSync() == expectedJson)
 </code></pre>
@@ -369,7 +369,7 @@ test the expected <code>Response</code>.</p>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="http://127.0.0.1:4000/v0.23/js/highlight.pack.js"></script>
+<script src="https://http4s.org/v0.23/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   
