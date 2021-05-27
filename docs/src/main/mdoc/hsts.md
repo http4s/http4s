@@ -26,6 +26,13 @@ import org.http4s.implicits._
 import cats.effect.IO
 ```
 
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent:nest
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+```
+
 Let's make a simple service that will be exposed and wrapped with HSTS.
 
 ```scala mdoc
