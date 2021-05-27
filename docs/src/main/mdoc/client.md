@@ -273,6 +273,33 @@ val meteredClient: Resource[IO, Client[IO]] =
   } yield Metrics[IO](metrics, requestMethodClassifier)(httpClient)
 ```
 
+Also, there is an ability to register metrics with fully custom names.
+As well it might be useful if you want to place the whole metrics' names in config. 
+For example:
+
+```scala mdoc:silent
+import cats.effect.{IO, Resource}
+import org.http4s.metrics.prometheus.{Prometheus,PrometheusMetricsNames,PrometheusMetricsSettings}
+import org.http4s.client.middleware.Metrics
+import io.prometheus.client.CollectorRegistry
+```
+```scala mdoc:nest
+val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+
+def meteredClient(registry: CollectorRegistry): Resource[IO, Client[IO]] =
+  for {
+    metricsNames <- Resource.eval(IO.fromEither(
+      PrometheusMetricsNames(
+        responseDuration = "http_client_request_latency_seconds",
+        activeRequests = "http_client_active_request_total",
+        requests = "http_client_request_total",
+        abnormalTerminations = "http_client_failed_requests"
+      )
+    ))
+    settings = PrometheusMetricsSettings.DefaultSettings.withMetricsNames(metricsNames)
+    metricsOps <- Prometheus.metricsOps[IO](registry, settings)
+  } yield Metrics[IO](metricsOps, requestMethodClassifier)(httpClient)
+```
 
 A `classifier` is just a function Request[F] => Option[String] that allows
 to add a label to every metric based on the `Request`

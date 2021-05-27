@@ -17,8 +17,7 @@
 package org.http4s.metrics.prometheus
 
 import cats.effect._
-import io.prometheus.client.CollectorRegistry
-import org.http4s.{Http4sSuite, HttpApp, HttpRoutes, Request, Status}
+import org.http4s.{Http4sSuite, HttpRoutes, Request, Status}
 import org.http4s.Method.GET
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
@@ -29,10 +28,21 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
 
   private val testRoutes = HttpRoutes.of[IO](stub)
 
-  // "A http routes with a prometheus metrics middleware" should {
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register a 2xx response") {
-    case (registry, routes) =>
+  private val commonPrefix = Option("server")
+
+  private val customMetricsSettings =
+    SyncIO.fromEither(
+      PrometheusMetricsNames(
+        responseDuration = "response_latency_seconds",
+        activeRequests = "active_request_total",
+        requests = "request_total",
+        abnormalTerminations = "failed_requests"
+      ).map(PrometheusMetricsSettings.DefaultSettings.withMetricsNames)
+    )
+
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register a 2xx response") {
+    case (registry, _, routes) =>
       val req = Request[IO](uri = uri"/ok")
 
       val resp = routes.run(req)
@@ -40,17 +50,35 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
         r.as[String].map { b =>
           assertEquals(b, "200 OK")
           assertEquals(r.status, Status.Ok)
-          assertEquals(count(registry, "2xx_responses", "server"), 1.0)
-          assertEquals(count(registry, "active_requests", "server"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", "server"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", "server"), 0.1)
+          assertEquals(count(registry, "2xx_responses", commonPrefix), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", commonPrefix), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", commonPrefix), 0.1)
         }
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register a 4xx response") {
-    case (registry, routes) =>
+  customMetricsSettings.flatMap(settings => meteredRoutes(settings = settings)).test(
+    "A http routes with Prometheus metrics (with custom names) middleware should register a 2xx response") {
+    case (registry, settings, routes) =>
+      val req = Request[IO](uri = uri"/ok")
+
+      val resp = routes.run(req)
+      resp.flatMap { r =>
+        r.as[String].map { b =>
+          assertEquals(b, "200 OK")
+          assertEquals(r.status, Status.Ok)
+          assertEquals(count(registry, "2xx_responses", prefix = Option.empty, metricsSettings = settings), 1.0)
+          assertEquals(count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", prefix = Option.empty, metricsSettings = settings), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", prefix = Option.empty, metricsSettings = settings), 0.1)
+        }
+      }
+  }
+
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register a 4xx response") {
+    case (registry, _, routes) =>
       val req = Request[IO](uri = uri"/bad-request")
 
       routes.run(req).flatMap { r =>
@@ -58,17 +86,17 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.BadRequest)
           assertEquals(b, "400 Bad Request")
 
-          assertEquals(count(registry, "4xx_responses", "server"), 1.0)
-          assertEquals(count(registry, "active_requests", "server"), 0.0)
-          assertEquals(count(registry, "4xx_headers_duration", "server"), 0.05)
-          assertEquals(count(registry, "4xx_total_duration", "server"), 0.1)
+          assertEquals(count(registry, "4xx_responses", commonPrefix), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix), 0.0)
+          assertEquals(count(registry, "4xx_headers_duration", commonPrefix), 0.05)
+          assertEquals(count(registry, "4xx_total_duration", commonPrefix), 0.1)
         }
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register a 5xx response") {
-    case (registry, routes) =>
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register a 5xx response") {
+    case (registry, _, routes) =>
       val req = Request[IO](uri = uri"/internal-server-error")
 
       routes.run(req).flatMap { r =>
@@ -76,17 +104,35 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.InternalServerError)
           assertEquals(b, "500 Internal Server Error")
 
-          assertEquals(count(registry, "5xx_responses", "server"), 1.0)
-          assertEquals(count(registry, "active_requests", "server"), 0.0)
-          assertEquals(count(registry, "5xx_headers_duration", "server"), 0.05)
-          assertEquals(count(registry, "5xx_total_duration", "server"), 0.1)
+          assertEquals(count(registry, "5xx_responses", commonPrefix), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix), 0.0)
+          assertEquals(count(registry, "5xx_headers_duration", commonPrefix), 0.05)
+          assertEquals(count(registry, "5xx_total_duration", commonPrefix), 0.1)
         }
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register a GET request") {
-    case (registry, routes) =>
+  customMetricsSettings.flatMap(settings => meteredRoutes(settings = settings)).test(
+    "A http routes with Prometheus metrics (with custom names) middleware should register a 5xx response") {
+    case (registry, settings, routes) =>
+      val req = Request[IO](uri = uri"/internal-server-error")
+
+      routes.run(req).flatMap { r =>
+        r.as[String].map { b =>
+          assertEquals(r.status, Status.InternalServerError)
+          assertEquals(b, "500 Internal Server Error")
+
+          assertEquals(count(registry, "5xx_responses", prefix = Option.empty, metricsSettings = settings), 1.0)
+          assertEquals(count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings), 0.0)
+          assertEquals(count(registry, "5xx_headers_duration", prefix = Option.empty, metricsSettings = settings), 0.05)
+          assertEquals(count(registry, "5xx_total_duration", prefix = Option.empty, metricsSettings = settings), 0.1)
+        }
+      }
+  }
+
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register a GET request") {
+    case (registry, _, routes) =>
       val req = Request[IO](method = GET, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
@@ -94,17 +140,17 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.Ok)
           assertEquals(b, "200 OK")
 
-          assertEquals(count(registry, "2xx_responses", "server", "get"), 1.0)
-          assertEquals(count(registry, "active_requests", "server", "get"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", "server", "get"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", "server", "get"), 0.1)
+          assertEquals(count(registry, "2xx_responses", commonPrefix), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", commonPrefix), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", commonPrefix), 0.1)
         }
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register a POST request") {
-    case (registry, routes) =>
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register a POST request") {
+    case (registry, _, routes) =>
       val req = Request[IO](method = POST, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
@@ -112,17 +158,17 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.Ok)
           assertEquals(b, "200 OK")
 
-          assertEquals(count(registry, "2xx_responses", "server", "post"), 1.0)
-          assertEquals(count(registry, "active_requests", "server", "post"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", "server", "post"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", "server", "post"), 0.1)
+          assertEquals(count(registry, "2xx_responses", commonPrefix, "post"), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix, "post"), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", commonPrefix, "post"), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", commonPrefix, "post"), 0.1)
         }
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register a PUT request") {
-    case (registry, routes) =>
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register a PUT request") {
+    case (registry, _, routes) =>
       val req = Request[IO](method = PUT, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
@@ -130,17 +176,17 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.Ok)
           assertEquals(b, "200 OK")
 
-          assertEquals(count(registry, "2xx_responses", "server", "put"), 1.0)
-          assertEquals(count(registry, "active_requests", "server", "put"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", "server", "put"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", "server", "put"), 0.1)
+          assertEquals(count(registry, "2xx_responses", commonPrefix, "put"), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix, "put"), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", commonPrefix, "put"), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", commonPrefix, "put"), 0.1)
         }
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register a DELETE request") {
-    case (registry, routes) =>
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register a DELETE request") {
+    case (registry, _, routes) =>
       val req = Request[IO](method = DELETE, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
@@ -148,32 +194,32 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.Ok)
           assertEquals(b, "200 OK")
 
-          assertEquals(count(registry, "2xx_responses", "server", "delete"), 1.0)
-          assertEquals(count(registry, "active_requests", "server", "delete"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", "server", "delete"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", "server", "delete"), 0.1)
+          assertEquals(count(registry, "2xx_responses", commonPrefix, "delete"), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix, "delete"), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", commonPrefix, "delete"), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", commonPrefix, "delete"), 0.1)
         }
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register an error") {
-    case (registry, routes) =>
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register an error") {
+    case (registry, _, routes) =>
       val req = Request[IO](method = GET, uri = uri"/error")
 
       routes.run(req).attempt.map { r =>
         assert(r.isLeft)
 
-        assertEquals(count(registry, "errors", "server", cause = "java.io.IOException"), 1.0)
-        assertEquals(count(registry, "active_requests", "server"), 0.0)
-        assertEquals(count(registry, "5xx_headers_duration", "server"), 0.05)
-        assertEquals(count(registry, "5xx_total_duration", "server"), 0.05)
+        assertEquals(count(registry, "errors", commonPrefix, cause = "java.io.IOException"), 1.0)
+        assertEquals(count(registry, "active_requests", commonPrefix), 0.0)
+        assertEquals(count(registry, "5xx_headers_duration", commonPrefix), 0.05)
+        assertEquals(count(registry, "5xx_total_duration", commonPrefix), 0.05)
       }
   }
 
-  meteredRoutes().test(
-    "A http routes with a prometheus metrics middleware should register an abnormal termination") {
-    case (registry, routes) =>
+  meteredRoutes(prefix = commonPrefix).test(
+    "A http routes with Prometheus metrics (with the default names) middleware should register an abnormal termination") {
+    case (registry, _, routes) =>
       val req = Request[IO](method = GET, uri = uri"/abnormal-termination")
 
       routes.run(req).flatMap { r =>
@@ -185,19 +231,20 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
             count(
               registry,
               "abnormal_terminations",
-              "server",
+              commonPrefix,
               cause = "java.lang.RuntimeException"),
             1.0)
-          assertEquals(count(registry, "active_requests", "server"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", "server"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", "server"), 0.1)
+          assertEquals(count(registry, "active_requests", commonPrefix), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", commonPrefix), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", commonPrefix), 0.1)
         }
       }
   }
 
-  val classifierFunc = (_: Request[IO]) => Some("classifier")
-  meteredRoutes(classifierFunc).test("use the provided request classifier") {
-    case (registry, routes) =>
+  private val classifierFunc = (_: Request[IO]) => Some("classifier")
+
+  meteredRoutes(classifier = classifierFunc, prefix = commonPrefix).test("use the provided request classifier") {
+    case (registry, _, routes) =>
       val req = Request[IO](uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
@@ -205,38 +252,48 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.Ok)
           assertEquals(b, "200 OK")
 
-          assertEquals(count(registry, "2xx_responses", "server", "get", "classifier"), 1.0)
-          assertEquals(count(registry, "active_requests", "server", "get", "classifier"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", "server", "get", "classifier"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", "server", "get", "classifier"), 0.1)
+          assertEquals(count(registry, "2xx_responses", commonPrefix, "get", "classifier"), 1.0)
+          assertEquals(count(registry, "active_requests", commonPrefix, "get", "classifier"), 0.0)
+          assertEquals(count(registry, "2xx_headers_duration", commonPrefix, "get", "classifier"), 0.05)
+          assertEquals(count(registry, "2xx_total_duration", commonPrefix, "get", "classifier"), 0.1)
         }
       }
   }
 
   // This tests can't be easily done in munit-cats-effect as it wants to test after the Resource is freed
-  meteredRoutes().test("unregister collectors".ignore) { case (cr, routes) =>
-    val req = Request[IO](uri = uri"/ok")
+  meteredRoutes(prefix = commonPrefix).test("unregister collectors".ignore) {
+    case (cr, _, routes) =>
+      val req = Request[IO](uri = uri"/ok")
 
-    routes.run(req).as(cr).map { registry =>
-      assertEquals(count(registry, "2xx_responses", "server"), 0.0)
-      assertEquals(count(registry, "active_requests", "server"), 0.0)
-      assertEquals(count(registry, "2xx_headers_duration", "server"), 0.0)
-      assertEquals(count(registry, "2xx_total_duration", "server"), 0.0)
-    }
+      routes.run(req).as(cr).map { registry =>
+        assertEquals(count(registry, "2xx_responses", commonPrefix), 0.0)
+        assertEquals(count(registry, "active_requests", commonPrefix), 0.0)
+        assertEquals(count(registry, "2xx_headers_duration", commonPrefix), 0.0)
+        assertEquals(count(registry, "2xx_total_duration", commonPrefix), 0.0)
+      }
   }
 
-  def buildMeteredRoutes(
+  private def buildMeteredRoutes(
+      prefix: Option[String],
+      settings: PrometheusMetricsSettings,
       classifier: Request[IO] => Option[String] = (_: Request[IO]) => None
-  ): Resource[IO, (CollectorRegistry, HttpApp[IO])] = {
+  ) = {
     implicit val clock: Clock[IO] = FakeClock[IO]
+
     for {
       registry <- Prometheus.collectorRegistry[IO]
-      metrics <- Prometheus.metricsOps[IO](registry, "server")
-    } yield (registry, Metrics(metrics, classifierF = classifier)(testRoutes).orNotFound)
+
+      metricsOps <- prefix.fold(
+        Prometheus.metricsOps[IO](registry, settings)
+      )(Prometheus.metricsOps[IO](registry, _))
+
+      metrics = Metrics(metricsOps, classifierF = classifier)(testRoutes).orNotFound
+    } yield (registry, settings, metrics)
   }
 
-  def meteredRoutes(
+  private def meteredRoutes(
+      prefix: Option[String] = Option.empty,
+      settings: PrometheusMetricsSettings = PrometheusMetricsSettings.DefaultSettings,
       classifier: Request[IO] => Option[String] = (_: Request[IO]) => None
-  ): SyncIO[FunFixture[(CollectorRegistry, HttpApp[IO])]] =
-    ResourceFixture(buildMeteredRoutes(classifier))
+  ) = ResourceFixture(buildMeteredRoutes(prefix, settings, classifier))
 }
