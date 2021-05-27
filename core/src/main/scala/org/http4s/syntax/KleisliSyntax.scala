@@ -17,10 +17,9 @@
 package org.http4s
 package syntax
 
-import cats.{Functor, ~>}
+import cats.{Functor, Monad, ~>}
 import cats.syntax.functor._
 import cats.data.{Kleisli, OptionT}
-import cats.Defer
 
 trait KleisliSyntax {
   implicit def http4sKleisliResponseSyntaxOptionT[F[_]: Functor, A](
@@ -44,16 +43,16 @@ final class KleisliResponseOps[F[_]: Functor, A](self: Kleisli[OptionT[F, *], A,
 }
 
 final class KleisliHttpRoutesOps[F[_]](self: HttpRoutes[F]) {
-  def translate[G[_]: Defer: Functor](fk: F ~> G)(gK: G ~> F): HttpRoutes[G] =
+  def translate[G[_]: Monad](fk: F ~> G)(gK: G ~> F): HttpRoutes[G] =
     HttpRoutes(request => self.run(request.mapK(gK)).mapK(fk).map(_.mapK(fk)))
 }
 
 final class KleisliHttpAppOps[F[_]: Functor](self: HttpApp[F]) {
-  def translate[G[_]: Defer](fk: F ~> G)(gK: G ~> F): HttpApp[G] =
+  def translate[G[_]: Monad](fk: F ~> G)(gK: G ~> F): HttpApp[G] =
     HttpApp(request => fk(self.run(request.mapK(gK)).map(_.mapK(fk))))
 }
 
 final class KleisliAuthedRoutesOps[F[_], A](self: AuthedRoutes[A, F]) {
-  def translate[G[_]: Defer: Functor](fk: F ~> G)(gK: G ~> F): AuthedRoutes[A, G] =
+  def translate[G[_]: Monad](fk: F ~> G)(gK: G ~> F): AuthedRoutes[A, G] =
     AuthedRoutes(authedReq => self.run(authedReq.mapK(gK)).mapK(fk).map(_.mapK(fk)))
 }

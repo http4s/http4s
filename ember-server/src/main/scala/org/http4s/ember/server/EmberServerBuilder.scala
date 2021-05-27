@@ -123,7 +123,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def build: Resource[F, Server] =
     for {
-      sg <- sgOpt.getOrElse(Network.forAsync[F]).pure[Resource[F, *]]
+      sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, InetSocketAddress]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(

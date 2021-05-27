@@ -31,7 +31,7 @@ object HttpRoutes {
     * @param run the function to lift
     * @return an [[HttpRoutes]] that wraps `run`
     */
-  def apply[F[_]: Defer](run: Request[F] => OptionT[F, Response[F]]): HttpRoutes[F] =
+  def apply[F[_]: Monad](run: Request[F] => OptionT[F, Response[F]]): HttpRoutes[F] =
     Http(run)
 
   /** Lifts an effectful [[Response]] into an [[HttpRoutes]].
@@ -62,7 +62,7 @@ object HttpRoutes {
     * @return An [[HttpRoutes]] whose input is transformed by `f` before
     * being applied to `fa`
     */
-  def local[F[_]: Defer](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
+  def local[F[_]: Monad](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
     Http.local[OptionT[F, *], F](f)(fa)
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
