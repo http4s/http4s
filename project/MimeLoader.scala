@@ -12,6 +12,7 @@ import org.http4s.ember.client.EmberClientBuilder
 import sbt._
 import sbt.Keys.scalaSource
 import scala.concurrent.ExecutionContext.global
+import scala.io.Source
 import treehugger.forest._
 import treehugger.forest.definitions._
 import treehuggerDSL._
@@ -149,7 +150,14 @@ object MimeLoader {
   private def treeToFile(f: File, t: Tree): Unit = {
     // Create the dir if needed
     Option(f.getParentFile).foreach(_.mkdirs())
+    
+    // Retain copyright header
+    val src = Source.fromFile(f)
+    val header = src.getLines.takeWhile(!_.startsWith("//")).mkString("", "\n", "\n")
+    src.close()
+
     val writer = new PrintWriter(f)
+    writer.write(header)
     writer.write(treeToString(t))
     writer.close()
   }
