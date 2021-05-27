@@ -219,7 +219,7 @@ NoContent("does not compile")
 
 #### Asynchronous responses
 
-While http4s prefers `F[_]: Effect`, you may be working with libraries that
+While http4s prefers `F[_]: Async`, you may be working with libraries that
 use standard library `Future`s.  Some relevant imports:
 
 ```scala mdoc
