@@ -1881,6 +1881,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.cryptii.pipe+json", Compressible, NotBinary)
       lazy val `vnd.crypto-shade-file`: MediaType =
         new MediaType("application", "vnd.crypto-shade-file", Compressible, NotBinary)
+      lazy val `vnd.cryptomator.encrypted`: MediaType =
+        new MediaType("application", "vnd.cryptomator.encrypted", Compressible, NotBinary)
       lazy val `vnd.ctc-posml`: MediaType =
         new MediaType("application", "vnd.ctc-posml", Compressible, NotBinary, List("pml"))
       lazy val `vnd.ctct.ws+xml`: MediaType =
@@ -2875,8 +2877,6 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.musician", Compressible, NotBinary, List("mus"))
       lazy val `vnd.muvee.style`: MediaType =
         new MediaType("application", "vnd.muvee.style", Compressible, NotBinary, List("msty"))
-      lazy val `vnd.mynfc`: MediaType =
-        new MediaType("application", "vnd.mynfc", Compressible, NotBinary, List("taglet"))
       lazy val part_1: List[MediaType] = List(
         `vnd.afpc.foca-charset`,
         `vnd.afpc.foca-codedfont`,
@@ -2986,6 +2986,7 @@ private[http4s] trait MimeDB {
         `vnd.criticaltools.wbs+xml`,
         `vnd.cryptii.pipe+json`,
         `vnd.crypto-shade-file`,
+        `vnd.cryptomator.encrypted`,
         `vnd.ctc-posml`,
         `vnd.ctct.ws+xml`,
         `vnd.cups-pdf`,
@@ -3376,17 +3377,20 @@ private[http4s] trait MimeDB {
         `vnd.multiad.creator.cif`,
         `vnd.music-niff`,
         `vnd.musician`,
-        `vnd.muvee.style`,
-        `vnd.mynfc`
+        `vnd.muvee.style`
       )
     }
     trait application_2 {
+      lazy val `vnd.mynfc`: MediaType =
+        new MediaType("application", "vnd.mynfc", Compressible, NotBinary, List("taglet"))
       lazy val `vnd.ncd.control`: MediaType =
         new MediaType("application", "vnd.ncd.control", Compressible, NotBinary)
       lazy val `vnd.ncd.reference`: MediaType =
         new MediaType("application", "vnd.ncd.reference", Compressible, NotBinary)
       lazy val `vnd.nearst.inv+json`: MediaType =
         new MediaType("application", "vnd.nearst.inv+json", Compressible, NotBinary)
+      lazy val `vnd.nebumind.line`: MediaType =
+        new MediaType("application", "vnd.nebumind.line", Compressible, NotBinary)
       lazy val `vnd.nervana`: MediaType =
         new MediaType("application", "vnd.nervana", Compressible, NotBinary)
       lazy val `vnd.netfpx`: MediaType =
@@ -4924,14 +4928,12 @@ private[http4s] trait MimeDB {
         new MediaType("application", "x-font-ghostscript", Compressible, NotBinary, List("gsf"))
       lazy val `x-font-libgrx`: MediaType =
         new MediaType("application", "x-font-libgrx", Compressible, NotBinary)
-      lazy val `x-font-linux-psf`: MediaType =
-        new MediaType("application", "x-font-linux-psf", Compressible, NotBinary, List("psf"))
-      lazy val `x-font-pcf`: MediaType =
-        new MediaType("application", "x-font-pcf", Compressible, NotBinary, List("pcf"))
       lazy val part_2: List[MediaType] = List(
+        `vnd.mynfc`,
         `vnd.ncd.control`,
         `vnd.ncd.reference`,
         `vnd.nearst.inv+json`,
+        `vnd.nebumind.line`,
         `vnd.nervana`,
         `vnd.netfpx`,
         `vnd.neurolanguage.nlu`,
@@ -5426,12 +5428,14 @@ private[http4s] trait MimeDB {
         `x-font-dos`,
         `x-font-framemaker`,
         `x-font-ghostscript`,
-        `x-font-libgrx`,
-        `x-font-linux-psf`,
-        `x-font-pcf`
+        `x-font-libgrx`
       )
     }
     trait application_3 {
+      lazy val `x-font-linux-psf`: MediaType =
+        new MediaType("application", "x-font-linux-psf", Compressible, NotBinary, List("psf"))
+      lazy val `x-font-pcf`: MediaType =
+        new MediaType("application", "x-font-pcf", Compressible, NotBinary, List("pcf"))
       lazy val `x-font-snf`: MediaType =
         new MediaType("application", "x-font-snf", Compressible, NotBinary, List("snf"))
       lazy val `x-font-speedo`: MediaType =
@@ -5760,6 +5764,8 @@ private[http4s] trait MimeDB {
       lazy val `zlib`: MediaType = new MediaType("application", "zlib", Compressible, NotBinary)
       lazy val `zstd`: MediaType = new MediaType("application", "zstd", Compressible, NotBinary)
       lazy val part_3: List[MediaType] = List(
+        `x-font-linux-psf`,
+        `x-font-pcf`,
         `x-font-snf`,
         `x-font-speedo`,
         `x-font-sunos-news`,
@@ -6744,6 +6750,8 @@ private[http4s] trait MimeDB {
       new MediaType("model", "vnd.parasolid.transmit.text", Compressible, NotBinary, List("x_t"))
     lazy val `vnd.rosette.annotated-data-model`: MediaType =
       new MediaType("model", "vnd.rosette.annotated-data-model", Compressible, NotBinary)
+    lazy val `vnd.sap.vds`: MediaType =
+      new MediaType("model", "vnd.sap.vds", Compressible, NotBinary, List("vds"))
     lazy val `vnd.usdz+zip`: MediaType =
       new MediaType("model", "vnd.usdz+zip", Uncompressible, NotBinary, List("usdz"))
     lazy val `vnd.valve.source.compiled-map`: MediaType =
@@ -6785,6 +6793,7 @@ private[http4s] trait MimeDB {
       `vnd.parasolid.transmit.binary`,
       `vnd.parasolid.transmit.text`,
       `vnd.rosette.annotated-data-model`,
+      `vnd.sap.vds`,
       `vnd.usdz+zip`,
       `vnd.valve.source.compiled-map`,
       `vnd.vtu`,
@@ -7204,6 +7213,7 @@ private[http4s] trait MimeDB {
     lazy val `celb`: MediaType = new MediaType("video", "celb", Compressible, Binary)
     lazy val `dv`: MediaType = new MediaType("video", "dv", Compressible, Binary)
     lazy val `encaprtp`: MediaType = new MediaType("video", "encaprtp", Compressible, Binary)
+    lazy val `ffv1`: MediaType = new MediaType("video", "ffv1", Compressible, Binary)
     lazy val `flexfec`: MediaType = new MediaType("video", "flexfec", Compressible, Binary)
     lazy val `h261`: MediaType = new MediaType("video", "h261", Compressible, Binary, List("h261"))
     lazy val `h263`: MediaType = new MediaType("video", "h263", Compressible, Binary, List("h263"))
@@ -7364,6 +7374,7 @@ private[http4s] trait MimeDB {
       `celb`,
       `dv`,
       `encaprtp`,
+      `ffv1`,
       `flexfec`,
       `h261`,
       `h263`,
