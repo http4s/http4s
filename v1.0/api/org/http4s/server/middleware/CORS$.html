@@ -162,7 +162,7 @@
                         <a class="object" href="" title=""></a>
                         <a href="" title="">CORS</a>
                       </li><li class="current-entities indented4">
-                        <span class="separator"></span>
+                        <a class="object" href="CORSConfig$.html" title=""></a>
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
                       </li><li class="current-entities indented4">
@@ -313,7 +313,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/middleware/CORS.scala" target="_blank">CORS.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/server/src/main/scala/org/http4s/server/middleware/CORS.scala" target="_blank">CORS.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -418,22 +418,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CORS#DefaultCORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DefaultCORSConfig:org.http4s.server.middleware.CORSConfig"></a><a id="DefaultCORSConfig:CORSConfig"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">DefaultCORSConfig</span><span class="result">: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.server.middleware.CORS#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.CORSConfig)(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](Http[F,G],CORSConfig)(Applicative[F]):Http[F,G]"></a>
       <span class="permalink">
@@ -446,7 +430,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>, <span name="config">config: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a> = <span class="symbol"><span class="name"><a href="#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig">DefaultCORSConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>, <span name="config">config: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a> = <span class="symbol"><span class="name"><a href="CORSConfig$.html">CORSConfig.default</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">CORS middleware

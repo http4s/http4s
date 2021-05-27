@@ -126,14 +126,6 @@
                         <a class="trait" href="Uri$$Host.html" title=""></a>
                         <a href="Uri$$Host.html" title="">Host</a>
                       </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="Uri$$IPv4$.html" title=""></a>
-                        <a href="Uri$$IPv4$.html" title="">IPv4</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="Uri$$IPv6$.html" title=""></a>
-                        <a href="Uri$$IPv6$.html" title="">IPv6</a>
-                      </li><li class="current-entities indented3">
                         <a class="object" href="Uri$$Ipv4Address$.html" title=""></a>
                         <a class="class" href="Uri$$Ipv4Address.html" title=""></a>
                         <a href="Uri$$Ipv4Address.html" title="">Ipv4Address</a>
@@ -187,7 +179,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -471,22 +463,6 @@ Each path segment needs to be encoded for it to be used here.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Uri.Path#fromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromString(fromPath:String):org.http4s.Uri.Path"></a><a id="fromString(String):Path"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Uri$$Path$.html#fromString(fromPath:String):org.http4s.Uri.Path" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fromString</span><span class="params">(<span name="fromPath">fromPath: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Uri$$Path.html" class="extype" name="org.http4s.Uri.Path">Path</a></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -643,6 +619,22 @@ Each path segment needs to be encoded for it to be used here.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Uri.Path#unsafeFromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="unsafeFromString(fromPath:String):org.http4s.Uri.Path"></a><a id="unsafeFromString(String):Path"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$Path$.html#unsafeFromString(fromPath:String):org.http4s.Uri.Path" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unsafeFromString</span><span class="params">(<span name="fromPath">fromPath: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Uri$$Path.html" class="extype" name="org.http4s.Uri.Path">Path</a></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -733,7 +725,29 @@ Each path segment needs to be encoded for it to be used here.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.Uri.Path#fromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromString(fromPath:String):org.http4s.Uri.Path"></a><a id="fromString(String):Path"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$Path$.html#fromString(fromPath:String):org.http4s.Uri.Path" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.0-M6) Use unsafeFromString instead">fromString</span><span class="params">(<span name="fromPath">fromPath: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Uri$$Path.html" class="extype" name="org.http4s.Uri.Path">Path</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.0-M6)</i> Use unsafeFromString instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

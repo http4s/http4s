@@ -126,14 +126,6 @@
                         <a class="trait" href="Uri$$Host.html" title=""></a>
                         <a href="Uri$$Host.html" title="">Host</a>
                       </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="Uri$$IPv4$.html" title=""></a>
-                        <a href="Uri$$IPv4$.html" title="">IPv4</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="Uri$$IPv6$.html" title=""></a>
-                        <a href="Uri$$IPv6$.html" title="">IPv6</a>
-                      </li><li class="current-entities indented3">
                         <a class="object" href="Uri$$Ipv4Address$.html" title=""></a>
                         <a class="class" href="Uri$$Ipv4Address.html" title=""></a>
                         <a href="Uri$$Ipv4Address.html" title="">Ipv4Address</a>
@@ -187,7 +179,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -542,6 +534,41 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.Uri.RegName#toHostname" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toHostname:Option[com.comcast.ip4s.Hostname]"></a><a id="toHostname:Option[Hostname]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$RegName.html#toHostname:Option[com.comcast.ip4s.Hostname]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toHostname</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="com.comcast.ip4s.Hostname">Hostname</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Converts this registered name to a Hostname.</p><div class="fullcomment"><div class="comment cmt"><p>Converts this registered name to a Hostname. In the spec, for
+generic schemes, a registered name need not be a valid host
+name. In HTTP practice, this conversion should succeed.
+</p></div></div>
+    </li><li name="org.http4s.Uri.Host#toIpAddress" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toIpAddress:Option[com.comcast.ip4s.IpAddress]"></a><a id="toIpAddress:Option[IpAddress]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$RegName.html#toIpAddress:Option[com.comcast.ip4s.IpAddress]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toIpAddress</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="com.comcast.ip4s.IpAddress">IpAddress</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a></dd></dl></div>
     </li><li name="org.http4s.util.Renderable#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">

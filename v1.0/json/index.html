@@ -6,12 +6,12 @@
 
   <title>http4s | JSON handling</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/style.css" >
 </head>
 
   <body>
@@ -88,7 +88,7 @@
 
 <h2 id="add-the-json-support-module-s">Add the JSON support module(s)</h2>
 
-<p>http4s-core does not include JSON support, but integration with three
+<p>http4s-core does not include JSON support, but integration with some
 popular Scala JSON libraries are supported as modules.</p>
 
 <h3 id="circe">Circe</h3>
@@ -96,43 +96,18 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;1.0.0-M16&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;1.0.0-M23&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.0-M3&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.1&quot;,
   // Optional for string interpolation to JSON model
-  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.14.0-M3&quot;
+  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.14.1&quot;
 )
 
 addCompilerPlugin(&quot;org.scalamacros&quot; % &quot;paradise&quot; % &quot;2.1.0&quot; cross CrossVersion.full)
 </code></pre>
-
-<h3 id="argonaut">Argonaut</h3>
-
-<p>Circe is a fork of argonaut, another popular JSON library in the Scala
-community.  The functionality is similar:</p>
-
-<pre><code class="language-scala">libraryDependencies += Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % http4sVersion,
-  // Optional for auto-derivation of JSON codecs
-  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M6&quot;
-)
-</code></pre>
-
-<h3 id="json4s">Json4s</h3>
-
-<p>Json4s is less functionally pure than Circe or Argonaut, but older and
-integrated with many Scala libraries.  It comes with two backends.
-You should pick one of these dependencies:</p>
-
-<pre><code class="language-scala">libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % http4sVersion
-libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % http4sVersion
-</code></pre>
-
-<p>There is no extra codec derivation library for json4s, as it generally
-bases its codecs on runtime reflection.</p>
 
 <h2 id="sending-raw-json">Sending raw JSON</h2>
 
@@ -172,12 +147,12 @@ val greeting = hello(&quot;world&quot;)
 </code></pre>
 
 <pre><code class="language-scala">Ok(greeting).unsafeRunSync()
-// res1: Response[IO] = Response(
+// res1: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@423faed7
+//   org.typelevel.vault.Vault@f9289a3
 // )
 </code></pre>
 
@@ -194,7 +169,7 @@ useful on client requests:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 16),
 //   Stream(..),
-//   org.typelevel.vault.Vault@4e5404cc
+//   org.typelevel.vault.Vault@4f8cb983
 // )
 </code></pre>
 
@@ -230,7 +205,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { (hello: Hello) =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@700bd44b
+// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@3f64562e
 
 Hello(&quot;Alice&quot;).asJson
 // res4: Json = JObject(object[hello -&gt; &quot;Alice&quot;])
@@ -251,12 +226,12 @@ using the field names of the case class as key names in a JSON object:</p>
 and responses for our case classes:</p>
 
 <pre><code class="language-scala">Ok(Hello(&quot;Alice&quot;).asJson).unsafeRunSync()
-// res6: Response[IO] = Response(
+// res6: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@3a80c5ee
+//   org.typelevel.vault.Vault@11fa4172
 // )
 POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 // res7: Request[IO] = (
@@ -265,7 +240,7 @@ POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 14),
 //   Stream(..),
-//   org.typelevel.vault.Vault@48ec2d4e
+//   org.typelevel.vault.Vault@7e53ad6b
 // )
 </code></pre>
 
@@ -307,7 +282,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@234ee266
+// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@25c681c6
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res11: User = User(&quot;Alice&quot;)
 
@@ -348,7 +323,7 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
-import org.http4s.server.blaze._
+import org.http4s.blaze.server._
 import org.http4s.implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -381,7 +356,7 @@ val fiber = server.use(_ =&gt; IO.never).start.unsafeRunSync()
 <p>Now let&rsquo;s make a client for the service above:</p>
 
 <pre><code class="language-scala">import org.http4s.client.dsl.io._
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import cats.effect.IO
 import io.circe.generic.auto._
 import fs2.Stream
@@ -427,7 +402,7 @@ helloAlice.compile.last.unsafeRunSync()
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading from 0.18</a>
+	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading</a>
             </li>
             
             <li class="nav-item">
@@ -511,7 +486,7 @@ helloAlice.compile.last.unsafeRunSync()
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v1.0/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v1.0/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

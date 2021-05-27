@@ -133,22 +133,6 @@
                         <a class="object" href="Writer$.html" title=""></a>
                         <a class="trait" href="Writer.html" title="Efficiently accumulate Renderable representations"></a>
                         <a href="Writer.html" title="Efficiently accumulate Renderable representations">Writer</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="execution$.html" title=""></a>
-                        <a href="execution$.html" title="">execution</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="nonEmptyList$.html" title=""></a>
-                        <a href="nonEmptyList$.html" title="">nonEmptyList</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="string$.html" title=""></a>
-                        <a href="string$.html" title="">string</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="object" href="threads$.html" title=""></a>
-                        <a href="threads$.html" title="">threads</a>
                       </li>
               </ul>
             </div>
@@ -179,7 +163,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -499,6 +483,22 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.util.Renderer#headerSelectRenderer" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="headerSelectRenderer[A](implicitselect:org.http4s.Header.Select[A]):org.http4s.util.Renderer[A]"></a><a id="headerSelectRenderer[A](Select[A]):Renderer[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/Renderer$.html#headerSelectRenderer[A](implicitselect:org.http4s.Header.Select[A]):org.http4s.util.Renderer[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">headerSelectRenderer</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="select">select: <a href="../Header$$Select.html" class="extype" name="org.http4s.Header.Select">Select</a>[<span class="extype" name="org.http4s.util.Renderer.headerSelectRenderer.A">A</span>]</span>)</span><span class="result">: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Renderer.headerSelectRenderer.A">A</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -547,6 +547,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.util.Renderer#nelRenderer" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="nelRenderer[T](implicitevidence$2:org.http4s.util.Renderer[T]):org.http4s.util.Renderer[cats.data.NonEmptyList[T]]"></a><a id="nelRenderer[T](Renderer[T]):Renderer[NonEmptyList[T]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/Renderer$.html#nelRenderer[T](implicitevidence$2:org.http4s.util.Renderer[T]):org.http4s.util.Renderer[cats.data.NonEmptyList[T]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nelRenderer</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Renderer.nelRenderer.T">T</span>]</span>)</span><span class="result">: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<span class="extype" name="org.http4s.util.Renderer.nelRenderer.T">T</span>]]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
@@ -598,6 +614,22 @@
       </span>
       <span class="symbol">
         <span class="name">renderString</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="t">t: <span class="extype" name="org.http4s.util.Renderer.renderString.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Renderer.renderString.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.util.Renderer#setRenderer" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="setRenderer[T](implicitevidence$3:org.http4s.util.Renderer[T]):org.http4s.util.Renderer[Set[T]]"></a><a id="setRenderer[T](Renderer[T]):Renderer[Set[T]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/Renderer$.html#setRenderer[T](implicitevidence$3:org.http4s.util.Renderer[T]):org.http4s.util.Renderer[Set[T]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">setRenderer</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Renderer.setRenderer.T">T</span>]</span>)</span><span class="result">: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="org.http4s.util.Renderer.setRenderer.T">T</span>]]</span>
       </span>
       
       

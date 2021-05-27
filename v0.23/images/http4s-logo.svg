@@ -1,0 +1,34 @@
+<svg width="443.118" height="512" viewBox="0 0 443.118 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:figma="http://www.figma.com/figma/ns">
+<title>http4s-logo</title>
+<desc>Created using Figma</desc>
+<g id="Canvas" transform="matrix(0.710125 0 0 0.710125 -3573.35 -1217.86)" figma:type="canvas">
+<g id="http4s-logo" style="mix-blend-mode:normal;" figma:type="frame">
+<g id="Top" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path0_fill" transform="translate(5032 1715.75)" fill="#FF8F00" style="mix-blend-mode:normal;"/>
+</g>
+<g id="Right" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path1_fill" transform="translate(5343.77 1895)" fill="#E38313" style="mix-blend-mode:normal;"/>
+</g>
+<g id="Left" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path2_fill" transform="matrix(-1 0 0 1 5343.77 1895)" fill="#FF9D1D" style="mix-blend-mode:normal;"/>
+</g>
+<g id="S" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path3_fill" transform="matrix(-1 0 0 1 5616.57 1962.75)" fill="#FFFFFF" style="mix-blend-mode:normal;"/>
+</g>
+<g id="4" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path4_fill" transform="translate(5070.97 1962.75)" fill="#FFFFFF" style="mix-blend-mode:normal;"/>
+</g>
+<g id="H" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path5_fill" transform="translate(5109.94 1760.25)" fill="#FFFFFF" style="mix-blend-mode:normal;"/>
+</g>
+</g>
+</g>
+<defs>
+<path id="path0_fill" d="M 623.5 179.25L 311.769 0L 0 179.25L 311.769 360L 623.5 179.25Z"/>
+<path id="path1_fill" d="M 311.769 360.25L 311.731 0L 3.05176e-05 180.25L 0 540.25L 311.769 360.25Z"/>
+<path id="path2_fill" d="M 311.769 360.25L 311.769 0L 3.05176e-05 180.25L 0 540.25L 311.769 360.25Z"/>
+<path id="path3_fill" d="M 233.827 405L 233.827 315L 155.885 270L 155.885 90L 0 0L 0 90L 77.9423 135L 77.9423 315L 233.827 405Z"/>
+<path id="path4_fill" d="M 233.827 135L 155.885 90L 155.885 180L 77.9423 135L 77.9423 45L 0 0L 0 180L 77.9423 225L 155.885 270L 155.885 360L 233.827 405L 233.827 315L 233.827 225L 233.827 135Z"/>
+<path id="path5_fill" d="M 155.885 45L 0 135L 77.9423 180L 155.885 135L 233.827 180L 155.885 225L 233.827 270L 467.654 135L 389.711 90L 311.769 135L 233.827 90L 311.769 45L 233.827 0L 155.885 45Z"/>
+</defs>
+</svg>

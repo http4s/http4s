@@ -413,7 +413,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/dsl/src/main/scala/org/http4s/dsl/impl/Responses.scala" target="_blank">Responses.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/dsl/src/main/scala/org/http4s/dsl/impl/Responses.scala" target="_blank">Responses.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -538,9 +538,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.dsl.impl.EmptyResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[G]]"></a><a id="apply(Header*)(Applicative[F]):F[Response[G]]"></a>
+      <a id="apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[G]]"></a><a id="apply()(Applicative[F]):F[Response[G]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/Responses$$NotModifiedOps.html#apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[G]]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/Responses$$NotModifiedOps.html#apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[G]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -549,7 +549,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.G">G</span>]]</span>
+        <span class="name">apply</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.G">G</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EmptyResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator">EmptyResponseGenerator</a></dd></dl></div>
@@ -585,6 +585,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyVal → Any</dd></dl></div>
+    </li><li name="org.http4s.dsl.impl.EmptyResponseGenerator#headers" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="headers(header:org.http4s.Header.ToRaw,_headers:org.http4s.Header.ToRaw*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[G]]"></a><a id="headers(ToRaw,ToRaw*)(Applicative[F]):F[Response[G]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/dsl/impl/Responses$$NotModifiedOps.html#headers(header:org.http4s.Header.ToRaw,_headers:org.http4s.Header.ToRaw*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[G]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">headers</span><span class="params">(<span name="header">header: <a href="../../Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a></span>, <span name="_headers">_headers: <a href="../../Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.NotModifiedOps.G">G</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EmptyResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator">EmptyResponseGenerator</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">

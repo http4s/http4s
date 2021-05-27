@@ -6,12 +6,12 @@
 
   <title>http4s | Middleware</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/style.css" >
 </head>
 
   <body>
@@ -116,7 +116,7 @@ import org.http4s.implicits._
 <p>Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.</p>
 
-<pre><code class="language-scala">def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =&gt;
+<pre><code class="language-scala">def myMiddle(service: HttpRoutes[IO], header: Header.ToRaw): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =&gt;
   service(req).map {
     case Status.Successful(resp) =&gt;
       resp.putHeaders(header)
@@ -143,7 +143,7 @@ we need to call <code>unsafeRunSync</code> on the result of the function to extr
     Ok()
 }
 // service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8188/757680610@2b73ad5e
+//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@d1beed4
 // )
 
 val goodRequest = Request[IO](Method.GET, uri&quot;/&quot;)
@@ -153,7 +153,7 @@ val goodRequest = Request[IO](Method.GET, uri&quot;/&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@24a7bbd2
+//   org.typelevel.vault.Vault@68518b82
 // )
 val badRequest = Request[IO](Method.GET, uri&quot;/bad&quot;)
 // badRequest: Request[IO] = (
@@ -162,47 +162,47 @@ val badRequest = Request[IO](Method.GET, uri&quot;/bad&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@15ac952c
+//   org.typelevel.vault.Vault@45d971c0
 // )
 
 service.orNotFound(goodRequest).unsafeRunSync()
-// res0: Response[IO] = Response(
+// res0: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@17bab468
+//   org.typelevel.vault.Vault@5755a34f
 // )
 service.orNotFound(badRequest).unsafeRunSync()
-// res1: Response[IO] = Response(
+// res1: Response[IO] = (
 //   Status(400),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@2195f29c
+//   org.typelevel.vault.Vault@56a8a3f
 // )
 </code></pre>
 
 <p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
 
-<pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
+<pre><code class="language-scala">val wrappedService = myMiddle(service, &quot;SomeKey&quot; -&gt; &quot;SomeValue&quot;);
 // wrappedService: HttpRoutes[IO] = Kleisli(&lt;function1&gt;);
 
 wrappedService.orNotFound(goodRequest).unsafeRunSync()
-// res2: Response[IO] = Response(
+// res2: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, SomeKey: SomeValue),
 //   Stream(..),
-//   org.typelevel.vault.Vault@38f5a457
+//   org.typelevel.vault.Vault@61831c8b
 // )
 wrappedService.orNotFound(badRequest).unsafeRunSync()
-// res3: Response[IO] = Response(
+// res3: Response[IO] = (
 //   Status(400),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@49815390
+//   org.typelevel.vault.Vault@6f5a260a
 // )
 </code></pre>
 
@@ -212,36 +212,36 @@ wrappedService.orNotFound(badRequest).unsafeRunSync()
 it as an <code>object</code> and use the <code>apply</code> method.</p>
 
 <pre><code class="language-scala">object MyMiddle {
-  def addHeader(resp: Response[IO], header: Header) =
+  def addHeader(resp: Response[IO], header: Header.ToRaw) =
     resp match {
       case Status.Successful(resp) =&gt; resp.putHeaders(header)
       case resp =&gt; resp
     }
 
-  def apply(service: HttpRoutes[IO], header: Header) =
+  def apply(service: HttpRoutes[IO], header: Header.ToRaw) =
     service.map(addHeader(_, header))
 }
 
-val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
+val newService = MyMiddle(service, &quot;SomeKey&quot; -&gt; &quot;SomeValue&quot;)
 // newService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.Kleisli$$Lambda$9380/548871143@b5ab73c
+//   cats.data.Kleisli$$Lambda$15865/133271780@15efbf75
 // )
 
 newService.orNotFound(goodRequest).unsafeRunSync()
-// res4: Response[IO] = Response(
+// res4: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, SomeKey: SomeValue),
 //   Stream(..),
-//   org.typelevel.vault.Vault@5d5b5d9
+//   org.typelevel.vault.Vault@4485e485
 // )
 newService.orNotFound(badRequest).unsafeRunSync()
-// res5: Response[IO] = Response(
+// res5: Response[IO] = (
 //   Status(400),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@10977e28
+//   org.typelevel.vault.Vault@3d1bdfda
 // )
 </code></pre>
 
@@ -267,12 +267,12 @@ You can also wrap a single service in multiple layers of middleware. For example
     Ok()
 }
 // apiService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8188/757680610@53c9a279
+//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@3cfc405
 // )
 
-val aggregateService = apiService &lt;+&gt; MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
+val aggregateService = apiService &lt;+&gt; MyMiddle(service, &quot;SomeKey&quot; -&gt; &quot;SomeValue&quot;)
 // aggregateService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.KleisliSemigroupK$$Lambda$8189/188251966@d740c6b
+//   cats.data.KleisliSemigroupK$$Lambda$13934/1073933457@6b33d71e
 // )
 
 val apiRequest = Request[IO](Method.GET, uri&quot;/api&quot;)
@@ -282,24 +282,24 @@ val apiRequest = Request[IO](Method.GET, uri&quot;/api&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@25a71b61
+//   org.typelevel.vault.Vault@79b731
 // )
 
 aggregateService.orNotFound(goodRequest).unsafeRunSync()
-// res6: Response[IO] = Response(
+// res6: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, SomeKey: SomeValue),
 //   Stream(..),
-//   org.typelevel.vault.Vault@eea47c3
+//   org.typelevel.vault.Vault@637f4deb
 // )
 aggregateService.orNotFound(apiRequest).unsafeRunSync()
-// res7: Response[IO] = Response(
+// res7: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@10aef60d
+//   org.typelevel.vault.Vault@1e6d426d
 // )
 </code></pre>
 
@@ -349,13 +349,13 @@ import com.codahale.metrics.SharedMetricRegistries
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@3d94a727
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@6b13fd99
 val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
-// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@4e600ee1
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@1653f8d0
 
 val meteredRoutes = Metrics[IO](Dropwizard(registry, &quot;server&quot;))(apiService)
 // meteredRoutes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.middleware.BracketRequestResponse$$$Lambda$9607/1127089170@20f5dfe7
+//   org.http4s.server.middleware.BracketRequestResponse$$$Lambda$16087/60683947@269e0ff5
 // )
 </code></pre>
 
@@ -380,7 +380,7 @@ import org.http4s.server.middleware.Metrics
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@7c7d4065
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@3f170ed8
 
 val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   for {
@@ -397,9 +397,9 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
 //       Map(
 //         Map(
 //           Delay(
-//             org.http4s.metrics.prometheus.Prometheus$$$Lambda$8954/1596409557@319ddb77
+//             org.http4s.metrics.prometheus.Prometheus$$$Lambda$15403/969958214@1213e01d
 //           ),
-//           cats.effect.Resource$$$Lambda$8481/1297132569@1b84df79,
+//           cats.effect.Resource$$$Lambda$14206/951660809@4b9d4d7d,
 //           StackTrace(
 //             List(
 //               cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -412,7 +412,7 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
 //               cats.Functor$Ops.map$(Functor.scala:233),
 //               cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
 //               cats.effect.Resource$.make(Resource.scala:342),
-//               org.http4s.server.blaze.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:353),
+//               org.http4s.blaze.server.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:352),
 //               cats.effect.Resource.$anonfun$fold$1(Resource.scala:124),
 //               cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
 //               cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
@@ -440,11 +440,11 @@ or supplied as part of the request.</p>
 as to why this header is useful.</p>
 
 <pre><code class="language-scala">import org.http4s.server.middleware.RequestId
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
   case req =&gt;
-    val reqId = req.headers.get(CIString(&quot;X-Request-ID&quot;)).fold(&quot;null&quot;)(_.value)
+    val reqId = req.headers.get(ci&quot;X-Request-ID&quot;).fold(&quot;null&quot;)(_.head.value)
     // use request id to correlate logs with the request
     IO(println(s&quot;request received, cid=$reqId&quot;)) *&gt; Ok()
 })
@@ -456,20 +456,20 @@ extracted from the header, or the generated request id.</p>
 
 <pre><code class="language-scala">// generated request id can be correlated with logs
 val resp = responseIO.unsafeRunSync()
-// request received, cid=fdc077e3-fcdf-4024-a4bf-c55269a01cc6
-// resp: Response[IO] = Response(
+// request received, cid=4d6b043c-c5c7-4fd4-be84-464aa5f646dd
+// resp: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(Content-Length: 0, X-Request-ID: fdc077e3-fcdf-4024-a4bf-c55269a01cc6),
+//   Headers(Content-Length: 0, X-Request-ID: 4d6b043c-c5c7-4fd4-be84-464aa5f646dd),
 //   Stream(..),
-//   org.typelevel.vault.Vault@331eeb1
+//   org.typelevel.vault.Vault@3f968ea2
 // )
 // X-Request-ID header added to response
 resp.headers
-// res8: Headers = Headers(Content-Length: 0, X-Request-ID: fdc077e3-fcdf-4024-a4bf-c55269a01cc6)
+// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 4d6b043c-c5c7-4fd4-be84-464aa5f646dd)
 // the request id is also available using attributes
 resp.attributes.lookup(RequestId.requestIdAttrKey)
-// res9: Option[String] = Some(&quot;fdc077e3-fcdf-4024-a4bf-c55269a01cc6&quot;)
+// res9: Option[String] = Some(&quot;4d6b043c-c5c7-4fd4-be84-464aa5f646dd&quot;)
 </code></pre>
 
         </div>
@@ -487,7 +487,7 @@ resp.attributes.lookup(RequestId.requestIdAttrKey)
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading from 0.18</a>
+	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading</a>
             </li>
             
             <li class="nav-item">
@@ -571,7 +571,7 @@ resp.attributes.lookup(RequestId.requestIdAttrKey)
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v1.0/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v1.0/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

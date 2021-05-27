@@ -165,7 +165,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/blaze-core/src/main/scala/org/http4s/blazecore/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/blaze-core/src/main/scala/org/http4s/blazecore/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -311,9 +311,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.blazecore.Http1Stage#encodeHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="encodeHeaders(headers:Iterable[org.http4s.Header],rr:org.http4s.util.Writer,isServer:Boolean):Unit"></a><a id="encodeHeaders(Iterable[Header],Writer,Boolean):Unit"></a>
+      <a id="encodeHeaders(headers:Iterable[org.http4s.Header.Raw],rr:org.http4s.util.Writer,isServer:Boolean):Unit"></a><a id="encodeHeaders(Iterable[Raw],Writer,Boolean):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/blazecore/Http1Stage$.html#encodeHeaders(headers:Iterable[org.http4s.Header],rr:org.http4s.util.Writer,isServer:Boolean):Unit" title="Permalink">
+      <a href="../../../org/http4s/blazecore/Http1Stage$.html#encodeHeaders(headers:Iterable[org.http4s.Header.Raw],rr:org.http4s.util.Writer,isServer:Boolean):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -322,7 +322,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">encodeHeaders</span><span class="params">(<span name="headers">headers: <span class="extype" name="scala.Iterable">Iterable</span>[<a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>]</span>, <span name="rr">rr: <a href="../util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>, <span name="isServer">isServer: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">encodeHeaders</span><span class="params">(<span name="headers">headers: <span class="extype" name="scala.Iterable">Iterable</span>[<a href="../Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a>]</span>, <span name="rr">rr: <a href="../util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>, <span name="isServer">isServer: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <p class="shortcomment cmt">Encodes the headers into the Writer.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes the headers into the Writer. Does not encode <code>Transfer-Encoding</code> or

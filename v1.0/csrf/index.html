@@ -6,12 +6,12 @@
 
   <title>http4s | CSRF</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/style.css" >
 </head>
 
   <body>
@@ -111,7 +111,7 @@ import org.http4s.server.middleware._
     Ok()
 } 
 // service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8188/757680610@1cac0b12
+//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@71973427
 // ) 
 
 val request = Request[IO](Method.GET, uri&quot;/&quot;)
@@ -121,16 +121,16 @@ val request = Request[IO](Method.GET, uri&quot;/&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@15b7ee23
+//   org.typelevel.vault.Vault@4ab81692
 // )
 
 service.orNotFound(request).unsafeRunSync()
-// res0: Response[IO] = Response(
+// res0: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@4aea6d63
+//   org.typelevel.vault.Vault@57d4fbcb
 // )
 </code></pre>
 
@@ -147,28 +147,28 @@ val csrfBuilder = CSRF[IO,IO](key, defaultOriginCheck)
 but we will create a fairly simple CSRF Middleware in our example.</p>
 
 <pre><code class="language-scala">val csrf = csrfBuilder.withCookieName(cookieName).withCookieDomain(Some(&quot;localhost&quot;)).withCookiePath(Some(&quot;/&quot;)).build
-// csrf: CSRF[IO, IO] = org.http4s.server.middleware.CSRF@480ca4e9
+// csrf: CSRF[IO, IO] = org.http4s.server.middleware.CSRF@4594b291
 </code></pre>
 
 <p>Now we need to wrap this around our service! We&rsquo;re gonna start with a safe call</p>
 
 <pre><code class="language-scala">val dummyRequest: Request[IO] =
-    Request[IO](method = Method.GET).putHeaders(Header(&quot;Origin&quot;, &quot;http://localhost&quot;))
+    Request[IO](method = Method.GET).putHeaders(&quot;Origin&quot; -&gt; &quot;http://localhost&quot;)
 // dummyRequest: Request[IO] = (
 //   GET,
 //   Uri(None, None, /, , None),
 //   HttpVersion(1, 1),
 //   Headers(Origin: http://localhost),
 //   Stream(..),
-//   org.typelevel.vault.Vault@3404c261
+//   org.typelevel.vault.Vault@d6a9008
 // )
 val resp = csrf.validate()(service.orNotFound)(dummyRequest).unsafeRunSync()
-// resp: Response[IO] = Response(
+// resp: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(Content-Length: 0, Set-Cookie: csrf-token=08F871622D163D7123C4FB2502E84FD6FAADB73344DA035A916631E1E97FEA54-1612318783324-A2DA30561C740EE3C84560C2CE2E61BAE7412380; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//   Headers(Content-Length: 0, Set-Cookie: csrf-token=88049FCE430F43508B721DBEB875A35988CBD5ECFA9A7E6EA2AA39050A828B4A-1622084207772-D41F064283F2D77217ADE7D8D339176E4DA2753D; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //   Stream(..),
-//   org.typelevel.vault.Vault@5af5bfab
+//   org.typelevel.vault.Vault@7ec1bb1
 // )
 </code></pre>
 
@@ -189,7 +189,7 @@ the browser would send this up with our request, but I needed to do it manually 
 <pre><code class="language-scala">val cookie = resp.cookies.head
 // cookie: ResponseCookie = ResponseCookie(
 //   &quot;csrf-token&quot;,
-//   &quot;08F871622D163D7123C4FB2502E84FD6FAADB73344DA035A916631E1E97FEA54-1612318783324-A2DA30561C740EE3C84560C2CE2E61BAE7412380&quot;,
+//   &quot;88049FCE430F43508B721DBEB875A35988CBD5ECFA9A7E6EA2AA39050A828B4A-1622084207772-D41F064283F2D77217ADE7D8D339176E4DA2753D&quot;,
 //   None,
 //   None,
 //   Some(&quot;localhost&quot;),
@@ -201,24 +201,24 @@ the browser would send this up with our request, but I needed to do it manually 
 // )
 val dummyPostRequest: Request[IO] =
     Request[IO](method = Method.POST).putHeaders(
-      Header(&quot;Origin&quot;, &quot;http://localhost&quot;),
-      Header(&quot;X-Csrf-Token&quot;, cookie.content)
+      &quot;Origin&quot; -&gt; &quot;http://localhost&quot;,
+      &quot;X-Csrf-Token&quot; -&gt; cookie.content
     ).addCookie(RequestCookie(cookie.name,cookie.content))
 // dummyPostRequest: Request[IO] = (
 //   POST,
 //   Uri(None, None, /, , None),
 //   HttpVersion(1, 1),
-//   Headers(Origin: http://localhost, X-Csrf-Token: 08F871622D163D7123C4FB2502E84FD6FAADB73344DA035A916631E1E97FEA54-1612318783324-A2DA30561C740EE3C84560C2CE2E61BAE7412380, Cookie: csrf-token=08F871622D163D7123C4FB2502E84FD6FAADB73344DA035A916631E1E97FEA54-1612318783324-A2DA30561C740EE3C84560C2CE2E61BAE7412380),
+//   Headers(Origin: http://localhost, X-Csrf-Token: 88049FCE430F43508B721DBEB875A35988CBD5ECFA9A7E6EA2AA39050A828B4A-1622084207772-D41F064283F2D77217ADE7D8D339176E4DA2753D, Cookie: csrf-token=88049FCE430F43508B721DBEB875A35988CBD5ECFA9A7E6EA2AA39050A828B4A-1622084207772-D41F064283F2D77217ADE7D8D339176E4DA2753D),
 //   Stream(..),
-//   org.typelevel.vault.Vault@1dd6e5c2
+//   org.typelevel.vault.Vault@1776966d
 // )
 val validateResp = csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeRunSync()
-// validateResp: Response[IO] = Response(
+// validateResp: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(Content-Length: 0, Set-Cookie: csrf-token=08F871622D163D7123C4FB2502E84FD6FAADB73344DA035A916631E1E97FEA54-1612318783345-7D1613F0C29BE06DC7A362A40FE5C18BEEB7BFA6; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//   Headers(Content-Length: 0, Set-Cookie: csrf-token=88049FCE430F43508B721DBEB875A35988CBD5ECFA9A7E6EA2AA39050A828B4A-1622084207800-17ECBBE211D2CFF9C730E55E4A2CBA807B6CE6C8; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //   Stream(..),
-//   org.typelevel.vault.Vault@423ae8c1
+//   org.typelevel.vault.Vault@4ec5ae5b
 // )
 </code></pre>
 
@@ -237,7 +237,7 @@ val validateResp = csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeR
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading from 0.18</a>
+	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading</a>
             </li>
             
             <li class="nav-item">
@@ -321,7 +321,7 @@ val validateResp = csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeR
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v1.0/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v1.0/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

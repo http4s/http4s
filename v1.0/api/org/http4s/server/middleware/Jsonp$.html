@@ -162,7 +162,7 @@
                         <a class="object" href="CORS$.html" title=""></a>
                         <a href="CORS$.html" title="">CORS</a>
                       </li><li class="current-entities indented4">
-                        <span class="separator"></span>
+                        <a class="object" href="CORSConfig$.html" title=""></a>
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
                       </li><li class="current-entities indented4">
@@ -317,7 +317,7 @@
 the request Content-Type is <code>application/json</code>.</p><p>If the wrapping is done, the response Content-Type is changed into
 <code>application/javascript</code> and the appropriate jsonp callback is
 applied.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M16/server/src/main/scala/org/http4s/server/middleware/Jsonp.scala" target="_blank">Jsonp.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/server/src/main/scala/org/http4s/server/middleware/Jsonp.scala" target="_blank">Jsonp.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -423,9 +423,9 @@ applied.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.Jsonp#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_],G[_]](callbackParam:String)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Applicative[F],implicitevidence$2:cats.Functor[G]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](String)(Http[F,G])(Applicative[F],Functor[G]):Http[F,G]"></a>
+      <a id="apply[F[_],G[_]](callbackParam:String)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Applicative[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](String)(Http[F,G])(Applicative[F]):Http[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/Jsonp$.html#apply[F[_],G[_]](callbackParam:String)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Applicative[F],implicitevidence$2:cats.Functor[G]):org.http4s.Http[F,G]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/Jsonp$.html#apply[F[_],G[_]](callbackParam:String)(http:org.http4s.Http[F,G])(implicitevidence$1:cats.Applicative[F]):org.http4s.Http[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -434,7 +434,7 @@ applied.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="callbackParam">callbackParam: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.Jsonp.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.Jsonp.apply.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.Jsonp.apply.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.server.middleware.Jsonp.apply.G">G</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.Jsonp.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.Jsonp.apply.G">G</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="callbackParam">callbackParam: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.Jsonp.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.Jsonp.apply.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.Jsonp.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.Jsonp.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.Jsonp.apply.G">G</span>]</span>
       </span>
       
       
