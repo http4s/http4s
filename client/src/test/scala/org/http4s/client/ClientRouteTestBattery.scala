@@ -36,8 +36,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
 
   def clientResource: Resource[IO, Client[IO]]
 
-  val testHandler: HttpHandler = exchange => {
-    val io = (exchange.getRequestMethod match {
+  val testHandler: HttpHandler = exchange =>
+    (exchange.getRequestMethod match {
       case "GET" =>
         val path = exchange.getRequestURI.getPath
         GetRoutes.getPaths.get(path) match {
@@ -59,7 +59,6 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
           exchange.close()
         }
     }).start.unsafeRunAndForget()
-  }
 
   val server = resourceSuiteFixture("server", ServerScaffold[IO](1, false, testHandler))
   val client = resourceSuiteFixture("client", clientResource)
