@@ -42,7 +42,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 enablePlugins(SonatypeCiReleasePlugin)
 
-versionIntroduced := Map(
+versionIntroduced.withRank(KeyRanks.Invisible) := Map(
   scala_3 -> "0.22.0",
 )
 

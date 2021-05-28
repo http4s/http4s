@@ -150,7 +150,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     }) *>
       IO.blocking {
         // com.sun.net.httpserver warns on nocontent with a content lengt that is not -1
-        val contentLength = 
+        val contentLength =
           if (resp.status.code == NoContent.code) -1L
           else resp.contentLength.getOrElse(0L)
         exchange.sendResponseHeaders(resp.status.code, contentLength)
