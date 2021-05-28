@@ -31,7 +31,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   override def munitTimeout: Duration = new FiniteDuration(50, TimeUnit.SECONDS)
 
   test("reset request timeout".flaky) {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
@@ -49,7 +49,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should behave and not deadlock") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val hosts = addresses.map { address =>
       val name = address.getHostName
       val port = address.getPort
@@ -69,7 +69,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("behave and not deadlock on failures with parTraverse") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     mkClient(3)
       .use { client =>
         val failedHosts = addresses.map { address =>
@@ -108,7 +108,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should behave and not deadlock on failures with parSequence".flaky) {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     mkClient(3)
       .use { client =>
         val failedHosts = addresses.map { address =>
@@ -145,7 +145,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("call a second host after reusing connections on a first") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     // https://github.com/http4s/http4s/pull/2546
     mkClient(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5)
       .use { client =>

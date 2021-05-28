@@ -211,9 +211,6 @@ lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      jettyServlet % Test,
-    )
   )
   .dependsOn(
     core,
