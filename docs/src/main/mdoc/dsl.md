@@ -39,8 +39,13 @@ We'll need the following imports to get started:
 import cats.effect._
 import cats.syntax.all._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
-// Provided by `cats.effect.IOApp`
-implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
+```
+
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent:nest
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -214,12 +219,11 @@ NoContent("does not compile")
 
 #### Asynchronous responses
 
-While http4s prefers `F[_]: Effect`, you may be working with libraries that
+While http4s prefers `F[_]: Async`, you may be working with libraries that
 use standard library `Future`s.  Some relevant imports:
 
 ```scala mdoc
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
@@ -233,8 +237,6 @@ effectful, unless we wrap it in `IO`:
 suspended future is shifted to the correct thread pool.
 
 ```scala mdoc:nest
-implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-
 val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
@@ -350,7 +352,7 @@ Alice!" to `GET /hello/Alice`:
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> Root / "hello" / name => Ok(s"Hello, $name!")
+  case GET -> Root / "hello" / name => Ok(s"Hello ${name}!")
 }
 ```
 
@@ -453,11 +455,6 @@ val averageTemperatureService = HttpRoutes.of[IO] {
 To support a `QueryParamDecoderMatcher[Instant]`, consider `QueryParamCodec#instantQueryParamCodec`. That
 outputs a `QueryParamCodec[Instant]`, which offers both a `QueryParamEncoder[Instant]` and `QueryParamDecoder[Instant]`.
 
-```scala mdoc:silent
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-```
-
 ```scala mdoc:silent:warn
 implicit val isoInstantCodec: QueryParamCodec[Instant] =
   QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
@@ -471,7 +468,6 @@ To accept an optional query parameter a `OptionalQueryParamDecoderMatcher` can b
 
 ```scala mdoc:silent
 import java.time.Year
-import org.http4s.client.dsl.io._
 ```
 
 ```scala mdoc:nest

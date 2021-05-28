@@ -17,16 +17,11 @@ simplicity itself:
 
 ```scala mdoc:silent
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.effect._
 import fs2.Stream
 import org.http4s._
 import org.http4s.dsl.io._
-
-// Provided by `cats.effect.IOApp`, needed elsewhere:
-implicit val timer: Timer[IO] = IO.timer(global)
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
 
 // An infinite stream of the periodic elapsed time
 val seconds = Stream.awakeEvery[IO](1.second)
@@ -90,10 +85,10 @@ import fs2.Stream
 import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
 import io.circe.Json
-import jawnfs2._
+import org.typelevel.jawn.fs2._
 import scala.concurrent.ExecutionContext.global
 
-class TWStream[F[_]: ConcurrentEffect : ContextShift] {
+class TWStream[F[_]: Async] {
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = new io.circe.jawn.CirceSupportParser(None, false).facade
 
@@ -124,17 +119,15 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
-  def stream(blocker: Blocker): Stream[F, Unit] = {
+  val stream: Stream[F, Unit] = {
     val req = Request[F](Method.GET, uri"https://stream.twitter.com/1.1/statuses/sample.json")
     val s   = jsonStream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blocker))
+    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout)
   }
 
   /** Compile our stream down to an effect to make it runnable */
   def run: F[Unit] =
-    Stream.resource(Blocker[F]).flatMap { blocker =>
-      stream(blocker)
-    }.compile.drain
+    stream.compile.drain
 }
 ```
 
@@ -155,6 +148,6 @@ object TWStreamApp extends IOApp {
 [ScalaSyd 2015]: https://bitbucket.org/da_terry/scalasyd-doobie-http4s
 [json]: ../json
 [jawn]: https://github.com/non/jawn
-[jawn-fs2]: https://github.com/rossabaker/jawn-fs2
+[jawn-fs2]: https://github.com/typelevel/jawn-fs2
 [Twitter's streaming APIs]: https://dev.twitter.com/streaming/overview
 [circe]: https://circe.github.io/circe/
