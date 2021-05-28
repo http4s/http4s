@@ -147,8 +147,8 @@ private final class Http1Connection[F[_]](
     f
   }
 
-  def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
-    F.defer[Response[F]] {
+  def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Resource[F, Response[F]]] =
+    F.defer[Resource[F, Response[F]]] {
       stageState.get match {
         case i @ Idle(idleRead) =>
           if (stageState.compareAndSet(i, ReadWrite)) {
@@ -175,7 +175,7 @@ private final class Http1Connection[F[_]](
   private def executeRequest(
       req: Request[F],
       idleTimeoutF: F[TimeoutException],
-      idleRead: Option[Future[ByteBuffer]]): F[Response[F]] = {
+      idleRead: Option[Future[ByteBuffer]]): F[Resource[F, Response[F]]] = {
     logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
       case Left(e) =>
@@ -211,18 +211,18 @@ private final class Http1Connection[F[_]](
                 case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            val response: F[Response[F]] = for {
+            val response: F[Resource[F, Response[F]]] = for {
               writeFiber <- writeRequest.start
               response <- receiveResponse(
                 mustClose,
                 doesntHaveBody = req.method == Method.HEAD,
                 idleTimeoutS,
-                idleRead)
-              _ <- writeFiber.join
-            } yield response
+                idleRead).attemptTap(e => Sync[F].delay(println(e.toString)))
+              // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
+            } yield Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response)
 
             F.race(response, timeoutFiber.join)
-              .flatMap[Response[F]] {
+              .flatMap {
                 case Left(r) =>
                   F.pure(r)
                 case Right(t) =>

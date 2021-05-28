@@ -103,17 +103,18 @@ object BlazeClient {
                 case Some(stage) => F.async[TimeoutException](stage.init)
                 case None => F.never[TimeoutException]
               }
-              val res = next.connection
+              val res: F[Resource[F, Response[F]]] = next.connection
                 .runRequest(req, idleTimeoutF)
-                .map { r =>
-                  Resource.makeCase(F.pure(r)) {
-                    case (_, ExitCase.Completed) =>
-                      F.delay(stageOpt.foreach(_.removeStage()))
-                        .guarantee(manager.release(next.connection))
-                    case _ =>
-                      F.delay(stageOpt.foreach(_.removeStage()))
-                        .guarantee(manager.invalidate(next.connection))
-                  }
+                .map { response: Resource[F, Response[F]] =>
+                  response.flatMap(r =>
+                    Resource.makeCase(F.pure(r)) {
+                      case (_, ExitCase.Completed) =>
+                        F.delay(stageOpt.foreach(_.removeStage()))
+                          .guarantee(manager.release(next.connection))
+                      case _ =>
+                        F.delay(stageOpt.foreach(_.removeStage()))
+                          .guarantee(manager.invalidate(next.connection))
+                    })
                 }
 
               responseHeaderTimeout match {
