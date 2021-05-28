@@ -112,9 +112,9 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     body.map(_.contains("This is text.")).assert
   }
 
-  test(s"$name Execute GET") {
-    val address = server().addresses.head
-    GetRoutes.getPaths.toList.traverse { case (path, expected) =>
+  GetRoutes.getPaths.toList.foreach { case (path, expected) =>
+    test(s"$name Execute GET $path") {
+      val address = server().addresses.head
       val name = address.getHostName
       val port = address.getPort
       val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
