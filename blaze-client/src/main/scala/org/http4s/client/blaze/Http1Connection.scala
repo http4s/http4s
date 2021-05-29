@@ -211,15 +211,21 @@ private final class Http1Connection[F[_]](
                 case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            val response: F[Resource[F, Response[F]]] = for {
-              writeFiber <- writeRequest.start
-              response <- receiveResponse(
-                mustClose,
-                doesntHaveBody = req.method == Method.HEAD,
-                idleTimeoutS,
-                idleRead)
-              // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
-            } yield Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response)
+            val response: F[Resource[F, Response[F]]] =
+              F.bracketCase(
+                writeRequest.start
+              )(writeFiber =>
+                receiveResponse(
+                  mustClose,
+                  doesntHaveBody = req.method == Method.HEAD,
+                  idleTimeoutS,
+                  idleRead
+                  // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
+                ).map(response =>
+                  Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response))) {
+                case (_, ExitCase.Completed) => F.unit
+                case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
+              }
 
             F.race(response, timeoutFiber.join)
               .flatMap {
