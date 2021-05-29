@@ -41,7 +41,7 @@ private[client] object ClientHelpers {
   def requestToSocketWithKey[F[_]: Sync](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
-      enableEndpointValiation: Boolean,
+      enableEndpointValidation: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] = {
@@ -49,7 +49,7 @@ private[client] object ClientHelpers {
     requestKeyToSocketWithKey[F](
       requestKey,
       tlsContextOpt,
-      enableEndpointValiation,
+      enableEndpointValidation,
       sg,
       additionalSocketOptions
     )
@@ -58,7 +58,7 @@ private[client] object ClientHelpers {
   def requestKeyToSocketWithKey[F[_]: Sync](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
-      enableEndpointValiation: Boolean,
+      enableEndpointValidation: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] =
@@ -78,7 +78,7 @@ private[client] object ClientHelpers {
                 TLSParameters(
                   serverNames = extractHostname(address.host).map(List(_)),
                   endpointIdentificationAlgorithm =
-                    if (enableEndpointValiation) Some("HTTPS") else None)
+                    if (enableEndpointValidation) Some("HTTPS") else None)
               )
               .widen[Socket[F]]
           }

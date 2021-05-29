@@ -19,44 +19,52 @@ package client
 
 import cats.effect._
 import cats.syntax.all._
+import com.sun.net.httpserver._
 import fs2._
 import fs2.io._
+import java.io.PrintWriter
+import java.util.Arrays
 import java.util.Locale
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
+import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.http4s.multipart.{Multipart, Part}
 import scala.concurrent.duration._
-import java.util.Arrays
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
   val timeout = 20.seconds
 
   def clientResource: Resource[IO, Client[IO]]
 
-  def testServlet =
-    new HttpServlet {
-      override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-        GetRoutes.getPaths.get(req.getRequestURI) match {
+  val testHandler: HttpHandler = exchange =>
+    (exchange.getRequestMethod match {
+      case "GET" =>
+        val path = exchange.getRequestURI.getPath
+        GetRoutes.getPaths.get(path) match {
           case Some(r) =>
-            r.flatMap(renderResponse(srv, _)).unsafeRunSync() // We are outside the IO world
-          case None => srv.sendError(404)
+            r.flatMap(renderResponse(exchange, _))
+          case None =>
+            IO.blocking {
+              exchange.sendResponseHeaders(404, -1L)
+              exchange.close()
+            }
         }
+      case "POST" =>
+        IO.blocking {
+          exchange.sendResponseHeaders(200, 0L)
+          val s = scala.io.Source.fromInputStream(exchange.getRequestBody).mkString
+          val out = new PrintWriter(exchange.getResponseBody())
+          out.print(s)
+          out.flush()
+          exchange.close()
+        }
+    }).start.unsafeRunAndForget()
 
-      override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
-        srv.setStatus(200)
-        val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
-        srv.getWriter.print(s)
-        srv.getWriter.flush()
-      }
-    }
-
-  val jetty = resourceSuiteFixture("server", JettyScaffold[IO](1, false, testServlet))
+  val server = resourceSuiteFixture("server", ServerScaffold[IO](1, false, testHandler))
   val client = resourceSuiteFixture("client", clientResource)
 
   test(s"$name Repeat a simple request") {
-    val address = jetty().addresses.head
+    val address = server().addresses.head
     val path = GetRoutes.SimplePath
 
     def fetchBody =
@@ -72,7 +80,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   test(s"$name POST an empty body") {
-    val address = jetty().addresses.head
+    val address = server().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(uri)
     val body = client().expect[String](req)
@@ -80,7 +88,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   test(s"$name POST a normal body") {
-    val address = jetty().addresses.head
+    val address = server().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST("This is normal.", uri)
     val body = client().expect[String](req)
@@ -88,7 +96,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   test(s"$name POST a chunked body".flaky) {
-    val address = jetty().addresses.head
+    val address = server().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(Stream("This is chunked.").covary[IO], uri)
     val body = client().expect[String](req)
@@ -96,7 +104,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   test(s"$name POST a multipart body") {
-    val address = jetty().addresses.head
+    val address = server().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
     val req = POST(multipart, uri).withHeaders(multipart.headers)
@@ -104,9 +112,9 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     body.map(_.contains("This is text.")).assert
   }
 
-  test(s"$name Execute GET") {
-    val address = jetty().addresses.head
-    GetRoutes.getPaths.toList.traverse { case (path, expected) =>
+  GetRoutes.getPaths.toList.foreach { case (path, expected) =>
+    test(s"$name Execute GET $path") {
+      val address = server().addresses.head
       val name = address.getHostName
       val port = address.getPort
       val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
@@ -135,14 +143,21 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     } yield true
   }
 
-  private def renderResponse(srv: HttpServletResponse, resp: Response[IO]): IO[Unit] = {
-    srv.setStatus(resp.status.code)
-    resp.headers.foreach { h =>
-      srv.addHeader(h.name.toString, h.value)
-    }
-    resp.body
-      .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
-      .compile
-      .drain
-  }
+  private def renderResponse(exchange: HttpExchange, resp: Response[IO]): IO[Unit] =
+    IO(resp.headers.foreach { h =>
+      if (h.name =!= headers.`Content-Length`.name)
+        exchange.getResponseHeaders.add(h.name.toString, h.value)
+    }) *>
+      IO.blocking {
+        // com.sun.net.httpserver warns on nocontent with a content lengt that is not -1
+        val contentLength =
+          if (resp.status.code == NoContent.code) -1L
+          else resp.contentLength.getOrElse(0L)
+        exchange.sendResponseHeaders(resp.status.code, contentLength)
+      } *>
+      resp.body
+        .through(writeOutputStream[IO](IO.pure(exchange.getResponseBody), closeAfterUse = false))
+        .compile
+        .drain
+        .guarantee(IO(exchange.close()))
 }
