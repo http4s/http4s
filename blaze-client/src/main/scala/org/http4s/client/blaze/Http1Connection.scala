@@ -217,7 +217,7 @@ private final class Http1Connection[F[_]](
                 mustClose,
                 doesntHaveBody = req.method == Method.HEAD,
                 idleTimeoutS,
-                idleRead).attemptTap(e => Sync[F].delay(println(e.toString)))
+                idleRead)
               // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
             } yield Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response)
 
