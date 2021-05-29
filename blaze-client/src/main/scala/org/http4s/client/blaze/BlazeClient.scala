@@ -18,10 +18,11 @@ package org.http4s
 package client
 package blaze
 
+
 import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.implicits._
-import cats.syntax.all._
+import cats.implicits._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.util.TickWheelExecutor
@@ -62,107 +63,183 @@ object BlazeClient {
       requestTimeout: Duration,
       scheduler: TickWheelExecutor,
       ec: ExecutionContext
-  )(implicit F: ConcurrentEffect[F]) =
-    Client[F] { req =>
-      Resource.suspend {
-        val key = RequestKey.fromRequest(req)
+  )(implicit F: ConcurrentEffect[F]): Client[F] =
+    new BlazeClient[F, A](manager, responseHeaderTimeout, idleTimeout, requestTimeout, scheduler, ec)
 
-        // If we can't invalidate a connection, it shouldn't tank the subsequent operation,
-        // but it should be noisy.
-        def invalidate(connection: A): F[Unit] =
-          manager
-            .invalidate(connection)
-            .handleError(e => logger.error(e)(s"Error invalidating connection for $key"))
+//    Client[F] { req =>
+//      Resource.suspend {
+//        val key = RequestKey.fromRequest(req)
+//
+//        // If we can't invalidate a connection, it shouldn't tank the subsequent operation,
+//        // but it should be noisy.
+//        def invalidate(connection: A): F[Unit] =
+//          manager
+//            .invalidate(connection)
+//            .handleError(e => logger.error(e)(s"Error invalidating connection for $key"))
+//
+//        def borrow: Resource[F, manager.NextConnection] =
+//          Resource.makeCase(manager.borrow(key)) {
+//            case (_, ExitCase.Completed) =>
+//              F.unit
+//            case (next, ExitCase.Error(_) | ExitCase.Canceled) =>
+//              invalidate(next.connection)
+//          }
+//
+//        def idleTimeoutStage(conn: A) =
+//          Resource.makeCase {
+//            idleTimeout match {
+//              case d: FiniteDuration =>
+//                val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
+//                F.delay(conn.spliceBefore(stage)).as(Some(stage))
+//              case _ =>
+//                F.pure(None)
+//            }
+//          } {
+//            case (_, ExitCase.Completed) => F.unit
+//            case (stageOpt, _) => F.delay(stageOpt.foreach(_.removeStage()))
+//          }
+//
+//        def loop: F[Resource[F, Response[F]]] =
+//          borrow.use { next =>
+//            idleTimeoutStage(next.connection).use { stageOpt =>
+//              val idleTimeoutF = stageOpt match {
+//                case Some(stage) => F.async[TimeoutException](stage.init)
+//                case None => F.never[TimeoutException]
+//              }
+//              val res: F[Resource[F, Response[F]]] = next.connection
+//                .runRequest(req, idleTimeoutF)
+//                .map { response: Resource[F, Response[F]] =>
+//                  response.flatMap(r =>
+//                    Resource.make(F.pure(r))(_ =>
+//                      F.delay(stageOpt.foreach(_.removeStage()))
+//                        .guarantee(manager.release(next.connection))))
+//                }
+//
+//              responseHeaderTimeout match {
+//                case responseHeaderTimeout: FiniteDuration =>
+//                  Deferred[F, Unit].flatMap { gate =>
+//                    val responseHeaderTimeoutF: F[TimeoutException] =
+//                      F.delay {
+//                        val stage =
+//                          new ResponseHeaderTimeoutStage[ByteBuffer](
+//                            responseHeaderTimeout,
+//                            scheduler,
+//                            ec)
+//                        next.connection.spliceBefore(stage)
+//                        stage
+//                      }.bracket(stage =>
+//                        F.asyncF[TimeoutException] { cb =>
+//                          F.delay(stage.init(cb)) >> gate.complete(())
+//                        })(stage => F.delay(stage.removeStage()))
+//
+//                    F.racePair(gate.get *> res, responseHeaderTimeoutF)
+//                      .flatMap[Resource[F, Response[F]]] {
+//                        case Left((r, fiber)) => fiber.cancel.as(r)
+//                        case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+//                      }
+//                  }
+//                case _ => res
+//              }
+//            }
+//          }
+//
+//        val res = loop
+//        requestTimeout match {
+//          case d: FiniteDuration =>
+//            F.racePair(
+//              res,
+//              F.cancelable[TimeoutException] { cb =>
+//                val c = scheduler.schedule(
+//                  new Runnable {
+//                    def run() =
+//                      cb(Right(
+//                        new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
+//                  },
+//                  ec,
+//                  d)
+//                F.delay(c.cancel())
+//              }
+//            ).flatMap[Resource[F, Response[F]]] {
+//              case Left((r, fiber)) => fiber.cancel.as(r)
+//              case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+//            }
+//          case _ =>
+//            res
+//        }
+//      }
+//    }
+}
 
-        def borrow: Resource[F, manager.NextConnection] =
-          Resource.makeCase(manager.borrow(key)) {
-            case (_, ExitCase.Completed) =>
-              F.unit
-            case (next, ExitCase.Error(_) | ExitCase.Canceled) =>
-              invalidate(next.connection)
-          }
+private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionManager[F, A],
+                  responseHeaderTimeout: Duration,
+                  idleTimeout: Duration,
+                  requestTimeout: Duration,
+                  scheduler: TickWheelExecutor,
+                  ec: ExecutionContext
+                 )(implicit F: ConcurrentEffect[F]) extends DefaultClient[F]{
 
-        def idleTimeoutStage(conn: A) =
-          Resource.makeCase {
-            idleTimeout match {
-              case d: FiniteDuration =>
-                val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
-                F.delay(conn.spliceBefore(stage)).as(Some(stage))
-              case _ =>
-                F.pure(None)
-            }
-          } {
-            case (_, ExitCase.Completed) => F.unit
-            case (stageOpt, _) => F.delay(stageOpt.foreach(_.removeStage()))
-          }
+  override def run(req: Request[F]): Resource[F, Response[F]] =
+    for {
+      (conn, idleTimeoutF, responseHeaderTimeoutF) <- prepareConnection(RequestKey.fromRequest(req))
+      getResponse <- Resource.eval(runRequest(conn, req, idleTimeoutF, responseHeaderTimeoutF, RequestKey.fromRequest(req)))
+      response <- getResponse
+    } yield response
 
-        def loop: F[Resource[F, Response[F]]] =
-          borrow.use { next =>
-            idleTimeoutStage(next.connection).use { stageOpt =>
-              val idleTimeoutF = stageOpt match {
-                case Some(stage) => F.async[TimeoutException](stage.init)
-                case None => F.never[TimeoutException]
-              }
-              val res: F[Resource[F, Response[F]]] = next.connection
-                .runRequest(req, idleTimeoutF)
-                .map { response: Resource[F, Response[F]] =>
-                  response.flatMap(r =>
-                    Resource.make(F.pure(r))(_ =>
-                      F.delay(stageOpt.foreach(_.removeStage()))
-                        .guarantee(manager.release(next.connection))))
-                }
+  private def prepareConnection(key: RequestKey): Resource[F, (A, F[TimeoutException], F[TimeoutException])] = for {
+    conn <- borrowConnection(key)
+    idleTimeoutF <- addIdleTimeout(conn)
+    responseHeaderTimeoutF <- addResponseHeaderTimeout(conn)
+  } yield (conn, idleTimeoutF, responseHeaderTimeoutF)
 
-              responseHeaderTimeout match {
-                case responseHeaderTimeout: FiniteDuration =>
-                  Deferred[F, Unit].flatMap { gate =>
-                    val responseHeaderTimeoutF: F[TimeoutException] =
-                      F.delay {
-                        val stage =
-                          new ResponseHeaderTimeoutStage[ByteBuffer](
-                            responseHeaderTimeout,
-                            scheduler,
-                            ec)
-                        next.connection.spliceBefore(stage)
-                        stage
-                      }.bracket(stage =>
-                        F.asyncF[TimeoutException] { cb =>
-                          F.delay(stage.init(cb)) >> gate.complete(())
-                        })(stage => F.delay(stage.removeStage()))
+  private def borrowConnection(key: RequestKey): Resource[F, A] =
+    Resource.make(manager.borrow(key).map(_.connection))(conn => manager.release(conn))
 
-                    F.racePair(gate.get *> res, responseHeaderTimeoutF)
-                      .flatMap[Resource[F, Response[F]]] {
-                        case Left((r, fiber)) => fiber.cancel.as(r)
-                        case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
-                      }
-                  }
-                case _ => res
-              }
-            }
-          }
-
-        val res = loop
-        requestTimeout match {
-          case d: FiniteDuration =>
-            F.racePair(
-              res,
-              F.cancelable[TimeoutException] { cb =>
-                val c = scheduler.schedule(
-                  new Runnable {
-                    def run() =
-                      cb(Right(
-                        new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
-                  },
-                  ec,
-                  d)
-                F.delay(c.cancel())
-              }
-            ).flatMap[Resource[F, Response[F]]] {
-              case Left((r, fiber)) => fiber.cancel.as(r)
-              case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
-            }
-          case _ =>
-            res
-        }
-      }
+  private def addIdleTimeout(conn: A): Resource[F, F[TimeoutException]] =
+    idleTimeout match {
+      case d: FiniteDuration =>
+        Resource.apply(
+          Deferred[F, Either[Throwable, TimeoutException]].flatMap( timeout => F.delay {
+            val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
+            conn.spliceBefore(stage)
+              timeout.get.start.map(_.join)
+            stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
+            (timeout.get.rethrow, F.delay(stage.removeStage()))
+          })
+        )
+      case _ => Resource.pure[F, F[TimeoutException]](F.never)
     }
+
+  private def addResponseHeaderTimeout(conn: A): Resource[F, F[TimeoutException]] =
+    responseHeaderTimeout match {
+      case d: FiniteDuration =>
+        Resource.apply(
+          Deferred[F, Either[Throwable, TimeoutException]].flatMap( timeout => F.delay {
+            val stage = new ResponseHeaderTimeoutStage[ByteBuffer](d, scheduler, ec)
+            conn.spliceBefore(stage)
+            stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
+            (timeout.get.rethrow, F.delay(stage.removeStage()))
+          })
+        )
+      case _ => Resource.pure[F, F[TimeoutException]](F.never)
+    }
+
+  private def runRequest(conn: A, req: Request[F], idleTimeoutF: F[TimeoutException], responseHeaderTimeoutF: F[TimeoutException], key: RequestKey): F[Resource[F, Response[F]]] =
+    conn.runRequest(req, idleTimeoutF)
+      .race(responseHeaderTimeoutF.flatMap(F.raiseError[Resource[F, Response[F]]](_))).map(_.merge)
+      .race(requestTimeout(key).flatMap(F.raiseError[Resource[F, Response[F]]](_))).map(_.merge)
+
+  private def requestTimeout(key: RequestKey): F[TimeoutException] =
+    requestTimeout match {
+      case d: FiniteDuration =>
+        F.cancelable[TimeoutException] { cb =>
+          val c = scheduler.schedule (
+            () => cb (Right (new TimeoutException (s"Request to $key timed out after ${d.toMillis} ms") ) ),
+            ec,
+            d
+          )
+          F.delay(c.cancel())
+        }
+      case _ => F.never
+    }
+
 }
