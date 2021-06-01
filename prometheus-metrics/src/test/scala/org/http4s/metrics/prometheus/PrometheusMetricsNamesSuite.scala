@@ -120,7 +120,7 @@ class PrometheusMetricsNamesSuite extends Http4sSuite {
       )
 
     case Right(_) =>
-      assert(false, "PrometheusMetricsNames should fail to parse incorrect metric name")
+      fail("PrometheusMetricsNames should fail to parse incorrect metric name")
   }
 
   anotherParsingFailure
@@ -132,6 +132,6 @@ class PrometheusMetricsNamesSuite extends Http4sSuite {
         )
 
       case Right(_) =>
-        assert(false, "PrometheusMetricsNames should fail to parse incorrect metric name")
+        fail("PrometheusMetricsNames should fail to parse incorrect metric name")
     }
 }
