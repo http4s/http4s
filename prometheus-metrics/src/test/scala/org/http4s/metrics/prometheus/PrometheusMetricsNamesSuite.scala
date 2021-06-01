@@ -21,12 +21,8 @@ import cats.effect.SyncIO
 import munit.CatsEffectSuite
 import org.http4s.Http4sSuite
 
-import scala.concurrent.ExecutionContextExecutor
-
 class PrometheusMetricsNamesSuite extends Http4sSuite {
   self: CatsEffectSuite =>
-  private implicit val ec: ExecutionContextExecutor = munitExecutionContext
-
   private val parsedDefaultMetricsNames =
     SyncIO
       .fromEither(

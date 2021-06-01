@@ -19,10 +19,12 @@ package org.http4s.metrics.prometheus
 import cats.effect._
 import java.io.IOException
 import java.util.concurrent.TimeoutException
+
 import org.http4s.{Http4sSuite, HttpApp, Request, Status, Uri}
 import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
+import org.http4s.metrics.prometheus.PrometheusMetricsSettings.DefaultSettings
 import org.http4s.metrics.prometheus.util._
 
 class PrometheusClientMetricsSuite extends Http4sSuite {
@@ -262,7 +264,12 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
 
       metricsOps <- prefix.fold(
         Prometheus.metricsOps[IO](registry, settings)
-      )(Prometheus.metricsOps[IO](registry, _))
+      )(prefix =>
+        Prometheus.metricsOps[IO](
+          registry,
+          prefix,
+          responseDurationSecondsHistogramBuckets =
+            DefaultSettings.responseDurationSecondsHistogramBuckets))
 
       metrics = Metrics(metricsOps, classifier)(client)
     } yield (registry, settings, metrics)

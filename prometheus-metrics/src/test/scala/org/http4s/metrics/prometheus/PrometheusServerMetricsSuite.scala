@@ -20,6 +20,7 @@ import cats.effect._
 import org.http4s.{Http4sSuite, HttpRoutes, Request, Status}
 import org.http4s.Method.GET
 import org.http4s.dsl.io._
+import org.http4s.metrics.prometheus.PrometheusMetricsSettings.DefaultSettings
 import org.http4s.syntax.all._
 import org.http4s.metrics.prometheus.util._
 import org.http4s.server.middleware.Metrics
@@ -323,7 +324,12 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
 
       metricsOps <- prefix.fold(
         Prometheus.metricsOps[IO](registry, settings)
-      )(Prometheus.metricsOps[IO](registry, _))
+      )(prefix =>
+        Prometheus.metricsOps[IO](
+          registry,
+          prefix,
+          responseDurationSecondsHistogramBuckets =
+            DefaultSettings.responseDurationSecondsHistogramBuckets))
 
       metrics = Metrics(metricsOps, classifierF = classifier)(testRoutes).orNotFound
     } yield (registry, settings, metrics)
