@@ -315,7 +315,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   private def buildMeteredRoutes(
       prefix: Option[String],
       settings: PrometheusMetricsSettings,
-      classifier: Request[IO] => Option[String] = (_: Request[IO]) => None
+      classifier: Request[IO] => Option[String]
   ) = {
     implicit val clock: Clock[IO] = FakeClock[IO]
 
