@@ -70,14 +70,18 @@ object util {
             Array(classifier, method, "2xx"))
       case "2xx_headers_duration" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(_ + "_response_duration_seconds_sum"),
+          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(
+            _ + "_response_duration_seconds_sum"),
           Array("classifier", "method", "phase"),
-          Array(classifier, method, "headers"))
+          Array(classifier, method, "headers")
+        )
       case "2xx_total_duration" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(_ + "_response_duration_seconds_sum"),
+          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(
+            _ + "_response_duration_seconds_sum"),
           Array("classifier", "method", "phase"),
-          Array(classifier, method, "body"))
+          Array(classifier, method, "body")
+        )
       case "4xx_responses" =>
         registry
           .getSampleValue(
@@ -86,14 +90,18 @@ object util {
             Array(classifier, method, "4xx"))
       case "4xx_headers_duration" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(_ + "_response_duration_seconds_sum"),
+          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(
+            _ + "_response_duration_seconds_sum"),
           Array("classifier", "method", "phase"),
-          Array(classifier, method, "headers"))
+          Array(classifier, method, "headers")
+        )
       case "4xx_total_duration" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(_ + "_response_duration_seconds_sum"),
+          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(
+            _ + "_response_duration_seconds_sum"),
           Array("classifier", "method", "phase"),
-          Array(classifier, method, "body"))
+          Array(classifier, method, "body")
+        )
       case "5xx_responses" =>
         registry
           .getSampleValue(
@@ -102,34 +110,46 @@ object util {
             Array(classifier, method, "5xx"))
       case "5xx_headers_duration" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(_ + "_response_duration_seconds_sum"),
+          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(
+            _ + "_response_duration_seconds_sum"),
           Array("classifier", "method", "phase"),
-          Array(classifier, method, "headers"))
+          Array(classifier, method, "headers")
+        )
       case "5xx_total_duration" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(_ + "_response_duration_seconds_sum"),
+          prefix.fold(metricsSettings.metricsNames.responseDuration + "_sum")(
+            _ + "_response_duration_seconds_sum"),
           Array("classifier", "method", "phase"),
-          Array(classifier, method, "body"))
+          Array(classifier, method, "body")
+        )
       case "errors" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(_ + "_abnormal_terminations_count"),
+          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(
+            _ + "_abnormal_terminations_count"),
           Array("classifier", "termination_type", "cause"),
-          Array(classifier, "error", cause))
+          Array(classifier, "error", cause)
+        )
       case "timeouts" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(_ + "_abnormal_terminations_count"),
+          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(
+            _ + "_abnormal_terminations_count"),
           Array("classifier", "termination_type", "cause"),
-          Array(classifier, "timeout", cause))
+          Array(classifier, "timeout", cause)
+        )
       case "abnormal_terminations" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(_ + "_abnormal_terminations_count"),
+          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(
+            _ + "_abnormal_terminations_count"),
           Array("classifier", "termination_type", "cause"),
-          Array(classifier, "abnormal", cause))
+          Array(classifier, "abnormal", cause)
+        )
       case "cancels" =>
         registry.getSampleValue(
-          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(_ + "_abnormal_terminations_count"),
+          prefix.fold(metricsSettings.metricsNames.abnormalTerminations)(
+            _ + "_abnormal_terminations_count"),
           Array("classifier", "termination_type", "cause"),
-          Array(classifier, "cancel", cause))
+          Array(classifier, "cancel", cause)
+        )
     }
 
   object FakeClock {

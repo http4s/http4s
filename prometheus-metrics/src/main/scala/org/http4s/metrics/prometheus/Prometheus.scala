@@ -114,8 +114,7 @@ object Prometheus {
       metrics <- createMetricsCollection(
         registry = registry,
         prefix = Option(prefix),
-        responseDurationSecondsHistogramBuckets =
-          responseDurationSecondsHistogramBuckets,
+        responseDurationSecondsHistogramBuckets = responseDurationSecondsHistogramBuckets,
         metricsNames = metricsNames
       )
     } yield createMetricsOps(metrics)
@@ -133,8 +132,7 @@ object Prometheus {
       metrics <- createMetricsCollection(
         registry = registry,
         prefix = Option.empty[String],
-        responseDurationSecondsHistogramBuckets =
-          settings.responseDurationSecondsHistogramBuckets,
+        responseDurationSecondsHistogramBuckets = settings.responseDurationSecondsHistogramBuckets,
         metricsNames = settings.metricsNames
       )
     } yield createMetricsOps(metrics)
@@ -189,9 +187,9 @@ object Prometheus {
           classifier: Option[String]): F[Unit] =
         terminationType match {
           case Abnormal(e) => recordAbnormal(elapsed, classifier, e)
-          case Error(e)    => recordError(elapsed, classifier, e)
-          case Canceled    => recordCanceled(elapsed, classifier)
-          case Timeout     => recordTimeout(elapsed, classifier)
+          case Error(e) => recordError(elapsed, classifier, e)
+          case Canceled => recordCanceled(elapsed, classifier)
+          case Timeout => recordTimeout(elapsed, classifier)
         }
 
       private def recordCanceled(elapsed: Long, classifier: Option[String]): F[Unit] =
@@ -244,25 +242,25 @@ object Prometheus {
 
       private def reportStatus(status: Status): String =
         status.code match {
-          case hundreds if hundreds < 200           => "1xx"
-          case twohundreds if twohundreds < 300     => "2xx"
+          case hundreds if hundreds < 200 => "1xx"
+          case twohundreds if twohundreds < 300 => "2xx"
           case threehundreds if threehundreds < 400 => "3xx"
-          case fourhundreds if fourhundreds < 500   => "4xx"
-          case _                                    => "5xx"
+          case fourhundreds if fourhundreds < 500 => "4xx"
+          case _ => "5xx"
         }
 
       private def reportMethod(m: Method): String =
         m match {
-          case Method.GET     => "get"
-          case Method.PUT     => "put"
-          case Method.POST    => "post"
-          case Method.HEAD    => "head"
-          case Method.MOVE    => "move"
+          case Method.GET => "get"
+          case Method.PUT => "put"
+          case Method.POST => "post"
+          case Method.HEAD => "head"
+          case Method.MOVE => "move"
           case Method.OPTIONS => "options"
-          case Method.TRACE   => "trace"
+          case Method.TRACE => "trace"
           case Method.CONNECT => "connect"
-          case Method.DELETE  => "delete"
-          case _              => "other"
+          case Method.DELETE => "delete"
+          case _ => "other"
         }
     }
 
@@ -318,20 +316,18 @@ object Prometheus {
         ))
 
     val abnormalTerminations: Resource[F, Histogram] =
-      metricsNamesWithPrefix.map(_.abnormalTerminations) >>= (
-          abnormalTerminations =>
-            registerCollector(
-              Histogram
-                .build()
-                .name(abnormalTerminations)
-                .help("Total Abnormal Terminations.")
-                .labelNames("classifier", "termination_type", "cause")
-                .create(),
-              registry
-            ))
+      metricsNamesWithPrefix.map(_.abnormalTerminations) >>= (abnormalTerminations =>
+        registerCollector(
+          Histogram
+            .build()
+            .name(abnormalTerminations)
+            .help("Total Abnormal Terminations.")
+            .labelNames("classifier", "termination_type", "cause")
+            .create(),
+          registry
+        ))
 
-    (responseDuration, activeRequests, requests, abnormalTerminations).mapN(
-      MetricsCollection.apply)
+    (responseDuration, activeRequests, requests, abnormalTerminations).mapN(MetricsCollection.apply)
   }
 
   private[prometheus] def registerCollector[F[_], C <: Collector](
@@ -355,7 +351,7 @@ private object Phase {
   def report(s: Phase): String =
     s match {
       case Headers => "headers"
-      case Body    => "body"
+      case Body => "body"
     }
 }
 
@@ -368,8 +364,8 @@ private object AbnormalTermination {
   def report(t: AbnormalTermination): String =
     t match {
       case Abnormal => "abnormal"
-      case Timeout  => "timeout"
-      case Error    => "error"
+      case Timeout => "timeout"
+      case Error => "error"
       case Canceled => "cancel"
     }
 }

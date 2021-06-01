@@ -49,11 +49,9 @@ class PrometheusMetricsNamesSuite extends Http4sSuite {
           updatedActiveRequests <- updatedResponseDuration.withActiveRequests(
             "active_request_count:42")
 
-          updatedRequests <- updatedActiveRequests.withRequests(
-            "request_count:42")
+          updatedRequests <- updatedActiveRequests.withRequests("request_count:42")
 
-          result <- updatedRequests.withAbnormalTerminations(
-            "abnormal_terminations:42")
+          result <- updatedRequests.withAbnormalTerminations("abnormal_terminations:42")
 
         } yield result
       )
@@ -93,38 +91,41 @@ class PrometheusMetricsNamesSuite extends Http4sSuite {
           FunFixture[Either[Throwable, PrometheusMetricsNames]](_ => Either.right(value), _ => ())
       }
 
-  parsedDefaultMetricsNames.test("The default Prometheus metrics' names should be parsed correctly") {
-    metricNames =>
-      assertEquals(metricNames, PrometheusMetricsNames.DefaultMetricsNames)
+  parsedDefaultMetricsNames.test(
+    "The default Prometheus metrics' names should be parsed correctly") { metricNames =>
+    assertEquals(metricNames, PrometheusMetricsNames.DefaultMetricsNames)
   }
 
   parsedMetricsNamesWithColonsAndDigits
-    .test("A Prometheus metrics' name should be updated with value included digits and colons correctly") {
+    .test(
+      "A Prometheus metrics' name should be updated with value included digits and colons correctly") {
       metricsNamesWithColonsAndDigits =>
-        assertEquals(metricsNamesWithColonsAndDigits.responseDuration,
-                     "response_duration_seconds:42")
-        assertEquals(metricsNamesWithColonsAndDigits.activeRequests,
-                     "active_request_count:42")
-        assertEquals(metricsNamesWithColonsAndDigits.requests,
-                     "request_count:42")
-        assertEquals(metricsNamesWithColonsAndDigits.abnormalTerminations,
-                     "abnormal_terminations:42")
+        assertEquals(
+          metricsNamesWithColonsAndDigits.responseDuration,
+          "response_duration_seconds:42")
+        assertEquals(metricsNamesWithColonsAndDigits.activeRequests, "active_request_count:42")
+        assertEquals(metricsNamesWithColonsAndDigits.requests, "request_count:42")
+        assertEquals(
+          metricsNamesWithColonsAndDigits.abnormalTerminations,
+          "abnormal_terminations:42")
     }
 
   parsingFailure
-    .test("A Prometheus metrics' name shouldn't be parsed with non letter, digit, underscore or colon ASCII symbols") {
-    case Left(err) =>
-      assertEquals(
-        err.getMessage,
-        s"""Metric name - "response_duration_seconds!" does not match regex - ([a-zA-Z_:][a-zA-Z0-9_:]*)"""
-      )
+    .test(
+      "A Prometheus metrics' name shouldn't be parsed with non letter, digit, underscore or colon ASCII symbols") {
+      case Left(err) =>
+        assertEquals(
+          err.getMessage,
+          s"""Metric name - "response_duration_seconds!" does not match regex - ([a-zA-Z_:][a-zA-Z0-9_:]*)"""
+        )
 
-    case Right(_) =>
-      fail("PrometheusMetricsNames should fail to parse incorrect metric name")
-  }
+      case Right(_) =>
+        fail("PrometheusMetricsNames should fail to parse incorrect metric name")
+    }
 
   anotherParsingFailure
-    .test("A Prometheus metrics' name shouldn't be parsed with non letter, digit, underscore or colon ASCII symbols") {
+    .test(
+      "A Prometheus metrics' name shouldn't be parsed with non letter, digit, underscore or colon ASCII symbols") {
       case Left(err) =>
         assertEquals(
           err.getMessage,

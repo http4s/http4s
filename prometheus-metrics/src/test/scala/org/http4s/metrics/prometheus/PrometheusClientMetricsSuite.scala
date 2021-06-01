@@ -52,17 +52,35 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
       }
   }
 
-  customMetricsSettings.flatMap(settings => meteredClient(settings = settings)).test(
-    "A http client with Prometheus metrics (with custom names) middleware should register a 2xx response") {
-    case (registry, settings, client) =>
-      client.expect[String]("/ok").attempt.map { resp =>
-        assertEquals(count(registry, "2xx_responses", prefix = Option.empty, metricsSettings = settings), 1.0)
-        assertEquals(count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings), 0.0)
-        assertEquals(count(registry, "2xx_headers_duration", prefix = Option.empty, metricsSettings = settings), 0.05)
-        assertEquals(count(registry, "2xx_total_duration", prefix = Option.empty, metricsSettings = settings), 0.1)
-        assertEquals(resp, Right("200 OK"))
-      }
-  }
+  customMetricsSettings
+    .flatMap(settings => meteredClient(settings = settings))
+    .test(
+      "A http client with Prometheus metrics (with custom names) middleware should register a 2xx response") {
+      case (registry, settings, client) =>
+        client.expect[String]("/ok").attempt.map { resp =>
+          assertEquals(
+            count(registry, "2xx_responses", prefix = Option.empty, metricsSettings = settings),
+            1.0)
+          assertEquals(
+            count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings),
+            0.0)
+          assertEquals(
+            count(
+              registry,
+              "2xx_headers_duration",
+              prefix = Option.empty,
+              metricsSettings = settings),
+            0.05)
+          assertEquals(
+            count(
+              registry,
+              "2xx_total_duration",
+              prefix = Option.empty,
+              metricsSettings = settings),
+            0.1)
+          assertEquals(resp, Right("200 OK"))
+        }
+    }
 
   meteredClient(prefix = commonPrefix).test(
     "A http client with Prometheus metrics (with the default names) middleware should register a 4xx response") {
@@ -74,7 +92,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, "4xx_total_duration", commonPrefix), 0.1)
         assert(resp match {
           case Left(UnexpectedStatus(Status.BadRequest, _, _)) => true
-          case _                                               => false
+          case _ => false
         })
       }
   }
@@ -89,25 +107,43 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, "5xx_total_duration", commonPrefix), 0.1)
         assert(resp match {
           case Left(UnexpectedStatus(Status.InternalServerError, _, _)) => true
-          case _                                                        => false
+          case _ => false
         })
       }
   }
 
-  customMetricsSettings.flatMap(settings => meteredClient(settings = settings)).test(
-    "A http client with Prometheus metrics (with custom names) middleware should register a 5xx response") {
-    case (registry, settings, client) =>
-      client.expect[String]("/internal-server-error").attempt.map { resp =>
-        assertEquals(count(registry, "5xx_responses", prefix = Option.empty, metricsSettings = settings), 1.0)
-        assertEquals(count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings), 0.0)
-        assertEquals(count(registry, "5xx_headers_duration", prefix = Option.empty, metricsSettings = settings), 0.05)
-        assertEquals(count(registry, "5xx_total_duration", prefix = Option.empty, metricsSettings = settings), 0.1)
-        assert(resp match {
-          case Left(UnexpectedStatus(Status.InternalServerError, _, _)) => true
-          case _                                                        => false
-        })
-      }
-  }
+  customMetricsSettings
+    .flatMap(settings => meteredClient(settings = settings))
+    .test(
+      "A http client with Prometheus metrics (with custom names) middleware should register a 5xx response") {
+      case (registry, settings, client) =>
+        client.expect[String]("/internal-server-error").attempt.map { resp =>
+          assertEquals(
+            count(registry, "5xx_responses", prefix = Option.empty, metricsSettings = settings),
+            1.0)
+          assertEquals(
+            count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings),
+            0.0)
+          assertEquals(
+            count(
+              registry,
+              "5xx_headers_duration",
+              prefix = Option.empty,
+              metricsSettings = settings),
+            0.05)
+          assertEquals(
+            count(
+              registry,
+              "5xx_total_duration",
+              prefix = Option.empty,
+              metricsSettings = settings),
+            0.1)
+          assert(resp match {
+            case Left(UnexpectedStatus(Status.InternalServerError, _, _)) => true
+            case _ => false
+          })
+        }
+    }
 
   meteredClient(prefix = commonPrefix).test(
     "A http client with Prometheus metrics (with the default names) middleware should register a GET request") {
@@ -167,7 +203,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
       client.expect[String]("/error").attempt.map { resp =>
         assert(resp match {
           case Left(_: IOException) => true
-          case _                    => false
+          case _ => false
         })
 
         assertEquals(count(registry, "errors", commonPrefix, cause = "java.io.IOException"), 1.0)
@@ -181,7 +217,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
       client.expect[String]("/timeout").attempt.map { resp =>
         assert(resp match {
           case Left(_: TimeoutException) => true
-          case _                         => false
+          case _ => false
         })
 
         assertEquals(count(registry, "timeouts", commonPrefix), 1.0)
@@ -191,16 +227,16 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
 
   private val classifier = (_: Request[IO]) => Some("classifier")
 
-  meteredClient(prefix = commonPrefix, classifier = classifier).test("use the provided request classifier") {
-    case (registry, _, client) =>
-      client.expect[String]("/ok").attempt.map { resp =>
-        assertEquals(resp, Right("200 OK"))
+  meteredClient(prefix = commonPrefix, classifier = classifier).test(
+    "use the provided request classifier") { case (registry, _, client) =>
+    client.expect[String]("/ok").attempt.map { resp =>
+      assertEquals(resp, Right("200 OK"))
 
-        assertEquals(count(registry, "2xx_responses", commonPrefix, "get", "classifier"), 1.0)
-        assertEquals(count(registry, "active_requests", commonPrefix, "get", "classifier"), 0.0)
-        assertEquals(count(registry, "2xx_headers_duration", commonPrefix, "get", "classifier"), 0.05)
-        assertEquals(count(registry, "2xx_total_duration", commonPrefix, "get", "classifier"), 0.1)
-      }
+      assertEquals(count(registry, "2xx_responses", commonPrefix, "get", "classifier"), 1.0)
+      assertEquals(count(registry, "active_requests", commonPrefix, "get", "classifier"), 0.0)
+      assertEquals(count(registry, "2xx_headers_duration", commonPrefix, "get", "classifier"), 0.05)
+      assertEquals(count(registry, "2xx_total_duration", commonPrefix, "get", "classifier"), 0.1)
+    }
   }
 
   // This tests can't be easily done in munit-cats-effect as it wants to test after the Resource is freed

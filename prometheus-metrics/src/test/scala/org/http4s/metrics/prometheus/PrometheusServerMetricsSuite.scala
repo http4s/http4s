@@ -58,23 +58,41 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
       }
   }
 
-  customMetricsSettings.flatMap(settings => meteredRoutes(settings = settings)).test(
-    "A http routes with Prometheus metrics (with custom names) middleware should register a 2xx response") {
-    case (registry, settings, routes) =>
-      val req = Request[IO](uri = uri"/ok")
+  customMetricsSettings
+    .flatMap(settings => meteredRoutes(settings = settings))
+    .test(
+      "A http routes with Prometheus metrics (with custom names) middleware should register a 2xx response") {
+      case (registry, settings, routes) =>
+        val req = Request[IO](uri = uri"/ok")
 
-      val resp = routes.run(req)
-      resp.flatMap { r =>
-        r.as[String].map { b =>
-          assertEquals(b, "200 OK")
-          assertEquals(r.status, Status.Ok)
-          assertEquals(count(registry, "2xx_responses", prefix = Option.empty, metricsSettings = settings), 1.0)
-          assertEquals(count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", prefix = Option.empty, metricsSettings = settings), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", prefix = Option.empty, metricsSettings = settings), 0.1)
+        val resp = routes.run(req)
+        resp.flatMap { r =>
+          r.as[String].map { b =>
+            assertEquals(b, "200 OK")
+            assertEquals(r.status, Status.Ok)
+            assertEquals(
+              count(registry, "2xx_responses", prefix = Option.empty, metricsSettings = settings),
+              1.0)
+            assertEquals(
+              count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings),
+              0.0)
+            assertEquals(
+              count(
+                registry,
+                "2xx_headers_duration",
+                prefix = Option.empty,
+                metricsSettings = settings),
+              0.05)
+            assertEquals(
+              count(
+                registry,
+                "2xx_total_duration",
+                prefix = Option.empty,
+                metricsSettings = settings),
+              0.1)
+          }
         }
-      }
-  }
+    }
 
   meteredRoutes(prefix = commonPrefix).test(
     "A http routes with Prometheus metrics (with the default names) middleware should register a 4xx response") {
@@ -112,23 +130,41 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
       }
   }
 
-  customMetricsSettings.flatMap(settings => meteredRoutes(settings = settings)).test(
-    "A http routes with Prometheus metrics (with custom names) middleware should register a 5xx response") {
-    case (registry, settings, routes) =>
-      val req = Request[IO](uri = uri"/internal-server-error")
+  customMetricsSettings
+    .flatMap(settings => meteredRoutes(settings = settings))
+    .test(
+      "A http routes with Prometheus metrics (with custom names) middleware should register a 5xx response") {
+      case (registry, settings, routes) =>
+        val req = Request[IO](uri = uri"/internal-server-error")
 
-      routes.run(req).flatMap { r =>
-        r.as[String].map { b =>
-          assertEquals(r.status, Status.InternalServerError)
-          assertEquals(b, "500 Internal Server Error")
+        routes.run(req).flatMap { r =>
+          r.as[String].map { b =>
+            assertEquals(r.status, Status.InternalServerError)
+            assertEquals(b, "500 Internal Server Error")
 
-          assertEquals(count(registry, "5xx_responses", prefix = Option.empty, metricsSettings = settings), 1.0)
-          assertEquals(count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings), 0.0)
-          assertEquals(count(registry, "5xx_headers_duration", prefix = Option.empty, metricsSettings = settings), 0.05)
-          assertEquals(count(registry, "5xx_total_duration", prefix = Option.empty, metricsSettings = settings), 0.1)
+            assertEquals(
+              count(registry, "5xx_responses", prefix = Option.empty, metricsSettings = settings),
+              1.0)
+            assertEquals(
+              count(registry, "active_requests", prefix = Option.empty, metricsSettings = settings),
+              0.0)
+            assertEquals(
+              count(
+                registry,
+                "5xx_headers_duration",
+                prefix = Option.empty,
+                metricsSettings = settings),
+              0.05)
+            assertEquals(
+              count(
+                registry,
+                "5xx_total_duration",
+                prefix = Option.empty,
+                metricsSettings = settings),
+              0.1)
+          }
         }
-      }
-  }
+    }
 
   meteredRoutes(prefix = commonPrefix).test(
     "A http routes with Prometheus metrics (with the default names) middleware should register a GET request") {
@@ -243,21 +279,23 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
 
   private val classifierFunc = (_: Request[IO]) => Some("classifier")
 
-  meteredRoutes(classifier = classifierFunc, prefix = commonPrefix).test("use the provided request classifier") {
-    case (registry, _, routes) =>
-      val req = Request[IO](uri = uri"/ok")
+  meteredRoutes(classifier = classifierFunc, prefix = commonPrefix).test(
+    "use the provided request classifier") { case (registry, _, routes) =>
+    val req = Request[IO](uri = uri"/ok")
 
-      routes.run(req).flatMap { r =>
-        r.as[String].map { b =>
-          assertEquals(r.status, Status.Ok)
-          assertEquals(b, "200 OK")
+    routes.run(req).flatMap { r =>
+      r.as[String].map { b =>
+        assertEquals(r.status, Status.Ok)
+        assertEquals(b, "200 OK")
 
-          assertEquals(count(registry, "2xx_responses", commonPrefix, "get", "classifier"), 1.0)
-          assertEquals(count(registry, "active_requests", commonPrefix, "get", "classifier"), 0.0)
-          assertEquals(count(registry, "2xx_headers_duration", commonPrefix, "get", "classifier"), 0.05)
-          assertEquals(count(registry, "2xx_total_duration", commonPrefix, "get", "classifier"), 0.1)
-        }
+        assertEquals(count(registry, "2xx_responses", commonPrefix, "get", "classifier"), 1.0)
+        assertEquals(count(registry, "active_requests", commonPrefix, "get", "classifier"), 0.0)
+        assertEquals(
+          count(registry, "2xx_headers_duration", commonPrefix, "get", "classifier"),
+          0.05)
+        assertEquals(count(registry, "2xx_total_duration", commonPrefix, "get", "classifier"), 0.1)
       }
+    }
   }
 
   // This tests can't be easily done in munit-cats-effect as it wants to test after the Resource is freed

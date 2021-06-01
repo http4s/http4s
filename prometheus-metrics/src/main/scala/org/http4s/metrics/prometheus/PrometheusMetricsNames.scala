@@ -20,15 +20,14 @@ import cats.syntax.apply._
 import cats.syntax.either._
 import org.http4s.metrics.prometheus.PrometheusMetricsNames._
 
-/**
-  * Metric name may contain ASCII letters and digits, as well as underscores and colons.
+/** Metric name may contain ASCII letters and digits, as well as underscores and colons.
   * It must match the regex ([a-zA-Z_:][a-zA-Z0-9_:]*).
   * Notice that only a single metric with a given name can be registered within a [[io.prometheus.client.CollectorRegistry]].
   * Vice versa registering a metric with the same name more than once will yield an error.
   *
   * More details: https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
   */
-final class PrometheusMetricsNames private(
+final class PrometheusMetricsNames private (
     val responseDuration: String,
     val activeRequests: String,
     val requests: String,
@@ -104,26 +103,27 @@ object PrometheusMetricsNames {
       activeRequests: String,
       requests: String,
       abnormalTerminations: String
-  ): Validated[PrometheusMetricsNames] = {
-    (checkMetricName(responseDuration),
-     checkMetricName(activeRequests),
-     checkMetricName(requests),
-     checkMetricName(abnormalTerminations))
+  ): Validated[PrometheusMetricsNames] =
+    (
+      checkMetricName(responseDuration),
+      checkMetricName(activeRequests),
+      checkMetricName(requests),
+      checkMetricName(abnormalTerminations))
       .mapN(new PrometheusMetricsNames(_, _, _, _))
-  }
 
-  /**
-    * Notice that metric name must match the regex ([a-zA-Z_:][a-zA-Z0-9_:]*).
+  /** Notice that metric name must match the regex ([a-zA-Z_:][a-zA-Z0-9_:]*).
     * Otherwise, it will yield an error in registering metric within a [[io.prometheus.client.CollectorRegistry]].
     */
-  def unsafeCreate(responseDuration: String,
-                   activeRequests: String,
-                   requests: String,
-                   abnormalTerminations: String): PrometheusMetricsNames =
-    new PrometheusMetricsNames(responseDuration = responseDuration,
-                         activeRequests = activeRequests,
-                         requests = requests,
-                         abnormalTerminations = abnormalTerminations)
+  def unsafeCreate(
+      responseDuration: String,
+      activeRequests: String,
+      requests: String,
+      abnormalTerminations: String): PrometheusMetricsNames =
+    new PrometheusMetricsNames(
+      responseDuration = responseDuration,
+      activeRequests = activeRequests,
+      requests = requests,
+      abnormalTerminations = abnormalTerminations)
 
   val DefaultMetricsNames: PrometheusMetricsNames =
     new PrometheusMetricsNames(
