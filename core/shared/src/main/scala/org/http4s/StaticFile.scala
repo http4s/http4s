@@ -50,7 +50,7 @@ object StaticFile {
   ): OptionT[F, Response[F]] =
     fromPath(Path(url), req)
 
-  def fromResource[F[_]: Sync: Files](
+  def fromResource[F[_]: Sync](
       name: String,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
@@ -90,7 +90,7 @@ object StaticFile {
       )
   }
 
-  def fromURL[F[_]: Sync: Files](
+  def fromURL[F[_]: Sync](
       url: URL,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromURL(url, req, calcETagURL[F])
