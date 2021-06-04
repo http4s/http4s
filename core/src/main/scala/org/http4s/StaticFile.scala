@@ -41,7 +41,7 @@ object StaticFile {
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(new File(url), req)
 
-  def fromResource[F[_]: Sync: Files](
+  def fromResource[F[_]: Sync](
       name: String,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
@@ -77,7 +77,7 @@ object StaticFile {
         .flatMap(fromURL(_, req)))
   }
 
-  def fromURL[F[_]: Sync: Files](
+  def fromURL[F[_]: Sync](
       url: URL,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromURL(url, req, calcETagURL[F])
