@@ -18,6 +18,8 @@ package org.http4s
 package multipart
 
 import cats.effect._
+import cats.effect.std._
+import cats.implicits._
 import cats.instances.string._
 import fs2._
 import org.http4s._
@@ -26,6 +28,7 @@ import org.http4s.util._
 import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
+import java.nio.file.NoSuchFileException
 
 class MultipartParserSuite extends Http4sSuite {
 
@@ -68,20 +71,20 @@ class MultipartParserSuite extends Http4sSuite {
       testName: String,
       multipartPipe: Boundary => Pipe[IO, Byte, Multipart[IO]],
       limitedPipe: (Boundary, Int) => Pipe[IO, Byte, Multipart[IO]],
-      partsPipe: Boundary => Pipe[IO, Byte, Part[IO]])(implicit loc: munit.Location): Unit = {
+      partsPipe: Boundary => Pipe[IO, Byte, Part[IO]])(implicit loc: munit.Location): Unit =
     multipartParserResourceTests(
       testName,
       boundary => Resource.pure(multipartPipe(boundary)),
       (boundary, limit) => Resource.pure(limitedPipe(boundary, limit)),
       boundary => Resource.pure(partsPipe(boundary))
     )
-  }
 
   def multipartParserResourceTests(
       testName: String,
       mkMultipartPipe: Boundary => Resource[IO, Pipe[IO, Byte, Multipart[IO]]],
       mkLimitedPipe: (Boundary, Int) => Resource[IO, Pipe[IO, Byte, Multipart[IO]]],
-      mkPartsPipe: Boundary => Resource[IO, Pipe[IO, Byte, Part[IO]]])(implicit loc: munit.Location): Unit = {
+      mkPartsPipe: Boundary => Resource[IO, Pipe[IO, Byte, Part[IO]]])(implicit
+      loc: munit.Location): Unit = {
 
     val testNamePrefix = s"form streaming parsing for $testName"
 
@@ -746,7 +749,7 @@ class MultipartParserSuite extends Http4sSuite {
 
       val mkResults =
         mkMultipartPipe(boundary).map(
-        _(unspool(input))
+          _(unspool(input))
         )
 
       mkResults.use { results =>
@@ -766,6 +769,13 @@ class MultipartParserSuite extends Http4sSuite {
     MultipartParser.parseStreamedFile[IO](_),
     MultipartParser.parseStreamedFile[IO](_, _),
     MultipartParser.parseToPartsStreamedFile[IO](_)
+  )
+
+  multipartParserResourceTests(
+    "supervised file parser",
+    b => Supervisor[IO].map(MultipartParser.parseSupervisedFile[IO](_, b)),
+    (b, limit) => Supervisor[IO].map(MultipartParser.parseSupervisedFile[IO](_, b, limit)),
+    b => Supervisor[IO].map(MultipartParser.parseToPartsSupervisedFile[IO](_, b))
   )
 
   test("Multipart mixed file parser: truncate parts when limit set") {
@@ -825,5 +835,114 @@ class MultipartParserSuite extends Http4sSuite {
     results.compile.last
       .map(_.get)
       .intercept[MalformedMessageBodyFailure]
+  }
+
+  test("Multipart supervised file parser: truncate parts when limit set") {
+    val unprocessedInput =
+      """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+
+    val input = ruinDelims(unprocessedInput)
+
+    val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    val mkResults =
+      Supervisor[IO].map { supervisor =>
+        unspool(input).through(
+          MultipartParser.parseSupervisedFile[IO](supervisor, boundaryTest, maxParts = 1))
+      }
+
+    mkResults.use { results =>
+      results.compile.last
+        .map(_.get)
+        .map(_.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers)))
+        .assertEquals(
+          List(
+            Headers(
+              `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
+              `Content-Type`(MediaType.text.plain)
+            )
+          ))
+    }
+  }
+
+  test(
+    "Multipart supervised file parser: fail parsing when parts limit exceeded if set fail as option") {
+    val unprocessedInput =
+      """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+
+    val input = ruinDelims(unprocessedInput)
+
+    val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    val mkResults =
+      Supervisor[IO].map { supervisor =>
+        unspool(input).through(
+          MultipartParser
+            .parseSupervisedFile[IO](supervisor, boundaryTest, maxParts = 1, failOnLimit = true))
+      }
+
+    mkResults.map { results =>
+      results.compile.last
+        .map(_.get)
+        .intercept[MalformedMessageBodyFailure]
+    }
+  }
+
+  test("Multipart supervised file parser: dispose of the files when the resource is released") {
+    val unprocessedInput =
+      """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+
+    val input = ruinDelims(unprocessedInput)
+
+    val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    val mkResults =
+      Supervisor[IO].map { supervisor =>
+        unspool(input).through(
+          MultipartParser
+            // Make sure the data will get written to files
+            .parseSupervisedFile[IO](supervisor, boundaryTest, maxSizeBeforeWrite = 8))
+      }
+
+    // This is roundabout, but there's no way to test this directly without stubbing `Files` somehow.
+    mkResults
+      .use { results =>
+        results.compile.last
+          .map(_.get)
+      }
+      .flatMap { stale =>
+        // At this point, the supervisor was released, so the files have to have been deleted.
+        stale.parts.traverse_(
+          _.body.compile.drain
+            .intercept[NoSuchFileException]
+        )
+      }
   }
 }
