@@ -77,9 +77,7 @@ object StaticFile {
         .flatMap(fromURL(_, req)))
   }
 
-  def fromURL[F[_]: Sync](
-      url: URL,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+  def fromURL[F[_]: Sync](url: URL, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromURL(url, req, calcETagURL[F])
 
   def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: URL => F[ETag])(implicit
