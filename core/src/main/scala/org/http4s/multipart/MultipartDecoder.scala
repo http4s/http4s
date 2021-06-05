@@ -107,7 +107,6 @@ private[http4s] object MultipartDecoder {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
-  @deprecated("Use mixedMultipartResource", "0.23")
   def mixedMultipart[F[_]: Concurrent: Files](
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,

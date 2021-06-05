@@ -465,7 +465,6 @@ object MultipartParser {
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
     */
-  @deprecated("Use parseSupervisedFile", "0.23")
   def parseStreamedFile[F[_]: Concurrent: Files](
       boundary: Boundary,
       limit: Int = 1024,
@@ -478,7 +477,6 @@ object MultipartParser {
       .map(Multipart(_, boundary))
   }
 
-  @deprecated("Use parseSupervisedFile", "0.23")
   def parseToPartsStreamedFile[F[_]: Concurrent: Files](
       boundary: Boundary,
       limit: Int = 1024,
