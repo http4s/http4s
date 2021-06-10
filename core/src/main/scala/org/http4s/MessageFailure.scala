@@ -102,23 +102,24 @@ trait MessageBodyFailure extends DecodeFailure
 /** Indicates an syntactic error decoding the body of an HTTP [[Message]]. */
 final case class MalformedMessageBodyFailure(details: String, cause: Option[Throwable] = None)
     extends MessageBodyFailure {
-  def message: String =
-    s"Malformed message body: $details"
+  val baseMessage: String = s"Malformed message body: $details"
+  def message: String = cause.fold(baseMessage)(c => s"$baseMessage ${c.getMessage}")
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.BadRequest, httpVersion)
-      .withEntity(s"The request body was malformed.")(EntityEncoder.stringEncoder[F])
+      .withEntity(s"The request body was malformed. $message")(EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates a semantic error decoding the body of an HTTP [[Message]]. */
 final case class InvalidMessageBodyFailure(details: String, cause: Option[Throwable] = None)
     extends MessageBodyFailure {
-  def message: String =
+  def baseMessage: String =
     s"Invalid message body: $details"
+  def message: String = cause.fold(baseMessage)(c => s"$baseMessage ${c.getMessage}")
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.UnprocessableEntity, httpVersion)
-      .withEntity(s"The request body was invalid.")(EntityEncoder.stringEncoder[F])
+      .withEntity(s"The request body was invalid. $message")(EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates that a [[Message]] came with no supported [[MediaType]]. */
