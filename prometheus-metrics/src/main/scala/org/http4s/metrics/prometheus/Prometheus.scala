@@ -25,7 +25,6 @@ import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
-import org.http4s.metrics.prometheus.PrometheusMetricsSettings.DefaultSettings
 
 /** [[MetricsOps]] algebra capable of recording Prometheus metrics
   *
@@ -107,8 +106,8 @@ object Prometheus {
       registry: CollectorRegistry,
       prefix: String = "org_http4s_server",
       responseDurationSecondsHistogramBuckets: NonEmptyList[Double] =
-        DefaultSettings.responseDurationSecondsHistogramBuckets,
-      metricsNames: PrometheusMetricsNames = DefaultSettings.metricsNames
+        PrometheusMetricsSettings.DefaultHistogramBuckets,
+      metricsNames: PrometheusMetricsNames = PrometheusMetricsNames.DefaultMetricsNames
   ): Resource[F, MetricsOps[F]] =
     for {
       metrics <- createMetricsCollection(
@@ -132,7 +131,7 @@ object Prometheus {
       metrics <- createMetricsCollection(
         registry = registry,
         prefix = Option.empty[String],
-        responseDurationSecondsHistogramBuckets = settings.responseDurationSecondsHistogramBuckets,
+        responseDurationSecondsHistogramBuckets = settings.responseDurationSecondsHistogramBuckets.toNonEmptyList,
         metricsNames = settings.metricsNames
       )
     } yield createMetricsOps(metrics)

@@ -16,29 +16,29 @@
 
 package org.http4s.metrics.prometheus
 
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, NonEmptySet}
 
 final case class PrometheusMetricsSettings(
     metricsNames: PrometheusMetricsNames,
-    responseDurationSecondsHistogramBuckets: NonEmptyList[Double]
+    responseDurationSecondsHistogramBuckets: NonEmptySet[Double]
 ) {
   def withMetricsNames(metricsNames: PrometheusMetricsNames): PrometheusMetricsSettings =
     copy(metricsNames = metricsNames)
 
   def withResponseDurationSecondsHistogramBuckets(
-      responseDurationSecondsHistogramBuckets: NonEmptyList[Double]
+      responseDurationSecondsHistogramBuckets: NonEmptySet[Double]
   ): PrometheusMetricsSettings =
     copy(responseDurationSecondsHistogramBuckets = responseDurationSecondsHistogramBuckets)
 }
 
 object PrometheusMetricsSettings {
   // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
-  private val DefaultHistogramBuckets: NonEmptyList[Double] =
+  val DefaultHistogramBuckets: NonEmptyList[Double] =
     NonEmptyList(.005, List(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10))
 
   val DefaultSettings: PrometheusMetricsSettings =
     PrometheusMetricsSettings(
       metricsNames = PrometheusMetricsNames.DefaultMetricsNames,
-      responseDurationSecondsHistogramBuckets = DefaultHistogramBuckets
+      responseDurationSecondsHistogramBuckets = DefaultHistogramBuckets.toNes
     )
 }

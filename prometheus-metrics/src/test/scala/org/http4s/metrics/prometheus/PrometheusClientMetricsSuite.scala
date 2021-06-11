@@ -24,7 +24,6 @@ import org.http4s.{Http4sSuite, HttpApp, Request, Status, Uri}
 import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
-import org.http4s.metrics.prometheus.PrometheusMetricsSettings.DefaultSettings
 import org.http4s.metrics.prometheus.util._
 
 class PrometheusClientMetricsSuite extends Http4sSuite {
@@ -269,7 +268,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
           registry,
           prefix,
           responseDurationSecondsHistogramBuckets =
-            DefaultSettings.responseDurationSecondsHistogramBuckets))
+            PrometheusMetricsSettings.DefaultHistogramBuckets))
 
       metrics = Metrics(metricsOps, classifier)(client)
     } yield (registry, settings, metrics)
