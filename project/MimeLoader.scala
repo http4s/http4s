@@ -1,6 +1,6 @@
 package org.http4s.build
 
-import cats.effect.{ContextShift, ExitCode, IO, IOApp}
+import cats.effect.{ContextShift, ExitCode, IO, IOApp, Timer}
 import fs2.Stream
 import io.circe._
 import io.circe.generic.semiauto._
@@ -8,10 +8,11 @@ import java.io.File
 import java.io.PrintWriter
 import org.http4s.Uri
 import org.http4s.circe._
-import org.http4s.client.blaze._
+import org.http4s.ember.client.EmberClientBuilder
 import sbt._
 import sbt.Keys.scalaSource
 import scala.concurrent.ExecutionContext.global
+import scala.io.Source
 import treehugger.forest._
 import treehugger.forest.definitions._
 import treehuggerDSL._
@@ -26,7 +27,8 @@ object MimeLoaderPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     generateMimeDb := {
-      implicit val cs = IO.contextShift(global)
+      implicit val cs: ContextShift[IO] = IO.contextShift(global)
+      implicit val timer: Timer[IO] = IO.timer(global)
       MimeLoader.toFile(
         new File((Compile / scalaSource).value / "org" / "http4s", "MimeDB.scala"),
         "org.http4s",
@@ -49,9 +51,9 @@ object MimeLoader {
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500
-  def readMimeDB(implicit cs: ContextShift[IO]): Stream[IO, List[Mime]] =
+  def readMimeDB(implicit t: Timer[IO], cs: ContextShift[IO]): Stream[IO, List[Mime]] =
     for {
-      client <- BlazeClientBuilder[IO](global).stream
+      client <- Stream.resource(EmberClientBuilder.default[IO].build)
       _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
       value <- Stream.eval(client.expect[Json](url))
       obj <- Stream.eval(IO(value.arrayOrObject(JsonObject.empty, _ => JsonObject.empty, identity)))
@@ -148,7 +150,14 @@ object MimeLoader {
   private def treeToFile(f: File, t: Tree): Unit = {
     // Create the dir if needed
     Option(f.getParentFile).foreach(_.mkdirs())
+    
+    // Retain copyright header
+    val src = Source.fromFile(f)
+    val header = src.getLines.takeWhile(!_.startsWith("//")).mkString("", "\n", "\n")
+    src.close()
+
     val writer = new PrintWriter(f)
+    writer.write(header)
     writer.write(treeToString(t))
     writer.close()
   }
@@ -157,7 +166,7 @@ object MimeLoader {
     * This method will dowload the MimeDB and produce a file with generated code for http4s
     */
   def toFile(f: File, topLevelPackge: String, objectName: String, mediaTypeClassName: String)(
-      implicit cs: ContextShift[IO]): IO[Unit] =
+      implicit t: Timer[IO], cs: ContextShift[IO]): IO[Unit] =
     (for {
       m <- readMimeDB
       t <- Stream.emit(m.groupBy(_.mainType).toList.sortBy(_._1).map {
