@@ -131,7 +131,8 @@ object Prometheus {
       metrics <- createMetricsCollection(
         registry = registry,
         prefix = Option.empty[String],
-        responseDurationSecondsHistogramBuckets = settings.responseDurationSecondsHistogramBuckets.toNonEmptyList,
+        responseDurationSecondsHistogramBuckets =
+          settings.responseDurationSecondsHistogramBuckets.toNonEmptyList,
         metricsNames = settings.metricsNames
       )
     } yield createMetricsOps(metrics)
