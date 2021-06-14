@@ -20,7 +20,7 @@ import org.typelevel.ci.CIString
 import cats.kernel.Eq
 
 final case class Protocol(name: CIString, version: Option[CIString]) {
-  override def toString(): String = name.toString + version.map(_.toString).getOrElse("")
+  override def toString(): String = name.toString + version.map(v => "/" + v.toString).getOrElse("")
 }
 
 object Protocol {
