@@ -21,12 +21,14 @@ import org.typelevel.ci._
 import org.http4s.parser.AdditionalRules
 
 object `Sec-WebSocket-Version` {
-  
+
   def fromLong(version: Long): ParseResult[`Sec-WebSocket-Version`] =
     if (version >= 0)
       ParseResult.success(apply(version))
     else
-      ParseResult.fail("Invalid version value", s"Version $version must be greater than or equal to 0")
+      ParseResult.fail(
+        "Invalid version value",
+        s"Version $version must be greater than or equal to 0")
 
   def unsafeFromLong(version: Long): `Sec-WebSocket-Version` =
     fromLong(version).fold(throw _, identity)
@@ -35,7 +37,7 @@ object `Sec-WebSocket-Version` {
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
 
   private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
-  
+
   implicit val headerInstance: Header[`Sec-WebSocket-Version`, Header.Single] =
     Header.createRendered(
       ci"Sec-WebSocket-Version",

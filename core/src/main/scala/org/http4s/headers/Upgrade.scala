@@ -32,9 +32,9 @@ object Upgrade {
 
   private[http4s] val parser = {
     import Parser.char
-    val protocol = (Rfc2616.token ~ (char('/') *> Rfc2616.token).?).map { case (name, version) => 
+    val protocol = (Rfc2616.token ~ (char('/') *> Rfc2616.token).?).map { case (name, version) =>
       Protocol(CIString(name), version.map(CIString(_)))
-    } 
+    }
     Rfc7230.headerRep1(protocol).map { (xs: NonEmptyList[Protocol]) =>
       Upgrade(xs.head, xs.tail: _*)
     }
