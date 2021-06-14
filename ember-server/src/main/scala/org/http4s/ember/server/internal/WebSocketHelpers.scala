@@ -31,7 +31,6 @@ import org.typelevel.ci._
 
 import scala.concurrent.duration.Duration
 import java.security.MessageDigest
-import java.util.Base64
 import java.nio.charset.StandardCharsets
 import org.http4s.headers.Connection
 import org.http4s.websocket.WebSocketFrame
@@ -62,8 +61,8 @@ object WebSocketHelpers {
     val wsResponse = clientHandshake(req) match {
       case Right(key) =>
         serverHandshake(key)
-          .map { accept =>
-            val secWebSocketAccept = `Sec-WebSocket-Accept`(accept)
+          .map { hashBytes =>
+            val secWebSocketAccept = new `Sec-WebSocket-Accept`(hashBytes)
             val headers =
               ctx.headers ++ Headers(connectionUpgrade, upgradeWebSocket, secWebSocketAccept)
             Response[F](Status.SwitchingProtocols)
@@ -221,13 +220,12 @@ object WebSocketHelpers {
     (connection, upgrade, version, key).mapN { case (_, _, _, key) => key }
   }
 
-  private def serverHandshake[F[_]](value: String)(implicit F: Sync[F]): F[String] = F.delay {
+  private def serverHandshake[F[_]](value: String)(implicit F: Sync[F]): F[Array[Byte]] = F.delay {
     val crypt = MessageDigest.getInstance("SHA-1")
     crypt.reset()
     crypt.update(value.getBytes(StandardCharsets.US_ASCII))
     crypt.update(Rfc6455.handshakeMagicBytes)
-    val bytes = crypt.digest()
-    Base64.getEncoder.encodeToString(bytes)
+    crypt.digest()
   }
 
   private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
