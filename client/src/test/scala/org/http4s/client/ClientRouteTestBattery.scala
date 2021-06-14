@@ -39,7 +39,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
         GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(r) => renderResponse(srv, r).unsafeRunSync() // We are outside the IO world
+          case Some(r) =>
+            renderResponse(srv, r.unsafeRunSync()).unsafeRunSync() // We are outside the IO world
           case None => srv.sendError(404)
         }
 
@@ -115,7 +116,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
       client()
         .run(req)
-        .use(resp => checkResponse(resp, expected))
+        .use(resp => expected.flatMap(expectedResponse => checkResponse(resp, expectedResponse)))
         .assert
     }
   }

@@ -1,6 +1,5 @@
 package org.http4s.sbt
 
-import dotty.tools.sbtplugin.DottyPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -24,8 +23,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.5"
-  val scala_212 = "2.12.13"
+  val scala_213 = "2.13.6"
+  val scala_212 = "2.12.14"
   val scala_3 = "3.0.0"
 
   override lazy val globalSettings = Seq(
@@ -288,13 +287,13 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.0"
+    val blaze = "0.15.1"
     val boopickle = "1.3.3"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
     val catsEffect = "2.5.1"
     val catsParse = "0.3.4"
-    val circe = "0.14.0-M7"
+    val circe = "0.14.1"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.0"
@@ -314,7 +313,7 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.65.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
-    val playJson = "2.10.0-RC2"
+    val playJson = "2.9.2"
     val prometheusClient = "0.10.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"

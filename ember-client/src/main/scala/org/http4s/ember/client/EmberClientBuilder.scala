@@ -47,7 +47,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val idleConnectionTime: Duration,
     val timeout: Duration,
     val additionalSocketOptions: List[SocketOptionMapping[_]],
-    val userAgent: Option[`User-Agent`]
+    val userAgent: Option[`User-Agent`],
+    val checkEndpointIdentification: Boolean
 ) { self =>
 
   private def copy(
@@ -63,7 +64,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       idleConnectionTime: Duration = self.idleConnectionTime,
       timeout: Duration = self.timeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
-      userAgent: Option[`User-Agent`] = self.userAgent
+      userAgent: Option[`User-Agent`] = self.userAgent,
+      checkEndpointIdentification: Boolean = self.checkEndpointIdentification
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       blockerOpt = blockerOpt,
@@ -78,7 +80,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       idleConnectionTime = idleConnectionTime,
       timeout = timeout,
       additionalSocketOptions = additionalSocketOptions,
-      userAgent = userAgent
+      userAgent = userAgent,
+      checkEndpointIdentification = checkEndpointIdentification
     )
 
   def withTLSContext(tlsContext: TLSContext) =
@@ -110,6 +113,11 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withoutUserAgent =
     copy(userAgent = None)
 
+  def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean) =
+    copy(checkEndpointIdentification = checkEndpointIdentification)
+
+  def withoutCheckEndpointAuthentication = copy(checkEndpointIdentification = false)
+
   def build: Resource[F, Client[F]] =
     for {
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
@@ -127,6 +135,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   .requestKeyToSocketWithKey[F](
                     requestKey,
                     tlsContextOptWithDefault,
+                    checkEndpointIdentification,
                     sg,
                     additionalSocketOptions
                   )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
@@ -198,7 +207,8 @@ object EmberClientBuilder {
       idleConnectionTime = Defaults.idleConnectionTime,
       timeout = Defaults.timeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      userAgent = Defaults.userAgent
+      userAgent = Defaults.userAgent,
+      checkEndpointIdentification = true
     )
 
   private object Defaults {

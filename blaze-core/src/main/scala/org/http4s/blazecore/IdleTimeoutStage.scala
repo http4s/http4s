@@ -21,17 +21,16 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.{Cancelable, Execution, TickWheelExecutor}
-import org.log4s.getLogger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
+import scala.util.control.NonFatal
 
 final private[http4s] class IdleTimeoutStage[A](
     timeout: FiniteDuration,
     exec: TickWheelExecutor,
     ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
-  private[this] val logger = getLogger
 
   @volatile private var cb: Callback[TimeoutException] = null
 
@@ -78,7 +77,15 @@ final private[http4s] class IdleTimeoutStage[A](
   }
 
   private def resetTimeout(): Unit =
-    setAndCancel(exec.schedule(killSwitch, ec, timeout))
+    if (exec.isAlive) {
+      try setAndCancel(exec.schedule(killSwitch, ec, timeout))
+      catch {
+        case TickWheelExecutor.AlreadyShutdownException =>
+          logger.warn(s"Resetting timeout after tickwheelexecutor is shutdown")
+          cancelTimeout()
+        case NonFatal(e) => throw e
+      }
+    } else cancelTimeout()
 
   private def cancelTimeout(): Unit =
     setAndCancel(NoOpCancelable)
