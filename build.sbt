@@ -252,7 +252,8 @@ lazy val emberServer = libraryProject("ember-server")
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      log4catsSlf4j,
+      log4catsSlf4j, 
+      javaWebSocket % Test
     ),
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")

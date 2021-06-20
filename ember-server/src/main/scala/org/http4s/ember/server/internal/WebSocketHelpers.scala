@@ -72,6 +72,7 @@ object WebSocketHelpers {
             Response[F](Status.InternalServerError).withEntity(
               "Encountered an error during WebSocket handshake."))
       case Left(error) =>
+        println(error)
         // TODO: insert the appropriate headers
         Response[F](error.status).withEntity(error.message).pure[F]
     }
@@ -212,6 +213,7 @@ object WebSocketHelpers {
       case None => Left(VersionNotFound)
     }
 
+    // TODO: this can throw, handle somwehere on the outside
     val key = req.headers.get[`Sec-WebSocket-Key`] match {
       case Some(header) => Right(header.value)
       case None => Left(KeyNotFound)
