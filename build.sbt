@@ -138,6 +138,9 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
   .jvmSettings(
     libraryDependencies += fs2Io.value
   )
+  .jsSettings(
+    libraryDependencies += scalaJavaTime.value
+  )
 
 lazy val laws = libraryProject("laws")
   .settings(

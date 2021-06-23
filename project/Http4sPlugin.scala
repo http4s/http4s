@@ -84,18 +84,18 @@ object Http4sPlugin extends AutoPlugin {
         }
 
         val attributedSources = Set(
-          "src/main/scala/org/http4s/CacheDirective.scala",
-          "src/main/scala/org/http4s/Challenge.scala",
-          "src/main/scala/org/http4s/Charset.scala",
-          "src/main/scala/org/http4s/ContentCoding.scala",
-          "src/main/scala/org/http4s/Credentials.scala",
-          "src/main/scala/org/http4s/Header.scala",
-          "src/main/scala/org/http4s/LanguageTag.scala",
-          "src/main/scala/org/http4s/MediaType.scala",
-          "src/main/scala/org/http4s/RangeUnit.scala",
-          "src/main/scala/org/http4s/ResponseCookie.scala",
-          "src/main/scala/org/http4s/TransferCoding.scala",
-          "src/main/scala/org/http4s/Uri.scala",
+          "shared/src/main/scala/org/http4s/CacheDirective.scala",
+          "shared/src/main/scala/org/http4s/Challenge.scala",
+          "shared/src/main/scala/org/http4s/Charset.scala",
+          "shared/src/main/scala/org/http4s/ContentCoding.scala",
+          "shared/src/main/scala/org/http4s/Credentials.scala",
+          "shared/src/main/scala/org/http4s/Header.scala",
+          "shared/src/main/scala/org/http4s/LanguageTag.scala",
+          "shared/src/main/scala/org/http4s/MediaType.scala",
+          "shared/src/main/scala/org/http4s/RangeUnit.scala",
+          "shared/src/main/scala/org/http4s/ResponseCookie.scala",
+          "shared/src/main/scala/org/http4s/TransferCoding.scala",
+          "shared/src/main/scala/org/http4s/Uri.scala",
           "src/main/scala/org/http4s/dsl/impl/Path.scala",
           "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
           "src/main/scala/org/http4s/internal/CharPredicate.scala",
@@ -317,6 +317,7 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.2"
+    val scalaJavaTime = "2.3.0"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.0"
     val scodecBits = "1.1.27"
@@ -390,6 +391,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalacheck                       = Def.setting("org.scalacheck"         %%% "scalacheck"                % V.scalacheck)
   lazy val scalacheckEffect                 = Def.setting("org.typelevel"          %%% "scalacheck-effect"         % V.scalacheckEffect)
   lazy val scalacheckEffectMunit            = Def.setting("org.typelevel"          %%% "scalacheck-effect-munit"   % V.scalacheckEffect)
+  lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
   def scalaReflect(sv: String)              = "org.scala-lang"         %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = Def.setting("com.lihaoyi"            %%% "scalatags"                 % V.scalatags)
   lazy val scalaXml                         = Def.setting("org.scala-lang.modules" %%% "scala-xml"                 % V.scalaXml)
