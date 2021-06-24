@@ -198,7 +198,7 @@ lazy val tests = libraryProject("tests", CrossType.Full, List(JVMPlatform, JSPla
   .jsSettings(scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test")
 
-lazy val server = libraryProject("server")
+lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014)
@@ -209,6 +209,7 @@ lazy val server = libraryProject("server")
     buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
     buildInfoPackage := "org.http4s.server.test"
   )
+  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
@@ -229,7 +230,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     client % "test->compile"
   )
 
-lazy val client = libraryProject("client")
+lazy val client = libraryProject("client", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014)
@@ -416,7 +417,7 @@ lazy val tomcatServer = libraryProject("tomcat-server")
   .dependsOn(servlet % "compile;test->test")
 
 // `dsl` name conflicts with modern SBT
-lazy val theDsl = libraryProject("dsl")
+lazy val theDsl = libraryProject("dsl", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013)
