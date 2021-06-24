@@ -22,7 +22,8 @@ import cats.syntax.all._
 import fs2.io.file.Files
 
 private[multipart] trait MultipartDecoderPlatform {
-    /** Multipart decoder that streams all parts past a threshold
+
+  /** Multipart decoder that streams all parts past a threshold
     * (anything above maxSizeBeforeWrite) into a temporary file.
     *
     * Note: (BIG NOTE) Using this decoder for multipart decoding is good for the sake of

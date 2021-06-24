@@ -20,7 +20,6 @@ import cats.data.NonEmptyList
 
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import org.http4s.Header
 import org.typelevel.ci.CIString
 
@@ -51,7 +50,7 @@ object Renderer {
     private val dateFormat =
       DateTimeFormatter
         .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
-        .withLocale(Locale.US)
+        // .withLocale(Locale.US) // Causes problems with Scala.js
         .withZone(ZoneId.of("GMT"))
 
     override def render(writer: Writer, t: Instant): writer.type =

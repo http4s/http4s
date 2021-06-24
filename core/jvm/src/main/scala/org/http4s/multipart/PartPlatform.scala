@@ -24,7 +24,7 @@ import cats.effect.Sync
 import java.net.URL
 
 private[multipart] trait PartPlatform { self: Part.type =>
-  
+
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
 

@@ -23,7 +23,7 @@ import org.http4s.multipart.MultipartDecoder
 import org.http4s.multipart.Multipart
 
 private[http4s] trait EntityDecoderPlatform {
-  
+
   // File operations
   def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
@@ -36,9 +36,6 @@ private[http4s] trait EntityDecoderPlatform {
       val pipe = Files[F].writeAll(file.toPath)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
-
-  implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
-    MultipartDecoder.decoder
 
   def mixedMultipart[F[_]: Concurrent: Files](
       headerLimit: Int = 1024,

@@ -29,7 +29,7 @@ import scala.annotation.implicitNotFound
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
-trait EntityEncoder[F[_], A] extends EntityEncoderPlatform { self =>
+trait EntityEncoder[F[_], A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
   def toEntity(a: A): Entity[F]
@@ -62,7 +62,7 @@ trait EntityEncoder[F[_], A] extends EntityEncoderPlatform { self =>
     }
 }
 
-object EntityEncoder {
+object EntityEncoder extends EntityEncoderPlatform {
   private[http4s] val DefaultChunkSize = 4096
 
   /** summon an implicit [[EntityEncoder]] */

@@ -17,11 +17,10 @@
 package org.http4s.websocket
 
 import java.nio.charset.StandardCharsets._
-import java.security.MessageDigest
 import java.util.Base64
 import scala.util.Random
 
-private[http4s] object WebSocketHandshake {
+private[http4s] object WebSocketHandshake extends WebSocketHandshakePlatform {
 
   /** Creates a new [[ClientHandshaker]] */
   def clientHandshaker(host: String): ClientHandshaker = new ClientHandshaker(host)
@@ -102,15 +101,6 @@ private[http4s] object WebSocketHandshake {
 
   private def decodeLen(key: String): Int = Base64.getDecoder.decode(key).length
 
-  private def genAcceptKey(str: String): String = {
-    val crypt = MessageDigest.getInstance("SHA-1")
-    crypt.reset()
-    crypt.update(str.getBytes(US_ASCII))
-    crypt.update(magicString)
-    val bytes = crypt.digest()
-    Base64.getEncoder.encodeToString(bytes)
-  }
-
   private[websocket] def valueContains(key: String, value: String): Boolean = {
     val parts = value.split(",").map(_.trim)
     parts.foldLeft(false)((b, s) =>
@@ -123,7 +113,7 @@ private[http4s] object WebSocketHandshake {
       })
   }
 
-  private val magicString =
+  private[websocket] val magicString =
     "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(US_ASCII)
 
   private val clientBaseHeaders = List(

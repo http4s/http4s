@@ -16,7 +16,6 @@
 
 package org.http4s
 
-import java.net.URLEncoder
 import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
 import org.http4s.UriTemplate._
 import org.http4s.util.StringWriter
@@ -102,7 +101,7 @@ final case class UriTemplate(
     else Success(toUri(this))
 }
 
-object UriTemplate {
+object UriTemplate extends UriTemplatePlatform {
   type Path = List[PathDef]
   type Query = List[QueryDef]
   type Fragment = List[FragmentDef]
@@ -117,7 +116,7 @@ object UriTemplate {
   def isUnreserved(s: String): Boolean = s.forall(unreserved.contains)
 
   def isUnreservedOrEncoded(s: String): Boolean =
-    URLEncoder.encode(s, "UTF-8").forall(c => unreserved.contains(c) || c == '%')
+    encodeURI(s).forall(c => unreserved.contains(c) || c == '%')
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()

@@ -17,12 +17,12 @@
 package org.http4s
 
 import com.comcast.ip4s
-import java.net.{InetAddress, Inet4Address, Inet6Address}
+import java.net.{Inet4Address, Inet6Address, InetAddress}
 import Uri.{Ipv4Address, Ipv6Address}
 
 private[http4s] trait Ipv4AddressPlatform { self: Uri.Ipv4Address =>
   def toInet4Address: Inet4Address =
-      address.toInetAddress
+    address.toInetAddress
 }
 
 private[http4s] trait Ipv4AddressSingletonPlatform {
@@ -34,7 +34,7 @@ private[http4s] trait Ipv4AddressSingletonPlatform {
 
 private[http4s] trait Ipv6AddressPlatform { self: Uri.Ipv6Address =>
   def toInetAddress: InetAddress =
-      address.toInetAddress
+    address.toInetAddress
 }
 
 private[http4s] trait Ipv6AddressSingletonPlatform {

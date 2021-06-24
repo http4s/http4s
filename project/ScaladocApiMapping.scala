@@ -56,7 +56,10 @@ object ScaladocApiMapping {
 
   private def playJsonMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] =
     if (file.toString.matches(""".+/play-json_[^/]+\.jar$""")) {
-      Some(file -> javadocIOAPIUrl(Some(scalaBinaryVersion), "com.typesafe.play" %% "play-json" % V.playJson))
+      Some(
+        file -> javadocIOAPIUrl(
+          Some(scalaBinaryVersion),
+          "com.typesafe.play" %% "play-json" % V.playJson))
     } else {
       None
     }

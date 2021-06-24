@@ -34,7 +34,6 @@ import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
 import org.http4s.headers._
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.syntax.literals._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
@@ -202,7 +201,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
 
   implicit val http4sTestingArbitraryForNioCharset: Arbitrary[NioCharset] =
-    Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
+    Arbitrary(oneOf(Charset.availableCharsets))
 
   implicit val http4sTestingCogenForNioCharset: Cogen[NioCharset] =
     Cogen[String].contramap(_.name)

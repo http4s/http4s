@@ -25,10 +25,8 @@ import java.io.InputStream
 import java.nio.file.Path
 import org.http4s.headers._
 
-import EntityEncoder._
+private[http4s] trait EntityEncoderPlatform { self: EntityEncoder.type =>
 
-private[http4s] trait EntityEncoderPlatform {
-  
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =

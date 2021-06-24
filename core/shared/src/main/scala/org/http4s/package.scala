@@ -20,7 +20,7 @@ import cats.data._
 import fs2.Stream
 import org.typelevel.ci.CIString
 
-package object http4s {
+package object http4s extends http4splatform {
 
   type AuthScheme = CIString
 

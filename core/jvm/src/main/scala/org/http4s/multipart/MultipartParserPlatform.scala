@@ -27,7 +27,7 @@ import org.http4s.internal.bug
 
 trait MultipartParserPlatform { self: MultipartParser.type =>
 
-    def parseToPartsStreamedFile[F[_]: Concurrent: Files](
+  def parseToPartsStreamedFile[F[_]: Concurrent: Files](
       boundary: Boundary,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,

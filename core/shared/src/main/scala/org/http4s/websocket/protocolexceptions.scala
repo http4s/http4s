@@ -16,7 +16,7 @@
 
 package org.http4s.websocket
 
-import java.net.ProtocolException
+import org.http4s.ProtocolException
 
 final class ReservedOpcodeException(opcode: Int)
     extends ProtocolException(s"Opcode $opcode is reserved for future use as per RFC 6455")

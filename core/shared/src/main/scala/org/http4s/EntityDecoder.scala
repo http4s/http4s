@@ -21,6 +21,8 @@ import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2._
 import scala.annotation.implicitNotFound
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.MultipartDecoder
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -32,7 +34,7 @@ import scala.annotation.implicitNotFound
   */
 @implicitNotFound(
   "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
-trait EntityDecoder[F[_], T] extends EntityDecoderPlatform { self =>
+trait EntityDecoder[F[_], T] { self =>
 
   /** Attempt to decode the body of the [[Message]] */
   def decode(m: Media[F], strict: Boolean): DecodeResult[F, T]
@@ -126,7 +128,7 @@ trait EntityDecoder[F[_], T] extends EntityDecoderPlatform { self =>
   * This companion object provides a way to create `new EntityDecoder`s along
   * with some commonly used instances which can be resolved implicitly.
   */
-object EntityDecoder {
+object EntityDecoder extends EntityDecoderPlatform {
   // This is not a real media type but will still be matched by `*/*`
   private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
 
@@ -218,6 +220,9 @@ object EntityDecoder {
 
   implicit def charArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
+
+  implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
+    MultipartDecoder.decoder
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =

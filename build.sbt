@@ -142,7 +142,7 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
     libraryDependencies += scalaJavaTime.value
   )
 
-lazy val laws = libraryProject("laws")
+lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Instances and laws for testing http4s code",
     startYear := Some(2019),
@@ -163,7 +163,7 @@ lazy val laws = libraryProject("laws")
   )
   .dependsOn(core)
 
-lazy val testing = libraryProject("testing")
+lazy val testing = libraryProject("testing", CrossType.Full, List(JVMPlatform, JSPlatform))
   .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Internal utilities for http4s tests",
@@ -180,12 +180,22 @@ lazy val testing = libraryProject("testing")
   .dependsOn(laws)
 
 // Defined outside core/src/test so it can depend on published testing
-lazy val tests = libraryProject("tests")
+lazy val tests = libraryProject("tests", CrossType.Full, List(JVMPlatform, JSPlatform))
   .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Tests for core project",
     startYear := Some(2013)
   )
+  .settings( // Workaround for https://github.com/portable-scala/sbt-crossproject/issues/74
+    Seq(Compile, Test).flatMap(inConfig(_) {
+      unmanagedResourceDirectories ++= {
+        unmanagedSourceDirectories.value
+          .map(src => (src / ".." / "resources").getCanonicalFile)
+          .filterNot(unmanagedResourceDirectories.value.contains)
+          .distinct
+      }
+    }))
+  .jsSettings(scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
