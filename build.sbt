@@ -488,7 +488,8 @@ lazy val scalaXml = libraryProject("scala-xml")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val twirl = http4sProject("twirl")
+// Full cross helps workaround issues with twirl directories
+lazy val twirl = http4sProject("twirl", CrossType.Full, List(JVMPlatform))
   .settings(
     description := "Twirl template support for http4s",
     startYear := Some(2014),
