@@ -29,6 +29,16 @@ jobs:
         os: [ubuntu-latest]
         scala: [2.13.6, 2.12.13, 3.0.0]
         java: [adopt@1.8, adopt@1.11, adopt@1.16]
+        ci: [ciJVM, ciJS, ciFirefox]
+        exclude:
+          - ci: ciJS
+            java: adopt@1.11
+          - ci: ciJS
+            java: adopt@1.16
+          - ci: ciFirefox
+            java: adopt@1.11
+          - ci: ciFirefox
+            java: adopt@1.16
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -54,6 +64,7 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Setup NodeJS v14 LTS
+        if: matrix.ci == 'ciJS'
         uses: actions/setup-node@v2.1.2
         with:
           node-version: 14
