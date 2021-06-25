@@ -436,7 +436,7 @@ lazy val jawn = libraryProject("jawn")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val boopickle = libraryProject("boopickle")
+lazy val boopickle = libraryProject("boopickle", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
@@ -446,19 +446,25 @@ lazy val boopickle = libraryProject("boopickle")
     compile / skip := isDotty.value,
     publish / skip := isDotty.value
   )
+  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test")
 
-lazy val circe = libraryProject("circe")
+lazy val circe = libraryProject("circe", CrossType.Full, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Provides Circe codecs for http4s",
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
-      circeJawn.value,
       circeTesting.value % Test
     )
   )
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+  .jvmSettings(libraryDependencies += circeJawn.value)
+  .jsSettings(
+    libraryDependencies += circeParser.value,
+    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
+  .dependsOn(core, testing % "test->test")
+  .jvmConfigure(_.dependsOn(jawn.jvm % "compile;test->test"))
 
 lazy val playJson = libraryProject("play-json")
   .settings(
