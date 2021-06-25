@@ -141,6 +141,7 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
   .jsSettings(
     libraryDependencies += scalaJavaTime.value
   )
+  .jsConfigure(_.disablePlugins(DoctestPlugin))
 
 lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
@@ -186,16 +187,8 @@ lazy val tests = libraryProject("tests", CrossType.Full, List(JVMPlatform, JSPla
     description := "Tests for core project",
     startYear := Some(2013)
   )
-  .settings( // Workaround for https://github.com/portable-scala/sbt-crossproject/issues/74
-    Seq(Compile, Test).flatMap(inConfig(_) {
-      unmanagedResourceDirectories ++= {
-        unmanagedSourceDirectories.value
-          .map(src => (src / ".." / "resources").getCanonicalFile)
-          .filterNot(unmanagedResourceDirectories.value.contains)
-          .distinct
-      }
-    }))
   .jsSettings(scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
+  .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSPlatform))
@@ -449,6 +442,7 @@ lazy val boopickle = libraryProject("boopickle", CrossType.Pure, List(JVMPlatfor
     publish / skip := isDotty.value
   )
   .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
+  .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
 lazy val circe = libraryProject("circe", CrossType.Full, List(JVMPlatform, JSPlatform))
@@ -728,6 +722,15 @@ def http4sProject(
         }
       )
     else Seq.empty)
+    .settings( // Workaround for https://github.com/portable-scala/sbt-crossproject/issues/74
+      Seq(Compile, Test).flatMap(inConfig(_) {
+        unmanagedResourceDirectories ++= {
+          unmanagedSourceDirectories.value
+            .map(src => (src / ".." / "resources").getCanonicalFile)
+            .filterNot(unmanagedResourceDirectories.value.contains)
+            .distinct
+        }
+      }))
     .enablePlugins(Http4sPlugin)
 
 def libraryProject(
