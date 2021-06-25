@@ -302,9 +302,8 @@ lazy val blazeServer = libraryProject("blaze-server")
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
     mimaBinaryIssueFilters ++= Seq(
-      // privat constructor with new parameter
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.server.blaze.BlazeServerBuilder.this")
+      // private constructor with new parameter
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.blaze.BlazeServerBuilder.this")
     )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
