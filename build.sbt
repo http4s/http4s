@@ -651,6 +651,7 @@ lazy val docs = http4sProject("docs")
     prometheusMetrics)
 
 lazy val website = http4sProject("website")
+  .withoutSuffixFor(JVMPlatform)
   .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
