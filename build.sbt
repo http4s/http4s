@@ -423,6 +423,8 @@ lazy val theDsl = libraryProject("dsl", CrossType.Pure, List(JVMPlatform, JSPlat
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013)
   )
+  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
+  .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
 lazy val jawn = libraryProject("jawn")
