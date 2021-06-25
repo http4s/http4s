@@ -22,7 +22,6 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import cats.instances.order._
 import java.nio.charset.StandardCharsets
-import javax.crypto
 import org.http4s.client.oauth1.ProtocolParameter.{
   Callback,
   Custom,
@@ -42,7 +41,7 @@ import scala.collection.mutable.ListBuffer
   *
   * This feature is not considered stable.
   */
-package object oauth1 {
+package object oauth1 extends oauth1platform {
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
   private val OutOfBand = "oob"
@@ -145,7 +144,7 @@ package object oauth1 {
         method,
         uri,
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
-      val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret))
+      val sig = makeSHASigPlatform(baseStr, consumer.secret, token.map(_.secret))
       val creds = Credentials.AuthParams(
         ci"OAuth",
         NonEmptyList(
@@ -200,19 +199,7 @@ package object oauth1 {
       baseString: String,
       consumer: Consumer,
       token: Option[Token]): String =
-    makeSHASig(baseString, consumer.secret, token.map(_.secret))
-
-  private[oauth1] def makeSHASig(
-      baseString: String,
-      consumerSecret: String,
-      tokenSecret: Option[String]): String = {
-    val sha1 = crypto.Mac.getInstance(SHA1)
-    val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
-    sha1.init(new crypto.spec.SecretKeySpec(bytes(key), SHA1))
-
-    val sigBytes = sha1.doFinal(bytes(baseString))
-    java.util.Base64.getEncoder.encodeToString(sigBytes)
-  }
+    makeSHASigPlatform(baseString, consumer.secret, token.map(_.secret))
 
   // Needs to have all params already encoded
   private[oauth1] def genBaseString(
@@ -254,6 +241,4 @@ package object oauth1 {
       case _ => F.pure(req -> qparams)
     }
   }
-
-  private def bytes(str: String) = str.getBytes(UTF_8)
 }

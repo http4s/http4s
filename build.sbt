@@ -230,11 +230,12 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     client % "test->compile"
   )
 
-lazy val client = libraryProject("client", CrossType.Pure, List(JVMPlatform, JSPlatform))
+lazy val client = libraryProject("client", CrossType.Full, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014)
   )
+  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
