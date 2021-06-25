@@ -581,6 +581,7 @@ lazy val bench = http4sProject("bench")
   .dependsOn(core, circe)
 
 lazy val docs = http4sProject("docs")
+  .withoutSuffixFor(JVMPlatform)
   .enablePlugins(
     GhpagesPlugin,
     HugoPlugin,
