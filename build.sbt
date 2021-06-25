@@ -12,6 +12,11 @@ ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
+ThisBuild / githubWorkflowBuildPreamble +=
+  WorkflowStep.Use(
+    UseRef.Public("actions", "setup-node", "v2.1.2"),
+    name = Some("Setup NodeJS v14 LTS"),
+    params = Map("node-version" -> "14"))
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
