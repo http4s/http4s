@@ -1,5 +1,4 @@
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
-libraryDependencies += "org.scala-js" %% "scalajs-env-selenium" % "1.1.0"
 
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"

@@ -2,8 +2,6 @@ import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.ScaladocApiMapping
-import org.openqa.selenium.firefox.FirefoxOptions
-import org.scalajs.jsenv.selenium.SeleniumJSEnv
 import sbtcrossproject.{CrossProject, CrossType, Platform}
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -18,8 +16,7 @@ ThisBuild / githubWorkflowBuildPreamble +=
   WorkflowStep.Use(
     UseRef.Public("actions", "setup-node", "v2.1.2"),
     name = Some("Setup NodeJS v14 LTS"),
-    params = Map("node-version" -> "14"),
-    cond = Some("matrix.ci == 'ciJS'"))
+    params = Map("node-version" -> "14"))
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
@@ -37,37 +34,6 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
 )
 
-val ciVariants = List("ciJVM", "ciJS", "ciFirefox")
-ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
-
-val ScalaJSJava = "adopt@1.8"
-ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  Seq("ciJS", "ciFirefox").flatMap { ci =>
-    val javaFilters =
-      (ThisBuild / githubWorkflowJavaVersions).value.filterNot(Set(ScalaJSJava)).map { java =>
-        MatrixExclude(Map("ci" -> ci, "java" -> java))
-      }
-
-    javaFilters
-  }
-}
-
-lazy val useFirefoxEnv =
-  settingKey[Boolean]("Use headless Firefox (via geckodriver) for running tests")
-Global / useFirefoxEnv := false
-
-ThisBuild / Test / jsEnv := {
-  val old = (Test / jsEnv).value
-
-  if (useFirefoxEnv.value) {
-    val options = new FirefoxOptions()
-    options.addArguments("-headless")
-    new SeleniumJSEnv(options)
-  } else {
-    old
-  }
-}
-
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
     "scalafix",
@@ -82,19 +48,13 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     scalas = crossScalaVersions.value.toList
   ))
 
-addCommandAlias(
-  "ciJVM",
-  "; project rootJVM; headerCheckAll; clean; testIfRelevant; mimaReportBinaryIssuesIfRelevant")
-addCommandAlias("ciJS", "; project rootJS; headerCheckAll; clean; testIfRelevant")
-addCommandAlias("ciFirefox", "; project rootJS; headerCheckAll; clean; testIfRelevant")
-
 enablePlugins(SonatypeCiReleasePlugin)
 
 versionIntroduced.withRank(KeyRanks.Invisible) := Map(
   scala_3 -> "0.22.0"
 )
 
-lazy val crossModules: List[CrossProject] = List(
+lazy val modules: List[ProjectReference] = List(
   core,
   laws,
   testing,
@@ -131,10 +91,7 @@ lazy val crossModules: List[CrossProject] = List(
   examplesJetty,
   examplesTomcat,
   examplesWar
-)
-
-lazy val modules: List[ProjectReference] =
-  crossModules.flatMap(_.componentProjects).map(x => x: ProjectReference)
+).flatMap(_.componentProjects).map(x => x: ProjectReference)
 
 lazy val root = project
   .in(file("."))
@@ -146,14 +103,6 @@ lazy val root = project
     startYear := Some(2013)
   )
   .aggregate(modules: _*)
-
-lazy val rootJVM = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(crossModules.flatMap(_.projects.get(JVMPlatform)).map(x => x: ProjectReference): _*)
-
-lazy val rootJS = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(crossModules.flatMap(_.projects.get(JSPlatform)).map(x => x: ProjectReference): _*)
 
 lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatform))
   .enablePlugins(
