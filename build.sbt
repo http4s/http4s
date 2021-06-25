@@ -581,7 +581,6 @@ lazy val bench = http4sProject("bench")
   .dependsOn(core, circe)
 
 lazy val docs = http4sProject("docs")
-  .withoutSuffixFor(JVMPlatform)
   .enablePlugins(
     GhpagesPlugin,
     HugoPlugin,
@@ -652,7 +651,6 @@ lazy val docs = http4sProject("docs")
     prometheusMetrics)
 
 lazy val website = http4sProject("website")
-  .withoutSuffixFor(JVMPlatform)
   .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
@@ -759,6 +757,7 @@ def http4sProject(
     crossType: CrossType = CrossType.Pure,
     platforms: Seq[Platform] = List(JVMPlatform)) =
   CrossProject(name, file(name))(platforms: _*)
+    .withoutSuffixFor(JVMPlatform)
     .crossType(crossType)
     .settings(commonSettings)
     .settings(
