@@ -142,6 +142,9 @@ lazy val crossModules: List[CrossProject] = List(
 lazy val modules: List[ProjectReference] =
   crossModules.flatMap(_.componentProjects).map(x => x: ProjectReference)
 
+lazy val jsModules: List[ProjectReference] =
+  crossModules.flatMap(_.projects.get(JSPlatform)).map(x => x: ProjectReference)
+
 lazy val root = project
   .in(file("."))
   .enablePlugins(NoPublishPlugin)
@@ -159,7 +162,7 @@ lazy val rootJVM = project
 
 lazy val rootJS = project
   .enablePlugins(NoPublishPlugin)
-  .aggregate(crossModules.flatMap(_.projects.get(JSPlatform)).map(x => x: ProjectReference): _*)
+  .aggregate(jsModules: _*)
 
 lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatform))
   .enablePlugins(
@@ -587,7 +590,8 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core, circe)
 
-lazy val docs = http4sProject("docs")
+// Workaround via full cross
+lazy val docs = http4sProject("docs", CrossType.Full, List(JVMPlatform))
   .enablePlugins(
     GhpagesPlugin,
     HugoPlugin,
@@ -607,14 +611,14 @@ lazy val docs = http4sProject("docs")
     autoAPIMappings := true,
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
-        bench.jvm,
-        examples.jvm,
-        examplesBlaze.jvm,
-        examplesDocker.jvm,
-        examplesJetty.jvm,
-        examplesTomcat.jvm,
-        examplesWar.jvm
-      ),
+        (List[ProjectReference](
+          bench.jvm,
+          examples.jvm,
+          examplesBlaze.jvm,
+          examplesDocker.jvm,
+          examplesJetty.jvm,
+          examplesTomcat.jvm,
+          examplesWar.jvm) ++ jsModules): _*),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
@@ -657,7 +661,8 @@ lazy val docs = http4sProject("docs")
     dropwizardMetrics,
     prometheusMetrics)
 
-lazy val website = http4sProject("website")
+// Workaround via full cross
+lazy val website = http4sProject("website", CrossType.Full, List(JVMPlatform))
   .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
