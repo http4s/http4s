@@ -16,10 +16,7 @@
 
 package org.http4s
 
-import java.util.concurrent.{
-  CompletableFuture,
-  CompletionStage
-}
+import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import cats._
 import cats.data._
