@@ -74,22 +74,24 @@ jobs:
 
       - name: Check formatting
         if: matrix.scala != '3.0.0'
-        run: sbt --client '++${{ matrix.scala }}; scalafmtCheckAll'
+        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; scalafmtCheckAll'
 
       - name: Check headers
-        run: 'sbt --client ''++${{ matrix.scala }}; headerCheck; test:headerCheck'''
+        run: 'sbt --client ''++${{ matrix.scala }}; ${{ matrix.ci }}; headerCheck; test:headerCheck'''
 
       - name: Compile
-        run: 'sbt --client ''++${{ matrix.scala }}; test:compile'''
+        run: 'sbt --client ''++${{ matrix.scala }}; ${{ matrix.ci }}; test:compile'''
 
       - name: Check binary compatibility
-        run: sbt --client '++${{ matrix.scala }}; mimaReportBinaryIssues'
+        if: matrix.ci == 'ciJVM'
+        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; mimaReportBinaryIssues'
 
       - name: Run tests
-        run: sbt --client '++${{ matrix.scala }}; test'
+        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; test'
 
       - name: Build docs
-        run: sbt --client '++${{ matrix.scala }}; doc'
+        if: matrix.ci == 'ciJVM'
+        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; doc'
 
   publish:
     name: Publish Artifacts

@@ -23,18 +23,26 @@ ThisBuild / githubWorkflowBuildPreamble +=
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
-    List("scalafmtCheckAll"),
+    List("${{ matrix.ci }}", "scalafmtCheckAll"),
     name = Some("Check formatting"),
     cond = Some(s"matrix.scala != '$scala_3'")),
-  WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
-  WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
-  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"),
+    name = Some("Check headers")),
+  WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "mimaReportBinaryIssues"),
+    name = Some("Check binary compatibility"),
+    cond = Some("matrix.ci == 'ciJVM'")),
   // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
   // WorkflowStep.Sbt(
   // List("unusedCompileDependenciesTest"),
   // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
-  WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-  WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+  WorkflowStep.Sbt(List("${{ matrix.ci }}", "test"), name = Some("Run tests")),
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "doc"),
+    name = Some("Build docs"),
+    cond = Some("matrix.ci == 'ciJVM'"))
 )
 
 val ciVariants = List("ciJVM", "ciJS", "ciFirefox")
@@ -82,11 +90,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     scalas = crossScalaVersions.value.toList
   ))
 
-addCommandAlias(
-  "ciJVM",
-  "; project rootJVM; headerCheckAll; clean; testIfRelevant; mimaReportBinaryIssuesIfRelevant")
-addCommandAlias("ciJS", "; project rootJS; headerCheckAll; clean; testIfRelevant")
-addCommandAlias("ciFirefox", "; project rootJS; headerCheckAll; clean; testIfRelevant")
+addCommandAlias("ciJVM", "; project rootJVM")
+addCommandAlias("ciJS", "; project rootJS")
+addCommandAlias("ciFirefox", "; project rootJS")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
