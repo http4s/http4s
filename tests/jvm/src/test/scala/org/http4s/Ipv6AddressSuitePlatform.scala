@@ -16,7 +16,6 @@
 
 package org.http4s
 
-import com.comcast.ip4s._
 import org.http4s.Uri.Ipv6Address
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop._

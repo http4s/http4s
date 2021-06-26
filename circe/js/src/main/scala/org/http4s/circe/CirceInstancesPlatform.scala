@@ -25,6 +25,8 @@ import io.circe._
 import cats.data.EitherT
 import cats.data.OptionT
 
+import scala.annotation.nowarn
+
 // TODO More efficient implementations?
 private[circe] trait CirceInstancesPlatform { self: CirceInstances =>
 
@@ -44,7 +46,7 @@ private[circe] trait CirceInstancesPlatform { self: CirceInstances =>
     EntityDecoder.decodeBy(MediaType.application.json)(decodeJs[F])
 
   def jsonDecoderAdaptive[F[_]: Concurrent](
-      cutoff: Long,
+      @nowarn("msg=never used") cutoff: Long,
       r1: MediaRange,
       rs: MediaRange*): EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(r1, rs: _*)(decodeJs[F])
@@ -86,14 +88,14 @@ abstract case class CirceInstancesBuilder private[circe] (
     this.copy(circeParseExceptionMessage = f)
 
   def withEmptyBodyMessage(df: DecodeFailure): CirceInstancesBuilder =
-    this.copy(jawnEmptyBodyMessage = df)
+    this.copy(emptyBodyMessage = df)
 
   protected def copy(
       defaultPrinter: Printer = self.defaultPrinter,
       jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
         self.jsonDecodeError,
       circeParseExceptionMessage: ParsingFailure => DecodeFailure = self.circeParseExceptionMessage,
-      jawnEmptyBodyMessage: DecodeFailure = self.emptyBodyMessage
+      emptyBodyMessage: DecodeFailure = self.emptyBodyMessage
   ): CirceInstancesBuilder =
     new CirceInstancesBuilder(
       defaultPrinter,

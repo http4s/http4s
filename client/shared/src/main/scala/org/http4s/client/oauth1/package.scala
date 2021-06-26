@@ -21,7 +21,6 @@ import cats.{Monad, MonadThrow, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import cats.instances.order._
-import java.nio.charset.StandardCharsets
 import org.http4s.client.oauth1.ProtocolParameter.{
   Callback,
   Custom,
@@ -42,8 +41,6 @@ import scala.collection.mutable.ListBuffer
   * This feature is not considered stable.
   */
 package object oauth1 extends oauth1platform {
-  private val SHA1 = "HmacSHA1"
-  private def UTF_8 = StandardCharsets.UTF_8
   private val OutOfBand = "oob"
 
   /** Sign the request with an OAuth Authorization header
