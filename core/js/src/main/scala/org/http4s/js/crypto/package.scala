@@ -20,7 +20,6 @@ import scala.scalajs.js
 import scala.scalajs.js.typedarray.{ArrayBuffer, ArrayBufferView, Uint8Array}
 import scala.scalajs.js.|
 
-import scala.language.implicitConversions
 import scala.annotation.nowarn
 
 package object crypto {

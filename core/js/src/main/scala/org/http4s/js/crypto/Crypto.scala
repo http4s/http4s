@@ -19,10 +19,8 @@ package org.http4s.js.crypto
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
 import scala.scalajs.js.typedarray.ArrayBufferView
-import scala.annotation.nowarn
 
 @js.native
-@nowarn
 @JSGlobalScope
 object GlobalCrypto extends js.Object {
   val crypto: Crypto = js.native
@@ -35,7 +33,6 @@ object GlobalCrypto extends js.Object {
   * MDN
   */
 @js.native
-@nowarn
 trait Crypto extends js.Object {
 
   /** Returns a SubtleCrypto object providing access to common cryptographic
@@ -53,7 +50,6 @@ trait Crypto extends js.Object {
 }
 
 @js.native
-@nowarn
 trait Algorithm extends js.Object {
   var name: String = js.native
 }
@@ -65,7 +61,6 @@ trait Algorithm extends js.Object {
   * in w3c spec.
   */
 @js.native
-@nowarn
 trait KeyAlgorithm extends Algorithm
 
 /** A HashAlgorithm type is not defined in the
@@ -75,7 +70,6 @@ trait KeyAlgorithm extends Algorithm
   * are a type of their own, as searching the spec will show.
   */
 @js.native
-@nowarn
 trait HashAlgorithm extends Algorithm
 
 object HashAlgorithm {
@@ -95,7 +89,6 @@ object HashAlgorithm {
   * defined at [[http://www.w3.org/TR/WebCryptoAPI/#cryptokey-interface ¶13 The CryptoKey Interface]]
   */
 @js.native
-@nowarn
 trait CryptoKey extends js.Object {
   val `type`: String = js.native
 
@@ -112,14 +105,12 @@ trait CryptoKey extends js.Object {
   * of spec
   */
 @js.native
-@nowarn
 trait CryptoKeyPair extends js.Object {
   val publicKey: CryptoKey = js.native
   val privateKey: CryptoKey = js.native
 }
 
 @js.native
-@nowarn
 trait RsaOtherPrimesInfo extends js.Object {
   var r: String = js.native
 
@@ -129,7 +120,6 @@ trait RsaOtherPrimesInfo extends js.Object {
 }
 
 @js.native
-@nowarn
 trait JsonWebKey extends js.Object {
   var kty: String = js.native
 
@@ -177,7 +167,6 @@ trait JsonWebKey extends js.Object {
   * MDN
   */
 @js.native
-@nowarn
 trait SubtleCrypto extends js.Object {
 
   /** Returns a Promise of the encrypted data corresponding to the clear text,
@@ -351,7 +340,6 @@ trait SubtleCrypto extends js.Object {
 // RSASSA-PKCS1-v1_5
 
 @js.native
-@nowarn
 trait RsaKeyGenParams extends KeyAlgorithm {
   var modulusLength: Double = js.native
 
@@ -367,7 +355,6 @@ object RsaKeyGenParams {
 }
 
 @js.native
-@nowarn
 trait RsaHashedKeyGenParams extends RsaKeyGenParams {
   var hash: HashAlgorithmIdentifier = js.native
 }
@@ -389,7 +376,6 @@ object RsaHashedKeyGenParams {
 }
 
 @js.native
-@nowarn
 trait RsaKeyAlgorithm extends KeyAlgorithm {
   var modulusLength: Double = js.native
 
@@ -407,7 +393,6 @@ object RsaKeyAlgorithm {
 /** see W3C doc [[http://www.w3.org/TR/WebCryptoAPI/#RsaHashedKeyAlgorithm-dictionary 20.6. RsaHashedKeyAlgorithm dictionary]]
   */
 @js.native
-@nowarn
 trait RsaHashedKeyAlgorithm extends RsaKeyAlgorithm {
 
   /** Note that section [[http://www.w3.org/TR/WebCryptoAPI/#RsaHashedKeyAlgorithm-dictionary 20.6. RsaHashedKeyAlgorithm dictionary]]
@@ -458,7 +443,6 @@ object RsaHashedKeyAlgorithm {
 }
 
 @js.native
-@nowarn
 trait RsaHashedImportParams extends KeyAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 }
@@ -474,7 +458,6 @@ object RsaHashedImportParams {
 // RSA-PSS
 
 @js.native
-@nowarn
 trait RsaPssParams extends Algorithm {
   var saltLength: Double = js.native
 }
@@ -490,7 +473,6 @@ object RsaPssParams {
 // RSA-OAEP
 
 @js.native
-@nowarn
 trait RsaOaepParams extends Algorithm {
   var label: BufferSource = js.native
 }
@@ -504,7 +486,6 @@ object RsaOaepParams {
 // ECDSA
 
 @js.native
-@nowarn
 trait EcdsaParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 }
@@ -518,7 +499,6 @@ object EcdsaParams {
 }
 
 @js.native
-@nowarn
 trait EcKeyGenParams extends Algorithm {
   var namedCurve: String = js.native
 }
@@ -532,7 +512,6 @@ object EcKeyGenParams {
 }
 
 @js.native
-@nowarn
 trait EcKeyAlgorithm extends KeyAlgorithm {
   var namedCurve: String = js.native
 }
@@ -546,7 +525,6 @@ object EcKeyAlgorithm {
 }
 
 @js.native
-@nowarn
 trait EcKeyImportParams extends KeyAlgorithm {
   var namedCurve: String = js.native
 }
@@ -562,7 +540,6 @@ object EcKeyImportParams {
 // ECDH
 
 @js.native
-@nowarn
 trait EcdhKeyDeriveParams extends KeyAlgorithm {
   var `public`: CryptoKey = js.native
 }
@@ -578,7 +555,6 @@ object EcdhKeyDeriveParams {
 // AES-CTR
 
 @js.native
-@nowarn
 trait AesCtrParams extends Algorithm {
   var counter: BufferSource = js.native
 
@@ -594,7 +570,6 @@ object AesCtrParams {
 }
 
 @js.native
-@nowarn
 trait AesKeyAlgorithm extends KeyAlgorithm {
   var length: Int = js.native
 }
@@ -608,7 +583,6 @@ object AesKeyAlgorithm {
 }
 
 @js.native
-@nowarn
 trait AesKeyGenParams extends KeyAlgorithm {
   var length: Int = js.native
 }
@@ -622,7 +596,6 @@ object AesKeyGenParams {
 }
 
 @js.native
-@nowarn
 trait AesDerivedKeyParams extends KeyAlgorithm {
   var length: Int = js.native
 }
@@ -638,7 +611,6 @@ object AesDerivedKeyParams {
 // AES-CBC
 
 @js.native
-@nowarn
 trait AesCbcParams extends Algorithm {
   var iv: BufferSource = js.native
 }
@@ -652,7 +624,6 @@ object AesCbcParams {
 // AES-CMAC
 
 @js.native
-@nowarn
 trait AesCmacParams extends Algorithm {
   var length: Int = js.native
 }
@@ -668,7 +639,6 @@ object AesCmacParams {
 // AES-GCM
 
 @js.native
-@nowarn
 trait AesGcmParams extends Algorithm {
   var iv: BufferSource = js.native
 
@@ -692,7 +662,6 @@ object AesGcmParams {
 // AES-CFB
 
 @js.native
-@nowarn
 trait AesCfbParams extends Algorithm {
   var iv: BufferSource = js.native
 }
@@ -708,7 +677,6 @@ object AesCfbParams {
 // HMAC
 
 @js.native
-@nowarn
 trait HmacImportParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
@@ -724,7 +692,6 @@ object HmacImportParams {
 }
 
 @js.native
-@nowarn
 trait HmacKeyAlgorithm extends KeyAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
@@ -740,7 +707,6 @@ object HmacKeyAlgorithm {
 }
 
 @js.native
-@nowarn
 trait HmacKeyGenParams extends KeyAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
@@ -758,7 +724,6 @@ object HmacKeyGenParams {
 // Diffie-Hellman
 
 @js.native
-@nowarn
 trait DhKeyGenParams extends Algorithm {
   var prime: BigInteger = js.native
 
@@ -774,7 +739,6 @@ object DhKeyGenParams {
 }
 
 @js.native
-@nowarn
 trait DhKeyAlgorithm extends KeyAlgorithm {
   var prime: BigInteger = js.native
 
@@ -790,7 +754,6 @@ object DhKeyAlgorithm {
 }
 
 @js.native
-@nowarn
 trait DhKeyDeriveParams extends Algorithm {
   var `public`: CryptoKey = js.native
 }
@@ -804,7 +767,6 @@ object DhKeyDeriveParams {
 }
 
 @js.native
-@nowarn
 trait DhImportKeyParams extends Algorithm {
   var prime: BigInteger = js.native
 
@@ -822,7 +784,6 @@ object DhImportKeyParams {
 // CONCAT
 
 @js.native
-@nowarn
 trait ConcatParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
@@ -863,7 +824,6 @@ object ConcatParams {
 // HKDF-CTR
 
 @js.native
-@nowarn
 trait HkdfCtrParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
@@ -887,7 +847,6 @@ object HkdfCtrParams {
 // PBKDF2
 
 @js.native
-@nowarn
 trait Pbkdf2Params extends HashAlgorithm {
   var salt: BufferSource = js.native
 
@@ -915,7 +874,6 @@ object Pbkdf2Params {
 /** See [[http://www.w3.org/TR/WebCryptoAPI/#cryptokey-interface ¶ 13. CryptoKey Interface]] of w3c spec
   */
 @js.native
-@nowarn
 trait KeyUsage extends js.Any
 
 object KeyUsage {
@@ -932,7 +890,6 @@ object KeyUsage {
 /** see [[http://www.w3.org/TR/WebCryptoAPI/#cryptokey-interface ¶13 CryptoKey interface]] in W3C doc
   */
 @js.native
-@nowarn
 trait KeyType extends js.Any
 
 object KeyType {
@@ -944,7 +901,6 @@ object KeyType {
 /** see [[http://www.w3.org/TR/WebCryptoAPI/#dfn-KeyFormat ¶14.2 Data Types]] in W3C spec
   */
 @js.native
-@nowarn
 trait KeyFormat extends js.Any
 
 object KeyFormat {
@@ -971,7 +927,6 @@ object KeyFormat {
   * //todo: where is the specification of n and e?
   */
 @js.native
-@nowarn
 trait RSAPublicKey extends js.Object {
 
   /* modulus, as a base64 URL encoded String */
