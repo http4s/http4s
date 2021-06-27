@@ -31,7 +31,6 @@ class WebSocketHandshakeSpec extends Http4sSuite {
     })
   }
 
-  // if (Platform.isJvm) // TODO Not yet implemented for Scala.js
   test("WebSocketHandshake should Do a round trip") {
     val client = WebSocketHandshake.clientHandshaker("www.foo.com")
     assertIOBoolean(

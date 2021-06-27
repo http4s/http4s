@@ -23,6 +23,7 @@ import scala.scalajs.js.typedarray._
 import scala.scalajs.js.typedarray.TypedArrayBuffer
 import org.http4s.js.crypto.HashAlgorithm
 import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 private[websocket] trait WebSocketHandshakePlatform { self: WebSocketHandshake.type =>
   private[websocket] def genAcceptKey[F[_]: Async](str: String): F[String] =
@@ -35,6 +36,6 @@ private[websocket] trait WebSocketHandshakePlatform { self: WebSocketHandshake.t
         }
       }
       .map { case bytes: ArrayBuffer =>
-        StandardCharsets.ISO_8859_1.decode(TypedArrayBuffer.wrap(bytes)).toString()
+        StandardCharsets.ISO_8859_1.decode(Base64.getEncoder.encode(TypedArrayBuffer.wrap(bytes))).toString()
       }
 }
