@@ -45,12 +45,13 @@ ThisBuild / githubWorkflowBuild := Seq(
     cond = Some("matrix.ci == 'ciJVM'"))
 )
 
-val ciVariants = List("ciJVM", "ciJS", "ciFirefox")
+// Re-enable Firefox pending https://github.com/scalameta/munit/pull/376
+val ciVariants = List("ciJVM", "ciJS"/*, "ciFirefox"*/)
 ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 
 val ScalaJSJava = "adopt@1.8"
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  Seq("ciJS", "ciFirefox").flatMap { ci =>
+  Seq("ciJS"/*, "ciFirefox"*/).flatMap { ci =>
     val javaFilters =
       (ThisBuild / githubWorkflowJavaVersions).value.filterNot(Set(ScalaJSJava)).map { java =>
         MatrixExclude(Map("ci" -> ci, "java" -> java))
