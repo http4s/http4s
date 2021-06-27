@@ -35,6 +35,7 @@ import org.http4s.headers.Authorization
 import org.typelevel.ci._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
+import cats.effect.Async
 
 /** Basic OAuth1 message signing support
   *
@@ -53,12 +54,11 @@ package object oauth1 extends oauth1platform {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token])(implicit
-      F: MonadThrow[F],
-      W: EntityDecoder[F, UrlForm]): F[Request[F]] =
-    getUserParams(req).map { case (req, params) =>
-      val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
-      req.putHeaders(auth)
+      token: Option[Token])(implicit F: Async[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+    getUserParams(req).flatMap { case (req, params) =>
+      genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token).map { auth =>
+        req.putHeaders(auth)
+      }
     }
 
   def signRequest[F[_]](
@@ -72,7 +72,7 @@ package object oauth1 extends oauth1platform {
       nonceGenerator: F[Nonce],
       callback: Option[Callback] = None,
       verifier: Option[Verifier] = None
-  )(implicit F: MonadThrow[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+  )(implicit F: Async[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     for {
       reqParams <- getUserParams(req)
       // Working around lack of withFilter
@@ -114,7 +114,7 @@ package object oauth1 extends oauth1platform {
       headers ++ List(token, callback, verifier).flatten
     }
 
-  private[oauth1] def genAuthHeader[F[_]: Monad](
+  private[oauth1] def genAuthHeader[F[_]: Async](
       method: Method,
       uri: Uri,
       consumer: ProtocolParameter.Consumer,
@@ -136,31 +136,32 @@ package object oauth1 extends oauth1platform {
       nonceGenerator,
       callback,
       verifier
-    ).map { headers =>
+    ).flatMap { headers =>
       val baseStr = mkBaseString(
         method,
         uri,
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
-      val sig = makeSHASigPlatform(baseStr, consumer.secret, token.map(_.secret))
-      val creds = Credentials.AuthParams(
-        ci"OAuth",
-        NonEmptyList(
-          "oauth_signature" -> encode(sig),
-          realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
-      )
+      makeSHASigPlatform[F](baseStr, consumer.secret, token.map(_.secret)).map { sig =>
+        val creds = Credentials.AuthParams(
+          ci"OAuth",
+          NonEmptyList(
+            "oauth_signature" -> encode(sig),
+            realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
+        )
 
-      Authorization(creds)
+        Authorization(creds)
+      }
     }
 
   // Generate an authorization header with the provided user params and OAuth requirements.
-  private[oauth1] def genAuthHeader(
+  private[oauth1] def genAuthHeader[F[_]: Async](
       method: Method,
       uri: Uri,
       userParams: immutable.Seq[(String, String)],
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token]): Authorization = {
+      token: Option[Token]): F[Authorization] = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
@@ -184,19 +185,20 @@ package object oauth1 extends oauth1platform {
       params ++ userParams.map { case (k, v) =>
         (encode(k), encode(v))
       })
-    val sig = makeSHASig(baseString, consumer, token)
-    val creds =
-      Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
+    makeSHASig(baseString, consumer, token).map { sig =>
+      val creds =
+        Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
 
-    Authorization(creds)
+      Authorization(creds)
+    }
   }
 
   // baseString must already be encoded, consumer and token must not be
-  private[oauth1] def makeSHASig(
+  private[oauth1] def makeSHASig[F[_]: Async](
       baseString: String,
       consumer: Consumer,
-      token: Option[Token]): String =
-    makeSHASigPlatform(baseString, consumer.secret, token.map(_.secret))
+      token: Option[Token]): F[String] =
+    makeSHASigPlatform[F](baseString, consumer.secret, token.map(_.secret))
 
   // Needs to have all params already encoded
   private[oauth1] def genBaseString(

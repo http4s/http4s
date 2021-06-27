@@ -20,15 +20,16 @@ package oauth1
 
 import javax.crypto
 import java.nio.charset.StandardCharsets
+import cats.effect.Async
 
 private[oauth1] trait oauth1platform {
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
 
-  private[oauth1] def makeSHASigPlatform(
+  private[oauth1] def makeSHASigPlatform[F[_]: Async](
       baseString: String,
       consumerSecret: String,
-      tokenSecret: Option[String]): String = {
+      tokenSecret: Option[String]): F[String] = Async[F].pure {
     val sha1 = crypto.Mac.getInstance(SHA1)
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
     sha1.init(new crypto.spec.SecretKeySpec(bytes(key), SHA1))
