@@ -23,7 +23,7 @@ import cats.data.{Kleisli, OptionT}
 
 trait KleisliSyntax {
   implicit def http4sKleisliResponseSyntaxOptionT[F[_]: Functor, A](
-      kleisli: Kleisli[OptionT[F, *], A, Response[F]]): KleisliResponseOps[F, A] =
+      kleisli: Kleisli[OptionT[F, *], A, ResponseB[F]]): KleisliResponseOps[F, A] =
     new KleisliResponseOps[F, A](kleisli)
 
   implicit def http4sKleisliHttpRoutesSyntax[F[_]](routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
@@ -37,8 +37,8 @@ trait KleisliSyntax {
     new KleisliAuthedRoutesOps[F, A](authedRoutes)
 }
 
-final class KleisliResponseOps[F[_]: Functor, A](self: Kleisli[OptionT[F, *], A, Response[F]]) {
-  def orNotFound: Kleisli[F, A, Response[F]] =
+final class KleisliResponseOps[F[_]: Functor, A](self: Kleisli[OptionT[F, *], A, ResponseB[F]]) {
+  def orNotFound: Kleisli[F, A, ResponseB[F]] =
     Kleisli(a => self.run(a).getOrElse(Response.notFound))
 }
 

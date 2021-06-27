@@ -32,7 +32,7 @@ object Http {
     * @param run the function to lift
     * @return an [[Http]] that suspends `run`.
     */
-  def apply[F[_], G[_]](run: Request[G] => F[Response[G]])(implicit F: Monad[F]): Http[F, G] =
+  def apply[F[_], Body](run: Request[Body] => F[Response[Body]])(implicit F: Monad[F]): Http[F, Body] =
     Kleisli(req => F.unit >> run(req))
 
   /** Lifts an effectful [[Response]] into an [[Http]] kleisli.
@@ -42,7 +42,7 @@ object Http {
     * @param fr the effectful [[Response]] to lift
     * @return an [[Http]] that always returns `fr`
     */
-  def liftF[F[_], G[_]](fr: F[Response[G]]): Http[F, G] =
+  def liftF[F[_], Body](fr: F[Response[Body]]): Http[F, Body] =
     Kleisli.liftF(fr)
 
   /** Lifts a [[Response]] into an [[Http]] kleisli.
@@ -52,7 +52,7 @@ object Http {
     * @param r the [[Response]] to lift
     * @return an [[Http]] that always returns `r` in effect `F`
     */
-  def pure[F[_]: Applicative, G[_]](r: Response[G]): Http[F, G] =
+  def pure[F[_]: Applicative, Body](r: Response[Body]): Http[F, Body] =
     Kleisli.pure(r)
 
   /** Transforms an [[Http]] on its input.  The application of the
@@ -66,7 +66,7 @@ object Http {
     * @return An [[Http]] whose input is transformed by `f` before
     * being applied to `fa`
     */
-  def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(implicit
-      F: Monad[F]): Http[F, G] =
+  def local[F[_], Body](f: Request[Body] => Request[Body])(fa: Http[F, Body])(implicit
+      F: Monad[F]): Http[F, Body] =
     Kleisli(req => F.unit >> fa.run(f(req)))
 }

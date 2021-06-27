@@ -19,16 +19,19 @@ package org.http4s
 import cats.Monoid
 import cats.syntax.all._
 
-final case class Entity[+F[_]](body: EntityBody[F], length: Option[Long] = None)
+final case class Entity[+Body](body: Body, length: Option[Long] = None)
 
 object Entity {
-  implicit def http4sMonoidForEntity[F[_]]: Monoid[Entity[F]] =
-    new Monoid[Entity[F]] {
-      def combine(a1: Entity[F], a2: Entity[F]): Entity[F] =
-        Entity(a1.body ++ a2.body, (a1.length, a2.length).mapN(_ + _))
-      val empty: Entity[F] =
-        Entity.empty
+  implicit def http4sMonoidForEntity[B: Monoid]: Monoid[Entity[B]] =
+    new Monoid[Entity[B]] {
+      def combine(a1: Entity[B], a2: Entity[B]): Entity[B] =
+        Entity(
+          body = a1.body.mappend(a2.body),
+          length = (a1.length, a2.length).mapN(_ + _)
+        )
+
+      val empty: Entity[B] = Monoid[B].empty
     }
 
-  val empty: Entity[Nothing] = Entity[Nothing](EmptyBody, Some(0L))
+  val empty: Entity[Unit] = Entity[Unit]((), Some(0L))
 }

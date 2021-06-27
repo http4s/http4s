@@ -31,7 +31,7 @@ object HttpRoutes {
     * @param run the function to lift
     * @return an [[HttpRoutes]] that wraps `run`
     */
-  def apply[F[_]: Monad](run: Request[F] => OptionT[F, Response[F]]): HttpRoutes[F] =
+  def apply[F[_]: Monad](run: RequestB[F] => OptionT[F, ResponseB[F]]): HttpRoutes[F] =
     Http(run)
 
   /** Lifts an effectful [[Response]] into an [[HttpRoutes]].
@@ -40,7 +40,7 @@ object HttpRoutes {
     * @param fr the effectful [[Response]] to lift
     * @return an [[HttpRoutes]] that always returns `fr`
     */
-  def liftF[F[_]](fr: OptionT[F, Response[F]]): HttpRoutes[F] =
+  def liftF[F[_]](fr: OptionT[F, ResponseB[F]]): HttpRoutes[F] =
     Kleisli.liftF(fr)
 
   /** Lifts a [[Response]] into an [[HttpRoutes]].
@@ -49,7 +49,7 @@ object HttpRoutes {
     * @param r the [[Response]] to lift
     * @return an [[HttpRoutes]] that always returns `r` in effect `OptionT[F, *]`
     */
-  def pure[F[_]](r: Response[F])(implicit FO: Applicative[OptionT[F, *]]): HttpRoutes[F] =
+  def pure[F[_]](r: ResponseB[F])(implicit FO: Applicative[OptionT[F, *]]): HttpRoutes[F] =
     Kleisli.pure(r)
 
   /** Transforms an [[HttpRoutes]] on its input.  The application of the
@@ -62,7 +62,7 @@ object HttpRoutes {
     * @return An [[HttpRoutes]] whose input is transformed by `f` before
     * being applied to `fa`
     */
-  def local[F[_]: Monad](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
+  def local[F[_]: Monad](f: RequestB[F] => RequestB[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
     Http.local[OptionT[F, *], F](f)(fa)
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
@@ -75,7 +75,7 @@ object HttpRoutes {
     * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def of[F[_]: Monad](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
+  def of[F[_]: Monad](pf: PartialFunction[RequestB[F], F[ResponseB[F]]]): HttpRoutes[F] =
     Kleisli(req => OptionT(Applicative[F].unit >> pf.lift(req).sequence))
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
@@ -87,7 +87,7 @@ object HttpRoutes {
     * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def strict[F[_]: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
+  def strict[F[_]: Applicative](pf: PartialFunction[RequestB[F], F[ResponseB[F]]]): HttpRoutes[F] =
     Kleisli(req => OptionT(pf.lift(req).sequence))
 
   /** An empty set of routes.  Always responds with `OptionT.none`.

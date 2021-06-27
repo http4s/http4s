@@ -35,21 +35,21 @@ import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
-sealed trait Message[F[_]] extends Media[F] { self =>
-  type SelfF[F2[_]] <: Message[F2] { type SelfF[F3[_]] = self.SelfF[F3] }
-  type Self = SelfF[F]
+sealed trait Message[+ Body] extends Media[Body] { self =>
+  type SelfF[Cod] <: Message[Cod] { type SelfF[Dol] = self.SelfF[Dol] }
+  type Self = SelfF[Body]
 
   def httpVersion: HttpVersion
 
   def headers: Headers
 
-  def body: EntityBody[F]
+  def body: Body
 
   def attributes: Vault
 
   protected def change(
       httpVersion: HttpVersion = httpVersion,
-      body: EntityBody[F] = body,
+      body: EntityBody[Body] = body,
       headers: Headers = headers,
       attributes: Vault = attributes): Self
 
@@ -74,7 +74,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
+  def withEntity[T](b: T)(implicit w: EntityEncoder[Body, T]): Self = {
     val entity = w.toEntity(b)
     val hs = entity.length match {
       case Some(l) =>
@@ -96,7 +96,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
-  def withBodyStream(body: EntityBody[F]): Self =
+  def withBodyStream(body: Body): Self =
     change(body = body)
 
   /** Set an empty entity body on this message, and remove all payload headers
@@ -220,6 +220,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
 object Message {
   private[http4s] val logger = getLogger
+
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
     def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]
@@ -238,28 +239,26 @@ object Message {
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-final class Request[F[_]] private (
+final class Request[+ Body] private (
     val method: Method,
     val uri: Uri,
     val httpVersion: HttpVersion,
     val headers: Headers,
-    val body: EntityBody[F],
+    val body: Body,
     val attributes: Vault
-) extends Message[F]
+) extends Message[Body]
     with Product
     with Serializable {
   import Request._
 
-  type SelfF[F0[_]] = Request[F0]
-
-  private def copy(
+  private def copy[Cod](
       method: Method = this.method,
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
+      body: Cod = this.body,
       attributes: Vault = this.attributes
-  ): Request[F] =
+  ): Request[Cod] =
     Request(
       method = method,
       uri = uri,
@@ -269,28 +268,28 @@ final class Request[F[_]] private (
       attributes = attributes
     )
 
-  def mapK[G[_]](f: F ~> G): Request[G] =
-    Request[G](
+  def mapK[Cod](f: Body => Cod): Request[Cod] =
+    Request[Cod](
       method = method,
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body.translate(f),
+      body = f(body),
       attributes = attributes
     )
 
-  def withMethod(method: Method): Request[F] =
+  def withMethod(method: Method): Request[Body] =
     copy(method = method)
 
-  def withUri(uri: Uri): Request[F] =
+  def withUri(uri: Uri): Request[Body] =
     copy(uri = uri, attributes = attributes.delete(Request.Keys.PathInfoCaret))
 
   override protected def change(
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      body: B,
       headers: Headers,
       attributes: Vault
-  ): Request[F] =
+  ): Request[B] =
     copy(
       httpVersion = httpVersion,
       body = body,
@@ -305,9 +304,9 @@ final class Request[F[_]] private (
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
   @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "0.22.0-M1")
-  def withPathInfo(pi: String): Request[F] =
+  def withPathInfo(pi: String): Request[Body] =
     withPathInfo(Uri.Path.unsafeFromString(pi))
-  def withPathInfo(pi: Uri.Path): Request[F] =
+  def withPathInfo(pi: Uri.Path): Request[Body] =
     // Don't use withUri, which clears the caret
     copy(uri = uri.withPath(scriptName.concat(pi)))
 
@@ -377,7 +376,7 @@ final class Request[F[_]] private (
     headers.get[Cookie].fold(List.empty[RequestCookie])(_.values.toList)
 
   /** Add a Cookie header for the provided [[org.http4s.headers.Cookie]] */
-  def addCookie(cookie: RequestCookie): Request[F] =
+  def addCookie(cookie: RequestCookie): Request[Body] =
     putHeaders {
       headers
         .get[Cookie]
@@ -387,7 +386,7 @@ final class Request[F[_]] private (
     }
 
   /** Add a Cookie header with the provided values */
-  def addCookie(name: String, content: String): Request[F] =
+  def addCookie(name: String, content: String): Request[Body] =
     addCookie(RequestCookie(name, content))
 
   def authType: Option[AuthScheme] =
@@ -435,12 +434,8 @@ final class Request[F[_]] private (
   def serverSoftware: ServerSoftware =
     attributes.lookup(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(implicit
-      F: Monad[F]): F[Response[F]] =
-    decoder
-      .decode(this, strict = strict)
-      .fold(_.toHttpResponse[F](httpVersion).pure[F], f)
-      .flatten
+  def decodeWith[A](decoder: EntityDecoder[Body, A], strict: Boolean)(f: A => Response[Body]): Response[Body] =
+    decoder.decode(this, strict = strict).fold(_.toHttpResponse[Body](httpVersion), f)
 
   /** Helper method for decoding [[Request]]s
     *
@@ -448,17 +443,16 @@ final class Request[F[_]] private (
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
   def decode[A](
-      f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+      f: A => F[ResponseB[F]])(implicit F: Monad[F], decoder: EntityDecoder[EntityBody[F], A]): F[ResponseB[F]] =
     decodeWith(decoder, strict = false)(f)
 
-  /** Helper method for decoding [[Request]]s
+  /** Helper method for decoding [[Request]]
     *
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
-  def decodeStrict[A](
-      f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+  def decodeStrict[A](f: A => Response[Body])(decoder: EntityDecoder[Body, A]): Response[Body] =
     decodeWith(decoder, strict = true)(f)
 
   override def hashCode(): Int = MurmurHash3.productHash(this)
@@ -503,15 +497,15 @@ object Request {
     * @param body fs2.Stream[F, Byte] defining the body of the request
     * @param attributes Immutable Map used for carrying additional information in a type safe fashion
     */
-  def apply[F[_]](
+  def apply[Body](
       method: Method = Method.GET,
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      body: EntityBody[F] = EmptyBody,
+      body: Body,
       attributes: Vault = Vault.empty
-  ): Request[F] =
-    new Request[F](
+  ): Request[Body] =
+    new Request[Body](
       method = method,
       uri = uri,
       httpVersion = httpVersion,
@@ -520,8 +514,7 @@ object Request {
       attributes = attributes
     )
 
-  def unapply[F[_]](
-      request: Request[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+  def unapply[B](request: Request[F]): Option[(Method, Uri, HttpVersion, Headers, B, Vault)] =
     Some(
       (
         request.method,
@@ -555,19 +548,18 @@ object Request {
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
-final class Response[F[_]] private (
+final class Response[+ Body] private (
     val status: Status,
     val httpVersion: HttpVersion,
     val headers: Headers,
-    val body: EntityBody[F],
+    val body: Body,
     val attributes: Vault)
-    extends Message[F]
+    extends Message[Body]
     with Product
     with Serializable {
-  type SelfF[F0[_]] = Response[F0]
 
-  def mapK[G[_]](f: F ~> G): Response[G] =
-    Response[G](
+  def mapK[Cod](f: Body => Cod): Response[Cod] =
+    Response[Cod](
       status = status,
       httpVersion = httpVersion,
       headers = headers,
@@ -580,10 +572,10 @@ final class Response[F[_]] private (
 
   override protected def change(
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      body: Body,
       headers: Headers,
       attributes: Vault
-  ): Response[F] =
+  ): Response[Body] =
     copy(
       httpVersion = httpVersion,
       body = body,
@@ -592,7 +584,7 @@ final class Response[F[_]] private (
     )
 
   /** Add a Set-Cookie header for the provided [[ResponseCookie]] */
-  def addCookie(cookie: ResponseCookie): Response[F] =
+  def addCookie(cookie: ResponseCookie): Response[Body] =
     transformHeaders(_.add(`Set-Cookie`(cookie)))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
@@ -618,14 +610,14 @@ final class Response[F[_]] private (
 
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
-  def copy(
+  def copy[Cod](
       status: Status = this.status,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
+      body: Cod = this.body,
       attributes: Vault = this.attributes
-  ): Response[F] =
-    Response[F](
+  ): Response[Cod] =
+    Response[Cod](
       status = status,
       httpVersion = httpVersion,
       headers = headers,
@@ -670,35 +662,34 @@ object Response extends KleisliSyntax {
     *                   parameters which may be used by the http4s backend for
     *                   additional processing such as java.io.File object
     */
-  def apply[F[_]](
+  def apply[Body](
       status: Status = Status.Ok,
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      body: EntityBody[F] = EmptyBody,
-      attributes: Vault = Vault.empty): Response[F] =
+      body: Body = (),
+      attributes: Vault = Vault.empty): Response[Unit] =
     new Response(status, httpVersion, headers, body, attributes)
 
-  def unapply[F[_]](
-      response: Response[F]): Option[(Status, HttpVersion, Headers, EntityBody[F], Vault)] =
+  def unapply[B](
+      response: Response[B]): Option[(Status, HttpVersion, Headers, B, Vault)] =
     Some(
       (response.status, response.httpVersion, response.headers, response.body, response.attributes))
 
-  private[this] val pureNotFound: Response[Pure] =
+  private[this] val pureNotFound: Response[String] =
     Response(
       Status.NotFound,
-      body = Stream("Not found").through(utf8.encode),
+      body = "Not found",
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L)
       )
     )
 
-  def notFound[F[_]]: Response[F] = pureNotFound.covary[F].copy(body = pureNotFound.body.covary[F])
+  val notFound: Response[Unit] = pureNotFound
 
-  def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
-      encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
+  def notFoundFor(request: Request[_]): Response[String] =
+    Response[String](Status.NotFound).withEntity(s"${request.pathInfo} not found")
 
-  def timeout[F[_]]: Response[F] =
-    Response[F](Status.ServiceUnavailable).withEntity("Response timed out")
+  def timeout: Response[String] =
+    Response[String](Status.ServiceUnavailable).withEntity("Response timed out")
 }

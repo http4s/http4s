@@ -31,7 +31,7 @@ object ContextRoutes {
     * @param run the function to lift
     * @return an [[ContextRoutes]] that wraps `run`
     */
-  def apply[T, F[_]](run: ContextRequest[F, T] => OptionT[F, Response[F]])(implicit
+  def apply[T, Body, F[_]](run: ContextRequest[EntityBody[F], T] => OptionT[F, ResponseB[F]])(implicit
       F: Monad[F]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(F.unit >> run(req).value))
 
@@ -44,7 +44,7 @@ object ContextRoutes {
     * @return An [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def of[T, F[_]](pf: PartialFunction[ContextRequest[F, T], F[Response[F]]])(implicit
+  def of[T, F[_]](pf: PartialFunction[ContextRequestB[F, T], F[ResponseB[F]]])(implicit
       F: Monad[F]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(Applicative[F].unit >> pf.lift(req).sequence))
 
@@ -58,7 +58,7 @@ object ContextRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def strict[T, F[_]: Applicative](
-      pf: PartialFunction[ContextRequest[F, T], F[Response[F]]]): ContextRoutes[T, F] =
+      pf: PartialFunction[ContextRequest[F, T], F[ResponseB[F]]]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(pf.lift(req).sequence))
 
   /** The empty service (all requests fallthrough).

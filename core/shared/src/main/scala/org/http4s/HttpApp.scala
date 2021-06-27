@@ -30,7 +30,7 @@ object HttpApp {
     * @param run the function to lift
     * @return an [[HttpApp]] that wraps `run`
     */
-  def apply[F[_]: Monad](run: Request[F] => F[Response[F]]): HttpApp[F] =
+  def apply[F[_]: Monad](run: RequestB[F] => F[ResponseB[F]]): HttpApp[F] =
     Http(run)
 
   /** Lifts an effectful [[Response]] into an [[HttpApp]].
@@ -39,7 +39,7 @@ object HttpApp {
     * @param fr the effectful [[Response]] to lift
     * @return an [[HttpApp]] that always returns `fr`
     */
-  def liftF[F[_]](fr: F[Response[F]]): HttpApp[F] =
+  def liftF[F[_]](fr: F[ResponseB[F]]): HttpApp[F] =
     Kleisli.liftF(fr)
 
   /** Lifts a [[Response]] into an [[HttpApp]].
@@ -48,7 +48,7 @@ object HttpApp {
     * @param r the [[Response]] to lift
     * @return an [[Http]] that always returns `r` in effect `F`
     */
-  def pure[F[_]: Applicative](r: Response[F]): HttpApp[F] =
+  def pure[F[_]: Applicative](r: ResponseB[F]): HttpApp[F] =
     Kleisli.pure(r)
 
   /** Transforms an [[HttpApp]] on its input.  The application of the
@@ -61,7 +61,7 @@ object HttpApp {
     * @return An [[HttpApp]] whose input is transformed by `f` before
     * being applied to `fa`
     */
-  def local[F[_]](f: Request[F] => Request[F])(fa: HttpApp[F])(implicit F: Monad[F]): HttpApp[F] =
+  def local[F[_]](f: RequestB[F] => RequestB[F])(fa: HttpApp[F])(implicit F: Monad[F]): HttpApp[F] =
     Http.local(f)(fa)
 
   /** An app that always returns `404 Not Found`. */

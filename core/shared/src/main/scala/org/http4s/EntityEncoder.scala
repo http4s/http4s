@@ -20,7 +20,7 @@ import cats.{Contravariant, Show}
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import fs2.{Chunk, Stream, Pure}
 import fs2.io.file.Files
 import fs2.io.readInputStream
 import java.io._
@@ -31,11 +31,11 @@ import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(
-  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
-trait EntityEncoder[+F[_], A] { self =>
+  "Cannot convert from ${A} to an Entity of ${Body}, because no EntityEncoder[${Body}, ${A}] instance could be found.")
+trait EntityEncoder[+ Body, A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
-  def toEntity(a: A): Entity[F]
+  def toEntity(a: A): Entity[Body]
 
   /** Headers that may be added to a [[Message]]
     *
@@ -45,9 +45,9 @@ trait EntityEncoder[+F[_], A] { self =>
   def headers: Headers
 
   /** Make a new [[EntityEncoder]] using this type as a foundation */
-  def contramap[B](f: B => A): EntityEncoder[F, B] =
-    new EntityEncoder[F, B] {
-      override def toEntity(a: B): Entity[F] = self.toEntity(f(a))
+  def contramap[B](f: B => A): EntityEncoder[Body, B] =
+    new EntityEncoder[Body, B] {
+      override def toEntity(a: B): Entity[Body] = self.toEntity(f(a))
       override def headers: Headers = self.headers
     }
 
@@ -58,9 +58,9 @@ trait EntityEncoder[+F[_], A] { self =>
   def charset: Option[Charset] = headers.get[`Content-Type`].flatMap(_.charset)
 
   /** Generate a new EntityEncoder that will contain the `Content-Type` header */
-  def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] =
-    new EntityEncoder[F, A] {
-      override def toEntity(a: A): Entity[F] = self.toEntity(a)
+  def withContentType(tpe: `Content-Type`): EntityEncoder[Body, A] =
+    new EntityEncoder[Body, A] {
+      override def toEntity(a: A): Entity[Body] = self.toEntity(a)
       override val headers: Headers = self.headers.put(tpe)
     }
 }
@@ -74,17 +74,17 @@ object EntityEncoder {
   private val DefaultChunkSize = 4096
 
   /** summon an implicit [[EntityEncoder]] */
-  def apply[F[_], A](implicit ev: EntityEncoder[F, A]): EntityEncoder[F, A] = ev
+  def apply[Body, A](implicit ev: EntityEncoder[Body, A]): EntityEncoder[Body, A] = ev
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: Headers)(f: A => Entity[F]): EntityEncoder[F, A] =
-    new EntityEncoder[F, A] {
-      override def toEntity(a: A): Entity[F] = f(a)
+  def encodeBy[Body, A](hs: Headers)(f: A => Entity[Body]): EntityEncoder[Body, A] =
+    new EntityEncoder[Body, A] {
+      override def toEntity(a: A): Entity[Body] = f(a)
       override def headers: Headers = hs
     }
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: Header.ToRaw*)(f: A => Entity[F]): EntityEncoder[F, A] = {
+  def encodeBy[Body, A](hs: Header.ToRaw*)(f: A => Entity[Body]): EntityEncoder[Body, A] = {
     val hdrs = if (hs.nonEmpty) Headers(hs: _*) else Headers.empty
     encodeBy(hdrs)(f)
   }
@@ -117,9 +117,10 @@ object EntityEncoder {
     * bodies in advance.  As such, it does not calculate the Content-Length in
     * advance.  This is for use with chunked transfer encoding.
     */
-  implicit def streamEncoder[F[_], A](implicit
-      W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
-    new EntityEncoder[F, Stream[F, A]] {
+  implicit def streamEncoder[F[_], Body, A](implicit
+      W: EntityEncoder[Body, A]
+  ): EntityEncoder[Body, Stream[F, A]] =
+    new EntityEncoder[Body, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
         Entity(a.flatMap(W.toEntity(_).body))
 
@@ -162,12 +163,12 @@ object EntityEncoder {
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
-  implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
+  implicit def fileEncoder[F[_]: Files]: EntityEncoder[EntityBody[F], File] =
     pathEncoder.contramap(f => fs2.io.file.Path.fromNioPath(f.toPath()))
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
-  implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
+  implicit def filePathEncoder[F[_]: Files]: EntityEncoder[EntityBody[F], Path] =
     pathEncoder.contramap(p => fs2.io.file.Path.fromNioPath(p))
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
