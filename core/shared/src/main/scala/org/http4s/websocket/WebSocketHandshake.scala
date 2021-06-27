@@ -54,14 +54,13 @@ private[http4s] object WebSocketHandshake extends WebSocketHandshakePlatform {
       else
         headers
           .find { case (k, _) => k.equalsIgnoreCase("Sec-WebSocket-Accept") }
-          .map {
-            case (_, v) =>
-              genAcceptKey(key).map { acceptKey =>
-                if (acceptKey == v)
-                  Right(())
-                else
-                  Left(s"Invalid key: $acceptKey")
-              }
+          .map { case (_, v) =>
+            genAcceptKey(key).map { acceptKey =>
+              if (acceptKey == v)
+                Right(())
+              else
+                Left(s"Invalid key: $acceptKey")
+            }
           }
           .getOrElse(Async[F].pure(Left("Missing Sec-WebSocket-Accept header")))
   }

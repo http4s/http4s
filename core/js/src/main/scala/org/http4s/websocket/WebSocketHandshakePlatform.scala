@@ -21,7 +21,6 @@ import cats.effect.Async
 import cats.syntax.all._
 import scala.scalajs.js.typedarray._
 import scala.scalajs.js.typedarray.TypedArrayBuffer
-import java.util.Base64
 import org.http4s.js.crypto.HashAlgorithm
 import java.nio.charset.StandardCharsets
 

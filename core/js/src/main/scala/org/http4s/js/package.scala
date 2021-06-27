@@ -25,7 +25,7 @@ package object js {
 
   lazy val webcrypto: Crypto =
     Try(GlobalCrypto.crypto)
-    .orElse(Try(Dynamic.global.require("crypto").webcrypto.asInstanceOf[Crypto]))
-    .get
+      .orElse(Try(Dynamic.global.require("crypto").webcrypto.asInstanceOf[Crypto]))
+      .get
 
 }
