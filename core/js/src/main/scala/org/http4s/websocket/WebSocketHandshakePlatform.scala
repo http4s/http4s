@@ -14,9 +14,28 @@
  * limitations under the License.
  */
 
-package org.http4s.websocket
+package org.http4s
+package websocket
+
+import cats.effect.Async
+import cats.syntax.all._
+import scala.scalajs.js.typedarray._
+import scala.scalajs.js.typedarray.TypedArrayBuffer
+import java.util.Base64
+import org.http4s.js.crypto.HashAlgorithm
+import java.nio.charset.StandardCharsets
 
 private[websocket] trait WebSocketHandshakePlatform { self: WebSocketHandshake.type =>
-  private[websocket] def genAcceptKey(str: String): String =
-    ??? // TODO
+  private[websocket] def genAcceptKey[F[_]: Async](str: String): F[String] =
+    Async[F]
+      .fromPromise {
+        Async[F].delay {
+          js.webcrypto.subtle.digest(
+            HashAlgorithm.`SHA-1`,
+            (str + magicString).getBytes().toTypedArray)
+        }
+      }
+      .map { case bytes: ArrayBuffer =>
+        StandardCharsets.ISO_8859_1.decode(TypedArrayBuffer.wrap(bytes)).toString()
+      }
 }

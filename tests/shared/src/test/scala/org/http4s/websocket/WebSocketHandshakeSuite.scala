@@ -18,6 +18,8 @@ package org.http4s
 package websocket
 
 import org.http4s.Http4sSuite
+import cats.effect.IO
+import cats.data.EitherT
 
 class WebSocketHandshakeSpec extends Http4sSuite {
 
@@ -29,14 +31,17 @@ class WebSocketHandshakeSpec extends Http4sSuite {
     })
   }
 
-  if (Platform.isJvm) // TODO Not yet implemented for Scala.js
-    test("WebSocketHandshake should Do a round trip") {
-      val client = WebSocketHandshake.clientHandshaker("www.foo.com")
-      val valid = WebSocketHandshake.serverHandshake(client.initHeaders)
-      assert(valid.isRight)
-
-      val Right(headers) = valid
-      assert(client.checkResponse(headers).isRight)
-    }
+  // if (Platform.isJvm) // TODO Not yet implemented for Scala.js
+  test("WebSocketHandshake should Do a round trip") {
+    val client = WebSocketHandshake.clientHandshaker("www.foo.com")
+    assertIOBoolean(
+      EitherT[IO, Any, Seq[(String, String)]](
+        WebSocketHandshake.serverHandshake[IO](client.initHeaders))
+        .flatMap { headers =>
+          EitherT[IO, Any, Unit](client.checkResponse[IO](headers))
+        }
+        .fold((_: Any) => false, _ => true)
+    )
+  }
 
 }
