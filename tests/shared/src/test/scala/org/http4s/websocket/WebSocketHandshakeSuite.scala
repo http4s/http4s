@@ -34,12 +34,12 @@ class WebSocketHandshakeSpec extends Http4sSuite {
   test("WebSocketHandshake should Do a round trip") {
     val client = WebSocketHandshake.clientHandshaker("www.foo.com")
     assertIOBoolean(
-      EitherT[IO, Any, Seq[(String, String)]](
-        WebSocketHandshake.serverHandshake[IO](client.initHeaders))
+      EitherT(WebSocketHandshake.serverHandshake[IO](client.initHeaders)).toOption
         .flatMap { headers =>
-          EitherT[IO, Any, Unit](client.checkResponse[IO](headers))
+          EitherT(client.checkResponse[IO](headers)).toOption
         }
-        .fold((_: Any) => false, _ => true)
+        .value
+        .map(_.isDefined)
     )
   }
 

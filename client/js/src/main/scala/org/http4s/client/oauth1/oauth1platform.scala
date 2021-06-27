@@ -30,6 +30,7 @@ import org.http4s.js.crypto.KeyAlgorithm
 import java.nio.charset.StandardCharsets
 import org.http4s.js.crypto.CryptoKey
 import java.util.Base64
+import org.http4s.js.crypto.BufferSource
 
 private[oauth1] trait oauth1platform {
 
@@ -44,7 +45,7 @@ private[oauth1] trait oauth1platform {
           Async[F].delay {
             subtle.importKey(
               KeyFormat.raw,
-              bytes(key).toTypedArray,
+              bytes(key).toTypedArray.asInstanceOf[BufferSource],
               js.Dynamic.literal(name = "HMAC", hash = "SHA-1").asInstanceOf[KeyAlgorithm],
               false,
               js.Array(KeyUsage.sign)
@@ -55,7 +56,10 @@ private[oauth1] trait oauth1platform {
       sig <- Async[F]
         .fromPromise {
           Async[F].delay {
-            subtle.sign(key.algorithm, key, bytes(baseString).toTypedArray)
+            subtle.sign(
+              key.algorithm,
+              key,
+              bytes(baseString).toTypedArray.asInstanceOf[BufferSource])
           }
         }
         .map(_.asInstanceOf[ArrayBuffer])
