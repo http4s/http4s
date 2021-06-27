@@ -16,10 +16,12 @@
 
 package org.http4s.server.middleware.authentication
 
-import java.security.MessageDigest
-import cats.effect.Async
+import java.security.SecureRandom
+import java.math.BigInteger
 
-private[authentication] trait DigestUtilPlatform { self: DigestUtil.type =>
-  private[authentication] def md5[F[_]: Async](str: String): F[String] =
-    Async[F].pure(bytes2hex(MessageDigest.getInstance("MD5").digest(str.getBytes)))
+private[authentication] trait NoncePlatform {
+  private val random = new SecureRandom()
+
+  private[authentication] def getRandomData(bits: Int): String =
+    new BigInteger(bits, random).toString(16)
 }

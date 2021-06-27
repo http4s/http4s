@@ -19,15 +19,13 @@ package server
 package middleware
 package authentication
 
-import cats.Applicative
 import cats.data.{Kleisli, NonEmptyList}
 import cats.effect.Sync
 import cats.syntax.all._
-import java.math.BigInteger
-import java.security.SecureRandom
 import java.util.Date
 import org.http4s.headers._
 import scala.concurrent.duration._
+import cats.effect.Async
 
 /** Provides Digest Authentication from RFC 2617.
   */
@@ -59,7 +57,7 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
-  def apply[F[_]: Sync, A](
+  def apply[F[_]: Async, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
@@ -75,7 +73,7 @@ object DigestAuth {
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
-      implicit F: Sync[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+      implicit F: Async[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
       def paramsToChallenge(params: Map[String, String]) =
         Either.left(Challenge("Digest", realm, params))
@@ -91,7 +89,7 @@ object DigestAuth {
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
-      req: Request[F])(implicit F: Applicative[F]): F[AuthReply[A]] =
+      req: Request[F])(implicit F: Async[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
@@ -117,7 +115,7 @@ object DigestAuth {
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
       req: Request[F],
-      paramsNel: NonEmptyList[(String, String)])(implicit F: Applicative[F]): F[AuthReply[A]] = {
+      paramsNel: NonEmptyList[(String, String)])(implicit F: Async[F]): F[AuthReply[A]] = {
     val params = paramsNel.toList.toMap
     if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet))
       return F.pure(BadParameters)
@@ -134,22 +132,24 @@ object DigestAuth {
       case NonceKeeper.StaleReply => F.pure(StaleNonce)
       case NonceKeeper.BadNCReply => F.pure(BadNC)
       case NonceKeeper.OKReply =>
-        store(params("username")).map {
-          case None => UserUnknown
+        store(params("username")).flatMap {
+          case None => F.pure(UserUnknown)
           case Some((authInfo, password)) =>
-            val resp = DigestUtil.computeResponse(
-              method,
-              params("username"),
-              realm,
-              password,
-              uri,
-              nonce,
-              nc,
-              params("cnonce"),
-              params("qop"))
-
-            if (resp == params("response")) OK(authInfo)
-            else WrongResponse
+            DigestUtil
+              .computeResponse[F](
+                method,
+                params("username"),
+                realm,
+                password,
+                uri,
+                nonce,
+                nc,
+                params("cnonce"),
+                params("qop"))
+              .map { resp =>
+                if (resp == params("response")) OK(authInfo)
+                else WrongResponse
+              }
         }
     }
   }
@@ -157,10 +157,6 @@ object DigestAuth {
 
 private[authentication] class Nonce(val created: Date, var nc: Int, val data: String)
 
-private[authentication] object Nonce {
-  val random = new SecureRandom()
-
-  private def getRandomData(bits: Int): String = new BigInteger(bits, random).toString(16)
-
+private[authentication] object Nonce extends NoncePlatform {
   def gen(bits: Int): Nonce = new Nonce(new Date(), 0, getRandomData(bits))
 }

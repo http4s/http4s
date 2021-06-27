@@ -14,9 +14,29 @@
  * limitations under the License.
  */
 
-package org.http4s.server.middleware.authentication
+package org.http4s
+package server.middleware.authentication
 
-// TODO
+import cats.effect.Async
+import cats.syntax.all._
+import scala.scalajs.js.typedarray._
+import org.http4s.js.crypto.HashAlgorithm
+import org.http4s.js.crypto.BufferSource
+
 private[authentication] trait DigestUtilPlatform { self: DigestUtil.type =>
-  private[authentication] def md5(str: String): String = ???
+  private[authentication] def md5[F[_]: Async](str: String): F[String] =
+    Async[F]
+      .fromPromise {
+        Async[F].delay {
+          js.webcrypto.subtle.digest(
+            HashAlgorithm.`SHA-1`,
+            str.getBytes().toTypedArray.asInstanceOf[BufferSource])
+        }
+      }
+      .map { case bytes: ArrayBuffer =>
+        val bb = TypedArrayBuffer.wrap(bytes)
+        val byteArray = new Array[Byte](bb.remaining())
+        bb.get(byteArray)
+        bytes2hex(byteArray)
+      }
 }

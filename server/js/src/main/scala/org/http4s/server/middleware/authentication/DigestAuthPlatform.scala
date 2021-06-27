@@ -16,10 +16,17 @@
 
 package org.http4s.server.middleware.authentication
 
-import java.security.MessageDigest
-import cats.effect.Async
+import org.http4s.js.webcrypto.getRandomValues
+import java.math.BigInteger
+import scala.scalajs.js.typedarray._
 
-private[authentication] trait DigestUtilPlatform { self: DigestUtil.type =>
-  private[authentication] def md5[F[_]: Async](str: String): F[String] =
-    Async[F].pure(bytes2hex(MessageDigest.getInstance("MD5").digest(str.getBytes)))
+private[authentication] trait NoncePlatform {
+  private[authentication] def getRandomData(bits: Int): String = {
+    val numBytes = (bits + 7) >> 3
+    val arrayBuffer = new Int8Array(numBytes)
+    getRandomValues(arrayBuffer.asInstanceOf[ArrayBufferView])
+    val bytes = new Array[Byte](numBytes)
+    TypedArrayBuffer.wrap(arrayBuffer).get(bytes)
+    new BigInteger(bytes).toString(16)
+  }
 }

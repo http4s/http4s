@@ -19,6 +19,9 @@ package server
 package middleware
 package authentication
 
+import cats.effect.Async
+import cats.syntax.all._
+
 private[authentication] object DigestUtil extends DigestUtilPlatform {
   private[authentication] def bytes2hex(bytes: Array[Byte]): String =
     bytes.map("%02x".format(_)).mkString
@@ -35,7 +38,7 @@ private[authentication] object DigestUtil extends DigestUtilPlatform {
     * @param qop
     * @return
     */
-  def computeResponse(
+  def computeResponse[F[_]: Async](
       method: String,
       username: String,
       realm: String,
@@ -44,12 +47,14 @@ private[authentication] object DigestUtil extends DigestUtilPlatform {
       nonce: String,
       nc: String,
       cnonce: String,
-      qop: String): String = {
+      qop: String): F[String] = {
     val ha1str = username + ":" + realm + ":" + password
-    val ha1 = md5(ha1str)
-    val ha2str = method + ":" + uri
-    val ha2 = md5(ha2str)
-    val respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
-    md5(respstr)
+    for {
+      ha1 <- md5(ha1str)
+      ha2str = method + ":" + uri
+      ha2 <- md5(ha2str)
+      respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
+      res <- md5(respstr)
+    } yield res
   }
 }

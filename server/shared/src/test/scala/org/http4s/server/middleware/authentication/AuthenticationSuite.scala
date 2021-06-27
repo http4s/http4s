@@ -169,26 +169,29 @@ class AuthenticationSuite extends Http4sSuite {
       val cnonce = "abcdef"
       val nonce = challenge.params("nonce")
 
-      val response =
-        DigestUtil.computeResponse(method, username, realm, password, uri, nonce, nc, cnonce, qop)
-      val params: NonEmptyList[(String, String)] = NonEmptyList.of(
-        "username" -> username,
-        "realm" -> realm,
-        "nonce" -> nonce,
-        "uri" -> uri,
-        "qop" -> qop,
-        "nc" -> nc,
-        "cnonce" -> cnonce,
-        "response" -> response,
-        "method" -> method
-      )
-      val header = Authorization(Credentials.AuthParams(ci"Digest", params))
+      DigestUtil
+        .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
+        .flatMap { response =>
+          val params: NonEmptyList[(String, String)] = NonEmptyList.of(
+            "username" -> username,
+            "realm" -> realm,
+            "nonce" -> nonce,
+            "uri" -> uri,
+            "qop" -> qop,
+            "nc" -> nc,
+            "cnonce" -> cnonce,
+            "response" -> response,
+            "method" -> method
+          )
+          val header = Authorization(Credentials.AuthParams(ci"Digest", params))
 
-      val req2 = Request[IO](uri = uri"/", headers = Headers(header))
-      digest(req2).flatMap { res2 =>
-        if (withReplay) digest(req2).map(res3 => (res2, res3))
-        else IO.pure((res2, null))
-      }
+          val req2 = Request[IO](uri = uri"/", headers = Headers(header))
+          digest(req2).flatMap { res2 =>
+            if (withReplay) digest(req2).map(res3 => (res2, res3))
+            else IO.pure((res2, null))
+          }
+
+        }
     }
 
     test("DigestAuthentication should respond to a request with correct credentials") {
@@ -270,31 +273,33 @@ class AuthenticationSuite extends Http4sSuite {
       val cnonce = "abcdef"
       val nonce = "abcdef"
 
-      val response =
-        DigestUtil.computeResponse(method, username, realm, password, uri, nonce, nc, cnonce, qop)
-      val params = NonEmptyList.of(
-        "username" -> username,
-        "realm" -> realm,
-        "nonce" -> nonce,
-        "uri" -> uri,
-        "qop" -> qop,
-        "nc" -> nc,
-        "cnonce" -> cnonce,
-        "response" -> response,
-        "method" -> method
-      )
+      DigestUtil
+        .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
+        .flatMap { response =>
+          val params = NonEmptyList.of(
+            "username" -> username,
+            "realm" -> realm,
+            "nonce" -> nonce,
+            "uri" -> uri,
+            "qop" -> qop,
+            "nc" -> nc,
+            "cnonce" -> cnonce,
+            "response" -> response,
+            "method" -> method
+          )
 
-      val expected = List.fill(params.size + 1)(Unauthorized)
+          val expected = List.fill(params.size + 1)(Unauthorized)
 
-      val result = (0 to params.size).map { i =>
-        val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
-        val header = Authorization(
-          Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*))
-        val req = Request[IO](uri = uri"/", headers = Headers(header))
-        digestAuthService.orNotFound(req).map(_.status)
-      }
+          val result = (0 to params.size).map { i =>
+            val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
+            val header = Authorization(
+              Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*))
+            val req = Request[IO](uri = uri"/", headers = Headers(header))
+            digestAuthService.orNotFound(req).map(_.status)
+          }
 
-      result.toList.parSequence.assertEquals(expected)
+          result.toList.parSequence.assertEquals(expected)
+        }
     }
   }
 }
