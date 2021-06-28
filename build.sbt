@@ -417,6 +417,16 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
+lazy val fetchClient = libraryProject("fetch-client", CrossType.Pure, List(JSPlatform))
+  .settings(
+    description := "browser fetch client implementation for http4s clients",
+    startYear := Some(2021),
+    libraryDependencies ++= Seq(
+      scalaJsDom.value
+    ),
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
     description := "jetty implementation for http4s clients",

@@ -325,6 +325,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.2"
     val scalaJavaTime = "2.3.0"
+    val scalaJsDom = "1.1.0"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.0"
     val scodecBits = "1.1.27"
@@ -403,6 +404,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalacheckEffectMunit =
     Def.setting("org.typelevel" %%% "scalacheck-effect-munit" % V.scalacheckEffect)
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
+  lazy val scalaJsDom = Def.setting("org.scala-js" %%% "scalajs-dom" % V.scalaJsDom)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
   lazy val scalatagsApi = Def.setting("com.lihaoyi" %%% "scalatags" % V.scalatags)
   lazy val scalaXml = Def.setting("org.scala-lang.modules" %%% "scala-xml" % V.scalaXml)
