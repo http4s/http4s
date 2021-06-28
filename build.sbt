@@ -426,6 +426,7 @@ lazy val fetchClient = libraryProject("fetch-client", CrossType.Pure, List(JSPla
     ),
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .disablePlugins(DoctestPlugin)
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
