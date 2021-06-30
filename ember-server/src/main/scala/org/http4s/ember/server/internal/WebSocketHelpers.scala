@@ -80,7 +80,10 @@ object WebSocketHelpers {
     for {
       response <- wsResponse
       _ <- ServerHelpers.send(socket)(Some(req), response, idleTimeout, onWriteFailure)
-      _ <- if (response.status == Status.SwitchingProtocols) runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout) else F.unit
+      _ <-
+        if (response.status == Status.SwitchingProtocols)
+          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout)
+        else F.unit
     } yield ()
   }
 
