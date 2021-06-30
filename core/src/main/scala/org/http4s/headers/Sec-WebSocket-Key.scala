@@ -18,11 +18,12 @@ package org.http4s
 package headers
 
 import org.typelevel.ci._
-import org.http4s.internal.parsing.Rfc7230
 import java.util.Base64
 import cats.parse.Parser
 import cats.parse.Parser.charIn
 import cats.parse.Rfc5234.{alpha, digit}
+
+import scala.util.Try
 
 final class `Sec-WebSocket-Key`(hashBytes: Array[Byte]) {
   lazy val hashString: String = Base64.getEncoder().encodeToString(hashBytes)
@@ -30,10 +31,8 @@ final class `Sec-WebSocket-Key`(hashBytes: Array[Byte]) {
 
 object `Sec-WebSocket-Key` {
 
-  // TODO: catch errors here
   def parse(s: String): ParseResult[`Sec-WebSocket-Key`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Key header")(s)
-
 
   /* `tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
    *  "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA`
@@ -43,7 +42,9 @@ object `Sec-WebSocket-Key` {
   /* `token = 1*tchar` */
   private[this] val token: Parser[String] = tchar.rep.string
 
-  private[http4s] val parser = token.map(unsafeFromString)
+  private[http4s] val parser = token.mapFilter { t =>
+    Try(unsafeFromString(t)).toOption
+  }
 
   private def unsafeFromString(hash: String): `Sec-WebSocket-Key` = {
     val bytes = Base64.getDecoder().decode(hash)

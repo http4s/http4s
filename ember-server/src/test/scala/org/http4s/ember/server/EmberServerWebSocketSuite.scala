@@ -16,7 +16,6 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
 import fs2.{Stream, Pipe}
 import org.http4s._
@@ -81,7 +80,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
           override def onClose(code: Int, reason: String, remote: Boolean): Unit = 
             waitClose.complete(()).unsafeRunSync()
           override def onMessage(x$1: String): Unit = ()
-          override def onError(x$1: Exception): Unit = 
+          override def onError(ex: Exception): Unit = 
             println(ex)
         }
       } yield Client(waitOpen.get, waitClose.get, client)
