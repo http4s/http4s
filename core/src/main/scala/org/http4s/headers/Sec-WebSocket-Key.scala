@@ -30,6 +30,7 @@ final class `Sec-WebSocket-Key`(hashBytes: Array[Byte]) {
 
 object `Sec-WebSocket-Key` {
 
+  // TODO: catch errors here
   def parse(s: String): ParseResult[`Sec-WebSocket-Key`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Key header")(s)
 
