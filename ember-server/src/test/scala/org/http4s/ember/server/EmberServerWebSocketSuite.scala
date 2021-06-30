@@ -34,7 +34,7 @@ import fs2.concurrent.Queue
 
 class EmberServerWebSocketSuite extends Http4sSuite {
 
-  def service[F[_]](implicit F: Async[F], timer: Timer[F]): HttpApp[F] = {
+  def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -46,7 +46,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
           // TODO: need to handle close, ping by the server
           val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
             case WebSocketFrame.Text(text, _) => Stream(WebSocketFrame.Text(text))
-            case other => Stream(WebSocketFrame.Text("unknown"))
+            case _ => Stream(WebSocketFrame.Text("unknown"))
           }
           WebSocketBuilder[F].build(sendReceive)
       }
@@ -92,7 +92,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
         override def onMessage(msg: String): Unit =
           queue.enqueue1(msg).unsafeRunSync()
         override def onError(ex: Exception): Unit = {
-          val fa = waitOpen.complete(Some(ex)).attempt >> waitClose.complete(Some(ex)).attempt
+          val fa = waitOpen.complete(Some(ex)).attempt >> waitClose.complete(Some(ex)).attempt.void
           fa.unsafeRunSync()
         }
       }
