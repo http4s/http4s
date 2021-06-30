@@ -25,6 +25,7 @@ import fs2.Stream
 import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import org.http4s.BuildInfo
 import org.http4s.blaze.client.bits.DefaultUserAgent
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.LeafBuilder
@@ -192,7 +193,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Insert a User-Agent header".flaky) {
+  test("Insert a User-Agent header") {
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     getSubmission(FooRequest, resp, DefaultUserAgent).map { case (request, response) =>
