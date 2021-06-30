@@ -77,10 +77,11 @@ object WebSocketHelpers {
         Response[F](error.status).withEntity(error.message).pure[F]
     }
 
-    wsResponse
-      .flatMap { res =>
-        ServerHelpers.send(socket)(Some(req), res, idleTimeout, onWriteFailure).void
-      } >> runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout)
+    for {
+      response <- wsResponse
+      _ <- ServerHelpers.send(socket)(Some(req), response, idleTimeout, onWriteFailure)
+      _ <- if (response.status == Status.SwitchingProtocols) runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout) else F.unit
+    } yield ()
   }
 
   private def runConnection[F[_]](

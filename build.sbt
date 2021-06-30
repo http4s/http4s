@@ -255,6 +255,7 @@ lazy val emberServer = libraryProject("ember-server")
       log4catsSlf4j, 
       javaWebSocket % Test
     ),
+    Test / parallelExecution := false
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
 

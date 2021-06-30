@@ -16,6 +16,7 @@
 
 package org.http4s.ember.server
 
+import cats.syntax.all._
 import cats.effect._
 import fs2.{Stream, Pipe}
 import org.http4s._

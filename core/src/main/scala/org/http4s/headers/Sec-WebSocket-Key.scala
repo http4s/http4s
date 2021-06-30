@@ -34,12 +34,8 @@ object `Sec-WebSocket-Key` {
   def parse(s: String): ParseResult[`Sec-WebSocket-Key`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Key header")(s)
 
-  /* `tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
-   *  "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA`
-   */
-  private[this] val tchar: Parser[Char] = charIn("=").orElse(digit).orElse(alpha)
+  private[this] val tchar: Parser[Char] = charIn("=+/").orElse(digit).orElse(alpha)
 
-  /* `token = 1*tchar` */
   private[this] val token: Parser[String] = tchar.rep.string
 
   private[http4s] val parser = token.mapFilter { t =>

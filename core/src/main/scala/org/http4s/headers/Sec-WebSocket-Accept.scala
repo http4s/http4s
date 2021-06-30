@@ -34,12 +34,8 @@ object `Sec-WebSocket-Accept` {
   def parse(s: String): ParseResult[`Sec-WebSocket-Accept`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
 
-  /* `tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
-   *  "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA`
-   */
   private[this] val tchar: Parser[Char] = charIn("=").orElse(digit).orElse(alpha)
 
-  /* `token = 1*tchar` */
   private[this] val token: Parser[String] = tchar.rep.string
 
   private[http4s] val parser = token.mapFilter { t =>
