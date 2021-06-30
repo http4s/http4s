@@ -22,11 +22,12 @@ import java.util.Base64
 import cats.parse.Parser
 import cats.parse.Parser.charIn
 import cats.parse.Rfc5234.{alpha, digit}
+import scodec.bits.ByteVector
 
 import scala.util.Try
 
-final class `Sec-WebSocket-Accept`(hashBytes: Array[Byte]) {
-  lazy val hashString: String = Base64.getEncoder().encodeToString(hashBytes)
+final class `Sec-WebSocket-Accept`(hashBytes: ByteVector) {
+  lazy val hashString: String = Base64.getEncoder().encodeToString(hashBytes.toArray)
 }
 
 object `Sec-WebSocket-Accept` {
@@ -44,7 +45,7 @@ object `Sec-WebSocket-Accept` {
 
   private def unsafeFromString(hash: String): `Sec-WebSocket-Accept` = {
     val bytes = Base64.getDecoder().decode(hash)
-    new `Sec-WebSocket-Accept`(bytes)
+    new `Sec-WebSocket-Accept`(ByteVector(bytes))
   }
 
   implicit val headerInstance: Header[`Sec-WebSocket-Accept`, Header.Single] =

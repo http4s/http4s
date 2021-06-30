@@ -27,17 +27,16 @@ import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
 import org.http4s.headers._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.durationToFinite
+import org.http4s.headers.Connection
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.{Rfc6455, WebSocketCombinedPipe, WebSocketFrame, WebSocketSeparatePipe}
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 import scala.concurrent.duration.Duration
 import java.security.MessageDigest
 import java.nio.charset.StandardCharsets
-import org.http4s.headers.Connection
-import org.http4s.websocket.WebSocketFrame
 import java.nio.ByteBuffer
-import org.http4s.websocket.WebSocketCombinedPipe
-import org.http4s.websocket.WebSocketSeparatePipe
-import org.http4s.websocket.Rfc6455
 
 object WebSocketHelpers {
 
@@ -72,7 +71,6 @@ object WebSocketHelpers {
             Response[F](Status.InternalServerError).withEntity(
               "Encountered an error during WebSocket handshake."))
       case Left(error) =>
-        println(error)
         // TODO: insert the appropriate headers
         Response[F](error.status).withEntity(error.message).pure[F]
     }
@@ -119,10 +117,10 @@ object WebSocketHelpers {
           .attempt
           .flatMap {
             case Left(err) =>
+              // TODO: report this elsewhere
               err.printStackTrace()
               F.unit
             case Right(_) =>
-              println("Connection ended")
               F.unit
           }
       case WebSocketSeparatePipe(send, receive, onClose) =>
@@ -143,10 +141,10 @@ object WebSocketHelpers {
           .attempt
           .flatMap {
             case Left(err) =>
+              // TODO: report this elsewehere
               err.printStackTrace()
               F.unit
             case Right(_) =>
-              println("Connection ended")
               F.unit
           }
     }
@@ -226,12 +224,13 @@ object WebSocketHelpers {
     (connection, upgrade, version, key).mapN { case (_, _, _, key) => key }
   }
 
-  private def serverHandshake[F[_]](value: String)(implicit F: Sync[F]): F[Array[Byte]] = F.delay {
+  private def serverHandshake[F[_]](value: String)(implicit F: Sync[F]): F[ByteVector] = F.delay {
     val crypt = MessageDigest.getInstance("SHA-1")
     crypt.reset()
     crypt.update(value.getBytes(StandardCharsets.US_ASCII))
     crypt.update(Rfc6455.handshakeMagicBytes)
-    crypt.digest()
+    val bytes = crypt.digest()
+    ByteVector(bytes)
   }
 
   private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
