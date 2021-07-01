@@ -429,7 +429,7 @@ lazy val fetchClient = libraryProject("fetch-client", CrossType.Pure, List(JSPla
     description := "browser fetch client implementation for http4s clients",
     startYear := Some(2021),
     libraryDependencies ++= Seq(
-      scalaJsDom.value,
+      scalaJsDom.value.cross(CrossVersion.for3Use2_13),
       // Using specs2 for now pending https://github.com/scalameta/munit/pull/376
       specs2.value.cross(CrossVersion.for3Use2_13) % Test,
       catsEffectTestingSpecs2.value % Test
