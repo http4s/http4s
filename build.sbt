@@ -20,11 +20,11 @@ ThisBuild / githubWorkflowBuildPreamble ++=
       UseRef.Public("actions", "setup-node", "v2.1.5"),
       name = Some("Setup NodeJS v16"),
       params = Map("node-version" -> "16"),
-      cond = Some("matrix.ci == 'ciJS'")),
+      cond = Some("matrix.ci == 'ciNodeJS'")),
     WorkflowStep.Run(
       List("./scripts/scaffold_server.js &"),
       name = Some("Start scaffold server"),
-      cond = Some("matrix.ci == 'ciJS'"))
+      cond = Some("matrix.ci == 'ciFirefox'"))
   )
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
@@ -51,13 +51,12 @@ ThisBuild / githubWorkflowBuild := Seq(
     cond = Some("matrix.ci == 'ciJVM'"))
 )
 
-// Re-enable Firefox pending https://github.com/scalameta/munit/pull/376
-val ciVariants = List("ciJVM", "ciJS" /*, "ciFirefox"*/ )
+val ciVariants = List("ciJVM", "ciNodeJS", "ciFirefox")
 ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 
 val ScalaJSJava = "adopt@1.8"
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  Seq("ciJS" /*, "ciFirefox"*/ ).flatMap { ci =>
+  Seq("ciNodeJS", "ciFirefox").flatMap { ci =>
     val javaFilters =
       (ThisBuild / githubWorkflowJavaVersions).value.filterNot(Set(ScalaJSJava)).map { java =>
         MatrixExclude(Map("ci" -> ci, "java" -> java))
@@ -98,8 +97,8 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   ))
 
 addCommandAlias("ciJVM", "; project rootJVM")
-addCommandAlias("ciJS", "; project rootJS")
-addCommandAlias("ciFirefox", "; set Global / useFirefoxEnv := true; project rootJS")
+addCommandAlias("ciNodeJS", "; project rootNodeJS")
+addCommandAlias("ciFirefox", "; set Global / useFirefoxEnv := true; project rootFirefox")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -171,6 +170,15 @@ lazy val rootJVM = project
 lazy val rootJS = project
   .enablePlugins(NoPublishPlugin)
   .aggregate(jsModules: _*)
+
+lazy val rootNodeJS = project
+  .enablePlugins(NoPublishPlugin)
+  .aggregate(jsModules.filter(_ != fetchClient.js): _*)
+
+lazy val rootFirefox = project
+  .enablePlugins(NoPublishPlugin)
+  // TODO More projects here once https://github.com/scalameta/munit/pull/376
+  .aggregate(fetchClient.js)
 
 lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatform))
   .enablePlugins(
@@ -433,12 +441,7 @@ lazy val fetchClient = libraryProject("fetch-client", CrossType.Pure, List(JSPla
       // Using specs2 for now pending https://github.com/scalameta/munit/pull/376
       specs2.value.cross(CrossVersion.for3Use2_13) % Test,
       catsEffectTestingSpecs2.value % Test
-    ),
-    Test / jsEnv := {
-      val options = new FirefoxOptions()
-      options.addArguments("-headless")
-      new SeleniumJSEnv(options)
-    }
+    )
   )
   .dependsOn(core, client, theDsl % Test)
 
