@@ -14,12 +14,18 @@ ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
-ThisBuild / githubWorkflowBuildPreamble +=
-  WorkflowStep.Use(
-    UseRef.Public("actions", "setup-node", "v2.1.5"),
-    name = Some("Setup NodeJS v16"),
-    params = Map("node-version" -> "16"),
-    cond = Some("matrix.ci == 'ciJS'"))
+ThisBuild / githubWorkflowBuildPreamble ++=
+  Seq(
+    WorkflowStep.Use(
+      UseRef.Public("actions", "setup-node", "v2.1.5"),
+      name = Some("Setup NodeJS v16"),
+      params = Map("node-version" -> "16"),
+      cond = Some("matrix.ci == 'ciJS'")),
+    WorkflowStep.Run(
+      List("./scripts/scaffold_server.js &"),
+      name = Some("Start scaffold server"),
+      cond = Some("matrix.ci == 'ciJS'"))
+  )
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
@@ -423,10 +429,18 @@ lazy val fetchClient = libraryProject("fetch-client", CrossType.Pure, List(JSPla
     description := "browser fetch client implementation for http4s clients",
     startYear := Some(2021),
     libraryDependencies ++= Seq(
-      scalaJsDom.value
+      scalaJsDom.value,
+      // Using specs2 for now pending https://github.com/scalameta/munit/pull/376
+      specs2.value.cross(CrossVersion.for3Use2_13) % Test,
+      catsEffectTestingSpecs2.value % Test
     ),
+    Test / jsEnv := {
+      val options = new FirefoxOptions()
+      options.addArguments("-headless")
+      new SeleniumJSEnv(options)
+    }
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(core, client, theDsl % Test)
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(

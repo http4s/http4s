@@ -296,6 +296,7 @@ object Http4sPlugin extends AutoPlugin {
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
     val catsEffect = "3.1.1"
+    val catsEffectTestingSpecs2 = "1.1.1"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
     val cryptobits = "1.3"
@@ -331,6 +332,7 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.27"
     val servlet = "3.1.0"
     val slf4j = "1.7.31"
+    val specs2 = "4.12.2"
     val tomcat = "9.0.46"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
@@ -348,6 +350,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffect = Def.setting("org.typelevel" %%% "cats-effect" % V.catsEffect)
   lazy val catsEffectStd = Def.setting("org.typelevel" %%% "cats-effect-std" % V.catsEffect)
   lazy val catsEffectLaws = Def.setting("org.typelevel" %%% "cats-effect-laws" % V.catsEffect)
+  lazy val catsEffectTestingSpecs2 =
+    Def.setting("org.typelevel" %%% "cats-effect-testing-specs2" % V.catsEffectTestingSpecs2)
   lazy val catsEffectTestkit = Def.setting("org.typelevel" %%% "cats-effect-testkit" % V.catsEffect)
   lazy val catsLaws = Def.setting("org.typelevel" %%% "cats-laws" % V.cats)
   lazy val catsParse = Def.setting("org.typelevel" %%% "cats-parse" % V.catsParse)
@@ -410,6 +414,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaXml = Def.setting("org.scala-lang.modules" %%% "scala-xml" % V.scalaXml)
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
+  lazy val specs2 = Def.setting("org.specs2" %%% "specs2-core" % V.specs2)
   lazy val tomcatCatalina = "org.apache.tomcat" % "tomcat-catalina" % V.tomcat
   lazy val tomcatCoyote = "org.apache.tomcat" % "tomcat-coyote" % V.tomcat
   lazy val tomcatUtilScan = "org.apache.tomcat" % "tomcat-util-scan" % V.tomcat

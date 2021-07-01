@@ -65,6 +65,10 @@ jobs:
         with:
           node-version: 16
 
+      - name: Start scaffold server
+        if: matrix.ci == 'ciJS'
+        run: ./scripts/scaffold_server.js &
+
       - name: Check that workflows are up to date
         run: sbt --client '++${{ matrix.scala }}; githubWorkflowCheck'
 
