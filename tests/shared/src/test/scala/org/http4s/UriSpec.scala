@@ -1092,8 +1092,15 @@ class UriSpec extends Http4sSuite {
       forAll(pathGen) { (input: String) =>
         val prefix = "/this/isa/prefix/"
         val processed = Uri.removeDotSegments(Uri.Path.unsafeFromString(input)).renderString
-        val path = Paths.get(prefix, processed).normalize
-        assert(path.startsWith(Paths.get(prefix)))
+        try {
+          val path = Paths.get(prefix, processed).normalize
+          assert(path.startsWith(Paths.get(prefix)))
+        } catch {
+          case ex: UnsupportedOperationException
+              if ex.getMessage == "Path.normalize() is only supported in Node.js" =>
+          // Ignore
+          // TODO Would be nice to check for Node.js via Platform but this seems tricky in practice
+        }
         assert(!processed.contains("./"))
         assert(!processed.contains("../"))
       }
