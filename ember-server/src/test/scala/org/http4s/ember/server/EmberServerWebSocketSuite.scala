@@ -48,12 +48,14 @@ class EmberServerWebSocketSuite extends Http4sSuite {
         case GET -> Root =>
           Ok("Hello!")
         case GET -> Root / "ws-echo" =>
-          // TODO: need to handle close, ping by the server
           val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
             case WebSocketFrame.Text(text, _) => Stream(WebSocketFrame.Text(text))
             case _ => Stream(WebSocketFrame.Text("unknown"))
           }
           WebSocketBuilder[F].build(sendReceive)
+        case GET -> Root / "ws-close" =>
+          val send = Stream(WebSocketFrame.Text("foo"))
+          WebSocketBuilder[F].build(send, _.void)
       }
       .orNotFound
   }
@@ -71,6 +73,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
       waitClose: Deferred[IO, Option[Throwable]],
       messages: Queue[IO, String],
       pongs: Queue[IO, String],
+      remoteClosed: Deferred[IO, Unit],
       client: WebSocketClient) {
     def connect: IO[Unit] =
       IO(client.connect()) >> waitOpen.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
@@ -90,6 +93,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
       waitClose <- Deferred[IO, Option[Throwable]]
       queue <- Queue.unbounded[IO, String]
       pongQueue <- Queue.unbounded[IO, String]
+      remoteClosed <- Deferred[IO, Unit]
       client = new WebSocketClient(target) {
         override def onOpen(handshakedata: ServerHandshake): Unit = {
           val fa = waitOpen.complete(None)
@@ -108,11 +112,15 @@ class EmberServerWebSocketSuite extends Http4sSuite {
           fa.unsafeRunSync()
         }
         override def onWebsocketPong(conn: WebSocket, f: Framedata): Unit =
-          pongQueue.enqueue1(new String(f.getPayloadData().array(), StandardCharsets.UTF_8)).unsafeRunSync()
+          pongQueue
+            .enqueue1(new String(f.getPayloadData().array(), StandardCharsets.UTF_8))
+            .unsafeRunSync()
+        override def onClosing(code: Int, reason: String, remote: Boolean): Unit =
+          remoteClosed.complete(()).unsafeRunSync()
       }
-    } yield Client(waitOpen, waitClose, queue, pongQueue, client)
+    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, client)
 
-  fixture.test("can open and close connection to server") { server =>
+  fixture.test("open and close connection to server") { server =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
@@ -121,7 +129,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
     } yield ()
   }
 
-  fixture.test("can send and receive a message") { server =>
+  fixture.test("send and receive a message") { server =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
@@ -132,7 +140,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
     } yield assertEquals(msg, "foo")
   }
 
-  fixture.test("can respond to pings") { server =>
+  fixture.test("respond to pings") { server =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
@@ -141,5 +149,15 @@ class EmberServerWebSocketSuite extends Http4sSuite {
       data <- client.pongs.dequeue1
       _ <- client.close
     } yield assertEquals(data, "hello")
+  }
+
+  fixture.test("initiate close sequence on stream termination") { server =>
+    for {
+      client <- createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"))
+      _ <- client.connect
+      _ <- client.messages.dequeue1
+      _ <- client.remoteClosed.get
+    } yield ()
   }
 }

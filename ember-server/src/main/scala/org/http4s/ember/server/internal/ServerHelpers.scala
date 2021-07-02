@@ -248,8 +248,6 @@ private[server] object ServerHelpers {
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
                 // TODO: Should we pay this cost for every HTTP request?
-                // TODO: there will likely be many upgrade paths here eventually
-
                 // Intercept the response for various upgrade paths
                 resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
                   case Some(ctx) =>
