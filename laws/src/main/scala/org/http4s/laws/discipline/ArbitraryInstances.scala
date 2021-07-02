@@ -27,7 +27,6 @@ import cats.effect.std.Dispatcher
 import cats.instances.order._
 import cats.syntax.all._
 import com.comcast.ip4s
-import com.comcast.ip4s.Arbitraries._
 import fs2.{Pure, Stream}
 
 import java.nio.charset.{Charset => NioCharset}
@@ -47,7 +46,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-private[http4s] trait ArbitraryInstances {
+private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
@@ -643,13 +642,13 @@ private[http4s] trait ArbitraryInstances {
     oneOf(g, const(ev.empty))
 
   implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] =
-    Arbitrary(ip4s.Arbitraries.ipv4Generator.map(Uri.Ipv4Address.apply))
+    Arbitrary(ipv4Generator.map(Uri.Ipv4Address.apply))
 
   implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
     Cogen[Array[Byte]].contramap(_.address.toBytes)
 
   implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] =
-    Arbitrary(ip4s.Arbitraries.ipv6Generator.map(Uri.Ipv6Address.apply))
+    Arbitrary(ipv6Generator.map(Uri.Ipv6Address.apply))
 
   implicit val http4sTestingCogenForIpv6Address: Cogen[Uri.Ipv6Address] =
     Cogen[Array[Byte]].contramap(_.address.toBytes)

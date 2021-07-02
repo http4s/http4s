@@ -98,7 +98,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 addCommandAlias("ciJVM", "; project rootJVM")
 addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
-addCommandAlias("ciFirefox", "; set Global / useFirefoxEnv := true; project rootFirefox")
+addCommandAlias(
+  "ciFirefox",
+  "; set parallelExecution := false; set Global / useFirefoxEnv := true; project rootFirefox")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -177,8 +179,16 @@ lazy val rootNodeJS = project
 
 lazy val rootFirefox = project
   .enablePlugins(NoPublishPlugin)
-  // TODO More projects here once https://github.com/scalameta/munit/pull/376
-  .aggregate(fetchClient.js)
+  .aggregate(
+    core.js,
+    laws.js,
+    testing.js,
+    tests.js,
+    client.js,
+    theDsl.js,
+    boopickle.js,
+    circe.js,
+    fetchClient.js)
 
 lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatform))
   .enablePlugins(
@@ -235,7 +245,6 @@ lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatf
       catsEffectTestkit.value,
       catsLaws.value,
       disciplineCore.value,
-      ip4sTestKit.value,
       scalacheck.value,
       scalacheckEffectMunit.value,
       munitCatsEffect.value
@@ -253,6 +262,7 @@ lazy val testing = libraryProject("testing", CrossType.Full, List(JVMPlatform, J
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       catsEffectLaws.value,
+      munit.value,
       munitCatsEffect.value,
       munitDiscipline.value,
       scalacheck.value,
@@ -269,7 +279,6 @@ lazy val tests = libraryProject("tests", CrossType.Full, List(JVMPlatform, JSPla
     description := "Tests for core project",
     startYear := Some(2013)
   )
-  .jsSettings(scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
@@ -308,9 +317,9 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
 lazy val client = libraryProject("client", CrossType.Full, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Base library for building http4s clients",
-    startYear := Some(2014)
+    startYear := Some(2014),
+    libraryDependencies += munit.value % Test
   )
-  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
@@ -438,12 +447,10 @@ lazy val fetchClient = libraryProject("fetch-client", CrossType.Pure, List(JSPla
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       scalaJsDom.value.cross(CrossVersion.for3Use2_13),
-      // Using specs2 for now pending https://github.com/scalameta/munit/pull/376
-      specs2.value.cross(CrossVersion.for3Use2_13) % Test,
-      catsEffectTestingSpecs2.value % Test
+      munit.value % Test
     )
   )
-  .dependsOn(core, client, theDsl % Test)
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -510,9 +517,9 @@ lazy val tomcatServer = libraryProject("tomcat-server")
 lazy val theDsl = libraryProject("dsl", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Simple DSL for writing http4s services",
-    startYear := Some(2013)
+    startYear := Some(2013),
+    libraryDependencies += munit.value % Test
   )
-  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
@@ -532,12 +539,12 @@ lazy val boopickle = libraryProject("boopickle", CrossType.Pure, List(JVMPlatfor
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.value.cross(CrossVersion.for3Use2_13)
+      Http4sPlugin.boopickle.value.cross(CrossVersion.for3Use2_13),
+      munit.value % Test
     ),
     compile / skip := isDotty.value,
     publish / skip := isDotty.value
   )
-  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
@@ -547,13 +554,13 @@ lazy val circe = libraryProject("circe", CrossType.Full, List(JVMPlatform, JSPla
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
-      circeTesting.value % Test
+      circeTesting.value % Test,
+      munit.value % Test
     )
   )
   .jvmSettings(libraryDependencies += circeJawn.value)
   .jsSettings(
-    libraryDependencies += circeParser.value,
-    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+    libraryDependencies += circeParser.value
   )
   .dependsOn(core, testing % "test->test")
   .jvmConfigure(_.dependsOn(jawn.jvm % "compile;test->test"))
