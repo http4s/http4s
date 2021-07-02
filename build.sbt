@@ -97,7 +97,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   ))
 
 addCommandAlias("ciJVM", "; project rootJVM")
-addCommandAlias("ciNodeJS", "; project rootNodeJS")
+addCommandAlias("ciNodeJS", "; set Test / parallelExecution := false; project rootNodeJS")
 addCommandAlias("ciFirefox", "; set Global / useFirefoxEnv := true; project rootFirefox")
 
 enablePlugins(SonatypeCiReleasePlugin)
