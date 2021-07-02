@@ -97,7 +97,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   ))
 
 addCommandAlias("ciJVM", "; project rootJVM")
-addCommandAlias("ciNodeJS", "; set Test / parallelExecution := false; project rootNodeJS")
+addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
 addCommandAlias("ciFirefox", "; set Global / useFirefoxEnv := true; project rootFirefox")
 
 enablePlugins(SonatypeCiReleasePlugin)
@@ -173,7 +173,7 @@ lazy val rootJS = project
 
 lazy val rootNodeJS = project
   .enablePlugins(NoPublishPlugin)
-  .aggregate(jsModules.filter(_ != fetchClient.js): _*)
+  .aggregate(jsModules.filter(_ != (fetchClient.js: ProjectReference)): _*)
 
 lazy val rootFirefox = project
   .enablePlugins(NoPublishPlugin)
