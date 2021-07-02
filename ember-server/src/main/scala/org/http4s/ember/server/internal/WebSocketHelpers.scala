@@ -37,6 +37,7 @@ import scala.concurrent.duration.Duration
 import java.security.MessageDigest
 import java.nio.charset.StandardCharsets
 import java.nio.ByteBuffer
+import org.typelevel.log4cats.Logger
 
 object WebSocketHelpers {
 
@@ -55,7 +56,9 @@ object WebSocketHelpers {
       buffer: Array[Byte],
       receiveBufferSize: Int,
       idleTimeout: Duration,
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit])(implicit
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      errorHandler: Throwable => F[Response[F]],
+      logger: Logger[F])(implicit
       F: Concurrent[F]): F[Unit] = {
     val wsResponse = clientHandshake(req) match {
       case Right(key) =>
@@ -67,22 +70,24 @@ object WebSocketHelpers {
             Response[F](Status.SwitchingProtocols)
               .withHeaders(headers)
           }
-          .handleError(_ =>
-            Response[F](Status.InternalServerError).withEntity(
-              "Encountered an error during WebSocket handshake."))
+          .handleErrorWith(errorHandler)
       case Left(error) =>
         // TODO: insert the appropriate headers
         Response[F](error.status).withEntity(error.message).pure[F]
     }
-
-    for {
+    
+    val handler = for {
       response <- wsResponse
       _ <- ServerHelpers.send(socket)(Some(req), response, idleTimeout, onWriteFailure)
       _ <-
         if (response.status == Status.SwitchingProtocols)
-          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout)
+          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout, logger)
         else F.unit
     } yield ()
+
+    handler.handleErrorWith { e =>
+      logger.error(e)("WebSocket connection terminated with exception")
+    }
   }
 
   private def runConnection[F[_]](
@@ -90,7 +95,8 @@ object WebSocketHelpers {
       ctx: WebSocketContext[F],
       buffer: Array[Byte],
       receiveBufferSize: Int,
-      idleTimeout: Duration)(implicit F: Concurrent[F]): F[Unit] = {
+      idleTimeout: Duration,
+      logger: Logger[F])(implicit F: Concurrent[F]): F[Unit] = {
     val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     val write = socket.writes(durationToFinite(idleTimeout))
     val frameTranscoder = new FrameTranscoder(false)
@@ -99,12 +105,12 @@ object WebSocketHelpers {
 
     // TODO: make sure error semantics are correct and that resources are properly cleaned up
     // TODO: consider write/read failures and effect on outer connection
-    // TODO: there is some shared code here with ServerHelpers
+    // TODO: handle control frames (close. ping, pong). interrupt on close frame?
     ctx.webSocket match {
       case WebSocketCombinedPipe(receiveSend, onClose) =>
-        // TODO: deduplicate both pipe paths
         val readWrite = incoming
           .through(decodeFrames(frameTranscoder))
+          .through(handleFrame(write, frameTranscoder))
           .through(receiveSend)
           .through(encodeFrames(frameTranscoder))
           .through(write)
@@ -114,15 +120,6 @@ object WebSocketHelpers {
           .drain
           .compile
           .drain
-          .attempt
-          .flatMap {
-            case Left(err) =>
-              // TODO: report this elsewhere
-              err.printStackTrace()
-              F.unit
-            case Right(_) =>
-              F.unit
-          }
       case WebSocketSeparatePipe(send, receive, onClose) =>
         val writer = send
           .through(encodeFrames(frameTranscoder))
@@ -130,6 +127,7 @@ object WebSocketHelpers {
 
         val reader = incoming
           .through(decodeFrames(frameTranscoder))
+          .through(handleFrame(write, frameTranscoder))
           .through(receive)
 
         reader
@@ -138,16 +136,18 @@ object WebSocketHelpers {
           .drain
           .compile
           .drain
-          .attempt
-          .flatMap {
-            case Left(err) =>
-              // TODO: report this elsewehere
-              err.printStackTrace()
-              F.unit
-            case Right(_) =>
-              F.unit
-          }
     }
+  }
+
+  private def handleFrame[F[_]](write: Pipe[F, Byte, Unit], frameTranscoder: FrameTranscoder)(implicit F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
+    def writeFrame(frame: WebSocketFrame): F[Unit] =
+      Stream(frame).covary[F].through(encodeFrames(frameTranscoder)).through(write).compile.drain
+
+    stream =>
+      stream.evalMapFilter[F, WebSocketFrame] { 
+        case WebSocketFrame.Ping(data) => writeFrame(WebSocketFrame.Pong(data)).as(None)
+        case x => F.pure(Some(x))
+      }
   }
 
   private def encodeFrames[F[_]](frameTranscoder: FrameTranscoder): Pipe[F, WebSocketFrame, Byte] =
@@ -173,26 +173,19 @@ object WebSocketHelpers {
           val buffer = acc ++ chunk.toArray[Byte]
           val byteBuffer = ByteBuffer.wrap(buffer)
           Pull
-            .attemptEval(F.delay(frameTranscoder.bufferToFrame(byteBuffer)))
-            .flatMap {
-              case Right(value) =>
-                // TODO: improve this buffering
-                if (value != null) {
-                  val remaining = new Array[Byte](byteBuffer.remaining())
-                  byteBuffer.get(remaining)
-                  Pull.output1(value) >> go(next, remaining)
-                } else {
-                  go(next, buffer)
-                }
-              case Left(err) =>
-                // TODO: figure out what to do here
-                println(err)
-                Pull.done
+            .eval(F.delay(frameTranscoder.bufferToFrame(byteBuffer)))
+            .flatMap { value =>
+              // TODO: improve this buffering
+              if (value != null) {
+                val remaining = new Array[Byte](byteBuffer.remaining())
+                byteBuffer.get(remaining)
+                Pull.output1(value) >> go(next, remaining)
+              } else {
+                go(next, buffer)
+              }
             }
         case None =>
-          // TODO: figure out what to do here
-          println("done")
-          Pull.done
+          Pull.raiseError(EndOfStreamError())
       }
 
     go(stream, Array.emptyByteArray).void.stream
@@ -214,8 +207,7 @@ object WebSocketHelpers {
       case Some(header) => Left(UnsupportedVersion(supportedWebSocketVersion, header.version))
       case None => Left(VersionNotFound)
     }
-
-    // TODO: this can throw, handle somwehere on the outside
+    
     val key = req.headers.get[`Sec-WebSocket-Key`] match {
       case Some(header) => Right(header.value)
       case None => Left(KeyNotFound)
@@ -253,4 +245,7 @@ object WebSocketHelpers {
         "Upgrade required for WebSocket communication.")
   case object KeyNotFound
       extends ClientHandshakeError(Status.BadRequest, "Sec-WebSocket-Key header not present.")
+
+
+  final case class EndOfStreamError() extends Exception("Reached End Of Stream")
 }

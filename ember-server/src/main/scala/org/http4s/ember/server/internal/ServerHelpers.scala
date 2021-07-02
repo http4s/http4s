@@ -82,7 +82,7 @@ private[server] object ServerHelpers {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
-        shutdown.trackConnection >>
+        val handler = shutdown.trackConnection >>
           Stream
             .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt, logger)))
             .flatMap(
@@ -97,6 +97,10 @@ private[server] object ServerHelpers {
                 errorHandler,
                 onWriteFailure
               ))
+
+        handler.handleErrorWith { t =>
+          Stream.eval(logger.error(t)("Request handler failed with exception")).drain
+        }
       }
 
     StreamForking.forking(streams, maxConcurrency)
@@ -241,7 +245,6 @@ private[server] object ServerHelpers {
                 requestVault)
             }
 
-            // TODO: fix the order of error handling?
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
                 // TODO: Should we pay this cost for every HTTP request?
@@ -260,7 +263,9 @@ private[server] object ServerHelpers {
                             buffer,
                             receiveBufferSize,
                             idleTimeout,
-                            onWriteFailure)
+                            onWriteFailure,
+                            errorHandler,
+                            logger)
                           .as(None)
                       case None =>
                         Concurrent[F].pure(None)
