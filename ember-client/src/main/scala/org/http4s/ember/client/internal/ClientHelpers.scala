@@ -73,14 +73,14 @@ private[client] object ClientHelpers {
             )
           } { tlsContext =>
             tlsContext
-              .client(
-                initSocket,
-                TLSParameters(
+              .clientBuilder(initSocket)
+                .withParameters(TLSParameters(
                   serverNames = extractHostname(address.host).map(List(_)),
                   endpointIdentificationAlgorithm =
                     if (enableEndpointValidation) Some("HTTPS") else None)
-              )
-              .widen[Socket[F]]
+                )
+                .build
+                .widen[Socket[F]]
           }
         else initSocket.pure[Resource[F, *]]
       }
