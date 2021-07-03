@@ -74,28 +74,28 @@ jobs:
         run: ./scripts/scaffold_server.js &
 
       - name: Check that workflows are up to date
-        run: sbt --client '++${{ matrix.scala }}; githubWorkflowCheck'
+        run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
         if: matrix.scala != '3.0.0'
-        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; scalafmtCheckAll'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll
 
       - name: Check headers
-        run: 'sbt --client ''++${{ matrix.scala }}; ${{ matrix.ci }}; headerCheck; test:headerCheck'''
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' headerCheck test:headerCheck'
 
       - name: Compile
-        run: 'sbt --client ''++${{ matrix.scala }}; ${{ matrix.ci }}; test:compile'''
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
 
       - name: Check binary compatibility
         if: matrix.ci == 'ciJVM'
-        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; mimaReportBinaryIssues'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
 
       - name: Run tests
-        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; test'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' test
 
       - name: Build docs
         if: matrix.ci == 'ciJVM'
-        run: sbt --client '++${{ matrix.scala }}; ${{ matrix.ci }}; doc'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' doc
 
   publish:
     name: Publish Artifacts
@@ -135,10 +135,10 @@ jobs:
 
       - run: git status
 
-      - run: sbt --client '++${{ matrix.scala }}; +publish'
+      - run: sbt ++${{ matrix.scala }} +publish
 
       - if: startsWith(github.ref, 'refs/tags/v')
-        run: sbt --client '++${{ matrix.scala }}; sonatypeBundleRelease'
+        run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
       - name: Setup Hugo
         run: |
@@ -187,7 +187,7 @@ jobs:
 
       
       - name: Build website
-        run: sbt --client '++${{ matrix.scala }}; website/makeSite'
+        run: sbt ++${{ matrix.scala }} website/makeSite
 
   docs:
     name: Build docs
@@ -216,7 +216,7 @@ jobs:
 
       
       - name: Build docs
-        run: sbt --client '++${{ matrix.scala }}; docs/makeSite'
+        run: sbt ++${{ matrix.scala }} docs/makeSite
 
   scalafix:
     name: Scalafix

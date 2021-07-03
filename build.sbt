@@ -14,6 +14,7 @@ ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
+ThisBuild / githubWorkflowUseSbtThinClient := false
 ThisBuild / githubWorkflowBuildPreamble ++=
   Seq(
     WorkflowStep.Use(
