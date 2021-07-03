@@ -816,28 +816,6 @@ def http4sProject(
       testFrameworks += new TestFramework("munit.Framework"),
       initCommands()
     )
-    // Workaround pending https://github.com/portable-scala/sbt-crossproject/pull/132
-    .settings(if (crossType == CrossType.Full)
-      Seq(
-        Compile / unmanagedSourceDirectories += {
-          baseDirectory.value.getParentFile / s"shared/src/main/scala-${if (isDotty.value) "3"
-          else "2"}"
-        },
-        Test / unmanagedSourceDirectories += {
-          baseDirectory.value.getParentFile / s"shared/test/main/scala-${if (isDotty.value) "3"
-          else "2"}"
-        }
-      )
-    else Seq.empty)
-    .settings( // Workaround for https://github.com/portable-scala/sbt-crossproject/issues/74
-      Seq(Compile, Test).flatMap(inConfig(_) {
-        unmanagedResourceDirectories ++= {
-          unmanagedSourceDirectories.value
-            .map(src => (src / ".." / "resources").getCanonicalFile)
-            .filterNot(unmanagedResourceDirectories.value.contains)
-            .distinct
-        }
-      }))
     .enablePlugins(Http4sPlugin)
 
 def libraryProject(
