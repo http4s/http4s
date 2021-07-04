@@ -15,7 +15,7 @@ val http = HttpRoutes.of {
 ```scala
 // for scala 2.x
 val http4sVersionReleased = "0.21.24"
-for scala 3
+// for scala 3
 val http4sVersionScala3Compat = "0.23.0-RC1"
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-core" % http4sVersionReleased,
