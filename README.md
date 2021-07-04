@@ -13,7 +13,7 @@ val http = HttpRoutes.of {
 ## Install
 
 ```scala
-for scala 2.x
+// for scala 2.x
 val http4sVersionReleased = "0.21.24"
 for scala 3
 val http4sVersionScala3Compat = "0.23.0-RC1"
@@ -60,4 +60,3 @@ This software is licensed under the Apache 2 license, quoted below.
 [![YourKit](https://www.yourkit.com/images/yklogo.png)](https://www.yourkit.com/)
 
 Special thanks to [YourKit](https://www.yourkit.com/) for supporting this project's ongoing performance tuning efforts with licenses to their excellent product.
-
