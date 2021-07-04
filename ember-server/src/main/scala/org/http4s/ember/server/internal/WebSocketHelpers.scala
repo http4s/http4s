@@ -28,7 +28,6 @@ import org.http4s.headers._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.durationToFinite
 import org.http4s.headers.Connection
-import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.{Rfc6455, WebSocketCombinedPipe, WebSocketFrame, WebSocketSeparatePipe}
 import org.typelevel.ci._
 import scodec.bits.ByteVector
@@ -81,7 +80,7 @@ object WebSocketHelpers {
       _ <- ServerHelpers.send(socket)(Some(req), response, idleTimeout, onWriteFailure)
       _ <-
         if (response.status == Status.SwitchingProtocols)
-          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout, logger)
+          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout)
         else F.unit
     } yield ()
 
@@ -95,8 +94,7 @@ object WebSocketHelpers {
       ctx: WebSocketContext[F],
       buffer: Array[Byte],
       receiveBufferSize: Int,
-      idleTimeout: Duration,
-      logger: Logger[F])(implicit F: Concurrent[F]): F[Unit] = {
+      idleTimeout: Duration)(implicit F: Concurrent[F]): F[Unit] = {
     val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
     val write = socket.writes(durationToFinite(idleTimeout))
     val frameTranscoder = new FrameTranscoder(false)
