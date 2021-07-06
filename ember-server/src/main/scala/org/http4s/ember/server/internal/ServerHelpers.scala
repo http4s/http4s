@@ -121,7 +121,10 @@ private[server] object ServerHelpers {
   ): Resource[F, Socket[F]] =
     tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
       context
-        .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
+        .serverBuilder(socketInit)
+        .withParameters(params)
+        .withLogging(s => logger.trace(s))
+        .build
         .widen[Socket[F]]
     }
 
