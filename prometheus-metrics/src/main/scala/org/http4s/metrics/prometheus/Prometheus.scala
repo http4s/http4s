@@ -19,6 +19,7 @@ package org.http4s.metrics.prometheus
 import cats.data.NonEmptyList
 import cats.effect.{Resource, Sync}
 import cats.syntax.apply._
+import cats.syntax.flatMap._
 import io.prometheus.client._
 import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
@@ -36,6 +37,11 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
   *
   * val meteredRoutes: Resource[IO, HttpRoutes[IO]] =
   *   Prometheus.metricsOps[IO](registry, "server").map(ops => Metrics[IO](ops)(testRoutes))
+  *
+  * val settings: PrometheusMetricsSettings = PrometheusMetricsSettings.DefaultSettings
+  *
+  * val anotherMeteredRoutes: Resource[IO, HttpRoutes[IO]] =
+  *   Prometheus.metricsOps[IO](registry, settings).map(ops => Metrics[IO](ops)(testRoutes))
   * }}}
   *
   * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.middleware.Metrics]]
@@ -46,11 +52,17 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
   * import org.http4s.metrics.Prometheus
   *
   * val classifierFunc = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+  *
   * val meteredClient: Resource[IO, Client[IO]] =
   *   Prometheus.metricsOps[IO](registry, "client").map(ops => Metrics[IO](ops, classifierFunc)(client))
+  *
+  * val settings: PrometheusMetricsSettings = PrometheusMetricsSettings.DefaultSettings
+  *
+  * val anotherMeteredClient: Resource[IO, Client[IO]] =
+  *   Prometheus.metricsOps[IO](registry, settings).map(ops => Metrics[IO](ops, classifierFunc)(client))
   * }}}
   *
-  * Registers the following metrics:
+  * Registers the following metrics with default names:
   *
   * {prefix}_response_duration_seconds{labels=classifier,method,phase} - Histogram
   *
@@ -59,6 +71,12 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
   * {prefix}_request_count{labels=classifier,method,status} - Counter
   *
   * {prefix}_abnormal_terminations{labels=classifier,termination_type} - Histogram
+  *
+  * Also, you can specify a metrics suffix too with a [[org.http4s.metrics.prometheus.PrometheusMetricsNames]]:
+  *
+  * {prefix}_{suffix}{labels=classifier,method,phase} - Histogram
+  *
+  * Or you can specify fully custom names of the metrics with a [[org.http4s.metrics.prometheus.PrometheusMetricsNames]]:
   *
   * Labels --
   *
@@ -78,18 +96,45 @@ object Prometheus {
   def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
     Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
 
-  /** Creates a  [[MetricsOps]] that supports Prometheus metrics
-    * *
-    * * @param registry a metrics collector registry
-    * * @param prefix a prefix that will be added to all metrics
+  /** Creates a [[MetricsOps]] that supports Prometheus metrics
+    *
+    * @param registry a metrics collector registry
+    * @param prefix a prefix that will be added to all metrics
+    * @param metricsNames names of the metrics that will be used as a suffix for the metrics
     */
   def metricsOps[F[_]: Sync](
       registry: CollectorRegistry,
       prefix: String = "org_http4s_server",
-      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] =
+        PrometheusMetricsSettings.DefaultHistogramBuckets,
+      metricsNames: PrometheusMetricsNames = PrometheusMetricsNames.DefaultMetricsNames
   ): Resource[F, MetricsOps[F]] =
     for {
-      metrics <- createMetricsCollection(registry, prefix, responseDurationSecondsHistogramBuckets)
+      metrics <- createMetricsCollection(
+        registry = registry,
+        prefix = Option(prefix),
+        responseDurationSecondsHistogramBuckets = responseDurationSecondsHistogramBuckets,
+        metricsNames = metricsNames
+      )
+    } yield createMetricsOps(metrics)
+
+  /** Creates a [[MetricsOps]] that supports Prometheus metrics with custom settings
+    *
+    * @param registry a metrics collector registry
+    * @param settings a Prometheus metrics settings
+    */
+  def metricsOps[F[_]: Sync](
+      registry: CollectorRegistry,
+      settings: PrometheusMetricsSettings
+  ): Resource[F, MetricsOps[F]] =
+    for {
+      metrics <- createMetricsCollection(
+        registry = registry,
+        prefix = Option.empty[String],
+        responseDurationSecondsHistogramBuckets =
+          settings.responseDurationSecondsHistogramBuckets.toNonEmptyList,
+        metricsNames = settings.metricsNames
+      )
     } yield createMetricsOps(metrics)
 
   private def createMetricsOps[F[_]](
@@ -221,49 +266,66 @@ object Prometheus {
 
   private def createMetricsCollection[F[_]: Sync](
       registry: CollectorRegistry,
-      prefix: String,
-      responseDurationSecondsHistogramBuckets: NonEmptyList[Double]
+      prefix: Option[String],
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double],
+      metricsNames: PrometheusMetricsNames
   ): Resource[F, MetricsCollection] = {
-    val responseDuration: Resource[F, Histogram] = registerCollector(
-      Histogram
-        .build()
-        .buckets(responseDurationSecondsHistogramBuckets.toList: _*)
-        .name(prefix + "_" + "response_duration_seconds")
-        .help("Response Duration in seconds.")
-        .labelNames("classifier", "method", "phase")
-        .create(),
-      registry
-    )
+    val metricsNamesWithPrefix = prefix match {
+      case None =>
+        Resource.pure[F, PrometheusMetricsNames](metricsNames)
 
-    val activeRequests: Resource[F, Gauge] = registerCollector(
-      Gauge
-        .build()
-        .name(prefix + "_" + "active_request_count")
-        .help("Total Active Requests.")
-        .labelNames("classifier")
-        .create(),
-      registry
-    )
+      case Some(prefix) =>
+        Resource.eval(Sync[F].fromEither(metricsNames.withPrefix(prefix)))
+    }
 
-    val requests: Resource[F, Counter] = registerCollector(
-      Counter
-        .build()
-        .name(prefix + "_" + "request_count")
-        .help("Total Requests.")
-        .labelNames("classifier", "method", "status")
-        .create(),
-      registry
-    )
+    val responseDuration: Resource[F, Histogram] =
+      metricsNamesWithPrefix.map(_.responseDuration) >>= (responseDuration =>
+        registerCollector(
+          Histogram
+            .build()
+            .buckets(responseDurationSecondsHistogramBuckets.toList: _*)
+            .name(responseDuration)
+            .help("Response Duration in seconds.")
+            .labelNames("classifier", "method", "phase")
+            .create(),
+          registry
+        ))
 
-    val abnormalTerminations: Resource[F, Histogram] = registerCollector(
-      Histogram
-        .build()
-        .name(prefix + "_" + "abnormal_terminations")
-        .help("Total Abnormal Terminations.")
-        .labelNames("classifier", "termination_type", "cause")
-        .create(),
-      registry
-    )
+    val activeRequests: Resource[F, Gauge] =
+      metricsNamesWithPrefix.map(_.activeRequests) >>= (activeRequests =>
+        registerCollector(
+          Gauge
+            .build()
+            .name(activeRequests)
+            .help("Total Active Requests.")
+            .labelNames("classifier")
+            .create(),
+          registry
+        ))
+
+    val requests: Resource[F, Counter] =
+      metricsNamesWithPrefix.map(_.requests) >>= (requests =>
+        registerCollector(
+          Counter
+            .build()
+            .name(requests)
+            .help("Total Requests.")
+            .labelNames("classifier", "method", "status")
+            .create(),
+          registry
+        ))
+
+    val abnormalTerminations: Resource[F, Histogram] =
+      metricsNamesWithPrefix.map(_.abnormalTerminations) >>= (abnormalTerminations =>
+        registerCollector(
+          Histogram
+            .build()
+            .name(abnormalTerminations)
+            .help("Total Abnormal Terminations.")
+            .labelNames("classifier", "termination_type", "cause")
+            .create(),
+          registry
+        ))
 
     (responseDuration, activeRequests, requests, abnormalTerminations).mapN(MetricsCollection.apply)
   }
@@ -273,10 +335,6 @@ object Prometheus {
       registry: CollectorRegistry
   )(implicit F: Sync[F]): Resource[F, C] =
     Resource.make(F.delay(collector.register[C](registry)))(c => F.delay(registry.unregister(c)))
-
-  // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
-  private val DefaultHistogramBuckets: NonEmptyList[Double] =
-    NonEmptyList(.005, List(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10))
 }
 
 final case class MetricsCollection(

@@ -223,6 +223,36 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   } yield router
 ```
 
+Also, there is an ability to register metrics with fully custom names.
+As well it might be useful if you want to place the whole metrics' names in config. 
+For example:
+
+```scala mdoc:silent
+import cats.effect.{IO,Resource}
+import org.http4s.HttpRoutes
+import org.http4s.metrics.prometheus.{Prometheus,PrometheusMetricsNames,PrometheusMetricsSettings}
+import org.http4s.server.Router
+import org.http4s.server.middleware.Metrics
+import io.prometheus.client.CollectorRegistry
+```
+```scala mdoc:nest
+def meteredHttpRoutes(collectorRegistry: CollectorRegistry): Resource[IO, HttpRoutes[IO]] =
+  for {
+    metricsNames <- Resource.eval(IO.fromEither(
+      PrometheusMetricsNames(
+        responseDuration = "server_api_v1_response_latency_seconds",
+        activeRequests = "server_api_v1_active_request_total",
+        requests = "server_api_v1_request_total",
+        abnormalTerminations = "server_api_v1_failed_requests"
+      )
+    ))
+    settings = PrometheusMetricsSettings.DefaultSettings.withMetricsNames(metricsNames)
+    metricsOps <- Prometheus.metricsOps[IO](collectorRegistry, settings)
+    routes = Metrics[IO](metricsOps)(apiService)
+    router = Router[IO]("/api/v1" -> routes)
+  } yield router
+```
+
 ### X-Request-ID Middleware
 
 Use the `RequestId` middleware to automatically generate a `X-Request-ID` header to a request,
