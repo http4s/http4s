@@ -298,7 +298,7 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.12.3"
     val jawn = "1.1.2"
     val jawnFs2 = "2.0.2"
-    val jetty = "9.4.41.v20210516"
+    val jetty = "9.4.43.v20210629"
     val keypool = "0.4.6"
     val literally = "1.0.2"
     val logback = "1.2.3"
