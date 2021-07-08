@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s
-package server
+package org.http4s.websocket
 
-import cats.effect._
-import org.http4s.websocket.WebSocketContext
-import org.typelevel.vault.Key
+import java.nio.charset.StandardCharsets
 
-package object websocket {
-  private[this] object Keys {
-    val WebSocket: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
-  }
-
-  def websocketKey[F[_]]: Key[WebSocketContext[F]] =
-    Keys.WebSocket.asInstanceOf[Key[WebSocketContext[F]]]
+// https://datatracker.ietf.org/doc/html/rfc6455
+private[http4s] object Rfc6455 {
+  val handshakeMagic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+  val handshakeMagicBytes = handshakeMagic.getBytes(StandardCharsets.US_ASCII)
 }

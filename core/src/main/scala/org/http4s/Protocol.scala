@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  */
 
 package org.http4s
-package server
 
-import cats.effect._
-import org.http4s.websocket.WebSocketContext
-import org.typelevel.vault.Key
+import org.typelevel.ci.CIString
+import cats.kernel.Eq
 
-package object websocket {
-  private[this] object Keys {
-    val WebSocket: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
-  }
+final case class Protocol(name: CIString, version: Option[CIString]) {
+  override def toString(): String = name.toString + version.map(v => "/" + v.toString).getOrElse("")
+}
 
-  def websocketKey[F[_]]: Key[WebSocketContext[F]] =
-    Keys.WebSocket.asInstanceOf[Key[WebSocketContext[F]]]
+object Protocol {
+  implicit val catsEqInstance: Eq[Protocol] = Eq.fromUniversalEquals
 }

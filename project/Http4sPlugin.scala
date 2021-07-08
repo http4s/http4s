@@ -299,6 +299,7 @@ object Http4sPlugin extends AutoPlugin {
     val dropwizardMetrics = "4.2.0"
     val fs2 = "2.5.6"
     val ip4s = "2.0.3"
+    val javaWebSocket = "1.5.1"
     val jawn = "1.1.2"
     val jawnFs2 = "1.1.3"
     val jetty = "9.4.41.v20210516"
@@ -357,6 +358,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
+  lazy val javaWebSocket                    = "org.java-websocket"     %  "Java-WebSocket"            % V.javaWebSocket
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
