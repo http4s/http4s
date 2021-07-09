@@ -188,6 +188,7 @@ lazy val rootFirefox = project
     client.js,
     theDsl.js,
     boopickle.js,
+    jawn.js,
     circe.js,
     fetchClient.js)
 
@@ -524,7 +525,7 @@ lazy val theDsl = libraryProject("dsl", CrossType.Pure, List(JVMPlatform, JSPlat
   .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
-lazy val jawn = libraryProject("jawn")
+lazy val jawn = libraryProject("jawn", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
     startYear := Some(2014),
