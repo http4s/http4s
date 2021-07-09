@@ -73,23 +73,22 @@ class Http1ClientStageSuite extends Http4sSuite {
   private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  private def bracketResponse[T](req: Request[IO], resp: String)(
-      f: Response[IO] => IO[T]): IO[T] = {
-    val stage = mkConnection(FooRequestKey)
-    IO.suspend {
+  private def bracketResponse[T](req: Request[IO], resp: String): Resource[IO, Response[IO]] = {
+    val stageResource = Resource(IO {
+      val stage = mkConnection(FooRequestKey)
       val h = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
         b.put(chr.toByte).flip()
         b
       })
       LeafBuilder(stage).base(h)
+      (stage, IO(stage.shutdown()))
+    })
 
-      for {
-        resp <- stage.runRequest(req, IO.never)
-        t <- f(resp)
-        _ <- IO(stage.shutdown())
-      } yield t
-    }
+    for {
+      stage <- stageResource
+      resp <- Resource.suspend(stage.runRequest(req, IO.never))
+    } yield resp
   }
 
   private def getSubmission(
@@ -114,7 +113,7 @@ class Http1ClientStageSuite extends Http4sSuite {
         .drain).start
       req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
       response <- stage.runRequest(req0, IO.never)
-      result <- response.as[String]
+      result <- response.use(_.as[String])
       _ <- IO(h.stageShutdown())
       buff <- IO.fromFuture(IO(h.result))
       _ <- d.get
@@ -169,9 +168,9 @@ class Http1ClientStageSuite extends Http4sSuite {
     val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)
 
-    tail
-      .runRequest(FooRequest, IO.never)
-      .flatMap(_.body.compile.drain)
+    Resource
+      .suspend(tail.runRequest(FooRequest, IO.never))
+      .use(_.body.compile.drain)
       .intercept[InvalidBodyException]
   }
 
@@ -256,7 +255,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)
 
-    tail.runRequest(headRequest, IO.never).flatMap { response =>
+    Resource.suspend(tail.runRequest(headRequest, IO.never)).use { response =>
       assertEquals(response.contentLength, Some(contentLength))
 
       // body is empty due to it being HEAD request
@@ -276,7 +275,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
     test("Support trailer headers") {
-      val hs: IO[Headers] = bracketResponse(req, resp) { (response: Response[IO]) =>
+      val hs: IO[Headers] = bracketResponse(req, resp).use { (response: Response[IO]) =>
         for {
           _ <- response.as[String]
           hs <- response.trailerHeaders
@@ -287,7 +286,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
 
     test("Fail to get trailers before they are complete") {
-      val hs: IO[Headers] = bracketResponse(req, resp) { (response: Response[IO]) =>
+      val hs: IO[Headers] = bracketResponse(req, resp).use { (response: Response[IO]) =>
         for {
           //body  <- response.as[String]
           hs <- response.trailerHeaders
