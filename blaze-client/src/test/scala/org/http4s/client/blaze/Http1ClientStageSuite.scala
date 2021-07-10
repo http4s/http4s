@@ -67,7 +67,8 @@ class Http1ClientStageSuite extends Http4sSuite {
       maxChunkSize = Int.MaxValue,
       chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
-      userAgent = userAgent
+      userAgent = userAgent,
+      idleTimeoutStage = None
     )
 
   private def mkBuffer(s: String): ByteBuffer =
@@ -87,7 +88,7 @@ class Http1ClientStageSuite extends Http4sSuite {
 
     for {
       stage <- stageResource
-      resp <- Resource.suspend(stage.runRequest(req, IO.never))
+      resp <- Resource.suspend(stage.runRequest(req))
     } yield resp
   }
 
@@ -112,7 +113,7 @@ class Http1ClientStageSuite extends Http4sSuite {
         .compile
         .drain).start
       req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
-      response <- stage.runRequest(req0, IO.never)
+      response <- stage.runRequest(req0)
       result <- response.use(_.as[String])
       _ <- IO(h.stageShutdown())
       buff <- IO.fromFuture(IO(h.result))
@@ -156,9 +157,8 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     (for {
-      done <- Deferred[IO, Unit]
-      _ <- tail.runRequest(FooRequest, done.complete(()) >> IO.never) // we remain in the body
-      _ <- tail.runRequest(FooRequest, IO.never)
+      _ <- tail.runRequest(FooRequest) // we remain in the body
+      _ <- tail.runRequest(FooRequest)
     } yield ()).intercept[Http1Connection.InProgressException.type]
   }
 
@@ -169,7 +169,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     Resource
-      .suspend(tail.runRequest(FooRequest, IO.never))
+      .suspend(tail.runRequest(FooRequest))
       .use(_.body.compile.drain)
       .intercept[InvalidBodyException]
   }
@@ -255,7 +255,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)
 
-    Resource.suspend(tail.runRequest(headRequest, IO.never)).use { response =>
+    Resource.suspend(tail.runRequest(headRequest)).use { response =>
       assertEquals(response.contentLength, Some(contentLength))
 
       // body is empty due to it being HEAD request
@@ -310,7 +310,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     for {
-      _ <- tail.runRequest(FooRequest, IO.never) //the first request succeeds
+      _ <- tail.runRequest(FooRequest) //the first request succeeds
       _ <- IO.sleep(200.millis) // then the server closes the connection
       isClosed <- IO(
         tail.isClosed
