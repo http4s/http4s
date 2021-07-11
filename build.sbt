@@ -24,8 +24,7 @@ ThisBuild / githubWorkflowBuildPreamble ++=
       cond = Some("matrix.ci == 'ciNodeJS'")),
     WorkflowStep.Run(
       List("./scripts/scaffold_server.js &"),
-      name = Some("Start scaffold server"),
-      cond = Some("matrix.ci == 'ciFirefox'"))
+      name = Some("Start scaffold server"))
   )
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
@@ -340,40 +339,39 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     server % "test->compile"
   )
 
-lazy val emberCore = libraryProject("ember-core", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val emberCore = libraryProject("ember-core", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Base library for ember http4s clients and servers",
     startYear := Some(2019),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
+      fs2Io.value,
       log4catsTesting.value % Test
     )
   )
   .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test")
 
-lazy val emberServer = libraryProject("ember-server")
+lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPlatform, JSPlatform))
   .settings(
     description := "ember implementation for http4s servers",
-    startYear := Some(2019),
-    libraryDependencies ++= Seq(
-      log4catsSlf4j.value
-    )
+    startYear := Some(2019)
   )
+  .jvmSettings(libraryDependencies += log4catsSlf4j.value)
+  .jsSettings(libraryDependencies += log4catsNoop.value)
   .dependsOn(
     emberCore % "compile;test->test",
     server % "compile;test->test",
     emberClient % "test->compile")
 
-lazy val emberClient = libraryProject("ember-client")
+lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPlatform, JSPlatform))
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
-    libraryDependencies ++= Seq(
-      keypool.value,
-      log4catsSlf4j.value
-    )
+    libraryDependencies += keypool.value
   )
+  .jvmSettings(libraryDependencies += log4catsSlf4j.value)
+  .jsSettings(libraryDependencies += log4catsNoop.value)
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
 lazy val blazeCore = libraryProject("blaze-core")
@@ -445,7 +443,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
 
 lazy val fetchClient = libraryProject("fetch-client", CrossType.Pure, List(JSPlatform))
   .settings(
-    description := "browser fetch client implementation for http4s clients",
+    description := "browser fetch implementation for http4s clients",
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       scalaJsDom.value.cross(CrossVersion.for3Use2_13),

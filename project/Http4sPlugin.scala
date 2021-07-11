@@ -302,13 +302,13 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.1"
-    val fs2 = "3.0.4"
+    val fs2 = "3.0-22-328a125"
     val ip4s = "3.0.3"
     val jacksonDatabind = "2.12.3"
     val jawn = "1.2.0"
     val jawnFs2 = "2.1.0"
     val jetty = "9.4.41.v20210516"
-    val keypool = "0.4.5"
+    val keypool = "0.4.6"
     val literally = "1.0.2"
     val logback = "1.2.3"
     val log4cats = "2.1.1"
@@ -384,6 +384,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val keypool = Def.setting("org.typelevel" %%% "keypool" % V.keypool)
   lazy val literally = Def.setting("org.typelevel" %%% "literally" % V.literally)
   lazy val log4catsCore = Def.setting("org.typelevel" %%% "log4cats-core" % V.log4cats)
+  lazy val log4catsNoop = Def.setting("org.typelevel" %%% "log4cats-noop" % V.log4cats)
   lazy val log4catsSlf4j = Def.setting("org.typelevel" %%% "log4cats-slf4j" % V.log4cats)
   lazy val log4catsTesting = Def.setting("org.typelevel" %%% "log4cats-testing" % V.log4cats)
   lazy val log4s = Def.setting("org.log4s" %%% "log4s" % V.log4s)

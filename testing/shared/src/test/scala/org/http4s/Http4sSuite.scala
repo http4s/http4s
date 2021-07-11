@@ -22,6 +22,8 @@ import fs2._
 import fs2.text.utf8Decode
 import munit._
 import cats.effect.unsafe.IORuntime
+import cats.effect.Resource
+import cats.effect.kernel.Deferred
 
 /** Common stack for http4s' munit based tests
   */
@@ -59,6 +61,28 @@ trait Http4sSuite
       .compile
       .last
       .map(_.getOrElse(""))
+
+  def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]) =
+    registerSuiteFixture(ResourceSuiteLocalDeferredFixture(name, resource))
+
+  // TODO Pending https://github.com/typelevel/munit-cats-effect/pull/104
+  object ResourceSuiteLocalDeferredFixture {
+
+    def apply[T](name: String, resource: Resource[IO, T]): Fixture[IO[T]] =
+      new Fixture[IO[T]](name) {
+        val value: Deferred[IO, (T, IO[Unit])] = Deferred.unsafe
+
+        def apply(): IO[T] = value.get.map(_._1)
+
+        override def beforeAll(): Unit = {
+          val resourceEffect = resource.allocated.flatMap(value.complete)
+          resourceEffect.unsafeRunAndForget()
+        }
+
+        override def afterAll(): Unit =
+          value.get.flatMap(_._2).unsafeRunAndForget()
+      }
+  }
 
 }
 
