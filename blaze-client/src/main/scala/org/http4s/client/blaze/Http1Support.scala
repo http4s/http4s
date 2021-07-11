@@ -33,10 +33,9 @@ import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.fromFuture
 
-import scala.Right
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /** Provides basic HTTP1 pipeline building
   */
@@ -113,9 +112,8 @@ final private class Http1Support[F[_]](
     ssl.map { sslStage =>
       val builder1 = LeafBuilder(connection)
       val builder2 = idleTimeoutStage.fold(builder1)(builder1.prepend(_))
-      val builder3 = builder2.prepend(new ReadBufferStage[ByteBuffer])
-      val builder4 = sslStage.fold(builder3)(builder3.prepend(_))
-      builder4.base(head)
+      val builder3 = sslStage.fold(builder2)(builder2.prepend(_))
+      builder3.base(head)
 
       connection
     }

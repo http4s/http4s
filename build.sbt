@@ -1,4 +1,4 @@
-import com.typesafe.tools.mima.core.{ProblemFilters, _}
+import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.ScaladocApiMapping
@@ -331,6 +331,7 @@ lazy val blazeClient = libraryProject("blaze-client")
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeClient.makeClient"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.blaze.ReadBufferStage"),
     ),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
