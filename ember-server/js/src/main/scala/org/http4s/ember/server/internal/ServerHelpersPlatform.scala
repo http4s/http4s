@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.server
+package org.http4s.ember.server.internal
 
-import cats.effect.Async
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.noop.NoOpLogger
-import org.http4s.server.Server
-import com.comcast.ip4s.SocketAddress
-import com.comcast.ip4s.IpAddress
+import org.http4s.server.SecureSession
+import fs2.Chunk
+import scodec.bits.ByteVector
 
-private[server] trait EmberServerBuilderCompanionPlatform {
+private[internal] trait ServerHelpersPlatform {
 
-  private[server] def defaultLogger[F[_]: Async]: Logger[F] = NoOpLogger[F]
+  private[internal] def parseSSLSession(session: Chunk[Byte]): Option[SecureSession] =
+    Some(SecureSession(ByteVector(session.toByteBuffer)))
 
-  private[server] def mkServer(bindAddress: SocketAddress[IpAddress], secure: Boolean): Server =
-    new Server {
-      val address = bindAddress
-      val isSecure = secure
-    }
 }

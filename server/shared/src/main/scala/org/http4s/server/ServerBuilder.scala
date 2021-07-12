@@ -78,18 +78,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   final def withoutBanner: Self = withBanner(immutable.Seq.empty)
 }
 
-object ServerBuilder {
-  @deprecated("Use InetAddress.getLoopbackAddress.getHostAddress", "0.20.0-M2")
-  val LoopbackAddress = InetAddress.getLoopbackAddress.getHostAddress
-  @deprecated("Use org.http4s.server.defaults.Host", "0.20.0-M2")
-  val DefaultHost = defaults.Host
-  @deprecated("Use org.http4s.server.defaults.HttpPort", "0.20.0-M2")
-  val DefaultHttpPort = defaults.HttpPort
-  @deprecated("Use org.http4s.server.defaults.SocketAddress", "0.20.0-M2")
-  val DefaultSocketAddress = defaults.SocketAddress
-  @deprecated("Use org.http4s.server.defaults.Banner", "0.20.0-M2")
-  val DefaultBanner = defaults.Banner
-}
+object ServerBuilder extends ServerBuilderCompanionPlatform
 
 object IdleTimeoutSupport {
   @deprecated("Moved to org.http4s.server.defaults.IdleTimeout", "0.20.0-M2")

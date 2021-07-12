@@ -358,7 +358,10 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
     startYear := Some(2019)
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
-  .jsSettings(libraryDependencies += log4catsNoop.value)
+  .jsSettings(
+    libraryDependencies += log4catsNoop.value,
+    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
   .dependsOn(
     emberCore % "compile;test->test",
     server % "compile;test->test",

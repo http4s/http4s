@@ -20,7 +20,6 @@ import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
 import cats.effect.SyncIO
-import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.log4s.getLogger
 import org.typelevel.ci._
@@ -29,7 +28,7 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 package object server {
-  object defaults {
+  object defaults extends defaultsplatform {
     val Banner =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___
@@ -37,30 +36,7 @@ package object server {
          | |_||_\__|\__| .__/ |_|/__/
          |             |_|""".stripMargin.split("\n").toList
 
-    val IPv4Host: String =
-      InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
-    val IPv6Host: String =
-      InetAddress
-        .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
-        .getHostAddress
-
-    @deprecated(
-      message =
-        "Please use IPv4Host or IPv6Host. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
-      since = "0.21.23")
-    val Host = InetAddress.getLoopbackAddress.getHostAddress
     val HttpPort = 8080
-
-    val IPv4SocketAddress: InetSocketAddress =
-      InetSocketAddress.createUnresolved(IPv4Host, HttpPort)
-    val IPv6SocketAddress: InetSocketAddress =
-      InetSocketAddress.createUnresolved(IPv6Host, HttpPort)
-
-    @deprecated(
-      message =
-        "Please use IPv4SocketAddress or IPv6SocketAddress. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
-      since = "0.21.23")
-    val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
     def AsyncTimeout: Duration = ResponseTimeout

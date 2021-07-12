@@ -175,8 +175,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
             Resource.eval(managed.canBeReused.set(Reusable.DontReuse)) >>
               getValidManaged(pool, request)
           } else
-            Resource.eval(Sync[F].raiseError(
-              new java.net.SocketException("Fresh connection from pool was not open")))
+            Resource.eval(
+              Sync[F].raiseError(new SocketException("Fresh connection from pool was not open")))
         )
     }
 }

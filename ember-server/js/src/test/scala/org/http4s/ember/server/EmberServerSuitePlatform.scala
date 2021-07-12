@@ -16,20 +16,15 @@
 
 package org.http4s.ember.server
 
-import cats.effect.Async
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.noop.NoOpLogger
-import org.http4s.server.Server
 import com.comcast.ip4s.SocketAddress
-import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Host
 
-private[server] trait EmberServerBuilderCompanionPlatform {
+trait EmberServerSuitePlatform {
 
-  private[server] def defaultLogger[F[_]: Async]: Logger[F] = NoOpLogger[F]
+  type BindException = scala.scalajs.js.JavaScriptException
+  type ConnectException = scala.scalajs.js.JavaScriptException
 
-  private[server] def mkServer(bindAddress: SocketAddress[IpAddress], secure: Boolean): Server =
-    new Server {
-      val address = bindAddress
-      val isSecure = secure
-    }
+  def url(address: SocketAddress[Host], path: String = ""): String =
+    s"http://${address.host}:${address.port.value}/$path"
+
 }

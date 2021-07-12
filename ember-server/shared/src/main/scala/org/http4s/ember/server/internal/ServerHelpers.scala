@@ -26,20 +26,24 @@ import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s._
-import org.http4s.ember.core.Util.{timeoutMaybe, timeoutToMaybe}
-import org.http4s.ember.core.{Drain, EmptyStreamError, Encoder, Parser, Read}
-import org.http4s.headers.{Connection, Date}
-import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
-import org.http4s.server.{SecureSession, ServerRequestKeys}
+import org.http4s.ember.core.Drain
+import org.http4s.ember.core.EmptyStreamError
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
+import org.http4s.ember.core.Read
+import org.http4s.ember.core.Util.timeoutMaybe
+import org.http4s.ember.core.Util.timeoutToMaybe
+import org.http4s.headers.Connection
+import org.http4s.headers.Date
+import org.http4s.server.ServerRequestKeys
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
 
-import scala.concurrent.duration._
-import scodec.bits.ByteVector
 import java.util.Locale
+import scala.concurrent.duration._
 
-private[server] object ServerHelpers {
+private[server] object ServerHelpers extends ServerHelpersPlatform {
 
   private[this] val closeCi = ci"close"
   private[this] val keepAliveCi = ci"keep-alive"
@@ -120,7 +124,10 @@ private[server] object ServerHelpers {
   ): Resource[F, Socket[F]] =
     tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
       context
-        .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
+        .serverBuilder(socketInit)
+        .withParameters(params)
+        .withLogger(TLSLogger.Enabled(logger.trace))
+        .build
         .widen[Socket[F]]
     }
 
@@ -288,14 +295,7 @@ private[server] object ServerHelpers {
     socket match {
       case socket: TLSSocket[F] =>
         socket.session
-          .map { session =>
-            (
-              Option(session.getId).map(ByteVector(_).toHex),
-              Option(session.getCipherSuite),
-              Option(session.getCipherSuite).map(deduceKeyLength),
-              Some(getCertChain(session))
-            ).mapN(SecureSession.apply)
-          }
+          .map(parseSSLSession)
           .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
       case _ =>
         Vault.empty.pure[F]

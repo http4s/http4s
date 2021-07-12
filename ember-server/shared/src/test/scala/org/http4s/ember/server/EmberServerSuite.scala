@@ -25,9 +25,7 @@ import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 
-import java.net.{BindException, ConnectException}
-
-class EmberServerSuite extends Http4sSuite {
+class EmberServerSuite extends Http4sSuite with EmberServerSuitePlatform {
 
   def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
@@ -63,14 +61,14 @@ class EmberServerSuite extends Http4sSuite {
 
   fixture().test("server responds to requests") { case (server, client) =>
     client
-      .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
+      .get(url(server.address))(_.status.pure[IO])
       .assertEquals(Status.Ok)
   }
 
   client.test("server shuts down after exiting resource scope") { client =>
     serverResource.use(server => IO.pure(server.address)).flatMap { address =>
       client
-        .get(s"http://${address.getHostName}:${address.getPort}")(_.status.pure[IO])
+        .get(url(address))(_.status.pure[IO])
         .intercept[ConnectException]
     }
   }
@@ -91,7 +89,7 @@ class EmberServerSuite extends Http4sSuite {
       val expected = "hello" * 256
 
       val uri = Uri
-        .fromString(s"http://${server.address.getHostName}:${server.address.getPort}/echo")
+        .fromString(url(server.address, "/echo"))
         .toOption
         .get
       val request = POST(body, uri)

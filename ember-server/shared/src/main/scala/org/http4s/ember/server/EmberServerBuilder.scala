@@ -16,19 +16,21 @@
 
 package org.http4s.ember.server
 
+import _root_.org.typelevel.log4cats.Logger
 import cats._
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
 import com.comcast.ip4s._
-import fs2.io.net.{Network, SocketGroup, SocketOption}
+import fs2.io.net.Network
+import fs2.io.net.SocketGroup
+import fs2.io.net.SocketOption
 import fs2.io.net.tls._
 import org.http4s._
+import org.http4s.ember.server.internal.ServerHelpers
+import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
-import java.net.InetSocketAddress
 
 import scala.concurrent.duration._
-import _root_.org.typelevel.log4cats.Logger
-import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
 
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
