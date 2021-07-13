@@ -374,7 +374,10 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
     libraryDependencies += keypool.value
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
-  .jsSettings(libraryDependencies += log4catsNoop.value)
+  .jsSettings(
+    libraryDependencies += log4catsNoop.value,
+    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
 lazy val blazeCore = libraryProject("blaze-core")
