@@ -49,6 +49,7 @@ private[ember] object EmberConnection {
     }
 
   // This implicit conversion only kicks in on JS platform to add this syntax
+  @nowarn("msg=never used")
   private implicit final class SocketOpsJS[F[_]](val socket: Socket[F]) extends AnyVal {
     def endOfInput(implicit F: Monad[F]): F[Unit] = F.unit
   }
