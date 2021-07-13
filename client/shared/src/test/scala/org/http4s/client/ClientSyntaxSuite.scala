@@ -261,7 +261,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test("Client should stream returns a stream") {
     client
       .stream(req)
-      .flatMap(_.body.through(fs2.text.utf8Decode))
+      .flatMap(_.body.through(fs2.text.utf8.decode))
       .compile
       .toVector
       .assertEquals(Vector("hello"))

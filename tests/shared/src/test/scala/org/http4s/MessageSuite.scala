@@ -276,7 +276,7 @@ class MessageSuite extends Http4sSuite {
 
     assertEquals(resp.contentType, Some(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)))
     assertEquals(resp.status, Status.NotFound)
-    assertEquals(resp.body.through(fs2.text.utf8Decode).toList.mkString(""), "Not found")
+    assertEquals(resp.body.through(fs2.text.utf8.decode).toList.mkString(""), "Not found")
   }
 
   // todo compiles on dotty

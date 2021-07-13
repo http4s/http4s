@@ -19,7 +19,7 @@ package org.http4s
 import cats.effect.IO
 import cats.syntax.all._
 import fs2._
-import fs2.text.utf8Decode
+import fs2.text.utf8
 import munit._
 import cats.effect.unsafe.IORuntime
 import cats.effect.Resource
@@ -56,7 +56,7 @@ trait Http4sSuite
       .emit(W.toEntity(a))
       .covary[IO]
       .flatMap(_.body)
-      .through(utf8Decode)
+      .through(utf8.decode)
       .foldMonoid
       .compile
       .last

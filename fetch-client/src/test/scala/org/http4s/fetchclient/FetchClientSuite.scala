@@ -17,19 +17,10 @@
 package org.http4s
 package fetchclient
 
-import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.dsl.io._
 import cats.effect.IO
-import cats.syntax.all._
-import fs2.Stream
-import java.util.Arrays
-import java.util.Locale
-import org.http4s.multipart.Multipart
-import org.http4s.multipart.Part
-import org.http4s.client.testroutes.GetRoutes
-import org.http4s.client.ClientRouteTestBattery
 import cats.effect.Resource
 import org.http4s.client.Client
+import org.http4s.client.ClientRouteTestBattery
 
 class FetchClientSuite extends ClientRouteTestBattery("FetchClient") with Http4sSuite {
   override def clientResource: Resource[IO, Client[IO]] = Resource.pure(FetchClient[IO])

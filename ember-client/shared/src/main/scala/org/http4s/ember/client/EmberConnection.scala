@@ -21,7 +21,9 @@ import cats.effect.{Concurrent, Resource}
 import cats.syntax.all._
 import cats.effect.kernel.Ref
 import fs2.io.net.Socket
+import scala.annotation.nowarn
 
+@nowarn("msg=Unused import")
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
     shutdown: F[Unit],

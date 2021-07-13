@@ -66,7 +66,7 @@ object EmberServerSimpleExample extends IOApp {
             .covary[F]
             .repeat
             .take(100)
-            .through(fs2.text.utf8Encode[F])
+            .through(fs2.text.utf8.encode[F])
           Ok(body).map(_.withContentType(headers.`Content-Type`(MediaType.text.plain)))
       }
       .orNotFound

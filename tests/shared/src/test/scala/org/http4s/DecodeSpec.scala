@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.syntax.all._
 import fs2._
-import fs2.text.utf8Decode
+import fs2.text.utf8
 import org.http4s.internal.decode
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop.{forAll, propBoolean}
@@ -46,7 +46,7 @@ class DecodeSpec extends Http4sSuite {
               .toSeq
           }
           .flatMap(Stream.chunk[Pure, Byte])
-        val utf8Decoded = utf8Decode(source).toList.combineAll
+        val utf8Decoded = utf8.decode(source).toList.combineAll
         val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
         decoded == Right(utf8Decoded)
       }
