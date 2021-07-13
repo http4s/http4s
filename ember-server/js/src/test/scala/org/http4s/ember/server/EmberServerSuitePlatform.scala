@@ -25,6 +25,6 @@ trait EmberServerSuitePlatform {
   type ConnectException = scala.scalajs.js.JavaScriptException
 
   def url(address: SocketAddress[Host], path: String = ""): String =
-    s"http://${address.host}:${address.port.value}/$path"
+    s"http://${address.host}:${address.port.value}$path"
 
 }

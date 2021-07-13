@@ -23,5 +23,5 @@ import cats.effect.Resource
 import org.http4s.client.Client
 
 class EmberClientSuite extends ClientRouteTestBattery("EmberClient") with Http4sSuite {
-  override def clientResource: Resource[IO,Client[IO]] = EmberClientBuilder.default[IO].build
+  override def clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
 }

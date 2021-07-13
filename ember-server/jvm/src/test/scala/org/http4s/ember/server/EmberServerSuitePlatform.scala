@@ -24,6 +24,6 @@ trait EmberServerSuitePlatform {
   type ConnectException = java.net.ConnectException
 
   def url(address: InetSocketAddress, path: String = ""): String =
-    s"http://${address.getHostName}:${address.getPort}/$path"
+    s"http://${address.getHostName}:${address.getPort}$path"
 
 }

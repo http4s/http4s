@@ -27,6 +27,6 @@ private[server] trait defaultsplatform { self: defaults.type =>
     ip4s.SocketAddress.fromString4(s"$IPv4Host:$HttpPort").get
 
   val IPv6SocketAddress: ip4s.SocketAddress[ip4s.Ipv6Address] =
-    ip4s.SocketAddress.fromString6(s"$IPv6Host:$HttpPort").get
+    ip4s.SocketAddress.fromString6(s"[$IPv6Host]:$HttpPort").get
 
 }
