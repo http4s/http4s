@@ -18,7 +18,7 @@ package org.http4s
 package multipart
 
 import fs2.Stream
-import fs2.text.utf8Encode
+import fs2.text.utf8
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
 
@@ -36,7 +36,7 @@ object Part extends PartPlatform {
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Stream.emit(value).through(utf8Encode))
+      Stream.emit(value).through(utf8.encode))
 
   def fileData[F[_]](
       name: String,

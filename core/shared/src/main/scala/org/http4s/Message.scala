@@ -22,7 +22,7 @@ import cats.effect.SyncIO
 import cats.syntax.all._
 import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import fs2.{Pure, Stream}
-import fs2.text.utf8Encode
+import fs2.text.utf8
 import java.io.File
 import org.http4s.headers._
 import org.log4s.getLogger
@@ -638,7 +638,7 @@ object Response {
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
-      body = Stream("Not found").through(utf8Encode),
+      body = Stream("Not found").through(utf8.encode),
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L)

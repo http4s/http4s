@@ -292,7 +292,7 @@ private[http4s] object MultipartParser extends MultipartParserPlatform {
   private def parseHeaders[F[_]: Concurrent](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap { case (l, r) =>
-        l.through(fs2.text.utf8Decode[F])
+        l.through(fs2.text.utf8.decode[F])
           .fold("")(_ ++ _)
           .map { string =>
             val ix = string.indexOf(':')
