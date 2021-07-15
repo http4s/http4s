@@ -360,7 +360,6 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
   .jsSettings(
     libraryDependencies += log4catsNoop.value,
-    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
   .dependsOn(
@@ -377,6 +376,7 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
   .jsSettings(
     libraryDependencies += log4catsNoop.value,
+    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
