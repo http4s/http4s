@@ -19,6 +19,7 @@ package blaze
 package client
 
 import cats.effect._
+
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
@@ -26,13 +27,16 @@ import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.stages.SSLStage
-import org.http4s.blaze.pipeline.{Command, LeafBuilder}
+import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.util.fromFutureNoShift
+import org.http4s.blazecore.IdleTimeoutStage
+
 import org.http4s.client.{ConnectionFailure, RequestKey}
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.SSLContextOption
-import scala.concurrent.duration.Duration
+
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -53,6 +57,7 @@ final private class Http1Support[F[_]](
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
     connectTimeout: Duration,
+    idleTimeout: Duration,
     getAddress: RequestKey => Either[Throwable, InetSocketAddress]
 )(implicit F: ConcurrentEffect[F]) {
   private val connectionManager = new ClientChannelFactory(
@@ -76,12 +81,11 @@ final private class Http1Support[F[_]](
       .connect(addr)
       .transformWith {
         case Success(head) =>
-          buildStages(requestKey) match {
-            case Right((builder, t)) =>
+          buildStages(requestKey, head) match {
+            case Right(connection) =>
               Future.successful {
-                builder.base(head)
                 head.inboundCommand(Command.Connected)
-                t
+                connection
               }
             case Left(e) =>
               Future.failed(new ConnectionFailure(requestKey, addr, e))
@@ -89,9 +93,14 @@ final private class Http1Support[F[_]](
         case Failure(e) => Future.failed(new ConnectionFailure(requestKey, addr, e))
       }(executionContext)
 
-  private def buildStages(requestKey: RequestKey)
-      : Either[IllegalStateException, (LeafBuilder[ByteBuffer], BlazeConnection[F])] = {
-    val t = new Http1Connection(
+  private def buildStages(
+      requestKey: RequestKey,
+      head: HeadStage[ByteBuffer]): Either[IllegalStateException, BlazeConnection[F]] = {
+
+    val idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]] = makeIdleTimeoutStage()
+    val ssl: Either[IllegalStateException, Option[SSLStage]] = makeSslStage(requestKey)
+
+    val connection = new Http1Connection(
       requestKey = requestKey,
       executionContext = executionContext,
       maxResponseLineSize = maxResponseLineSize,
@@ -99,9 +108,29 @@ final private class Http1Support[F[_]](
       maxChunkSize = maxChunkSize,
       chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
-      userAgent = userAgent
+      userAgent = userAgent,
+      idleTimeoutStage = idleTimeoutStage
     )
-    val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
+
+    ssl.map { sslStage =>
+      val builder1 = LeafBuilder(connection)
+      val builder2 = idleTimeoutStage.fold(builder1)(builder1.prepend(_))
+      val builder3 = sslStage.fold(builder2)(builder2.prepend(_))
+      builder3.base(head)
+
+      connection
+    }
+  }
+
+  private def makeIdleTimeoutStage(): Option[IdleTimeoutStage[ByteBuffer]] =
+    idleTimeout match {
+      case d: FiniteDuration =>
+        Some(new IdleTimeoutStage[ByteBuffer](d, scheduler, executionContext))
+      case _ => None
+    }
+
+  private def makeSslStage(
+      requestKey: RequestKey): Either[IllegalStateException, Option[SSLStage]] =
     requestKey match {
       case RequestKey(Uri.Scheme.https, auth) =>
         val maybeSSLContext: Option[SSLContext] =
@@ -118,7 +147,7 @@ final private class Http1Support[F[_]](
               eng.setSSLParameters(sslParams)
             }
 
-            Right((builder.prepend(new SSLStage(eng)), t))
+            Right(Some(new SSLStage(eng)))
 
           case None =>
             Left(new IllegalStateException(
@@ -126,8 +155,6 @@ final private class Http1Support[F[_]](
         }
 
       case _ =>
-        Right((builder, t))
+        Right(None)
     }
-  }
-
 }

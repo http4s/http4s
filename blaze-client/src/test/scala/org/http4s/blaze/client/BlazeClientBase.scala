@@ -80,10 +80,28 @@ trait BlazeClientBase extends Http4sSuite {
           case None => srv.sendError(404)
         }
 
-      override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
-        resp.setStatus(Status.Ok.code)
-        req.getInputStream.close()
-      }
+      override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit =
+        req.getRequestURI match {
+          case "/respond-and-close-immediately" =>
+            // We don't consume the req.getInputStream (the request entity). That means that:
+            // - The client may receive the response before sending the whole request
+            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
+            resp.getOutputStream.print("a")
+            resp.setStatus(Status.Ok.code)
+
+          case "/respond-and-close-immediately-no-body" =>
+            // We don't consume the req.getInputStream (the request entity). That means that:
+            // - The client may receive the response before sending the whole request
+            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
+            resp.setStatus(Status.Ok.code)
+          case "/process-request-entity" =>
+            // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
+            var result: Int = 0
+            while (result != -1)
+              result = req.getInputStream.read()
+            resp.setStatus(Status.Ok.code)
+        }
+
     }
 
   val jettyServer = resourceSuiteFixture("http", JettyScaffold[IO](2, false, testServlet))
