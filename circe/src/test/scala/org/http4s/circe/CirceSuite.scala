@@ -23,6 +23,7 @@ import cats.effect.testkit.TestContext
 import cats.syntax.all._
 import fs2.Stream
 import io.circe._
+import io.circe.jawn.CirceSupportParser
 import io.circe.syntax._
 import io.circe.testing.instances._
 import java.nio.charset.StandardCharsets
@@ -30,11 +31,24 @@ import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
+import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
 import cats.data.EitherT
+import org.typelevel.jawn.ParseException
 
-class CirceSuite extends CirceSuitePlatform with Http4sLawSuite {
+class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()
+
+  val CirceInstancesWithCustomErrors = CirceInstances.builder
+    .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
+    .withJawnParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON jawn"))
+    .withCirceParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON circe"))
+    .withJsonDecodeError { (json, failures) =>
+      val failureStr = failures.mkString_("", ", ", "")
+      InvalidMessageBodyFailure(
+        s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr")
+    }
+    .build
 
   testJsonDecoder(jsonDecoder)
   testJsonDecoderError(CirceInstancesWithCustomErrors.jsonDecoderIncremental)(
@@ -232,6 +246,24 @@ class CirceSuite extends CirceSuitePlatform with Http4sLawSuite {
     result.value.map(_.isRight).assertEquals(true)
   }
 
+  test("stream json array decoder should return stream that fails when run on improper JSON") {
+    (for {
+      stream <- streamJsonArrayDecoder[IO].decode(
+        Media(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+            128),
+          Headers("content-type" -> "application/json")
+        ),
+        true
+      )
+      list <- EitherT(
+        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
+    } yield list).value.attempt
+      .assertEquals(Left(
+        ParseException("expected json value got 'CirceS...' (line 1, column 36)", 35, 1, 36)))
+  }
+
   test("json handle the optionality of asNumber") {
     // From ArgonautSuite, which tests similar things:
     // TODO Urgh.  We need to make testing these smoother.
@@ -325,6 +357,49 @@ class CirceSuite extends CirceSuitePlatform with Http4sLawSuite {
   test("CirceEntityEncDec should encode without defining EntityEncoder using default printer") {
     import org.http4s.circe.CirceEntityEncoder._
     writeToString(foo).assertEquals("""{"bar":42}""")
+  }
+
+  test("should successfully decode when parser allows duplicate keys") {
+    val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
+      .withCirceSupportParser(
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
+      .build
+    val req = Request[IO]()
+      .withEntity("""{"bar": 1, "bar":2}""")
+      .withContentType(`Content-Type`(MediaType.application.json))
+
+    val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
+    val result = decoder.decode(req, true).value
+
+    result
+      .map {
+        case Right(Foo(2)) => true
+        case _ => false
+      }
+      .assertEquals(true)
+  }
+
+  test("should should error out when parser does not allow duplicate keys") {
+    val circeInstanceNotAllowingDuplicateKeys = CirceInstances.builder
+      .withCirceSupportParser(
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false))
+      .build
+    val req = Request[IO]()
+      .withEntity("""{"bar": 1, "bar":2}""")
+      .withContentType(`Content-Type`(MediaType.application.json))
+
+    val decoder = circeInstanceNotAllowingDuplicateKeys.jsonOf[IO, Foo]
+    val result = decoder.decode(req, true).value
+    result
+      .map {
+        case Left(
+              MalformedMessageBodyFailure(
+                "Invalid JSON",
+                Some(ParsingFailure("Invalid json, duplicate key name found: bar", _)))) =>
+          true
+        case _ => false
+      }
+      .assertEquals(true)
   }
 
   test("CirceInstances.builder should handle JSON parsing errors") {

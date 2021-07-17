@@ -22,9 +22,7 @@ ThisBuild / githubWorkflowBuildPreamble ++=
       name = Some("Setup NodeJS v16"),
       params = Map("node-version" -> "16"),
       cond = Some("matrix.ci == 'ciNodeJS'")),
-    WorkflowStep.Run(
-      List("./scripts/scaffold_server.js &"),
-      name = Some("Start scaffold server"))
+    WorkflowStep.Run(List("./scripts/scaffold_server.js &"), name = Some("Start scaffold server"))
   )
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
@@ -36,7 +34,10 @@ ThisBuild / githubWorkflowBuild := Seq(
     List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"),
     name = Some("Check headers")),
   WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
-  WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:fastOptJS"), name = Some("FastOptJS"), cond = Some("matrix.ci != 'ciJVM'")),
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "test:fastOptJS"),
+    name = Some("FastOptJS"),
+    cond = Some("matrix.ci != 'ciJVM'")),
   WorkflowStep.Sbt(
     List("${{ matrix.ci }}", "mimaReportBinaryIssues"),
     name = Some("Check binary compatibility"),
@@ -556,22 +557,18 @@ lazy val boopickle = libraryProject("boopickle", CrossType.Pure, List(JVMPlatfor
   .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
-lazy val circe = libraryProject("circe", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val circe = libraryProject("circe", CrossType.Pure, List(JVMPlatform, JSPlatform))
   .settings(
     description := "Provides Circe codecs for http4s",
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
+      circeJawn.value,
       circeTesting.value % Test,
       munit.value % Test
     )
   )
-  .jvmSettings(libraryDependencies += circeJawn.value)
-  .jsSettings(
-    libraryDependencies += circeParser.value
-  )
-  .dependsOn(core, testing % "test->test")
-  .jvmConfigure(_.dependsOn(jawn.jvm % "compile;test->test"))
+  .dependsOn(core, jawn % "compile;test->test", testing % "test->test")
 
 lazy val playJson = libraryProject("play-json")
   .settings(
