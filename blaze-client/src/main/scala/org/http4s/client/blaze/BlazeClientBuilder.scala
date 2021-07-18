@@ -260,7 +260,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     } yield BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
-      idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
       scheduler = scheduler,
       ec = executionContext
@@ -322,6 +321,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       userAgent = userAgent,
       channelOptions = channelOptions,
       connectTimeout = connectTimeout,
+      idleTimeout = idleTimeout,
       getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
     ).makeClient
     Resource.make(

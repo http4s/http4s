@@ -22,16 +22,18 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
+
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
+
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -46,7 +48,8 @@ private final class Http1Connection[F[_]](
     maxChunkSize: Int,
     override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
-    userAgent: Option[`User-Agent`]
+    userAgent: Option[`User-Agent`],
+    idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]]
 )(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
@@ -112,7 +115,10 @@ private final class Http1Connection[F[_]](
     val state = stageState.get()
     val nextState = state match {
       case ReadWrite => Some(Write)
-      case Read => Some(Idle(Some(startIdleRead())))
+      case Read =>
+        // idleTimeout is activated when entering ReadWrite state, remains active throughout Read and Write and is deactivated when entering the Idle state
+        idleTimeoutStage.foreach(_.cancelTimeout())
+        Some(Idle(Some(startIdleRead())))
       case _ => None
     }
 
@@ -127,7 +133,10 @@ private final class Http1Connection[F[_]](
     val state = stageState.get()
     val nextState = state match {
       case ReadWrite => Some(Read)
-      case Write => Some(Idle(Some(startIdleRead())))
+      case Write =>
+        // idleTimeout is activated when entering ReadWrite state, remains active throughout Read and Write and is deactivated when entering the Idle state
+        idleTimeoutStage.foreach(_.cancelTimeout())
+        Some(Idle(Some(startIdleRead())))
       case _ => None
     }
 
@@ -147,16 +156,16 @@ private final class Http1Connection[F[_]](
     f
   }
 
-  def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Resource[F, Response[F]]] =
+  def runRequest(req: Request[F]): F[Resource[F, Response[F]]] =
     F.defer[Resource[F, Response[F]]] {
       stageState.get match {
         case i @ Idle(idleRead) =>
           if (stageState.compareAndSet(i, ReadWrite)) {
             logger.debug(s"Connection was idle. Running.")
-            executeRequest(req, idleTimeoutF, idleRead)
+            executeRequest(req, idleRead)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
-            runRequest(req, idleTimeoutF)
+            runRequest(req)
           }
         case ReadWrite | Read | Write =>
           logger.error(s"Tried to run a request already in running state.")
@@ -174,7 +183,6 @@ private final class Http1Connection[F[_]](
 
   private def executeRequest(
       req: Request[F],
-      idleTimeoutF: F[TimeoutException],
       idleRead: Option[Future[ByteBuffer]]): F[Resource[F, Response[F]]] = {
     logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
@@ -195,6 +203,11 @@ private final class Http1Connection[F[_]](
           val mustClose: Boolean = H.Connection.from(req.headers) match {
             case Some(conn) => checkCloseConnection(conn, rr)
             case None => getHttpMinor(req) == 0
+          }
+
+          val idleTimeoutF = idleTimeoutStage match {
+            case Some(stage) => F.async[TimeoutException](stage.setTimeout)
+            case None => F.never[TimeoutException]
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
