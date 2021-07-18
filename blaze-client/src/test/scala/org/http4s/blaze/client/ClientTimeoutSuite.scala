@@ -23,14 +23,16 @@ import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
+
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.HeadStage
+import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{QueueTestHead, SeqTestHead, SlowTestHead}
+import org.http4s.blazecore.{IdleTimeoutStage, QueueTestHead, SeqTestHead, SlowTestHead}
 import org.http4s.client.{Client, RequestKey}
 import org.http4s.syntax.all._
+
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
@@ -45,8 +47,13 @@ class ClientTimeoutSuite extends Http4sSuite {
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
-  private def mkConnection(requestKey: RequestKey): Http1Connection[IO] =
-    new Http1Connection(
+  private def mkConnection(
+      requestKey: RequestKey,
+      tickWheel: TickWheelExecutor,
+      idleTimeout: Duration = Duration.Inf): Http1Connection[IO] = {
+    val idleTimeoutStage = makeIdleTimeoutStage(idleTimeout, tickWheel)
+
+    val connection = new Http1Connection[IO](
       requestKey = requestKey,
       executionContext = Http4sSuite.TestExecutionContext,
       maxResponseLineSize = 4 * 1024,
@@ -54,8 +61,23 @@ class ClientTimeoutSuite extends Http4sSuite {
       maxChunkSize = Int.MaxValue,
       chunkBufferMaxSize = 1024 * 1024,
       parserMode = ParserMode.Strict,
-      userAgent = None
+      userAgent = None,
+      idleTimeoutStage = idleTimeoutStage
     )
+
+    val builder = LeafBuilder(connection)
+    idleTimeoutStage.fold(builder)(builder.prepend(_))
+    connection
+  }
+
+  private def makeIdleTimeoutStage(
+      idleTimeout: Duration,
+      tickWheel: TickWheelExecutor): Option[IdleTimeoutStage[ByteBuffer]] =
+    idleTimeout match {
+      case d: FiniteDuration =>
+        Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, Http4sSuite.TestExecutionContext))
+      case _ => None
+    }
 
   private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
@@ -65,13 +87,11 @@ class ClientTimeoutSuite extends Http4sSuite {
       tail: => BlazeConnection[IO],
       tickWheel: TickWheelExecutor)(
       responseHeaderTimeout: Duration = Duration.Inf,
-      idleTimeout: Duration = Duration.Inf,
       requestTimeout: Duration = Duration.Inf): Client[IO] = {
     val manager = MockClientBuilder.manager(head, tail)
     BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
-      idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
       ec = Http4sSuite.TestExecutionContext
@@ -79,15 +99,15 @@ class ClientTimeoutSuite extends Http4sSuite {
   }
 
   tickWheelFixture.test("Idle timeout on slow response") { tickWheel =>
-    val tail = mkConnection(FooRequestKey)
+    val tail = mkConnection(FooRequestKey, tickWheel, idleTimeout = 1.second)
     val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
-    val c = mkClient(h, tail, tickWheel)(idleTimeout = 1.second)
+    val c = mkClient(h, tail, tickWheel)()
 
     c.fetchAs[String](FooRequest).intercept[TimeoutException]
   }
 
   tickWheelFixture.test("Request timeout on slow response") { tickWheel =>
-    val tail = mkConnection(FooRequestKey)
+    val tail = mkConnection(FooRequestKey, tickWheel)
     val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
     val c = mkClient(h, tail, tickWheel)(requestTimeout = 1.second)
 
@@ -104,12 +124,12 @@ class ClientTimeoutSuite extends Http4sSuite {
           .take(4)
           .onFinalizeWeak[IO](d.complete(()).void)
       req = Request(method = Method.POST, uri = www_foo_com, body = body)
-      tail = mkConnection(RequestKey.fromRequest(req))
+      tail = mkConnection(RequestKey.fromRequest(req), tickWheel, idleTimeout = 1.second)
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       h = new QueueTestHead(q)
       (f, b) = resp.splitAt(resp.length - 1)
       _ <- (q.enqueue1(Some(mkBuffer(f))) >> d.get >> q.enqueue1(Some(mkBuffer(b)))).start
-      c = mkClient(h, tail, tickWheel)(idleTimeout = 1.second)
+      c = mkClient(h, tail, tickWheel)()
       s <- c.fetchAs[String](req)
     } yield s).intercept[TimeoutException]
   }
@@ -125,16 +145,16 @@ class ClientTimeoutSuite extends Http4sSuite {
 
     val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-    val tail = mkConnection(RequestKey.fromRequest(req))
+    val tail = mkConnection(RequestKey.fromRequest(req), tickWheel, idleTimeout = 10.second)
     val (f, b) = resp.splitAt(resp.length - 1)
     val h = new SeqTestHead(Seq(f, b).map(mkBuffer))
-    val c = mkClient(h, tail, tickWheel)(idleTimeout = 10.second, requestTimeout = 30.seconds)
+    val c = mkClient(h, tail, tickWheel)(requestTimeout = 30.seconds)
 
     c.fetchAs[String](req).assertEquals("done")
   }
 
   tickWheelFixture.test("Request timeout on slow response body") { tickWheel =>
-    val tail = mkConnection(FooRequestKey)
+    val tail = mkConnection(FooRequestKey, tickWheel, idleTimeout = 10.second)
     val (f, b) = resp.splitAt(resp.length - 1)
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
     val c = mkClient(h, tail, tickWheel)(requestTimeout = 1.second)
@@ -143,20 +163,20 @@ class ClientTimeoutSuite extends Http4sSuite {
   }
 
   tickWheelFixture.test("Idle timeout on slow response body") { tickWheel =>
-    val tail = mkConnection(FooRequestKey)
+    val tail = mkConnection(FooRequestKey, tickWheel, idleTimeout = 500.millis)
     val (f, b) = resp.splitAt(resp.length - 1)
     (for {
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       _ <- q.enqueue1(Some(mkBuffer(f)))
       _ <- (IO.sleep(1500.millis) >> q.enqueue1(Some(mkBuffer(b)))).start
       h = new QueueTestHead(q)
-      c = mkClient(h, tail, tickWheel)(idleTimeout = 500.millis)
+      c = mkClient(h, tail, tickWheel)()
       s <- c.fetchAs[String](FooRequest)
     } yield s).intercept[TimeoutException]
   }
 
   tickWheelFixture.test("Response head timeout on slow header") { tickWheel =>
-    val tail = mkConnection(FooRequestKey)
+    val tail = mkConnection(FooRequestKey, tickWheel)
     (for {
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       _ <- (IO.sleep(10.seconds) >> q.enqueue1(Some(mkBuffer(resp)))).start
@@ -167,7 +187,7 @@ class ClientTimeoutSuite extends Http4sSuite {
   }
 
   tickWheelFixture.test("No Response head timeout on fast header") { tickWheel =>
-    val tail = mkConnection(FooRequestKey)
+    val tail = mkConnection(FooRequestKey, tickWheel)
     val (f, b) = resp.splitAt(resp.indexOf("\r\n\r\n" + 4))
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 125.millis, tickWheel)
     // header is split into two chunks, we wait for 10x
@@ -186,7 +206,6 @@ class ClientTimeoutSuite extends Http4sSuite {
     val c = BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = Duration.Inf,
-      idleTimeout = Duration.Inf,
       requestTimeout = 50.millis,
       scheduler = tickWheel,
       ec = munitExecutionContext

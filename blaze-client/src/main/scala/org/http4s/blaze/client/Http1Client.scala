@@ -51,6 +51,7 @@ object Http1Client {
       userAgent = config.userAgent,
       channelOptions = ChannelOptions(Vector.empty),
       connectTimeout = Duration.Inf,
+      idleTimeout = Duration.Inf,
       getAddress = BlazeClientBuilder.getAddress(_)
     ).makeClient
 
