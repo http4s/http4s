@@ -8,6 +8,15 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.25 (2021-07-18)
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4831](https://github.com/http4s/http4s/pull/4831): Fix blaze-client handling of early responses
+* [#4958](https://github.com/http4s/http4s/pull/4958): Reuse idle timeout stage.  This also addresses a performance regression identified in v0.21.23.
+
 # v0.21.24 (2021-05-26)
 
 0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
