@@ -17,6 +17,16 @@ it.
 * [#4831](https://github.com/http4s/http4s/pull/4831): Fix blaze-client handling of early responses
 * [#4958](https://github.com/http4s/http4s/pull/4958): Reuse idle timeout stage.  This also addresses a performance regression identified in v0.21.23.
 
+## Dependency updates
+
+* dropwizard-metrics-4.2.2
+* fs2-2.5.9
+* jetty-9.4.43
+* log4s-1.10.0
+* netty-4.1.66
+* slf4j-1.7.31
+* tomcat-9.0.50
+
 # v0.21.24 (2021-05-26)
 
 0.21 is EOL.  Bugfixes and community submissions will be considered for discretionary releases, but the development team will now focus on later branches.
