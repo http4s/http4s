@@ -22,10 +22,12 @@ import java.util.concurrent.atomic.AtomicLong
 import cats.arrow.FunctionK
 import cats.effect.IO
 import org.http4s._
-import org.http4s.syntax.all._
 import org.http4s.dsl.io._
-import org.http4s.headers.Referer
+import org.http4s.headers._
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.Part
 import org.http4s.server.middleware.CSRF.unlift
+import org.http4s.syntax.all._
 import org.http4s.util.{CaseInsensitiveString => CIString}
 
 class CSRFSuite extends Http4sSuite {
@@ -139,11 +141,17 @@ class CSRFSuite extends Http4sSuite {
     for {
       fromHeader <- check((ts, r) => r.putHeaders(Header(hn, ts)))
       fromForm <- check((ts, r) => r.withEntity(UrlForm(hn -> ts)))
+      fromMultipart <- check { (ts, r) =>
+        val mf = Part.formData[IO](hn, ts, `Content-Type`(MediaType.text.plain))
+        val mp = Multipart(Vector(mf))
+        r.putHeaders(mp.headers.toList: _*).withEntity(mp)
+      }
       preferHeader <- check((ts, r) =>
         r.withEntity(UrlForm(hn -> "bogus")).putHeaders(Header(hn, ts)))
     } yield {
       assertEquals(fromHeader.status, Status.Ok)
       assertEquals(fromForm.status, Status.Ok)
+      assertEquals(fromMultipart.status, Status.Ok)
       assertEquals(preferHeader.status, Status.Ok)
     }
   }
