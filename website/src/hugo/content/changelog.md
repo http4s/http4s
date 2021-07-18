@@ -17,6 +17,10 @@ it.
 * [#4831](https://github.com/http4s/http4s/pull/4831): Fix blaze-client handling of early responses
 * [#4958](https://github.com/http4s/http4s/pull/4958): Reuse idle timeout stage.  This also addresses a performance regression identified in v0.21.23.
 
+### Enhancements
+
+* [#4906](https://github.com/http4s/http4s/pull/4906): Recycle more connections than before
+
 ## Dependency updates
 
 * dropwizard-metrics-4.2.2
