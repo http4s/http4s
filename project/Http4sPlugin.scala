@@ -103,6 +103,13 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect*", revision="1.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect*", revision="1.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang.modules", name = "scala-xml", revision="2.*"),
+    // Not a public dependency, removed in 0.22
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"),
+    // Too shiny for maintenance
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.circe", revision = "0.14.*"),
+    // Binary incompatible
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.json4s", revision = "4.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s", name = "blaze-http", revision = "0.15.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
@@ -315,26 +322,26 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.3.3"
     val cats = "2.6.1"
     val catsEffect = "2.5.1"
-    val catsEffectTesting = "0.5.3"
+    val catsEffectTesting = "0.5.4"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val disciplineSpecs2 = "1.1.6"
-    val dropwizardMetrics = "4.2.0"
-    val fs2 = "2.5.6"
+    val dropwizardMetrics = "4.2.2"
+    val fs2 = "2.5.9"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.40.v20210413"
+    val jetty = "9.4.43.v20210629"
     val json4s = "3.6.11"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
-    val log4s = "1.9.0"
+    val log4s = "1.10.0"
     val mockito = "3.5.15"
     val munit = "0.7.18"
     val munitCatsEffect = "1.0.0"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.63.Final"
+    val netty = "4.1.66.Final"
     val okio = "2.9.0"
     val okhttp = "4.9.1"
     val parboiledHttp4s = "2.0.1"
@@ -349,9 +356,9 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "1.3.0"
     val scodecBits = "1.1.27"
     val servlet = "3.1.0"
-    val slf4j = "1.7.30"
+    val slf4j = "1.7.31"
     val specs2 = "4.11.0"
-    val tomcat = "9.0.46"
+    val tomcat = "9.0.50"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
