@@ -37,7 +37,7 @@ abstract class ClientRouteTestBattery(name: String)
   def clientResource: Resource[IO, Client[IO]]
 
   def url(path: String): IO[Uri] =
-    server().map(s => Uri.fromString(s"http://${s.address.toString}$path").yolo)
+    server().map(s => Uri.fromString(s"http://${s.address.toString.split("/").last}$path").yolo)
 
   val server = resourceSuiteDeferredFixture("server", serverResource)
   val client = resourceSuiteDeferredFixture("client", clientResource)

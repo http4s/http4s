@@ -299,6 +299,16 @@ lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSP
   .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
+// Defined outside server to avoid circular dependency with client
+lazy val serverTesting = libraryProject("server-testing", CrossType.Full, List(JVMPlatform, JSPlatform))
+  .enablePlugins(NoPublishPlugin)
+  .settings(
+    description := "Tests for server project",
+    startYear := Some(2021)
+  )
+  .jsConfigure(_.disablePlugins(DoctestPlugin))
+  .dependsOn(server, testing % "test->test", client % "test->test")
+
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
     description := "Support for Prometheus Metrics",
@@ -367,6 +377,7 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
   .dependsOn(
     emberCore % "compile;test->test",
     server % "compile;test->test",
+    serverTesting % "test->test",
     emberClient % "test->compile")
 
 lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPlatform, JSPlatform))
