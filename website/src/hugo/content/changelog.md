@@ -41,7 +41,15 @@ Includes all changes from v0.21.25.
 
 ## http4s-ember-server
 
+### Enhancements
+
 * [#4803](https://github.com/http4s/http4s/pull/4803): Add web socket support
+
+## http4s-jetty-server
+
+### Bugfixes
+
+* [#4967](https://github.com/http4s/http4s/pull/4967): Fix error parsing IPv6 addresses
 
 ## Dependency updates
 
