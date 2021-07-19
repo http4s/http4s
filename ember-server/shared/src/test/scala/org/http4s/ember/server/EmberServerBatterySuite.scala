@@ -19,6 +19,7 @@ package ember.server
 
 import cats.effect.IO
 import cats.effect.Resource
+import com.comcast.ip4s.Port
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.server.Server
@@ -31,6 +32,7 @@ class EmberServerBatterySuite extends ServerRouteTestBattery("EmberServer") {
   override def serverResource(app: HttpApp[IO]): Resource[IO, Server] = EmberServerBuilder
     .default[IO]
     .withHttpApp(app)
+    .withPort(Port.fromInt(org.http4s.server.defaults.HttpPort + 1).get)
     .build
 
 }
