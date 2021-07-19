@@ -28,14 +28,18 @@ import org.http4s.dsl.io._
 import org.http4s.multipart.{Multipart, Part}
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
+abstract class ClientRouteTestBattery(name: String)
+    extends Http4sSuite
+    with Http4sClientDsl[IO]
+    with ClientRouteTestBatteryPlatform {
   val timeout = 20.seconds
 
   def clientResource: Resource[IO, Client[IO]]
 
-  def url(path: String): Uri =
-    Uri.fromString(s"http://localhost:8888$path").yolo
+  def url(path: String): IO[Uri] =
+    server().map(s => Uri.fromString(s"http://${s.address.toString}$path").yolo)
 
+  val server = resourceSuiteDeferredFixture("server", serverResource)
   val client = resourceSuiteDeferredFixture("client", clientResource)
 
   test(s"$name Repeat a simple request") {
@@ -48,51 +52,60 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
         }
       }
 
-    fetchBody.flatMap { fetchBody =>
-      (0 until 10).toVector
-        .parTraverse(_ => fetchBody.run(url(path)).map(_.length))
-        .map(_.forall(_ =!= 0))
-        .assert
-    }
+    for {
+      fetchBody <- fetchBody
+      url <- url(path)
+    } yield (0 until 10).toVector
+      .parTraverse(_ => fetchBody.run(url).map(_.length))
+      .map(_.forall(_ =!= 0))
+      .assert
   }
 
   test(s"$name POST an empty body") {
-    val uri = url("/echo")
-    val req = POST(uri)
-    val body = client().flatMap(_.expect[String](req))
-    body.assertEquals("")
+    for {
+      uri <- url("/echo")
+      req = POST(uri)
+      body = client().flatMap(_.expect[String](req))
+      _ <- body.assertEquals("")
+    } yield ()
   }
 
   test(s"$name POST a normal body") {
-    val uri = url("/echo")
-    val req = POST("This is normal.", uri)
-    val body = client().flatMap(_.expect[String](req))
-    body.assertEquals("This is normal.")
+    for {
+      uri <- url("/echo")
+      req = POST("This is normal.", uri)
+      body = client().flatMap(_.expect[String](req))
+      _ <- body.assertEquals("This is normal.")
+    } yield ()
   }
 
   test(s"$name POST a chunked body".flaky) {
-    val uri = url("/echo")
-    val req = POST(Stream("This is chunked.").covary[IO], uri)
-    val body = client().flatMap(_.expect[String](req))
-    body.assertEquals("This is chunked.")
+    for {
+      uri <- url("/echo")
+      req = POST(Stream("This is chunked.").covary[IO], uri)
+      body = client().flatMap(_.expect[String](req))
+      _ <- body.assertEquals("This is chunked.")
+    } yield ()
   }
 
   test(s"$name POST a multipart body") {
-    val uri = url("/echo")
-    val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
-    val req = POST(multipart, uri).withHeaders(multipart.headers)
-    val body = client().flatMap(_.expect[String](req))
-    body.map(_.contains("This is text.")).assert
+    for {
+      uri <- url("/echo")
+      multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
+      req = POST(multipart, uri).withHeaders(multipart.headers)
+      body = client().flatMap(_.expect[String](req))
+      _ <- body.map(_.contains("This is text.")).assert
+    } yield ()
   }
 
   GetRoutes.getPaths.toList.foreach { case (path, expected) =>
     test(s"$name Execute GET $path") {
-      val req = Request[IO](uri = url(path))
-      Resource
-        .eval(client())
-        .flatMap(_.run(req))
-        .use(resp => expected.flatMap(checkResponse(resp, _)))
-        .assert
+      (for {
+        client <- Resource.eval(client())
+        uri <- Resource.eval(url(path))
+        req = Request[IO](uri = uri)
+        resp <- client.run(req)
+      } yield resp).use(resp => expected.flatMap(checkResponse(resp, _))).assert
     }
   }
 
