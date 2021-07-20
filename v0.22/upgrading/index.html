@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>http4s | Upgrading from 0.18</title>
+  <title>http4s | Upgrading</title>
 
   <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.22/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.22/css/font-awesome.min.css" >  
@@ -81,32 +81,34 @@
           </span>
 
           
-          <h1>Upgrading from 0.18</h1>
+          <h1>Upgrading</h1>
           
           
           
 
 <h2 id="automated-upgrading-with-scalafix">Automated upgrading with scalafix</h2>
 
-<p>Http4s 0.20 comes with a <a href="https://scalacenter.github.io/scalafix/">scalafix</a> that does some of the migration automatically.</p>
+<p>http4s-0.22 comes with a <a href="https://scalacenter.github.io/scalafix/">scalafix</a> that does some of the migration automatically.</p>
 
 <p>Before you upgrade manually, we recommend you run this scalafix.</p>
 
-<p>Make sure your scala version is &gt;= <code>2.11.12</code> or <code>2.12.7</code></p>
-
 <p>Add the scalafix plugin to your <code>project/plugins.sbt</code> or to your global plugins.</p>
 
-<pre><code class="language-sbt">addSbtPlugin(&quot;ch.epfl.scala&quot; % &quot;sbt-scalafix&quot; % &quot;0.9.1&quot;)
+<pre><code class="language-sbt">addSbtPlugin(&quot;ch.epfl.scala&quot; % &quot;sbt-scalafix&quot; % &quot;0.9.28&quot;)
 </code></pre>
 
 <p>Run</p>
 
-<pre><code class="language-sh">$ sbt &quot;;scalafixEnable; scalafix github:http4s/http4s/v0_20&quot;
+<pre><code class="language-sh">$ sbt &quot;;scalafixEnable; scalafix github:http4s/http4s/v0_22&quot;
 </code></pre>
 
 <p>The compiler errors should help you in showing what&rsquo;s left to upgrade.</p>
 
-<p>For further information about the changes from 0.18, check the <a href="https://http4s.org/changelog/">changelog</a></p>
+<p>For further information about the changes since 0.21, check the <a href="https://http4s.org/changelog/">changelog</a></p>
+
+<h2 id="help-us-help-you">Help us help you!</h2>
+
+<p>If you see recurring patterns that could benefit from a scalafix, please <a href="https://github.com/http4s/http4s/issues/4858">report them for consideration</a>.  For general upgrade tips, please consider a <a href="https://github.com/http4s/http4s/edit/series/0.22/docs/src/main/mdoc/upgrading.md">pull request to this document</a>.</p>
 
         </div>
 
@@ -123,7 +125,7 @@
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link active" href="/v0.22/upgrading/">Upgrading from 0.18</a>
+	      <a class="nav-link active" href="/v0.22/upgrading/">Upgrading</a>
             </li>
             
             <li class="nav-item">

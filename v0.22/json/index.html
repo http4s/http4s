@@ -96,14 +96,14 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;0.22.0-M8&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;0.22.0&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.0-M7&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.14.1&quot;,
   // Optional for string interpolation to JSON model
-  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.14.0-M7&quot;
+  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.14.1&quot;
 )
 
 addCompilerPlugin(&quot;org.scalamacros&quot; % &quot;paradise&quot; % &quot;2.1.0&quot; cross CrossVersion.full)
@@ -152,7 +152,7 @@ val greeting = hello(&quot;world&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@6e58611b
+//   org.typelevel.vault.Vault@6bd5679d
 // )
 </code></pre>
 
@@ -169,7 +169,7 @@ useful on client requests:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 16),
 //   Stream(..),
-//   org.typelevel.vault.Vault@3940f1ed
+//   org.typelevel.vault.Vault@65bf4321
 // )
 </code></pre>
 
@@ -205,7 +205,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { (hello: Hello) =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@290ac50b
+// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@1766aaf1
 
 Hello(&quot;Alice&quot;).asJson
 // res4: Json = JObject(object[hello -&gt; &quot;Alice&quot;])
@@ -231,7 +231,7 @@ and responses for our case classes:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@5dd435db
+//   org.typelevel.vault.Vault@5ea2b826
 // )
 POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 // res7: Request[IO] = (
@@ -240,7 +240,7 @@ POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 14),
 //   Stream(..),
-//   org.typelevel.vault.Vault@65ad8753
+//   org.typelevel.vault.Vault@38e352fc
 // )
 </code></pre>
 
@@ -282,7 +282,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@5df8abf
+// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@7c443471
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res11: User = User(&quot;Alice&quot;)
 
@@ -402,7 +402,7 @@ helloAlice.compile.last.unsafeRunSync()
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/v0.22/upgrading/">Upgrading from 0.18</a>
+	      <a class="nav-link" href="/v0.22/upgrading/">Upgrading</a>
             </li>
             
             <li class="nav-item">
