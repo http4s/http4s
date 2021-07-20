@@ -18,6 +18,7 @@ package org.http4s.client
 
 import cats.effect.kernel.Resource
 import cats.effect.IO
+import org.http4s.server
 import org.http4s.server.Server
 import com.comcast.ip4s.{Host, SocketAddress}
 
@@ -25,7 +26,7 @@ trait ClientRouteTestBatteryPlatform {
 
   def serverResource: Resource[IO, Server] = Resource.pure(new Server {
     override def address: SocketAddress[Host] =
-      SocketAddress.fromStringHostname("localhost:8888").get
+      SocketAddress.fromStringHostname(s"${server.defaults.IPv4Host}:8888").get
     override def isSecure: Boolean = false
   })
 
