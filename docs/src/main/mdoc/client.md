@@ -19,8 +19,8 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  "org.http4s" %% "http4s-ember-server" % http4sVersion,
+  "org.http4s" %% "http4s-ember-client" % http4sVersion
 )
 ```
 
@@ -31,12 +31,11 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
 ```
 
-Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
-[[`ContextShift`]].  The following lines are not necessary if you are
-in an [[`IOApp`]]:
+Ember requires a [[`ContextShift`]]. 
+The following lines are not necessary if you are in an [[`IOApp`]]:
 
 ```scala mdoc:silent:nest
 import scala.concurrent.ExecutionContext.global
@@ -47,14 +46,13 @@ implicit val timer: Timer[IO] = IO.timer(global)
 Finish setting up our server:
 
 ```scala mdoc:nest
-import scala.concurrent.ExecutionContext.global
 
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(app).resource
+val server = EmberServerBuilder.default[IO].withHost("localhost").withPort(8080).withHttpApp(app).build
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
@@ -67,17 +65,16 @@ val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 
 ### Creating the client
 
-A good default choice is the `BlazeClientBuilder`.  The
-`BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
+A good default choice is the `EmberClientBuilder`.  The
+`EmberClient` maintains a connection pool and speaks HTTP 1.x.
 
 ```scala mdoc
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import org.http4s.client._
-import scala.concurrent.ExecutionContext.global
 ```
 
 ```scala mdoc:silent
-BlazeClientBuilder[IO](global).resource.use { client =>
+EmberClientBuilder.default[IO].build.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
   // automatically each time the `IO` is run.

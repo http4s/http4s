@@ -63,7 +63,7 @@ $ find src/main -name '*.scala'
 ```
 `Main.scala` defines a runnable object `Main extends IOApp` with an entry point method `run` 
 which calls the `stream` method of the object `QuickstartServer` defined on `QuickstartServer.scala`.
-Starting blaze, http4s' native server backend.
+Starting ember, http4s' native server backend.
 
 `QuickStartRoutes` has two `route` definitions. The `helloWorldRoutes` containing a simple `HttpRoutes` 
 that responds to `GET/hello/$USERNAME` with a JSON greeting.  Let's try it:
@@ -76,11 +76,12 @@ Depending on the state of your Ivy cache, several dependencies will
 download.  This is a good time to grab a beverage.  When you come
 back, you should see a line similar to this:
 
+<!-- TODO -->
 ```
 [ioapp-compute-0] INFO  o.h.b.c.n.NIO1SocketServerGroup - Service bound to address /0:0:0:0:0:0:0:0:8080 
 ```
 
-This indicates that blaze is running our service on port 8080. Let's try out the
+This indicates that ember is running our service on port 8080. Let's try out the
 hello world service with curl:
 
 ```sh

@@ -20,11 +20,10 @@ being served.
 
 ```scala mdoc
 import cats.effect._
-import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
 import org.http4s.syntax.kleisli._
-import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -33,10 +32,11 @@ object SimpleHttpServer extends IOApp {
   val app: Resource[IO, Server] =
     for {
       blocker <- Blocker[IO]
-      server <- BlazeServerBuilder[IO](global)
-        .bindHttp(8080)
+      server <- EmberServerBuilder.default[IO]
+        .withHost("localhost")
+        .withPort(8080)
         .withHttpApp(fileService[IO](FileService.Config(".", blocker)).orNotFound)
-        .resource
+        .build
     } yield server
 }
 ```
