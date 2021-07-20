@@ -32,6 +32,7 @@ trait ClientRouteTestBatteryPlatform { self: ClientRouteTestBattery =>
   })
 
   def url(path: String): IO[Uri] =
-    server().map(s => Uri.fromString(s"http://${s.address.getHostName}:$path").yolo)
+    server().map(s =>
+      Uri.fromString(s"http://${s.address.getHostName}:${s.address.getPort}$path").yolo)
 
 }
