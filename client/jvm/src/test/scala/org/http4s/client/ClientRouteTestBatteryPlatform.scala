@@ -16,18 +16,22 @@
 
 package org.http4s.client
 
-import cats.effect.kernel.Resource
 import cats.effect.IO
-import org.http4s.server
+import cats.effect.kernel.Resource
+import org.http4s.Uri
 import org.http4s.server.Server
+
 import java.net.InetSocketAddress
 
-trait ClientRouteTestBatteryPlatform {
+trait ClientRouteTestBatteryPlatform { self: ClientRouteTestBattery =>
 
   def serverResource: Resource[IO, Server] = Resource.pure(new Server {
     override val address: InetSocketAddress =
-      InetSocketAddress.createUnresolved(server.defaults.IPv4Host, 8888)
+      InetSocketAddress.createUnresolved("localhost", 8888)
     override def isSecure: Boolean = false
   })
+
+  def url(path: String): IO[Uri] =
+    server().map(s => Uri.fromString(s"http://${s.address.getHostName}:$path").yolo)
 
 }

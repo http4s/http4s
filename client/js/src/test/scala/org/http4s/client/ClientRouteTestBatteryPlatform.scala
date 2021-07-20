@@ -16,18 +16,22 @@
 
 package org.http4s.client
 
-import cats.effect.kernel.Resource
 import cats.effect.IO
-import org.http4s.server
+import cats.effect.kernel.Resource
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.SocketAddress
+import org.http4s.Uri
 import org.http4s.server.Server
-import com.comcast.ip4s.{Host, SocketAddress}
 
-trait ClientRouteTestBatteryPlatform {
+trait ClientRouteTestBatteryPlatform { self: ClientRouteTestBattery =>
 
   def serverResource: Resource[IO, Server] = Resource.pure(new Server {
     override def address: SocketAddress[Host] =
-      SocketAddress.fromStringHostname(s"${server.defaults.IPv4Host}:8888").get
+      SocketAddress.fromStringHostname(s"localhost:8888").get
     override def isSecure: Boolean = false
   })
+
+  def url(path: String): IO[Uri] =
+    server().map(s => Uri.fromString(s"http://${s.address.toString}$path").yolo)
 
 }
