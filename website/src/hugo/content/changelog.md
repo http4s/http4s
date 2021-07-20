@@ -8,7 +8,6 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-
 # v0.22.0
 
 This is the first production release with Scala 3 support, and continues to support Cats-Effect 2.  All users of the 0.21 series are encouraged to upgrade to at least this version.  Users needing Cats-Effect 3 are invited to upgrade to http4s-0.23.

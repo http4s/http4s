@@ -87,12 +87,7 @@ object BlazeClient {
               .runRequest(req)
               .map { response: Resource[F, Response[F]] =>
                 response.flatMap(r =>
-                  Resource.makeCase(F.pure(r)) {
-                    case (_, ExitCase.Completed) =>
-                      manager.release(next.connection)
-                    case _ =>
-                      manager.invalidate(next.connection)
-                  })
+                  Resource.make(F.pure(r))(_ => manager.release(next.connection)))
               }
 
             responseHeaderTimeout match {
