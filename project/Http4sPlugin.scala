@@ -414,7 +414,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaXml = Def.setting("org.scala-lang.modules" %%% "scala-xml" % V.scalaXml)
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
-  lazy val specs2 = Def.setting("org.specs2" %%% "specs2-core" % V.specs2)
   lazy val tomcatCatalina = "org.apache.tomcat" % "tomcat-catalina" % V.tomcat
   lazy val tomcatCoyote = "org.apache.tomcat" % "tomcat-coyote" % V.tomcat
   lazy val tomcatUtilScan = "org.apache.tomcat" % "tomcat-util-scan" % V.tomcat
