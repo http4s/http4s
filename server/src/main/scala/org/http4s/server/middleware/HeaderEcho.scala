@@ -16,8 +16,8 @@
 
 package org.http4s.server.middleware
 
-import cats.Functor
-import cats.data.Kleisli
+import cats.Monad
+import cats.mtl._
 import cats.syntax.all._
 import org.http4s._
 import org.typelevel.ci.CIString
@@ -29,19 +29,17 @@ object HeaderEcho {
     * @param echoHeadersWhen the function that selects which headers to echo on the response
     * @param http [[Http]] to transform
     */
-  def apply[F[_]: Functor, G[_]](echoHeadersWhen: CIString => Boolean)(
-      http: Http[F, G]): Http[F, G] =
-    Kleisli { (req: Request[G]) =>
+  def apply[F[_], G[_]](echoHeadersWhen: CIString => Boolean)(
+      http: F[Response[G]])(implicit F: Monad[F], A: Ask[F, Request[G]]): F[Response[G]] =
+    A.ask.flatMap { req =>
       val headersToEcho = Headers(req.headers.headers.filter(h => echoHeadersWhen(h.name)))
-
-      http(req).map(_.putHeaders(headersToEcho.headers))
+      http.map(_.putHeaders(headersToEcho.headers))
     }
 
-  def httpRoutes[F[_]: Functor](echoHeadersWhen: CIString => Boolean)(
+  def httpRoutes[F[_]: Monad](echoHeadersWhen: CIString => Boolean)(
       httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(echoHeadersWhen)(httpRoutes)
 
-  def httpApp[F[_]: Functor](echoHeadersWhen: CIString => Boolean)(
-      httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: Monad](echoHeadersWhen: CIString => Boolean)(httpApp: HttpApp[F]): HttpApp[F] =
     apply(echoHeadersWhen)(httpApp)
 }

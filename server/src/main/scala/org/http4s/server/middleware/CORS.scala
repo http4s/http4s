@@ -18,8 +18,9 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative, Monad}
-import cats.data.{Kleisli, NonEmptyList}
+import cats.Monad
+import cats.data.NonEmptyList
+import cats.mtl._
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
 import org.log4s.getLogger
@@ -139,9 +140,10 @@ object CORS {
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
-      F: Applicative[F]): Http[F, G] =
-    Kleisli { req =>
+  def apply[F[_], G[_]](http: F[Response[G]], config: CORSConfig = CORSConfig.default)(implicit
+      F: Monad[F],
+      A: Ask[F, Request[G]]): F[Response[G]] =
+    A.ask.flatMap { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header.Raw, acrm: Header.Raw): Response[G] =
         corsHeaders(origin.value, acrm.value, isPreflight = true)(Response())
@@ -203,7 +205,7 @@ object CORS {
           if (allowCORS(
               origin,
               Header.Raw(ci"Access-Control-Request-Method", req.method.renderString)))
-            http(req).map { resp =>
+            http.map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
               corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)
             }
@@ -213,13 +215,13 @@ object CORS {
           }
         case _ =>
           // This request is out of scope for CORS
-          http(req)
+          http
       }
     }
 
-  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]](httpRoutes: HttpRoutes[F])(implicit F: Monad[F]): HttpRoutes[F] =
     apply(httpRoutes)
 
-  def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]](httpApp: HttpApp[F])(implicit F: Monad[F]): HttpApp[F] =
     apply(httpApp)
 }

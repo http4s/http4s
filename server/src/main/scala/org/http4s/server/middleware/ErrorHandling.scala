@@ -17,18 +17,18 @@
 package org.http4s.server
 package middleware
 
-import cats.data.Kleisli
 import cats._
+import cats.mtl._
 import cats.syntax.all._
 import org.http4s._
 
 object ErrorHandling {
-  def apply[F[_], G[_]](k: Kleisli[F, Request[G], Response[G]])(implicit
-      F: MonadThrow[F]): Kleisli[F, Request[G], Response[G]] =
-    Kleisli { req =>
-      val pf: PartialFunction[Throwable, F[Response[G]]] =
-        inDefaultServiceErrorHandler[F, G](F)(req)
-      k.run(req).handleErrorWith { e =>
+  def apply[F[_], G[_]](
+      http: F[Response[G]])(implicit F: MonadThrow[F], A: Ask[F, Request[G]]): F[Response[G]] =
+    http.handleErrorWith { e =>
+      A.ask.flatMap { req =>
+        val pf: PartialFunction[Throwable, F[Response[G]]] =
+          inDefaultServiceErrorHandler[F, G](F)(req)
         pf.lift(e) match {
           case Some(resp) => resp
           case None => F.raiseError(e)

@@ -34,15 +34,17 @@ class AutoSlashSuite extends Http4sSuite {
   test("Auto remove a trailing slash") {
     val req = Request[IO](uri = uri"/ping/")
     route.orNotFound(req).map(_.status).assertEquals(Status.NotFound) *>
-      AutoSlash(route).orNotFound(req).map(_.status).assertEquals(Status.Ok)
+      AutoSlash.httpRoutes(route).orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("Match a route defined with a slash") {
-    AutoSlash(route)
+    AutoSlash
+      .httpRoutes(route)
       .orNotFound(Request[IO](uri = uri"/withslash"))
       .map(_.status)
       .assertEquals(Status.Ok) *>
-      AutoSlash(route)
+      AutoSlash
+        .httpRoutes(route)
         .orNotFound(Request[IO](uri = uri"/withslash/"))
         .map(_.status)
         .assertEquals(Status.Accepted)
@@ -51,17 +53,17 @@ class AutoSlashSuite extends Http4sSuite {
   test("Respect an absent trailing slash") {
     val req = Request[IO](uri = uri"/ping")
     route.orNotFound(req).map(_.status).assertEquals(Status.Ok)
-    AutoSlash(route).orNotFound(req).map(_.status).assertEquals(Status.Ok)
+    AutoSlash.httpRoutes(route).orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("Not crash on empty path") {
     val req = Request[IO](uri = uri"")
-    AutoSlash(route).orNotFound(req).map(_.status).assertEquals(Status.NotFound)
+    AutoSlash.httpRoutes(route).orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
   test("Work when nested in Router") {
     // See https://github.com/http4s/http4s/issues/1378
-    val router = Router("/public" -> AutoSlash(pingRoutes))
+    val router = Router("/public" -> AutoSlash.httpRoutes(pingRoutes))
     router
       .orNotFound(Request[IO](uri = uri"/public/ping"))
       .map(_.status)
@@ -74,7 +76,7 @@ class AutoSlashSuite extends Http4sSuite {
 
   test("Work when Router is nested in AutoSlash") {
     // See https://github.com/http4s/http4s/issues/1947
-    val router = AutoSlash(Router("/public" -> pingRoutes))
+    val router = AutoSlash.httpRoutes(Router("/public" -> pingRoutes))
     router
       .orNotFound(Request[IO](uri = uri"/public/ping"))
       .map(_.status)

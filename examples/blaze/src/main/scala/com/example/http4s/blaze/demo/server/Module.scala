@@ -16,7 +16,6 @@
 
 package com.example.http4s.blaze.demo.server
 
-import cats.data.OptionT
 import cats.effect._
 import cats.syntax.semigroupk._ // For <+>
 import com.example.http4s.blaze.demo.server.endpoints._
@@ -39,13 +38,13 @@ class Module[F[_]: Async](client: Client[F]) {
 
   def middleware: HttpMiddleware[F] = { (routes: HttpRoutes[F]) =>
     GZip(routes)
-  }.compose(routes => AutoSlash(routes))
+  }.compose(routes => AutoSlash.httpRoutes(routes))
 
   val fileHttpEndpoint: HttpRoutes[F] =
     new FileHttpEndpoint[F](fileService).service
 
   val nonStreamFileHttpEndpoint: HttpRoutes[F] =
-    ChunkAggregator(OptionT.liftK[F])(fileHttpEndpoint)
+    ChunkAggregator.httpRoutes(fileHttpEndpoint)
 
   private val hexNameHttpEndpoint: HttpRoutes[F] =
     new HexNameHttpEndpoint[F].service
