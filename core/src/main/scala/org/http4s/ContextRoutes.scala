@@ -31,8 +31,8 @@ object ContextRoutes {
     * @param run the function to lift
     * @return an [[ContextRoutes]] that wraps `run`
     */
-  def apply[T, F[_]](run: ContextRequest[F, T] => OptionT[F, Response[F]])(implicit
-      F: Monad[F]): ContextRoutes[T, F] =
+  def apply[T, Body, F[_]](run: ContextRequest[Body, T] => OptionT[F, Response[Body]])(implicit
+      F: Monad[F]): ContextRoutes[T, F, Body] =
     Kleisli(req => OptionT(F.unit >> run(req).value))
 
   /** Lifts a partial function into an [[ContextRoutes]].  The application of the

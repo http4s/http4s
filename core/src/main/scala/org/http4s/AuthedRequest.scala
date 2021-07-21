@@ -20,10 +20,10 @@ import cats.Functor
 import cats.data.Kleisli
 
 object AuthedRequest {
-  def apply[F[_]: Functor, T](
-      getUser: Request[F] => F[T]): Kleisli[F, Request[F], AuthedRequest[F, T]] =
-    ContextRequest[F, T](getUser)
+  def apply[F[_]: Functor, Body, T](
+      getUser: Request[Body] => F[T]): Kleisli[F, Request[Body], AuthedRequest[Body, T]] =
+    ContextRequest[F, T, Body](getUser)
 
-  def apply[F[_], T](context: T, req: Request[F]): AuthedRequest[F, T] =
-    ContextRequest[F, T](context, req)
+  def apply[Body, T](context: T, req: Request[Body]): AuthedRequest[Body, T] =
+    ContextRequest[Body, T](context, req)
 }

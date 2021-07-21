@@ -17,18 +17,22 @@
 package org.http4s
 
 import cats.MonadThrow
-import fs2.{RaiseThrowable, Stream}
-import fs2.text.utf8Decode
 import org.http4s.headers._
 
-trait Media[F[_]] {
-  def body: EntityBody[F]
+trait Media[+ Body] {
+  def body: B
   def headers: Headers
-  def covary[F2[x] >: F[x]]: Media[F2]
+
+/*
+  TODO this is specific case of -- Body = Stream[F, Byte]
+
+  import fs2.{RaiseThrowable, Stream}
+  import fs2.text.utf8Decode
 
   final def bodyText(implicit
       RT: RaiseThrowable[F],
       defaultCharset: Charset = DefaultCharset): Stream[F, String] =
+
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
@@ -36,6 +40,7 @@ trait Media[F[_]] {
       case cs =>
         body.through(internal.decode(cs))
     }
+ */
 
   final def contentType: Option[`Content-Type`] =
     headers.get[`Content-Type`]
@@ -54,7 +59,7 @@ trait Media[F[_]] {
     * @tparam T type of the result
     * @return the effect which will generate the `DecodeResult[T]`
     */
-  final def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+  final def attemptAs[T](implicit decoder: EntityDecoder[Body, T]): DecodeResult[T] =
     decoder.decode(this, strict = false)
 
   /** Decode the [[Media]] to the specified type
@@ -65,17 +70,15 @@ trait Media[F[_]] {
     * @tparam A type of the result
     * @return the effect which will generate the A
     */
-  final def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
-    F.rethrow(attemptAs.value)
+  final def as[F[_], A](implicit F: MonadThrow[F], decoder: EntityDecoder[Body, A]): F[A] =
+    F.fromEither(attemptAs)
 }
 
 object Media {
-  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
-    new Media[F] {
+  def apply[Body](b: Body, h: Headers): Media[Body] =
+    new Media[Body] {
       def body = b
 
       def headers: Headers = h
-
-      override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
     }
 }

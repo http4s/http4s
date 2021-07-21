@@ -30,7 +30,7 @@ package object http4s {
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
-  type DecodeResult[F[_], A] = EitherT[F, DecodeFailure, A]
+  type DecodeResult[+A] = Either[DecodeFailure, A]
 
   type ParseResult[+A] = Either[ParseFailure, A]
 
@@ -43,7 +43,7 @@ package object http4s {
     * @tparam F the effect type in which the [[Response]] is returned
     * @tparam G the effect type of the [[Request]] and [[Response]] bodies
     */
-  type Http[F[_], G[_]] = Kleisli[F, Request[G], Response[G]]
+  type Http[F[_], G[_]] = Kleisli[F, Request[EntityBody[G]], Response[EntityBody[G]]]
 
   /** A kleisli with a [[Request]] input and a [[Response]] output, such
     * that the response effect is the same as the request and response bodies'.
@@ -66,14 +66,14 @@ package object http4s {
     */
   type HttpRoutes[F[_]] = Http[OptionT[F, *], F]
 
-  type AuthedRequest[F[_], T] = ContextRequest[F, T]
+  type AuthedRequest[Body, T] = ContextRequest[Body, T]
 
   /** The type parameters need to be in this order to make partial unification
     * trigger. See https://github.com/http4s/http4s/issues/1506
     */
-  type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, *], AuthedRequest[F, T], Response[F]]
+  type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, *], AuthedRequest[EntityBody[F], T], Response[EntityBody[F]]]
 
-  type ContextRoutes[T, F[_]] = Kleisli[OptionT[F, *], ContextRequest[F, T], Response[F]]
+  type ContextRoutes[T, F[_]] = Kleisli[OptionT[F, *], ContextRequest[EntityBody[F], T], Response[EntityBody[F]]]
 
   type Callback[A] = Either[Throwable, A] => Unit
 
