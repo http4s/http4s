@@ -77,7 +77,10 @@ object StaticFile {
         .flatMap(fromURL(_, req)))
   }
 
-  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit
+  def fromURL[F[_]: Sync](url: URL, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+    fromURL(url, req, calcETagURL[F])
+
+  def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: URL => F[ETag])(implicit
       F: Sync[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
@@ -92,34 +95,44 @@ object StaticFile {
         val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
         if (expired) {
-          val len = urlConn.getContentLengthLong
-          val headers = Headers(
-            lastmod.map(`Last-Modified`(_)),
-            nameToContentType(url.getPath),
-            if (len >= 0) `Content-Length`.unsafeFromLong(len)
-            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
-          )
-
-          F.blocking(urlConn.getInputStream)
-            .redeem(
-              recover = {
-                case _: FileNotFoundException => None
-                case other => throw other
-              },
-              f = { inputStream =>
-                Some(
-                  Response(
-                    headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
-                  ))
-              }
+          etagCalculator(url).flatMap { etag =>
+            val len = urlConn.getContentLengthLong
+            val headers = Headers(
+              lastmod.map(`Last-Modified`(_)),
+              nameToContentType(url.getPath),
+              etag,
+              if (len >= 0) `Content-Length`.unsafeFromLong(len)
+              else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
             )
+            F.blocking(urlConn.getInputStream)
+              .redeem(
+                recover = {
+                  case _: FileNotFoundException => None
+                  case other => throw other
+                },
+                f = { inputStream =>
+                  Some(
+                    Response(
+                      headers = headers,
+                      body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
+                    ))
+                }
+              )
+          }
         } else
           F.blocking(urlConn.getInputStream.close())
             .handleError(_ => ())
             .as(Some(Response(NotModified)))
       }
     })
+  }
+
+  private def calcETagURL[F[_]](implicit F: Sync[F]): URL => F[ETag] = url => {
+    val urlConn = url.openConnection
+    for {
+      lastModified <- F.blocking(urlConn.getLastModified.toHexString)
+      contentLength <- F.blocking(urlConn.getContentLengthLong.toHexString)
+    } yield ETag(s"$lastModified-$contentLength")
   }
 
   def calcETag[F[_]: Files: Functor]: File => F[String] =
