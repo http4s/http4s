@@ -45,7 +45,7 @@ class ParsingSuite extends Http4sSuite {
         .emit(s)
         .covary[F]
         .map(httpifyString)
-        .through(fs2.text.utf8Encode[F])
+        .through(fs2.text.utf8.encode[F])
 
       taking(byteStream).flatMap { read =>
         Parser.Request.parser[F](Int.MaxValue)(Array.emptyByteArray, read).map(_._1)
@@ -57,7 +57,7 @@ class ParsingSuite extends Http4sSuite {
         .emit(s)
         .covary[F]
         .map(httpifyString)
-        .through(fs2.text.utf8Encode[F])
+        .through(fs2.text.utf8.encode[F])
 
       Resource.eval(
         taking(byteStream).flatMap { read =>
@@ -182,7 +182,7 @@ class ParsingSuite extends Http4sSuite {
     val http1 = Helpers.httpifyString(raw1)
 
     val http2 = Helpers.httpifyString(raw2)
-    val encoded = (Stream(http1) ++ Stream(http2)).through(fs2.text.utf8Encode)
+    val encoded = (Stream(http1) ++ Stream(http2)).through(fs2.text.utf8.encode)
 
     (for {
       take <- Helpers.taking[IO, Byte](encoded)
@@ -195,7 +195,7 @@ class ParsingSuite extends Http4sSuite {
             // I don't follow what the rig is testing vs this.
           ) //(logger)
           .flatMap { case (resp, _) =>
-            resp.body.through(text.utf8Decode).compile.string
+            resp.body.through(text.utf8.decode).compile.string
           }
     } yield parsed == "{}").assert
   }
@@ -215,16 +215,16 @@ class ParsingSuite extends Http4sSuite {
       .emit(raw)
       .covary[IO]
       .map(Helpers.httpifyString)
-      .through(text.utf8Encode)
+      .through(text.utf8.encode)
 
     for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Request.parser[IO](Int.MaxValue)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.body.through(text.utf8.decode).compile.string
       rest <- Stream
         .eval(result._2)
         .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
-        .through(text.utf8Decode)
+        .through(text.utf8.decode)
         .compile
         .string
     } yield {
@@ -262,7 +262,7 @@ class ParsingSuite extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](Stream.chunk(Chunk.byteVector(baseBv)))
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.body.through(text.utf8.decode).compile.string
     } yield body.size > 0).assert
   }
 
@@ -292,7 +292,7 @@ class ParsingSuite extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](byteStream)
       resp <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- resp._1.body.through(text.utf8Decode).compile.string
+      body <- resp._1.body.through(text.utf8.decode).compile.string
     } yield body == "MozillaDeveloperNetwork").assert
   }
 
@@ -323,7 +323,7 @@ class ParsingSuite extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.body.through(text.utf8.decode).compile.string
       trailers <- result._1.trailerHeaders
     } yield body == "MozillaDeveloperNetwork" && trailers.get[Expires].isDefined).assert
   }
@@ -341,17 +341,17 @@ class ParsingSuite extends Http4sSuite {
       .emit(raw)
       .covary[IO]
       .map(Helpers.httpifyString)
-      .through(text.utf8Encode)
+      .through(text.utf8.encode)
 
     for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body <- result._1.body.through(text.utf8Decode).compile.string
+      body <- result._1.body.through(text.utf8.decode).compile.string
       rest <- Stream
         .eval(result._2)
         .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
-        .through(text.utf8Decode)
+        .through(text.utf8.decode)
         .compile
         .string
     } yield {
@@ -449,11 +449,11 @@ class ParsingSuite extends Http4sSuite {
       take <- Helpers.taking[IO, Byte](byteStream)
       resp1 <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
-      body1 <- resp1._1.body.through(fs2.text.utf8Decode).compile.string
+      body1 <- resp1._1.body.through(fs2.text.utf8.decode).compile.string
       drained <- resp1._2
       resp2 <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(drained.get, take)
-      body2 <- resp2._1.body.through(fs2.text.utf8Decode).compile.string
+      body2 <- resp2._1.body.through(fs2.text.utf8.decode).compile.string
     } yield body1 == "hello" && body2 == "world").assert
   }
 
@@ -466,7 +466,7 @@ class ParsingSuite extends Http4sSuite {
     for {
       take <- Helpers.taking(byteStream)
       body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
-      bodyString <- body._1.through(fs2.text.utf8Decode).compile.string
+      bodyString <- body._1.through(fs2.text.utf8.decode).compile.string
       drained <- body._2
     } yield {
       assertEquals(bodyString, "hello world!")
@@ -483,7 +483,7 @@ class ParsingSuite extends Http4sSuite {
     for {
       take <- Helpers.taking(byteStream)
       body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
-      bodyString <- body._1.take(2).through(fs2.text.utf8Decode).compile.string
+      bodyString <- body._1.take(2).through(fs2.text.utf8.decode).compile.string
       drained <- body._2
     } yield {
       assertEquals(bodyString, "he")
@@ -503,7 +503,7 @@ class ParsingSuite extends Http4sSuite {
         12L,
         "hello ".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
         take)
-      bodyString <- body._1.through(fs2.text.utf8Decode).compile.string
+      bodyString <- body._1.through(fs2.text.utf8.decode).compile.string
       drained <- body._2
     } yield {
       assertEquals(bodyString, "hello world!")
@@ -540,7 +540,7 @@ class ParsingSuite extends Http4sSuite {
       .emit(raw)
       .covary[IO]
       .map(Helpers.httpifyString)
-      .through(text.utf8Encode)
+      .through(text.utf8.encode)
 
     Helpers.taking[IO, Byte](byteStream).flatMap { take =>
       Parser.MessageP

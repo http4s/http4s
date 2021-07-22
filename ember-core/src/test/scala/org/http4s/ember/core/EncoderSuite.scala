@@ -29,7 +29,7 @@ class EncoderSuite extends Http4sSuite {
     def encodeRequestRig[F[_]: Sync](req: Request[F]): F[String] =
       Encoder
         .reqToBytes(req)
-        .through(fs2.text.utf8Decode[F])
+        .through(fs2.text.utf8.decode[F])
         .compile
         .string
         .map(stripLines)
@@ -38,7 +38,7 @@ class EncoderSuite extends Http4sSuite {
     def encodeResponseRig[F[_]: Sync](resp: Response[F]): F[String] =
       Encoder
         .respToBytes(resp)
-        .through(fs2.text.utf8Decode[F])
+        .through(fs2.text.utf8.decode[F])
         .compile
         .string
         .map(stripLines)

@@ -90,7 +90,7 @@ class TraversalSpec extends Http4sSuite {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](newReq))
         end <- Parser.Request
           .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) //(logger)
-        b <- end._1.body.through(fs2.text.utf8Decode).compile.foldMonoid
+        b <- end._1.body.through(fs2.text.utf8.decode).compile.foldMonoid
       } yield b
 
       res.assertEquals(s)

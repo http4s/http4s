@@ -20,7 +20,7 @@ package scalaxml
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.text.{utf8Decode, utf8Encode}
+import fs2.text.utf8
 import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Status.Ok
@@ -32,9 +32,9 @@ import java.nio.charset.StandardCharsets
 
 class ScalaXmlSuite extends Http4sSuite {
   def getBody(body: EntityBody[IO]): IO[String] =
-    body.through(utf8Decode).foldMonoid.compile.lastOrError
+    body.through(utf8.decode).foldMonoid.compile.lastOrError
 
-  def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8Encode)
+  def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8.encode)
 
   val server: Request[IO] => IO[Response[IO]] = { req =>
     req.decode { (elem: Elem) =>
@@ -80,7 +80,7 @@ class ScalaXmlSuite extends Http4sSuite {
       xmlEncoder[IO](Charset.`UTF-8`)
         .toEntity(hello)
         .body
-        .through(fs2.text.utf8Decode)
+        .through(fs2.text.utf8.decode)
         .compile
         .string,
       """<?xml version='1.0' encoding='UTF-8'?>
