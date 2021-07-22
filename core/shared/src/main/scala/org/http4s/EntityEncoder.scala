@@ -62,7 +62,7 @@ trait EntityEncoder[F[_], A] { self =>
     }
 }
 
-object EntityEncoder extends EntityEncoderPlatform {
+object EntityEncoder extends EntityEncoderCompanionPlatform {
   private[http4s] val DefaultChunkSize = 4096
 
   /** summon an implicit [[EntityEncoder]] */

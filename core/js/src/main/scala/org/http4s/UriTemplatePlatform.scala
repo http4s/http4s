@@ -18,6 +18,6 @@ package org.http4s
 
 import scala.scalajs.js.URIUtils
 
-private[http4s] trait UriTemplatePlatform {
+private[http4s] trait UriTemplateCompanionPlatform {
   private[http4s] def encodeURI(s: String) = URIUtils.encodeURI(s)
 }

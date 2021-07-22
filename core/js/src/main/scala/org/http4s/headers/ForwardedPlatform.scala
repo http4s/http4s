@@ -16,4 +16,4 @@
 
 package org.http4s.headers
 
-private[headers] trait NamePlatform
+private[headers] trait NameCompanionPlatform

@@ -30,7 +30,7 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Med
   override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
 
-object Part extends PartPlatform {
+object Part extends PartCompanionPlatform {
   private[multipart] val ChunkSize = 8192
 
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =

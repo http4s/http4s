@@ -22,7 +22,7 @@ import java.io.File
 import org.http4s.multipart.MultipartDecoder
 import org.http4s.multipart.Multipart
 
-private[http4s] trait EntityDecoderPlatform {
+private[http4s] trait EntityDecoderCompanionPlatform {
 
   // File operations
   def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =

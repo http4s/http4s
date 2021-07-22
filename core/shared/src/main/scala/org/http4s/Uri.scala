@@ -604,7 +604,7 @@ object Uri extends UriPlatform {
       address.toString
   }
 
-  object Ipv4Address extends Ipv4AddressSingletonPlatform {
+  object Ipv4Address extends Ipv4AddressCompanionPlatform {
     def fromString(s: String): ParseResult[Ipv4Address] =
       ParseResult.fromParser(Parser.ipv4Address, "Invalid IPv4 Address")(s)
 
@@ -659,7 +659,7 @@ object Uri extends UriPlatform {
       address.toString
   }
 
-  object Ipv6Address extends Ipv6AddressSingletonPlatform {
+  object Ipv6Address extends Ipv6AddressCompanionPlatform {
     def fromString(s: String): ParseResult[Ipv6Address] =
       ParseResult.fromParser(Parser.ipv6Address, "Invalid IPv6 address")(s)
 

@@ -128,7 +128,7 @@ trait EntityDecoder[F[_], T] { self =>
   * This companion object provides a way to create `new EntityDecoder`s along
   * with some commonly used instances which can be resolved implicitly.
   */
-object EntityDecoder extends EntityDecoderPlatform {
+object EntityDecoder extends EntityDecoderCompanionPlatform {
   // This is not a real media type but will still be matched by `*/*`
   private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
 

@@ -25,7 +25,7 @@ private[http4s] trait Ipv4AddressPlatform { self: Uri.Ipv4Address =>
     address.toInetAddress
 }
 
-private[http4s] trait Ipv4AddressSingletonPlatform {
+private[http4s] trait Ipv4AddressCompanionPlatform {
   def apply(address: ip4s.Ipv4Address): Ipv4Address
 
   def fromInet4Address(address: Inet4Address): Ipv4Address =
@@ -37,7 +37,7 @@ private[http4s] trait Ipv6AddressPlatform { self: Uri.Ipv6Address =>
     address.toInetAddress
 }
 
-private[http4s] trait Ipv6AddressSingletonPlatform {
+private[http4s] trait Ipv6AddressCompanionPlatform {
   def apply(address: ip4s.Ipv6Address): Ipv6Address
 
   def fromInet6Address(address: Inet6Address): Ipv6Address =

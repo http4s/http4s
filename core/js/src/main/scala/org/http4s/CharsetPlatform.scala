@@ -18,7 +18,7 @@ package org.http4s
 
 import java.nio.charset.StandardCharsets._
 
-private[http4s] trait CharsetPlatform {
+private[http4s] trait CharsetCompanionPlatform {
   private[http4s] def availableCharsets =
     List(US_ASCII, ISO_8859_1, UTF_8, UTF_16, UTF_16BE, UTF_16LE)
 }

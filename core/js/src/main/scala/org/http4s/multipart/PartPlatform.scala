@@ -17,4 +17,4 @@
 package org.http4s
 package multipart
 
-private[multipart] trait PartPlatform
+private[multipart] trait PartCompanionPlatform

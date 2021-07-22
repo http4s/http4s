@@ -43,7 +43,7 @@ object Forwarded extends ForwardedRenderers {
 
     sealed trait Name { self: Product => }
 
-    object Name extends NamePlatform {
+    object Name extends NameCompanionPlatform {
       case class Ipv4(address: Ipv4Address) extends Name
       case class Ipv6(address: Ipv6Address) extends Name
       case object Unknown extends Name

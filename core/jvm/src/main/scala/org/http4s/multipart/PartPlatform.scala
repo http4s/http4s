@@ -23,7 +23,7 @@ import java.io.{File, InputStream}
 import cats.effect.Sync
 import java.net.URL
 
-private[multipart] trait PartPlatform { self: Part.type =>
+private[multipart] trait PartCompanionPlatform { self: Part.type =>
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)

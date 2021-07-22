@@ -29,7 +29,7 @@ final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def render(writer: Writer): writer.type = writer << nioCharset.name
 }
 
-object Charset extends CharsetPlatform {
+object Charset extends CharsetCompanionPlatform {
 
   implicit val catsInstancesForHttp4sCharset: Hash[Charset] with Order[Charset] =
     new Hash[Charset] with Order[Charset] {

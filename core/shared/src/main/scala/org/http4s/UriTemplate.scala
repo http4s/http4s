@@ -105,7 +105,7 @@ final case class UriTemplate(
     else Success(UriTemplate.toUri(this))
 }
 
-object UriTemplate extends UriTemplatePlatform {
+object UriTemplate extends UriTemplateCompanionPlatform {
   type Path = List[PathDef]
   type Query = List[QueryDef]
   type Fragment = List[FragmentDef]

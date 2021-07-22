@@ -18,6 +18,6 @@ package org.http4s
 
 import java.net.URLEncoder
 
-private[http4s] trait UriTemplatePlatform {
+private[http4s] trait UriTemplateCompanionPlatform {
   private[http4s] def encodeURI(s: String) = URLEncoder.encode(s, "UTF-8")
 }

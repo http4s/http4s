@@ -16,4 +16,4 @@
 
 package org.http4s
 
-private[http4s] trait EntityDecoderPlatform
+private[http4s] trait EntityDecoderCompanionPlatform

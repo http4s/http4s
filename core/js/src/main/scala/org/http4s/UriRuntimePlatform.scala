@@ -18,8 +18,8 @@ package org.http4s
 
 private[http4s] trait Ipv4AddressPlatform
 
-private[http4s] trait Ipv4AddressSingletonPlatform
+private[http4s] trait Ipv4AddressCompanionPlatform
 
 private[http4s] trait Ipv6AddressPlatform
 
-private[http4s] trait Ipv6AddressSingletonPlatform
+private[http4s] trait Ipv6AddressCompanionPlatform

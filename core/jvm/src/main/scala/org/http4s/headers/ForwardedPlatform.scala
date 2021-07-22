@@ -24,7 +24,7 @@ import Forwarded.Node.Name.Ipv6
 import com.comcast.ip4s.Ipv4Address
 import com.comcast.ip4s.Ipv6Address
 
-private[headers] trait NamePlatform {
+private[headers] trait NameCompanionPlatform {
   def ofInet4Address(address: Inet4Address): Name =
     Ipv4(Ipv4Address.fromInet4Address(address))
 
