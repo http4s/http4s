@@ -145,7 +145,7 @@ object QueryParamCodec {
 
   def zoneOffset(formatter: DateTimeFormatter): QueryParamCodec[ZoneOffset] =
     QueryParamCodec.from(
-      QueryParamDecoder.zonedOffset(formatter),
+      QueryParamDecoder.zoneOffset(formatter),
       QueryParamEncoder.zoneOffset(formatter))
 
   def zonedDateTime(formatter: DateTimeFormatter): QueryParamCodec[ZonedDateTime] =
@@ -427,7 +427,7 @@ object QueryParamDecoder {
   def yearMonth(formatter: DateTimeFormatter): QueryParamDecoder[YearMonth] =
     javaTimeQueryParamDecoder(formatter, YearMonth.from, "YearMonth")
 
-  def zonedOffset(formatter: DateTimeFormatter): QueryParamDecoder[ZoneOffset] =
+  def zoneOffset(formatter: DateTimeFormatter): QueryParamDecoder[ZoneOffset] =
     javaTimeQueryParamDecoder(formatter, ZoneOffset.from, "ZoneOffset")
 
   def zonedDateTime(formatter: DateTimeFormatter): QueryParamDecoder[ZonedDateTime] =

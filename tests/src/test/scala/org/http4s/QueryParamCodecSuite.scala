@@ -181,7 +181,7 @@ trait QueryParamCodecInstances {
       .toFormatter)
 
   implicit val zoneOffsetQueryParamCodec: QueryParamCodec[ZoneOffset] =
-    QueryParamCodec.zoneOffset(DateTimeFormatter.ofPattern("xxxxx"))
+    QueryParamCodec.zoneOffset(DateTimeFormatter.ofPattern("XXXXX"))
 
   implicit val zonedDateTimeQueryParamCodec: QueryParamCodec[ZonedDateTime] =
     QueryParamCodec.zonedDateTime(DateTimeFormatter.ISO_ZONED_DATE_TIME)
