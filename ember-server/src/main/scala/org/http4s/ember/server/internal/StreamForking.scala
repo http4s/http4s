@@ -48,32 +48,17 @@ private[internal] object StreamForking {
       val decrementRunning: F[Unit] = running.update(_ - 1)
       val awaitWhileRunning: F[Unit] = running.discrete.dropWhile(_ > 0).take(1).compile.drain
 
-      val stop: F[Unit] =
-        done.update {
-          case None => Some(None)
-          case x => x
-        }
-
-      val stopSignal: Signal[F, Boolean] =
-        done.map(_.nonEmpty)
-
-      def handleResult(result: Either[Throwable, Unit]): F[Unit] =
-        result match {
-          case Right(_) => F.unit
-          case Left(err) =>
-            done.update {
-              case None => Some(Some(err))
-              case x => x
-            }
-        }
+      val stop: F[Unit] = done.update(_.orElse(Some(None)))
+      val stopSignal: Signal[F, Boolean] = done.map(_.nonEmpty)
+      def stopFailed(err: Throwable): F[Unit] =
+        done.update(_.orElse(Some(Some(err))))
 
       def runInner(inner: Stream[F, O]): F[Unit] = {
         val fa = inner
           .interruptWhen(stopSignal)
           .compile
           .drain
-          .attempt
-          .flatMap(handleResult) >> available.release >> decrementRunning
+          .handleErrorWith(stopFailed) >> available.release >> decrementRunning
 
         available.acquire >> incrementRunning >> F.start(fa).void
       }
@@ -84,9 +69,7 @@ private[internal] object StreamForking {
           .interruptWhen(stopSignal)
           .compile
           .drain
-          .void
-          .attempt
-          .flatMap(handleResult) >> decrementRunning
+          .handleErrorWith(stopFailed) >> decrementRunning
 
       val signalResult: F[Unit] =
         done.get.flatMap {
