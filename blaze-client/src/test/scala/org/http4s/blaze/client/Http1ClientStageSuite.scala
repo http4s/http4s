@@ -122,7 +122,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
           b
         }
         .noneTerminate
-        .through(_.evalMap(q.offer))
+        .evalMap(q.offer)
         .compile
         .drain).start
       req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(()).void))
