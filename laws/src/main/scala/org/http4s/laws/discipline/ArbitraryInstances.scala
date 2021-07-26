@@ -27,6 +27,7 @@ import cats.effect.std.Dispatcher
 import cats.instances.order._
 import cats.syntax.all._
 import com.comcast.ip4s
+import com.comcast.ip4s.Arbitraries._
 import fs2.{Pure, Stream}
 
 import java.nio.charset.{Charset => NioCharset}
@@ -46,7 +47,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
+private[http4s] trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }

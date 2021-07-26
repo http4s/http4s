@@ -8,5 +8,5 @@ libraryDependencies ++= List(
   "com.eed3si9n" %% "treehugger" % "0.4.4",
   "io.circe" %% "circe-generic" % "0.14.1",
   "org.http4s" %% "http4s-ember-client" % "0.21.25",
-  "org.http4s" %% "http4s-circe" % "0.21.25",
+  "org.http4s" %% "http4s-circe" % "0.21.25"
 )

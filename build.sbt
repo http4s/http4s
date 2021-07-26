@@ -248,6 +248,7 @@ lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatf
       catsEffectTestkit.value,
       catsLaws.value,
       disciplineCore.value,
+      ip4sTestKit.value,
       scalacheck.value,
       scalacheckEffectMunit.value,
       munitCatsEffect.value
@@ -256,6 +257,8 @@ lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatf
       organization = "org.typelevel",
       name = "scalacheck-effect-munit")
   )
+  .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
+  .jsSettings(Test / requireJsDomEnv := true)
   .dependsOn(core)
 
 lazy val testing = libraryProject("testing", CrossType.Full, List(JVMPlatform, JSPlatform))
@@ -282,7 +285,8 @@ lazy val tests = libraryProject("tests", CrossType.Full, List(JVMPlatform, JSPla
     description := "Tests for core project",
     startYear := Some(2013)
   )
-  .jsConfigure(_.disablePlugins(DoctestPlugin))
+  .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin).disablePlugins(DoctestPlugin))
+  .jsSettings(Test / requireJsDomEnv := true)
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSPlatform))
@@ -300,14 +304,15 @@ lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSP
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 // Defined outside server to avoid circular dependency with client
-lazy val serverTesting = libraryProject("server-testing", CrossType.Full, List(JVMPlatform, JSPlatform))
-  .enablePlugins(NoPublishPlugin)
-  .settings(
-    description := "Tests for server project",
-    startYear := Some(2021)
-  )
-  .jsConfigure(_.disablePlugins(DoctestPlugin))
-  .dependsOn(server, testing % "test->test", client % "test->test")
+lazy val serverTesting =
+  libraryProject("server-testing", CrossType.Full, List(JVMPlatform, JSPlatform))
+    .enablePlugins(NoPublishPlugin)
+    .settings(
+      description := "Tests for server project",
+      startYear := Some(2021)
+    )
+    .jsConfigure(_.disablePlugins(DoctestPlugin))
+    .dependsOn(server, testing % "test->test", client % "test->test")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
