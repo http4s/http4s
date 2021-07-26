@@ -19,7 +19,6 @@ package org.http4s.headers
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import com.comcast.ip4s
-import com.comcast.ip4s.Arbitraries._
 import org.http4s.internal.bug
 import org.http4s.laws.discipline.ArbitraryInstances
 import org.http4s.{ParseResult, Uri}
