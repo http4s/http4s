@@ -87,6 +87,29 @@ trait BlazeClientBase extends Http4sSuite {
             }
         }
       case "POST" =>
+        exchange.getRequestURI.getPath match {
+          case "/respond-and-close-immediately" =>
+            // We don't consume the req.getInputStream (the request entity). That means that:
+            // - The client may receive the response before sending the whole request
+            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
+            exchange.sendResponseHeaders(200, 1L)
+            exchange.getResponseBody.write(Array("a".toByte))
+            exchange.getResponseBody.flush()
+            exchange.close()
+          case "/respond-and-close-immediately-no-body" =>
+            // We don't consume the req.getInputStream (the request entity). That means that:
+            // - The client may receive the response before sending the whole request
+            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
+            exchange.sendResponseHeaders(204, 0L)
+            exchange.close()
+          case "/process-request-entity" =>
+            // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
+            var result: Int = 0
+            while (result != -1)
+              result = exchange.getRequestBody.read()
+            exchange.sendResponseHeaders(204, 0L)
+            exchange.close()
+        }
         IO.blocking {
           exchange.sendResponseHeaders(204, -1)
           exchange.close()

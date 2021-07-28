@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s
-package blaze
-package client
+package org.http4s.websocket
 
-import cats.effect.Resource
+import java.nio.charset.StandardCharsets
 
-import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.client.Connection
-
-private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
-  def runRequest(req: Request[F]): F[Resource[F, Response[F]]]
+// https://datatracker.ietf.org/doc/html/rfc6455
+private[http4s] object Rfc6455 {
+  val handshakeMagic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+  val handshakeMagicBytes = handshakeMagic.getBytes(StandardCharsets.US_ASCII)
 }

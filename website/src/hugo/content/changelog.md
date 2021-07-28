@@ -8,6 +8,76 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.0
+
+This is the first production release with Scala 3 support, and continues to support Cats-Effect 2.  All users of the 0.21 series are encouraged to upgrade to at least this version.  Users needing Cats-Effect 3 are invited to upgrade to http4s-0.23.
+
+All subsequent 0.22.x releases will be binary compatible with this.
+
+Includes all changes from v0.21.25.
+
+## http4s-core
+
+### Bugfixes
+
+* [#4933](https://github.com/http4s/http4s/pull/4933): Don't eagerly parse non-matching headers
+
+### Breaking changes
+
+* [#4895](https://github.com/http4s/http4s/pull/4895): Refresh MimeDb.  This is pedantically incompatible, but we don't think you'll notice.
+
+## http4s-dsl
+
+### Bugfixes
+
+* [#4923](https://github.com/http4s/http4s/pull/4923): Define `as` as an infix operator in Scala 3
+
+## http4s-blaze-client
+
+### Documentation
+
+* [#4930](https://github.com/http4s/http4s/pull/4930): Add scaladoc to `BlazeClientBuilder`
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4803](https://github.com/http4s/http4s/pull/4803): Add web socket support
+
+## http4s-jetty-server
+
+### Bugfixes
+
+* [#4967](https://github.com/http4s/http4s/pull/4967): Fix error parsing IPv6 addresses
+
+## Dependency updates
+
+* jawn-1.2.0
+* prometheus-client-0.11.0
+
+# v0.21.25 (2021-07-18)
+
+## http4s-blaze-client
+
+### Bugfixes
+
+* [#4831](https://github.com/http4s/http4s/pull/4831): Fix blaze-client handling of early responses
+* [#4958](https://github.com/http4s/http4s/pull/4958): Reuse idle timeout stage.  This also addresses a performance regression identified in v0.21.23.
+
+### Enhancements
+
+* [#4906](https://github.com/http4s/http4s/pull/4906): Recycle more connections than before
+
+## Dependency updates
+
+* dropwizard-metrics-4.2.2
+* fs2-2.5.9
+* jetty-9.4.43
+* log4s-1.10.0
+* netty-4.1.66
+* slf4j-1.7.31
+* tomcat-9.0.50
+
 # v0.23.0-RC1 (2021-05-26)
 
 Includes the changes of v0.22.0-RC1, including the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
