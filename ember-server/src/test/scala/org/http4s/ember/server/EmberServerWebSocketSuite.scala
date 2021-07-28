@@ -98,12 +98,14 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         override def onOpen(handshakedata: ServerHandshake): Unit = {
           val fa = waitOpen.complete(None)
           dispatcher.unsafeRunSync(fa)
+          ()
         }
         override def onClose(code: Int, reason: String, remote: Boolean): Unit = {
           val fa = waitOpen
             .complete(Some(new Throwable(s"closed: code: $code, reason: $reason")))
             .attempt >> waitClose.complete(None)
           dispatcher.unsafeRunSync(fa)
+          ()
         }
         override def onMessage(msg: String): Unit =
           dispatcher.unsafeRunSync(queue.offer(msg))
@@ -116,8 +118,10 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
             .offer(new String(f.getPayloadData().array(), StandardCharsets.UTF_8))
           dispatcher.unsafeRunSync(fa)
         }
-        override def onClosing(code: Int, reason: String, remote: Boolean): Unit =
+        override def onClosing(code: Int, reason: String, remote: Boolean): Unit = {
           dispatcher.unsafeRunSync(remoteClosed.complete(()))
+          ()
+        }
       }
     } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, client)
 
