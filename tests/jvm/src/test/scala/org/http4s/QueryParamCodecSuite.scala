@@ -28,6 +28,7 @@ import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, SignStyle}
 import java.time._
 import java.time.temporal.ChronoField.{MONTH_OF_YEAR, YEAR}
 
+// TODO Move back to shared after https://github.com/typelevel/scalacheck/pull/830
 class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])
   checkAll("Double QueryParamCodec", QueryParamCodecLaws[Double])
