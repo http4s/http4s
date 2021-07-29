@@ -10,6 +10,16 @@ it.
 
 # v0.22.1 (2021-07-29)
 
+## http4s-core
+
+### Bugfixes
+
+* [#4956](https://github.com/http4s/http4s/pull/4956): Catch non-fatal exceptions, notably `DateTimeException`, in `QueryParamDecoder`s.
+
+### Enhancements
+
+* [#4956](https://github.com/http4s/http4s/pull/4956): Add `QueryParamCodec`s for more `java.time` types.
+
 ## http4s-client
 
 ### Bugfixes
