@@ -34,8 +34,28 @@ import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-/** @param sslContext Some custom `SSLContext`, or `None` if the
-  * default SSL context is to be lazily instantiated.
+/** Configure and obtain a BlazeClient
+  * @param responseHeaderTimeout duration between the submission of a request and the completion of the response header. Does not include time to read the response body.
+  * @param idleTimeout duration that a connection can wait without traffic being read or written before timeout
+  * @param requestTimeout maximum duration from the submission of a request through reading the body before a timeout.
+  * @param connectTimeout Duration a connection attempt times out after
+  * @param userAgent optional custom user agent header
+  * @param maxTotalConnections maximum connections the client will have at any specific time
+  * @param maxWaitQueueLimit maximum number requests waiting for a connection at any specific time
+  * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
+  * @param sslContext Some custom `SSLContext`, or `None` if the default SSL context is to be lazily instantiated.
+  * @param checkEndpointIdentification require endpoint identification for secure requests according to RFC 2818, Section 3.1. If the certificate presented does not match the hostname of the request, the request fails with a CertificateException. This setting does not affect checking the validity of the cert via the sslContext's trust managers.
+  * @param maxResponseLineSize maximum length of the request line
+  * @param maxHeaderLength maximum length of headers
+  * @param maxChunkSize maximum size of chunked content chunks
+  * @param chunkBufferMaxSize Size of the buffer that is used when Content-Length header is not specified.
+  * @param parserMode lenient or strict parsing mode. The lenient mode will accept illegal chars but replaces them with � (0xFFFD)
+  * @param bufferSize internal buffer size of the blaze client
+  * @param executionContext custom executionContext to run async computations.
+  * @param scheduler execution scheduler
+  * @param asynchronousChannelGroup custom AsynchronousChannelGroup to use other than the system default
+  * @param channelOptions custom socket options
+  * @param customDnsResolver customDnsResolver to use other than the system default
   */
 sealed abstract class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
@@ -219,7 +239,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     } yield BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
-      idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
       scheduler = scheduler,
       ec = executionContext
@@ -282,6 +301,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       channelOptions = channelOptions,
       connectTimeout = connectTimeout,
       dispatcher = dispatcher,
+      idleTimeout = idleTimeout,
       getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
     ).makeClient
     Resource.make(

@@ -33,7 +33,7 @@ class TraversalSpec extends Http4sSuite {
     def taking[F[_]: Concurrent, A](stream: Stream[F, A]): F[F[Option[Chunk[A]]]] =
       for {
         q <- Queue.unbounded[F, Option[Chunk[A]]]
-        _ <- stream.chunks.map(Some(_)).evalMap(q.offer(_)).compile.drain.void
+        _ <- stream.chunks.map(Some(_)).evalMap(q.offer(_)).compile.drain
         _ <- q.offer(None)
       } yield q.take
   }

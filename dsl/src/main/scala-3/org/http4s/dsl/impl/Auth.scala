@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s
-package blaze
-package client
+package org.http4s.dsl.impl
 
-import cats.effect.Resource
+import org.http4s.{AuthedRequest, Request}
 
-import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.client.Connection
-
-private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
-  def runRequest(req: Request[F]): F[Resource[F, Response[F]]]
+trait Auth {
+  object as {
+    infix def unapply[F[_], A](ar: AuthedRequest[F, A]): Option[(Request[F], A)] =
+      Some(ar.req -> ar.context)
+  }
 }

@@ -19,8 +19,9 @@ package org.http4s
 import cats.{Contravariant, Functor, Hash, MonoidK, Order, Show}
 import cats.data.{Validated, ValidatedNel}
 import cats.syntax.all._
-import java.time.{Instant, LocalDate, ZonedDateTime}
-import java.time.format.{DateTimeFormatter, DateTimeParseException}
+
+import java.time._
+import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAccessor
 
 final case class QueryParameterKey(value: String) extends AnyVal
@@ -94,30 +95,79 @@ object QueryParamCodec {
         decodeA.decode(value)
     }
 
-  def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] = {
-    import QueryParamDecoder.instantQueryParamDecoder
-    import QueryParamEncoder.instantQueryParamEncoder
+  def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] =
+    instant(formatter)
 
-    QueryParamCodec
-      .from[Instant](instantQueryParamDecoder(formatter), instantQueryParamEncoder(formatter))
-  }
+  def localDateQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[LocalDate] =
+    localDate(formatter)
 
-  def localDateQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[LocalDate] = {
-    import QueryParamDecoder.localDateQueryParamDecoder
-    import QueryParamEncoder.localDateQueryParamEncoder
+  def zonedDateTimeQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[ZonedDateTime] =
+    zonedDateTime(formatter)
 
-    QueryParamCodec
-      .from[LocalDate](localDateQueryParamDecoder(formatter), localDateQueryParamEncoder(formatter))
-  }
+  def instant(formatter: DateTimeFormatter): QueryParamCodec[Instant] =
+    QueryParamCodec.from(QueryParamDecoder.instant(formatter), QueryParamEncoder.instant(formatter))
 
-  def zonedDateTimeQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[ZonedDateTime] = {
-    import QueryParamDecoder.zonedDateTimeQueryParamDecoder
-    import QueryParamEncoder.zonedDateTimeQueryParamEncoder
+  def localDate(formatter: DateTimeFormatter): QueryParamCodec[LocalDate] =
+    QueryParamCodec.from(
+      QueryParamDecoder.localDate(formatter),
+      QueryParamEncoder.localDate(formatter))
 
-    QueryParamCodec.from[ZonedDateTime](
-      zonedDateTimeQueryParamDecoder(formatter),
-      zonedDateTimeQueryParamEncoder(formatter))
-  }
+  def localTime(formatter: DateTimeFormatter): QueryParamCodec[LocalTime] =
+    QueryParamCodec.from(
+      QueryParamDecoder.localTime(formatter),
+      QueryParamEncoder.localTime(formatter))
+
+  def localDateTime(formatter: DateTimeFormatter): QueryParamCodec[LocalDateTime] =
+    QueryParamCodec.from(
+      QueryParamDecoder.localDateTime(formatter),
+      QueryParamEncoder.localDateTime(formatter))
+
+  def dayOfWeek(formatter: DateTimeFormatter): QueryParamCodec[DayOfWeek] =
+    QueryParamCodec.from(
+      QueryParamDecoder.dayOfWeek(formatter),
+      QueryParamEncoder.dayOfWeek(formatter))
+
+  def month(formatter: DateTimeFormatter): QueryParamCodec[Month] =
+    QueryParamCodec.from(QueryParamDecoder.month(formatter), QueryParamEncoder.month(formatter))
+
+  def monthDay(formatter: DateTimeFormatter): QueryParamCodec[MonthDay] =
+    QueryParamCodec.from(
+      QueryParamDecoder.monthDay(formatter),
+      QueryParamEncoder.monthDay(formatter))
+
+  def year(formatter: DateTimeFormatter): QueryParamCodec[Year] =
+    QueryParamCodec.from(QueryParamDecoder.year(formatter), QueryParamEncoder.year(formatter))
+
+  def yearMonth(formatter: DateTimeFormatter): QueryParamCodec[YearMonth] =
+    QueryParamCodec.from(
+      QueryParamDecoder.yearMonth(formatter),
+      QueryParamEncoder.yearMonth(formatter))
+
+  def zoneOffset(formatter: DateTimeFormatter): QueryParamCodec[ZoneOffset] =
+    QueryParamCodec.from(
+      QueryParamDecoder.zoneOffset(formatter),
+      QueryParamEncoder.zoneOffset(formatter))
+
+  def zonedDateTime(formatter: DateTimeFormatter): QueryParamCodec[ZonedDateTime] =
+    QueryParamCodec.from(
+      QueryParamDecoder.zonedDateTime(formatter),
+      QueryParamEncoder.zonedDateTime(formatter))
+
+  def offsetTime(formatter: DateTimeFormatter): QueryParamCodec[OffsetTime] =
+    QueryParamCodec.from(
+      QueryParamDecoder.offsetTime(formatter),
+      QueryParamEncoder.offsetTime(formatter))
+
+  def offsetDateTime(formatter: DateTimeFormatter): QueryParamCodec[OffsetDateTime] =
+    QueryParamCodec.from(
+      QueryParamDecoder.offsetDateTime(formatter),
+      QueryParamEncoder.offsetDateTime(formatter))
+
+  lazy val zoneId: QueryParamCodec[ZoneId] =
+    QueryParamCodec.from(QueryParamDecoder.zoneId, QueryParamEncoder.zoneId)
+
+  lazy val period: QueryParamCodec[Period] =
+    QueryParamCodec.from(QueryParamDecoder.period, QueryParamEncoder.period)
 }
 
 /** Type class defining how to encode a `T` as a [[QueryParameterValue]]s
@@ -148,22 +198,6 @@ object QueryParamEncoder {
         fa.contramap(f)
     }
 
-  def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
-    QueryParamEncoder[String].contramap[Instant] { (i: Instant) =>
-      formatter.format(i)
-    }
-
-  def localDateQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[LocalDate] =
-    QueryParamEncoder[String].contramap[LocalDate] { (ld: LocalDate) =>
-      formatter.format(ld)
-    }
-
-  def zonedDateTimeQueryParamEncoder(
-      formatter: DateTimeFormatter): QueryParamEncoder[ZonedDateTime] =
-    QueryParamEncoder[String].contramap[ZonedDateTime] { (zdt: ZonedDateTime) =>
-      formatter.format(zdt)
-    }
-
   def fromShow[T](implicit
       sh: Show[T]
   ): QueryParamEncoder[T] =
@@ -181,8 +215,68 @@ object QueryParamEncoder {
       override def encode(value: String) =
         QueryParameterValue(value)
     }
+
   implicit lazy val uriQueryParamEncoder: QueryParamEncoder[Uri] =
     QueryParamEncoder[String].contramap(_.renderString)
+
+  def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
+    instant(formatter)
+
+  def localDateQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[LocalDate] =
+    localDate(formatter)
+
+  def zonedDateTimeQueryParamEncoder(
+      formatter: DateTimeFormatter): QueryParamEncoder[ZonedDateTime] =
+    zonedDateTime(formatter)
+
+  def instant(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def localDate(formatter: DateTimeFormatter): QueryParamEncoder[LocalDate] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def localTime(formatter: DateTimeFormatter): QueryParamEncoder[LocalTime] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def localDateTime(formatter: DateTimeFormatter): QueryParamEncoder[LocalDateTime] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def dayOfWeek(formatter: DateTimeFormatter): QueryParamEncoder[DayOfWeek] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def month(formatter: DateTimeFormatter): QueryParamEncoder[Month] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def monthDay(formatter: DateTimeFormatter): QueryParamEncoder[MonthDay] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def year(formatter: DateTimeFormatter): QueryParamEncoder[Year] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def yearMonth(formatter: DateTimeFormatter): QueryParamEncoder[YearMonth] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def zoneOffset(formatter: DateTimeFormatter): QueryParamEncoder[ZoneOffset] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def zonedDateTime(formatter: DateTimeFormatter): QueryParamEncoder[ZonedDateTime] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def offsetTime(formatter: DateTimeFormatter): QueryParamEncoder[OffsetTime] =
+    javaTimeQueryParamEncoder(formatter)
+
+  def offsetDateTime(formatter: DateTimeFormatter): QueryParamEncoder[OffsetDateTime] =
+    javaTimeQueryParamEncoder(formatter)
+
+  private def javaTimeQueryParamEncoder[T <: TemporalAccessor](
+      formatter: DateTimeFormatter
+  ): QueryParamEncoder[T] =
+    QueryParamEncoder[String].contramap[T](formatter.format)
+
+  implicit lazy val zoneId: QueryParamEncoder[ZoneId] = QueryParamEncoder[String].contramap(_.getId)
+
+  implicit lazy val period: QueryParamEncoder[Period] =
+    QueryParamEncoder[String].contramap(_.toString)
 }
 
 /** Type class defining how to decode a [[QueryParameterValue]] into a `T`
@@ -232,45 +326,6 @@ object QueryParamDecoder {
           .leftMap(t => ParseFailure(s"Query decoding $typeName failed", t.getMessage))
           .toValidatedNel
     }
-
-  def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
-    new QueryParamDecoder[Instant] {
-      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
-        Validated
-          .catchOnly[DateTimeParseException] {
-            val x: TemporalAccessor = formatter.parse(value.value)
-            Instant.from(x)
-          }
-          .leftMap { e =>
-            ParseFailure(s"Failed to decode value: ${value.value} as Instant", e.getMessage)
-          }
-          .toValidatedNel
-    }
-
-  def localDateQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[LocalDate] =
-    (value: QueryParameterValue) =>
-      Validated
-        .catchOnly[DateTimeParseException] {
-          val x: TemporalAccessor = formatter.parse(value.value)
-          LocalDate.from(x)
-        }
-        .leftMap { e =>
-          ParseFailure(s"Failed to decode value: ${value.value} as LocalDate", e.getMessage)
-        }
-        .toValidatedNel
-
-  def zonedDateTimeQueryParamDecoder(
-      formatter: DateTimeFormatter): QueryParamDecoder[ZonedDateTime] =
-    (value: QueryParameterValue) =>
-      Validated
-        .catchOnly[DateTimeParseException] {
-          val x: TemporalAccessor = formatter.parse(value.value)
-          ZonedDateTime.from(x)
-        }
-        .leftMap { e =>
-          ParseFailure(s"Failed to decode value: ${value.value} as ZonedDateTime", e.getMessage)
-        }
-        .toValidatedNel
 
   /** QueryParamDecoder is a covariant functor. */
   implicit val FunctorQueryParamDecoder: Functor[QueryParamDecoder] =
@@ -334,4 +389,80 @@ object QueryParamDecoder {
       def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Uri] =
         Uri.fromString(value.value).toValidatedNel
     }
+
+  def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
+    instant(formatter)
+
+  def localDateQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[LocalDate] =
+    localDate(formatter)
+
+  def zonedDateTimeQueryParamDecoder(
+      formatter: DateTimeFormatter): QueryParamDecoder[ZonedDateTime] =
+    zonedDateTime(formatter)
+
+  def instant(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
+    javaTimeQueryParamDecoder(formatter, Instant.from, "Instant")
+
+  def localDate(formatter: DateTimeFormatter): QueryParamDecoder[LocalDate] =
+    javaTimeQueryParamDecoder(formatter, LocalDate.from, "LocalDate")
+
+  def localTime(formatter: DateTimeFormatter): QueryParamDecoder[LocalTime] =
+    javaTimeQueryParamDecoder(formatter, LocalTime.from, "LocalTime")
+
+  def localDateTime(formatter: DateTimeFormatter): QueryParamDecoder[LocalDateTime] =
+    javaTimeQueryParamDecoder(formatter, LocalDateTime.from, "LocalDateTime")
+
+  def dayOfWeek(formatter: DateTimeFormatter): QueryParamDecoder[DayOfWeek] =
+    javaTimeQueryParamDecoder(formatter, DayOfWeek.from, "DayOfWeek")
+
+  def month(formatter: DateTimeFormatter): QueryParamDecoder[Month] =
+    javaTimeQueryParamDecoder(formatter, Month.from, "Month")
+
+  def monthDay(formatter: DateTimeFormatter): QueryParamDecoder[MonthDay] =
+    javaTimeQueryParamDecoder(formatter, MonthDay.from, "MonthDay")
+
+  def year(formatter: DateTimeFormatter): QueryParamDecoder[Year] =
+    javaTimeQueryParamDecoder(formatter, Year.from, "Year")
+
+  def yearMonth(formatter: DateTimeFormatter): QueryParamDecoder[YearMonth] =
+    javaTimeQueryParamDecoder(formatter, YearMonth.from, "YearMonth")
+
+  def zoneOffset(formatter: DateTimeFormatter): QueryParamDecoder[ZoneOffset] =
+    javaTimeQueryParamDecoder(formatter, ZoneOffset.from, "ZoneOffset")
+
+  def zonedDateTime(formatter: DateTimeFormatter): QueryParamDecoder[ZonedDateTime] =
+    javaTimeQueryParamDecoder(formatter, ZonedDateTime.from, "ZonedDateTime")
+
+  def offsetTime(formatter: DateTimeFormatter): QueryParamDecoder[OffsetTime] =
+    javaTimeQueryParamDecoder(formatter, OffsetTime.from, "OffsetTime")
+
+  def offsetDateTime(formatter: DateTimeFormatter): QueryParamDecoder[OffsetDateTime] =
+    javaTimeQueryParamDecoder(formatter, OffsetDateTime.from, "OffsetDateTime")
+
+  private def javaTimeQueryParamDecoder[T](
+      formatter: DateTimeFormatter,
+      fromTemporalAccessor: TemporalAccessor => T,
+      displayName: String
+  ): QueryParamDecoder[T] =
+    (value: QueryParameterValue) =>
+      Validated
+        .catchNonFatal(fromTemporalAccessor(formatter.parse(value.value)))
+        .leftMap(e =>
+          ParseFailure(s"Failed to decode value ${value.value} as $displayName", e.getMessage))
+        .toValidatedNel
+
+  implicit lazy val zoneId: QueryParamDecoder[ZoneId] =
+    javaTimeQueryParamDecoderFromString(ZoneId.of, "ZoneId")
+
+  implicit lazy val period: QueryParamDecoder[Period] =
+    javaTimeQueryParamDecoderFromString(Period.parse, "Period")
+
+  private def javaTimeQueryParamDecoderFromString[T](
+      parse: String => T,
+      displayName: String
+  ): QueryParamDecoder[T] = QueryParamDecoder[String].emap(s =>
+    Either
+      .catchNonFatal(parse(s))
+      .leftMap(e => ParseFailure(s"Failed to decode value $s as $displayName", e.getMessage)))
+
 }

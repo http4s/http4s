@@ -24,7 +24,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.6"
-  val scala_212 = "2.12.13"
+  val scala_212 = "2.12.14"
   val scala_3 = "3.0.0"
 
   override lazy val globalSettings = Seq(
@@ -293,25 +293,25 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.3"
-    val fs2 = "3.0.5"
+    val fs2 = "3.0.6"
     val ip4s = "3.0.3"
-    val jacksonDatabind = "2.12.3"
+    val javaWebSocket = "1.5.2"
     val jawn = "1.1.2"
     val jawnFs2 = "2.0.2"
-    val jetty = "9.4.41.v20210516"
+    val jetty = "9.4.43.v20210629"
     val keypool = "0.4.6"
     val literally = "1.0.2"
-    val logback = "1.2.3"
+    val logback = "1.2.5"
     val log4cats = "2.1.1"
     val log4s = "1.10.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "1.0.3"
+    val munitCatsEffect = "1.0.5"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.65.Final"
+    val netty = "4.1.66.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.9.2"
-    val prometheusClient = "0.10.0"
+    val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
@@ -321,7 +321,7 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.27"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.46"
+    val tomcat = "9.0.50"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.0.3"
@@ -357,6 +357,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
   lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
+  lazy val javaWebSocket                    = "org.java-websocket"     %  "Java-WebSocket"            % V.javaWebSocket
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % V.jetty

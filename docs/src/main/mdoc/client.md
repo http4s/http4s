@@ -187,9 +187,9 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 You can also build up a URI incrementally, e.g.:
 
 ```scala mdoc:nest
-val baseUri = uri"http://foo.com"
-val withPath = baseUri.withPath(path"/bar/baz")
-val withQuery = withPath.withQueryParam("hello", "world")
+val baseUri: Uri = uri"http://foo.com"
+val withPath: Uri = baseUri.withPath(path"/bar/baz")
+val withQuery: Uri = withPath.withQueryParam("hello", "world")
 ```
 
 ## Middleware
