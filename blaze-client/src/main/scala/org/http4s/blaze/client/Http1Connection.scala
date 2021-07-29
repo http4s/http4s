@@ -18,17 +18,18 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect.kernel.{Async, Resource}
+import cats.effect.kernel.{Async, Outcome, Resource}
 import cats.effect.std.Dispatcher
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
+
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.client.RequestKey
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
@@ -47,6 +48,7 @@ private final class Http1Connection[F[_]](
     override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
+    idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]],
     override val dispatcher: Dispatcher[F]
 )(implicit protected val F: Async[F])
     extends Http1Stage[F]
@@ -114,7 +116,10 @@ private final class Http1Connection[F[_]](
     val state = stageState.get()
     val nextState = state match {
       case ReadWrite => Some(Write)
-      case Read => Some(Idle(Some(startIdleRead())))
+      case Read =>
+        // idleTimeout is activated when entering ReadWrite state, remains active throughout Read and Write and is deactivated when entering the Idle state
+        idleTimeoutStage.foreach(_.cancelTimeout())
+        Some(Idle(Some(startIdleRead())))
       case _ => None
     }
 
@@ -129,7 +134,10 @@ private final class Http1Connection[F[_]](
     val state = stageState.get()
     val nextState = state match {
       case ReadWrite => Some(Read)
-      case Write => Some(Idle(Some(startIdleRead())))
+      case Write =>
+        // idleTimeout is activated when entering ReadWrite state, remains active throughout Read and Write and is deactivated when entering the Idle state
+        idleTimeoutStage.foreach(_.cancelTimeout())
+        Some(Idle(Some(startIdleRead())))
       case _ => None
     }
 
@@ -149,16 +157,16 @@ private final class Http1Connection[F[_]](
     f
   }
 
-  def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
-    F.defer[Response[F]] {
+  def runRequest(req: Request[F]): F[Resource[F, Response[F]]] =
+    F.defer[Resource[F, Response[F]]] {
       stageState.get match {
         case i @ Idle(idleRead) =>
           if (stageState.compareAndSet(i, ReadWrite)) {
             logger.debug(s"Connection was idle. Running.")
-            executeRequest(req, idleTimeoutF, idleRead)
+            executeRequest(req, idleRead)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
-            runRequest(req, idleTimeoutF)
+            runRequest(req)
           }
         case ReadWrite | Read | Write =>
           logger.error(s"Tried to run a request already in running state.")
@@ -176,8 +184,7 @@ private final class Http1Connection[F[_]](
 
   private def executeRequest(
       req: Request[F],
-      idleTimeoutF: F[TimeoutException],
-      idleRead: Option[Future[ByteBuffer]]): F[Response[F]] = {
+      idleRead: Option[Future[ByteBuffer]]): F[Resource[F, Response[F]]] = {
     logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
       case Left(e) =>
@@ -199,6 +206,11 @@ private final class Http1Connection[F[_]](
             case None => getHttpMinor(req) == 0
           }
 
+          val idleTimeoutF = idleTimeoutStage match {
+            case Some(stage) => F.async_[TimeoutException](stage.setTimeout)
+            case None => F.never[TimeoutException]
+          }
+
           idleTimeoutF.start.flatMap { timeoutFiber =>
             val idleTimeoutS = timeoutFiber.joinWithNever.attempt.map {
               case Right(t) => Left(t): Either[Throwable, Unit]
@@ -213,18 +225,24 @@ private final class Http1Connection[F[_]](
                 case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            val response: F[Response[F]] = for {
-              writeFiber <- writeRequest.start
-              response <- receiveResponse(
-                mustClose,
-                doesntHaveBody = req.method == Method.HEAD,
-                idleTimeoutS,
-                idleRead)
-              _ <- writeFiber.join
-            } yield response
+            val response: F[Resource[F, Response[F]]] =
+              F.bracketCase(
+                writeRequest.start
+              )(writeFiber =>
+                receiveResponse(
+                  mustClose,
+                  doesntHaveBody = req.method == Method.HEAD,
+                  idleTimeoutS,
+                  idleRead
+                  // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
+                ).map(response =>
+                  Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response))) {
+                case (_, Outcome.Succeeded(_)) => F.unit
+                case (writeFiber, Outcome.Canceled() | Outcome.Errored(_)) => writeFiber.cancel
+              }
 
             F.race(response, timeoutFiber.joinWithNever)
-              .flatMap[Response[F]] {
+              .flatMap {
                 case Left(r) =>
                   F.pure(r)
                 case Right(t) =>

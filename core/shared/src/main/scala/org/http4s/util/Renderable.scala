@@ -57,6 +57,11 @@ object Renderer {
       writer << dateFormat.format(t)
   }
 
+  implicit val stringRenderer: Renderer[String] = new Renderer[String] {
+    override def render(writer: Writer, string: String): writer.type =
+      writer << string
+  }
+
   // Render a finite duration in seconds
   implicit val finiteDurationRenderer: Renderer[FiniteDuration] = new Renderer[FiniteDuration] {
     override def render(writer: Writer, d: FiniteDuration): writer.type =

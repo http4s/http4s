@@ -52,22 +52,15 @@ private[http4s] class Http4sWSStage[F[_]](
   def name: String = "Http4s WebSocket Stage"
 
   //////////////////////// Source and Sink generators ////////////////////////
-  def snk: Pipe[F, WebSocketFrame, Unit] =
-    _.evalMap { frame =>
-      F.delay(sentClose.get()).flatMap { wasCloseSent =>
-        if (!wasCloseSent)
-          frame match {
-            case c: Close =>
-              F.delay(sentClose.compareAndSet(false, true))
-                .flatMap(cond => if (cond) writeFrame(c, directec) else F.unit)
-            case _ =>
-              writeFrame(frame, directec)
-          }
-        else
-          //Close frame has been sent. Send no further data
-          F.unit
-      }
-    }
+  val isClosed: F[Boolean] = F.delay(sentClose.get())
+  val setClosed: F[Boolean] = F.delay(sentClose.compareAndSet(false, true))
+
+  def evalFrame(frame: WebSocketFrame): F[Unit] = frame match {
+    case c: Close => setClosed.ifM(writeFrame(c, directec), F.unit)
+    case _ => writeFrame(frame, directec)
+  }
+
+  def snkFun(frame: WebSocketFrame): F[Unit] = isClosed.ifM(F.unit, evalFrame(frame))
 
   private[this] def writeFrame(frame: WebSocketFrame, ec: ExecutionContext): F[Unit] =
     writeSemaphore.permit.use { _ =>
@@ -152,21 +145,18 @@ private[http4s] class Http4sWSStage[F[_]](
     // Effect to send a close to the other endpoint
     val sendClose: F[Unit] = F.delay(closePipeline(None))
 
-    val receiveSend: Pipe[F, WebSocketFrame, WebSocketFrame] =
+    val receiveSent: Stream[F, WebSocketFrame] =
       ws match {
         case WebSocketSeparatePipe(send, receive, _) =>
-          incoming =>
-            send.concurrently(
-              incoming.through(receive).drain
-            ) //We don't need to terminate if the send stream terminates.
+          //We don't need to terminate if the send stream terminates.
+          send.concurrently(receive(inputstream))
         case WebSocketCombinedPipe(receiveSend, _) =>
-          receiveSend
+          receiveSend(inputstream)
       }
 
     val wsStream =
-      inputstream
-        .through(receiveSend)
-        .through(snk)
+      receiveSent
+        .evalMap(snkFun)
         .drain
         .interruptWhen(deadSignal)
         .onFinalizeWeak(

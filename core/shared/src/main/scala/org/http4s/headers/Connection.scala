@@ -49,4 +49,5 @@ object Connection {
 final case class Connection(values: NonEmptyList[CIString]) {
   def hasClose: Boolean = values.contains_(ci"close")
   def hasKeepAlive: Boolean = values.contains_(ci"keep-alive")
+  def hasUpgrade: Boolean = values.contains_(ci"upgrade")
 }

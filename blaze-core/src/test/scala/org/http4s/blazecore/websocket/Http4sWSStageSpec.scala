@@ -46,7 +46,7 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
       Stream
         .emits(w)
         .covary[IO]
-        .through(_.evalMap(outQ.offer))
+        .evalMap(outQ.offer)
         .compile
         .drain
 

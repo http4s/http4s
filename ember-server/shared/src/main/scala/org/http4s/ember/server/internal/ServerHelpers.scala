@@ -72,7 +72,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F]
-  )(implicit F: Temporal[F]): Stream[F, Nothing] = {
+  )(implicit F: Async[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
         .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
@@ -84,7 +84,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
-        shutdown.trackConnection >>
+        val handler = shutdown.trackConnection >>
           Stream
             .resource(upgradeSocket(connect, tlsInfoOpt, logger))
             .flatMap(
@@ -99,6 +99,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 errorHandler,
                 onWriteFailure
               ))
+
+        handler.handleErrorWith { t =>
+          Stream.eval(logger.error(t)("Request handler failed with exception")).drain
+        }
       }
 
     streams.parJoin(
@@ -155,8 +159,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
-      postResp <- postProcessResponse(req, resp)
-    } yield (req, postResp, drain)
+    } yield (req, resp, drain)
   }
 
   private[internal] def send[F[_]: Temporal](socket: Socket[F])(
@@ -189,6 +192,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
     // We know this is raw because we have not parsed any headers in the underlying alg.
     // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
+    // TODO: the problem is that any string that contains `expected` is admissible
     def hasConnection(expected: String): Boolean =
       headers.headers.exists {
         case Header.Raw(name, value) =>
@@ -203,7 +207,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     }
   }
 
-  private[internal] def runConnection[F[_]: Temporal](
+  private[internal] def runConnection[F[_]: Async](
       socket: Socket[F],
       logger: Logger[F],
       idleTimeout: Duration,
@@ -221,7 +225,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       Stream
         .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
           case (buffer, reuse) =>
-            val initRead: F[Array[Byte]] = if (buffer.length > 0) {
+            val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
               // next request has already been (partially) received
               buffer.pure[F]
             } else if (reuse) {
@@ -249,11 +253,34 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
 
             result.attempt.flatMap {
               case Right((req, resp, drain)) =>
-                send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
-                  drain.map {
-                    case Some(nextBuffer) => Some(((req, resp), (nextBuffer, true)))
-                    case None => None
-                  }
+                // TODO: Should we pay this cost for every HTTP request?
+                // Intercept the response for various upgrade paths
+                resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
+                  case Some(ctx) =>
+                    drain.flatMap {
+                      case Some(buffer) =>
+                        WebSocketHelpers
+                          .upgrade(
+                            socket,
+                            req,
+                            ctx,
+                            buffer,
+                            receiveBufferSize,
+                            idleTimeout,
+                            onWriteFailure,
+                            errorHandler,
+                            logger)
+                          .as(None)
+                      case None =>
+                        Concurrent[F].pure(None)
+                    }
+                  case None =>
+                    for {
+                      nextResp <- postProcessResponse(req, resp)
+                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                      nextBuffer <- drain
+                    } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
+                }
               case Left(err) =>
                 err match {
                   case EmptyStreamError() =>

@@ -300,14 +300,15 @@ lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSP
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 // Defined outside server to avoid circular dependency with client
-lazy val serverTesting = libraryProject("server-testing", CrossType.Full, List(JVMPlatform, JSPlatform))
-  .enablePlugins(NoPublishPlugin)
-  .settings(
-    description := "Tests for server project",
-    startYear := Some(2021)
-  )
-  .jsConfigure(_.disablePlugins(DoctestPlugin))
-  .dependsOn(server, testing % "test->test", client % "test->test")
+lazy val serverTesting =
+  libraryProject("server-testing", CrossType.Full, List(JVMPlatform, JSPlatform))
+    .enablePlugins(NoPublishPlugin)
+    .settings(
+      description := "Tests for server project",
+      startYear := Some(2021)
+    )
+    .jsConfigure(_.disablePlugins(DoctestPlugin))
+    .dependsOn(server, testing % "test->test", client % "test->test")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -369,7 +370,13 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
     description := "ember implementation for http4s servers",
     startYear := Some(2019)
   )
-  .jvmSettings(libraryDependencies += log4catsSlf4j.value)
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      log4catsSlf4j.value,
+      javaWebSocket % Test
+    ),
+    Test / parallelExecution := false
+  )
   .jsSettings(
     libraryDependencies += log4catsNoop.value,
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
@@ -407,12 +414,7 @@ lazy val blazeCore = libraryProject("blaze-core")
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
-    startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
-      // private constructor with new parameter
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.server.blaze.BlazeServerBuilder.this")
-    )
+    startYear := Some(2014)
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
@@ -420,29 +422,7 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.canEqual"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.productArity"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.productElement"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.productElementName"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.productElementNames"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.productIterator"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.productPrefix"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.blaze.Http1Connection.reset"),
-      ProblemFilters.exclude[FinalMethodProblem](
-        "org.http4s.client.blaze.Http1Connection#Idle.toString"),
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.client.blaze.Http1Connection$Running$"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.client.blaze.Http1Connection$Idle$")
-    )
+    mimaBinaryIssueFilters ++= Seq()
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
  */
 
 package org.http4s
-package blaze
-package client
 
-import cats.effect.Resource
+import org.typelevel.ci.CIString
+import cats.kernel.Eq
 
-import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.client.Connection
+final case class Protocol(name: CIString, version: Option[CIString]) {
+  override def toString(): String = name.toString + version.map(v => "/" + v.toString).getOrElse("")
+}
 
-private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
-  def runRequest(req: Request[F]): F[Resource[F, Response[F]]]
+object Protocol {
+  implicit val catsEqInstance: Eq[Protocol] = Eq.fromUniversalEquals
 }

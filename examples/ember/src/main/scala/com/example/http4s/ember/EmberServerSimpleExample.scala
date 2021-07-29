@@ -26,6 +26,9 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.circe._
 import _root_.io.circe._
 import _root_.org.http4s.ember.server.EmberServerBuilder
+import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.websocket.WebSocketFrame
+import scala.concurrent.duration._
 
 object EmberServerSimpleExample extends IOApp {
 
@@ -68,6 +71,14 @@ object EmberServerSimpleExample extends IOApp {
             .take(100)
             .through(fs2.text.utf8.encode[F])
           Ok(body).map(_.withContentType(headers.`Content-Type`(MediaType.text.plain)))
+        case GET -> Root / "ws" =>
+          val send: Stream[F, WebSocketFrame] =
+            Stream.awakeEvery[F](1.seconds).map(_ => WebSocketFrame.Text("text"))
+          val receive: Pipe[F, WebSocketFrame, Unit] = _.evalMap {
+            case WebSocketFrame.Text(text, _) => Sync[F].delay(println(text))
+            case other => Sync[F].delay(println(other))
+          }
+          WebSocketBuilder[F].build(send, receive)
       }
       .orNotFound
   }
