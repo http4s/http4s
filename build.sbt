@@ -400,8 +400,6 @@ lazy val boopickle = libraryProject("boopickle")
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle.cross(CrossVersion.for3Use2_13)
     ),
-    compile / skip := isDotty.value,
-    publish / skip := isDotty.value
   )
   .dependsOn(core, testing % "test->test")
 
