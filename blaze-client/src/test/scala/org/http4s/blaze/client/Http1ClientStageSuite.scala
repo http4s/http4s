@@ -26,7 +26,6 @@ import fs2.Stream
 import org.http4s.blaze.pipeline.Command.EOF
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.BuildInfo
 import org.http4s.blaze.client.bits.DefaultUserAgent
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, TestHead}
