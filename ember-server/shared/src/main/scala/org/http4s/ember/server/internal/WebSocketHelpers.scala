@@ -16,31 +16,35 @@
 
 package org.http4s.ember.server.internal
 
-import cats.MonadThrow
 import cats.data.NonEmptyList
-import cats.effect.{Async, Concurrent, Ref}
+import cats.effect.Async
+import cats.effect.Concurrent
+import cats.effect.Ref
 import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, Stream}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
+import fs2.concurrent.SignallingRef
 import fs2.io.net._
-import org.http4s.syntax.all._
 import org.http4s._
-import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
-import org.http4s.headers._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.timeoutMaybe
 import org.http4s.headers.Connection
-import org.http4s.websocket.{Rfc6455, WebSocketCombinedPipe, WebSocketFrame, WebSocketSeparatePipe}
+import org.http4s.headers._
+import org.http4s.syntax.all._
+import org.http4s.websocket.FrameTranscoder
+import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketContext
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
-import scodec.bits.ByteVector
-
-import scala.concurrent.duration.Duration
-import java.security.MessageDigest
-import java.nio.charset.StandardCharsets
-import java.nio.ByteBuffer
 import org.typelevel.log4cats.Logger
-import fs2.concurrent.SignallingRef
 
-object WebSocketHelpers {
+import java.nio.ByteBuffer
+import scala.concurrent.duration.Duration
+
+object WebSocketHelpers extends WebSocketHelpersPlatform {
 
   private[this] val supportedWebSocketVersion = 13L
 
@@ -236,16 +240,6 @@ object WebSocketHelpers {
 
     (connection, upgrade, version, key).mapN { case (_, _, _, key) => key }
   }
-
-  private def serverHandshake[F[_]](value: String)(implicit F: MonadThrow[F]): F[ByteVector] =
-    F.catchNonFatal {
-      val crypt = MessageDigest.getInstance("SHA-1")
-      crypt.reset()
-      crypt.update(value.getBytes(StandardCharsets.US_ASCII))
-      crypt.update(Rfc6455.handshakeMagicBytes)
-      val bytes = crypt.digest()
-      ByteVector(bytes)
-    }
 
   private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
     Stream.eval(read).flatMap {

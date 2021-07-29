@@ -16,57 +16,24 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
-import cats.effect.std.{Dispatcher, Queue}
-import fs2.{Pipe, Stream}
-import org.http4s._
+import cats.effect.std.Dispatcher
+import cats.effect.std.Queue
 import org.http4s.server.Server
-import org.http4s.implicits._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.testing.DispatcherIOFixture
-import org.http4s.websocket.WebSocketFrame
-import org.http4s.server.websocket.WebSocketBuilder
-
-import org.java_websocket.client.WebSocketClient
-import java.net.URI
-import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.WebSocket
+import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
+import org.java_websocket.handshake.ServerHandshake
+
+import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
+trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
 
-  def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
-    val dsl = new Http4sDsl[F] {}
-    import dsl._
-
-    HttpRoutes
-      .of[F] {
-        case GET -> Root =>
-          Ok("Hello!")
-        case GET -> Root / "ws-echo" =>
-          val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
-            case WebSocketFrame.Text(text, _) => Stream(WebSocketFrame.Text(text))
-            case _ => Stream(WebSocketFrame.Text("unknown"))
-          }
-          WebSocketBuilder[F].build(sendReceive)
-        case GET -> Root / "ws-close" =>
-          val send = Stream(WebSocketFrame.Text("foo"))
-          WebSocketBuilder[F].build(send, _.void)
-      }
-      .orNotFound
-  }
-
-  val serverResource: Resource[IO, Server] =
-    EmberServerBuilder
-      .default[IO]
-      .withHttpApp(service[IO])
-      .build
-
-  def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
+  def serverURI(server: Server, path: String): URI =
+    URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/$path")
 
   case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
@@ -125,48 +92,4 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       }
     } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, client)
 
-  fixture.test("open and close connection to server") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher)
-      _ <- client.connect
-      _ <- client.close
-    } yield ()
-  }
-
-  fixture.test("send and receive a message") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher)
-      _ <- client.connect
-      _ <- client.send("foo")
-      msg <- client.messages.take
-      _ <- client.close
-    } yield assertEquals(msg, "foo")
-  }
-
-  fixture.test("respond to pings") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher)
-      _ <- client.connect
-      _ <- client.ping("hello")
-      data <- client.pongs.take
-      _ <- client.close
-    } yield assertEquals(data, "hello")
-  }
-
-  fixture.test("initiate close sequence on stream termination") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
-        dispatcher)
-      _ <- client.connect
-      _ <- client.messages.take
-      _ <- client.remoteClosed.get
-    } yield ()
-  }
 }

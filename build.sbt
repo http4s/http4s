@@ -379,6 +379,8 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
   )
   .jsSettings(
     libraryDependencies += log4catsNoop.value,
+    Test / npmDependencies += "ws" -> "8.0.0",
+    useYarn := true,
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
   .dependsOn(
@@ -386,6 +388,7 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
     server % "compile;test->test",
     serverTesting % "test->test",
     emberClient % "test->compile")
+  .jsEnablePlugins(ScalaJSBundlerPlugin)
 
 lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPlatform, JSPlatform))
   .settings(
