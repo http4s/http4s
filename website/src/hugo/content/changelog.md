@@ -8,6 +8,21 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.1 (2021-07-29)
+
+## http4s-client
+
+### Bugfixes
+
+* [#4933](https://github.com/http4s/http4s/pull/4933): Append the `EntityDecoder`'s `Accept` headers to any explicit headers instead of replacing them.  This was a regression from the 0.21 line.
+
+## Dependency updates
+
+* cats-effect-2.5.2
+* dropwizard-metrics-4.2.3
+* scala-xml-2.0.1
+* slf4j-api-1.7.32
+
 # v0.22.0
 
 This is the first production release with Scala 3 support, and continues to support Cats-Effect 2.  All users of the 0.21 series are encouraged to upgrade to at least this version.  Users needing Cats-Effect 3 are invited to upgrade to http4s-0.23.
