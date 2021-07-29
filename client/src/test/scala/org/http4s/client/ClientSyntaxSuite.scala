@@ -235,6 +235,28 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals("Accept: text/*")
   }
 
+  test("Client should append Accept header to existing request headers on expect for requests") {
+    client
+      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
+        .putHeaders(Accept(MediaRange.`application/*`)))
+      .assertEquals("Accept: application/*, text/*")
+  }
+
+  test(
+    "Client should append Accept header to existing request headers on expectOptionOr for requests") {
+    client
+      .expectOptionOr[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
+        .putHeaders(Accept(MediaRange.`application/*`)))(_ => IO.raiseError(new Exception))
+      .assertEquals(Some("Accept: application/*, text/*"))
+  }
+
+  test("Client should append Accept header to existing request headers on fetchAs for requests") {
+    client
+      .fetchAs[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
+        .putHeaders(Accept(MediaRange.`application/*`)))
+      .assertEquals("Accept: application/*, text/*")
+  }
+
   test("Client should combine entity decoder media types correctly") {
     // This is more of an EntityDecoder spec
     val edec =

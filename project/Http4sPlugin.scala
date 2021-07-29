@@ -1,5 +1,6 @@
 package org.http4s.sbt
 
+import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -135,6 +136,8 @@ object Http4sPlugin extends AutoPlugin {
         _.revision == "0.21.10"
       )
     },
+
+    doctestTestFramework := DoctestTestFramework.Munit,
   )
 
   def extractApiVersion(version: String) = {
