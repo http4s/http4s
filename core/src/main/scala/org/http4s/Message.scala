@@ -141,7 +141,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * >>> req2.headers.get[Accept]
     * Some(Accept(NonEmptyList(text/*)))
     * }}}
-    * /*/*/*/
+    * */*/*/*/
     */
   def putHeaders(headers: Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
@@ -162,7 +162,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * >>> req2.headers.get[Accept]
     * Some(Accept(NonEmptyList(application/*, text/*)))
     * }}}
-    * /*/*/*/*/
+    * */*/*/*/*/
     */
   def addHeader[H: Header[*, Header.Recurring]](h: H): Self =
     transformHeaders(_.add(h))
