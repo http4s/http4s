@@ -37,12 +37,12 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
       waitClose: Deferred[IO, Unit],
       error: Deferred[IO, Throwable],
       messages: Queue[IO, String],
-      pings: Queue[IO, String],
       pongs: Queue[IO, String],
       client: js.Dynamic) {
     def connect: IO[Unit] = error.get.race(waitOpen.get).rethrow
-    def close: IO[Unit] = error.get.race(waitClose.get).rethrow
-    def send(msg: String): IO[Unit] = error.get.race(IO(client.send(msg)).void).rethrow
+    def close: IO[Unit] = IO(client.close(1000)) >> error.get.race(waitClose.get).rethrow
+    def send(msg: String): IO[Unit] =
+      error.get.race(IO.async_[Unit](cb => client.send(msg, () => cb(Right(()))))).rethrow
     def ping(data: String): IO[Unit] = error.get.race(IO(client.ping(data)).void).rethrow
     def remoteClosed = waitClose
   }
@@ -53,28 +53,23 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
       waitClose <- Deferred[IO, Unit]
       error <- Deferred[IO, Throwable]
       queue <- Queue.unbounded[IO, String]
-      pingQueue <- Queue.unbounded[IO, String]
       pongQueue <- Queue.unbounded[IO, String]
       client <- IO {
         val websocket = js.Dynamic.newInstance(ws)(target.toString())
-        websocket.on("open", () => dispatcher.unsafeRunAndForget(waitClose.complete(())))
-        websocket.on("close", () => dispatcher.unsafeRunAndForget(waitClose.complete(())))
+        websocket.on("open", () => waitOpen.complete(()).unsafeRunAndForget())
+        websocket.on("close", () => waitClose.complete(()).unsafeRunAndForget())
         websocket.on(
           "error",
-          (e: js.Any) => dispatcher.unsafeRunAndForget(error.complete(js.JavaScriptException(e))))
+          (e: js.Any) => error.complete(js.JavaScriptException(e)).unsafeRunAndForget())
         websocket.on(
           "message",
           (buffer: js.Dynamic) =>
-            dispatcher.unsafeRunAndForget(queue.offer(buffer.toString.asInstanceOf[String])))
-        websocket.on(
-          "ping",
-          (buffer: js.Dynamic) =>
-            dispatcher.unsafeRunAndForget(pingQueue.offer(buffer.toString.asInstanceOf[String])))
+            queue.offer(buffer.toString.asInstanceOf[String]).unsafeRunAndForget())
         websocket.on(
           "pong",
           (buffer: js.Dynamic) =>
-            dispatcher.unsafeRunAndForget(pongQueue.offer(buffer.toString.asInstanceOf[String])))
+            pongQueue.offer(buffer.toString.asInstanceOf[String]).unsafeRunAndForget())
       }
-    } yield Client(waitOpen, waitClose, error, queue, pingQueue, pongQueue, client)
+    } yield Client(waitOpen, waitClose, error, queue, pongQueue, client)
 
 }
