@@ -141,10 +141,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   // Specific header methods
 
-  @deprecated("Use withContentType(`Content-Type`(t)) instead", "0.20.0-M2")
-  def withType(t: MediaType)(implicit F: Functor[F]): Self =
-    withContentType(`Content-Type`(t))
-
   def withContentType(contentType: `Content-Type`): Self =
     putHeaders(contentType)
 
