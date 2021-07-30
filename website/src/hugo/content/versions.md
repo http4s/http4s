@@ -21,7 +21,6 @@ title: Versions
 
 ## Which version is right for me?
 
-* _I'm on Scala 2, and milestones scare me:_ {{% latestInSeries "0.21" %}}
 * _I'll upgrade to Scala 3 before Cats-Effect 3:_ {{% latestInSeries "0.22" %}}
 * _I'm ready for Cats-Effect 3:_ {{% latestInSeries "0.23" %}}
 * _I'm new here, pick one:_ {{% latestInSeries "0.23" %}}
@@ -59,7 +58,7 @@ title: Versions
 	</tr>
 	<tr>
 	  <td><a href="/v0.23">{{% latestInSeries "0.23" %}}</a></td>
-	  <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
+	  <td class="text-center"><span class="badge badge-success">Stable</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
@@ -71,7 +70,7 @@ title: Versions
 	</tr>
 	<tr>
 	  <td><a href="/v0.22">{{% latestInSeries "0.22" %}}</a></td>
-	  <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
+	  <td class="text-center"><span class="badge badge-success">Stable</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
@@ -83,7 +82,7 @@ title: Versions
 	</tr>
     <tr>
 	  <td><a href="/v0.21">{{% latestInSeries "0.21" %}}</a></td>
-	  <td class="text-center"><span class="badge badge-success">Stable</span></td>
+	  <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
