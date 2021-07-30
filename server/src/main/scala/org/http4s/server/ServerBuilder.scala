@@ -78,16 +78,6 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   final def withoutBanner: Self = withBanner(immutable.Seq.empty)
 }
 
-object IdleTimeoutSupport {
-  @deprecated("Moved to org.http4s.server.defaults.IdleTimeout", "0.20.0-M2")
-  val DefaultIdleTimeout = defaults.IdleTimeout
-}
-
-object AsyncTimeoutSupport {
-  @deprecated("Moved to org.http4s.server.defaults.AsyncTimeout", "0.20.0-M2")
-  val DefaultAsyncTimeout = defaults.ResponseTimeout
-}
-
 object SSLKeyStoreSupport {
   final case class StoreInfo(path: String, password: String)
 }
