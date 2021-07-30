@@ -18,6 +18,7 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s.Port
 import fs2.Pipe
 import fs2.Stream
 import org.http4s._
@@ -58,6 +59,7 @@ class EmberServerWebSocketSuite
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
+      .withPort(Port.fromInt(org.http4s.server.defaults.HttpPort + 2).get)
       .build
 
   def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
