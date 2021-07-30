@@ -362,7 +362,10 @@ lazy val emberCore = libraryProject("ember-core", CrossType.Pure, List(JVMPlatfo
       log4catsTesting.value % Test
     )
   )
-  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
+  .jsSettings(
+    Test / scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
+    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPlatform, JSPlatform))
