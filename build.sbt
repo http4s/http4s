@@ -120,6 +120,7 @@ lazy val core = libraryProject("core")
       ip4sCore,
       literally,
       log4s,
+      munit % Test,
       scodecBits,
       slf4jApi, // residual dependency from macros
       vault,
@@ -396,10 +397,8 @@ lazy val boopickle = libraryProject("boopickle")
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.cross(CrossVersion.for3Use2_13)
+      Http4sPlugin.boopickle
     ),
-    compile / skip := isDotty.value,
-    publish / skip := isDotty.value
   )
   .dependsOn(core, testing % "test->test")
 

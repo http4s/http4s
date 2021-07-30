@@ -1,5 +1,6 @@
 package org.http4s.sbt
 
+import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -128,6 +129,8 @@ object Http4sPlugin extends AutoPlugin {
         _.revision == "0.21.10"
       )
     },
+
+    doctestTestFramework := DoctestTestFramework.Munit,
   )
 
   def extractApiVersion(version: String) = {
@@ -284,7 +287,7 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
     val blaze = "0.15.1"
-    val boopickle = "1.3.3"
+    val boopickle = "1.4.0"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
     val catsEffect = "3.1.1"
@@ -304,7 +307,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.5"
     val log4cats = "2.1.1"
     val log4s = "1.10.0"
-    val munit = "0.7.18"
+    val munit = "0.7.27"
     val munitCatsEffect = "1.0.5"
     val munitDiscipline = "1.0.9"
     val netty = "4.1.66.Final"
