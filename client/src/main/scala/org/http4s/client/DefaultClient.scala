@@ -89,7 +89,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
       d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
-      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
 
     run(r).use {
@@ -140,7 +140,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
       d: EntityDecoder[F, A]): F[Option[A]] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
-      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
 
     run(r).use {
@@ -165,7 +165,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
-      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
 
     run(r).use { resp =>
