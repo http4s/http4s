@@ -903,7 +903,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response.
-</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.0/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.1/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1131,6 +1131,34 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Message#addHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="addHeader[H](h:H)(implicitevidence$1:org.http4s.Header[H,org.http4s.Header.Recurring]):Message.this.Self"></a><a id="addHeader[H](H)(Header[H,Recurring]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#addHeader[H](h:H)(implicitevidence$1:org.http4s.Header[H,org.http4s.Header.Recurring]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">addHeader</span><span class="tparams">[<span name="H">H</span>]</span><span class="params">(<span name="h">h: <span class="extype" name="org.http4s.Message.addHeader.H">H</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>[<span class="extype" name="org.http4s.Message.addHeader.H">H</span>, <a href="Header$$Recurring.html" class="extype" name="org.http4s.Header.Recurring">Recurring</a>]</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Add a header to these headers.</p><div class="fullcomment"><div class="comment cmt"><p>Add a header to these headers.  The header should be a type with a
+recurring <code>Header</code> instance to ensure that the new value can be
+appended to any existing values.</p><pre>&gt;&gt;&gt; <span class="kw">import</span> cats.effect.IO
+&gt;&gt;&gt; <span class="kw">import</span> org.http4s.headers.Accept
+
+&gt;&gt;&gt; <span class="kw">val</span> req = Request[IO]().addHeader(Accept(MediaRange.`application<span class="cmt">/*`))
+&gt;&gt;&gt; req.headers.get[Accept]
+Some(Accept(NonEmptyList(application/*)))
+
+&gt;&gt;&gt; val req2 = req.addHeader(Accept(MediaRange.`text/*`))
+&gt;&gt;&gt; req2.headers.get[Accept]
+Some(Accept(NonEmptyList(application/*, text/*)))</span></pre><p>*/*/*/*/*/
+</p></div></div>
     </li><li name="org.http4s.Media#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="as[A](implicitF:cats.MonadThrow[F],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadThrow[F],EntityDecoder[F,A]):F[A]"></a>
       <span class="permalink">
@@ -1483,7 +1511,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Message#putHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.Message#putHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="putHeaders(headers:org.http4s.Header.ToRaw*):Message.this.Self"></a><a id="putHeaders(ToRaw*):Self"></a>
       <span class="permalink">
       <a href="../../org/http4s/Message.html#putHeaders(headers:org.http4s.Header.ToRaw*):Message.this.Self" title="Permalink">
@@ -1498,8 +1526,19 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a>*</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name
-</p>
+      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those
+of the same header name</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those
+of the same header name</p><pre>&gt;&gt;&gt; <span class="kw">import</span> cats.effect.IO
+&gt;&gt;&gt; <span class="kw">import</span> org.http4s.headers.Accept
+
+&gt;&gt;&gt; <span class="kw">val</span> req = Request[IO]().putHeaders(Accept(MediaRange.`application<span class="cmt">/*`))
+&gt;&gt;&gt; req.headers.get[Accept]
+Some(Accept(NonEmptyList(application/*)))
+
+&gt;&gt;&gt; val req2 = req.putHeaders(Accept(MediaRange.`text/*`))
+&gt;&gt;&gt; req2.headers.get[Accept]
+Some(Accept(NonEmptyList(text/*)))</span></pre><p>*/*/*/*/
+</p></div></div>
     </li><li name="org.http4s.Message#removeHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="removeHeader[A](implicith:org.http4s.Header[A,_]):Message.this.Self"></a><a id="removeHeader[A](Header[A,_]):Self"></a>
       <span class="permalink">

@@ -154,7 +154,7 @@ greet.</p>
     Ok(s&quot;Hello, $name.&quot;)
 }
 // helloWorldService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8176/1685822125@6b60287e
+//   org.http4s.HttpRoutes$$$Lambda$8189/402111139@622c5bf4
 // )
 </code></pre>
 
@@ -187,7 +187,7 @@ val tweetService = HttpRoutes.of[IO] {
     getTweet(tweetId).flatMap(Ok(_))
 }
 // tweetService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8176/1685822125@7b1945e3
+//   org.http4s.HttpRoutes$$$Lambda$8189/402111139@64a0f399
 // )
 </code></pre>
 
@@ -215,14 +215,14 @@ import org.http4s.server.Router
 
 <pre><code class="language-scala">val services = tweetService &lt;+&gt; helloWorldService
 // services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   cats.data.KleisliSemigroupK$$Lambda$8177/2041535804@b048256
+//   cats.data.KleisliSemigroupK$$Lambda$8190/1460632394@39e2607
 // )
 val httpApp = Router(&quot;/&quot; -&gt; helloWorldService, &quot;/api&quot; -&gt; services).orNotFound
 // httpApp: cats.data.Kleisli[IO, Request[IO], Response[IO]] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$8413/113872862@4797b155
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$8426/305494051@695ef724
 // )
 val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;).withHttpApp(httpApp)
-// serverBuilder: BlazeServerBuilder[IO] = org.http4s.blaze.server.BlazeServerBuilder@2dde5201
+// serverBuilder: BlazeServerBuilder[IO] = org.http4s.blaze.server.BlazeServerBuilder@692df200
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -235,7 +235,7 @@ associates the specified routes with this http server instance.</p>
 // fiber: Fiber[IO, Nothing] = Tuple(
 //   Bind(
 //     Async(
-//       cats.effect.internals.IOAsync$$$Lambda$8169/877055856@1c592c04,
+//       cats.effect.internals.IOAsync$$$Lambda$8182/1186067883@af2e887,
 //       false,
 //       StackTrace(
 //         List(
@@ -243,7 +243,7 @@ associates the specified routes with this http server instance.</p>
 //           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
 //           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
 //           cats.effect.internals.IOAsync$.apply(IOAsync.scala:30),
-//           cats.effect.IO$.async(IO.scala:1263),
+//           cats.effect.IO$.async(IO.scala:1265),
 //           cats.effect.internals.IOFromFuture$.apply(IOFromFuture.scala:37),
 //           cats.effect.internals.IOStart$.fiber(IOStart.scala:48),
 //           cats.effect.internals.IOStart$.$anonfun$apply$1(IOStart.scala:42),

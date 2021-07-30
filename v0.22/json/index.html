@@ -152,7 +152,7 @@ val greeting = hello(&quot;world&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@6bd5679d
+//   org.typelevel.vault.Vault@30183a62
 // )
 </code></pre>
 
@@ -169,7 +169,7 @@ useful on client requests:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 16),
 //   Stream(..),
-//   org.typelevel.vault.Vault@65bf4321
+//   org.typelevel.vault.Vault@75ebb235
 // )
 </code></pre>
 
@@ -205,7 +205,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { (hello: Hello) =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@1766aaf1
+// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@311c0c61
 
 Hello(&quot;Alice&quot;).asJson
 // res4: Json = JObject(object[hello -&gt; &quot;Alice&quot;])
@@ -231,7 +231,7 @@ and responses for our case classes:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@5ea2b826
+//   org.typelevel.vault.Vault@616cf113
 // )
 POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 // res7: Request[IO] = (
@@ -240,7 +240,7 @@ POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 14),
 //   Stream(..),
-//   org.typelevel.vault.Vault@38e352fc
+//   org.typelevel.vault.Vault@5096b5c6
 // )
 </code></pre>
 
@@ -282,7 +282,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@7c443471
+// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@69afa745
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res11: User = User(&quot;Alice&quot;)
 

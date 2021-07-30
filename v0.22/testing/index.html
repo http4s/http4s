@@ -108,7 +108,7 @@ import org.http4s.implicits._
 
 <pre><code class="language-scala">case class User(name: String, age: Int)  
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@66845551
+// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@21ddd2fb
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -148,22 +148,22 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@35fb446d
+// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@b3d1cc4
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8635/588893390@5579fc93),
-//   cats.data.OptionT$$Lambda$8637/1646669529@4ed917fa,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8657/1058949022@6dc7d578),
+//   cats.data.OptionT$$Lambda$8659/1027478598@3e10b6f8,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
 //       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
 //       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
 //       cats.effect.IO.map(IO.scala:106),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
 //       cats.data.OptionT.getOrElse(OptionT.scala:99),
 //       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:47),
 //       org.http4s.blaze.server.Http1ServerStage.$anonfun$raceTimeout$4(Http1ServerStage.scala:356),
@@ -202,22 +202,22 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@a33edad 
+// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@7115f1cb 
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8635/588893390@658408aa),
-//   cats.data.OptionT$$Lambda$8637/1646669529@7f03eded,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8657/1058949022@12ad1811),
+//   cats.data.OptionT$$Lambda$8659/1027478598@41926329,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
 //       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
 //       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
 //       cats.effect.IO.map(IO.scala:106),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
 //       cats.data.OptionT.getOrElse(OptionT.scala:99),
 //       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:47),
 //       org.http4s.blaze.server.Http1ServerStage.$anonfun$raceTimeout$4(Http1ServerStage.scala:356),
@@ -250,22 +250,22 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@79e35330 
+// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@7a8eba95 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/not-a-matching-path&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8635/588893390@6ca88724),
-//   cats.data.OptionT$$Lambda$8637/1646669529@29ac1343,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8657/1058949022@24cb97a6),
+//   cats.data.OptionT$$Lambda$8659/1027478598@5edc6ebe,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
 //       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
 //       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
 //       cats.effect.IO.map(IO.scala:106),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
 //       cats.data.OptionT.getOrElse(OptionT.scala:99),
 //       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:47),
 //       org.http4s.blaze.server.Http1ServerStage.$anonfun$raceTimeout$4(Http1ServerStage.scala:356),
