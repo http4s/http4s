@@ -74,7 +74,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 
 }
 
-object QValue extends QValuePlatform {
+object QValue {
   lazy val One: QValue = new QValue(1000)
   lazy val Zero: QValue = new QValue(0)
 
