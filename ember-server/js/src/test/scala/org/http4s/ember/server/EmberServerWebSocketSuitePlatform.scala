@@ -23,6 +23,7 @@ import cats.syntax.all._
 import org.http4s.server.Server
 
 import java.net.URI
+import scala.annotation.nowarn
 import scala.scalajs.js
 
 trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
@@ -42,7 +43,7 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
     def connect: IO[Unit] = error.get.race(waitOpen.get).rethrow
     def close: IO[Unit] = IO(client.close(1000)) >> error.get.race(waitClose.get).rethrow
     def send(msg: String): IO[Unit] =
-      error.get.race(IO.async_[Unit](cb => client.send(msg, () => cb(Right(()))))).rethrow
+      error.get.race(IO.async_[Unit](cb => client.send(msg, () => cb(Right(()))): @nowarn)).rethrow
     def ping(data: String): IO[Unit] = error.get.race(IO(client.ping(data)).void).rethrow
     def remoteClosed = waitClose
   }
@@ -56,19 +57,19 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
       pongQueue <- Queue.unbounded[IO, String]
       client <- IO {
         val websocket = js.Dynamic.newInstance(ws)(target.toString())
-        websocket.on("open", () => waitOpen.complete(()).unsafeRunAndForget())
-        websocket.on("close", () => waitClose.complete(()).unsafeRunAndForget())
+        websocket.on("open", () => dispatcher.unsafeRunAndForget(waitOpen.complete(())))
+        websocket.on("close", () => dispatcher.unsafeRunAndForget(waitClose.complete(())))
         websocket.on(
           "error",
-          (e: js.Any) => error.complete(js.JavaScriptException(e)).unsafeRunAndForget())
+          (e: js.Any) => dispatcher.unsafeRunAndForget(error.complete(js.JavaScriptException(e))))
         websocket.on(
           "message",
           (buffer: js.Dynamic) =>
-            queue.offer(buffer.toString.asInstanceOf[String]).unsafeRunAndForget())
+            dispatcher.unsafeRunAndForget(queue.offer(buffer.toString.asInstanceOf[String])))
         websocket.on(
           "pong",
           (buffer: js.Dynamic) =>
-            pongQueue.offer(buffer.toString.asInstanceOf[String]).unsafeRunAndForget())
+            dispatcher.unsafeRunAndForget(pongQueue.offer(buffer.toString.asInstanceOf[String])))
       }
     } yield Client(waitOpen, waitClose, error, queue, pongQueue, client)
 
