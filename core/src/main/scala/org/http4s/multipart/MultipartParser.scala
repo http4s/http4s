@@ -599,7 +599,7 @@ object MultipartParser {
 
   /** Like parseStreamedFile, but the produced parts' resources are managed by the supervisor.
     */
-  def parseSupervisedFile[F[_]: Concurrent: Files](
+  private[multipart] def parseSupervisedFile[F[_]: Concurrent: Files](
       supervisor: Supervisor[F],
       boundary: Boundary,
       limit: Int = 1024,
@@ -621,7 +621,7 @@ object MultipartParser {
       .map(Multipart(_, boundary))
   }
 
-  def parseToPartsSupervisedFile[F[_]](
+  private[multipart] def parseToPartsSupervisedFile[F[_]](
       supervisor: Supervisor[F],
       boundary: Boundary,
       limit: Int = 1024,
