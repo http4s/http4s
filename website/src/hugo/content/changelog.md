@@ -10,9 +10,9 @@ it.
 
 # v0.23.0 (2021-07-30)
 
-This is the first production release with Cats-Effect  3 support.   All subsequent 0.22.x releases will be binary compatible with this.
+This is the first production release with Cats-Effect 3 support.  All subsequent 0.23.x releases will be binary compatible with this.
 
-Includes all changes through  v0.22.1.
+Includes all changes through v0.22.1.
 
 ## http4s-core
 
