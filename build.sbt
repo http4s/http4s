@@ -398,7 +398,7 @@ lazy val boopickle = libraryProject("boopickle")
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.cross(CrossVersion.for3Use2_13)
+      Http4sPlugin.boopickle
     ),
   )
   .dependsOn(core, testing % "test->test")
