@@ -59,7 +59,6 @@ object `Accept-Language` {
   * [[https://tools.ietf.org/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]
   */
 final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) {
-
   def qValue(languageTag: LanguageTag): QValue =
     values.toList
       .collect {

@@ -216,6 +216,7 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
       ip4sCore.value,
       literally.value,
       log4s.value,
+      munit.value % Test,
       scodecBits.value,
       slf4jApi, // residual dependency from macros
       vault.value
@@ -544,11 +545,9 @@ lazy val boopickle = libraryProject("boopickle", CrossType.Pure, List(JVMPlatfor
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.value.cross(CrossVersion.for3Use2_13),
+      Http4sPlugin.boopickle.value,
       munit.value % Test
     ),
-    compile / skip := isDotty.value,
-    publish / skip := isDotty.value
   )
   .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")

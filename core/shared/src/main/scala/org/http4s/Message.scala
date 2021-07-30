@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, ~>}
+import cats.{Applicative, Monad, ~>}
 import cats.data.NonEmptyList
 import cats.effect.SyncIO
 import cats.syntax.all._
@@ -122,10 +122,46 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def removeHeader[A](implicit h: Header[A, _]): Self =
     removeHeader(h.name)
 
-  /** Add the provided headers to the existing headers, replacing those of the same header name
+  /** Add the provided headers to the existing headers, replacing those
+    * of the same header name
+    *
+    * {{{
+    * >>> import cats.effect.IO
+    * >>> import org.http4s.headers.Accept
+    *
+    * >>> val req = Request[IO]().putHeaders(Accept(MediaRange.`application/*`))
+    * >>> req.headers.get[Accept]
+    * Some(Accept(NonEmptyList(application/*)))
+    *
+    * >>> val req2 = req.putHeaders(Accept(MediaRange.`text/*`))
+    * >>> req2.headers.get[Accept]
+    * Some(Accept(NonEmptyList(text/*)))
+    * }}}
+    * */*/*/*/
     */
   def putHeaders(headers: Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
+
+  /** Add a header to these headers.  The header should be a type with a
+    * recurring `Header` instance to ensure that the new value can be
+    * appended to any existing values.
+    *
+    * {{{
+    * >>> import cats.effect.IO
+    * >>> import org.http4s.headers.Accept
+    *
+    * >>> val req = Request[IO]().addHeader(Accept(MediaRange.`application/*`))
+    * >>> req.headers.get[Accept]
+    * Some(Accept(NonEmptyList(application/*)))
+    *
+    * >>> val req2 = req.addHeader(Accept(MediaRange.`text/*`))
+    * >>> req2.headers.get[Accept]
+    * Some(Accept(NonEmptyList(application/*, text/*)))
+    * }}}
+    * */*/*/*/*/
+    */
+  def addHeader[H: Header[*, Header.Recurring]](h: H): Self =
+    transformHeaders(_.add(h))
 
   def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
     withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
@@ -140,10 +176,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
 
   // Specific header methods
-
-  @deprecated("Use withContentType(`Content-Type`(t)) instead", "0.20.0-M2")
-  def withType(t: MediaType)(implicit F: Functor[F]): Self =
-    withContentType(`Content-Type`(t))
 
   def withContentType(contentType: `Content-Type`): Self =
     putHeaders(contentType)

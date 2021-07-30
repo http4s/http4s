@@ -20,8 +20,7 @@ package server
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import fs2.concurrent.Signal
-import fs2.concurrent.SignallingRef
+import fs2.concurrent.{Signal, SignallingRef}
 import org.http4s.internal.BackendBuilder
 
 import java.net.InetSocketAddress
@@ -78,18 +77,6 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
 
   /** Disable the banner when the server starts up */
   final def withoutBanner: Self = withBanner(immutable.Seq.empty)
-}
-
-object ServerBuilder extends ServerBuilderCompanionPlatform
-
-object IdleTimeoutSupport {
-  @deprecated("Moved to org.http4s.server.defaults.IdleTimeout", "0.20.0-M2")
-  val DefaultIdleTimeout = defaults.IdleTimeout
-}
-
-object AsyncTimeoutSupport {
-  @deprecated("Moved to org.http4s.server.defaults.AsyncTimeout", "0.20.0-M2")
-  val DefaultAsyncTimeout = defaults.ResponseTimeout
 }
 
 object SSLKeyStoreSupport {
