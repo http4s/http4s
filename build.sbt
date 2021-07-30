@@ -120,6 +120,7 @@ lazy val core = libraryProject("core")
       ip4sCore,
       literally,
       log4s,
+      munit % Test,
       scodecBits,
       slf4jApi, // residual dependency from macros
       vault,
