@@ -204,8 +204,11 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(Resource.pure(implicitly))
-  @nowarn("cat=deprecation")
-  val _ = multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
+
+  {
+    @nowarn("cat=deprecation")
+    val _ = multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
+  }
   multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
   def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
