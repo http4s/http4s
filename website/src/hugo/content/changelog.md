@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.1 (2021-07-29)
+# v0.22.1 (2021-07-30)
 
 ## http4s-core
 
@@ -26,8 +26,15 @@ it.
 
 * [#4933](https://github.com/http4s/http4s/pull/4933): Append the `EntityDecoder`'s `Accept` headers to any explicit headers instead of replacing them.  This was a regression from the 0.21 line.
 
+## http4s-boopickle
+
+### Cross builds
+
+* [#4991](https://github.com/http4s/http4s/pull/4991): `http4s-boopickle` is now cross-published for Scala 3
+
 ## Dependency updates
 
+* boopickle-1.4.0
 * cats-effect-2.5.2
 * dropwizard-metrics-4.2.3
 * scala-xml-2.0.1
