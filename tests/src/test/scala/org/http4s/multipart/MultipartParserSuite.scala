@@ -767,12 +767,13 @@ class MultipartParserSuite extends Http4sSuite {
 
   {
     @nowarn("cat=deprecation")
-    val _ = multipartParserTests(
+    val testDeprecated = multipartParserTests(
       "mixed file parser",
       MultipartParser.parseStreamedFile[IO](_),
       MultipartParser.parseStreamedFile[IO](_, _),
       MultipartParser.parseToPartsStreamedFile[IO](_)
     )
+    testDeprecated
   }
 
   multipartParserResourceTests(

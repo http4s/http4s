@@ -207,7 +207,9 @@ I am a big moose
 
   {
     @nowarn("cat=deprecation")
-    val _ = multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
+    val testDeprecated =
+      multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
+    testDeprecated
   }
   multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
