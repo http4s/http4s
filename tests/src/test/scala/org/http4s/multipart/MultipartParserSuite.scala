@@ -29,6 +29,7 @@ import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.NoSuchFileException
+import scala.annotation.nowarn
 
 class MultipartParserSuite extends Http4sSuite {
 
@@ -764,7 +765,8 @@ class MultipartParserSuite extends Http4sSuite {
     MultipartParser.parseStreamed[IO],
     MultipartParser.parseToPartsStream[IO](_))
 
-  multipartParserTests(
+  @nowarn("cat=deprecation")
+  val _ = multipartParserTests(
     "mixed file parser",
     MultipartParser.parseStreamedFile[IO](_),
     MultipartParser.parseStreamedFile[IO](_, _),
@@ -795,6 +797,7 @@ class MultipartParserSuite extends Http4sSuite {
     val input = ruinDelims(unprocessedInput)
 
     val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    @nowarn("cat=deprecation")
     val results =
       unspool(input).through(MultipartParser.parseStreamedFile[IO](boundaryTest, maxParts = 1))
 
@@ -828,6 +831,7 @@ class MultipartParserSuite extends Http4sSuite {
     val input = ruinDelims(unprocessedInput)
 
     val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    @nowarn("cat=deprecation")
     val results = unspool(input).through(
       MultipartParser
         .parseStreamedFile[IO](boundaryTest, maxParts = 1, failOnLimit = true))

@@ -27,6 +27,7 @@ import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
 import org.typelevel.ci._
+import scala.annotation.nowarn
 
 class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
@@ -203,7 +204,8 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(Resource.pure(implicitly))
-  multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
+  @nowarn("cat=deprecation")
+  val _ = multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
   multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
   def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
