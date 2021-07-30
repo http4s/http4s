@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, ~>}
+import cats.{Applicative, Monad, ~>}
 import cats.data.NonEmptyList
 import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
@@ -140,10 +140,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
 
   // Specific header methods
-
-  @deprecated("Use withContentType(`Content-Type`(t)) instead", "0.20.0-M2")
-  def withType(t: MediaType)(implicit F: Functor[F]): Self =
-    withContentType(`Content-Type`(t))
 
   def withContentType(contentType: `Content-Type`): Self =
     putHeaders(contentType)

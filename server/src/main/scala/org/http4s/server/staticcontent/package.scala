@@ -31,11 +31,6 @@ package object staticcontent {
   def resourceServiceBuilder[F[_]](basePath: String): ResourceServiceBuilder[F] =
     ResourceServiceBuilder[F](basePath)
 
-  /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  @deprecated("use resourceServiceBuilder", "0.22.0-M1")
-  def resourceService[F[_]: Async](config: ResourceService.Config[F]): HttpRoutes[F] =
-    ResourceService(config)
-
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   def fileService[F[_]: Async](config: FileService.Config[F]): HttpRoutes[F] =
     FileService(config)
@@ -43,11 +38,6 @@ package object staticcontent {
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
   def webjarServiceBuilder[F[_]]: WebjarServiceBuilder[F] =
     WebjarServiceBuilder[F]
-
-  /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
-  @deprecated("use webjarServiceBuilder", "0.22.0-M1")
-  def webjarService[F[_]: Async](config: WebjarService.Config[F]): HttpRoutes[F] =
-    WebjarService(config)
 
   private[staticcontent] val AcceptRangeHeader = `Accept-Ranges`(RangeUnit.Bytes)
 
