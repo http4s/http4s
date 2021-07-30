@@ -78,19 +78,6 @@ object Status {
   case object ClientError extends ResponseClass { val isSuccess = false }
   case object ServerError extends ResponseClass { val isSuccess = false }
 
-  object ResponseClass {
-    @deprecated("Moved to org.http4s.Status.Informational", "0.16")
-    val Informational = Status.Informational
-    @deprecated("Moved to org.http4s.Status.Successful", "0.16")
-    val Successful = Status.Successful
-    @deprecated("Moved to org.http4s.Status.Redirection", "0.16")
-    val Redirection = Status.Informational
-    @deprecated("Moved to org.http4s.Status.ClientError", "0.16")
-    val ClientError = Status.Informational
-    @deprecated("Moved to org.http4s.Status.ServerError", "0.16")
-    val ServerError = Status.Informational
-  }
-
   private[http4s] val MinCode = 100
   private[http4s] val MaxCode = 599
 

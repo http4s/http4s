@@ -79,9 +79,4 @@ package object http4s {
 
   /** A stream of server-sent events */
   type EventStream[F[_]] = Stream[F, ServerSentEvent]
-
-  @deprecated("Moved to org.http4s.syntax.AllSyntax", "0.16")
-  type Http4sSyntax = syntax.AllSyntax
-  @deprecated("Moved to org.http4s.syntax.all", "0.16")
-  val Http4sSyntax = syntax.all
 }

@@ -25,7 +25,7 @@ import java.io.StringWriter
 
 import org.http4s.Uri.Path
 import org.http4s._
-import org.http4s.Http4s._
+import org.http4s.syntax.all._
 
 /*
  * PrometheusExportService Contains an HttpService

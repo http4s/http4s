@@ -25,7 +25,6 @@ import cats.syntax.all._
 import fs2._
 import java.io.IOException
 import org.http4s.headers.Host
-import org.http4s.syntax.kleisli._
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
@@ -77,12 +76,6 @@ trait Client[F[_]] {
     * to the returned Stream's.
     */
   def stream(req: Request[F]): Stream[F, Response[F]]
-
-  @deprecated("Use `client.stream(req).flatMap(f)`", "0.19.0-M4")
-  def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A]
-
-  @deprecated("Use `Stream.eval(req).flatMap(client.stream).flatMap(f)`", "0.19.0-M4")
-  def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A]
@@ -187,15 +180,6 @@ object Client {
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }
-
-  /** Creates a client from the specified service.  Useful for generating
-    * pre-determined responses for requests in testing.
-    *
-    * @param service the service to respond to requests to this client
-    */
-  @deprecated("Use fromHttpApp instead. Call service.orNotFound to turn into an HttpApp.", "0.19")
-  def fromHttpService[F[_]](service: HttpRoutes[F])(implicit F: Async[F]): Client[F] =
-    fromHttpApp(service.orNotFound)
 
   /** Creates a client from the specified [[HttpApp]].  Useful for
     * generating pre-determined responses for requests in testing.

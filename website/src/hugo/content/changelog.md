@@ -110,6 +110,10 @@ Includes all changes from v0.21.25.
 * slf4j-1.7.31
 * tomcat-9.0.50
 
+# v1.0.0-M23 (2021-05-26)
+
+Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap. Includes the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
+
 # v0.23.0-RC1 (2021-05-26)
 
 Includes the changes of v0.22.0-RC1, including the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
@@ -186,6 +190,10 @@ Contains a vulnerability fix for `StaticFile.fromUrl`.
 ## Dependency Updates
 
 * blaze-0.14.17
+
+# v1.0.0-M22 (2021-05-21)
+
+Functionally equivalent to v0.23.0-M1.  Keeps the 1.0 milestones current as we continue our roadmap.
 
 # v0.23.0-M1 (2021-05-21)
 

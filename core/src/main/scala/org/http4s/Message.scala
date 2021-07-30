@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, ~>}
+import cats.{Applicative, Monad, ~>}
 import cats.data.NonEmptyList
 import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
@@ -64,10 +64,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     change(attributes = attributes)
 
   // Body methods
-
-  @deprecated("Use withEntity", "0.19")
-  def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): F[Self] =
-    F.pure(withEntity(b))
 
   /** Replace the body of this message with a new body
     *
@@ -180,10 +176,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
 
   // Specific header methods
-
-  @deprecated("Use withContentType(`Content-Type`(t)) instead", "0.20.0-M2")
-  def withType(t: MediaType)(implicit F: Functor[F]): Self =
-    withContentType(`Content-Type`(t))
 
   def withContentType(contentType: `Content-Type`): Self =
     putHeaders(contentType)

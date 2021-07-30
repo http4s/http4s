@@ -17,9 +17,6 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.util._
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
-  @deprecated("Use `Accept-Charset`.isSatisfiedBy(charset)", "0.16.1")
-  def satisfies(charsetRange: CharsetRange): Boolean = charsetRange.isSatisfiedBy(this)
-
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
   def toRange: CharsetRange.Atom = withQuality(QValue.One)
 

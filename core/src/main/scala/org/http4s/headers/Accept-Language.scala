@@ -59,10 +59,6 @@ object `Accept-Language` {
   * [[https://tools.ietf.org/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]
   */
 final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) {
-
-  @deprecated("Has confusing semantics in the presence of splat. Do not use.", "0.16.1")
-  def preferred: LanguageTag = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
-
   def qValue(languageTag: LanguageTag): QValue =
     values.toList
       .collect {
