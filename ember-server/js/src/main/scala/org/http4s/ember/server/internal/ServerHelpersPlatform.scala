@@ -16,13 +16,12 @@
 
 package org.http4s.ember.server.internal
 
+import fs2.io.net.tls.SSLSession
 import org.http4s.server.SecureSession
-import fs2.Chunk
-import scodec.bits.ByteVector
 
 private[internal] trait ServerHelpersPlatform {
 
-  private[internal] def parseSSLSession(session: Chunk[Byte]): Option[SecureSession] =
-    Some(SecureSession(ByteVector(session.toByteBuffer)))
+  private[internal] def parseSSLSession(session: SSLSession): Option[SecureSession] =
+    Some(SecureSession(session.raw))
 
 }
