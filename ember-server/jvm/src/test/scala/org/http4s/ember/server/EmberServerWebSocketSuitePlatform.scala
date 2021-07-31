@@ -33,7 +33,7 @@ import java.nio.charset.StandardCharsets
 trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
 
   def serverURI(server: Server, path: String): URI =
-    URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/$path")
+    URI.create(s"ws://${server.address}/$path")
 
   case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],

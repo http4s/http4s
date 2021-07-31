@@ -18,6 +18,8 @@ package org.http4s.ember.server
 
 import cats.syntax.all._
 import cats.effect._
+import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.Host
 import fs2.Stream
 import org.http4s._
 import org.http4s.server.Server
@@ -40,6 +42,9 @@ class EmberServerSuite extends Http4sSuite with EmberServerSuitePlatform {
       }
       .orNotFound
   }
+
+  def url(address: SocketAddress[Host], path: String = ""): String =
+    s"http://${address.host}:${address.port.value}$path"
 
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder

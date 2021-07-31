@@ -16,15 +16,9 @@
 
 package org.http4s.ember.server
 
-import com.comcast.ip4s.SocketAddress
-import com.comcast.ip4s.Host
-
 trait EmberServerSuitePlatform {
 
   type BindException = scala.scalajs.js.JavaScriptException
   type ConnectException = scala.scalajs.js.JavaScriptException
-
-  def url(address: SocketAddress[Host], path: String = ""): String =
-    s"http://${address.host}:${address.port.value}$path"
 
 }

@@ -19,17 +19,9 @@ package org.http4s.ember.server
 import cats.effect.Async
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
-import org.http4s.server.Server
-import com.comcast.ip4s.SocketAddress
-import com.comcast.ip4s.IpAddress
 
 private[server] trait EmberServerBuilderCompanionPlatform {
 
   private[server] def defaultLogger[F[_]: Async]: Logger[F] = NoOpLogger[F]
 
-  private[server] def mkServer(bindAddress: SocketAddress[IpAddress], secure: Boolean): Server =
-    new Server {
-      val address = bindAddress
-      val isSecure = secure
-    }
 }

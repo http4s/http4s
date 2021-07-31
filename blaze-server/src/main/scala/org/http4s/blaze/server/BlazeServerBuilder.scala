@@ -23,7 +23,7 @@ import cats.data.Kleisli
 import cats.effect.{Async, Resource, Sync}
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
+import com.comcast.ip4s.{Host, IpAddress, Port, SocketAddress}
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -388,8 +388,8 @@ class BlazeServerBuilder[F[_]] private (
       factory <- mkFactory
       serverChannel <- mkServerChannel(factory, scheduler, dispatcher)
       server = new Server {
-        val address: InetSocketAddress =
-          serverChannel.socketAddress
+        val address: SocketAddress[Host] =
+          SocketAddress.fromInetSocketAddress(serverChannel.socketAddress)
 
         val isSecure = sslConfig.isSecure
 

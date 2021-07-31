@@ -153,7 +153,10 @@ final class EmberServerBuilder[F[_]: Async] private (
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
-    } yield EmberServerBuilder.mkServer(bindAddress, tlsInfoOpt.isDefined)
+    } yield new Server {
+      val address = bindAddress
+      val isSecure = tlsInfoOpt.isDefined
+    }
 }
 
 object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {

@@ -16,14 +16,9 @@
 
 package org.http4s.ember.server
 
-import java.net.InetSocketAddress
-
 trait EmberServerSuitePlatform {
 
   type BindException = java.net.BindException
   type ConnectException = java.net.ConnectException
-
-  def url(address: InetSocketAddress, path: String = ""): String =
-    s"http://${address.getHostName}:${address.getPort}$path"
 
 }
