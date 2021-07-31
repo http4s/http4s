@@ -502,7 +502,7 @@ lazy val jettyClient = libraryProject("jetty-client")
 
 lazy val nodeServerless = libraryProject("node-serverless", CrossType.Pure, List(JSPlatform))
   .settings(
-    description := "Node.js serverless wrapper for http4s servers",
+    description := "Node.js serverless wrapper for http4s apps",
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       fs2Io.value,
@@ -510,7 +510,7 @@ lazy val nodeServerless = libraryProject("node-serverless", CrossType.Pure, List
     ),
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
-  .dependsOn(core, testing % "test->test", server, serverTesting % "test->test", emberClient % Test)
+  .dependsOn(core, testing % "test->test", serverTesting % "test->test", emberClient % Test)
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
