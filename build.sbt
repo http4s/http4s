@@ -507,9 +507,10 @@ lazy val nodeServerless = libraryProject("node-serverless", CrossType.Pure, List
     libraryDependencies ++= Seq(
       fs2Io.value,
       munit.value % Test
-    )
+    ),
+    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
-  .dependsOn(core, testing % "test->test", server, serverTesting % Test)
+  .dependsOn(core, testing % "test->test", server, serverTesting % "test->test", emberClient % Test)
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(

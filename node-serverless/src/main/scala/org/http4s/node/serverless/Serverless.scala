@@ -17,13 +17,14 @@
 package org.http4s
 package node.serverless
 
-import cats.syntax.all._
 import cats.effect.IO
+import cats.effect.kernel.Deferred
 import cats.effect.unsafe.IORuntime
+import cats.syntax.all._
 import fs2.io
+
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
-import cats.effect.kernel.Deferred
 
 object Serverless {
 
@@ -46,14 +47,14 @@ object Serverless {
       .toJSDictionary
   }
 
-  def unsafeLiftApp(app: IO[HttpApp[IO]])(implicit
+  def unsafeExportApp(app: IO[HttpApp[IO]])(implicit
       runtime: IORuntime): js.Function2[IncomingMessage, ServerResponse, Unit] = {
     val handler = Deferred.unsafe[IO, (IncomingMessage, ServerResponse) => IO[Unit]]
     app.map(liftApp).flatMap(handler.complete).unsafeRunAndForget()
     (req, res) => handler.get.flatMap(_(req, res)).unsafeRunAndForget()
   }
 
-  def unsafeLiftApp(app: HttpApp[IO])(implicit
+  def unsafeExportApp(app: HttpApp[IO])(implicit
       runtime: IORuntime): js.Function2[IncomingMessage, ServerResponse, Unit] =
     liftApp(app)(_, _).unsafeRunAndForget()
 
