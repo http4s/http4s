@@ -18,6 +18,7 @@ package org.http4s.fetchclient
 
 import cats.SemigroupK
 import cats.effect.Async
+import cats.effect.Resource
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.Chunk
@@ -36,10 +37,7 @@ import org.scalajs.dom.experimental.RequestInit
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
-import scala.scalajs.js.typedarray.ArrayBuffer
-import scala.scalajs.js.typedarray.TypedArrayBuffer
 import scala.scalajs.js.typedarray.Uint8Array
-import cats.effect.Resource
 
 object FetchClient {
 
@@ -57,10 +55,7 @@ object FetchClient {
           }.toJSArray)
 
           body.filter(_.nonEmpty).foreach { body =>
-            val ab = new ArrayBuffer(body.size)
-            val bb = TypedArrayBuffer.wrap(ab)
-            bb.put(body.toByteBuffer)
-            init.body = arrayBuffer2BufferSource(ab)
+            init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
           }
 
           Fetch.fetch(req.uri.renderString, init)
@@ -80,8 +75,10 @@ object FetchClient {
     Stream
       .bracketCase(rs.getReader().pure[F]) {
         case (r, Resource.ExitCase.Succeeded) => Async[F].delay(r.releaseLock())
-        case (r, Resource.ExitCase.Errored(ex)) => Async[F].delay(r.cancel(ex.getMessage()))
-        case (r, Resource.ExitCase.Canceled) => Async[F].delay(r.cancel(()))
+        case (r, Resource.ExitCase.Errored(ex)) =>
+          Async[F].fromPromise(Async[F].delay(r.cancel(ex.getMessage()))).void
+        case (r, Resource.ExitCase.Canceled) =>
+          Async[F].fromPromise(Async[F].delay(r.cancel(()))).void
       }
       .flatMap { reader =>
         Stream.unfoldChunkEval(reader) { reader =>
