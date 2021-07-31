@@ -2,10 +2,19 @@ import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.ScaladocApiMapping
+import org.openqa.selenium.WebDriver
+import org.openqa.selenium.remote.server.DriverFactory
+import org.openqa.selenium.remote.server.DriverProvider
+import org.openqa.selenium.chrome.ChromeDriver
+import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.firefox.FirefoxOptions
+import org.openqa.selenium.firefox.FirefoxProfile
 import org.scalajs.jsenv.selenium.SeleniumJSEnv
 import sbtcrossproject.{CrossProject, CrossType, Platform}
+import java.util.concurrent.TimeUnit
 import scala.xml.transform.{RewriteRule, RuleTransformer}
+
+import JSEnv._
 
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
@@ -53,12 +62,13 @@ ThisBuild / githubWorkflowBuild := Seq(
     cond = Some("matrix.ci == 'ciJVM'"))
 )
 
-val ciVariants = List("ciJVM", "ciNodeJS", "ciFirefox")
+val ciVariants = List("ciJVM", "ciNodeJS", "ciFirefox", "ciChrome")
+val jsCiVariants = ciVariants.tail
 ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 
 val ScalaJSJava = "adopt@1.8"
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  Seq("ciNodeJS", "ciFirefox").flatMap { ci =>
+  jsCiVariants.flatMap { ci =>
     val javaFilters =
       (ThisBuild / githubWorkflowJavaVersions).value.filterNot(Set(ScalaJSJava)).map { java =>
         MatrixExclude(Map("ci" -> ci, "java" -> java))
@@ -68,19 +78,38 @@ ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   }
 }
 
-lazy val useFirefoxEnv =
-  settingKey[Boolean]("Use headless Firefox (via geckodriver) for running tests")
-Global / useFirefoxEnv := false
+lazy val useJSEnv =
+  settingKey[JSEnv]("Use Node.js or a headless browser for running Scala.js tests")
+Global / useJSEnv := NodeJS
 
 ThisBuild / Test / jsEnv := {
   val old = (Test / jsEnv).value
 
-  if (useFirefoxEnv.value) {
-    val options = new FirefoxOptions()
-    options.addArguments("-headless")
-    new SeleniumJSEnv(options)
-  } else {
-    old
+  useJSEnv.value match {
+    case NodeJS => old
+    case Firefox =>
+      val profile = new FirefoxProfile()
+      profile.setPreference("privacy.file_unique_origin", false)
+      val options = new FirefoxOptions()
+      options.setProfile(profile)
+      options.addArguments("-headless")
+      new SeleniumJSEnv(options)
+    case Chrome =>
+      val options = new ChromeOptions()
+      options.setHeadless(true)
+      options.addArguments("--allow-file-access-from-files")
+      val factory = new DriverFactory {
+        val defaultFactory = SeleniumJSEnv.Config().driverFactory
+        def newInstance(capabilities: org.openqa.selenium.Capabilities): WebDriver = {
+          val driver = defaultFactory.newInstance(capabilities).asInstanceOf[ChromeDriver]
+          driver.manage().timeouts().pageLoadTimeout(1, TimeUnit.HOURS)
+          driver.manage().timeouts().setScriptTimeout(1, TimeUnit.HOURS)
+          driver
+        }
+        def registerDriverProvider(provider: DriverProvider): Unit =
+          defaultFactory.registerDriverProvider(provider)
+      }
+      new SeleniumJSEnv(options, SeleniumJSEnv.Config().withDriverFactory(factory))
   }
 }
 
@@ -100,9 +129,10 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 addCommandAlias("ciJVM", "; project rootJVM")
 addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
-addCommandAlias(
-  "ciFirefox",
-  "; set parallelExecution := false; set Global / useFirefoxEnv := true; project rootFirefox")
+def browserCiCommand(browser: JSEnv) =
+  s"; set parallelExecution := false; set Global / useJSEnv := JSEnv.$browser; project rootBrowser"
+addCommandAlias("ciFirefox", browserCiCommand(Firefox))
+addCommandAlias("ciChrome", browserCiCommand(Chrome))
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -179,7 +209,7 @@ lazy val rootNodeJS = project
   .enablePlugins(NoPublishPlugin)
   .aggregate(jsModules.filter(_ != (fetchClient.js: ProjectReference)): _*)
 
-lazy val rootFirefox = project
+lazy val rootBrowser = project
   .enablePlugins(NoPublishPlugin)
   .aggregate(
     core.js,
@@ -547,7 +577,7 @@ lazy val boopickle = libraryProject("boopickle", CrossType.Pure, List(JVMPlatfor
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle.value,
       munit.value % Test
-    ),
+    )
   )
   .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
