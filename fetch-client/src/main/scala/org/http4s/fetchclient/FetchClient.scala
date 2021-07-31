@@ -16,27 +16,30 @@
 
 package org.http4s.fetchclient
 
+import cats.SemigroupK
 import cats.effect.Async
-import cats.syntax.all._
 import cats.effect.syntax.all._
-import org.http4s.client.Client
-import org.http4s.Request
-import org.scalajs.dom.experimental.Fetch
-import org.scalajs.dom.crypto._
-import org.scalajs.dom.experimental.RequestInit
-import org.scalajs.dom.experimental.HttpMethod
-import org.scalajs.dom.experimental.Headers
-import org.http4s.Header
-
-import scala.scalajs.js
-import scala.scalajs.js.typedarray.{ArrayBuffer, Int8Array, TypedArrayBuffer, Uint8Array}
-import scala.scalajs.js.JSConverters._
+import cats.syntax.all._
+import fs2.Chunk
 import fs2.Stream
-import org.scalajs.dom.experimental.ReadableStream
+import org.http4s.Header
+import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
-import cats.SemigroupK
-import fs2.Chunk
+import org.http4s.client.Client
+import org.scalajs.dom.crypto._
+import org.scalajs.dom.experimental.Fetch
+import org.scalajs.dom.experimental.Headers
+import org.scalajs.dom.experimental.HttpMethod
+import org.scalajs.dom.experimental.ReadableStream
+import org.scalajs.dom.experimental.RequestInit
+
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters._
+import scala.scalajs.js.typedarray.ArrayBuffer
+import scala.scalajs.js.typedarray.TypedArrayBuffer
+import scala.scalajs.js.typedarray.Uint8Array
+import cats.effect.Resource
 
 object FetchClient {
 
@@ -74,19 +77,21 @@ object FetchClient {
   }
 
   private def readableStreamToStream[F[_]: Async](rs: ReadableStream[Uint8Array]): Stream[F, Byte] =
-    // TODO bracketCase with r.cancel() ???
-    Stream.bracket(rs.getReader().pure[F])(r => Async[F].delay(r.releaseLock())).flatMap { reader =>
-      Stream.unfoldChunkEval(reader) { reader =>
-        Async[F].fromPromise(Async[F].delay(reader.read())).map { chunk =>
-          if (chunk.done)
-            None
-          else
-            Some(
-              (
-                fs2.Chunk.byteBuffer(TypedArrayBuffer.wrap(chunk.value.asInstanceOf[Int8Array])),
-                reader))
+    Stream
+      .bracketCase(rs.getReader().pure[F]) {
+        case (r, Resource.ExitCase.Succeeded) => Async[F].delay(r.releaseLock())
+        case (r, Resource.ExitCase.Errored(ex)) => Async[F].delay(r.cancel(ex.getMessage()))
+        case (r, Resource.ExitCase.Canceled) => Async[F].delay(r.cancel(()))
+      }
+      .flatMap { reader =>
+        Stream.unfoldChunkEval(reader) { reader =>
+          Async[F].fromPromise(Async[F].delay(reader.read())).map { chunk =>
+            if (chunk.done)
+              None
+            else
+              Some((fs2.Chunk.uint8Array(chunk.value), reader))
+          }
         }
       }
-    }
 
 }
