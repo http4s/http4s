@@ -500,6 +500,17 @@ lazy val jettyClient = libraryProject("jetty-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
+lazy val nodeServerless = libraryProject("node-serverless", CrossType.Pure, List(JSPlatform))
+  .settings(
+    description := "Node.js serverless wrapper for http4s servers",
+    startYear := Some(2021),
+    libraryDependencies ++= Seq(
+      fs2Io.value,
+      munit.value % Test
+    )
+  )
+  .dependsOn(core, testing % "test->test", server, serverTesting % Test)
+
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
     description := "okhttp implementation for http4s clients",
