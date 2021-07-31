@@ -31,29 +31,31 @@ import scala.scalajs.js
 
 class ServerlessSuite extends ServerRouteTestBattery("Serverless") {
 
-  override def clientResource: Resource[IO,Client[IO]] = EmberClientBuilder.default[IO].build
-  
+  override def clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
+
   val http = js.Dynamic.global.require("http")
 
   def serverResource(app: HttpApp[IO]): Resource[IO, Server] =
-    Resource.make {
-      IO(http.createServer(Serverless.unsafeExportApp(app)))
-    } { server =>
-      IO.async_[Unit](cb => server.close(() => cb(Right(()))))
-    }.evalMap { server =>
-      IO.async_[Server] { cb =>
-        server.listen { () =>
-          cb(Right(new Server {
-            override def address: SocketAddress[Host] =
-              SocketAddress(
-                Host.fromString(server.address().address.asInstanceOf[String]).get,
-                Port.fromInt(server.address().port.asInstanceOf[Int]).get
-              )
+    Resource
+      .make {
+        IO(http.createServer(Serverless.unsafeExportApp(app)))
+      } { server =>
+        IO.async_[Unit](cb => server.close(() => cb(Right(()))))
+      }
+      .evalMap { server =>
+        IO.async_[Server] { cb =>
+          server.listen { () =>
+            cb(Right(new Server {
+              override def address: SocketAddress[Host] =
+                SocketAddress(
+                  Host.fromString(server.address().address.asInstanceOf[String]).get,
+                  Port.fromInt(server.address().port.asInstanceOf[Int]).get
+                )
 
-            override def isSecure: Boolean = false
-          }))
+              override def isSecure: Boolean = false
+            }))
+          }
         }
       }
-    }
 
 }
