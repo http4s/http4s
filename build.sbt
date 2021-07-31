@@ -159,6 +159,7 @@ lazy val crossModules: List[CrossProject] = List(
   fetchClient,
   jettyServer,
   jettyClient,
+  nodeServerless,
   okHttpClient,
   servlet,
   tomcatServer,
