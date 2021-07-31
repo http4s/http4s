@@ -44,6 +44,7 @@ object Serverless {
       .mapValues[js.Function2[IncomingMessage, ServerResponse, Unit]] { handler => (req, res) =>
         handler.get.flatMap(_(req, res)).unsafeRunAndForget()
       }
+      .toMap
       .toJSDictionary
   }
 
