@@ -509,6 +509,7 @@ lazy val nodeServerless = libraryProject("node-serverless", CrossType.Pure, List
       fs2Io.value,
       munit.value % Test
     ),
+    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
   .dependsOn(core, testing % "test->test", serverTesting % "test->test", emberClient % Test)
