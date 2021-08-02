@@ -353,7 +353,7 @@ lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSP
 
 // Defined outside server to avoid circular dependency with client
 lazy val serverTesting =
-  libraryProject("server-testing", CrossType.Full, List(JVMPlatform, JSPlatform))
+  libraryProject("server-testing", CrossType.Pure, List(JVMPlatform, JSPlatform))
     .enablePlugins(NoPublishPlugin)
     .settings(
       description := "Tests for server project",
