@@ -57,7 +57,7 @@ class ServiceWorkerAppSuite extends ServerRouteTestBattery("ServiceWorkerApp") {
       .evalMap { _ =>
         IO.async_[Unit] { cb =>
           window.navigator.serviceWorker
-            .addEventListener[Event]("controllerchange", (event: Event) => cb(Right(())))
+            .addEventListener[Event]("controllerchange", (_: Event) => cb(Right(())))
         }
       }
       .as {
