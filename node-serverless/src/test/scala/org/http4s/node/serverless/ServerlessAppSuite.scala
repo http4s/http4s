@@ -29,7 +29,7 @@ import org.http4s.server.ServerRouteTestBattery
 
 import scala.scalajs.js
 
-class ServerlessSuite extends ServerRouteTestBattery("Serverless") {
+class ServerlessAppSuite extends ServerRouteTestBattery("ServerlessApp") {
 
   override def clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
 
@@ -38,7 +38,7 @@ class ServerlessSuite extends ServerRouteTestBattery("Serverless") {
   def serverResource(app: HttpApp[IO]): Resource[IO, Server] =
     Resource
       .make {
-        IO(http.createServer(Serverless.unsafeExportApp(app)))
+        IO(http.createServer(ServerlessApp.unsafeExportApp(app)))
       } { server =>
         IO.async_[Unit](cb => server.close(() => cb(Right(()))))
       }
