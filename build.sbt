@@ -46,7 +46,7 @@ ThisBuild / githubWorkflowBuild := Seq(
     name = Some("Check headers")),
   WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
   WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "test:fastOptJS"),
+    List("${{ matrix.ci }}", "fastOptJS", "test:fastOptJS"),
     name = Some("FastOptJS"),
     cond = Some("matrix.ci != 'ciJVM'")),
   WorkflowStep.Sbt(

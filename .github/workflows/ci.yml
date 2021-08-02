@@ -93,7 +93,7 @@ jobs:
 
       - name: FastOptJS
         if: matrix.ci != 'ciJVM'
-        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:fastOptJS'
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' fastOptJS test:fastOptJS'
 
       - name: Check binary compatibility
         if: matrix.ci == 'ciJVM'
