@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.http4s.fetchclient
+package org.http4s
+package dom
 
-import cats.SemigroupK
 import cats.effect.Async
 import cats.effect.Resource
 import cats.effect.syntax.all._
 import cats.syntax.all._
-import fs2.Chunk
 import fs2.Stream
-import org.http4s.Header
-import org.http4s.Request
-import org.http4s.Response
-import org.http4s.Status
 import org.http4s.client.Client
 import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.Fetch
@@ -35,26 +30,20 @@ import org.scalajs.dom.experimental.HttpMethod
 import org.scalajs.dom.experimental.ReadableStream
 import org.scalajs.dom.experimental.RequestInit
 
-import scala.scalajs.js
-import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.typedarray.Uint8Array
 
 object FetchClient {
 
   def apply[F[_]: Async]: Client[F] = Client[F] { req: Request[F] =>
     (for {
-      body <- req.body.chunkAll.compile.foldSemigroup(SemigroupK[Chunk].algebra)
+      body <- req.body.chunkAll.filter(_.nonEmpty).compile.last
       response <- Async[F].fromPromise {
         Async[F].delay {
           val init = new RequestInit {}
 
           init.method = req.method.name.asInstanceOf[HttpMethod]
-
-          init.headers = new Headers(req.headers.headers.view.map { case Header.Raw(name, value) =>
-            js.Array(name.toString, value)
-          }.toJSArray)
-
-          body.filter(_.nonEmpty).foreach { body =>
+          init.headers = new Headers(toDomHeaders(req.headers))
+          body.foreach { body =>
             init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
           }
 
@@ -64,9 +53,7 @@ object FetchClient {
       status <- Async[F].fromEither(Status.fromInt(response.status))
     } yield Response[F](
       status = status,
-      headers = org.http4s.Headers(response.headers.toIterable.map { header =>
-        header(0) -> header(1)
-      }.toList),
+      headers = fromDomHeaders(response.headers),
       body = readableStreamToStream(response.body)
     )).toResource
   }

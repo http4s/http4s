@@ -29,7 +29,14 @@ abstract class ServerRouteTestBattery(name: String) extends ClientRouteTestBatte
 
   def serverResource(app: HttpApp[IO]): Resource[IO, Server]
 
-  override final def serverResource: Resource[IO, Server] = serverResource(HttpApp[IO] { request =>
+  override final def serverResource: Resource[IO, Server] =
+    serverResource(ServerRouteTestBattery.App)
+
+}
+
+object ServerRouteTestBattery {
+
+  val App: HttpApp[IO] = HttpApp[IO] { request =>
     val get = Some(request).filter(_.method == Method.GET).flatMap { r =>
       GetRoutes.getPaths.get(r.uri.path.toString)
     }
@@ -39,6 +46,6 @@ abstract class ServerRouteTestBattery(name: String) extends ClientRouteTestBatte
     }
 
     get.orElse(post).getOrElse(IO(Response[IO](status = Status.NotFound)))
-  })
+  }
 
 }

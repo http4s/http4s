@@ -15,13 +15,27 @@
  */
 
 package org.http4s
-package fetchclient
 
-import cats.effect.IO
-import cats.effect.Resource
-import org.http4s.client.Client
-import org.http4s.client.ClientRouteTestBattery
+import org.scalajs.dom.experimental.{Headers => DomHeaders}
 
-class FetchClientSuite extends ClientRouteTestBattery("FetchClient") with Http4sSuite {
-  override def clientResource: Resource[IO, Client[IO]] = Resource.pure(FetchClient[IO])
+import scala.scalajs.js.JSConverters._
+
+package object dom {
+
+  def toDomHeaders(headers: Headers): DomHeaders =
+    new DomHeaders(
+      headers.headers.view
+        .map { case Header.Raw(name, value) =>
+          name.toString -> value
+        }
+        .toMap
+        .toJSDictionary)
+
+  def fromDomHeaders(headers: DomHeaders): Headers =
+    Headers(
+      headers.toIterable.map { header =>
+        header(0) -> header(1)
+      }.toList
+    )
+
 }
