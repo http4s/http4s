@@ -16,10 +16,12 @@
 
 package org.http4s.node.serverless
 
+import fs2.io.Readable
+
 import scala.scalajs.js
 
 @js.native
-trait IncomingMessage extends js.Object {
+trait IncomingMessage extends js.Object with Readable {
   def method: String = js.native
   def url: String = js.native
   def headers: js.Dictionary[String] = js.native

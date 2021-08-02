@@ -66,7 +66,7 @@ object ServerlessApp {
       method <- F.fromEither(Method.fromString(req.method))
       uri <- F.fromEither(Uri.fromString(req.url))
       headers = Headers(req.headers.toList)
-      body = io.readReadable(F.pure(req.asInstanceOf[io.Readable]))
+      body = io.readReadable[F](F.pure(req))
       request = Request(method, uri, headers = headers, body = body)
       response <- app.run(request)
       _ <- F.delay {
@@ -79,7 +79,7 @@ object ServerlessApp {
         res.writeHead(response.status.code, response.status.reason, headers)
       }
       _ <- response.body
-        .through(io.writeWritable(F.pure(res.asInstanceOf[io.Writable])))
+        .through(io.writeWritable[F](F.pure(res)))
         .compile
         .drain
     } yield ()
