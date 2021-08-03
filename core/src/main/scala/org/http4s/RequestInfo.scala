@@ -112,7 +112,7 @@ object RequestInfo {
         )
     }
 
-  implicit val catsShowFOrRequestInfo: Show[RequestInfo] =
+  implicit val catsShowForRequestInfo: Show[RequestInfo] =
     Show.fromToString
 
   implicit val stdLibOrdering: Ordering[RequestInfo] =

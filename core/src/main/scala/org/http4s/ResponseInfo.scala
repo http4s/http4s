@@ -98,7 +98,7 @@ object ResponseInfo {
         )
     }
 
-  implicit val catsShowFOrResponseInfo: Show[ResponseInfo] =
+  implicit val catsShowForResponseInfo: Show[ResponseInfo] =
     Show.fromToString
 
   implicit val stdLibOrdering: Ordering[ResponseInfo] =
