@@ -487,6 +487,9 @@ final class Request[F[_]] private (
       case _ => throw new IndexOutOfBoundsException()
     }
 
+  def requestInfo: RequestInfo =
+    RequestInfo.fromRequest(this)
+
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
 }
@@ -650,6 +653,9 @@ final class Response[F[_]] private (
       case 4 => attributes
       case _ => throw new IndexOutOfBoundsException()
     }
+
+  def responseInfo: ResponseInfo =
+    ResponseInfo.fromResponse(this)
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""

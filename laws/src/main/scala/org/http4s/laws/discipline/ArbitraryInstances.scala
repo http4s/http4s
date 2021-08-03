@@ -968,4 +968,33 @@ object ArbitraryInstances extends ArbitraryInstances {
     Cogen
       .tuple3[Option[Uri.UserInfo], Uri.Host, Option[Int]]
       .contramap(a => (a.userInfo, a.host, a.port))
+
+  implicit val http4sTestingArbitraryForRequestInfo: Arbitrary[RequestInfo] =
+    Arbitrary(
+      for {
+        headers <- Arbitrary.arbitrary[Headers]
+        httpVersion <- Arbitrary.arbitrary[HttpVersion]
+        method <- Arbitrary.arbitrary[Method]
+        uri <- Arbitrary.arbitrary[Uri]
+      } yield RequestInfo(headers, httpVersion, method, uri)
+    )
+
+  implicit val http4sTestingCogenForRequestInfo: Cogen[RequestInfo] =
+    Cogen[(Headers, HttpVersion, Method, Uri)].contramap(value =>
+      (value.headers, value.httpVersion, value.method, value.uri)
+    )
+
+  implicit val http4sTestingArbitraryForResponseInfo: Arbitrary[ResponseInfo] =
+    Arbitrary(
+      for {
+        headers <- Arbitrary.arbitrary[Headers]
+        httpVersion <- Arbitrary.arbitrary[HttpVersion]
+        status <- Arbitrary.arbitrary[Status]
+      } yield ResponseInfo(headers, httpVersion, status)
+    )
+
+  implicit val http4sTestingCogenForResponseInfo: Cogen[ResponseInfo] =
+    Cogen[(Headers, HttpVersion, Status)].contramap(value =>
+      (value.headers, value.httpVersion, value.status)
+    )
 }
