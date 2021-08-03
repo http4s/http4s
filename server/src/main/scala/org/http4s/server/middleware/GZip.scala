@@ -18,9 +18,9 @@ package org.http4s
 package server
 package middleware
 
-import cats.Functor
-import cats.data.Kleisli
+import cats.Monad
 import cats.effect.Sync
+import cats.mtl._
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.Stream.chunk
@@ -35,17 +35,17 @@ object GZip {
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor, G[_]: Sync](
-      http: Http[F, G],
+  def apply[F[_], G[_]](
+      http: F[Response[G]],
       bufferSize: Int = 32 * 1024,
       level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
-  ): Http[F, G] =
-    Kleisli { (req: Request[G]) =>
+  )(implicit F: Monad[F], G: Sync[G], A: Ask[F, Request[G]]): F[Response[G]] =
+    A.ask.flatMap { req =>
       req.headers.get[`Accept-Encoding`] match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          http(req).map(zipOrPass(_, bufferSize, level, isZippable))
-        case _ => http(req)
+          http.map(zipOrPass(_, bufferSize, level, isZippable))
+        case _ => http
       }
     }
 

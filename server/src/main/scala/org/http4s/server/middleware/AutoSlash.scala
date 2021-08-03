@@ -19,7 +19,8 @@ package server
 package middleware
 
 import cats.{Monad, MonoidK}
-import cats.data.Kleisli
+import cats.data.{Kleisli, OptionT}
+import cats.mtl.Local
 import cats.syntax.all._
 
 /** Removes a trailing slash from [[Request]] path
@@ -29,19 +30,20 @@ import cats.syntax.all._
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(implicit
-      F: MonoidK[F]): Kleisli[F, Request[G], B] =
-    Kleisli { req =>
-      http(req) <+> {
-        val pathInfo = req.pathInfo
-
-        if (pathInfo.isEmpty)
-          F.empty
-        else
-          http.apply(req.withPathInfo(pathInfo.dropEndsWithSlash))
-      }
+  def apply[F[_], G[_], B](fb: F[B])(implicit
+      F: Monad[F],
+      FMK: MonoidK[F],
+      L: Local[F, Request[G]]
+  ): F[B] =
+    fb <+> L.ask.flatMap { req =>
+      val pathInfo = req.pathInfo
+      if (pathInfo.isEmpty)
+        FMK.empty
+      else
+        L.local(fb)(_.withPathInfo(pathInfo.dropEndsWithSlash))
     }
 
+  /** Convenience constructor to help type inference in Scala 2.12. */
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(httpRoutes)
+    apply[Kleisli[OptionT[F, *], Request[F], *], F, Response[F]](httpRoutes)
 }

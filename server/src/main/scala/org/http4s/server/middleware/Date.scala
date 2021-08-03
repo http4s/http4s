@@ -16,7 +16,6 @@
 
 package org.http4s.server.middleware
 
-import cats.data.Kleisli
 import cats.syntax.all._
 import cats.effect._
 
@@ -27,18 +26,15 @@ import org.http4s.headers.{Date => HDate}
   * by the service.
   */
 object Date {
-  def apply[G[_]: Temporal, F[_], A](k: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
-    Kleisli { a =>
-      for {
-        resp <- k(a)
-        header <-
-          resp.headers
-            .get[HDate]
-            .fold(
-              HttpDate.current[G].map(HDate(_))
-            )(_.pure[G])
-      } yield resp.putHeaders(header)
-    }
+  def apply[F[_]: Temporal, G[_], A](http: F[Response[G]]): F[Response[G]] =
+    for {
+      resp <- http
+      header <- resp.headers
+        .get[HDate]
+        .fold(
+          HttpDate.current[F].map(HDate(_))
+        )(_.pure[F])
+    } yield resp.putHeaders(header)
 
   def httpRoutes[F[_]: Temporal](routes: HttpRoutes[F]): HttpRoutes[F] =
     apply(routes)

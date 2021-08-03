@@ -181,6 +181,7 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    libraryDependencies += catsMtl,
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
