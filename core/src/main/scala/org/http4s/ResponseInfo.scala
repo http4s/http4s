@@ -54,9 +54,9 @@ sealed abstract class ResponseInfo extends Product with Serializable {
 
 object ResponseInfo {
   private[this] final case class ResponseInfoImpl(
-    override final val headers: Headers,
-    override final val httpVersion: HttpVersion,
-    override final val status: Status
+      override final val headers: Headers,
+      override final val httpVersion: HttpVersion,
+      override final val status: Status
   ) extends ResponseInfo {
     override final def withHeaders(value: Headers): ResponseInfo =
       this.copy(headers = value)
@@ -69,9 +69,9 @@ object ResponseInfo {
   }
 
   def apply(
-    headers: Headers,
-    httpVersion: HttpVersion,
-    status: Status
+      headers: Headers,
+      httpVersion: HttpVersion,
+      status: Status
   ): ResponseInfo =
     ResponseInfoImpl(
       headers,

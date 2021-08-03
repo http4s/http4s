@@ -981,8 +981,7 @@ object ArbitraryInstances extends ArbitraryInstances {
 
   implicit val http4sTestingCogenForRequestInfo: Cogen[RequestInfo] =
     Cogen[(Headers, HttpVersion, Method, Uri)].contramap(value =>
-      (value.headers, value.httpVersion, value.method, value.uri)
-    )
+      (value.headers, value.httpVersion, value.method, value.uri))
 
   implicit val http4sTestingArbitraryForResponseInfo: Arbitrary[ResponseInfo] =
     Arbitrary(
@@ -995,6 +994,5 @@ object ArbitraryInstances extends ArbitraryInstances {
 
   implicit val http4sTestingCogenForResponseInfo: Cogen[ResponseInfo] =
     Cogen[(Headers, HttpVersion, Status)].contramap(value =>
-      (value.headers, value.httpVersion, value.status)
-    )
+      (value.headers, value.httpVersion, value.status))
 }

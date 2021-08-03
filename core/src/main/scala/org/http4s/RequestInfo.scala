@@ -54,15 +54,16 @@ sealed abstract class RequestInfo extends Product with Serializable {
     withUri(f(uri))
 
   final override def toString: String =
-    s"RequestInfo(headers = ${headers.redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
+    s"RequestInfo(headers = ${headers
+      .redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
 }
 
 object RequestInfo {
   private[this] final case class RequestInfoImpl(
-    override final val headers: Headers,
-    override final val httpVersion: HttpVersion,
-    override final val method: Method,
-    override final val uri: Uri
+      override final val headers: Headers,
+      override final val httpVersion: HttpVersion,
+      override final val method: Method,
+      override final val uri: Uri
   ) extends RequestInfo {
     override final def withHeaders(value: Headers): RequestInfo =
       this.copy(headers = value)
@@ -78,10 +79,10 @@ object RequestInfo {
   }
 
   def apply(
-    headers: Headers,
-    httpVersion: HttpVersion,
-    method: Method,
-    uri: Uri
+      headers: Headers,
+      httpVersion: HttpVersion,
+      method: Method,
+      uri: Uri
   ): RequestInfo =
     RequestInfoImpl(
       headers,
