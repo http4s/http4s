@@ -97,7 +97,7 @@ class TomcatServerSuite extends Http4sSuite {
   tomcatServer.test("server should route requests on the service executor") { server =>
     val prefix: String = "http4s-suite-"
     get(server, "/thread/routing")
-      .map(_.take(prefix))
+      .map(_.take(prefix.size))
       .assertEquals(prefix)
   }
 
