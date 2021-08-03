@@ -487,6 +487,7 @@ final class Request[F[_]] private (
       case _ => throw new IndexOutOfBoundsException()
     }
 
+  /** A projection of this request without the body. */
   def requestInfo: RequestInfo =
     RequestInfo.fromRequest(this)
 
@@ -654,6 +655,7 @@ final class Response[F[_]] private (
       case _ => throw new IndexOutOfBoundsException()
     }
 
+  /** A projection of this response without the body. */
   def responseInfo: ResponseInfo =
     ResponseInfo.fromResponse(this)
 
