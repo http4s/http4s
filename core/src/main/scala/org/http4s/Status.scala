@@ -174,6 +174,7 @@ object Status {
   val UnsupportedMediaType: Status = register(Status(415, "Unsupported Media Type"))
   val RangeNotSatisfiable: Status = register(Status(416, "Range Not Satisfiable"))
   val ExpectationFailed: Status = register(Status(417, "Expectation Failed"))
+  val ImATeapot: Status = register(Status(418, "I'm A Teapot"))
   val MisdirectedRequest: Status = register(Status(421, "Misdirected Request"))
   val UnprocessableEntity: Status = register(Status(422, "Unprocessable Entity"))
   val Locked: Status = register(Status(423, "Locked"))
