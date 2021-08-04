@@ -18,6 +18,9 @@ package org.http4s
 
 import scala.reflect.macros.whitebox
 
+@deprecated(
+  "Misspelled, never documented, never mixed into MediaType companion, and obsolete",
+  "0.22.2")
 trait MediaTypePlaform {
 
   /** Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
@@ -27,7 +30,13 @@ trait MediaTypePlaform {
   def mediaType(s: String): MediaType = macro MediaTypePlaform.Macros.mediaTypeLiteral
 }
 
+@deprecated("Misspelled, never documented, and obsolete", "0.22.2")
 object MediaTypePlaform {
+  @deprecated(
+    """MediaType literal is deprecated.  Import `org.http4s.implicits._` and use the mediaType"" string context""",
+    "0.22.2")
+  def deprecatedLiteralImpl(s: String): MediaType =
+    MediaType.parse(s).fold(throw _, identity)
 
   private[MediaTypePlaform] class Macros(val c: whitebox.Context) {
     import c.universe._
@@ -39,8 +48,7 @@ object MediaTypePlaform {
             .parse(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              _ =>
-                q"_root_.org.http4s.MediaType.parse($s).fold(throw _, _root_.scala.Predef.identity)"
+              _ => q"_root_.org.http4s.MediaTypePlaform.deprecatedLiteralImpl($s)"
             )
         case _ =>
           c.abort(

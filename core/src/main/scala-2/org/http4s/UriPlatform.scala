@@ -28,6 +28,12 @@ trait UriPlatform {
 }
 
 object UriPlatform {
+  @deprecated(
+    """URI literal is deprecated.  Import `org.http4s.implicits._` and use the uri"" string context""",
+    "0.22.2")
+  def deprecatedLiteralImpl(s: String): Uri =
+    Uri.unsafeFromString(s)
+
   private[UriPlatform] class Macros(val c: whitebox.Context) {
     import c.universe._
 
@@ -38,8 +44,7 @@ object UriPlatform {
             .fromString(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              _ =>
-                q"_root_.org.http4s.Uri.fromString($s).fold(throw _, _root_.scala.Predef.identity)"
+              _ => q"_root_.org.http4s.UriPlatform.deprecatedLiteralImpl($s)"
             )
         case _ =>
           c.abort(
