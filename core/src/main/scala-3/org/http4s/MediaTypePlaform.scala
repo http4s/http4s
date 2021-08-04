@@ -16,4 +16,5 @@
 
 package org.http4s
 
+@deprecated("Misspelled, never documented, and obsolete", "0.22.2")
 trait MediaTypePlaform
