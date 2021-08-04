@@ -172,7 +172,7 @@ final case class Uri(
     Uri(path = path.toAbsolute, query = query)
 }
 
-object Uri {
+object Uri extends UriPlatform {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =

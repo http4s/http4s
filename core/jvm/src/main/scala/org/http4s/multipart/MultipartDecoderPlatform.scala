@@ -18,10 +18,64 @@ package org.http4s
 package multipart
 
 import cats.effect.Concurrent
-import cats.syntax.all._
+import cats.effect.Resource
+import cats.effect.std.Supervisor
 import fs2.io.file.Files
 
-private[multipart] trait MultipartDecoderPlatform {
+private[multipart] trait MultipartDecoderPlatform { self: MultipartDecoder.type =>
+
+  /** Multipart decoder that streams all parts past a threshold
+    * (anything above `maxSizeBeforeWrite`) into a temporary file.
+    * The decoder is only valid inside the `Resource` scope; once
+    * the `Resource` is released, all the created files are deleted.
+    *
+    * Note that no files are deleted until the `Resource` is released.
+    * Thus, sharing and reusing the resulting `EntityDecoder` is not
+    * recommended, and can lead to disk space leaks.
+    *
+    * The intended way to use this is as follows:
+    *
+    * {{{
+    * mixedMultipartResource[F]()
+    *   .flatTap(request.decodeWith(_, strict = true))
+    *   .use { multipart =>
+    *     // Use the decoded entity
+    *   }
+    * }}}
+    *
+    * @param headerLimit the max size for the headers, in bytes. This is required as
+    *                    headers are strictly evaluated and parsed.
+    * @param maxSizeBeforeWrite the maximum size of a particular part before writing to a file is triggered
+    * @param maxParts the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
+    *                 conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
+    *                 be parsed correctly, despite the total body being malformed due to not conforming to the multipart
+    *                 spec. You can control this by `failOnLimit`, by setting it to true if you want to raise
+    *                 an error if sending too many parts to a particular endpoint
+    * @param failOnLimit Fail if `maxParts` is exceeded _during_ multipart parsing.
+    * @param chunkSize the size of chunks created when reading data from temporary files.
+    * @return A multipart/form-data encoded vector of parts with some part bodies held in
+    *         temporary files.
+    */
+  def mixedMultipartResource[F[_]: Concurrent: Files](
+      headerLimit: Int = 1024,
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 50,
+      failOnLimit: Boolean = false,
+      chunkSize: Int = 8192
+  ): Resource[F, EntityDecoder[F, Multipart[F]]] =
+    Supervisor[F].map { supervisor =>
+      makeDecoder(
+        MultipartParser.parseToPartsSupervisedFile[F](
+          supervisor,
+          _,
+          headerLimit,
+          maxSizeBeforeWrite,
+          maxParts,
+          failOnLimit,
+          chunkSize
+        )
+      )
+    }
 
   /** Multipart decoder that streams all parts past a threshold
     * (anything above maxSizeBeforeWrite) into a temporary file.
@@ -49,36 +103,21 @@ private[multipart] trait MultipartDecoderPlatform {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
+  @deprecated("Use mixedMultipartResource", "0.23")
   def mixedMultipart[F[_]: Concurrent: Files](
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
-        case Some(boundary) =>
-          DecodeResult {
-            msg.body
-              .through(
-                MultipartParser.parseToPartsStreamedFile[F](
-                  Boundary(boundary),
-                  headerLimit,
-                  maxSizeBeforeWrite,
-                  maxParts,
-                  failOnLimit))
-              .compile
-              .toVector
-              .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
-              .handleError {
-                case e: InvalidMessageBodyFailure => Left(e)
-                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
-              }
-          }
-        case None =>
-          DecodeResult.failureT(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
-      }
-    }
+    makeDecoder(
+      MultipartParser.parseToPartsStreamedFile[F](
+        _,
+        headerLimit,
+        maxSizeBeforeWrite,
+        maxParts,
+        failOnLimit
+      )
+    )
+
 
 }

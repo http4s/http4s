@@ -19,15 +19,21 @@ package multipart
 
 import cats.effect.Concurrent
 import cats.syntax.all._
+import fs2.Pipe
 
 private[http4s] object MultipartDecoder extends MultipartDecoderPlatform {
   def decoder[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
+    makeDecoder(MultipartParser.parseToPartsStream[F](_))
+
+  private[multipart] def makeDecoder[F[_]: Concurrent](
+      impl: Boundary => Pipe[F, Byte, Part[F]]
+  ): EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
             msg.body
-              .through(MultipartParser.parseToPartsStream[F](Boundary(boundary)))
+              .through(impl(Boundary(boundary)))
               .compile
               .toVector
               .map[Either[DecodeFailure, Multipart[F]]](parts =>
@@ -42,5 +48,4 @@ private[http4s] object MultipartDecoder extends MultipartDecoderPlatform {
             InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
       }
     }
-
 }

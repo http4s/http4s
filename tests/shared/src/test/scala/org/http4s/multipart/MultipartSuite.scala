@@ -17,15 +17,14 @@
 package org.http4s
 package multipart
 
+import cats.data.EitherT
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-
+import org.http4s.EntityEncoder._
 import org.http4s.headers._
 import org.http4s.syntax.literals._
-import org.http4s.EntityEncoder._
 import org.typelevel.ci._
-import cats.data.EitherT
 
 class MultipartSuite extends Http4sSuite with MultipartSuitePlatform {
   val url = uri"https://example.com/path/to/some/where"
@@ -48,7 +47,9 @@ class MultipartSuite extends Http4sSuite with MultipartSuitePlatform {
         parts.forall(identity)
       }
 
-  def multipartSpec(name: String)(implicit E: EntityDecoder[IO, Multipart[IO]]) = {
+  def multipartSpec(name: String)(
+      mkDecoder: Resource[IO, EntityDecoder[IO, Multipart[IO]]]
+  ) = {
     {
       test(s"Multipart form data $name should be encoded and decoded with content types") {
         val field1 =
@@ -59,10 +60,13 @@ class MultipartSuite extends Http4sSuite with MultipartSuitePlatform {
         val body = entity.body
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value
 
-        assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value
+
+          assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+        }
       }
 
       test(s"Multipart form data $name should be encoded and decoded without content types") {
@@ -73,13 +77,14 @@ class MultipartSuite extends Http4sSuite with MultipartSuitePlatform {
         val body = entity.body
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value
 
-        assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value
+
+          assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+        }
       }
-
-      multipartSpecPlatform(name)
 
       test(s"Multipart form data $name should be decoded and encode with content types") {
         val body =
@@ -109,10 +114,12 @@ Content-Type: application/pdf
           body = Stream.emit(body).covary[IO].through(text.utf8.encode),
           headers = header)
 
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.map(_.isRight)
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value.map(_.isRight)
 
-        result.assertEquals(true)
+          result.assertEquals(true)
+        }
       }
 
       test(s"Multipart form data $name should be decoded and encoded without content types") {
@@ -136,10 +143,13 @@ I am a big moose
           uri = url,
           body = Stream.emit(body).through(text.utf8.encode),
           headers = header)
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.map(_.isRight)
 
-        result.assertEquals(true)
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value.map(_.isRight)
+
+          result.assertEquals(true)
+        }
       }
 
       test(s"Multipart form data $name should extract name properly if it is present") {
@@ -169,7 +179,7 @@ I am a big moose
     }
   }
 
-  multipartSpec("with default decoder")(implicitly)
+  multipartSpec("with default decoder")(Resource.pure(implicitly))
 
   def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
 

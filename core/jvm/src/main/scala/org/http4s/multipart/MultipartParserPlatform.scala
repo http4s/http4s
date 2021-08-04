@@ -18,15 +18,44 @@ package org.http4s
 package multipart
 
 import cats.effect.Concurrent
+import cats.effect.Resource
+import cats.effect.std.Supervisor
 import cats.syntax.all._
-import fs2.{Pipe, Pull, Pure, Stream}
-import fs2.io.file.Files
-import java.nio.file.{Path, StandardOpenOption}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Pure
 import fs2.RaiseThrowable
+import fs2.Stream
+import fs2.io.file.Files
 import org.http4s.internal.bug
+
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 trait MultipartParserPlatform { self: MultipartParser.type =>
 
+  ////////////////////////////////////////////////////////////
+  // File writing encoder
+  ///////////////////////////////////////////////////////////
+
+  /** Same as the other streamed parsing, except
+    * after a particular size, it buffers on a File.
+    */
+  @deprecated("Use parseSupervisedFile", "0.23")
+  def parseStreamedFile[F[_]: Concurrent: Files](
+      boundary: Boundary,
+      limit: Int = 1024,
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 20,
+      failOnLimit: Boolean = false): Pipe[F, Byte, Multipart[F]] = { st =>
+    st.through(
+      parseToPartsStreamedFile(boundary, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+    ).fold(Vector.empty[Part[F]])(_ :+ _)
+      .map(Multipart(_, boundary))
+  }
+
+  @deprecated("Use parseSupervisedFile", "0.23")
   def parseToPartsStreamedFile[F[_]: Concurrent: Files](
       boundary: Boundary,
       limit: Int = 1024,
@@ -143,23 +172,113 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
     go(stream, Stream.empty, 0)
   }
 
-  ////////////////////////////////////////////////////////////
-  // File writing encoder
-  ///////////////////////////////////////////////////////////
+  /////////////////////////////////////
+  // Resource-safe file-based parser //
+  /////////////////////////////////////
 
-  /** Same as the other streamed parsing, except
-    * after a particular size, it buffers on a File.
+  /** Like parseStreamedFile, but the produced parts' resources are managed by the supervisor.
     */
-  def parseStreamedFile[F[_]: Concurrent: Files](
+  private[multipart] def parseSupervisedFile[F[_]: Concurrent: Files](
+      supervisor: Supervisor[F],
       boundary: Boundary,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
-      failOnLimit: Boolean = false): Pipe[F, Byte, Multipart[F]] = { st =>
+      failOnLimit: Boolean = false,
+      chunkSize: Int = 8192
+  ): Pipe[F, Byte, Multipart[F]] = { st =>
     st.through(
-      parseToPartsStreamedFile(boundary, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+      parseToPartsSupervisedFile(
+        supervisor,
+        boundary,
+        limit,
+        maxSizeBeforeWrite,
+        maxParts,
+        failOnLimit,
+        chunkSize)
     ).fold(Vector.empty[Part[F]])(_ :+ _)
       .map(Multipart(_, boundary))
   }
+
+  private[multipart] def parseToPartsSupervisedFile[F[_]](
+      supervisor: Supervisor[F],
+      boundary: Boundary,
+      limit: Int = 1024,
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 20,
+      failOnLimit: Boolean = false,
+      chunkSize: Int = 8192
+  )(implicit F: Concurrent[F], files: Files[F]): Pipe[F, Byte, Part[F]] = {
+    val createFile = superviseResource(supervisor, files.tempFile())
+    def append(file: Path, bytes: Stream[Pure, Byte]): F[Unit] =
+      bytes.through(files.writeAll(file, List(StandardOpenOption.APPEND))).compile.drain
+
+    final case class Acc(file: Option[Path], bytes: Stream[Pure, Byte], bytesSize: Int)
+
+    def stepPartChunk(oldAcc: Acc, chunk: Chunk[Byte]): F[Acc] = {
+      val newSize = oldAcc.bytesSize + chunk.size
+      val newBytes = oldAcc.bytes ++ Stream.chunk(chunk)
+      if (newSize > maxSizeBeforeWrite) {
+        oldAcc.file
+          .fold(createFile)(F.pure)
+          .flatTap(append(_, newBytes))
+          .map(newFile => Acc(Some(newFile), Stream.empty, 0))
+      } else F.pure(Acc(oldAcc.file, newBytes, newSize))
+    }
+
+    val stepPartEnd: Acc => F[Stream[F, Byte]] = {
+      case Acc(None, bytes, _) => F.pure(bytes)
+      case Acc(Some(file), bytes, size) =>
+        append(file, bytes)
+          .whenA(size > 0)
+          .as(
+            files.readAll(file, chunkSize = chunkSize)
+          )
+    }
+
+    val step: (Option[(Headers, Acc)], Event) => F[(Option[(Headers, Acc)], Option[Part[F]])] = {
+      case (None, PartStart(headers)) =>
+        val newAcc = Acc(None, Stream.empty, 0)
+        F.pure((Some((headers, newAcc)), None))
+      // Shouldn't happen if the `parseToEventsStream` contract holds.
+      case (None, (_: PartChunk | PartEnd)) =>
+        F.raiseError(bug("Missing PartStart"))
+      case (Some((headers, oldAcc)), PartChunk(chunk)) =>
+        stepPartChunk(oldAcc, chunk).map { newAcc =>
+          (Some((headers, newAcc)), None)
+        }
+      case (Some((headers, acc)), PartEnd) =>
+        // Part done - emit it and start over.
+        stepPartEnd(acc)
+          .map(body => (None, Some(Part(headers, body))))
+      // Shouldn't happen if the `parseToEventsStream` contract holds.
+      case (Some(_), _: PartStart) =>
+        F.raiseError(bug("Missing PartEnd"))
+    }
+
+    _.through(
+      parseEvents(boundary, limit)
+    ).through(
+      limitParts(maxParts, failOnLimit)
+    ).evalMapAccumulate(none[(Headers, Acc)])(step)
+      .mapFilter(_._2)
+  }
+
+  // Acquire the resource in a separate fiber, which will remain running until the provided
+  // supervisor sees fit to cancel it. The resulting action waits for the resource to be acquired.
+  private[this] def superviseResource[F[_], A](
+      supervisor: Supervisor[F],
+      resource: Resource[F, A]
+  )(implicit F: Concurrent[F]): F[A] =
+    F.deferred[Either[Throwable, A]].flatMap { deferred =>
+      supervisor.supervise[Nothing](
+        resource.attempt
+          .evalTap(deferred.complete)
+          // In case of an error the exception brings down the fiber.
+          .rethrow
+          // Success - keep the resource alive until the supervisor cancels this fiber.
+          .useForever
+      ) *> deferred.get.rethrow
+    }
 
 }

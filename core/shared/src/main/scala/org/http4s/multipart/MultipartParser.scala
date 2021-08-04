@@ -19,11 +19,15 @@ package multipart
 
 import cats.effect.Concurrent
 import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, Stream}
-import org.typelevel.ci.CIString
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
 import org.http4s.internal.bug
+import org.typelevel.ci.CIString
 
-private[http4s] object MultipartParser extends MultipartParserPlatform {
+/** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
+object MultipartParser extends MultipartParserPlatform {
   private[this] val CRLFBytesN = Array[Byte]('\r', '\n')
   private[this] val DoubleCRLFBytesN = Array[Byte]('\r', '\n', '\r', '\n')
   private[this] val DashDashBytesN = Array[Byte]('-', '-')
@@ -42,7 +46,7 @@ private[http4s] object MultipartParser extends MultipartParserPlatform {
   private[multipart] sealed trait Event
   private[multipart] final case class PartStart(value: Headers) extends Event
   private[multipart] final case class PartChunk(value: Chunk[Byte]) extends Event
-  private[multipart] final case object PartEnd extends Event
+  private[multipart] case object PartEnd extends Event
 
   def parseStreamed[F[_]: Concurrent](
       boundary: Boundary,
@@ -452,10 +456,30 @@ private[http4s] object MultipartParser extends MultipartParserPlatform {
       splitPartialLimited(state, middleChunked, currState, i, acc, carry, c)
   }
 
+  ////////////////////////////
+  // Streaming event parser //
+  ////////////////////////////
+
+  /** Parse a stream of bytes into a stream of part events. The events come in the following order:
+    *
+    *   - one `PartStart`;
+    *   - any number of `PartChunk`s;
+    *   - one `PartEnd`.
+    *
+    * Any number of such sequences may be produced.
+    */
+  private[multipart] def parseEvents[F[_]: Concurrent](
+      boundary: Boundary,
+      headerLimit: Int
+  ): Pipe[F, Byte, Event] =
+    skipPrelude(boundary, _)
+      .flatMap(pullPartsEvents(boundary, _, headerLimit))
+      .stream
+
   /** Drain the prelude and remove the first boundary. Only traverses until the first
     * part.
     */
-  private[multipart] def skipPrelude[F[_]: Concurrent](
+  private[this] def skipPrelude[F[_]: Concurrent](
       boundary: Boundary,
       stream: Stream[F, Byte]
   ): Pull[F, Nothing, Stream[F, Byte]] = {
@@ -475,7 +499,7 @@ private[http4s] object MultipartParser extends MultipartParserPlatform {
   }
 
   /** Pull part events for parts until the end of the stream. */
-  private[multipart] def pullPartsEvents[F[_]: Concurrent](
+  private[this] def pullPartsEvents[F[_]: Concurrent](
       boundary: Boundary,
       stream: Stream[F, Byte],
       headerLimit: Int
@@ -552,25 +576,4 @@ private[http4s] object MultipartParser extends MultipartParserPlatform {
 
     go(stream, 0, Stream.empty)
   }
-
-  ////////////////////////////
-  // Streaming event parser //
-  ////////////////////////////
-
-  /** Parse a stream of bytes into a stream of part events. The events come in the following order:
-    *
-    *   - one `PartStart`;
-    *   - any number of `PartChunk`s;
-    *   - one `PartEnd`.
-    *
-    * Any number of such sequences may be produced.
-    */
-  private[multipart] def parseEvents[F[_]: Concurrent](
-      boundary: Boundary,
-      headerLimit: Int
-  ): Pipe[F, Byte, Event] =
-    skipPrelude(boundary, _)
-      .flatMap(pullPartsEvents(boundary, _, headerLimit))
-      .stream
-
 }
