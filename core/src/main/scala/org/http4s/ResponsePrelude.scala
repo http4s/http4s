@@ -25,46 +25,46 @@ import org.http4s.internal.reduceComparisons
   * @note The [[Response#attributes]] are omitted in this encoding because they
   *       do not (and can not) have a [[cats.kernel.Order]] instance. If they
   *       were included here, then we could not write a [[cats.kernel.Order]]
-  *       instance for [[ResponseInfo]], limiting some of its utility, e.g. it
+  *       instance for [[ResponsePrelude]], limiting some of its utility, e.g. it
   *       could not be used in a [[cats.data.NonEmptySet]].
   */
-sealed abstract class ResponseInfo extends Product with Serializable {
+sealed abstract class ResponsePrelude extends Product with Serializable {
   def headers: Headers
   def httpVersion: HttpVersion
   def status: Status
 
-  def withHeaders(value: Headers): ResponseInfo
-  def withHttpVersion(value: HttpVersion): ResponseInfo
-  def withStatus(value: Status): ResponseInfo
+  def withHeaders(value: Headers): ResponsePrelude
+  def withHttpVersion(value: HttpVersion): ResponsePrelude
+  def withStatus(value: Status): ResponsePrelude
 
   // final //
 
-  final def mapHeaders(f: Headers => Headers): ResponseInfo =
+  final def mapHeaders(f: Headers => Headers): ResponsePrelude =
     withHeaders(f(headers))
 
-  final def mapHttpVersion(f: HttpVersion => HttpVersion): ResponseInfo =
+  final def mapHttpVersion(f: HttpVersion => HttpVersion): ResponsePrelude =
     withHttpVersion(f(httpVersion))
 
-  final def mapStatus(f: Status => Status): ResponseInfo =
+  final def mapStatus(f: Status => Status): ResponsePrelude =
     withStatus(f(status))
 
   final override def toString: String =
-    s"ResponseInfo(headers = ${headers.redactSensitive()}, httpVersion = ${httpVersion}, status = ${status})"
+    s"ResponsePrelude(headers = ${headers.redactSensitive()}, httpVersion = ${httpVersion}, status = ${status})"
 }
 
-object ResponseInfo {
-  private[this] final case class ResponseInfoImpl(
+object ResponsePrelude {
+  private[this] final case class ResponsePreludeImpl(
       override final val headers: Headers,
       override final val httpVersion: HttpVersion,
       override final val status: Status
-  ) extends ResponseInfo {
-    override final def withHeaders(value: Headers): ResponseInfo =
+  ) extends ResponsePrelude {
+    override final def withHeaders(value: Headers): ResponsePrelude =
       this.copy(headers = value)
 
-    override final def withHttpVersion(value: HttpVersion): ResponseInfo =
+    override final def withHttpVersion(value: HttpVersion): ResponsePrelude =
       this.copy(httpVersion = value)
 
-    override final def withStatus(value: Status): ResponseInfo =
+    override final def withStatus(value: Status): ResponsePrelude =
       this.copy(status = value)
   }
 
@@ -72,25 +72,25 @@ object ResponseInfo {
       headers: Headers,
       httpVersion: HttpVersion,
       status: Status
-  ): ResponseInfo =
-    ResponseInfoImpl(
+  ): ResponsePrelude =
+    ResponsePreludeImpl(
       headers,
       httpVersion,
       status
     )
 
-  def fromResponse[F[_]](value: Response[F]): ResponseInfo =
-    ResponseInfoImpl(
+  def fromResponse[F[_]](value: Response[F]): ResponsePrelude =
+    ResponsePreludeImpl(
       value.headers,
       value.httpVersion,
       value.status
     )
 
-  implicit val catsHashAndOrderForResponseInfo: Hash[ResponseInfo] with Order[ResponseInfo] =
-    new Hash[ResponseInfo] with Order[ResponseInfo] {
-      override def hash(x: ResponseInfo): Int = x.hashCode
+  implicit val catsHashAndOrderForResponsePrelude: Hash[ResponsePrelude] with Order[ResponsePrelude] =
+    new Hash[ResponsePrelude] with Order[ResponsePrelude] {
+      override def hash(x: ResponsePrelude): Int = x.hashCode
 
-      override def compare(x: ResponseInfo, y: ResponseInfo): Int =
+      override def compare(x: ResponsePrelude, y: ResponsePrelude): Int =
         reduceComparisons(
           x.headers.compare(y.headers),
           Eval.later(x.httpVersion.compare(y.httpVersion)),
@@ -98,9 +98,9 @@ object ResponseInfo {
         )
     }
 
-  implicit val catsShowForResponseInfo: Show[ResponseInfo] =
+  implicit val catsShowForResponsePrelude: Show[ResponsePrelude] =
     Show.fromToString
 
-  implicit def stdLibOrdering: Ordering[ResponseInfo] =
-    catsHashAndOrderForResponseInfo.toOrdering
+  implicit def stdLibOrdering: Ordering[ResponsePrelude] =
+    catsHashAndOrderForResponsePrelude.toOrdering
 }

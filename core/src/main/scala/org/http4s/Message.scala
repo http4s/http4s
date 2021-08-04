@@ -488,8 +488,8 @@ final class Request[F[_]] private (
     }
 
   /** A projection of this request without the body. */
-  def requestInfo: RequestInfo =
-    RequestInfo.fromRequest(this)
+  def requestPrelude: RequestPrelude =
+    RequestPrelude.fromRequest(this)
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
@@ -656,8 +656,8 @@ final class Response[F[_]] private (
     }
 
   /** A projection of this response without the body. */
-  def responseInfo: ResponseInfo =
-    ResponseInfo.fromResponse(this)
+  def responsePrelude: ResponsePrelude =
+    ResponsePrelude.fromResponse(this)
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""

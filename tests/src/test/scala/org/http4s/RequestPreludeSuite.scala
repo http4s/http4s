@@ -19,7 +19,7 @@ package org.http4s
 import org.http4s.laws.discipline.ArbitraryInstances._
 import cats.kernel.laws.discipline._
 
-final class ResponseInfoSuite extends Http4sSuite {
-  checkAll("Hash[ResponseInfo]", HashTests[ResponseInfo].hash)
-  checkAll("Order[ResponseInfo]", OrderTests[ResponseInfo].order)
+final class RequestPreludeSuite extends Http4sSuite {
+  checkAll("Hash[RequestPrelude]", HashTests[RequestPrelude].hash)
+  checkAll("Order[RequestPrelude]", OrderTests[RequestPrelude].order)
 }

@@ -25,56 +25,56 @@ import org.http4s.internal.reduceComparisons
   * @note The [[Request#attributes]] are omitted in this encoding because they
   *       do not (and can not) have a [[cats.kernel.Order]] instance. If they
   *       were included here, then we could not write a [[cats.kernel.Order]]
-  *       instance for [[RequestInfo]], limiting some of its utility, e.g. it
+  *       instance for [[RequestPrelude]], limiting some of its utility, e.g. it
   *       could not be used in a [[cats.data.NonEmptySet]].
   */
-sealed abstract class RequestInfo extends Product with Serializable {
+sealed abstract class RequestPrelude extends Product with Serializable {
   def headers: Headers
   def httpVersion: HttpVersion
   def method: Method
   def uri: Uri
 
-  def withHeaders(value: Headers): RequestInfo
-  def withHttpVersion(value: HttpVersion): RequestInfo
-  def withMethod(value: Method): RequestInfo
-  def withUri(value: Uri): RequestInfo
+  def withHeaders(value: Headers): RequestPrelude
+  def withHttpVersion(value: HttpVersion): RequestPrelude
+  def withMethod(value: Method): RequestPrelude
+  def withUri(value: Uri): RequestPrelude
 
   // final //
 
-  final def mapHeaders(f: Headers => Headers): RequestInfo =
+  final def mapHeaders(f: Headers => Headers): RequestPrelude =
     withHeaders(f(headers))
 
-  final def mapHttpVersion(f: HttpVersion => HttpVersion): RequestInfo =
+  final def mapHttpVersion(f: HttpVersion => HttpVersion): RequestPrelude =
     withHttpVersion(f(httpVersion))
 
-  final def mapMethod(f: Method => Method): RequestInfo =
+  final def mapMethod(f: Method => Method): RequestPrelude =
     withMethod(f(method))
 
-  final def mapUri(f: Uri => Uri): RequestInfo =
+  final def mapUri(f: Uri => Uri): RequestPrelude =
     withUri(f(uri))
 
   final override def toString: String =
-    s"RequestInfo(headers = ${headers
+    s"RequestPrelude(headers = ${headers
       .redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
 }
 
-object RequestInfo {
-  private[this] final case class RequestInfoImpl(
+object RequestPrelude {
+  private[this] final case class RequestPreludeImpl(
       override final val headers: Headers,
       override final val httpVersion: HttpVersion,
       override final val method: Method,
       override final val uri: Uri
-  ) extends RequestInfo {
-    override final def withHeaders(value: Headers): RequestInfo =
+  ) extends RequestPrelude {
+    override final def withHeaders(value: Headers): RequestPrelude =
       this.copy(headers = value)
 
-    override final def withHttpVersion(value: HttpVersion): RequestInfo =
+    override final def withHttpVersion(value: HttpVersion): RequestPrelude =
       this.copy(httpVersion = value)
 
-    override final def withMethod(value: Method): RequestInfo =
+    override final def withMethod(value: Method): RequestPrelude =
       this.copy(method = value)
 
-    override final def withUri(value: Uri): RequestInfo =
+    override final def withUri(value: Uri): RequestPrelude =
       this.copy(uri = value)
   }
 
@@ -83,27 +83,27 @@ object RequestInfo {
       httpVersion: HttpVersion,
       method: Method,
       uri: Uri
-  ): RequestInfo =
-    RequestInfoImpl(
+  ): RequestPrelude =
+    RequestPreludeImpl(
       headers,
       httpVersion,
       method,
       uri
     )
 
-  def fromRequest[F[_]](value: Request[F]): RequestInfo =
-    RequestInfoImpl(
+  def fromRequest[F[_]](value: Request[F]): RequestPrelude =
+    RequestPreludeImpl(
       value.headers,
       value.httpVersion,
       value.method,
       value.uri
     )
 
-  implicit val catsHashAndOrderForRequestInfo: Hash[RequestInfo] with Order[RequestInfo] =
-    new Hash[RequestInfo] with Order[RequestInfo] {
-      override def hash(x: RequestInfo): Int = x.hashCode
+  implicit val catsHashAndOrderForRequestPrelude: Hash[RequestPrelude] with Order[RequestPrelude] =
+    new Hash[RequestPrelude] with Order[RequestPrelude] {
+      override def hash(x: RequestPrelude): Int = x.hashCode
 
-      override def compare(x: RequestInfo, y: RequestInfo): Int =
+      override def compare(x: RequestPrelude, y: RequestPrelude): Int =
         reduceComparisons(
           x.headers.compare(y.headers),
           Eval.later(x.httpVersion.compare(y.httpVersion)),
@@ -112,9 +112,9 @@ object RequestInfo {
         )
     }
 
-  implicit val catsShowForRequestInfo: Show[RequestInfo] =
+  implicit val catsShowForRequestPrelude: Show[RequestPrelude] =
     Show.fromToString
 
-  implicit def stdLibOrdering: Ordering[RequestInfo] =
-    catsHashAndOrderForRequestInfo.toOrdering
+  implicit def stdLibOrdering: Ordering[RequestPrelude] =
+    catsHashAndOrderForRequestPrelude.toOrdering
 }
