@@ -29,30 +29,28 @@ trait MultipartSuitePlatform { self: MultipartSuite =>
 
   def multipartSpecPlatform(name: String)(
       mkDecoder: Resource[IO, EntityDecoder[IO, Multipart[IO]]]
-  ) = {
-          test(s"Multipart form data $name should encoded and decoded with binary data") {
-        val file = new File(getClass.getResource("/ball.png").toURI)
+  ) =
+    test(s"Multipart form data $name should encoded and decoded with binary data") {
+      val file = new File(getClass.getResource("/ball.png").toURI)
 
-        val field1 = Part.formData[IO]("field1", "Text_Field_1")
-        val field2 = Part
-          .fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
+      val field1 = Part.formData[IO]("field1", "Text_Field_1")
+      val field2 = Part
+        .fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
 
-        val multipart = Multipart[IO](Vector(field1, field2))
+      val multipart = Multipart[IO](Vector(field1, field2))
 
-        val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-        val body = entity.body
-        val request =
-          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+      val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+      val body = entity.body
+      val request =
+        Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-        mkDecoder.use { decoder =>
-          val decoded = decoder.decode(request, true)
-          val result = decoded.value
+      mkDecoder.use { decoder =>
+        val decoded = decoder.decode(request, true)
+        val result = decoded.value
 
-          assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
-        }
+        assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
       }
-
-  }
+    }
 
   {
     @nowarn("cat=deprecation")
