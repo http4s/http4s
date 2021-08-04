@@ -18,7 +18,6 @@ package org.http4s
 package multipart
 
 import cats.effect._
-import cats.implicits._
 import cats.instances.string._
 import fs2._
 import org.http4s._
