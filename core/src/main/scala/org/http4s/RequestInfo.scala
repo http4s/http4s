@@ -115,6 +115,6 @@ object RequestInfo {
   implicit val catsShowForRequestInfo: Show[RequestInfo] =
     Show.fromToString
 
-  implicit val stdLibOrdering: Ordering[RequestInfo] =
+  implicit def stdLibOrdering: Ordering[RequestInfo] =
     catsHashAndOrderForRequestInfo.toOrdering
 }

@@ -101,6 +101,6 @@ object ResponseInfo {
   implicit val catsShowForResponseInfo: Show[ResponseInfo] =
     Show.fromToString
 
-  implicit val stdLibOrdering: Ordering[ResponseInfo] =
+  implicit def stdLibOrdering: Ordering[ResponseInfo] =
     catsHashAndOrderForResponseInfo.toOrdering
 }
