@@ -19,6 +19,7 @@ package org.http4s.dom
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.syntax.all._
+import cats.effect.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.Port
@@ -31,6 +32,7 @@ import org.scalajs.dom.experimental.serviceworkers._
 import org.scalajs.dom.raw.Event
 import org.scalajs.dom.window
 
+import scala.concurrent.duration._
 import scala.scalajs.js
 
 class ServiceWorkerAppSuite extends ServerRouteTestBattery("ServiceWorkerApp") {
@@ -52,14 +54,13 @@ class ServiceWorkerAppSuite extends ServerRouteTestBattery("ServiceWorkerApp") {
               js.Dynamic.literal(scope = "/")
             )
           }
-        }
-      }
-      .evalMap { _ =>
-        IO.async_[Unit] { cb =>
+        }.both(IO.async_[Unit] { cb =>
           window.navigator.serviceWorker
             .addEventListener[Event]("controllerchange", (_: Event) => cb(Right(())))
-        }
+        })
       }
+      .timeout(1.minute)
+      .attempt // Ignore timeout and try running the suite
       .as {
         new Server {
           override def address: SocketAddress[Host] =
