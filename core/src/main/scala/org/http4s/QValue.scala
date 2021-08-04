@@ -123,6 +123,9 @@ object QValue extends QValuePlatform {
     ParseResult.fromParser(parser, "Invalid Q-Value")(s)
 
   /** Exists to support compile-time verified literals. Do not call directly. */
+  @deprecated(
+    """QValue literal is deprecated.  Import `org.http4s.implicits._` and use the qValue"" string context""",
+    "0.22.2")
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
   implicit val catsInstancesForHttp4sQValue: Order[QValue]

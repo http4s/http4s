@@ -28,6 +28,11 @@ trait MediaTypePlaform {
 }
 
 object MediaTypePlaform {
+  @deprecated(
+    """MediaType literal is deprecated.  Import `org.http4s.implicits._` and use the mediaType"" string context""",
+    "0.22.2")
+  def deprecatedLiteralImpl(s: String): MediaType =
+    MediaType.parse(s).fold(throw _, identity)
 
   private[MediaTypePlaform] class Macros(val c: whitebox.Context) {
     import c.universe._
@@ -39,8 +44,7 @@ object MediaTypePlaform {
             .parse(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              _ =>
-                q"_root_.org.http4s.MediaType.parse($s).fold(throw _, _root_.scala.Predef.identity)"
+              _ => q"_root_.org.http4s.MediaTypePlaform.deprecatedLiteralImpl($s)"
             )
         case _ =>
           c.abort(
