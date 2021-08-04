@@ -487,6 +487,10 @@ final class Request[F[_]] private (
       case _ => throw new IndexOutOfBoundsException()
     }
 
+  /** A projection of this request without the body. */
+  def requestPrelude: RequestPrelude =
+    RequestPrelude.fromRequest(this)
+
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
 }
@@ -650,6 +654,10 @@ final class Response[F[_]] private (
       case 4 => attributes
       case _ => throw new IndexOutOfBoundsException()
     }
+
+  /** A projection of this response without the body. */
+  def responsePrelude: ResponsePrelude =
+    ResponsePrelude.fromResponse(this)
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
