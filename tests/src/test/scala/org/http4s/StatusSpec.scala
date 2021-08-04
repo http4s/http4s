@@ -58,13 +58,13 @@ class StatusSpec extends Http4sSuite {
     }
   }
 
-  test("The collection of registered statuses should contain 61 standard ones") {
-    assertEquals(Status.registered.size, 61)
+  test("The collection of registered statuses should contain 62 standard ones") {
+    assertEquals(Status.registered.size, 62)
   }
 
   test("The collection of registered statuses should not contain any custom statuses") {
     getStatus(371)
-    assertEquals(Status.registered.size, 61)
+    assertEquals(Status.registered.size, 62)
   }
 
   test("Finding a status by code should fail if the code is not in the range of valid codes") {
