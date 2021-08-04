@@ -86,7 +86,8 @@ object ResponsePrelude {
       value.status
     )
 
-  implicit val catsHashAndOrderForResponsePrelude: Hash[ResponsePrelude] with Order[ResponsePrelude] =
+  implicit val catsHashAndOrderForResponsePrelude
+      : Hash[ResponsePrelude] with Order[ResponsePrelude] =
     new Hash[ResponsePrelude] with Order[ResponsePrelude] {
       override def hash(x: ResponsePrelude): Int = x.hashCode
 
