@@ -8,6 +8,71 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.0 (2021-07-30)
+
+This is the first production release with Cats-Effect 3 support.  All subsequent 0.23.x releases will be binary compatible with this.
+
+Includes all changes through v0.22.1.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4997](https://github.com/http4s/http4s/pull/4997): Refresh MimeDB from the IANA registry.  It shuffles some constants in ways that offend MiMa, but you almost certainly won't notice.
+
+### Enhancements
+
+* [#4915](https://github.com/http4s/http4s/pull/4915): Add file-based multipart decoder with better resource handling.  This deprecates the priod `mixedMultipart` decoder in favor of a `mixedMultipartResource`, which cleans up temporary storage on release of the resource.  Please see the scaladoc for a usage example.
+
+## Various modules
+
+### Breaking changes
+
+* [#4998](https://github.com/http4s/http4s/pull/4998): Removes everything deprecated since 0.20.0, over 24 months and three breaking releases ago.  See the pull request for a comprehensive list.
+
+### Refactoring
+
+* [#4986](https://github.com/http4s/http4s/pull/4986): Light refactoring of fs2 pipes in Ember and Blaze backends.  Should not be visible.
+
+## Dependency updates
+
+* cats-effect-3.2.0
+* fs2-3.0.6
+* jawn-fs2-2.1.0
+* keypool-0.4.6
+
+# v0.22.1 (2021-07-30)
+
+## http4s-core
+
+### Bugfixes
+
+* [#4956](https://github.com/http4s/http4s/pull/4956): Catch non-fatal exceptions, notably `DateTimeException`, in `QueryParamDecoder`s.
+
+### Enhancements
+
+* [#4956](https://github.com/http4s/http4s/pull/4956): Add `QueryParamCodec`s for more `java.time` types.
+
+## http4s-client
+
+### Bugfixes
+
+* [#4933](https://github.com/http4s/http4s/pull/4933): Append the `EntityDecoder`'s `Accept` headers to any explicit headers instead of replacing them.  This was a regression from the 0.21 line.
+
+## http4s-boopickle
+
+### Cross builds
+
+* [#4991](https://github.com/http4s/http4s/pull/4991): `http4s-boopickle` is now cross-published for Scala 3
+
+## Dependency updates
+
+* boopickle-1.4.0
+* cats-effect-2.5.2
+* dropwizard-metrics-4.2.3
+* scala-xml-2.0.1
+* slf4j-api-1.7.32
+
 # v0.22.0
 
 This is the first production release with Scala 3 support, and continues to support Cats-Effect 2.  All users of the 0.21 series are encouraged to upgrade to at least this version.  Users needing Cats-Effect 3 are invited to upgrade to http4s-0.23.

@@ -27,6 +27,7 @@ import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
 import org.typelevel.ci._
+import scala.annotation.nowarn
 
 class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
@@ -48,7 +49,9 @@ class MultipartSuite extends Http4sSuite {
       a.parts === b.parts
     }
 
-  def multipartSpec(name: String)(implicit E: EntityDecoder[IO, Multipart[IO]]) = {
+  def multipartSpec(name: String)(
+      mkDecoder: Resource[IO, EntityDecoder[IO, Multipart[IO]]]
+  ) = {
     {
       test(s"Multipart form data $name should be encoded and decoded with content types") {
         val field1 =
@@ -59,10 +62,13 @@ class MultipartSuite extends Http4sSuite {
         val body = entity.body
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value
 
-        assertIOBoolean(result.map(_ === Right(multipart)))
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value
+
+          assertIOBoolean(result.map(_ === Right(multipart)))
+        }
       }
 
       test(s"Multipart form data $name should be encoded and decoded without content types") {
@@ -73,10 +79,13 @@ class MultipartSuite extends Http4sSuite {
         val body = entity.body
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value
 
-        assertIOBoolean(result.map(_ === Right(multipart)))
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value
+
+          assertIOBoolean(result.map(_ === Right(multipart)))
+        }
       }
 
       test(s"Multipart form data $name should encoded and decoded with binary data") {
@@ -93,10 +102,12 @@ class MultipartSuite extends Http4sSuite {
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value
 
-        assertIOBoolean(result.map(_ === Right(multipart)))
+          assertIOBoolean(result.map(_ === Right(multipart)))
+        }
       }
 
       test(s"Multipart form data $name should be decoded and encode with content types") {
@@ -127,10 +138,12 @@ Content-Type: application/pdf
           body = Stream.emit(body).covary[IO].through(text.utf8Encode),
           headers = header)
 
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.map(_.isRight)
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value.map(_.isRight)
 
-        result.assertEquals(true)
+          result.assertEquals(true)
+        }
       }
 
       test(s"Multipart form data $name should be decoded and encoded without content types") {
@@ -154,10 +167,13 @@ I am a big moose
           uri = url,
           body = Stream.emit(body).through(text.utf8Encode),
           headers = header)
-        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.map(_.isRight)
 
-        result.assertEquals(true)
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value.map(_.isRight)
+
+          result.assertEquals(true)
+        }
       }
 
       test(s"Multipart form data $name should extract name properly if it is present") {
@@ -187,8 +203,15 @@ I am a big moose
     }
   }
 
-  multipartSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO]())
+  multipartSpec("with default decoder")(Resource.pure(implicitly))
+
+  {
+    @nowarn("cat=deprecation")
+    val testDeprecated =
+      multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
+    testDeprecated
+  }
+  multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
   def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
 

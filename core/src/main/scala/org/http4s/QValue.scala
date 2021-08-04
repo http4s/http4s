@@ -74,7 +74,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 
 }
 
-object QValue {
+object QValue extends QValuePlatform {
   lazy val One: QValue = new QValue(1000)
   lazy val Zero: QValue = new QValue(0)
 
@@ -123,6 +123,9 @@ object QValue {
     ParseResult.fromParser(parser, "Invalid Q-Value")(s)
 
   /** Exists to support compile-time verified literals. Do not call directly. */
+  @deprecated(
+    """QValue literal is deprecated.  Import `org.http4s.implicits._` and use the qValue"" string context""",
+    "0.22.2")
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
   implicit val catsInstancesForHttp4sQValue: Order[QValue]
