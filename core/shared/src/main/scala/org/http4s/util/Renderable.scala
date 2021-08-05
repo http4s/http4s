@@ -17,16 +17,17 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
-
-import java.time.{Instant, ZoneId}
-import java.time.format.DateTimeFormatter
 import org.http4s.Header
+import org.http4s.internal.CharPredicate
 import org.typelevel.ci.CIString
 
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
-import org.http4s.internal.CharPredicate
 
 /** A type class that describes how to efficiently render a type
   * @tparam T the type which will be rendered
@@ -50,7 +51,7 @@ object Renderer {
     private val dateFormat =
       DateTimeFormatter
         .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
-        // .withLocale(Locale.US) // Causes problems with Scala.js
+        .withLocale(Locale.US)
         .withZone(ZoneId.of("GMT"))
 
     override def render(writer: Writer, t: Instant): writer.type =

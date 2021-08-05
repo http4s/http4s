@@ -326,6 +326,7 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.2"
+    val scalaJavaLocales = "1.2.1"
     val scalaJavaTime = "2.3.0"
     val scalaJsDom = "1.1.0"
     val scalatags = "0.9.4"
@@ -407,6 +408,7 @@ object Http4sPlugin extends AutoPlugin {
     Def.setting("org.typelevel" %%% "scalacheck-effect" % V.scalacheckEffect)
   lazy val scalacheckEffectMunit =
     Def.setting("org.typelevel" %%% "scalacheck-effect-munit" % V.scalacheckEffect)
+  lazy val scalaJavaLocalesEnUS = Def.setting("io.github.cquiroz" %%% "locales-minimal-en_us-db" % V.scalaJavaLocales)
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
   lazy val scalaJsDom = Def.setting("org.scala-js" %%% "scalajs-dom" % V.scalaJsDom)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv

@@ -285,7 +285,10 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
     libraryDependencies += fs2Io.value
   )
   .jsSettings(
-    libraryDependencies += scalaJavaTime.value,
+    libraryDependencies ++= Seq(
+      scalaJavaLocalesEnUS.value,
+      scalaJavaTime.value,
+    ),
     scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") }
   )
   .jsConfigure(_.disablePlugins(DoctestPlugin))
