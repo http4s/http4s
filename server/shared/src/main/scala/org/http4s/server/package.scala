@@ -28,7 +28,7 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 package object server {
-  object defaults extends defaultsplatform {
+  object defaults extends DefaultsPlatform {
     val Banner =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___

@@ -32,7 +32,7 @@ import org.http4s.js.crypto.CryptoKey
 import java.util.Base64
 import org.http4s.js.crypto.BufferSource
 
-private[oauth1] trait oauth1platform {
+private[oauth1] trait OAuth1Platform {
 
   private[oauth1] def makeSHASigPlatform[F[_]: Async](
       baseString: String,

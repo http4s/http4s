@@ -41,7 +41,7 @@ import cats.effect.Async
   *
   * This feature is not considered stable.
   */
-package object oauth1 extends oauth1platform {
+package object oauth1 extends OAuth1Platform {
   private val OutOfBand = "oob"
 
   /** Sign the request with an OAuth Authorization header

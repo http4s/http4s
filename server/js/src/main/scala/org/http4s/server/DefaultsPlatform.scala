@@ -18,7 +18,7 @@ package org.http4s.server
 
 import com.comcast.ip4s
 
-private[server] trait defaultsplatform { self: defaults.type =>
+private[server] trait DefaultsPlatform { self: defaults.type =>
 
   val IPv4Host: String = "127.0.0.1"
   val IPv6Host: String = "0:0:0:0:0:0:0:1"

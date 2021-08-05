@@ -22,7 +22,7 @@ import javax.crypto
 import java.nio.charset.StandardCharsets
 import cats.effect.Async
 
-private[oauth1] trait oauth1platform {
+private[oauth1] trait OAuth1Platform {
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
 

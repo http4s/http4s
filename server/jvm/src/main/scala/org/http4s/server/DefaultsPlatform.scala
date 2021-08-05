@@ -18,7 +18,7 @@ package org.http4s.server
 
 import java.net.{InetAddress, InetSocketAddress}
 
-private[server] trait defaultsplatform { self: defaults.type =>
+private[server] trait DefaultsPlatform { self: defaults.type =>
 
   val IPv4Host: String =
     InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
