@@ -43,11 +43,13 @@ import scala.collection.mutable.ListBuffer
   * This feature is not considered stable.
   */
 package object oauth1 {
-  private val SHA1 = "HmacSHA1"
+
   private def UTF_8 = StandardCharsets.UTF_8
   private val OutOfBand = "oob"
 
-  /** Sign the request with an OAuth Authorization header
+  /** Sign the request with a OAuth Authorization header.
+    *
+    * This function defaults to HMAC-SHA1
     *
     * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
     *            will be entirely buffered due to signing requirements.
@@ -61,7 +63,7 @@ package object oauth1 {
       F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).map { case (req, params) =>
-      val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
+      val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, SignatureMethod.SHA1)
       req.putHeaders(auth)
     }
 
@@ -70,7 +72,7 @@ package object oauth1 {
       consumer: ProtocolParameter.Consumer,
       token: Option[ProtocolParameter.Token],
       realm: Option[Realm],
-      signatureMethod: SignatureMethod = ProtocolParameter.SignatureMethod(),
+      signatureMethod: SignatureMethod = SignatureMethod.SHA1,
       timestampGenerator: F[Timestamp],
       version: ProtocolParameter.Version = Version(),
       nonceGenerator: F[Nonce],
@@ -145,7 +147,7 @@ package object oauth1 {
         method,
         uri,
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
-      val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret))
+      val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret), signatureMethod)
       val creds = Credentials.AuthParams(
         ci"OAuth",
         NonEmptyList(
@@ -164,11 +166,12 @@ package object oauth1 {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token]): Authorization = {
+      token: Option[Token],
+      signatureMethod: SignatureMethod): Authorization = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
-      params += "oauth_signature_method" -> "HMAC-SHA1"
+      params += "oauth_signature_method" -> signatureMethod.headerValue
       params += "oauth_timestamp" -> (System.currentTimeMillis / 1000).toString
       params += "oauth_nonce" -> System.nanoTime.toString
       params += "oauth_version" -> "1.0"
@@ -188,7 +191,7 @@ package object oauth1 {
       params ++ userParams.map { case (k, v) =>
         (encode(k), encode(v))
       })
-    val sig = makeSHASig(baseString, consumer, token)
+    val sig = makeSHASig(baseString, consumer, token, signatureMethod)
     val creds =
       Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
 
@@ -199,16 +202,18 @@ package object oauth1 {
   private[oauth1] def makeSHASig(
       baseString: String,
       consumer: Consumer,
-      token: Option[Token]): String =
-    makeSHASig(baseString, consumer.secret, token.map(_.secret))
+      token: Option[Token],
+      signatureMethod: SignatureMethod): String =
+    makeSHASig(baseString, consumer.secret, token.map(_.secret), signatureMethod)
 
   private[oauth1] def makeSHASig(
       baseString: String,
       consumerSecret: String,
-      tokenSecret: Option[String]): String = {
-    val sha1 = crypto.Mac.getInstance(SHA1)
+      tokenSecret: Option[String],
+      signatureMethod: SignatureMethod): String = {
+    val sha1 = crypto.Mac.getInstance(signatureMethod.algorithm)
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
-    sha1.init(new crypto.spec.SecretKeySpec(bytes(key), SHA1))
+    sha1.init(new crypto.spec.SecretKeySpec(bytes(key), signatureMethod.algorithm))
 
     val sigBytes = sha1.doFinal(bytes(baseString))
     java.util.Base64.getEncoder.encodeToString(sigBytes)

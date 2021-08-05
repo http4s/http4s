@@ -20,6 +20,7 @@ import cats.{Functor, Show}
 import cats.effect.Clock
 import cats.kernel.Order
 import cats.syntax.all._
+
 import java.util.concurrent.TimeUnit
 
 sealed trait ProtocolParameter {
@@ -44,7 +45,12 @@ object ProtocolParameter {
 
   case class Custom(headerName: String, headerValue: String) extends ProtocolParameter
 
-  case class SignatureMethod(override val headerValue: String = "HMAC-SHA1")
+  object SignatureMethod {
+    val SHA1: SignatureMethod = SignatureMethod()
+    val SHA256: SignatureMethod = SignatureMethod(headerValue = "HMAC-SHA256", algorithm = "HmacSHA256")
+  }
+
+  case class SignatureMethod(override val headerValue: String = "HMAC-SHA1", algorithm: String = "HmacSHA1")
       extends ProtocolParameter {
     override val headerName: String = "oauth_signature_method"
   }

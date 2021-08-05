@@ -77,12 +77,12 @@ class OAuthSuite extends Http4sSuite {
 
   test("OAuth support should generate a correct SHA1 signature") {
     assert(
-      oauth1.makeSHASig(specBaseString, consumer, Some(token)) == "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
+      oauth1.makeSHASig(specBaseString, consumer, Some(token), SignatureMethod.SHA1) == "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
   }
 
   test("OAuth support should generate a Authorization header") {
     val auth =
-      oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
+      oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token), SignatureMethod.SHA1)
     val creds = auth.credentials
     assert(creds.authScheme == ci"OAuth")
   }
@@ -95,7 +95,7 @@ class OAuthSuite extends Http4sSuite {
         oauth1.ProtocolParameter.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44"),
         Some(oauth1.ProtocolParameter.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
         realm = Some(Realm("Example")),
-        signatureMethod = SignatureMethod(),
+        signatureMethod = SignatureMethod.SHA1,
         timestampGenerator = Timestamp.now[IO],
         version = Version(),
         nonceGenerator = Nonce.now[IO],
