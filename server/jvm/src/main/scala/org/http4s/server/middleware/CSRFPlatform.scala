@@ -48,7 +48,7 @@ private[middleware] trait CSRFPlatform[F[_], G[_]] { self: CSRF[F, G] =>
     * and extract the original token string to sign
     */
   def extractRaw[M[_]](rawToken: String)(implicit F: Async[M]): M[Either[CSRFCheckFailed, String]] =
-    F.pure {
+    F.catchNonFatal {
       rawToken.split("-") match {
         case Array(raw, nonce, signed) =>
           val mac = Mac.getInstance(CSRF.SigningAlgo)
