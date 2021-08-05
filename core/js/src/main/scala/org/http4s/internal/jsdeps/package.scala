@@ -25,7 +25,7 @@ import scala.util.Try
 
 package object jsdeps {
 
-  lazy val webcrypto: Crypto =
+  private[http4s] lazy val webcrypto: Crypto =
     Try(GlobalCrypto.crypto)
       .orElse(Try(Dynamic.global.require("crypto").webcrypto.asInstanceOf[Crypto]))
       .get

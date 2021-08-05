@@ -22,7 +22,7 @@ import scala.scalajs.js.typedarray.ArrayBufferView
 
 @js.native
 @JSGlobalScope
-object GlobalCrypto extends js.Object {
+private[http4s] object GlobalCrypto extends js.Object {
   val crypto: Crypto = js.native
 }
 
@@ -33,7 +33,7 @@ object GlobalCrypto extends js.Object {
   * MDN
   */
 @js.native
-trait Crypto extends js.Object {
+private[http4s] trait Crypto extends js.Object {
 
   /** Returns a SubtleCrypto object providing access to common cryptographic
     * primitives, like hashing, signing, encryption or decryption.
@@ -50,7 +50,7 @@ trait Crypto extends js.Object {
 }
 
 @js.native
-trait Algorithm extends js.Object {
+private[http4s] trait Algorithm extends js.Object {
   var name: String = js.native
 }
 
@@ -61,7 +61,7 @@ trait Algorithm extends js.Object {
   * in w3c spec.
   */
 @js.native
-trait KeyAlgorithm extends Algorithm
+private[http4s] trait KeyAlgorithm extends Algorithm
 
 /** A HashAlgorithm type is not defined in the
   * [[http://www.w3.org/TR/WebCryptoAPI/ W3C Web Crypto API]], even though
@@ -70,9 +70,9 @@ trait KeyAlgorithm extends Algorithm
   * are a type of their own, as searching the spec will show.
   */
 @js.native
-trait HashAlgorithm extends Algorithm
+private[http4s] trait HashAlgorithm extends Algorithm
 
-object HashAlgorithm {
+private[http4s] object HashAlgorithm {
 
   private def named(name: String): HashAlgorithm =
     js.Dynamic.literal(name = name).asInstanceOf[HashAlgorithm]
@@ -89,7 +89,7 @@ object HashAlgorithm {
   * defined at [[http://www.w3.org/TR/WebCryptoAPI/#cryptokey-interface ¶13 The CryptoKey Interface]]
   */
 @js.native
-trait CryptoKey extends js.Object {
+private[http4s] trait CryptoKey extends js.Object {
   val `type`: String = js.native
 
   val extractable: Boolean = js.native
@@ -105,13 +105,13 @@ trait CryptoKey extends js.Object {
   * of spec
   */
 @js.native
-trait CryptoKeyPair extends js.Object {
+private[http4s] trait CryptoKeyPair extends js.Object {
   val publicKey: CryptoKey = js.native
   val privateKey: CryptoKey = js.native
 }
 
 @js.native
-trait RsaOtherPrimesInfo extends js.Object {
+private[http4s] trait RsaOtherPrimesInfo extends js.Object {
   var r: String = js.native
 
   var d: String = js.native
@@ -120,7 +120,7 @@ trait RsaOtherPrimesInfo extends js.Object {
 }
 
 @js.native
-trait JsonWebKey extends js.Object {
+private[http4s] trait JsonWebKey extends js.Object {
   var kty: String = js.native
 
   var use: String = js.native
@@ -167,7 +167,7 @@ trait JsonWebKey extends js.Object {
   * MDN
   */
 @js.native
-trait SubtleCrypto extends js.Object {
+private[http4s] trait SubtleCrypto extends js.Object {
 
   /** Returns a Promise of the encrypted data corresponding to the clear text,
     * algorithm and key given as parameters. MDN
@@ -340,13 +340,13 @@ trait SubtleCrypto extends js.Object {
 // RSASSA-PKCS1-v1_5
 
 @js.native
-trait RsaKeyGenParams extends KeyAlgorithm {
+private[http4s] trait RsaKeyGenParams extends KeyAlgorithm {
   var modulusLength: Double = js.native
 
   var publicExponent: BigInteger = js.native
 }
 
-object RsaKeyGenParams {
+private[http4s] object RsaKeyGenParams {
   @inline
   def apply(name: String, modulusLength: Long, publicExponent: BigInteger): RsaKeyGenParams =
     js.Dynamic
@@ -355,11 +355,11 @@ object RsaKeyGenParams {
 }
 
 @js.native
-trait RsaHashedKeyGenParams extends RsaKeyGenParams {
+private[http4s] trait RsaHashedKeyGenParams extends RsaKeyGenParams {
   var hash: HashAlgorithmIdentifier = js.native
 }
 
-object RsaHashedKeyGenParams {
+private[http4s] object RsaHashedKeyGenParams {
   @inline
   def apply(
       name: String,
@@ -376,13 +376,13 @@ object RsaHashedKeyGenParams {
 }
 
 @js.native
-trait RsaKeyAlgorithm extends KeyAlgorithm {
+private[http4s] trait RsaKeyAlgorithm extends KeyAlgorithm {
   var modulusLength: Double = js.native
 
   var publicExponent: BigInteger = js.native
 }
 
-object RsaKeyAlgorithm {
+private[http4s] object RsaKeyAlgorithm {
   @inline
   def apply(name: String, modulusLength: Long, publicExponent: BigInteger): RsaKeyAlgorithm =
     js.Dynamic
@@ -393,7 +393,7 @@ object RsaKeyAlgorithm {
 /** see W3C doc [[http://www.w3.org/TR/WebCryptoAPI/#RsaHashedKeyAlgorithm-dictionary 20.6. RsaHashedKeyAlgorithm dictionary]]
   */
 @js.native
-trait RsaHashedKeyAlgorithm extends RsaKeyAlgorithm {
+private[http4s] trait RsaHashedKeyAlgorithm extends RsaKeyAlgorithm {
 
   /** Note that section [[http://www.w3.org/TR/WebCryptoAPI/#RsaHashedKeyAlgorithm-dictionary 20.6. RsaHashedKeyAlgorithm dictionary]]
     * of the W3C documentation uses a KeyAlgorithm here, and not what seems more correct a
@@ -402,7 +402,7 @@ trait RsaHashedKeyAlgorithm extends RsaKeyAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 }
 
-object RsaHashedKeyAlgorithm {
+private[http4s] object RsaHashedKeyAlgorithm {
   @inline
   def apply(
       name: String,
@@ -443,11 +443,11 @@ object RsaHashedKeyAlgorithm {
 }
 
 @js.native
-trait RsaHashedImportParams extends KeyAlgorithm {
+private[http4s] trait RsaHashedImportParams extends KeyAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 }
 
-object RsaHashedImportParams {
+private[http4s] object RsaHashedImportParams {
   @inline
   def apply(name: String, hash: HashAlgorithmIdentifier): RsaHashedImportParams =
     js.Dynamic
@@ -458,11 +458,11 @@ object RsaHashedImportParams {
 // RSA-PSS
 
 @js.native
-trait RsaPssParams extends Algorithm {
+private[http4s] trait RsaPssParams extends Algorithm {
   var saltLength: Double = js.native
 }
 
-object RsaPssParams {
+private[http4s] object RsaPssParams {
   @inline
   def apply(name: String, saltLength: Long): RsaPssParams =
     js.Dynamic
@@ -473,11 +473,11 @@ object RsaPssParams {
 // RSA-OAEP
 
 @js.native
-trait RsaOaepParams extends Algorithm {
+private[http4s] trait RsaOaepParams extends Algorithm {
   var label: BufferSource = js.native
 }
 
-object RsaOaepParams {
+private[http4s] object RsaOaepParams {
   @inline
   def apply(name: String, label: BufferSource): RsaOaepParams =
     js.Dynamic.literal(name = name, label = label).asInstanceOf[RsaOaepParams]
@@ -486,11 +486,11 @@ object RsaOaepParams {
 // ECDSA
 
 @js.native
-trait EcdsaParams extends Algorithm {
+private[http4s] trait EcdsaParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 }
 
-object EcdsaParams {
+private[http4s] object EcdsaParams {
   @inline
   def apply(name: String, hash: HashAlgorithmIdentifier): EcdsaParams =
     js.Dynamic
@@ -499,11 +499,11 @@ object EcdsaParams {
 }
 
 @js.native
-trait EcKeyGenParams extends Algorithm {
+private[http4s] trait EcKeyGenParams extends Algorithm {
   var namedCurve: String = js.native
 }
 
-object EcKeyGenParams {
+private[http4s] object EcKeyGenParams {
   @inline
   def apply(name: String, namedCurve: String): EcKeyGenParams =
     js.Dynamic
@@ -512,11 +512,11 @@ object EcKeyGenParams {
 }
 
 @js.native
-trait EcKeyAlgorithm extends KeyAlgorithm {
+private[http4s] trait EcKeyAlgorithm extends KeyAlgorithm {
   var namedCurve: String = js.native
 }
 
-object EcKeyAlgorithm {
+private[http4s] object EcKeyAlgorithm {
   @inline
   def apply(name: String, namedCurve: String): EcKeyAlgorithm =
     js.Dynamic
@@ -525,11 +525,11 @@ object EcKeyAlgorithm {
 }
 
 @js.native
-trait EcKeyImportParams extends KeyAlgorithm {
+private[http4s] trait EcKeyImportParams extends KeyAlgorithm {
   var namedCurve: String = js.native
 }
 
-object EcKeyImportParams {
+private[http4s] object EcKeyImportParams {
   @inline
   def apply(name: String, namedCurve: String): EcKeyImportParams =
     js.Dynamic
@@ -540,11 +540,11 @@ object EcKeyImportParams {
 // ECDH
 
 @js.native
-trait EcdhKeyDeriveParams extends KeyAlgorithm {
+private[http4s] trait EcdhKeyDeriveParams extends KeyAlgorithm {
   var `public`: CryptoKey = js.native
 }
 
-object EcdhKeyDeriveParams {
+private[http4s] object EcdhKeyDeriveParams {
   @inline
   def apply(name: String, `public`: CryptoKey): EcdhKeyDeriveParams =
     js.Dynamic
@@ -555,13 +555,13 @@ object EcdhKeyDeriveParams {
 // AES-CTR
 
 @js.native
-trait AesCtrParams extends Algorithm {
+private[http4s] trait AesCtrParams extends Algorithm {
   var counter: BufferSource = js.native
 
   var length: Short = js.native
 }
 
-object AesCtrParams {
+private[http4s] object AesCtrParams {
   @inline
   def apply(name: String, counter: BufferSource, length: Short): AesCtrParams =
     js.Dynamic
@@ -570,11 +570,11 @@ object AesCtrParams {
 }
 
 @js.native
-trait AesKeyAlgorithm extends KeyAlgorithm {
+private[http4s] trait AesKeyAlgorithm extends KeyAlgorithm {
   var length: Int = js.native
 }
 
-object AesKeyAlgorithm {
+private[http4s] object AesKeyAlgorithm {
   @inline
   def apply(name: String, length: Short): AesKeyAlgorithm =
     js.Dynamic
@@ -583,11 +583,11 @@ object AesKeyAlgorithm {
 }
 
 @js.native
-trait AesKeyGenParams extends KeyAlgorithm {
+private[http4s] trait AesKeyGenParams extends KeyAlgorithm {
   var length: Int = js.native
 }
 
-object AesKeyGenParams {
+private[http4s] object AesKeyGenParams {
   @inline
   def apply(name: String, length: Short): AesKeyGenParams =
     js.Dynamic
@@ -596,11 +596,11 @@ object AesKeyGenParams {
 }
 
 @js.native
-trait AesDerivedKeyParams extends KeyAlgorithm {
+private[http4s] trait AesDerivedKeyParams extends KeyAlgorithm {
   var length: Int = js.native
 }
 
-object AesDerivedKeyParams {
+private[http4s] object AesDerivedKeyParams {
   @inline
   def apply(name: String, length: Short): AesDerivedKeyParams =
     js.Dynamic
@@ -611,11 +611,11 @@ object AesDerivedKeyParams {
 // AES-CBC
 
 @js.native
-trait AesCbcParams extends Algorithm {
+private[http4s] trait AesCbcParams extends Algorithm {
   var iv: BufferSource = js.native
 }
 
-object AesCbcParams {
+private[http4s] object AesCbcParams {
   @inline
   def apply(name: String, iv: BufferSource): AesCbcParams =
     js.Dynamic.literal(name = name, iv = iv).asInstanceOf[AesCbcParams]
@@ -624,11 +624,11 @@ object AesCbcParams {
 // AES-CMAC
 
 @js.native
-trait AesCmacParams extends Algorithm {
+private[http4s] trait AesCmacParams extends Algorithm {
   var length: Int = js.native
 }
 
-object AesCmacParams {
+private[http4s] object AesCmacParams {
   @inline
   def apply(name: String, length: Int): AesCmacParams =
     js.Dynamic
@@ -639,7 +639,7 @@ object AesCmacParams {
 // AES-GCM
 
 @js.native
-trait AesGcmParams extends Algorithm {
+private[http4s] trait AesGcmParams extends Algorithm {
   var iv: BufferSource = js.native
 
   var additionalData: BufferSource = js.native
@@ -647,7 +647,7 @@ trait AesGcmParams extends Algorithm {
   var tagLength: Short = js.native
 }
 
-object AesGcmParams {
+private[http4s] object AesGcmParams {
   @inline
   def apply(
       name: String,
@@ -662,11 +662,11 @@ object AesGcmParams {
 // AES-CFB
 
 @js.native
-trait AesCfbParams extends Algorithm {
+private[http4s] trait AesCfbParams extends Algorithm {
   var iv: BufferSource = js.native
 }
 
-object AesCfbParams {
+private[http4s] object AesCfbParams {
   @inline
   def apply(name: String, iv: BufferSource): AesCfbParams =
     js.Dynamic.literal(name = name, iv = iv).asInstanceOf[AesCfbParams]
@@ -677,13 +677,13 @@ object AesCfbParams {
 // HMAC
 
 @js.native
-trait HmacImportParams extends Algorithm {
+private[http4s] trait HmacImportParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
   var length: Double = js.native
 }
 
-object HmacImportParams {
+private[http4s] object HmacImportParams {
   @inline
   def apply(name: String, hash: HashAlgorithmIdentifier, length: Long): HmacImportParams =
     js.Dynamic
@@ -692,13 +692,13 @@ object HmacImportParams {
 }
 
 @js.native
-trait HmacKeyAlgorithm extends KeyAlgorithm {
+private[http4s] trait HmacKeyAlgorithm extends KeyAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
   var length: Double = js.native
 }
 
-object HmacKeyAlgorithm {
+private[http4s] object HmacKeyAlgorithm {
   @inline
   def apply(name: String, hash: HashAlgorithmIdentifier, length: Long): HmacKeyAlgorithm =
     js.Dynamic
@@ -707,13 +707,13 @@ object HmacKeyAlgorithm {
 }
 
 @js.native
-trait HmacKeyGenParams extends KeyAlgorithm {
+private[http4s] trait HmacKeyGenParams extends KeyAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
   var length: Double = js.native
 }
 
-object HmacKeyGenParams {
+private[http4s] object HmacKeyGenParams {
   @inline
   def apply(name: String, hash: HashAlgorithmIdentifier, length: Long): HmacKeyGenParams =
     js.Dynamic
@@ -724,13 +724,13 @@ object HmacKeyGenParams {
 // Diffie-Hellman
 
 @js.native
-trait DhKeyGenParams extends Algorithm {
+private[http4s] trait DhKeyGenParams extends Algorithm {
   var prime: BigInteger = js.native
 
   var generator: BigInteger = js.native
 }
 
-object DhKeyGenParams {
+private[http4s] object DhKeyGenParams {
   @inline
   def apply(name: String, prime: BigInteger, generator: BigInteger): DhKeyGenParams =
     js.Dynamic
@@ -739,13 +739,13 @@ object DhKeyGenParams {
 }
 
 @js.native
-trait DhKeyAlgorithm extends KeyAlgorithm {
+private[http4s] trait DhKeyAlgorithm extends KeyAlgorithm {
   var prime: BigInteger = js.native
 
   var generator: BigInteger = js.native
 }
 
-object DhKeyAlgorithm {
+private[http4s] object DhKeyAlgorithm {
   @inline
   def apply(name: String, prime: BigInteger, generator: BigInteger): DhKeyAlgorithm =
     js.Dynamic
@@ -754,11 +754,11 @@ object DhKeyAlgorithm {
 }
 
 @js.native
-trait DhKeyDeriveParams extends Algorithm {
+private[http4s] trait DhKeyDeriveParams extends Algorithm {
   var `public`: CryptoKey = js.native
 }
 
-object DhKeyDeriveParams {
+private[http4s] object DhKeyDeriveParams {
   @inline
   def apply(name: String, public: CryptoKey): DhKeyDeriveParams =
     js.Dynamic
@@ -767,13 +767,13 @@ object DhKeyDeriveParams {
 }
 
 @js.native
-trait DhImportKeyParams extends Algorithm {
+private[http4s] trait DhImportKeyParams extends Algorithm {
   var prime: BigInteger = js.native
 
   var generator: BigInteger = js.native
 }
 
-object DhImportKeyParams {
+private[http4s] object DhImportKeyParams {
   @inline
   def apply(name: String, prime: BigInteger, generator: BigInteger): DhImportKeyParams =
     js.Dynamic
@@ -784,7 +784,7 @@ object DhImportKeyParams {
 // CONCAT
 
 @js.native
-trait ConcatParams extends Algorithm {
+private[http4s] trait ConcatParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
   var algorithmId: BufferSource = js.native
@@ -798,7 +798,7 @@ trait ConcatParams extends Algorithm {
   var privateInfo: BufferSource = js.native
 }
 
-object ConcatParams {
+private[http4s] object ConcatParams {
   @inline
   def apply(
       name: String,
@@ -824,7 +824,7 @@ object ConcatParams {
 // HKDF-CTR
 
 @js.native
-trait HkdfCtrParams extends Algorithm {
+private[http4s] trait HkdfCtrParams extends Algorithm {
   var hash: HashAlgorithmIdentifier = js.native
 
   var label: BufferSource = js.native
@@ -832,7 +832,7 @@ trait HkdfCtrParams extends Algorithm {
   var context: BufferSource = js.native
 }
 
-object HkdfCtrParams {
+private[http4s] object HkdfCtrParams {
   @inline
   def apply(
       name: String,
@@ -847,7 +847,7 @@ object HkdfCtrParams {
 // PBKDF2
 
 @js.native
-trait Pbkdf2Params extends HashAlgorithm {
+private[http4s] trait Pbkdf2Params extends HashAlgorithm {
   var salt: BufferSource = js.native
 
   var iterations: Double = js.native
@@ -855,7 +855,7 @@ trait Pbkdf2Params extends HashAlgorithm {
   var hash: HashAlgorithmIdentifier = js.native
 }
 
-object Pbkdf2Params {
+private[http4s] object Pbkdf2Params {
   @inline
   def apply(
       name: String,
@@ -874,9 +874,9 @@ object Pbkdf2Params {
 /** See [[http://www.w3.org/TR/WebCryptoAPI/#cryptokey-interface ¶ 13. CryptoKey Interface]] of w3c spec
   */
 @js.native
-trait KeyUsage extends js.Any
+private[http4s] trait KeyUsage extends js.Any
 
-object KeyUsage {
+private[http4s] object KeyUsage {
   val encrypt = "encrypt".asInstanceOf[KeyUsage]
   val decrypt = "decrypt".asInstanceOf[KeyUsage]
   val sign = "sign".asInstanceOf[KeyUsage]
