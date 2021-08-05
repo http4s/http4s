@@ -17,18 +17,20 @@
 package org.http4s.server
 package middleware
 
-import java.nio.charset.StandardCharsets
-import org.http4s.internal.{decodeHexString, encodeHexString}
-import org.http4s.js.webcrypto
-import org.http4s.js.webcrypto.subtle
 import cats.effect.Async
+import cats.syntax.all._
+import org.http4s.internal.decodeHexString
+import org.http4s.internal.encodeHexString
+import org.http4s.internal.jsdeps.crypto.BufferSource
+import org.http4s.internal.jsdeps.crypto.KeyAlgorithm
+import org.http4s.internal.jsdeps.crypto.KeyFormat
+import org.http4s.internal.jsdeps.crypto.KeyUsage
+import org.http4s.internal.jsdeps.webcrypto
+import org.http4s.internal.jsdeps.webcrypto.subtle
+
+import java.nio.charset.StandardCharsets
 import scala.scalajs.js
 import scala.scalajs.js.typedarray._
-import cats.syntax.all._
-import org.http4s.js.crypto.KeyUsage
-import org.http4s.js.crypto.KeyFormat
-import org.http4s.js.crypto.BufferSource
-import org.http4s.js.crypto.KeyAlgorithm
 
 private[middleware] trait CSRFPlatform[F[_], G[_]] { self: CSRF[F, G] =>
 
@@ -82,7 +84,7 @@ private[middleware] trait CSRFPlatform[F[_], G[_]] { self: CSRF[F, G] =>
 }
 
 private[middleware] trait CSRFSingletonPlatform { self: CSRF.type =>
-  type SecretKey = org.http4s.js.crypto.CryptoKey
+  type SecretKey = org.http4s.internal.jsdeps.crypto.CryptoKey
   val SigningAlgo: KeyAlgorithm =
     js.Dynamic.literal(name = "HMAC", hash = "SHA-1").asInstanceOf[KeyAlgorithm]
 

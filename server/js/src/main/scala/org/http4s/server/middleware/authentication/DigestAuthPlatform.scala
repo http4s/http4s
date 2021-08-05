@@ -16,7 +16,8 @@
 
 package org.http4s.server.middleware.authentication
 
-import org.http4s.js.webcrypto.getRandomValues
+import org.http4s.internal.jsdeps.webcrypto
+
 import java.math.BigInteger
 import scala.scalajs.js.typedarray._
 
@@ -24,7 +25,7 @@ private[authentication] trait NoncePlatform {
   private[authentication] def getRandomData(bits: Int): String = {
     val numBytes = (bits + 7) >> 3
     val arrayBuffer = new Int8Array(numBytes)
-    getRandomValues(arrayBuffer.asInstanceOf[ArrayBufferView])
+    webcrypto.getRandomValues(arrayBuffer.asInstanceOf[ArrayBufferView])
     val bytes = new Array[Byte](numBytes)
     TypedArrayBuffer.wrap(arrayBuffer).get(bytes)
     new BigInteger(bytes).toString(16)

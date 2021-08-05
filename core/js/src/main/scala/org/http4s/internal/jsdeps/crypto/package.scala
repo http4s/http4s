@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.http4s.js
-
-import scala.scalajs.js
-import scala.scalajs.js.typedarray.{ArrayBuffer, ArrayBufferView, Uint8Array}
-import scala.scalajs.js.|
+package org.http4s.internal.jsdeps
 
 import scala.annotation.nowarn
+import scala.scalajs.js
+import scala.scalajs.js.typedarray.ArrayBuffer
+import scala.scalajs.js.typedarray.ArrayBufferView
+import scala.scalajs.js.typedarray.Uint8Array
+import scala.scalajs.js.|
 
 package object crypto {
 

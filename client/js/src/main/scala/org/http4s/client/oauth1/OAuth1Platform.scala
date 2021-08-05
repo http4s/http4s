@@ -20,17 +20,18 @@ package oauth1
 
 import cats.effect.Async
 import cats.syntax.all._
-import org.http4s.js.webcrypto.subtle
-import scala.scalajs.js
-import scala.scalajs.js.typedarray._
-import scala.scalajs.js.typedarray.TypedArrayBuffer
-import org.http4s.js.crypto.KeyFormat
-import org.http4s.js.crypto.KeyUsage
-import org.http4s.js.crypto.KeyAlgorithm
+import org.http4s.internal.jsdeps.crypto.BufferSource
+import org.http4s.internal.jsdeps.crypto.CryptoKey
+import org.http4s.internal.jsdeps.crypto.KeyAlgorithm
+import org.http4s.internal.jsdeps.crypto.KeyFormat
+import org.http4s.internal.jsdeps.crypto.KeyUsage
+import org.http4s.internal.jsdeps.webcrypto.subtle
+
 import java.nio.charset.StandardCharsets
-import org.http4s.js.crypto.CryptoKey
 import java.util.Base64
-import org.http4s.js.crypto.BufferSource
+import scala.scalajs.js
+import scala.scalajs.js.typedarray.TypedArrayBuffer
+import scala.scalajs.js.typedarray._
 
 private[oauth1] trait OAuth1Platform {
 

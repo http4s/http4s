@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.js.crypto
+package org.http4s.internal.jsdeps.crypto
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
