@@ -64,7 +64,7 @@ ThisBuild / githubWorkflowBuild := Seq(
     cond = Some("matrix.ci == 'ciJVM'"))
 )
 
-val ciVariants = List("ciJVM", "ciNodeJS", "ciFirefox", "ciChrome")
+val ciVariants = List("ciJVM", "ciNodeJS", /*"ciFirefox",*/ "ciChrome")
 val jsCiVariants = ciVariants.tail
 ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 
