@@ -438,6 +438,7 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
     libraryDependencies += log4catsNoop.value,
     Test / npmDependencies += "ws" -> "8.0.0",
     useYarn := true,
+    yarnExtraArgs += "--frozen-lockfile",
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
   .dependsOn(

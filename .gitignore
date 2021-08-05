@@ -32,5 +32,3 @@ project/.gnupg
 !project/.gnupg/secret.tar.enc
 out
 .vscode/
-
-yarn.lock
