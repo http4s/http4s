@@ -23,37 +23,38 @@ import org.scalacheck.{Arbitrary, Gen}
 // Unforunately duplicated here from ip4s
 // The provided test-kit requires module support not available in the browser
 private[discipline] trait Ip4sArbitraryInstances {
-  val ipv4Generator: Gen[Ipv4Address] = for {
+  private[http4s] val ipv4Generator: Gen[Ipv4Address] = for {
     bytes <- Gen.listOfN(4, Arbitrary.arbitrary[Byte])
   } yield Ipv4Address.fromBytes(bytes.toArray).get
 
-  implicit val ipv4Arbitrary: Arbitrary[Ipv4Address] = Arbitrary(ipv4Generator)
+  private[http4s] implicit val ipv4Arbitrary: Arbitrary[Ipv4Address] = Arbitrary(ipv4Generator)
 
-  val ipv6Generator: Gen[Ipv6Address] = for {
+  private[http4s] val ipv6Generator: Gen[Ipv6Address] = for {
     bytes <- Gen.listOfN(16, Arbitrary.arbitrary[Byte])
   } yield Ipv6Address.fromBytes(bytes.toArray).get
 
-  implicit val ipv6Arbitrary: Arbitrary[Ipv6Address] = Arbitrary(ipv6Generator)
+  private[http4s] implicit val ipv6Arbitrary: Arbitrary[Ipv6Address] = Arbitrary(ipv6Generator)
 
-  val ipGenerator: Gen[IpAddress] = Gen.oneOf(ipv4Generator, ipv6Generator)
+  private[http4s] val ipGenerator: Gen[IpAddress] = Gen.oneOf(ipv4Generator, ipv6Generator)
 
-  implicit val ipArbitrary: Arbitrary[IpAddress] = Arbitrary(ipGenerator)
+  private[http4s] implicit val ipArbitrary: Arbitrary[IpAddress] = Arbitrary(ipGenerator)
 
-  def cidrGenerator[A <: IpAddress](genIp: Gen[A]): Gen[Cidr[A]] =
+  private[http4s] def cidrGenerator[A <: IpAddress](genIp: Gen[A]): Gen[Cidr[A]] =
     for {
       ip <- genIp
       bitLength = ip.fold(_ => 32, _ => 128)
       prefix <- Gen.chooseNum(0, bitLength)
     } yield ip / prefix
 
-  implicit def cidrArbitrary[A <: IpAddress](implicit arbIp: Arbitrary[A]): Arbitrary[Cidr[A]] =
+  private[http4s] implicit def cidrArbitrary[A <: IpAddress](implicit
+      arbIp: Arbitrary[A]): Arbitrary[Cidr[A]] =
     Arbitrary(cidrGenerator(arbIp.arbitrary))
 
-  val portGenerator: Gen[Port] = Gen.chooseNum(0, 65535).map(Port.fromInt(_).get)
+  private[http4s] val portGenerator: Gen[Port] = Gen.chooseNum(0, 65535).map(Port.fromInt(_).get)
 
-  implicit val portArbitrary: Arbitrary[Port] = Arbitrary(portGenerator)
+  private[http4s] implicit val portArbitrary: Arbitrary[Port] = Arbitrary(portGenerator)
 
-  def socketAddressGenerator[A <: IpAddress](
+  private[http4s] def socketAddressGenerator[A <: IpAddress](
       genIp: Gen[A],
       genPort: Gen[Port]): Gen[SocketAddress[A]] =
     for {
@@ -61,35 +62,36 @@ private[discipline] trait Ip4sArbitraryInstances {
       port <- genPort
     } yield SocketAddress(ip, port)
 
-  implicit def socketAddressArbitrary[A <: IpAddress](implicit
+  private[http4s] implicit def socketAddressArbitrary[A <: IpAddress](implicit
       arbIp: Arbitrary[A],
       arbPort: Arbitrary[Port]
   ): Arbitrary[SocketAddress[A]] =
     Arbitrary(socketAddressGenerator(arbIp.arbitrary, arbPort.arbitrary))
 
-  val multicastGenerator4: Gen[Multicast[Ipv4Address]] = for {
+  private[http4s] val multicastGenerator4: Gen[Multicast[Ipv4Address]] = for {
     ip <- ipv4Generator
   } yield Ipv4Address.fromLong(ip.toLong & ~(15 << 28) | (14 << 28)).asMulticast.get
 
-  implicit val multicastArbitrary4: Arbitrary[Multicast[Ipv4Address]] = Arbitrary(
+  private[http4s] implicit val multicastArbitrary4: Arbitrary[Multicast[Ipv4Address]] = Arbitrary(
     multicastGenerator4)
 
-  val multicastGenerator6: Gen[Multicast[Ipv6Address]] = for {
+  private[http4s] val multicastGenerator6: Gen[Multicast[Ipv6Address]] = for {
     ip <- ipv6Generator
   } yield Ipv6Address
     .fromBigInt(ip.toBigInt & ~(BigInt(255) << 120) | (BigInt(255) << 120))
     .asMulticast
     .get
 
-  implicit val multicastArbitrary6: Arbitrary[Multicast[Ipv6Address]] = Arbitrary(
+  private[http4s] implicit val multicastArbitrary6: Arbitrary[Multicast[Ipv6Address]] = Arbitrary(
     multicastGenerator6)
 
-  val multicastGenerator: Gen[Multicast[IpAddress]] =
+  private[http4s] val multicastGenerator: Gen[Multicast[IpAddress]] =
     Gen.oneOf(multicastGenerator4, multicastGenerator6)
 
-  implicit val multicastArbitrary: Arbitrary[Multicast[IpAddress]] = Arbitrary(multicastGenerator)
+  private[http4s] implicit val multicastArbitrary: Arbitrary[Multicast[IpAddress]] = Arbitrary(
+    multicastGenerator)
 
-  def multicastJoinGenerator[A <: IpAddress](
+  private[http4s] def multicastJoinGenerator[A <: IpAddress](
       genSource: Gen[A],
       genGroup: Gen[Multicast[A]]): Gen[MulticastJoin[A]] =
     genGroup.flatMap { group =>
@@ -100,13 +102,13 @@ private[discipline] trait Ip4sArbitraryInstances {
       }
     }
 
-  implicit def multicastJoinArbitrary[A <: IpAddress](implicit
+  private[http4s] implicit def multicastJoinArbitrary[A <: IpAddress](implicit
       arbSource: Arbitrary[A],
       arbGroup: Arbitrary[Multicast[A]]
   ): Arbitrary[MulticastJoin[A]] =
     Arbitrary(multicastJoinGenerator(arbSource.arbitrary, arbGroup.arbitrary))
 
-  def multicastSocketAddressGenerator[A <: IpAddress](
+  private[http4s] def multicastSocketAddressGenerator[A <: IpAddress](
       genJoin: Gen[MulticastJoin[A]],
       genPort: Gen[Port]
   ): Gen[MulticastSocketAddress[MulticastJoin, A]] =
@@ -115,13 +117,13 @@ private[discipline] trait Ip4sArbitraryInstances {
       port <- genPort
     } yield MulticastSocketAddress(join, port)
 
-  implicit def multicastSocketAddressArbitrary[A <: IpAddress](implicit
+  private[http4s] implicit def multicastSocketAddressArbitrary[A <: IpAddress](implicit
       arbJoin: Arbitrary[MulticastJoin[A]],
       arbPort: Arbitrary[Port]
   ): Arbitrary[MulticastSocketAddress[MulticastJoin, A]] =
     Arbitrary(multicastSocketAddressGenerator(arbJoin.arbitrary, arbPort.arbitrary))
 
-  val hostnameGenerator: Gen[Hostname] = {
+  private[http4s] val hostnameGenerator: Gen[Hostname] = {
     val genLabel: Gen[String] = for {
       first <- Gen.alphaNumChar
       middleLen <- Gen.chooseNum(0, 61)
@@ -135,6 +137,6 @@ private[discipline] trait Ip4sArbitraryInstances {
     } yield Hostname.fromString(labels.mkString(".")).get
   }
 
-  implicit val hostnameArbitrary: Arbitrary[Hostname] = Arbitrary(hostnameGenerator)
+  private[http4s] implicit val hostnameArbitrary: Arbitrary[Hostname] = Arbitrary(hostnameGenerator)
 
 }
