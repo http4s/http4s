@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+// Copied verbatim from https://github.com/scala-js/scala-js-dom
+// The MIT License (MIT)
+// Copyright (c) 2013 Li Haoyi
+// Documentation marked "MDN" is thanks to Mozilla Contributors
+// at https://developer.mozilla.org/en-US/docs/Web/API and available
+// under the Creative Commons Attribution-ShareAlike v2.5 or later.
+// http://creativecommons.org/licenses/by-sa/2.5/
+
 package org.http4s.js.crypto
 
 import scala.scalajs.js
