@@ -8,6 +8,127 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M24
+
+This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and a browser service worker adapter.
+
+This is the first significant divergence from the 0.23 line since it was forked off an earlier 1.0 milestone.  It is not binary compatible with 0.23.x or 1.0.0-M23.
+
+Includes all changes through 0.23.1.
+
+## http4s-core
+
+### Subtle changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): JsonDebugErrorHandler now logs the class name instead of the canonical class name, which is not supported in Scala.js.  The difference is some dots vs. dollar signs.  This is neither source nor binary breaking.
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-laws
+
+### Breaking changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Binary compatibility is broken by replacing ip4s-testkit instances with a copy that suits our Scala.js needs.
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-server
+
+### Breaking changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): `DigestAuth` and `CSRF` middleware now require an `Async` constraint
+* [#4938](https://github.com/http4s/http4s/pull/4938): `Server.address` is now an `com.comast.ip4s.SocketAddress` instead of a `java.net.InetSocketAddress`.
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-client
+
+### Breaking changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): `oauth1.signRequest` now requires an `Async` constraint
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-node-serverless
+
+### New module
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Run `HttpApp` in a serverless environment
+
+## http4s-dom-core
+
+### New module
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Base library for DOM support.  Scala 2 only for now.
+
+## http4s-dom-fetch-client
+
+### New module
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): http4s-client backend built on browser fetch API.  Scala 2 only for now.
+
+## http4s-dom-service-worker
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Adapt `HttpApp` to a service worker in the browser.  Scala 2 only for now.
+
+## http4s-dsl
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-boopickle
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-jawn
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-circe
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## Dependency updates
+
+* circe-0.15.0-M1
+* fs2-3.0-130-1713a29
+* scala-java-locales-1.2.1 (new)
+* scala-java-time-2.3.0 (new)
+* scala-js-dom-1.1.0 (new)
+
 # v0.23.0 (2021-07-30)
 
 This is the first production release with Cats-Effect 3 support.  All subsequent 0.23.x releases will be binary compatible with this.
