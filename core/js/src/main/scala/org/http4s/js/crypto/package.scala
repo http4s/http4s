@@ -14,45 +14,44 @@
  * limitations under the License.
  */
 
-package org.http4s.internal.jsdeps
+package org.http4s.js
+
+import scala.scalajs.js
+import scala.scalajs.js.typedarray.{ArrayBuffer, ArrayBufferView, Uint8Array}
+import scala.scalajs.js.|
 
 import scala.annotation.nowarn
-import scala.scalajs.js
-import scala.scalajs.js.typedarray.ArrayBuffer
-import scala.scalajs.js.typedarray.ArrayBufferView
-import scala.scalajs.js.typedarray.Uint8Array
-import scala.scalajs.js.|
 
 package object crypto {
 
-  private[http4s] type BigInteger = Uint8Array
+  type BigInteger = Uint8Array
 
   /** According to [[http://www.w3.org/TR/WebCryptoAPI/#algorithm-dictionary ¶11 Algorithm Identifier]]
     * of the WebCryptoAPI an AlgorithmIdentifier is an `object or DOMString`. We make this more precise
     * here and specify an Algorithm.
     * note: it may be that we can do only with KeyAlgorithmIdentifier and HashAlgorithmIdentifier
     */
-  private[http4s] type AlgorithmIdentifier = Algorithm | String
+  type AlgorithmIdentifier = Algorithm | String
 
   /** According to [[http://www.w3.org/TR/WebCryptoAPI/#algorithm-dictionary ¶11 Algorithm Identifier]]
     * of the WebCryptoAPI an AlgorithmIdentifier is an `object or DOMString`. We make this more precise
     * here and distinguish the non overlapping classes of Key and Hash Algorithms.
     */
-  private[http4s] type KeyAlgorithmIdentifier = KeyAlgorithm | String
+  type KeyAlgorithmIdentifier = KeyAlgorithm | String
 
   /** According to [[http://www.w3.org/TR/WebCryptoAPI/#algorithm-dictionary ¶11 Algorithm Identifier]]
     * a HashAlgorithmIdentifier is an AlgorithmIdentifier. Here we distinguish between Hash and Key
     * Algorithm Identifiers. At the JS layer these have the same structure.
     */
-  private[http4s] type HashAlgorithmIdentifier = HashAlgorithm | String
+  type HashAlgorithmIdentifier = HashAlgorithm | String
 
   @js.native
   @nowarn
-  private[http4s] sealed trait BufferSource extends js.Any
+  sealed trait BufferSource extends js.Any
 
-  private[http4s] implicit def arrayBuffer2BufferSource(b: ArrayBuffer): BufferSource =
+  implicit def arrayBuffer2BufferSource(b: ArrayBuffer): BufferSource =
     b.asInstanceOf[BufferSource]
 
-  private[http4s] implicit def arrayBufferView2BufferSource(b: ArrayBufferView): BufferSource =
+  implicit def arrayBufferView2BufferSource(b: ArrayBufferView): BufferSource =
     b.asInstanceOf[BufferSource]
 }

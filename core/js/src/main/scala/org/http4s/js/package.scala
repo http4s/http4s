@@ -15,17 +15,15 @@
  */
 
 package org.http4s
-package internal
 
-import org.http4s.internal.jsdeps.crypto.Crypto
-import org.http4s.internal.jsdeps.crypto.GlobalCrypto
-
-import scala.scalajs.js.Dynamic
 import scala.util.Try
+import scala.scalajs.js.Dynamic
+import org.http4s.js.crypto.Crypto
+import org.http4s.js.crypto.GlobalCrypto
 
-package object jsdeps {
+package object js {
 
-  private[http4s] lazy val webcrypto: Crypto =
+  lazy val webcrypto: Crypto =
     Try(GlobalCrypto.crypto)
       .orElse(Try(Dynamic.global.require("crypto").webcrypto.asInstanceOf[Crypto]))
       .get

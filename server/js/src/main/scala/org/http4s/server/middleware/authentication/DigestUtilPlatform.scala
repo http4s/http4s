@@ -19,18 +19,16 @@ package server.middleware.authentication
 
 import cats.effect.Async
 import cats.syntax.all._
-import org.http4s.internal.jsdeps.crypto.BufferSource
-import org.http4s.internal.jsdeps.crypto.HashAlgorithm
-import org.http4s.internal.jsdeps.webcrypto
-
 import scala.scalajs.js.typedarray._
+import org.http4s.js.crypto.HashAlgorithm
+import org.http4s.js.crypto.BufferSource
 
 private[authentication] trait DigestUtilPlatform { self: DigestUtil.type =>
   private[authentication] def md5[F[_]: Async](str: String): F[String] =
     Async[F]
       .fromPromise {
         Async[F].delay {
-          webcrypto.subtle.digest(
+          js.webcrypto.subtle.digest(
             HashAlgorithm.`SHA-1`,
             str.getBytes().toTypedArray.asInstanceOf[BufferSource])
         }

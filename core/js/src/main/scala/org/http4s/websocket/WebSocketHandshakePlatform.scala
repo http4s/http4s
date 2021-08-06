@@ -19,21 +19,19 @@ package websocket
 
 import cats.effect.Async
 import cats.syntax.all._
-import org.http4s.internal.jsdeps.crypto.BufferSource
-import org.http4s.internal.jsdeps.crypto.HashAlgorithm
-import org.http4s.internal.jsdeps.webcrypto
-
+import scala.scalajs.js.typedarray._
+import scala.scalajs.js.typedarray.TypedArrayBuffer
+import org.http4s.js.crypto.HashAlgorithm
 import java.nio.charset.StandardCharsets
 import java.util.Base64
-import scala.scalajs.js.typedarray.TypedArrayBuffer
-import scala.scalajs.js.typedarray._
+import org.http4s.js.crypto.BufferSource
 
 private[websocket] trait WebSocketHandshakePlatform { self: WebSocketHandshake.type =>
   private[websocket] def genAcceptKey[F[_]: Async](str: String): F[String] =
     Async[F]
       .fromPromise {
         Async[F].delay {
-          webcrypto.subtle.digest(
+          js.webcrypto.subtle.digest(
             HashAlgorithm.`SHA-1`,
             (str + magicString).getBytes().toTypedArray.asInstanceOf[BufferSource])
         }
