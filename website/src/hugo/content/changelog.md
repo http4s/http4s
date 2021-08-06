@@ -24,6 +24,7 @@ it.
 ## Dependency updates
 
 * cats-effect-2.5.3
+* tomcat-9.0.52
 
 # v0.22.1 (2021-07-30)
 
