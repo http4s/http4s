@@ -24,6 +24,7 @@ import cats.effect.implicits._
 import cats.syntax.all._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
+import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.{Client, RequestKey}
@@ -85,6 +86,7 @@ object BlazeClient {
           borrow.use { next =>
             val res: F[Resource[F, Response[F]]] = next.connection
               .runRequest(req)
+              .adaptError { case EOF => new ResponseException(req) }
               .map { response: Resource[F, Response[F]] =>
                 response.flatMap(r =>
                   Resource.make(F.pure(r))(_ => manager.release(next.connection)))
