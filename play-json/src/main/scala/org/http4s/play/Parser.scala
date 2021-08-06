@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+/*
+ * Based on https://github.com/typelevel/jawn/blob/v1.0.3/support/play/src/main/scala/Parser.scala
+ * Copyright Erik Osheim, 2012-2020
+ * See licenses/LICENSE_jawn
+ */
+
 package org.http4s.play
 
 import org.typelevel.jawn.{Facade, SupportParser}

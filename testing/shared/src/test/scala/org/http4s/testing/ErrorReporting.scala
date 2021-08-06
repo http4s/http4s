@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/typelevel/cats-effect/blob/v1.0.0/core/shared/src/test/scala/cats/effect/internals/TestUtils.scala
+ * Copyright (c) 2017-2018 The Typelevel Cats-effect Project Developers
+ */
+
 package org.http4s
 package testing
 

@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/main/scala/com/twitter/finagle/http/path/Path.scala
+ * Copyright 2017, Twitter Inc.
+ */
+
 package org.http4s.dsl.impl
 
 import cats.data._
