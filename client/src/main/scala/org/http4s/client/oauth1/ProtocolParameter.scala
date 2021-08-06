@@ -16,10 +16,12 @@
 
 package org.http4s.client.oauth1
 
-import cats.{Functor, Show}
 import cats.effect.Clock
 import cats.kernel.Order
 import cats.syntax.all._
+import cats.{Functor, Show}
+import org.http4s.client.oauth1.SignatureAlgorithm.Names.`HMAC-SHA1`
+
 import java.util.concurrent.TimeUnit
 
 sealed trait ProtocolParameter {
@@ -44,7 +46,7 @@ object ProtocolParameter {
 
   case class Custom(headerName: String, headerValue: String) extends ProtocolParameter
 
-  case class SignatureMethod(override val headerValue: String = "HMAC-SHA1")
+  case class SignatureMethod(override val headerValue: String = `HMAC-SHA1`)
       extends ProtocolParameter {
     override val headerName: String = "oauth_signature_method"
   }
@@ -63,8 +65,7 @@ object ProtocolParameter {
   }
 
   object Nonce {
-    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Nonce] =
-      clock.monotonic(TimeUnit.NANOSECONDS).map(nanos => Nonce(nanos.toString))
+    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Nonce] = clock.monotonic(TimeUnit.NANOSECONDS).map(nanos => Nonce(nanos.toString))
   }
 
   case class Version(override val headerValue: String = "1.0") extends ProtocolParameter {

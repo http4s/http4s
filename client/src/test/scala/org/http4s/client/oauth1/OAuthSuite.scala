@@ -16,18 +16,18 @@
 
 package org.http4s.client.oauth1
 
+import cats.data.NonEmptyList
 import cats.effect.{IO, Timer}
+import org.http4s.Credentials.AuthParams
 import org.http4s._
 import org.http4s.client.oauth1
-import org.http4s.client.oauth1.ProtocolParameter.{
-  Custom,
-  Nonce,
-  Realm,
-  SignatureMethod,
-  Timestamp,
-  Version
-}
+import org.http4s.client.oauth1.ProtocolParameter._
+import org.http4s.client.oauth1.SignatureAlgorithm.Names._
+import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString
+
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets.UTF_8
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
@@ -46,7 +46,7 @@ class OAuthSuite extends Http4sSuite {
   val allParams = List(
     "oauth_consumer_key" -> "dpf43f3p2l4k3l03",
     "oauth_token" -> "nnch734d00sl2jdk",
-    "oauth_signature_method" -> "HMAC-SHA1",
+    "oauth_signature_method" -> `HMAC-SHA1`,
     "oauth_timestamp" -> "1191242096",
     "oauth_nonce" -> "kllo9940pd9333jh",
     "oauth_version" -> "1.0"
@@ -59,7 +59,7 @@ class OAuthSuite extends Http4sSuite {
     "a2" -> Some("r b"),
     "oauth_consumer_key" -> Some("9djdj82h48djs9d2"),
     "oauth_token" -> Some("kkk9d7dh3k39sjv7"),
-    "oauth_signature_method" -> Some("HMAC-SHA1"),
+    "oauth_signature_method" -> Some(`HMAC-SHA1`),
     "oauth_timestamp" -> Some("137131201"),
     "oauth_nonce" -> Some("7d8f3e4a"),
     "c2" -> None,
@@ -75,7 +75,7 @@ class OAuthSuite extends Http4sSuite {
     assert(oauth1.genBaseString(Method.GET, uri, allParams) == specBaseString)
   }
 
-  test("OAuth support should generate a correct SHA1 signature") {
+  test("OAuth support should generate a correct HMAC-SHA1 signature by default") {
     assert(
       oauth1.makeSHASig(specBaseString, consumer, Some(token)) == "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
 
@@ -130,5 +130,78 @@ class OAuthSuite extends Http4sSuite {
           "a3" -> "2 q"
         ).sorted)
     }
+  }
+
+  test("signRequest should sign with HMAC-SHA1 by default") {
+    signRequestWith(
+      method = SignatureMethod(),
+      expectedAlgorithm = `HMAC-SHA1`,
+      expectedSignature ="dzirhDxkLGCZEH/LnVin6zoalUk=")
+  }
+
+  test("signRequest should sign with HMAC-SHA1") {
+    signRequestWith(
+      method = SignatureMethod(`HMAC-SHA1`),
+      expectedAlgorithm = `HMAC-SHA1`,
+      expectedSignature ="dzirhDxkLGCZEH/LnVin6zoalUk=")
+  }
+
+  test("signRequest should sign with HMAC-SHA256") {
+    signRequestWith(
+      method = SignatureMethod(`HMAC-SHA256`),
+      expectedAlgorithm = `HMAC-SHA256`,
+      expectedSignature ="gzBSlXIQTJyfbzwFv3+4sXZlE6Jh6g/yfq4CB/StKSA=")
+  }
+
+  test("signRequest should sign with HMAC-SHA512") {
+    signRequestWith(
+      method = SignatureMethod(`HMAC-SHA512`),
+      expectedAlgorithm = `HMAC-SHA512`,
+      expectedSignature ="7ZO6N+8QMQAPjBbBPJsRmUD11jd5bL7ldwg+ObOFyBqKN0vEFiv2ItlrO2Oly68K7k63whUlsu0f0a/6uAHSxw==")
+  }
+  
+  // This is a useful tool for verifying signature values: http://lti.tools/oauth/
+  def signRequestWith(method: SignatureMethod, expectedAlgorithm: String, expectedSignature: String): IO[Unit] = {
+
+    def fixedTS: IO[Timestamp] = IO(Timestamp("1628332200"))
+    def fixedNonce: IO[Nonce] = IO(Nonce("123456789"))
+    val Right(uri) = Uri.fromString("http://www.peepandthebigwideworld.com/")
+
+    oauth1.signRequest(
+      req = Request[IO](Method.GET, uri),
+      oauth1.ProtocolParameter.Consumer("quack's-consumer-key", "i-heart-my-pond"),
+      Some(oauth1.ProtocolParameter.Token("quack's-token", "ducks-are-the-best")),
+      realm = None,
+      signatureMethod = method,
+      timestampGenerator = fixedTS,
+      version = Version(),
+      nonceGenerator = fixedNonce,
+      callback = None,
+      verifier = None
+    ).map { req =>
+
+      val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8)
+
+      assertEquals(
+        req.headers.get(Authorization.name),
+        Some(
+          Authorization(
+            credentials = AuthParams(
+              authScheme = AuthScheme.OAuth,
+              params = NonEmptyList.of(
+                "oauth_signature" -> expectedSigEncoded,
+                "oauth_consumer_key" -> "quack%27s-consumer-key",
+                "oauth_signature_method" -> expectedAlgorithm,
+                "oauth_timestamp" -> "1628332200",
+                "oauth_nonce" -> "123456789",
+                "oauth_version" -> "1.0",
+                "oauth_token" -> "quack%27s-token"
+              )
+            )
+          )
+        )
+      )
+    }
+
   }
 }
