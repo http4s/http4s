@@ -49,7 +49,7 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
       case Some(wsContext) =>
         val hdrs = req.headers.headers.map(h => (h.name.toString, h.value))
         if (WebSocketHandshake.isWebSocketRequest(hdrs))
-          WebSocketHandshake.serverHandshake(hdrs) match {
+          dispatcher.unsafeRunSync(WebSocketHandshake.serverHandshake(hdrs)) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
               val fa =
