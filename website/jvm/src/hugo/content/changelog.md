@@ -10,7 +10,7 @@ it.
 
 # v1.0.0-M24
 
-This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and a browser service worker adapter.
+This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and browser service worker apps.
 
 This is the first significant divergence from the 0.23 line since it was forked off an earlier 1.0 milestone.  It is not binary compatible with 0.23.x or 1.0.0-M23.
 
@@ -95,7 +95,7 @@ Includes all changes through 0.23.1.
 
 ## http4s-dom-service-worker
 
-* [#4938](https://github.com/http4s/http4s/pull/4938): Adapt `HttpApp` to a service worker in the browser.  Scala 2 only for now.
+* [#4938](https://github.com/http4s/http4s/pull/4938): Run `HttpApp` in a service worker in the browser.  Scala 2 only for now.
 
 ## http4s-dsl
 
