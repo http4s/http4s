@@ -813,6 +813,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="RequestPrelude$.html" title=""></a>
+                        <a class="class" href="RequestPrelude.html" title="A projection of a Request without the body."></a>
+                        <a href="RequestPrelude.html" title="A projection of a Request without the body.">RequestPrelude</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -820,6 +824,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ResponseCookie$.html" title=""></a>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ResponsePrelude$.html" title=""></a>
+                        <a class="class" href="ResponsePrelude.html" title="A projection of a Response without the body."></a>
+                        <a href="ResponsePrelude.html" title="A projection of a Response without the body.">ResponsePrelude</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SameSite$.html" title=""></a>
                         <a class="trait" href="SameSite.html" title="RFC6265 SameSite cookie attribute values."></a>
@@ -902,7 +910,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.1/core/src/main/scala/org/http4s/QValue.scala" target="_blank">QValue.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.2/core/src/main/scala/org/http4s/QValue.scala" target="_blank">QValue.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1453,22 +1461,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.QValue#☠" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="☠(thousandths:Int):org.http4s.QValue"></a><a id="☠(Int):QValue"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/QValue$.html#☠(thousandths:Int):org.http4s.QValue" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $u2620" class="name">☠</span><span class="params">(<span name="thousandths">thousandths: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Exists to support compile-time verified literals.</p><div class="fullcomment"><div class="comment cmt"><p>Exists to support compile-time verified literals. Do not call directly.</p></div></div>
     </li>
               </ol>
             </div>
@@ -1499,6 +1491,25 @@ q(d) <span class="cmt">// does not compile: not a literal</span></pre></div><dl 
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20)</i> use qValue&quot;&quot; string interpolation instead</p></dd></dl></div>
+    </li><li name="org.http4s.QValue#☠" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="☠(thousandths:Int):org.http4s.QValue"></a><a id="☠(Int):QValue"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QValue$.html#☠(thousandths:Int):org.http4s.QValue" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $u2620. Deprecated: (Since version 0.22.2) QValue literal is deprecated.  Import org.http4s.implicits._ and use the qValue&amp;quot;&amp;quot; string context" class="name deprecated">☠</span><span class="params">(<span name="thousandths">thousandths: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Exists to support compile-time verified literals.</p><div class="fullcomment"><div class="comment cmt"><p>Exists to support compile-time verified literals. Do not call directly.</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.2)</i> QValue literal is deprecated.  Import <code>org.http4s.implicits._</code> and use the qValue&quot;&quot; string context</p></dd></dl></div>
     </li></ol>
             </div>
         </div>

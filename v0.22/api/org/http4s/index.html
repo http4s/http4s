@@ -813,6 +813,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="RequestPrelude$.html" title=""></a>
+                        <a class="class" href="RequestPrelude.html" title="A projection of a Request without the body."></a>
+                        <a href="RequestPrelude.html" title="A projection of a Request without the body.">RequestPrelude</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -820,6 +824,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ResponseCookie$.html" title=""></a>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ResponsePrelude$.html" title=""></a>
+                        <a class="class" href="ResponsePrelude.html" title="A projection of a Response without the body."></a>
+                        <a href="ResponsePrelude.html" title="A projection of a Response without the body.">ResponsePrelude</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SameSite$.html" title=""></a>
                         <a class="trait" href="SameSite.html" title="RFC6265 SameSite cookie attribute values."></a>
@@ -900,7 +908,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.1/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.2/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1746,22 +1754,6 @@ constructed from a partial function and combined as a
       
       <p class="shortcomment cmt">Indicates that a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> attempting to be decoded has no <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> and no
 <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> was lenient enough to accept it.</p>
-    </li><li name="org.http4s.MediaTypePlaform" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="MediaTypePlaformextendsAnyRef"></a><a id="MediaTypePlaform:MediaTypePlaform"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/MediaTypePlaform.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="MediaTypePlaform.html"><span class="name">MediaTypePlaform</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.Message" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="Message[F[_]]extendsMedia[F]"></a><a id="Message[F[_]]:Message[F]"></a>
       <span class="permalink">
@@ -2162,6 +2154,27 @@ status line, headers, and a possible request body.
       </span>
       
       
+    </li><li name="org.http4s.RequestPrelude" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="RequestPreludeextendsProductwithSerializable"></a><a id="RequestPrelude:RequestPrelude"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/RequestPrelude.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="A projection of a Request without the body." href="RequestPrelude.html"><span class="name">RequestPrelude</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">A projection of a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> without the body.</p><div class="fullcomment"><div class="comment cmt"><p>A projection of a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> without the body.
+</p></div><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>The <a href="Request.html#attributes:org.typelevel.vault.Vault" class="extmbr" name="org.http4s.Request#attributes">Request#attributes</a> are omitted in this encoding because they
+      do not (and can not) have a <a href="http://typelevel.org/cats/api/cats/kernel/Order.html" class="extype" name="cats.kernel.Order">cats.kernel.Order</a> instance. If they
+      were included here, then we could not write a <a href="http://typelevel.org/cats/api/cats/kernel/Order.html" class="extype" name="cats.kernel.Order">cats.kernel.Order</a>
+      instance for <a href="RequestPrelude.html" class="extype" name="org.http4s.RequestPrelude">RequestPrelude</a>, limiting some of its utility, e.g. it
+      could not be used in a <a href="http://typelevel.org/cats/api/cats/data/index.html#NonEmptySet[A%3C:%3C?%3E]=cats.data.NonEmptySetImpl.Type[A]" class="extype" name="cats.data">cats.data.NonEmptySet</a>.</p></span></dd></dl></div>
     </li><li name="org.http4s.Response" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Response[F[_]]extendsMessage[F]withProductwithSerializable"></a><a id="Response[F[_]]:Response[F]"></a>
       <span class="permalink">
@@ -2197,6 +2210,27 @@ status line, headers, and a possible request body.
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">extension</dt><dd class="cmt"><p>The extension attributes of the cookie.  If there is more
 than one, they are joined by semi-colon, which must not appear in an
 attribute value.</p></dd></dl></div>
+    </li><li name="org.http4s.ResponsePrelude" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ResponsePreludeextendsProductwithSerializable"></a><a id="ResponsePrelude:ResponsePrelude"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ResponsePrelude.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="A projection of a Response without the body." href="ResponsePrelude.html"><span class="name">ResponsePrelude</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">A projection of a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> without the body.</p><div class="fullcomment"><div class="comment cmt"><p>A projection of a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> without the body.
+</p></div><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>The <a href="Response.html#attributes:org.typelevel.vault.Vault" class="extmbr" name="org.http4s.Response#attributes">Response#attributes</a> are omitted in this encoding because they
+      do not (and can not) have a <a href="http://typelevel.org/cats/api/cats/kernel/Order.html" class="extype" name="cats.kernel.Order">cats.kernel.Order</a> instance. If they
+      were included here, then we could not write a <a href="http://typelevel.org/cats/api/cats/kernel/Order.html" class="extype" name="cats.kernel.Order">cats.kernel.Order</a>
+      instance for <a href="ResponsePrelude.html" class="extype" name="org.http4s.ResponsePrelude">ResponsePrelude</a>, limiting some of its utility, e.g. it
+      could not be used in a <a href="http://typelevel.org/cats/api/cats/data/index.html#NonEmptySet[A]=cats.data.NonEmptySetImpl.Type[A]" class="extype" name="cats.data">cats.data.NonEmptySet</a>.</p></span></dd></dl></div>
     </li><li name="org.http4s.SameSite" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="SameSiteextendsRenderable"></a><a id="SameSite:SameSite"></a>
       <span class="permalink">
@@ -2440,6 +2474,25 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Moved to org.http4s.syntax.AllSyntax</p></dd></dl></div>
+    </li><li name="org.http4s.MediaTypePlaform" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="MediaTypePlaformextendsAnyRef"></a><a id="MediaTypePlaform:MediaTypePlaform"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MediaTypePlaform.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="MediaTypePlaform.html"><span class="name deprecated" title="Deprecated: (Since version 0.22.2) Misspelled, never documented, never mixed into MediaType companion, and obsolete">MediaTypePlaform</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.2)</i> Misspelled, never documented, never mixed into MediaType companion, and obsolete</p></dd></dl></div>
     </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RequestCookieJarextendsAnyVal"></a><a id="RequestCookieJar:RequestCookieJar"></a>
       <span class="permalink">
@@ -3047,22 +3100,6 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
-    </li><li name="org.http4s.MediaTypePlaform" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MediaTypePlaform"></a><a id="MediaTypePlaform:MediaTypePlaform"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/MediaTypePlaform$.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="MediaTypePlaform$.html"><span class="name">MediaTypePlaform</span></a>
-      </span>
-      
-      
     </li><li name="org.http4s.Message" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Message"></a><a id="Message:Message"></a>
       <span class="permalink">
@@ -3399,6 +3436,22 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
+    </li><li name="org.http4s.RequestPrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestPrelude"></a><a id="RequestPrelude:RequestPrelude"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/RequestPrelude$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="RequestPrelude$.html"><span class="name">RequestPrelude</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.Response" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Response"></a><a id="Response:Response"></a>
       <span class="permalink">
@@ -3428,6 +3481,22 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       <span class="symbol">
         <a title="" href="ResponseCookie$.html"><span class="name">ResponseCookie</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.ResponsePrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResponsePrelude"></a><a id="ResponsePrelude:ResponsePrelude"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ResponsePrelude$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="ResponsePrelude$.html"><span class="name">ResponsePrelude</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -3707,6 +3776,25 @@ with some commonly used instances which can be resolved implicitly.</p>
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Import from or use EntityDecoder/EntityEncoder directly instead</p></dd></dl></div>
+    </li><li name="org.http4s.MediaTypePlaform" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MediaTypePlaform"></a><a id="MediaTypePlaform:MediaTypePlaform"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MediaTypePlaform$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="MediaTypePlaform$.html"><span class="name deprecated" title="Deprecated: (Since version 0.22.2) Misspelled, never documented, and obsolete">MediaTypePlaform</span></a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.2)</i> Misspelled, never documented, and obsolete</p></dd></dl></div>
     </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RequestCookieJar"></a><a id="RequestCookieJar:RequestCookieJar"></a>
       <span class="permalink">
