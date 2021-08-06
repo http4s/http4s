@@ -8,6 +8,24 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.2 (2021-08-06)
+
+## http4s-core
+
+### Enhancements
+
+* [#5011](https://github.com/http4s/http4s/pull/5011): Add constant  for status code `418 I'm a teapot`. #save418 🫖
+* [#5013](https://github.com/http4s/http4s/pull/5013): Create `RequestPrelude` and `ResponsePrelude` views of `Request` and `Response`, respectively.  These projections omit the body and vault attributes, which permit an `Order` and `Hash` (and therefore `Eq`) instance that `Request` and `Response` do not.  These can be useful in logging, metrics, and caching.
+
+### Deprecations
+
+* [#5015](https://github.com/http4s/http4s/pull/5015): Deprecate the old `Uri.uri`, `MediaType.mediaType`, and `QValue.q` literals.  Intepolators for each are available via `org.http4s.implicits._`
+
+## Dependency updates
+
+* cats-effect-2.5.3
+* tomcat-9.0.52
+
 # v0.22.1 (2021-07-30)
 
 ## http4s-core
@@ -19,6 +37,10 @@ it.
 ### Enhancements
 
 * [#4956](https://github.com/http4s/http4s/pull/4956): Add `QueryParamCodec`s for more `java.time` types.
+
+## Documentation
+
+* [#5012](https://github.com/http4s/http4s/pull/5012): Document `MatrixVar` support;
 
 ## http4s-client
 
