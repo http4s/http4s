@@ -15,6 +15,7 @@ Includes all changes through v0.22.2.
 ### Dependency updates
 
 * cats-effect-2.3.1
+* vault-3.0.4
 
 # v0.23.0 (2021-07-30)
 
