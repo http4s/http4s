@@ -124,7 +124,7 @@ Includes all changes through 0.23.1.
 ## Dependency updates
 
 * circe-0.15.0-M1
-* fs2-3.0-130-1713a29
+* fs2-3.0-143-df426d0
 * scala-java-locales-1.2.1 (new)
 * scala-java-time-2.3.0 (new)
 * scala-js-dom-1.1.0 (new)

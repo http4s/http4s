@@ -20,7 +20,6 @@ import cats._
 import cats.effect.{Concurrent, Resource}
 import cats.syntax.all._
 import cats.effect.kernel.Ref
-import fs2.io.net.Socket
 import scala.annotation.nowarn
 
 @nowarn("msg=Unused import")
@@ -28,7 +27,6 @@ private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
     shutdown: F[Unit],
     nextBytes: Ref[F, Array[Byte]])(implicit F: MonadThrow[F]) {
-  import EmberConnection.SocketOpsJS
 
   def cleanup: F[Unit] =
     nextBytes.set(Array.emptyByteArray) >>
@@ -48,9 +46,4 @@ private[ember] object EmberConnection {
       }
     }
 
-  // This implicit conversion only kicks in on JS platform to add this syntax
-  @nowarn("msg=never used")
-  private implicit final class SocketOpsJS[F[_]](val socket: Socket[F]) extends AnyVal {
-    def endOfInput(implicit F: Monad[F]): F[Unit] = F.unit
-  }
 }
