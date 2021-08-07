@@ -18,6 +18,8 @@ package org.http4s
 package multipart
 
 import fs2.io.file.Files
+import fs2.io.file.Flags
+import fs2.io.file.Path
 import fs2.io.readInputStream
 import java.io.{File, InputStream}
 import cats.effect.Sync
@@ -29,7 +31,11 @@ private[multipart] trait PartCompanionPlatform { self: Part.type =>
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
 
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
-    fileData(name, file.getName, Files[F].readAll(file.toPath, ChunkSize), headers: _*)
+    fileData(
+      name,
+      file.getName,
+      Files[F].readAll(Path.fromNioPath(file.toPath), ChunkSize, Flags.Read),
+      headers: _*)
 
   // The InputStream is passed by name, and we open it in the by-name
   // argument in callers, so we can avoid lifting into an effect.  Exposing

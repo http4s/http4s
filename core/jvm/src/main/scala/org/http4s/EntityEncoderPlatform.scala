@@ -18,6 +18,7 @@ package org.http4s
 
 import cats.effect.Sync
 import cats.syntax.all._
+import fs2.io.file
 import fs2.io.file.Files
 import fs2.io.readInputStream
 import java.io.File
@@ -36,7 +37,7 @@ private[http4s] trait EntityEncoderCompanionPlatform { self: EntityEncoder.type 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(Files[F].readAll(p, 4096)) //2 KB :P
+      Entity(Files[F].readAll(file.Path.fromNioPath(p), 4096, file.Flags.Read)) //2 KB :P
     }
 
   // TODO parameterize chunk size

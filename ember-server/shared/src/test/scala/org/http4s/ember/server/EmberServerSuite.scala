@@ -16,18 +16,20 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
-import com.comcast.ip4s.SocketAddress
+import cats.syntax.all._
 import com.comcast.ip4s.Host
+import com.comcast.ip4s.SocketAddress
 import fs2.Stream
+import fs2.io.net.BindException
+import fs2.io.net.ConnectException
 import org.http4s._
-import org.http4s.server.Server
-import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.implicits._
+import org.http4s.server.Server
 
-class EmberServerSuite extends Http4sSuite with EmberServerSuitePlatform {
+class EmberServerSuite extends Http4sSuite {
 
   def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
