@@ -182,8 +182,8 @@ object CORS {
       }
 
       def allowCORS(origin: Origin, method: Method): Boolean = {
-        val allowOrigin = config.anyOrigin || config.allowedOrigins(origin.value)
-        val allowMethod = config.anyMethod || config.allowedMethods.exists(_.exists(_ === method))
+        def allowOrigin = config.anyOrigin || config.allowedOrigins(origin.value)
+        def allowMethod = config.anyMethod || config.allowedMethods.exists(_.exists(_ === method))
 
         allowOrigin && allowMethod
       }
