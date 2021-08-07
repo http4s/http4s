@@ -23,7 +23,7 @@ import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.tcp.SocketGroup
-import java.net.InetSocketAddress
+import java.net.{InetSocketAddress, SocketException}
 import java.util.concurrent.TimeoutException
 import org.http4s.client.{ConnectionFailure, RequestKey}
 import org.http4s.syntax.all._
@@ -258,8 +258,9 @@ class BlazeClientSuite extends BlazeClientBase {
         .use { case (req, sockets) =>
           Stream
             .eval(mkClient(1).use { client =>
-              interceptMessageIO[ResponseException[IO]](
-                s"Error responding to request: GET ${req.uri}")(client.expect[String](req))
+              interceptMessageIO[SocketException](
+                s"HTTP connection closed: ${RequestKey.fromRequest(req)}")(
+                client.expect[String](req))
             })
             .concurrently(sockets.evalMap(_.use(_.close)))
             .compile

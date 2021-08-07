@@ -22,6 +22,7 @@ import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.implicits._
 import cats.syntax.all._
+import java.net.SocketException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.pipeline.Command.EOF
@@ -86,7 +87,9 @@ object BlazeClient {
           borrow.use { next =>
             val res: F[Resource[F, Response[F]]] = next.connection
               .runRequest(req)
-              .adaptError { case EOF => new ResponseException(req) }
+              .adaptError { case EOF =>
+                new SocketException(s"HTTP connection closed: ${key}")
+              }
               .map { response: Resource[F, Response[F]] =>
                 response.flatMap(r =>
                   Resource.make(F.pure(r))(_ => manager.release(next.connection)))
