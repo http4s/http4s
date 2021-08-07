@@ -34,7 +34,7 @@ import java.nio.charset.{
 import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {
-  test("decode should be consistent with utf8Decode") {
+  test("decode should be consistent with utf8.decode") {
     forAll { (s: String, chunkSize: Int) =>
       (chunkSize > 0) ==> {
         val source = Stream
@@ -151,7 +151,7 @@ class DecodeSpec extends Http4sSuite {
       val referenceDecoder = cs.nioCharset
         .newDecoder()
         // setting these to be consistent with our decoder's behavior
-        // note that java.nio.charset.Charset.decode and fs2's utf8Decode
+        // note that java.nio.charset.Charset.decode and fs2's utf8.decode
         // will replace character instead of raising exception
         .onMalformedInput(CodingErrorAction.REPORT)
         .onUnmappableCharacter(CodingErrorAction.REPORT)
