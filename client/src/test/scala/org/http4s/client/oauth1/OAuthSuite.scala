@@ -24,7 +24,7 @@ import org.http4s.client.oauth1
 import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
 import org.http4s.headers.Authorization
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci._
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // http://tools.ietf.org/html/rfc5849
-  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
+  implicit val timer: Timer[IO] = Http4sSuite.TestTimer
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
@@ -85,7 +85,7 @@ class OAuthSuite extends Http4sSuite {
     val auth =
       oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
     val creds = auth.credentials
-    assert(creds.authScheme == CaseInsensitiveString("OAuth"))
+    assert(creds.authScheme == ci"OAuth")
   }
 
   test("OAuth support should generate a Authorization header with config") {
@@ -106,7 +106,7 @@ class OAuthSuite extends Http4sSuite {
       )
       .map { auth =>
         val creds = auth.credentials
-        assert(creds.authScheme == CaseInsensitiveString("OAuth"))
+        assert(creds.authScheme == ci"OAuth")
       }
   }
 
@@ -183,7 +183,7 @@ class OAuthSuite extends Http4sSuite {
       val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8)
 
       assertEquals(
-        req.headers.get(Authorization.name),
+        req.headers.get[Authorization],
         Some(
           Authorization(
             credentials = AuthParams(

@@ -65,7 +65,8 @@ object ProtocolParameter {
   }
 
   object Nonce {
-    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Nonce] = clock.monotonic(TimeUnit.NANOSECONDS).map(nanos => Nonce(nanos.toString))
+    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Nonce] =
+      clock.monotonic(TimeUnit.NANOSECONDS).map(nanos => Nonce(nanos.toString))
   }
 
   case class Version(override val headerValue: String = "1.0") extends ProtocolParameter {
