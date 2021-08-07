@@ -327,18 +327,18 @@ class MultipartParserSuite extends Http4sSuite {
         Stream
           .constant("Misery is the river of the world")
           .take(10)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
       val crlf: Stream[IO, Byte] =
         Stream
           .emit(Boundary.CRLF)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
       val epilogue: Stream[IO, Byte] =
         Stream
           .constant("Everybody Row!\n")
           .take(10)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
       val mkResults =
         mkMultipartPipe(boundary).map(
@@ -424,12 +424,12 @@ class MultipartParserSuite extends Http4sSuite {
       val crlf: Stream[IO, Byte] =
         Stream
           .emit(Boundary.CRLF)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
       val body: Stream[IO, Byte] = Stream
         .constant("Misery is the river of the world")
         .take(100000)
-        .through(text.utf8Encode)
+        .through(text.utf8.encode)
 
       val mkResults = mkMultipartPipe(boundary).map(
         _(
@@ -689,7 +689,7 @@ class MultipartParserSuite extends Http4sSuite {
           firstPart <- results.take(1).compile.last.map(_.get)
           confirmedError <- results.compile.drain.attempt
           _ <- firstPart.body
-            .through(text.utf8Decode[IO])
+            .through(text.utf8.decode[IO])
             .compile
             .foldMonoid
         } yield {

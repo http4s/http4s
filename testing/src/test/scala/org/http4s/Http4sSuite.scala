@@ -20,7 +20,7 @@ import cats.effect.{IO, Resource}
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
 import cats.syntax.all._
 import fs2._
-import fs2.text.utf8Decode
+import fs2.text.utf8
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import munit._
 import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
@@ -60,7 +60,7 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
       .emit(W.toEntity(a))
       .covary[IO]
       .flatMap(_.body)
-      .through(utf8Decode)
+      .through(utf8.decode)
       .foldMonoid
       .compile
       .last

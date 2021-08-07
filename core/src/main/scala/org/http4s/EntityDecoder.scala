@@ -20,7 +20,7 @@ import cats.{Applicative, Functor, Monad, SemigroupK}
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2._
-import fs2.io.file.Files
+import fs2.io.file.{Files, Path}
 import java.io.File
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scala.annotation.implicitNotFound
@@ -226,13 +226,13 @@ object EntityDecoder {
   // File operations
   def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = Files[F].writeAll(file.toPath)
+      val pipe = Files[F].writeAll(Path.fromNioPath(file.toPath))
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
   def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = Files[F].writeAll(file.toPath)
+      val pipe = Files[F].writeAll(Path.fromNioPath(file.toPath))
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 

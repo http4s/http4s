@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.syntax.all._
 import fs2._
-import fs2.text.utf8Decode
+import fs2.text.utf8
 import org.http4s.internal.decode
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop.{forAll, propBoolean}
@@ -34,7 +34,7 @@ import java.nio.charset.{
 import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {
-  test("decode should be consistent with utf8Decode") {
+  test("decode should be consistent with utf8.decode") {
     forAll { (s: String, chunkSize: Int) =>
       (chunkSize > 0) ==> {
         val source = Stream
@@ -46,7 +46,7 @@ class DecodeSpec extends Http4sSuite {
               .toSeq
           }
           .flatMap(Stream.chunk[Pure, Byte])
-        val utf8Decoded = utf8Decode(source).toList.combineAll
+        val utf8Decoded = utf8.decode(source).toList.combineAll
         val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
         decoded == Right(utf8Decoded)
       }
@@ -148,7 +148,7 @@ class DecodeSpec extends Http4sSuite {
       val referenceDecoder = cs.nioCharset
         .newDecoder()
         // setting these to be consistent with our decoder's behavior
-        // note that java.nio.charset.Charset.decode and fs2's utf8Decode
+        // note that java.nio.charset.Charset.decode and fs2's utf8.decode
         // will replace character instead of raising exception
         .onMalformedInput(CodingErrorAction.REPORT)
         .onUnmappableCharacter(CodingErrorAction.REPORT)
