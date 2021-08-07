@@ -40,7 +40,7 @@ class HttpClient[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
         val request =
           Request[F](uri = Uri.unsafeFromString("http://localhost:8080/v1/dirs?depth=3"))
         for {
-          response <- client.stream(request).flatMap(_.body.chunks.through(fs2.text.utf8DecodeC))
+          response <- client.stream(request).flatMap(_.body.chunks.through(fs2.text.utf8.decodeC))
           _ <- S.putStr(response)
         } yield ()
       }

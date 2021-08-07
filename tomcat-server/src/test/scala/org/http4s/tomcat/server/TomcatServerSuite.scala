@@ -72,13 +72,13 @@ class TomcatServerSuite extends Http4sSuite {
   def get(server: Server, path: String): IO[String] =
     IO.blocking(
       Source
-        .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+        .fromURL(new URL(s"http://${server.address}$path"))
         .getLines()
         .mkString)
 
   def post(server: Server, path: String, body: String): IO[String] =
     IO.blocking {
-      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      val url = new URL(s"http://${server.address}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)
       conn.setRequestMethod("POST")
@@ -92,18 +92,20 @@ class TomcatServerSuite extends Http4sSuite {
     }
 
   tomcatServer.test("server should route requests on the service executor") { server =>
+    val prefix: String = "http4s-suite-"
     get(server, "/thread/routing")
-      .map(_.startsWith("http4s-suite-"))
-      .assert
+      .map(_.take(prefix.size))
+      .assertEquals(prefix)
   }
 
   tomcatServer.test("server should execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
+    val prefix: String = "http4s-suite-"
+    get(server, "/thread/effect").map(_.take(prefix.size)).assertEquals(prefix)
   }
 
   tomcatServer.test("server should be able to echo its input") { server =>
     val input = """{ "Hello": "world" }"""
-    post(server, "/echo", input).map(_.startsWith(input)).assert
+    post(server, "/echo", input).map(_.take(input.size)).assertEquals(input)
   }
 
   tomcatServer.test("Timeout should not fire prematurely") { server =>

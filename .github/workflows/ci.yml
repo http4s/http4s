@@ -27,8 +27,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.14, 3.0.0]
+        scala: [2.13.6, 2.12.14, 3.0.1]
         java: [adopt@1.8, adopt@1.11, adopt@1.16]
+        ci: [ciJVM, ciNodeJS, ciChrome]
+        exclude:
+          - ci: ciNodeJS
+            java: adopt@1.11
+          - ci: ciNodeJS
+            java: adopt@1.16
+          - ci: ciChrome
+            java: adopt@1.11
+          - ci: ciChrome
+            java: adopt@1.16
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -53,27 +63,44 @@ jobs:
             ~/Library/Caches/Coursier/v1
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
+      - name: Setup NodeJS v16
+        if: matrix.ci == 'ciNodeJS'
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 16
+
+      - name: Start scaffold server and static file server
+        run: |
+          ./scripts/scaffold_server.js &
+          ./scripts/static_server.py &
+
       - name: Check that workflows are up to date
-        run: sbt --client '++${{ matrix.scala }}; githubWorkflowCheck'
+        run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        if: matrix.scala != '3.0.0'
-        run: sbt --client '++${{ matrix.scala }}; scalafmtCheckAll'
+        if: matrix.scala != '3.0.1'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll
 
       - name: Check headers
-        run: 'sbt --client ''++${{ matrix.scala }}; headerCheck; test:headerCheck'''
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' headerCheck test:headerCheck'
 
       - name: Compile
-        run: 'sbt --client ''++${{ matrix.scala }}; test:compile'''
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
+
+      - name: FastOptJS
+        if: matrix.ci != 'ciJVM'
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' fastOptJS test:fastOptJS'
 
       - name: Check binary compatibility
-        run: sbt --client '++${{ matrix.scala }}; mimaReportBinaryIssues'
+        if: matrix.ci == 'ciJVM'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
 
       - name: Run tests
-        run: sbt --client '++${{ matrix.scala }}; test'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' test
 
       - name: Build docs
-        run: sbt --client '++${{ matrix.scala }}; doc'
+        if: matrix.ci == 'ciJVM'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' doc
 
   publish:
     name: Publish Artifacts
@@ -113,10 +140,10 @@ jobs:
 
       - run: git status
 
-      - run: sbt --client '++${{ matrix.scala }}; +publish'
+      - run: sbt ++${{ matrix.scala }} +publish
 
       - if: startsWith(github.ref, 'refs/tags/v')
-        run: sbt --client '++${{ matrix.scala }}; sonatypeBundleRelease'
+        run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
       - name: Setup Hugo
         run: |
@@ -165,7 +192,7 @@ jobs:
 
       
       - name: Build website
-        run: sbt --client '++${{ matrix.scala }}; website/makeSite'
+        run: sbt ++${{ matrix.scala }} website/makeSite
 
   docs:
     name: Build docs
@@ -194,14 +221,14 @@ jobs:
 
       
       - name: Build docs
-        run: sbt --client '++${{ matrix.scala }}; docs/makeSite'
+        run: sbt ++${{ matrix.scala }} docs/makeSite
 
   scalafix:
     name: Scalafix
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.14, 3.0.0]
+        scala: [2.13.6, 2.12.14, 3.0.1]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:

@@ -49,6 +49,8 @@ import org.log4s.getLogger
 
 import scala.collection.immutable
 import scala.concurrent.duration._
+import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.Host
 
 sealed class TomcatBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
@@ -227,10 +229,10 @@ sealed class TomcatBuilder[F[_]] private (
         tomcat.start()
 
         val server = new Server {
-          lazy val address: InetSocketAddress = {
+          lazy val address: SocketAddress[Host] = {
             val host = socketAddress.getHostString
             val port = tomcat.getConnector.getLocalPort
-            new InetSocketAddress(host, port)
+            SocketAddress.fromInetSocketAddress(new InetSocketAddress(host, port))
           }
 
           lazy val isSecure: Boolean = sslConfig.isSecure
