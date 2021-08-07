@@ -27,8 +27,7 @@ import cats.effect.SyncIO
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io._
-import fs2.io.file.Files
-import fs2.io.file.Path
+import fs2.io.file.{Files, Path}
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.http4s.syntax.header._
@@ -166,7 +165,7 @@ object StaticFile {
   ): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
-      res <- Files[F].isRegularFile(Path.fromNioPath(f.toPath())).flatMap[Option[Response[F]]] {
+      res <- Files[F].isRegularFile(Path.fromNioPath(f.toPath)).flatMap[Option[Response[F]]] {
         isFile =>
           if (isFile) {
             if (start >= 0 && end >= start && buffsize > 0) {
@@ -240,7 +239,7 @@ object StaticFile {
     } yield notModified
 
   private def fileToBody[F[_]: Files](f: File, start: Long, end: Long): EntityBody[F] =
-    Files[F].readRange(Path.fromNioPath(f.toPath()), DefaultBufferSize, start, end)
+    Files[F].readRange(Path.fromNioPath(f.toPath), DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =
     name.lastIndexOf('.') match {
