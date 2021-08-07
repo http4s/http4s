@@ -16,10 +16,11 @@
 
 package org.http4s
 
-import org.typelevel.ci._
+import org.http4s.syntax.string._
 
 object AuthScheme {
-  val Basic = ci"Basic"
-  val Digest = ci"Digest"
-  val Bearer = ci"Bearer"
+  val Basic = "Basic".ci
+  val Digest = "Digest".ci
+  val Bearer = "Bearer".ci
+  val OAuth = "OAuth".ci
 }
