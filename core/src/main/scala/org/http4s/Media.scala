@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.MonadThrow
 import fs2.{RaiseThrowable, Stream}
-import fs2.text.utf8Decode
+import fs2.text.utf8
 import org.http4s.headers._
 
 trait Media[F[_]] {
@@ -32,7 +32,7 @@ trait Media[F[_]] {
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
-        body.through(utf8Decode)
+        body.through(utf8.decode)
       case cs =>
         body.through(internal.decode(cs))
     }

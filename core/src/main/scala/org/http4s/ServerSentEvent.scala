@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.data.Chain
 import fs2._
-import fs2.text.{utf8Decode, utf8Encode}
+import fs2.text.utf8
 
 import java.util.regex.Pattern
 import org.http4s.ServerSentEvent._
@@ -138,9 +138,9 @@ object ServerSentEvent {
         None,
         None,
         emptyBuffer,
-        stream.through(utf8Decode.andThen(text.lines))).stream
+        stream.through(utf8.decode.andThen(text.lines))).stream
   }
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =
-    _.map(_.renderString).through(utf8Encode)
+    _.map(_.renderString).through(utf8.encode)
 }

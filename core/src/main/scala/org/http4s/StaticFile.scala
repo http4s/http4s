@@ -22,7 +22,7 @@ import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io._
-import fs2.io.file.Files
+import fs2.io.file.{Files, Path}
 import java.io._
 import java.net.URL
 import org.http4s.Status.NotModified
@@ -125,7 +125,7 @@ object StaticFile {
   def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
       Files[F]
-        .isFile(f.toPath())
+        .isRegularFile(Path.fromNioPath(f.toPath()))
         .map(isFile =>
           if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
@@ -159,42 +159,43 @@ object StaticFile {
   ): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
-      res <- Files[F].isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
-        if (isFile) {
-          if (start >= 0 && end >= start && buffsize > 0) {
-            val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
+      res <- Files[F].isRegularFile(Path.fromNioPath(f.toPath)).flatMap[Option[Response[F]]] {
+        isFile =>
+          if (isFile) {
+            if (start >= 0 && end >= start && buffsize > 0) {
+              val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
-            F.pure(notModified(req, etagCalc, lastModified).orElse {
-              val (body, contentLength) =
-                if (f.length() < end) (Stream.empty.covary[F], 0L)
-                else (fileToBody[F](f, start, end), end - start)
+              F.pure(notModified(req, etagCalc, lastModified).orElse {
+                val (body, contentLength) =
+                  if (f.length() < end) (Stream.empty.covary[F], 0L)
+                  else (fileToBody[F](f, start, end), end - start)
 
-              val contentType = nameToContentType(f.getName)
-              val hs =
-                Headers(
-                  lastModified.map(`Last-Modified`(_)),
-                  `Content-Length`.fromLong(contentLength).toOption,
-                  contentType,
-                  etagCalc
+                val contentType = nameToContentType(f.getName)
+                val hs =
+                  Headers(
+                    lastModified.map(`Last-Modified`(_)),
+                    `Content-Length`.fromLong(contentLength).toOption,
+                    contentType,
+                    etagCalc
+                  )
+
+                val r = Response(
+                  headers = hs,
+                  body = body,
+                  attributes = Vault.empty.insert(staticFileKey, f)
                 )
 
-              val r = Response(
-                headers = hs,
-                body = body,
-                attributes = Vault.empty.insert(staticFileKey, f)
-              )
+                logger.trace(s"Static file generated response: $r")
+                r.some
+              })
+            } else {
+              F.raiseError[Option[Response[F]]](new IllegalArgumentException(
+                s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
+            }
 
-              logger.trace(s"Static file generated response: $r")
-              r.some
-            })
           } else {
-            F.raiseError[Option[Response[F]]](new IllegalArgumentException(
-              s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
+            F.pure(none[Response[F]])
           }
-
-        } else {
-          F.pure(none[Response[F]])
-        }
 
       }
     } yield res)
@@ -232,7 +233,7 @@ object StaticFile {
     } yield notModified
 
   private def fileToBody[F[_]: Files](f: File, start: Long, end: Long): EntityBody[F] =
-    Files[F].readRange(f.toPath, DefaultBufferSize, start, end)
+    Files[F].readRange(Path.fromNioPath(f.toPath), DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =
     name.lastIndexOf('.') match {

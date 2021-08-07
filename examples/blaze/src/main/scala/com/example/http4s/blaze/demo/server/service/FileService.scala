@@ -21,7 +21,7 @@ import java.nio.file.Paths
 import cats.effect.Async
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
-import fs2.io.file.Files
+import fs2.io.file.{Files, Path}
 import org.http4s.multipart.Part
 
 class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
@@ -53,6 +53,6 @@ class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
       home <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
       filename <- S.evalF(part.filename.getOrElse("sample"))
       path <- S.evalF(Paths.get(s"$home/$filename"))
-      result <- part.body.through(Files[F].writeAll(path))
+      result <- part.body.through(Files[F].writeAll(Path.fromNioPath(path)))
     } yield result
 }

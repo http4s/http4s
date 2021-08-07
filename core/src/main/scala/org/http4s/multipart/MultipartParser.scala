@@ -20,8 +20,7 @@ package multipart
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
-import fs2.io.file.Files
-import java.nio.file.{Path, StandardOpenOption}
+import fs2.io.file.{Files, Flags, Path}
 import org.typelevel.ci.CIString
 import fs2.RaiseThrowable
 import org.http4s.internal.bug
@@ -298,7 +297,7 @@ object MultipartParser {
   private def parseHeaders[F[_]: Concurrent](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap { case (l, r) =>
-        l.through(fs2.text.utf8Decode[F])
+        l.through(fs2.text.utf8.decode[F])
           .fold("")(_ ++ _)
           .map { string =>
             val ix = string.indexOf(':')
@@ -545,7 +544,7 @@ object MultipartParser {
       if (limitCTR >= maxBeforeWrite)
         Pull.eval(
           lacc
-            .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
+            .through(Files[F].writeAll(fileRef, Flags.Append))
             .compile
             .drain) >> streamAndWrite(s, Stream.empty, 0, fileRef)
       else
@@ -556,7 +555,7 @@ object MultipartParser {
             Pull
               .eval(
                 lacc
-                  .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
+                  .through(Files[F].writeAll(fileRef, Flags.Append))
                   .compile
                   .drain
               )
@@ -575,10 +574,10 @@ object MultipartParser {
         limitCTR: Int): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Event])] =
       if (limitCTR >= maxBeforeWrite)
         Pull
-          .eval(Files[F].tempFile(None, "", "").allocated)
+          .eval(Files[F].tempFile(None, "", "", None).allocated)
           .flatMap { case (path, cleanup) =>
             streamAndWrite(s, lacc, limitCTR, path)
-              .tupleLeft(Files[F].readAll(path, maxBeforeWrite).onFinalizeWeak(cleanup))
+              .tupleLeft(Files[F].readAll(path, maxBeforeWrite, Flags.Read).onFinalizeWeak(cleanup))
               .onError { case _ => Pull.eval(cleanup) }
           }
       else
@@ -632,9 +631,9 @@ object MultipartParser {
       failOnLimit: Boolean = false,
       chunkSize: Int = 8192
   )(implicit F: Concurrent[F], files: Files[F]): Pipe[F, Byte, Part[F]] = {
-    val createFile = superviseResource(supervisor, files.tempFile())
+    val createFile = superviseResource(supervisor, files.tempFile)
     def append(file: Path, bytes: Stream[Pure, Byte]): F[Unit] =
-      bytes.through(files.writeAll(file, List(StandardOpenOption.APPEND))).compile.drain
+      bytes.through(files.writeAll(file, Flags.Append)).compile.drain
 
     final case class Acc(file: Option[Path], bytes: Stream[Pure, Byte], bytesSize: Int)
 
@@ -655,7 +654,7 @@ object MultipartParser {
         append(file, bytes)
           .whenA(size > 0)
           .as(
-            files.readAll(file, chunkSize = chunkSize)
+            files.readAll(file, chunkSize = chunkSize, Flags.Read)
           )
     }
 

@@ -64,7 +64,7 @@ trait Http4sSpec
       .emit(W.toEntity(a))
       .covary[IO]
       .flatMap(_.body)
-      .through(utf8Decode)
+      .through(utf8.decode)
       .foldMonoid
       .compile
       .last

@@ -19,7 +19,7 @@ package org.http4s
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
 import fs2.Stream
-import fs2.text.utf8Encode
+import fs2.text.utf8
 import org.http4s.headers._
 import org.http4s.laws.discipline.ArbitraryInstances._
 import org.scalacheck.effect._
@@ -32,7 +32,7 @@ class ServerSentEventSpec extends Http4sSuite {
 
   def toStream(s: String): Stream[IO, Byte] = {
     val scrubbed = s.dropWhile(_.isWhitespace)
-    Stream.emit(scrubbed).through(utf8Encode)
+    Stream.emit(scrubbed).through(utf8.encode)
   }
 
   test("decode should decode multi-line messages") {
