@@ -31,7 +31,6 @@ import fs2.io.file.Files
 import org.http4s.internal.bug
 
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
 
 trait MultipartParserPlatform { self: MultipartParser.type =>
 
@@ -122,7 +121,8 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
       if (limitCTR >= maxBeforeWrite)
         Pull.eval(
           lacc
-            .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
+            .through(
+              Files[F].writeAll(fs2.io.file.Path.fromNioPath(fileRef), fs2.io.file.Flags.Append))
             .compile
             .drain) >> streamAndWrite(s, Stream.empty, 0, fileRef)
       else
@@ -133,7 +133,8 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
             Pull
               .eval(
                 lacc
-                  .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
+                  .through(Files[F]
+                    .writeAll(fs2.io.file.Path.fromNioPath(fileRef), fs2.io.file.Flags.Append))
                   .compile
                   .drain
               )
@@ -152,10 +153,13 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
         limitCTR: Int): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Event])] =
       if (limitCTR >= maxBeforeWrite)
         Pull
-          .eval(Files[F].tempFile(None, "", "").allocated)
+          .eval(Files[F].tempFile(None, "", "", None).allocated)
           .flatMap { case (path, cleanup) =>
-            streamAndWrite(s, lacc, limitCTR, path)
-              .tupleLeft(Files[F].readAll(path, maxBeforeWrite).onFinalizeWeak(cleanup))
+            streamAndWrite(s, lacc, limitCTR, path.toNioPath)
+              .tupleLeft(
+                Files[F]
+                  .readAll(path, maxBeforeWrite, fs2.io.file.Flags.Read)
+                  .onFinalizeWeak(cleanup))
               .onError { case _ => Pull.eval(cleanup) }
           }
       else
@@ -209,9 +213,12 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
       failOnLimit: Boolean = false,
       chunkSize: Int = 8192
   )(implicit F: Concurrent[F], files: Files[F]): Pipe[F, Byte, Part[F]] = {
-    val createFile = superviseResource(supervisor, files.tempFile())
+    val createFile = superviseResource(supervisor, files.tempFile)
     def append(file: Path, bytes: Stream[Pure, Byte]): F[Unit] =
-      bytes.through(files.writeAll(file, List(StandardOpenOption.APPEND))).compile.drain
+      bytes
+        .through(files.writeAll(fs2.io.file.Path.fromNioPath(file), fs2.io.file.Flags.Append))
+        .compile
+        .drain
 
     final case class Acc(file: Option[Path], bytes: Stream[Pure, Byte], bytesSize: Int)
 
@@ -220,7 +227,7 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
       val newBytes = oldAcc.bytes ++ Stream.chunk(chunk)
       if (newSize > maxSizeBeforeWrite) {
         oldAcc.file
-          .fold(createFile)(F.pure)
+          .fold(createFile.map(_.toNioPath))(F.pure)
           .flatTap(append(_, newBytes))
           .map(newFile => Acc(Some(newFile), Stream.empty, 0))
       } else F.pure(Acc(oldAcc.file, newBytes, newSize))
@@ -232,7 +239,10 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
         append(file, bytes)
           .whenA(size > 0)
           .as(
-            files.readAll(file, chunkSize = chunkSize)
+            files.readAll(
+              fs2.io.file.Path.fromNioPath(file),
+              chunkSize = chunkSize,
+              fs2.io.file.Flags.Read)
           )
     }
 
