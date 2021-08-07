@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.1 (2021-08-06)
+
+Includes all changes through v0.22.2.
+
+### Dependency updates
+
+* cats-effect-3.2.2
+* fs2-3.1.0
+* vault-3.0.4
+
 # v0.23.0 (2021-07-30)
 
 This is the first production release with Cats-Effect 3 support.  All subsequent 0.23.x releases will be binary compatible with this.
