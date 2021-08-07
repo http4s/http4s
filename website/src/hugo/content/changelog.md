@@ -18,6 +18,24 @@ Includes all changes through v0.22.2.
 * fs2-3.1.0
 * vault-3.0.4
 
+# v0.22.2 (2021-08-06)
+
+## http4s-core
+
+### Enhancements
+
+* [#5011](https://github.com/http4s/http4s/pull/5011): Add constant  for status code `418 I'm a teapot`. #save418 🫖
+* [#5013](https://github.com/http4s/http4s/pull/5013): Create `RequestPrelude` and `ResponsePrelude` views of `Request` and `Response`, respectively.  These projections omit the body and vault attributes, which permit an `Order` and `Hash` (and therefore `Eq`) instance that `Request` and `Response` do not.  These can be useful in logging, metrics, and caching.
+
+### Deprecations
+
+* [#5015](https://github.com/http4s/http4s/pull/5015): Deprecate the old `Uri.uri`, `MediaType.mediaType`, and `QValue.q` literals.  Intepolators for each are available via `org.http4s.implicits._`
+
+## Dependency updates
+
+* cats-effect-2.5.3
+* tomcat-9.0.52
+
 # v0.23.0 (2021-07-30)
 
 This is the first production release with Cats-Effect 3 support.  All subsequent 0.23.x releases will be binary compatible with this.
