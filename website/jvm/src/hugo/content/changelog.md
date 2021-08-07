@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M24
+# v1.0.0-M24 (2020-08-07)
 
 This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and browser service worker apps.
 
