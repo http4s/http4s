@@ -63,7 +63,7 @@ private[server] object ServerHelpers {
       // Defaults
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      maxConcurrency: Int,
+      maxConnections: Int,
       receiveBufferSize: Int,
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
@@ -103,9 +103,9 @@ private[server] object ServerHelpers {
       }
 
     streams.parJoin(
-      maxConcurrency
+      maxConnections
     ) // TODO: replace with forking after we fix serverResource upstream
-    // StreamForking.forking(streams, maxConcurrency)
+    // StreamForking.forking(streams, maxConnections)
   }
 
   // private[internal] def reachedEndError[F[_]: Sync](

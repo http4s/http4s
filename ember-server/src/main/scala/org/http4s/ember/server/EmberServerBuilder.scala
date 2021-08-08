@@ -39,7 +39,7 @@ final class EmberServerBuilder[F[_]: Async] private (
     private val sgOpt: Option[SocketGroup[F]],
     private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-    val maxConcurrency: Int,
+    val maxConnections: Int,
     val receiveBufferSize: Int,
     val maxHeaderSize: Int,
     val requestHeaderReceiveTimeout: Duration,
@@ -49,6 +49,9 @@ final class EmberServerBuilder[F[_]: Async] private (
     private val logger: Logger[F]
 ) { self =>
 
+  @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
+  val maxConcurrency: Int = maxConnections
+
   private def copy(
       host: Option[Host] = self.host,
       port: Port = self.port,
@@ -57,7 +60,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
-      maxConcurrency: Int = self.maxConcurrency,
+      maxConnections: Int = self.maxConnections,
       receiveBufferSize: Int = self.receiveBufferSize,
       maxHeaderSize: Int = self.maxHeaderSize,
       requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout,
@@ -74,7 +77,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       sgOpt = sgOpt,
       errorHandler = errorHandler,
       onWriteFailure = onWriteFailure,
-      maxConcurrency = maxConcurrency,
+      maxConnections = maxConnections,
       receiveBufferSize = receiveBufferSize,
       maxHeaderSize = maxHeaderSize,
       requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
@@ -114,7 +117,12 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
-  def withMaxConcurrency(maxConcurrency: Int) = copy(maxConcurrency = maxConcurrency)
+
+  @deprecated("Use org.http4s.ember.server.EmberServerBuilder.withMaxConnections", "0.22.3")
+  def withMaxConcurrency(maxConcurrency: Int) = copy(maxConnections = maxConcurrency)
+
+  def withMaxConnections(maxConnections: Int) = copy(maxConnections = maxConnections)
+
   def withReceiveBufferSize(receiveBufferSize: Int) = copy(receiveBufferSize = receiveBufferSize)
   def withMaxHeaderSize(maxHeaderSize: Int) = copy(maxHeaderSize = maxHeaderSize)
   def withRequestHeaderReceiveTimeout(requestHeaderReceiveTimeout: Duration) =
@@ -139,7 +147,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             shutdown,
             errorHandler,
             onWriteFailure,
-            maxConcurrency,
+            maxConnections,
             receiveBufferSize,
             maxHeaderSize,
             requestHeaderReceiveTimeout,
@@ -168,7 +176,7 @@ object EmberServerBuilder {
       sgOpt = None,
       errorHandler = Defaults.errorHandler[F],
       onWriteFailure = Defaults.onWriteFailure[F],
-      maxConcurrency = Defaults.maxConcurrency,
+      maxConnections = Defaults.maxConnections,
       receiveBufferSize = Defaults.receiveBufferSize,
       maxHeaderSize = Defaults.maxHeaderSize,
       requestHeaderReceiveTimeout = Defaults.requestHeaderReceiveTimeout,
@@ -201,7 +209,7 @@ object EmberServerBuilder {
         : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
       case _: (Option[Request[F]], Response[F], Throwable) => Applicative[F].unit
     }
-    val maxConcurrency: Int = server.defaults.MaxConnections
+    val maxConnections: Int = server.defaults.MaxConnections
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = server.defaults.MaxHeadersSize
     val requestHeaderReceiveTimeout: Duration = 5.seconds

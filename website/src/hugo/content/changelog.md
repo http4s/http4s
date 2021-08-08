@@ -81,6 +81,10 @@ Includes all changes through v0.22.1.
 
 * [#4956](https://github.com/http4s/http4s/pull/4956): Add `QueryParamCodec`s for more `java.time` types.
 
+## Documentation
+
+* [#5012](https://github.com/http4s/http4s/pull/5012): Document `MatrixVar` support;
+
 ## http4s-client
 
 ### Bugfixes
