@@ -34,11 +34,11 @@ import scala.scalajs.js.typedarray.Uint8Array
 
 object FetchClient {
 
-  def apply[F[_]: Async]: Client[F] = Client[F] { req: Request[F] =>
-    (for {
-      body <- req.body.chunkAll.filter(_.nonEmpty).compile.last
-      response <- Async[F].fromPromise {
-        Async[F].delay {
+  def apply[F[_]](implicit F: Async[F]): Client[F] = Client[F] { req: Request[F] =>
+    for {
+      body <- req.body.chunkAll.filter(_.nonEmpty).compile.last.toResource
+      response <- F.fromPromise {
+        F.delay {
           val init = new RequestInit {}
 
           init.method = req.method.name.asInstanceOf[HttpMethod]
@@ -49,27 +49,29 @@ object FetchClient {
 
           Fetch.fetch(req.uri.renderString, init)
         }
+      }.toResource
+      status <- F.fromEither(Status.fromInt(response.status)).toResource
+      body <- Resource.makeCase(response.body.pure[F]) {
+        case (r, Resource.ExitCase.Succeeded) => F.delay(r.cancel(null))
+        case (r, Resource.ExitCase.Errored(ex)) =>
+          F.fromPromise(F.delay(r.cancel(ex.getMessage()))).void
+        case (r, Resource.ExitCase.Canceled) =>
+          F.fromPromise(F.delay(r.cancel(null))).void
       }
-      status <- Async[F].fromEither(Status.fromInt(response.status))
     } yield Response[F](
       status = status,
       headers = fromDomHeaders(response.headers),
-      body = readableStreamToStream(response.body)
-    )).toResource
+      body = readableStreamToStream(body)
+    )
   }
 
-  private def readableStreamToStream[F[_]: Async](rs: ReadableStream[Uint8Array]): Stream[F, Byte] =
+  private def readableStreamToStream[F[_]](rs: ReadableStream[Uint8Array])(implicit
+      F: Async[F]): Stream[F, Byte] =
     Stream
-      .bracketCase(rs.getReader().pure[F]) {
-        case (r, Resource.ExitCase.Succeeded) => Async[F].delay(r.releaseLock())
-        case (r, Resource.ExitCase.Errored(ex)) =>
-          Async[F].fromPromise(Async[F].delay(r.cancel(ex.getMessage()))).void
-        case (r, Resource.ExitCase.Canceled) =>
-          Async[F].fromPromise(Async[F].delay(r.cancel(()))).void
-      }
+      .bracket(F.delay(rs.getReader()))(r => F.delay(r.releaseLock()))
       .flatMap { reader =>
         Stream.unfoldChunkEval(reader) { reader =>
-          Async[F].fromPromise(Async[F].delay(reader.read())).map { chunk =>
+          F.fromPromise(F.delay(reader.read())).map { chunk =>
             if (chunk.done)
               None
             else
