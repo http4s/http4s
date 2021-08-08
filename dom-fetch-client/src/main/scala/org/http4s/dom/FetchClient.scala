@@ -20,16 +20,12 @@ package dom
 import cats.effect.Async
 import cats.effect.Resource
 import cats.syntax.all._
-import fs2.Stream
 import org.http4s.client.Client
 import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.Fetch
 import org.scalajs.dom.experimental.Headers
 import org.scalajs.dom.experimental.HttpMethod
-import org.scalajs.dom.experimental.ReadableStream
 import org.scalajs.dom.experimental.RequestInit
-
-import scala.scalajs.js.typedarray.Uint8Array
 
 object FetchClient {
 
@@ -50,12 +46,8 @@ object FetchClient {
               Fetch.fetch(req.uri.renderString, init)
             }
           }
-        } {
-          case (r, Resource.ExitCase.Succeeded) => F.fromPromise(F.delay(r.body.cancel(null))).void
-          case (r, Resource.ExitCase.Errored(ex)) =>
-            F.fromPromise(F.delay(r.body.cancel(ex.getMessage()))).void
-          case (r, Resource.ExitCase.Canceled) =>
-            F.fromPromise(F.delay(r.body.cancel(null))).void
+        } { case (r, exitCase) =>
+          closeReadableStream(r.body, exitCase)
         }
         .evalMap { response =>
           F.fromEither(Status.fromInt(response.status)).map { status =>
@@ -69,20 +61,5 @@ object FetchClient {
 
     }
   }
-
-  private def readableStreamToStream[F[_]](rs: ReadableStream[Uint8Array])(implicit
-      F: Async[F]): Stream[F, Byte] =
-    Stream
-      .bracket(F.delay(rs.getReader()))(r => F.delay(r.releaseLock()))
-      .flatMap { reader =>
-        Stream.unfoldChunkEval(reader) { reader =>
-          F.fromPromise(F.delay(reader.read())).map { chunk =>
-            if (chunk.done)
-              None
-            else
-              Some((fs2.Chunk.uint8Array(chunk.value), reader))
-          }
-        }
-      }
 
 }
