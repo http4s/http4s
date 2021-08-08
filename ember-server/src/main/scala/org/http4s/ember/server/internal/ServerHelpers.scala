@@ -30,7 +30,7 @@ import java.net.InetSocketAddress
 import java.util.Locale
 import org.http4s._
 import org.http4s.ember.core.Util.durationToFinite
-import org.http4s.ember.core.{Drain, EmptyStreamError, Encoder, Parser, Read}
+import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
 import org.http4s.headers.{Connection, Date}
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.{SecureSession, ServerRequestKeys}
@@ -227,7 +227,7 @@ private[server] object ServerHelpers {
               // we want to be on the idle timeout until the next request is received.
               read.flatMap {
                 case Some(chunk) => chunk.toArray.pure[F]
-                case None => Concurrent[F].raiseError(EmptyStreamError())
+                case None => Concurrent[F].raiseError(EmberException.EmptyStream())
               }
             } else {
               // first request begins immediately
@@ -277,7 +277,7 @@ private[server] object ServerHelpers {
                 }
               case Left(err) =>
                 err match {
-                  case EmptyStreamError() =>
+                  case EmberException.EmptyStream() =>
                     Applicative[F].pure(None)
                   case err =>
                     errorHandler(err)
