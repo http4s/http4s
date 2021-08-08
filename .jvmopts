@@ -3,4 +3,4 @@
 -Xmx6G
 -XX:ReservedCodeCacheSize=250M
 -XX:+TieredCompilation
--XX:+UseParallelGC
+-XX:+UseG1GC
