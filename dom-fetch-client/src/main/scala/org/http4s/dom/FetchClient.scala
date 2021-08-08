@@ -19,7 +19,6 @@ package dom
 
 import cats.effect.Async
 import cats.effect.Resource
-import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.client.Client
