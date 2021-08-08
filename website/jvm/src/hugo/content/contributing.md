@@ -239,7 +239,7 @@ this is what CI uses) installed.
 In your terminal run this command (in root folder of http4s):
 
 ```sh
-hugo -s website/src/hugo server -p 4000
+hugo -s website/jvm/src/hugo server -p 4000
 ```
 
 Now you can open browser at http://localhost:4000/ to see local version
