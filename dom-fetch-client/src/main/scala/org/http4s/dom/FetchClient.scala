@@ -52,7 +52,7 @@ object FetchClient {
       }.toResource
       status <- F.fromEither(Status.fromInt(response.status)).toResource
       body <- Resource.makeCase(response.body.pure[F]) {
-        case (r, Resource.ExitCase.Succeeded) => F.delay(r.cancel(null))
+        case (r, Resource.ExitCase.Succeeded) => F.fromPromise(F.delay(r.cancel(null))).void
         case (r, Resource.ExitCase.Errored(ex)) =>
           F.fromPromise(F.delay(r.cancel(ex.getMessage()))).void
         case (r, Resource.ExitCase.Canceled) =>
