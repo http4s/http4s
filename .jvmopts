@@ -1,4 +1,6 @@
 -Dfile.encoding=UTF8
+-Xms1G
+-Xmx6G
 -XX:ReservedCodeCacheSize=250M
 -XX:+TieredCompilation
--XX:MaxRAMPercentage=75.0
+-XX:+UseG1GC
