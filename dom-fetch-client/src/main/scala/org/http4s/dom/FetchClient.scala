@@ -35,34 +35,40 @@ import scala.scalajs.js.typedarray.Uint8Array
 object FetchClient {
 
   def apply[F[_]](implicit F: Async[F]): Client[F] = Client[F] { req: Request[F] =>
-    for {
-      body <- req.body.chunkAll.filter(_.nonEmpty).compile.last.toResource
-      response <- F.fromPromise {
-        F.delay {
-          val init = new RequestInit {}
+    Resource.eval(req.body.chunkAll.filter(_.nonEmpty).compile.last).flatMap { body =>
+      Resource
+        .makeCase {
+          F.fromPromise {
+            F.delay {
+              val init = new RequestInit {}
 
-          init.method = req.method.name.asInstanceOf[HttpMethod]
-          init.headers = new Headers(toDomHeaders(req.headers))
-          body.foreach { body =>
-            init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
+              init.method = req.method.name.asInstanceOf[HttpMethod]
+              init.headers = new Headers(toDomHeaders(req.headers))
+              body.foreach { body =>
+                init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
+              }
+
+              Fetch.fetch(req.uri.renderString, init)
+            }
           }
-
-          Fetch.fetch(req.uri.renderString, init)
+        } {
+          case (r, Resource.ExitCase.Succeeded) => F.fromPromise(F.delay(r.body.cancel(null))).void
+          case (r, Resource.ExitCase.Errored(ex)) =>
+            F.fromPromise(F.delay(r.body.cancel(ex.getMessage()))).void
+          case (r, Resource.ExitCase.Canceled) =>
+            F.fromPromise(F.delay(r.body.cancel(null))).void
         }
-      }.toResource
-      status <- F.fromEither(Status.fromInt(response.status)).toResource
-      body <- Resource.makeCase(response.body.pure[F]) {
-        case (r, Resource.ExitCase.Succeeded) => F.fromPromise(F.delay(r.cancel(null))).void
-        case (r, Resource.ExitCase.Errored(ex)) =>
-          F.fromPromise(F.delay(r.cancel(ex.getMessage()))).void
-        case (r, Resource.ExitCase.Canceled) =>
-          F.fromPromise(F.delay(r.cancel(null))).void
-      }
-    } yield Response[F](
-      status = status,
-      headers = fromDomHeaders(response.headers),
-      body = readableStreamToStream(body)
-    )
+        .evalMap { response =>
+          F.fromEither(Status.fromInt(response.status)).map { status =>
+            Response[F](
+              status = status,
+              headers = fromDomHeaders(response.headers),
+              body = readableStreamToStream(response.body)
+            )
+          }
+        }
+
+    }
   }
 
   private def readableStreamToStream[F[_]](rs: ReadableStream[Uint8Array])(implicit
