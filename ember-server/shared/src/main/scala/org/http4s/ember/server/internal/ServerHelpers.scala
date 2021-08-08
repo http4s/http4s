@@ -170,6 +170,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     Encoder
       .respToBytes[F](resp)
       .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+      .interruptWhen(Stream.repeatEval(socket.isOpen.map(x => ! x)))
       .compile
       .drain
       .attempt
