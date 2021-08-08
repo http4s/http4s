@@ -25,6 +25,7 @@ title: Versions
 * _I'm ready for Cats-Effect 3:_ {{% latestInSeries "0.23" %}}
 * _I'm new here, pick one:_ {{% latestInSeries "0.23" %}}
 * _I live on the bleeding edge:_ {{% latestInSeries "1.0" %}}
+* _I'm using Scala.js serverless or in the browser:_ {{% latestInSeries "1.0" %}}
 
 ##
 
