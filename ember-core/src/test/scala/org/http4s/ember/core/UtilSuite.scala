@@ -22,30 +22,33 @@ import org.typelevel.ci._
 
 class UtilSuite extends FunSuite {
 
+  val http10 = HttpVersion.`HTTP/1.0`
+  val http11 = HttpVersion.`HTTP/1.1`
+
   val close = Header.Raw(ci"connection", "close")
   val keepAlive = Header.Raw(ci"connection", "keep-alive")
 
   test("isKeepAlive: http/1.0, connection=close") {
-    assertEquals(Util.isKeepAlive(HttpVersion.`HTTP/1.0`, Headers(close)), false)
+    assertEquals(Util.isKeepAlive(http10, Headers(close)), false)
   }
 
   test("isKeepAlive: http/1.0, connection=keep-alive") {
-    assertEquals(Util.isKeepAlive(HttpVersion.`HTTP/1.0`, Headers(keepAlive)), true)
+    assertEquals(Util.isKeepAlive(http10, Headers(keepAlive)), true)
   }
 
   test("isKeepAlive: http/1.0, default") {
-    assertEquals(Util.isKeepAlive(HttpVersion.`HTTP/1.0`, Headers.empty), false)
+    assertEquals(Util.isKeepAlive(http10, Headers.empty), false)
   }
 
   test("isKeepAlive: http/1.1, connection=close") {
-    assertEquals(Util.isKeepAlive(HttpVersion.`HTTP/1.1`, Headers(close)), false)
+    assertEquals(Util.isKeepAlive(http11, Headers(close)), false)
   }
 
   test("isKeepAlive: http/1.1, connection=keep-alive") {
-    assertEquals(Util.isKeepAlive(HttpVersion.`HTTP/1.1`, Headers(keepAlive)), true)
+    assertEquals(Util.isKeepAlive(http11, Headers(keepAlive)), true)
   }
 
   test("isKeepAlive: http/1.1, default") {
-    assertEquals(Util.isKeepAlive(HttpVersion.`HTTP/1.1`, Headers.empty), true)
+    assertEquals(Util.isKeepAlive(http11, Headers.empty), true)
   }
 }

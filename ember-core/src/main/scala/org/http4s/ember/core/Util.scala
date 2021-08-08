@@ -56,7 +56,7 @@ private[ember] object Util {
     httpVersion match {
       case HttpVersion.`HTTP/1.0` => hasConnection(keepAliveCi.toString)
       case HttpVersion.`HTTP/1.1` => !hasConnection(closeCi.toString)
-      case _ => false
+      case _ => sys.error("unsupported http version")
     }
   }
 
