@@ -35,7 +35,7 @@ import _root_.fs2.io.tls._
 import org.typelevel.keypool._
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
-import _root_.org.http4s.ember.core.Util.durationToFinite
+import _root_.org.http4s.ember.core.Util._
 
 private[client] object ClientHelpers {
 
@@ -151,8 +151,8 @@ private[client] object ClientHelpers {
       canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
-        val requestClose = req.headers.get[Connection].exists(_.hasClose)
-        val responseClose = resp.headers.get[Connection].exists(_.hasClose)
+        val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
+        val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
         else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
