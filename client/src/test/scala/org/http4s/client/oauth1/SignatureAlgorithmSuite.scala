@@ -26,18 +26,18 @@ class SignatureAlgorithmSuite extends Http4sSuite {
   val SecretKey: String = "Dental Plan!"
 
   test("SignatureMethod protocol parameter should default to HmacSha1") {
-    assertEquals(SignatureAlgorithm.fromMethod(SignatureMethod()), HmacSha1)
+    assertEquals(SignatureAlgorithm.unsafeFromMethod(SignatureMethod()), HmacSha1)
   }
 
   test("SignatureMethod protocol parameter should find appropriate implementation") {
-    assertEquals(SignatureAlgorithm.fromMethod(SignatureMethod(`HMAC-SHA1`)), HmacSha1)
-    assertEquals(SignatureAlgorithm.fromMethod(SignatureMethod(`HMAC-SHA256`)), HmacSha256)
-    assertEquals(SignatureAlgorithm.fromMethod(SignatureMethod(`HMAC-SHA512`)), HmacSha512)
+    assertEquals(SignatureAlgorithm.unsafeFromMethod(SignatureMethod(`HMAC-SHA1`)), HmacSha1)
+    assertEquals(SignatureAlgorithm.unsafeFromMethod(SignatureMethod(`HMAC-SHA256`)), HmacSha256)
+    assertEquals(SignatureAlgorithm.unsafeFromMethod(SignatureMethod(`HMAC-SHA512`)), HmacSha512)
   }
 
   test("SignatureMethod protocol parameter should result in error if implementation not found") {
     intercept[IllegalArgumentException] {
-      SignatureAlgorithm.fromMethod(SignatureMethod("QUACK"))
+      SignatureAlgorithm.unsafeFromMethod(SignatureMethod("QUACK"))
     }
   }
 

@@ -47,9 +47,9 @@ object SignatureAlgorithm {
    * Map a [[SignatureMethod]] protocol parameter to a [[SignatureAlgorithm]] implementation
    *
    * @param method The signature method protocol parameter
-   * @return The implementation, or an [[IllegalArgumentException]] if none were found
+   * @return The implementation, or an [[IllegalArgumentException]] if none was found
    */
-  def fromMethod(method: SignatureMethod): SignatureAlgorithm =
+  private[oauth1] def unsafeFromMethod(method: SignatureMethod): SignatureAlgorithm =
     AllMethods.find(_.name == method.headerValue)
     .getOrElse(throw new IllegalArgumentException(s"Unrecognized headerValue '${method.headerValue}', Valid options are: ${AllMethods.map(_.name)}"))
 
@@ -58,7 +58,7 @@ object SignatureAlgorithm {
 /**
  * Implementations for Oauth1 signatures.
  */
-sealed trait SignatureAlgorithm {
+trait SignatureAlgorithm {
 
   /**
    * @return The signature method name per the oauth1.0 spec
@@ -88,6 +88,8 @@ sealed trait SignatureAlgorithm {
 
 /**
  * An implementation of the `HMAC-SHA1` oauth signature method.
+ *
+ * This uses the `HmacSHA1` implementation which every java platform is required to have.
  */
 object HmacSha1 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA1`
@@ -96,6 +98,8 @@ object HmacSha1 extends SignatureAlgorithm {
 
 /**
  * An implementation of the `HMAC-SHA256` oauth signature method.
+ *
+ * This uses the `HmacSHA256` implementation which every java platform is required to have.
  */
 object HmacSha256 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA256`
@@ -104,6 +108,9 @@ object HmacSha256 extends SignatureAlgorithm {
 
 /**
  * An implementation of the `HMAC-SHA512` oauth signature method.
+ *
+ * WARNING - This uses the `HmacSHA512` implementation which is *not* required to be present by the Java spec.
+ * (However, most modern Java runtimes tend to have it)
  */
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`

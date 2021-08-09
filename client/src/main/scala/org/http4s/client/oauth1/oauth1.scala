@@ -50,7 +50,7 @@ package object oauth1 {
    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
    *            will be entirely buffered due to signing requirements.
    */
-  @deprecated("Preserved for binary compatibility - use the other `signRequest` function which passes a signature method", "0.22.6")
+  @deprecated("Preserved for binary compatibility - use the other `signRequest` function which passes a signature method", "0.22.3")
   def signRequest[F[_]](
       req: Request[F],
       consumer: Consumer,
@@ -144,7 +144,7 @@ package object oauth1 {
         method,
         uri,
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
-      val alg = SignatureAlgorithm.fromMethod(signatureMethod)
+      val alg = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
       val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret), alg)
       val creds = Credentials.AuthParams(
         ci"OAuth",
@@ -158,7 +158,7 @@ package object oauth1 {
 
   // Generate an authorization header with the provided user params and OAuth requirements.
   // Warning: Fixed to HMAC-SHA1
-  @deprecated("Preserved for binary compatibility", "0.22.6")
+  @deprecated("Preserved for binary compatibility", "0.22.3")
   private[oauth1] def genAuthHeader(
                                      method: Method,
                                      uri: Uri,
@@ -171,18 +171,18 @@ package object oauth1 {
   }
 
   private[oauth1] def genAuthHeader(
-      method: Method,
-      uri: Uri,
-      userParams: immutable.Seq[(String, String)],
-      consumer: Consumer,
-      callback: Option[Uri],
-      verifier: Option[String],
-      token: Option[Token],
-      signatureMethod: SignatureAlgorithm): Authorization = {
+                                     method: Method,
+                                     uri: Uri,
+                                     userParams: immutable.Seq[(String, String)],
+                                     consumer: Consumer,
+                                     callback: Option[Uri],
+                                     verifier: Option[String],
+                                     token: Option[Token],
+                                     algorithm: SignatureAlgorithm): Authorization = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
-      params += "oauth_signature_method" -> signatureMethod.name
+      params += "oauth_signature_method" -> algorithm.name
       params += "oauth_timestamp" -> (System.currentTimeMillis / 1000).toString
       params += "oauth_nonce" -> System.nanoTime.toString
       params += "oauth_version" -> "1.0"
@@ -202,7 +202,7 @@ package object oauth1 {
       params ++ userParams.map { case (k, v) =>
         (encode(k), encode(v))
       })
-    val sig = makeSHASig(baseString, consumer.secret, token.map(_.secret), signatureMethod)
+    val sig = makeSHASig(baseString, consumer.secret, token.map(_.secret), algorithm)
     val creds =
       Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
 
@@ -211,7 +211,7 @@ package object oauth1 {
 
   // baseString must already be encoded, consumer and token must not be
   // Warning: Defaults to HMAC-SHA1
-  @deprecated("Preserved for binary compatibility", "0.22.6")
+  @deprecated("Preserved for binary compatibility", "0.22.3")
   private[oauth1] def makeSHASig(
       baseString: String,
       consumer: Consumer,
@@ -219,7 +219,7 @@ package object oauth1 {
     makeSHASig(baseString, consumer.secret, token.map(_.secret))
 
   // Warning: Defaults to HMAC-SHA1
-  @deprecated("Preserved for binary compatibility", "0.22.6")
+  @deprecated("Preserved for binary compatibility", "0.22.3")
   private[oauth1] def makeSHASig(
       baseString: String,
       consumerSecret: String,
