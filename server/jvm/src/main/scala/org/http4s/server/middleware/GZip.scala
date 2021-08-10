@@ -52,9 +52,9 @@ object GZip {
   def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {
     val contentType = resp.headers.get[`Content-Type`]
     resp.headers.get[`Content-Encoding`].isEmpty &&
-      resp.status.isEntityAllowed &&
-      (contentType.isEmpty || contentType.get.mediaType.compressible ||
-        (contentType.get.mediaType eq MediaType.application.`octet-stream`))
+    resp.status.isEntityAllowed &&
+    (contentType.isEmpty || contentType.get.mediaType.compressible ||
+      (contentType.get.mediaType eq MediaType.application.`octet-stream`))
   }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
