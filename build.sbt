@@ -244,6 +244,14 @@ lazy val emberCore = libraryProject("ember-core")
     libraryDependencies ++= Seq(
       log4catsTesting % Test,
     ),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError")
+    )
   )
   .dependsOn(core, testing % "test->test")
 
@@ -256,6 +264,7 @@ lazy val emberServer = libraryProject("ember-server")
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency")
     ),
     Test / parallelExecution := false
