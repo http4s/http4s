@@ -256,6 +256,7 @@ lazy val emberServer = libraryProject("ember-server")
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency")
     ),
     Test / parallelExecution := false
