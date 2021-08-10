@@ -29,7 +29,7 @@ import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.ember.core.Util._
 import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
-import org.http4s.headers.{Connection, Date}
+import org.http4s.headers.Date
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.{SecureSession, ServerRequestKeys}
 import org.typelevel.log4cats.Logger
