@@ -44,11 +44,17 @@ class StreamingParserSuite extends Http4sSuite {
             val curr = out(idx)
             val suffix = out.drop(idx + 1)
 
-            Gen.chooseNum(0, curr.length - 1).flatMap { splitIdx =>
-              val (l, r) = curr.splitAt(splitIdx)
-              val split = List(l, r).filterNot(_.isEmpty)
-              val next = List(prefix, split, suffix).filterNot(_.isEmpty).flatten
-              go(next, remaining - 1)
+            if (curr.length == 1) {
+              // No splits to perform
+              go(out, remaining - 1)
+            } else {
+              // Guarantees a split happens
+              Gen.chooseNum(1, curr.length - 1).flatMap { splitIdx =>
+                val (l, r) = curr.splitAt(splitIdx)
+                val split = List(l, r)
+                val next = List(prefix, split, suffix).flatten
+                go(next, remaining - 1)
+              }
             }
           }
         }
@@ -105,17 +111,25 @@ class StreamingParserSuite extends Http4sSuite {
       ))
 
     // followup: try to generate raw http messages
-    def genRequest: Gen[List[List[Byte]]] =
-      Gen.oneOf(RequestFixedBody, RequestChunkedBody).flatMap(Helpers.subdivided(_, 25))
-    def genResponse: Gen[List[List[Byte]]] =
-      Gen.oneOf(ResponseFixedBody, ResponseVariableBody).flatMap(Helpers.subdivided(_, 25))
+    def genRequest(min: Int = 0, max: Int = 25): Gen[List[List[Byte]]] =
+      for {
+        req <- Gen.oneOf(RequestFixedBody, RequestChunkedBody)
+        splits <- Gen.chooseNum(min, max)
+        chunks <- Helpers.subdivided(req, splits)
+      } yield chunks
+    def genResponse(min: Int = 0, max: Int = 25): Gen[List[List[Byte]]] =
+      for {
+        req <- Gen.oneOf(ResponseFixedBody, ResponseVariableBody)
+        splits <- Gen.chooseNum(min, max)
+        chunks <- Helpers.subdivided(req, splits)
+      } yield chunks
 
     def toBytes(lines: List[String]): List[Byte] =
       lines.mkString.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList
   }
 
   test("parse single request") {
-    PropF.forAllNoShrinkF(Fixtures.genRequest) { segments =>
+    PropF.forAllNoShrinkF(Fixtures.genRequest()) { segments =>
       (for {
         read <- Helpers.taking[IO, Byte](segments)
         result <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
@@ -126,7 +140,7 @@ class StreamingParserSuite extends Http4sSuite {
   }
 
   test("parse single response") {
-    PropF.forAllNoShrinkF(Fixtures.genResponse) { segments =>
+    PropF.forAllNoShrinkF(Fixtures.genResponse()) { segments =>
       (for {
         read <- Helpers.taking[IO, Byte](segments)
         result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
@@ -137,7 +151,7 @@ class StreamingParserSuite extends Http4sSuite {
   }
 
   test("parse two requests where bodies are fully read") {
-    PropF.forAllNoShrinkF(Fixtures.genRequest, Fixtures.genRequest) { (s0, s1) =>
+    PropF.forAllNoShrinkF(Fixtures.genRequest(), Fixtures.genRequest()) { (s0, s1) =>
       (for {
         read <- Helpers.taking[IO, Byte](s0 ++ s1)
         result1 <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
@@ -151,7 +165,7 @@ class StreamingParserSuite extends Http4sSuite {
   }
 
   test("parse two responses where bodies are fully read") {
-    PropF.forAllNoShrinkF(Fixtures.genResponse, Fixtures.genResponse) { (s0, s1) =>
+    PropF.forAllNoShrinkF(Fixtures.genResponse(), Fixtures.genResponse()) { (s0, s1) =>
       (for {
         read <- Helpers.taking[IO, Byte](s0 ++ s1)
         result1 <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
@@ -161,6 +175,28 @@ class StreamingParserSuite extends Http4sSuite {
         _ <- result2._1.body.compile.drain
         _ <- result2._2
       } yield true).assert
+    }
+  }
+
+  test("raise end of stream for requests") {
+    PropF.forAllNoShrinkF(Fixtures.genRequest(min = 3)) { segments =>
+      (for {
+        read <- Helpers.taking[IO, Byte](segments.dropRight(1))
+        result <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
+        _ <- result._1.body.compile.drain
+        _ <- result._2
+      } yield ()).intercept[EmberException.ReachedEndOfStream].void
+    }
+  }
+
+  test("raise end of stream for response") {
+    PropF.forAllNoShrinkF(Fixtures.genResponse(min = 3)) { segments =>
+      (for {
+        read <- Helpers.taking[IO, Byte](segments.dropRight(1))
+        result <- Parser.Response.parser(Int.MaxValue)(Array.emptyByteArray, read)
+        _ <- result._1.body.compile.drain
+        _ <- result._2
+      } yield ()).intercept[EmberException.ReachedEndOfStream].void
     }
   }
 

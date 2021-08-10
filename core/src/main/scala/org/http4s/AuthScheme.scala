@@ -22,4 +22,5 @@ object AuthScheme {
   val Basic = ci"Basic"
   val Digest = ci"Digest"
   val Bearer = ci"Bearer"
+  val OAuth = ci"OAuth"
 }
