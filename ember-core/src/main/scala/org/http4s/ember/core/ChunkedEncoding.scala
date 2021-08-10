@@ -39,8 +39,7 @@ private[ember] object ChunkedEncoding {
       val nextChunk = if (head.nonEmpty) Pull.pure(Some(Chunk.bytes(head))) else Pull.eval(read)
       nextChunk.flatMap {
         case None =>
-          // TODO: Check if we ended at a correct state?
-          Pull.done
+          Pull.raiseError(EmberException.ReachedEndOfStream())
         case Some(h) =>
           val bv = h.toByteVector
           expect match {
@@ -97,8 +96,6 @@ private[ember] object ChunkedEncoding {
 
   final case class Trailers(headers: Headers, rest: Array[Byte])
 
-  private val emptyTrailingHeaders = Trailers(Headers.empty, Array.emptyByteArray)
-
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(buffer: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] =
@@ -107,8 +104,7 @@ private[ember] object ChunkedEncoding {
     } else if (buffer.length < 2) {
       read.flatMap {
         case None =>
-          // TODO: end of stream?
-          emptyTrailingHeaders.pure[F]
+          MonadThrow[F].raiseError(EmberException.ReachedEndOfStream())
         case Some(chunk) =>
           parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
       }
