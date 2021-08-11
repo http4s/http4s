@@ -41,7 +41,7 @@ object `Access-Control-Allow-Headers` {
       parse
     )
 
-  implicit val headerSemigroupInstance: cats.Monoid[`Access-Control-Allow-Headers`] =
+  implicit val headerMonoidInstance: cats.Monoid[`Access-Control-Allow-Headers`] =
     cats.Monoid.instance(empty, (a, b) => `Access-Control-Allow-Headers`(a.values ++ b.values))
 }
 
