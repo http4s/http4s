@@ -20,6 +20,7 @@ import cats.Show
 import cats.effect.Clock
 import cats.kernel.Order
 import cats.syntax.all._
+import org.http4s.client.oauth1.SignatureAlgorithm.Names.`HMAC-SHA1`
 import java.util.concurrent.TimeUnit
 import cats.Applicative
 
@@ -45,7 +46,7 @@ object ProtocolParameter {
 
   case class Custom(headerName: String, headerValue: String) extends ProtocolParameter
 
-  case class SignatureMethod(override val headerValue: String = "HMAC-SHA1")
+  case class SignatureMethod(override val headerValue: String = `HMAC-SHA1`)
       extends ProtocolParameter {
     override val headerName: String = "oauth_signature_method"
   }

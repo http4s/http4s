@@ -34,22 +34,25 @@ import org.http4s.js.crypto.BufferSource
 
 private[oauth1] trait OAuth1Platform {
 
-  private[oauth1] def makeSHASigPlatform[F[_]: Async](
+  private[oauth1] def makeSHASig[F[_]](
       baseString: String,
       consumerSecret: String,
-      tokenSecret: Option[String]): F[String] =
+      tokenSecret: Option[String],
+      algorithm: SignatureAlgorithm)(implicit F: Async[F]): F[String] =
     for {
       key <- Async[F]
         .fromPromise {
           val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
-          Async[F].delay {
-            subtle.importKey(
-              KeyFormat.raw,
-              bytes(key).toTypedArray.asInstanceOf[BufferSource],
-              js.Dynamic.literal(name = "HMAC", hash = "SHA-1").asInstanceOf[KeyAlgorithm],
-              false,
-              js.Array(KeyUsage.sign)
-            )
+          F.fromEither(keyAlgorithmFor(algorithm)).flatMap { keyAlgorithm =>
+            Async[F].delay {
+              subtle.importKey(
+                KeyFormat.raw,
+                bytes(key).toTypedArray.asInstanceOf[BufferSource],
+                keyAlgorithm,
+                false,
+                js.Array(KeyUsage.sign)
+              )
+            }
           }
         }
         .map(_.asInstanceOf[CryptoKey])
@@ -68,4 +71,15 @@ private[oauth1] trait OAuth1Platform {
       .toString()
 
   private def bytes(str: String) = str.getBytes(StandardCharsets.UTF_8)
+
+  private def keyAlgorithmFor(
+      alg: SignatureAlgorithm): Either[IllegalArgumentException, KeyAlgorithm] =
+    (alg match {
+      case HmacSha1 => Right(("HMAC", "SHA-1"))
+      case HmacSha256 => Right(("HMAC", "SHA-256"))
+      case HmacSha512 => Right(("HMAC", "SHA-512"))
+      case _ => Left(new IllegalArgumentException("Unsupported signature algorithm: " + alg))
+    }).map { case (name, hash) =>
+      js.Dynamic.literal(name = "HMAC", hash = "SHA-1").asInstanceOf[KeyAlgorithm]
+    }
 }

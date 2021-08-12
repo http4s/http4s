@@ -33,7 +33,7 @@ import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
 
 import org.http4s.headers.{Connection, Date, `User-Agent`}
-import _root_.org.http4s.ember.core.Util.{timeoutMaybe, timeoutToMaybe}
+import _root_.org.http4s.ember.core.Util._
 import com.comcast.ip4s.{Host, Port, SocketAddress}
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
@@ -140,8 +140,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
-        val requestClose = req.headers.get[Connection].exists(_.hasClose)
-        val responseClose = resp.headers.get[Connection].exists(_.hasClose)
+        val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
+        val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
         else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
