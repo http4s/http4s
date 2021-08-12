@@ -28,14 +28,17 @@ import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.client.RequestKey
+import org.http4s.client.middleware._
+import org.http4s.ember.core.EmberException
 import org.typelevel.ci._
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
 import org.typelevel.keypool._
 import javax.net.ssl.SNIHostName
-import org.http4s.headers.{Connection, Date, `User-Agent`}
+import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
+import java.nio.channels.ClosedChannelException
 
 private[client] object ClientHelpers {
 
@@ -127,6 +130,13 @@ private[client] object ClientHelpers {
       processedReq <- preprocessRequest(request, userAgent)
       res <- writeRead(processedReq)
     } yield res
+  }.adaptError { case e: EmberException.EmptyStream =>
+    new ClosedChannelException() {
+      initCause(e)
+
+      override def getMessage(): String =
+        "Remote Disconnect: Received zero bytes after sending request"
+    }
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -188,4 +198,25 @@ private[client] object ClientHelpers {
               new java.net.SocketException("Fresh connection from pool was not open")))
         )
     }
+
+  private[ember] object RetryLogic {
+    private val retryNow = 0.seconds.some
+    def retryUntilFresh[F[_]]: RetryPolicy[F] = { (req, result, retries) =>
+      if (emberDeadFromPoolPolicy(req, result) && retries <= 2) retryNow
+      else None
+    }
+
+    def emberDeadFromPoolPolicy[F[_]](
+        req: Request[F],
+        result: Either[Throwable, Response[F]]): Boolean =
+      (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
+        isEmptyStreamError(result)
+
+    def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+      result match {
+        case Right(_) => false
+        case Left(EmberException.EmptyStream()) => true
+        case _ => false
+      }
+  }
 }

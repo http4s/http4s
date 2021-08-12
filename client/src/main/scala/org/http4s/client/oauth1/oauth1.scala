@@ -45,12 +45,13 @@ package object oauth1 {
   private val OutOfBand = "oob"
 
   /** Sign the request with an OAuth Authorization header
-   *
-   *
-   * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
-   *            will be entirely buffered due to signing requirements.
-   */
-  @deprecated("Preserved for binary compatibility - use the other `signRequest` function which passes a signature method", "0.22.3")
+    *
+    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
+    *            will be entirely buffered due to signing requirements.
+    */
+  @deprecated(
+    "Preserved for binary compatibility - use the other `signRequest` function which passes a signature method",
+    "0.22.3")
   def signRequest[F[_]](
       req: Request[F],
       consumer: Consumer,
@@ -60,7 +61,8 @@ package object oauth1 {
       F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).map { case (req, params) =>
-      val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, HmacSha1)
+      val auth =
+        genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, HmacSha1)
       req.putHeaders(auth)
     }
 
@@ -160,25 +162,24 @@ package object oauth1 {
   // Warning: Fixed to HMAC-SHA1
   @deprecated("Preserved for binary compatibility", "0.22.3")
   private[oauth1] def genAuthHeader(
-                                     method: Method,
-                                     uri: Uri,
-                                     userParams: immutable.Seq[(String, String)],
-                                     consumer: Consumer,
-                                     callback: Option[Uri],
-                                     verifier: Option[String],
-                                     token: Option[Token]): Authorization = {
+      method: Method,
+      uri: Uri,
+      userParams: immutable.Seq[(String, String)],
+      consumer: Consumer,
+      callback: Option[Uri],
+      verifier: Option[String],
+      token: Option[Token]): Authorization =
     genAuthHeader(method, uri, userParams, consumer, callback, verifier, token, HmacSha1)
-  }
 
   private[oauth1] def genAuthHeader(
-                                     method: Method,
-                                     uri: Uri,
-                                     userParams: immutable.Seq[(String, String)],
-                                     consumer: Consumer,
-                                     callback: Option[Uri],
-                                     verifier: Option[String],
-                                     token: Option[Token],
-                                     algorithm: SignatureAlgorithm): Authorization = {
+      method: Method,
+      uri: Uri,
+      userParams: immutable.Seq[(String, String)],
+      consumer: Consumer,
+      callback: Option[Uri],
+      verifier: Option[String],
+      token: Option[Token],
+      algorithm: SignatureAlgorithm): Authorization = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
@@ -227,10 +228,10 @@ package object oauth1 {
     makeSHASig(baseString, consumerSecret, tokenSecret, HmacSha1)
 
   private[oauth1] def makeSHASig(
-                                  baseString: String,
-                                  consumerSecret: String,
-                                  tokenSecret: Option[String],
-                                  algorithm: SignatureAlgorithm): String = {
+      baseString: String,
+      consumerSecret: String,
+      tokenSecret: Option[String],
+      algorithm: SignatureAlgorithm): String = {
 
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
     algorithm.generate(baseString, key)

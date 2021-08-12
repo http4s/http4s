@@ -46,12 +46,15 @@ class SignatureAlgorithmSuite extends Http4sSuite {
   }
 
   test("HmacSha256 should generate valid signature") {
-    assertEquals(HmacSha256.generate(InputString, SecretKey), "J2LpHzGwjVR8x0ZbbNC2ehI3UwfBp4xu9SUNAVhXrrM=")
+    assertEquals(
+      HmacSha256.generate(InputString, SecretKey),
+      "J2LpHzGwjVR8x0ZbbNC2ehI3UwfBp4xu9SUNAVhXrrM=")
   }
 
   test("HmacSha512 should generate valid signature") {
-    assertEquals(HmacSha512.generate(InputString, SecretKey), "aa5p3aIHcy5525TKAn/y3tG+lwcSBtawNO4d6ScVAJf2/bsQ9uJxVzMQhA1I68rRuk0Jie/V39yUlTAoR1+1Sw==")
+    assertEquals(
+      HmacSha512.generate(InputString, SecretKey),
+      "aa5p3aIHcy5525TKAn/y3tG+lwcSBtawNO4d6ScVAJf2/bsQ9uJxVzMQhA1I68rRuk0Jie/V39yUlTAoR1+1Sw==")
   }
-
 
 }
