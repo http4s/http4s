@@ -30,8 +30,7 @@ import cats.data.Validated._
 import cats.syntax.all._
 import org.http4s._
 import scala.util.Try
-import cats.Foldable
-import cats.Monad
+import cats.{Applicative, Foldable, Monad}
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path._
 
@@ -382,5 +381,39 @@ abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](
         s =>
           Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))
       }
+    }
+}
+
+/** param extractor using [[org.http4s.QueryParamDecoder]]. This will alway match, returning
+  * a higher order function that can be used to extract the parameter if present and parseable,
+  * and which will generate an error otherwise.
+  *
+  * {{{
+  *  case class Foo(i: Int)
+  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *
+  *  object FooMatcher extends RequiredQueryParamDecoderMatcher[Foo]("foo")
+  *  val routes: HttpRoutes.of = {
+  *    case GET -> Root / "closest" :? FooMatcher(withFooValue) =>
+  *      withFooValue { fooValue => Ok(...) }
+  * }}}
+  */
+abstract class RequiredQueryParamDecoderMatcher[F[_]: Applicative, T: QueryParamDecoder](
+    name: String) {
+  implicit private val dsl = org.http4s.dsl.Http4sDsl[F]
+  import dsl._
+
+  def unapply(
+      params: Map[String, collection.Seq[String]]): Some[(T => F[Response[F]]) => F[Response[F]]] =
+    Some {
+      params
+        .get(name)
+        .flatMap(_.headOption)
+        .fold((_: (T => F[Response[F]])) => BadRequest(s"Missing required query parameter $name")) {
+          s =>
+            QueryParamDecoder[T]
+              .decode(QueryParameterValue(s))
+              .fold(errors => BadRequest(errors.map(_.sanitized).mkString_("", ",", "")), _)
+        }
     }
 }

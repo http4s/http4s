@@ -44,6 +44,8 @@ class PathInHttpRoutesSuite extends Http4sSuite {
 
   object ValidatingCounter extends ValidatingQueryParamDecoderMatcher[Int]("counter")
 
+  object RequiredCounter extends RequiredQueryParamDecoderMatcher[IO, Int]("counter")
+
   object OptValidatingCounter extends OptionalValidatingQueryParamDecoderMatcher[Int]("counter")
 
   object MultiOptCounter extends OptionalMultiQueryParamDecoderMatcher[Int]("counter")
@@ -69,6 +71,8 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       Ok(s"list: ${l.mkString(",")}, start: $s, limit: ${m.l}, term: $t, decimal=$d")
     case GET -> Root / "app" :? OptCounter(c) =>
       Ok(s"counter: $c")
+    case GET -> Root / "required" :? RequiredCounter(withCount) =>
+      withCount(vc => Ok(s"counter: $vc"))
     case GET -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
         errors => BadRequest(errors.map(_.sanitized).mkString_("", ",", "")),
@@ -186,20 +190,41 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       serve(Request(GET, Uri(path = path"/app", query = Query.unsafeFromString("counter=john"))))
     response.map(_.status).assertEquals(NotFound)
   }
-  test("Path DSL within HttpService should validating parameter present") {
+  test("Path DSL within HttpService should succeed when validating parameter present") {
     val response =
       serve(Request(GET, Uri(path = path"/valid", query = Query.unsafeFromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: 3")
   }
-  test("Path DSL within HttpService should validating parameter absent") {
+  test("Path DSL within HttpService should not match when validating parameter absent") {
     val response =
       serve(Request(GET, Uri(path = path"/valid", query = Query.unsafeFromString("notthis=3"))))
     response.map(_.status).assertEquals(NotFound)
   }
-  test("Path DSL within HttpService should validating parameter present with incorrect format") {
+  test(
+    "Path DSL within HttpService should return BadRequest when validating parameter present with incorrect format") {
     val response =
       serve(Request(GET, Uri(path = path"/valid", query = Query.unsafeFromString("counter=foo"))))
+    response.map(_.status).assertEquals(BadRequest) *>
+      response.flatMap(_.as[String]).assertEquals("Query decoding Int failed")
+  }
+  test("Path DSL within HttpService should succeed when required parameter present") {
+    val response =
+      serve(Request(GET, Uri(path = path"/required", query = Query.unsafeFromString("counter=3"))))
+    response.map(_.status).assertEquals(Ok) *>
+      response.flatMap(_.as[String]).assertEquals("counter: 3")
+  }
+  test("Path DSL within HttpService should return BadRequest required parameter absent") {
+    val response =
+      serve(Request(GET, Uri(path = path"/required", query = Query.unsafeFromString("notthis=3"))))
+    response.map(_.status).assertEquals(BadRequest) *>
+      response.flatMap(_.as[String]).assertEquals("Missing required query parameter counter")
+  }
+  test(
+    "Path DSL within HttpService should return BadRequest when required parameter present with incorrect format") {
+    val response =
+      serve(
+        Request(GET, Uri(path = path"/required", query = Query.unsafeFromString("counter=foo"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response.flatMap(_.as[String]).assertEquals("Query decoding Int failed")
   }
