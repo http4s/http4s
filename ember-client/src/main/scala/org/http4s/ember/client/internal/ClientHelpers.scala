@@ -134,6 +134,9 @@ private[client] object ClientHelpers {
   }.adaptError { case e @ org.http4s.ember.core.EmptyStreamError() =>
     new ClosedChannelException() {
       initCause(e)
+
+      override def getMessage(): String =
+        "Remote Disconnect: Received zero bytes after sending request"
     }
   }
 
