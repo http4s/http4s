@@ -37,6 +37,7 @@ import _root_.io.chrisdavenport.keypool._
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import _root_.org.http4s.ember.core.Util.durationToFinite
+import java.nio.channels.ClosedChannelException
 
 private[client] object ClientHelpers {
 
@@ -130,6 +131,10 @@ private[client] object ClientHelpers {
       processedReq <- preprocessRequest(request, userAgent)
       res <- writeRead(processedReq)
     } yield res
+  }.adaptError{
+    case e@org.http4s.ember.core.EmptyStreamError() => new ClosedChannelException(){
+      initCause(e)
+    }
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -190,5 +195,29 @@ private[client] object ClientHelpers {
             Resource.eval(Sync[F].raiseError(
               new java.net.SocketException("Fresh connection from pool was not open")))
         )
+    }
+
+  private[ember] object RetryLogic {
+    import org.http4s.client.middleware._
+    import org.http4s.syntax.all._
+    // import org.http4s.headers.`Idempotency-Key`
+
+    private val retryNow = 0.seconds.some
+    def retryUntilFresh[F[_]]: RetryPolicy[F] = {(req, result, retries) =>
+      if (emberDeadFromPoolPolicy(req, result) && retries <= 2) retryNow
+      else None
+    }
+
+    def emberDeadFromPoolPolicy[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
+      (req.method.isIdempotent || req.headers.get("idempotency-key".ci).isDefined) &&
+        isEmptyStreamError(result)
+
+    def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+      result match {
+        case Right(_) => false
+        // case Left(EmberException.EmptyStream()) => true // Next version can be accessed by users
+        case Left(org.http4s.ember.core.EmptyStreamError()) => true // Note this is private in http4s in 0.21
+        case _ => false
+      }
     }
 }
