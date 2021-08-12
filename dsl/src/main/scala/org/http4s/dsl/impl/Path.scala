@@ -33,6 +33,7 @@ import scala.util.Try
 import cats.{Applicative, Foldable, Monad}
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path._
+import org.http4s.dsl.Http4sDsl
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -400,7 +401,7 @@ abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](
   */
 abstract class RequiredQueryParamDecoderMatcher[F[_]: Applicative, T: QueryParamDecoder](
     name: String) {
-  implicit private val dsl = org.http4s.dsl.Http4sDsl[F]
+  implicit private val dsl: Http4sDsl[F] = org.http4s.dsl.Http4sDsl[F]
   import dsl._
 
   def unapply(
