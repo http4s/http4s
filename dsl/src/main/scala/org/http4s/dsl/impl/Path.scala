@@ -30,8 +30,7 @@ import cats.data.Validated._
 import cats.syntax.all._
 import org.http4s._
 import scala.util.Try
-import cats.Foldable
-import cats.Monad
+import cats.{Applicative, Foldable, Monad}
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path._
 import org.http4s.headers.Allow
