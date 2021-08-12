@@ -8,6 +8,19 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.26 (2021-08-12)
+
+The 0.21 series is no longer actively maintained by the team, but we'll continue to entertain binary compatible patches.  All users are still encouraged to upgrade to 0.22 (for Cats-Effect 2) or 0.23 (the latest stable series, on Cats-Effect 3).
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#5064](https://github.com/http4s/http4s/pull/5064): Add a conservative retry policy for dead connections.  Connections can be terminated on the server side while idling in our pool, which does not manifest until we attempt to read the response.  This is now raised as a `java.nio.channels.ClosedChannelException`.   A `retryPolicy` configuration has been added to the `EmberClientBuilder`.  The default policy handles the error and resubmits the request if:
+   * The request method is idempotent OR has an `Idempotency-Key` header
+   * Less than 2 attempts have been made
+   * Ember detects that the connection was closed without reading any bytes
+
 # v0.21.25 (2021-07-18)
 
 ## http4s-blaze-client
