@@ -34,6 +34,7 @@ import cats.Foldable
 import cats.Monad
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path._
+import org.http4s.headers.Allow
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -96,6 +97,40 @@ object -> {
     */
   def unapply[F[_]](req: Request[F]): Some[(Method, Path)] =
     Some((req.method, req.pathInfo))
+}
+
+object ->> {
+  private val allMethods = Method.all.toSet
+
+  /** Extractor to match an http resource and then enumerate all supported methods:
+    * {{{
+    *   (request.method, Path(request.path)) match {
+    *     case withMethod -> Root / "test.json" => withMethod {
+    *       case Method.GET -> ...
+    *       case Method.POST -> ...   
+    * }}}
+    * 
+    * Returns an error response if the method is not matched, in accordance with [[https://datatracker.ietf.org/doc/html/rfc7231#section-4.1 RFC7231]]
+    */
+  def unapply[F[_]: Applicative](
+      req: Request[F]): Some[(PartialFunction[Method, F[Response[F]]] => F[Response[F]], Path)] =
+    Some {
+      (
+        pf =>
+          pf.applyOrElse(
+            req.method,
+            (method: Method) =>
+              Applicative[F].pure {
+                if (allMethods.contains(method)) {
+                  Response(
+                    status = Status.MethodNotAllowed,
+                    headers = Headers(Allow(allMethods.filter(pf.isDefinedAt))))
+                } else { Response(status = Status.NotImplemented) }
+              }
+          ),
+        req.pathInfo)
+
+    }
 }
 
 class MethodConcat(val methods: Set[Method]) {
