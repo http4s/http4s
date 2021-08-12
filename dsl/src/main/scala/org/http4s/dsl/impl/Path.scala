@@ -107,9 +107,9 @@ object ->> {
     *   (request.method, Path(request.path)) match {
     *     case withMethod -> Root / "test.json" => withMethod {
     *       case Method.GET => ...
-    *       case Method.POST => ...   
+    *       case Method.POST => ...
     * }}}
-    * 
+    *
     * Returns an error response if the method is not matched, in accordance with [[https://datatracker.ietf.org/doc/html/rfc7231#section-4.1 RFC7231]]
     */
   def unapply[F[_]: Applicative](
