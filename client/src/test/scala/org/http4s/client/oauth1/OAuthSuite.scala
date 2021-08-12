@@ -179,7 +179,7 @@ class OAuthSuite extends Http4sSuite {
         verifier = None
       )
       .map { req =>
-        val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8)
+        val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8.name)
 
         assertEquals(
           req.headers.get[Authorization],
