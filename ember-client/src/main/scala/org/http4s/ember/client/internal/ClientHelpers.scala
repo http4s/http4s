@@ -131,8 +131,8 @@ private[client] object ClientHelpers {
       processedReq <- preprocessRequest(request, userAgent)
       res <- writeRead(processedReq)
     } yield res
-  }.adaptError{
-    case e@org.http4s.ember.core.EmptyStreamError() => new ClosedChannelException(){
+  }.adaptError { case e @ org.http4s.ember.core.EmptyStreamError() =>
+    new ClosedChannelException() {
       initCause(e)
     }
   }
@@ -203,12 +203,14 @@ private[client] object ClientHelpers {
     // import org.http4s.headers.`Idempotency-Key`
 
     private val retryNow = 0.seconds.some
-    def retryUntilFresh[F[_]]: RetryPolicy[F] = {(req, result, retries) =>
+    def retryUntilFresh[F[_]]: RetryPolicy[F] = { (req, result, retries) =>
       if (emberDeadFromPoolPolicy(req, result) && retries <= 2) retryNow
       else None
     }
 
-    def emberDeadFromPoolPolicy[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
+    def emberDeadFromPoolPolicy[F[_]](
+        req: Request[F],
+        result: Either[Throwable, Response[F]]): Boolean =
       (req.method.isIdempotent || req.headers.get("idempotency-key".ci).isDefined) &&
         isEmptyStreamError(result)
 
@@ -216,8 +218,9 @@ private[client] object ClientHelpers {
       result match {
         case Right(_) => false
         // case Left(EmberException.EmptyStream()) => true // Next version can be accessed by users
-        case Left(org.http4s.ember.core.EmptyStreamError()) => true // Note this is private in http4s in 0.21
+        case Left(org.http4s.ember.core.EmptyStreamError()) =>
+          true // Note this is private in http4s in 0.21
         case _ => false
       }
-    }
+  }
 }

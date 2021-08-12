@@ -68,7 +68,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent,
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
-      retryPolicy: RetryPolicy[F] = self.retryPolicy,
+      retryPolicy: RetryPolicy[F] = self.retryPolicy
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       blockerOpt = blockerOpt,
@@ -122,7 +122,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def withoutCheckEndpointAuthentication = copy(checkEndpointIdentification = false)
 
-  def withRetryPolicy(retryPolicy: RetryPolicy[F]) = 
+  def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
     copy(retryPolicy = retryPolicy)
 
   def build: Resource[F, Client[F]] =
