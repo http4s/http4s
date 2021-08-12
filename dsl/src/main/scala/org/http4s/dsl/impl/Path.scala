@@ -105,7 +105,7 @@ object ->> {
   /** Extractor to match an http resource and then enumerate all supported methods:
     * {{{
     *   (request.method, Path(request.path)) match {
-    *     case withMethod -> Root / "test.json" => withMethod {
+    *     case withMethod ->> Root / "test.json" => withMethod {
     *       case Method.GET => ...
     *       case Method.POST => ...
     * }}}
