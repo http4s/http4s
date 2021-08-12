@@ -75,17 +75,10 @@ class OAuthSuite extends Http4sSuite {
     assert(oauth1.genBaseString(Method.GET, uri, allParams) == specBaseString)
   }
 
-  test("OAuth support should generate a correct HMAC-SHA1 signature by default") {
-    assert(
-      oauth1.makeSHASig(specBaseString, consumer, Some(token)) == "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
-
-  }
-
-  test("OAuth support should generate a Authorization header") {
-    val auth =
-      oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
-    val creds = auth.credentials
-    assert(creds.authScheme == ci"OAuth")
+  test("OAuth support should generate a correct HMAC-SHA1 signature") {
+    assertEquals(
+      oauth1.makeSHASig(specBaseString, consumer.secret, Some(token.value), HmacSha1),
+      "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
   }
 
   test("OAuth support should generate a Authorization header with config") {
