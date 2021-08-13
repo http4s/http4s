@@ -97,6 +97,12 @@ object Renderer {
         writer.addNel(values)
     }
 
+  implicit def listRenderer[T: Renderer]: Renderer[List[T]] =
+    new Renderer[List[T]] {
+      override def render(writer: Writer, values: List[T]): writer.type =
+        writer.addList(values)
+    }
+
   implicit def setRenderer[T: Renderer]: Renderer[Set[T]] =
     new Renderer[Set[T]] {
       override def render(writer: Writer, values: Set[T]): writer.type =
@@ -190,6 +196,18 @@ trait Writer {
     }
     append(end)
   }
+
+  def addList[T: Renderer](
+      s: List[T],
+      sep: String = ", ",
+      start: String = "",
+      end: String = ""): this.type =
+    NonEmptyList.fromList(s) match {
+      case Some(s) => addNel(s, sep, start, end)
+      case None =>
+        append(start)
+        append(end)
+    }
 
   def addNel[T: Renderer](
       s: NonEmptyList[T],
