@@ -25,6 +25,8 @@ class AcceptLanguageSuite extends HeaderLaws {
   val english = LanguageTag("en")
   val spanish = LanguageTag("es")
 
+  checkAll("AcceptLanguage", headerLaws[`Accept-Language`])
+
   test("is satisfied by a language tag if the q value is > 0") {
     forAll { (h: `Accept-Language`, cc: LanguageTag) =>
       h.qValue(cc) > QValue.Zero ==> h.satisfiedBy(cc)
@@ -33,7 +35,7 @@ class AcceptLanguageSuite extends HeaderLaws {
 
   test("is not satisfied by a language tag if the q value is 0") {
     forAll { (h: `Accept-Language`, cc: LanguageTag) =>
-      !(`Accept-Language`(h.values.map(_.copy(q = QValue.Zero))).satisfiedBy(cc))
+      !`Accept-Language`(h.values.map(_.copy(q = QValue.Zero))).satisfiedBy(cc)
     }
   }
 

@@ -19,7 +19,6 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 
 object `Accept-Language` {
@@ -35,7 +34,7 @@ object `Accept-Language` {
     import org.http4s.internal.parsing.Rfc7230.headerRep1
 
     val languageTag =
-      (string(alpha.rep) ~ (ch('-') *> Rfc7230.token).rep0 ~ QValue.parser).map {
+      ((alpha.rep | charIn('*')).string ~ (ch('-') *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map {
         case ((main, sub), q) => LanguageTag(main, q, sub)
       }
 

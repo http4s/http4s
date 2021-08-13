@@ -103,6 +103,9 @@ private[http4s] trait ArbitraryInstances {
   val genToken: Gen[String] =
     nonEmptyListOf(genTchar).map(_.mkString)
 
+  val genAlphaToken: Gen[String] =
+    nonEmptyListOf(alphaChar).map(_.mkString)
+
   val genNonTchar = frequency(
     4 -> oneOf(Set(0x00.toChar to 0x7f.toChar: _*) -- tchars),
     1 -> oneOf(0x100.toChar to Char.MaxValue)
@@ -112,7 +115,7 @@ private[http4s] trait ArbitraryInstances {
     a <- stringOf(genTchar)
     b <- nonEmptyListOf(genNonTchar).map(_.mkString)
     c <- stringOf(genChar)
-  } yield (a + b + c)
+  } yield a + b + c
 
   val genVchar: Gen[Char] =
     oneOf('\u0021' to '\u007e')
@@ -358,8 +361,8 @@ private[http4s] trait ArbitraryInstances {
   def genLanguageTagNoQuality: Gen[LanguageTag] =
     frequency(
       3 -> (for {
-        primaryTag <- genToken
-        subTags <- frequency(4 -> Nil, 1 -> listOf(genToken))
+        primaryTag <- genAlphaToken
+        subTags <- frequency(4 -> Nil, 1 -> listOf(genAlphaToken))
       } yield LanguageTag(primaryTag, subTags = subTags)),
       1 -> const(LanguageTag.`*`)
     )
