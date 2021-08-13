@@ -27,7 +27,7 @@ import scala.scalajs.js.typedarray.Uint8Array
 
 object DomEntityEncoder {
 
-  def fileEncoder[F[_]](implicit F: Async[F]): EntityEncoder[F, File] =
+  implicit def fileEncoder[F[_]](implicit F: Async[F]): EntityEncoder[F, File] =
     EntityEncoder.entityBodyEncoder.contramap { file =>
       Stream
         .bracketCase {
@@ -37,7 +37,7 @@ object DomEntityEncoder {
         .flatMap(readableStreamToStream[F])
     }
 
-  def readableStreamEncoder[F[_]: Async]: EntityEncoder[F, ReadableStream[Uint8Array]] =
+  implicit def readableStreamEncoder[F[_]: Async]: EntityEncoder[F, ReadableStream[Uint8Array]] =
     EntityEncoder.entityBodyEncoder.contramap { rs =>
       readableStreamToStream(rs)
     }
