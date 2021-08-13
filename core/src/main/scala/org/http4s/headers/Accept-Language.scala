@@ -34,8 +34,9 @@ object `Accept-Language` {
     import org.http4s.internal.parsing.Rfc7230.headerRep1
 
     val languageTag =
-      ((alpha.rep | charIn('*')).string ~ (ch('-') *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map {
-        case ((main, sub), q) => LanguageTag(main, q, sub)
+      ((alpha.rep | charIn('*')).string ~ (ch(
+        '-') *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map { case ((main, sub), q) =>
+        LanguageTag(main, q, sub)
       }
 
     headerRep1(languageTag).map(tags => `Accept-Language`(tags.head, tags.tail: _*))
