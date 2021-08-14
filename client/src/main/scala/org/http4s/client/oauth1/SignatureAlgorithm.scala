@@ -43,35 +43,33 @@ object SignatureAlgorithm {
 
   private[this] val AllMethods = List(HmacSha1, HmacSha256, HmacSha512)
 
-  /**
-   * Map a [[SignatureMethod]] protocol parameter to a [[SignatureAlgorithm]] implementation
-   *
-   * @param method The signature method protocol parameter
-   * @return The implementation, or an [[IllegalArgumentException]] if none was found
-   */
+  /** Map a [[SignatureMethod]] protocol parameter to a [[SignatureAlgorithm]] implementation
+    *
+    * @param method The signature method protocol parameter
+    * @return The implementation, or an [[IllegalArgumentException]] if none was found
+    */
   private[oauth1] def unsafeFromMethod(method: SignatureMethod): SignatureAlgorithm =
-    AllMethods.find(_.name == method.headerValue)
-    .getOrElse(throw new IllegalArgumentException(s"Unrecognized headerValue '${method.headerValue}', Valid options are: ${AllMethods.map(_.name)}"))
+    AllMethods
+      .find(_.name == method.headerValue)
+      .getOrElse(throw new IllegalArgumentException(
+        s"Unrecognized headerValue '${method.headerValue}', Valid options are: ${AllMethods.map(_.name)}"))
 
 }
 
-/**
- * Implementations for Oauth1 signatures.
- */
+/** Implementations for Oauth1 signatures.
+  */
 trait SignatureAlgorithm {
 
-  /**
-   * @return The signature method name per the oauth1.0 spec
-   */
+  /** @return The signature method name per the oauth1.0 spec
+    */
   def name: String
 
-  /**
-   * Apply the implementation's algorithm to the input
-   *
-   * @param input The input value
-   * @param secretKey The secret key
-   * @return The base64-encoded output
-   */
+  /** Apply the implementation's algorithm to the input
+    *
+    * @param input The input value
+    * @param secretKey The secret key
+    * @return The base64-encoded output
+    */
   def generate(input: String, secretKey: String): String
 
   private[oauth1] def generateHMAC(input: String, algorithm: String, secretKey: String): String = {
@@ -86,34 +84,33 @@ trait SignatureAlgorithm {
   }
 }
 
-/**
- * An implementation of the `HMAC-SHA1` oauth signature method.
- *
- * This uses the `HmacSHA1` implementation which every java platform is required to have.
- */
+/** An implementation of the `HMAC-SHA1` oauth signature method.
+  *
+  * This uses the `HmacSHA1` implementation which every java platform is required to have.
+  */
 object HmacSha1 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA1`
-  override def generate(input: String, secretKey: String): String = generateHMAC(input, "HmacSHA1", secretKey)
+  override def generate(input: String, secretKey: String): String =
+    generateHMAC(input, "HmacSHA1", secretKey)
 }
 
-/**
- * An implementation of the `HMAC-SHA256` oauth signature method.
- *
- * This uses the `HmacSHA256` implementation which every java platform is required to have.
- */
+/** An implementation of the `HMAC-SHA256` oauth signature method.
+  *
+  * This uses the `HmacSHA256` implementation which every java platform is required to have.
+  */
 object HmacSha256 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA256`
-  override def generate(input: String, secretKey: String): String = generateHMAC(input, "HmacSHA256", secretKey)
+  override def generate(input: String, secretKey: String): String =
+    generateHMAC(input, "HmacSHA256", secretKey)
 }
 
-/**
- * An implementation of the `HMAC-SHA512` oauth signature method.
- *
- * WARNING - This uses the `HmacSHA512` implementation which is *not* required to be present by the Java spec.
- * (However, most modern Java runtimes tend to have it)
- */
+/** An implementation of the `HMAC-SHA512` oauth signature method.
+  *
+  * WARNING - This uses the `HmacSHA512` implementation which is *not* required to be present by the Java spec.
+  * (However, most modern Java runtimes tend to have it)
+  */
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`
-  override def generate(input: String, secretKey: String): String = generateHMAC(input, "HmacSHA512", secretKey)
+  override def generate(input: String, secretKey: String): String =
+    generateHMAC(input, "HmacSHA512", secretKey)
 }
-
