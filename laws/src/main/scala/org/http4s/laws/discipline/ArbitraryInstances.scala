@@ -35,6 +35,7 @@ import java.time._
 import java.util.Locale
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.http4s.laws.discipline.ArbitraryInstances.genAlphaToken
 import org.http4s.syntax.literals._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
@@ -102,9 +103,6 @@ private[http4s] trait ArbitraryInstances {
 
   val genToken: Gen[String] =
     nonEmptyListOf(genTchar).map(_.mkString)
-
-  val genAlphaToken: Gen[String] =
-    nonEmptyListOf(alphaChar).map(_.mkString)
 
   val genNonTchar = frequency(
     4 -> oneOf(Set(0x00.toChar to 0x7f.toChar: _*) -- tchars),
@@ -944,6 +942,9 @@ private[http4s] trait ArbitraryInstances {
 
 object ArbitraryInstances extends ArbitraryInstances {
   // http4s-0.21: add extra values here to prevent binary incompatibility.
+
+  val genAlphaToken: Gen[String] =
+    nonEmptyListOf(alphaChar).map(_.mkString)
 
   val genOptWs: Gen[String] = option(genLws).map(_.orEmpty)
 
