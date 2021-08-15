@@ -50,7 +50,7 @@ trait RequestDsl extends Methods with Auth {
   type FlagQueryParamMatcher = impl.FlagQueryParamMatcher
   type OptionalValidatingQueryParamDecoderMatcher[T] =
     impl.OptionalValidatingQueryParamDecoderMatcher[T]
-  type RequiredQueryParamDecoderMatcher[F[_], T] = impl.RequiredQueryParamDecoderMatcher[F, T]
+  type RequiredQueryParamDecoderMatcher[T] = impl.RequiredQueryParamDecoderMatcher[T]
 
   implicit def http4sMethodSyntax(method: Method): MethodOps =
     new MethodOps(method)

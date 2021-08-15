@@ -385,6 +385,22 @@ abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](
     }
 }
 
+sealed abstract class BadQuery
+
+object BadQuery {
+  final case class MissingRequiredParam(param: String) extends BadQuery
+  final case class InvalidParam(param: String, errors: NonEmptyList[ParseFailure]) extends BadQuery
+
+  implicit class ops[A](self: ValidatedNel[BadQuery, A]) {
+    def respondWith[F[_]: Applicative](f: A => F[Response[F]]) = {
+      implicit val dsl: Http4sDsl[F] = org.http4s.dsl.Http4sDsl[F]
+      import dsl._
+
+      self.fold(errors => BadRequest(errors.toString), f)
+    }
+  }
+}
+
 /** param extractor using [[org.http4s.QueryParamDecoder]]. This will alway match, returning
   * a higher order function that can be used to extract the parameter if present and parseable,
   * and which will generate an error otherwise.
@@ -395,26 +411,22 @@ abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](
   *
   *  object FooMatcher extends RequiredQueryParamDecoderMatcher[Foo]("foo")
   *  val routes: HttpRoutes.of = {
-  *    case GET -> Root / "closest" :? FooMatcher(withFooValue) =>
-  *      withFooValue { fooValue => Ok(...) }
+  *    case GET -> Root / "closest" :? FooMatcher(foo) =>
+  *      foo.respondWith { fooValue => Ok(...) }
   * }}}
   */
-abstract class RequiredQueryParamDecoderMatcher[F[_]: Applicative, T: QueryParamDecoder](
-    name: String) {
-  implicit private val dsl: Http4sDsl[F] = org.http4s.dsl.Http4sDsl[F]
-  import dsl._
 
-  def unapply(
-      params: Map[String, collection.Seq[String]]): Some[(T => F[Response[F]]) => F[Response[F]]] =
+abstract class RequiredQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapply(params: Map[String, collection.Seq[String]]): Some[ValidatedNel[BadQuery, T]] =
     Some {
       params
         .get(name)
         .flatMap(_.headOption)
-        .fold((_: (T => F[Response[F]])) => BadRequest(s"Missing required query parameter $name")) {
-          s =>
-            QueryParamDecoder[T]
-              .decode(QueryParameterValue(s))
-              .fold(errors => BadRequest(errors.map(_.sanitized).mkString_("", ",", "")), _)
+        .fold[ValidatedNel[BadQuery, T]](
+          Validated.Invalid(NonEmptyList.one(BadQuery.MissingRequiredParam(name)))) { s =>
+          QueryParamDecoder[T]
+            .decode(QueryParameterValue(s))
+            .leftMap(errors => NonEmptyList.one(BadQuery.InvalidParam(name, errors)))
         }
     }
 }
