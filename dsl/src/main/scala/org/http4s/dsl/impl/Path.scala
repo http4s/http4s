@@ -30,10 +30,10 @@ import cats.data.Validated._
 import cats.syntax.all._
 import org.http4s._
 import scala.util.Try
-import cats.Foldable
-import cats.Monad
+import cats.{Applicative, Foldable, Monad}
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path._
+import org.http4s.dsl.Http4sDsl
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -382,5 +382,51 @@ abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](
         s =>
           Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))
       }
+    }
+}
+
+sealed abstract class BadQuery
+
+object BadQuery {
+  final case class MissingRequiredParam(param: String) extends BadQuery
+  final case class InvalidParam(param: String, errors: NonEmptyList[ParseFailure]) extends BadQuery
+
+  implicit class ops[A](self: ValidatedNel[BadQuery, A]) {
+    def respondWith[F[_]: Applicative](f: A => F[Response[F]]) = {
+      implicit val dsl: Http4sDsl[F] = org.http4s.dsl.Http4sDsl[F]
+      import dsl._
+
+      self.fold(errors => BadRequest(errors.toString), f)
+    }
+  }
+}
+
+/** param extractor using [[org.http4s.QueryParamDecoder]]. This will alway match, returning
+  * a higher order function that can be used to extract the parameter if present and parseable,
+  * and which will generate an error otherwise.
+  *
+  * {{{
+  *  case class Foo(i: Int)
+  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *
+  *  object FooMatcher extends RequiredQueryParamDecoderMatcher[Foo]("foo")
+  *  val routes: HttpRoutes.of = {
+  *    case GET -> Root / "closest" :? FooMatcher(foo) =>
+  *      foo.respondWith { fooValue => Ok(...) }
+  * }}}
+  */
+
+abstract class RequiredQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapply(params: Map[String, collection.Seq[String]]): Some[ValidatedNel[BadQuery, T]] =
+    Some {
+      params
+        .get(name)
+        .flatMap(_.headOption)
+        .fold[ValidatedNel[BadQuery, T]](
+          Validated.Invalid(NonEmptyList.one(BadQuery.MissingRequiredParam(name)))) { s =>
+          QueryParamDecoder[T]
+            .decode(QueryParameterValue(s))
+            .leftMap(errors => NonEmptyList.one(BadQuery.InvalidParam(name, errors)))
+        }
     }
 }
