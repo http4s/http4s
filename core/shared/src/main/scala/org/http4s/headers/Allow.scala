@@ -42,7 +42,8 @@ object Allow {
 }
 
 /** A Response header that lists the methods that are supported by the target resource.
-  * Often attached to responses with status  [[https://tools.ietf.org/html/rfc7231#section-6.5.5 405 Not Allowed]].
+  * Must be attached to responses with status  [[https://tools.ietf.org/html/rfc7231#section-6.5.5 405 Not Allowed]],
+  * though in practice not all servers honor this.
   *
   * [[https://tools.ietf.org/html/rfc7231#section-7.4.1 RFC-7231 Section 7.4.1 Allow]]
   */

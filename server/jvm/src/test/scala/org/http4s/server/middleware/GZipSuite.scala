@@ -66,6 +66,20 @@ class GZipSuite extends Http4sSuite {
     }.assert
   }
 
+  test("doesn't encode responses with HTTP status that doesn't allow entity") {
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
+      NoContent()
+    }
+
+    val gzipRoutes: HttpRoutes[IO] = GZip(routes)
+
+    val req: Request[IO] = Request[IO](Method.GET, uri"/")
+      .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
+    val resp: IO[Response[IO]] = gzipRoutes.orNotFound(req)
+
+    resp.map(_.headers.get[`Content-Encoding`].isEmpty).assert
+  }
+
   test("encoding") {
     PropF.forAllF { (vector: Vector[Array[Byte]]) =>
       val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>

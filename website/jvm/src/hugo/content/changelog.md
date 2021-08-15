@@ -8,6 +8,10 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.26 (2021-08-12)
+
+The 0.21 series is no longer actively maintained by the team, but we'll continue to entertain binary compatible patches.  All users are still encouraged to upgrade to 0.22 (for Cats-Effect 2) or 0.23 (the latest stable series, on Cats-Effect 3).
+
 # v1.0.0-M24 (2020-08-07)
 
 This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and browser service worker apps.
@@ -127,6 +131,11 @@ Includes all changes through 0.23.1.
 * scala-java-locales-1.2.1 (new)
 * scala-java-time-2.3.0 (new)
 * scala-js-dom-1.1.0 (new)
+=======
+* [#5064](https://github.com/http4s/http4s/pull/5064): Add a conservative retry policy for dead connections.  Connections can be terminated on the server side while idling in our pool, which does not manifest until we attempt to read the response.  This is now raised as a `java.nio.channels.ClosedChannelException`.   A `retryPolicy` configuration has been added to the `EmberClientBuilder`.  The default policy handles the error and resubmits the request if:
+   * The request method is idempotent OR has an `Idempotency-Key` header
+   * Less than 2 attempts have been made
+   * Ember detects that the connection was closed without reading any bytes
 
 # v0.23.1 (2021-08-06)
 

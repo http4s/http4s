@@ -76,7 +76,7 @@ class OAuthSuite extends Http4sSuite {
 
   test("OAuth support should generate a correct HMAC-SHA1 signature") {
     assertIO(
-      oauth1.makeSHASig[IO](specBaseString, consumer.secret, Some(token.value), HmacSha1),
+      oauth1.makeSHASig[IO](specBaseString, consumer.secret, Some(token.secret), HmacSha1),
       "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
   }
 
@@ -186,7 +186,7 @@ class OAuthSuite extends Http4sSuite {
         verifier = None
       )
       .map { req =>
-        val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8)
+        val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8.name)
 
         assertEquals(
           req.headers.get[Authorization],

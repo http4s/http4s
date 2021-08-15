@@ -29,12 +29,11 @@ import org.http4s.headers.Connection
 import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
 import org.http4s.ember.core.Util._
 import org.http4s.headers.Date
-import org.http4s.server.{SecureSession, ServerRequestKeys}
+import org.http4s.server.ServerRequestKeys
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
 
 import scala.concurrent.duration._
-import scodec.bits.ByteVector
 
 private[server] object ServerHelpers extends ServerHelpersPlatform {
 

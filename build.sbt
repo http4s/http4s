@@ -456,7 +456,10 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
-    libraryDependencies += keypool.value
+    libraryDependencies += keypool.value,
+    mimaBinaryIssueFilters := Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
+    )
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
   .jsSettings(
