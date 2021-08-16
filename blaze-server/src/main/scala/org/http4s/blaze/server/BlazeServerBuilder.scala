@@ -30,6 +30,7 @@ import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import java.util.concurrent.ThreadFactory
 import javax.net.ssl._
+import org.http4s.{BuildInfo => Http4sBuildInfo}
 import org.http4s.blaze.channel._
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
@@ -374,7 +375,7 @@ class BlazeServerBuilder[F[_]] private (
           .foreach(logger.info(_))
 
         logger.info(
-          s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
+          s"http4s v${Http4sBuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
       })
 
     for {
