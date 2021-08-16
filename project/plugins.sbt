@@ -4,7 +4,7 @@ libraryDependencies += "org.scala-js" %% "scalajs-env-selenium" % "1.1.1"
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"
 
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.29")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.30")
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "4.2.4")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
 addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.4.3")
