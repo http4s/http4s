@@ -28,7 +28,7 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
   val :? : impl.:?.type = impl.:?
   val ~ : impl.~.type = impl.~
   val -> : impl.->.type = impl.->
-  val ->> : impl.->>.type = impl.->>
+  def ->> : impl.->>.type = impl.->>
   val /: : impl./:.type = impl./:
   val +& : impl.+&.type = impl.+&
 
