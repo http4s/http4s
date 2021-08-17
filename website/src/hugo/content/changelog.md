@@ -12,6 +12,10 @@ it.
 
 ## http4s-core
 
+### Semantic changes
+
+* [#5073](https://github.com/http4s/http4s/pull/5073): `withEntity` now replaces any existing headers with the same name with the headers from the `EntityEncoder`.  In v0.21, known single headers were replaced and recurring headers were appended.  Beginning in 0.22.0, everything was appended, which commonly resulted in duplicate `Content-Type` headers.  There is no longer a global registry of headers to infer singleton vs. recurring semantics, but in practice, `EntityEncoder` headers are single, so this is more correct and more similar to the pre-0.22 behavior.
+
 ### Bugfixes
 
 * [#5076](https://github.com/http4s/http4s/pull/5076): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
@@ -61,9 +65,15 @@ it.
 
 * [#5040](https://github.com/http4s/http4s/pull/5040): `maxConcurrency` is renamed to `maxConnections`.  The former is now deprecated.
 
+## http4s-dsl
+
+### Enhancements
+
+* [#5063](https://github.com/http4s/http4s/pull/5063): Added `->>` infix extractor for a resource-oriented view of routing. Use this to define resource paths only once, and generate proper `405` responses with a correct `Allow` header when the method is not handled.
+
 ## Dependency updates
 
-
+* netty-4.1.67
 
 # v0.21.26 (2021-08-12)
 
