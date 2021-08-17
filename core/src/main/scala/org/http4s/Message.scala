@@ -25,6 +25,7 @@ import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
 import java.io.File
 import org.http4s.headers._
+import org.http4s.syntax.{KleisliSyntax, KleisliSyntaxBinCompat0, KleisliSyntaxBinCompat1}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
@@ -663,7 +664,7 @@ final class Response[F[_]] private (
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
 }
 
-object Response {
+object Response extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliSyntaxBinCompat1 {
 
   /** Representation of the HTTP response to send back to the client
     *
