@@ -300,22 +300,22 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("flag not present")
   }
-  test("Path DSL with -->> should match on GET") {
+  test("Path DSL with ->> should match on GET") {
     val response = serve(Request(GET, Uri(path = path"/resource")))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("get resource")
   }
-  test("Path DSL with -->> should match on POST") {
+  test("Path DSL with ->> should match on POST") {
     val response = serve(Request(POST, Uri(path = path"/resource")))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("post resource")
   }
-  test("Path DSL with -->> should return Method Not Allowed on DELETE") {
+  test("Path DSL with ->> should return Method Not Allowed on DELETE") {
     val response = serve(Request(DELETE, Uri(path = path"/resource")))
     response.map(_.status).assertEquals(MethodNotAllowed) *>
       response.map(_.headers.get[Allow]).assertEquals(Some(Allow(GET, POST)))
   }
-  test("Path DSL with -->> should return Not Implemented on CHICKEN") {
+  test("Path DSL with ->> should return Not Implemented on CHICKEN") {
     val response = IO.fromEither(Method.fromString("CHICKEN")).flatMap { chicken =>
       serve(Request(chicken, Uri(path = path"/resource")))
     }
