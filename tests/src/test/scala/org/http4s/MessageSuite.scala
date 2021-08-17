@@ -18,10 +18,12 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Pure
 import org.http4s.headers.{Authorization, Cookie, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.syntax.all._
+import org.typelevel.ci._
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
@@ -291,5 +293,17 @@ class MessageSuite extends Http4sSuite {
     trait F2[A] extends F1[A]
     Response[F2]().covary[F1]
     true
+  }
+
+  test("withEntity should not duplicate Content-Type header") {
+    // https://github.com/http4s/http4s/issues/5059
+    val hdrs = Request[IO]()
+      .putHeaders(`Content-Type`(MediaType.text.html))
+      .withEntity[String]("foo")
+      .headers
+      .headers
+      .filter(_.name === Header[`Content-Type`].name)
+    // Should preserve only the EntityEncoder's Content-Type
+    assertEquals(hdrs, List(Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8")))
   }
 }

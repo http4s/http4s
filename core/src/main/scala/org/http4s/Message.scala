@@ -91,7 +91,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
       case None => w.headers
     }
-    change(body = entity.body, headers = headers.transform(_ ++ hs.headers))
+    change(body = entity.body, headers = headers ++ hs)
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
