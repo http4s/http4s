@@ -23,7 +23,6 @@ import cats.effect._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
-import org.http4s.syntax.kleisli._
 import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
