@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.Parser.{`end`, char, string}
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci._
 
