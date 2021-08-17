@@ -57,3 +57,7 @@ trait RequestDsl extends Methods with Auth {
   implicit def http4sMethodConcatSyntax(methods: MethodConcat): MethodConcatOps =
     new MethodConcatOps(methods)
 }
+
+trait RequestDslBinCompat extends RequestDsl {
+  val ->> : impl.->>.type = impl.->>
+}
