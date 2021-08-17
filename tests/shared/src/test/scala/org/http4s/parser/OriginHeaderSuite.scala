@@ -17,7 +17,6 @@
 package org.http4s
 package parser
 
-import cats.data.NonEmptyList
 import com.comcast.ip4s._
 import org.http4s.headers.Origin
 import org.http4s.syntax.all._
@@ -30,28 +29,23 @@ class OriginHeaderSuite extends munit.FunSuite {
   val hostString2 = "https://127.0.0.1"
 
   test("Origin value method should Render a host with a port number") {
-    val origin: Origin = Origin.HostList(NonEmptyList.of(host1))
+    val origin: Origin = host1
     assertEquals(origin.value, hostString1)
   }
 
   test("Origin value method should Render a host without a port number") {
-    val origin: Origin = Origin.HostList(NonEmptyList.of(host2))
+    val origin: Origin = host2
     assertEquals(origin.value, hostString2)
   }
 
-  test("Origin value method should Render a list of multiple hosts") {
-    val origin: Origin = Origin.HostList(NonEmptyList.of(host1, host2))
-    assertEquals(origin.value, s"$hostString1 $hostString2")
-  }
-
   test("Origin value method should Render an empty origin") {
-    val origin: Origin = Origin.Null
+    val origin: Origin = Origin.`null`
     assertEquals(origin.value, "null")
   }
 
   test("OriginHeader parser should Parse a host with a port number") {
     val text = hostString1
-    val origin = Origin.HostList(NonEmptyList.of(host1))
+    val origin = host1
     val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
@@ -59,31 +53,22 @@ class OriginHeaderSuite extends munit.FunSuite {
 
   test("OriginHeader parser should Parse a host without a port number") {
     val text = hostString2
-    val origin = Origin.HostList(NonEmptyList.of(host2))
+    val origin = host2
     val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
   }
 
-  test("OriginHeader parser should Parse a list of multiple hosts") {
+  test("OriginHeader should error on a list of multiple hosts") {
     val text = s"$hostString1 $hostString2"
-    val origin = Origin.HostList(NonEmptyList.of(host1, host2))
     val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
-    assertEquals(extracted, Some(origin))
-  }
-
-  test("OriginHeader parser should Parse an empty origin") {
-    val text = ""
-    val origin = Origin.Null
-    val headers = Headers(("Origin", text))
-    val extracted = headers.get[Origin]
-    assertEquals(extracted, Some(origin))
+    assertEquals(extracted, None)
   }
 
   test("OriginHeader parser should Parse a 'null' origin") {
     val text = "null"
-    val origin = Origin.Null
+    val origin = Origin.`null`
     val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
