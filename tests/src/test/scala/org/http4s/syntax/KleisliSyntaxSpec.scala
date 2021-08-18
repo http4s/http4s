@@ -36,7 +36,7 @@ class KleisliSyntaxTests {
     .translate[Kleisli[IO, Int, *]](Kleisli.liftK)(Kleisli.applyK(42))
 
   // translate syntax should work on AuthedRoutes
-  val authedRoutes: AuthedRoutes[String, IO] = AuthedRoutes
+  val authedRoutes: AuthedRoutes[String, Kleisli[IO, Int, *]] = AuthedRoutes
     .of[String, IO] { case _ =>
       IO(Response[IO](Status.Ok))
     }
