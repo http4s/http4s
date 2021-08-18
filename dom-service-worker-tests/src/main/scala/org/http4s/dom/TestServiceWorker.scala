@@ -22,7 +22,6 @@ import cats.effect.unsafe.implicits._
 import org.http4s.ContextRoutes
 import org.http4s.server.ServerRouteTestBattery
 import org.scalajs.dom.experimental.serviceworkers.ExtendableEvent
-import org.scalajs.dom.experimental.serviceworkers.FetchEvent
 import org.scalajs.dom.experimental.serviceworkers.ServiceWorkerGlobalScope
 
 object TestServiceWorker {
@@ -37,7 +36,7 @@ object TestServiceWorker {
         )
     )
 
-    val routes = ContextRoutes[FetchEvent, IO] { request =>
+    val routes = ContextRoutes[FetchEventContext[IO], IO] { request =>
       OptionT.liftF(ServerRouteTestBattery.App(request.req))
     }
 

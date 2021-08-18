@@ -19,7 +19,6 @@ package dom
 
 import cats.effect.Async
 import cats.effect.Resource
-import cats.syntax.all._
 import org.http4s.client.Client
 import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.Fetch
@@ -49,15 +48,7 @@ object FetchClient {
         } { case (r, exitCase) =>
           closeReadableStream(r.body, exitCase)
         }
-        .evalMap { response =>
-          F.fromEither(Status.fromInt(response.status)).map { status =>
-            Response[F](
-              status = status,
-              headers = fromDomHeaders(response.headers),
-              body = readableStreamToStream(response.body)
-            )
-          }
-        }
+        .evalMap(fromResponse[F])
 
     }
   }

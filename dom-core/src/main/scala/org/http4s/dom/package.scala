@@ -17,16 +17,27 @@
 package org.http4s
 
 import cats.effect.kernel.Async
+import cats.effect.kernel.Resource
 import cats.syntax.all._
 import fs2.Stream
 import org.scalajs.dom.experimental.ReadableStream
 import org.scalajs.dom.experimental.{Headers => DomHeaders}
+import org.scalajs.dom.experimental.{Response => DomResponse}
 
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.typedarray.Uint8Array
-import cats.effect.kernel.Resource
 
 package object dom {
+
+  private[dom] def fromResponse[F[_]](response: DomResponse)(implicit
+      F: Async[F]): F[Response[F]] =
+    F.fromEither(Status.fromInt(response.status)).map { status =>
+      Response[F](
+        status = status,
+        headers = fromDomHeaders(response.headers),
+        body = fromReadableStream(response.body)
+      )
+    }
 
   private[dom] def toDomHeaders(headers: Headers): DomHeaders =
     new DomHeaders(
@@ -44,7 +55,7 @@ package object dom {
       }.toList
     )
 
-  private[dom] def readableStreamToStream[F[_]](rs: ReadableStream[Uint8Array])(implicit
+  private[dom] def fromReadableStream[F[_]](rs: ReadableStream[Uint8Array])(implicit
       F: Async[F]): Stream[F, Byte] =
     Stream
       .bracket(F.delay(rs.getReader()))(r => F.delay(r.releaseLock()))

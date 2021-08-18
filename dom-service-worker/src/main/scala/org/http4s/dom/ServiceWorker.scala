@@ -41,7 +41,7 @@ object ServiceWorker {
     * If the event is not intercepted by `routes` then it is treated as an ordinary request.
     * @return an action for removing the listener.
     */
-  def addFetchEventListener(routes: IO[ContextRoutes[FetchEvent, IO]])(implicit
+  def addFetchEventListener(routes: IO[ContextRoutes[FetchEventContext[IO], IO]])(implicit
       runtime: IORuntime): SyncIO[SyncIO[Unit]] = for {
     handler <- Deferred.in[SyncIO, IO, Either[Throwable, FetchEventListener[IO]]]
     _ <- SyncIO(
@@ -60,7 +60,7 @@ object ServiceWorker {
 
   private type FetchEventListener[F[_]] = Kleisli[OptionT[F, *], FetchEvent, DomResponse]
 
-  private def routesToListener[F[_]](routes: ContextRoutes[FetchEvent, F])(implicit
+  private def routesToListener[F[_]](routes: ContextRoutes[FetchEventContext[F], F])(implicit
       F: Async[F]): FetchEventListener[F] =
     Kleisli { event =>
       val OptionF = Async[OptionT[F, *]]
@@ -74,7 +74,7 @@ object ServiceWorker {
             F.fromPromise(F.delay(req.asInstanceOf[Body].arrayBuffer())).map(Chunk.jsArrayBuffer))
           .covary[F]
         request = Request(method, uri, headers = headers, body = body)
-        response <- routes(ContextRequest(event, request))
+        response <- routes(ContextRequest(FetchEventContext(event), request))
         body <- OptionT.liftF(OptionT(response.body.chunkAll.filter(_.nonEmpty).compile.last).map {
           chunk =>
             arrayBuffer2BufferSource(chunk.toJSArrayBuffer)
