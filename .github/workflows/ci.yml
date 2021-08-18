@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.14, 3.0.1]
+        scala: [2.12.14, 2.13.6, 3.0.1]
         java: [adopt@1.8, adopt@1.11, adopt@1.16]
     runs-on: ${{ matrix.os }}
     steps:
@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.14]
+        scala: [2.13.6]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -214,7 +214,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.14, 3.0.1]
+        scala: [2.12.14, 2.13.6, 3.0.1]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
