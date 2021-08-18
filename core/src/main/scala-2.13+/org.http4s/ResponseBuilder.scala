@@ -66,31 +66,31 @@ object ResponseBuilder {
 }
 
 object ResponseBuilderDemo {
-  val ok: Response[IO] = Response.builder(Status.Ok).withEntity("hi").build[IO]
-  val noContent: Response[IO] = Response.builder(Status.NoContent).build[IO]
+  val ok: Response[IO] = ResponseBuilder(Status.Ok).withEntity("hi").build[IO]
+  val noContent: Response[IO] = ResponseBuilder(Status.NoContent).build[IO]
 
   val `😳` : ResponseBuilder[Ok.type, Nothing, None] =
-    Response.builder(Status.Ok).withEspressoShots(6)
+    ResponseBuilder(Status.Ok).withEspressoShots(6)
 
   //  Response.builder(Status.NoContent).withEntity("hi")
 
   //  [error] http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:62:47: This response status does not allow a body
-  //  [error]   Response.builder(Status.NoContent).withEntity("hi")
-  //  [error]                                               ^
+  //  [error]   ResponseBuilder(Status.NoContent).withEntity("hi")
+  //  [error]                                              ^
 
   //  Response.builder(Status.ImATeapot).withEspressoShots(1)
 
   // dotc:
   //  [error] -- Error: http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:74:57
-  //  [error] 74 |  Response.builder(Status.ImATeapot).withEspressoShots(1)
-  //  [error]    |                                                         ^
-  //  [error]    |                                            teapots cannot brew espresso
+  //  [error] 74 |  ResponseBuilder(Status.ImATeapot).withEspressoShots(1)
+  //  [error]    |                                                        ^
+  //  [error]    |                                           teapots cannot brew espresso
 
   // scalac:
   //  [error] http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:85:55: ambiguous implicit values:
   //  [error]  both method instance1 in object NotGiven of type [A]scala.util.NotGiven[A]
   //  [error]  and method instance2 in object NotGiven of type [A](implicit ev: A): scala.util.NotGiven[A]
   //  [error]  match expected type scala.util.NotGiven[org.http4s.Status.ImATeapot.type <:< org.http4s.Status.Aux[418, _]]
-  //  [error]   Response.builder(Status.ImATeapot).withEspressoShots(1)
-  //  [error]                                                       ^
+  //  [error]   ResponseBuilder(Status.ImATeapot).withEspressoShots(1)
+  //  [error]                                                      ^
 }

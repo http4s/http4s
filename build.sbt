@@ -139,6 +139,7 @@ lazy val core = libraryProject("core")
       baseDirectory.value / "src" / "main" / "scala-2.13+").filter(_ =>
       !scalaVersion.value.startsWith("2.12")),
     mimaBinaryIssueFilters ++= Seq(
+      // Status is sealed so these are ok
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Status.this"),
       ProblemFilters.exclude[DirectAbstractMethodProblem]("org.http4s.Status.isEntityAllowed"),
       ProblemFilters.exclude[ReversedAbstractMethodProblem]("org.http4s.Status.isEntityAllowed")
