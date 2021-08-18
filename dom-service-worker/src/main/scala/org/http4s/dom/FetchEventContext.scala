@@ -7,7 +7,7 @@ import cats.syntax.all._
 import org.scalajs.dom.experimental.serviceworkers.FetchEvent
 import org.scalajs.dom.experimental.{Response => DomResponse}
 
-final case class FetchEventContext[F[_]](
+final case class FetchEventContext[F[_]] private (
     clientId: String,
     replacesClientId: String,
     resultingClientId: String,

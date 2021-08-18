@@ -29,8 +29,7 @@ import scala.scalajs.js.typedarray.Uint8Array
 
 package object dom {
 
-  private[dom] def fromResponse[F[_]](response: DomResponse)(implicit
-      F: Async[F]): F[Response[F]] =
+  private[dom] def fromResponse[F[_]](response: DomResponse)(implicit F: Async[F]): F[Response[F]] =
     F.fromEither(Status.fromInt(response.status)).map { status =>
       Response[F](
         status = status,
