@@ -24,22 +24,23 @@ import org.scalajs.dom.experimental.serviceworkers.FetchEvent
 import org.scalajs.dom.experimental.{Response => DomResponse}
 
 final class FetchEventContext[F[_]] private (
-    val clientId: String,
-    val replacesClientId: String,
-    val resultingClientId: String,
+    val clientId: Option[String],
+    val replacesClientId: Option[String],
+    val resultingClientId: Option[String],
     val preloadResponse: F[Option[Response[F]]]
 )
 
 object FetchEventContext {
-  private[dom] def apply[F[_]](event: FetchEvent)(implicit F: Async[F]): FetchEventContext[F] =
+  private[dom] def apply[F[_]](_event: FetchEvent)(implicit F: Async[F]): FetchEventContext[F] = {
+    val event = _event.asInstanceOf[scalajs.js.Dynamic] // Literally the entire facade is broken
     new FetchEventContext(
-      event.clientId,
-      event.replacesClientId,
-      event.resultingClientId,
+      event.clientId.asInstanceOf[scalajs.js.UndefOr[String]].toOption,
+      event.replacesClientId.asInstanceOf[scalajs.js.UndefOr[String]].toOption,
+      event.resultingClientId.asInstanceOf[scalajs.js.UndefOr[String]].toOption,
       OptionT(
         F.fromPromise(F.pure(
-          // Another incorrectly typed facade :(
           event.preloadResponse.asInstanceOf[scalajs.js.Promise[scalajs.js.UndefOr[DomResponse]]]))
           .map(_.toOption)).semiflatMap(fromResponse[F]).value
     )
+  }
 }
