@@ -46,7 +46,7 @@ object ServiceWorker {
     handler <- Deferred.in[SyncIO, IO, Either[Throwable, FetchEventListener[IO]]]
     _ <- SyncIO(
       routes.map(routesToListener[IO]).attempt.flatMap(handler.complete).unsafeRunAndForget())
-    jsHandler: scalajs.js.Function1[FetchEvent, Unit] = { event =>
+    jsHandler = { event =>
       event.respondWith {
         OptionT
           .liftF(handler.get.rethrow)
@@ -54,7 +54,7 @@ object ServiceWorker {
           .getOrElseF(IO.fromPromise(IO(Fetch.fetch(event.request))))
           .unsafeToPromise()
       }
-    }
+    }: scalajs.js.Function1[FetchEvent, Unit]
     _ <- SyncIO(ServiceWorkerGlobalScope.self.addEventListener("fetch", jsHandler))
   } yield SyncIO(ServiceWorkerGlobalScope.self.removeEventListener("fetch", jsHandler))
 
