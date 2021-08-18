@@ -17,12 +17,26 @@
 package org.http4s
 
 import cats.effect.IO
+import org.http4s.ResponseBuilder.None
+import org.http4s.Status.Ok
+
+import scala.annotation.{implicitNotFound, unused}
+import scala.util.NotGiven
 
 sealed abstract class ResponseBuilder[S <: Status, Body, G[x] <: Option[x]](
     val s: S,
     val body: G[Body]) {
-  def withEntity[T](b: T)(implicit ev: S <:< Status.Aux[true]): ResponseBuilder[S, T, Some] =
+  def withEntity[T](b: T)(implicit
+      @implicitNotFound(s"This response status does not allow a body") @unused ev: S <:< Status.Aux[
+        _,
+        true]): ResponseBuilder[S, T, Some] =
     new ResponseBuilder(s, Some(b)) {}
+
+  // TODO: implement
+  def withEspressoShots(@unused n: Int)(implicit
+  @implicitNotFound("teapots cannot brew espresso") @unused ev: NotGiven[S <:< Status.Aux[418, _]])
+      : ResponseBuilder[S, Body, G] =
+    this
 
   def build[F[_]](implicit builder: ResponseBuilder.Build[F, Body, G]): Response[F] = builder(this)
 }
@@ -53,7 +67,30 @@ object ResponseBuilder {
 
 object ResponseBuilderDemo {
   val ok: Response[IO] = Response.builder(Status.Ok).withEntity("hi").build[IO]
-  val noContent = Response.builder(Status.NoContent).build[IO]
-  // doesn't compile:
-  // ResponseBuilder(Status.NoContent).withEntity("hi")
+  val noContent: Response[IO] = Response.builder(Status.NoContent).build[IO]
+
+  val `😳` : ResponseBuilder[Ok.type, Nothing, None] =
+    Response.builder(Status.Ok).withEspressoShots(6)
+
+  //  Response.builder(Status.NoContent).withEntity("hi")
+
+  //  [error] http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:62:47: This response status does not allow a body
+  //  [error]   Response.builder(Status.NoContent).withEntity("hi")
+  //  [error]                                               ^
+
+  //  Response.builder(Status.ImATeapot).withEspressoShots(1)
+
+  // dotc:
+  //  [error] -- Error: http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:74:57
+  //  [error] 74 |  Response.builder(Status.ImATeapot).withEspressoShots(1)
+  //  [error]    |                                                         ^
+  //  [error]    |                                            teapots cannot brew espresso
+
+  // scalac:
+  //  [error] http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:85:55: ambiguous implicit values:
+  //  [error]  both method instance1 in object NotGiven of type [A]scala.util.NotGiven[A]
+  //  [error]  and method instance2 in object NotGiven of type [A](implicit ev: A): scala.util.NotGiven[A]
+  //  [error]  match expected type scala.util.NotGiven[org.http4s.Status.ImATeapot.type <:< org.http4s.Status.Aux[418, _]]
+  //  [error]   Response.builder(Status.ImATeapot).withEspressoShots(1)
+  //  [error]                                                       ^
 }

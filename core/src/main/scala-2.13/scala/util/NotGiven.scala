@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s
+package scala.util
 
-private[http4s] trait StatusCompanionCompat { self: Status.type =>
+import scala.annotation.unused
 
-  def entityAllowed[Code <: Int with Singleton](
-      code: Code,
-      reason: String = ""): Status.Aux[Code, true] =
-    aux(code, reason, true)
+sealed trait NotGiven[A]
 
-  def entityNotAllowed(code: Int, reason: String = ""): Status.Aux[Int, false] =
-    aux(code, reason, false)
+object NotGiven {
+  private val instance = new NotGiven[Nothing] {}
+
+  implicit def instance1[A]: NotGiven[A] = instance.asInstanceOf
+  implicit def instance2[A](implicit @unused ev: A): NotGiven[A] = instance.asInstanceOf
 }
