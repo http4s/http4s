@@ -35,7 +35,7 @@ import org.scalajs.dom.window
 import scala.concurrent.duration._
 import scala.scalajs.js
 
-class ServiceWorkerAppSuite extends ServerRouteTestBattery("ServiceWorkerApp") {
+class ServiceWorkerSuite extends ServerRouteTestBattery("ServiceWorker") {
 
   def scalaVersion = if (BuildInfo.scalaVersion.startsWith("2"))
     BuildInfo.scalaVersion.split("\\.").init.mkString(".")

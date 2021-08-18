@@ -16,7 +16,10 @@
 
 package org.http4s.dom
 
+import cats.data.OptionT
+import cats.effect.IO
 import cats.effect.unsafe.implicits._
+import org.http4s.ContextRoutes
 import org.http4s.server.ServerRouteTestBattery
 import org.scalajs.dom.experimental.serviceworkers.ExtendableEvent
 import org.scalajs.dom.experimental.serviceworkers.FetchEvent
@@ -34,10 +37,11 @@ object TestServiceWorker {
         )
     )
 
-    val app = ServiceWorkerApp.unsafeExportApp(ServerRouteTestBattery.App)
-    ServiceWorkerGlobalScope.self.addEventListener[FetchEvent](
-      "fetch",
-      (event: FetchEvent) => event.respondWith(app(event.request)))
+    val routes = ContextRoutes[FetchEvent, IO] { request =>
+      OptionT.liftF(ServerRouteTestBattery.App(request.req))
+    }
+
+    ServiceWorker.addFetchEventListener(IO.pure(routes)).void.unsafeRunSync()
   }
 
 }
