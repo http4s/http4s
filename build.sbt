@@ -6,8 +6,8 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
-ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).head
+ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, scala_3)
+ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
 ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
@@ -135,6 +135,14 @@ lazy val core = libraryProject("core")
           scalaReflect(scalaVersion.value) % Provided
         )
     },
+    Compile / unmanagedSourceDirectories ++= Seq(
+      baseDirectory.value / "src" / "main" / "scala-2.13+").filter(_ =>
+      !scalaVersion.value.startsWith("2.12")),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Status.this"),
+      ProblemFilters.exclude[DirectAbstractMethodProblem]("org.http4s.Status.isEntityAllowed"),
+      ProblemFilters.exclude[ReversedAbstractMethodProblem]("org.http4s.Status.isEntityAllowed")
+    ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect")
   )
 

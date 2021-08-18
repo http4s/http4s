@@ -23,6 +23,7 @@ import cats.effect.{IO, Sync}
 import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
+
 import java.io.File
 import org.http4s.headers._
 import org.log4s.getLogger
@@ -663,7 +664,7 @@ final class Response[F[_]] private (
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
 }
 
-object Response {
+object Response extends ResponseCompanionCompat {
 
   /** Representation of the HTTP response to send back to the client
     *
