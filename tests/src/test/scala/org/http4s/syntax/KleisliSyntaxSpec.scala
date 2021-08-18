@@ -41,5 +41,4 @@ class KleisliSyntaxTests {
       IO(Response[IO](Status.Ok))
     }
     .translate[Kleisli[IO, Int, *]](Kleisli.liftK)(Kleisli.applyK(42))
-
 }
