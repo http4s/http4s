@@ -86,7 +86,7 @@ import scodec.bits.ByteVector
   */
 class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
-    executionContextF: F[ExecutionContext],
+    executionContextConfig: ExecutionContextConfig,
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     connectorPoolSize: Int,
@@ -112,7 +112,7 @@ class BlazeServerBuilder[F[_]] private (
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
-      executionContextF: F[ExecutionContext] = executionContextF,
+      executionContextConfig: ExecutionContextConfig = executionContextConfig,
       idleTimeout: Duration = idleTimeout,
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       connectorPoolSize: Int = connectorPoolSize,
@@ -132,7 +132,7 @@ class BlazeServerBuilder[F[_]] private (
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
-      executionContextF,
+      executionContextConfig,
       responseHeaderTimeout,
       idleTimeout,
       connectorPoolSize,
@@ -202,10 +202,7 @@ class BlazeServerBuilder[F[_]] private (
     copy(socketAddress = socketAddress)
 
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
-    withExecutionContextF(executionContext.pure[F])
-
-  def withExecutionContextF(executionContextF: F[ExecutionContext]): BlazeServerBuilder[F] =
-    copy(executionContextF = executionContextF)
+    copy(executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext))
 
   def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
@@ -323,7 +320,7 @@ class BlazeServerBuilder[F[_]] private (
       )
 
     dispatcher.unsafeToFuture {
-      executionContextF.map { executionContext =>
+      executionContextConfig.getExecutionContext[F].map { executionContext =>
         engineConfig match {
           case Some((ctx, configure)) =>
             val engine = ctx.createSSLEngine()
@@ -424,7 +421,7 @@ object BlazeServerBuilder {
   def apply[F[_]](implicit F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.IPv4SocketAddress,
-      executionContext = executionContext,
+      executionContextConfig = ExecutionContextConfig.DefaultContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
       connectorPoolSize = DefaultPoolSize,
@@ -541,4 +538,17 @@ object BlazeServerBuilder {
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
     }
+
+  private sealed trait ExecutionContextConfig extends Product with Serializable {
+    def getExecutionContext[F[_]: Async]: F[ExecutionContext] = this match {
+      case ExecutionContextConfig.DefaultContext => Async[F].executionContext
+      case ExecutionContextConfig.ExplicitContext(ec) => ec.pure[F]
+    }
+  }
+
+  private object ExecutionContextConfig {
+    case object DefaultContext extends ExecutionContextConfig
+    final case class ExplicitContext(executionContext: ExecutionContext)
+        extends ExecutionContextConfig
+  }
 }
