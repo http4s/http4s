@@ -294,7 +294,7 @@ class StaticFileSuite extends Http4sSuite {
     StaticFile
       .fromURL[IO](new URL("https://github.com//"), testBlocker)
       .value
-      .map(_.fold(Status.NotFound)(_.status))
+      .map(_.fold[Status](Status.NotFound)(_.status))
       .assertEquals(Status.Ok)
   }
 

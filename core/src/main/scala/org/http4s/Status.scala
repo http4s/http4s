@@ -85,6 +85,8 @@ object Status extends StatusCompanionCompat {
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     aux(code, reason, isEntityAllowed)
 
+  def unapply(status: Status): Some[Int] = Some(status.code)
+
   def aux[Code0 <: Int, IsEntityAllowed0 <: Boolean](
       code: Code0,
       reason: String = "",
