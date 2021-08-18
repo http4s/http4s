@@ -29,7 +29,11 @@ import org.http4s.util.Renderable
   * @see [[http://tools.ietf.org/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
   * @see [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
   */
-sealed abstract class Status private (val reason: String) extends Ordered[Status] with Renderable {
+sealed abstract class Status private (val reason: String)
+    extends Product
+    with Serializable
+    with Ordered[Status]
+    with Renderable {
 
   type Code <: Int
   val code: Code
@@ -43,13 +47,6 @@ sealed abstract class Status private (val reason: String) extends Ordered[Status
     else if (code < 400) Status.Redirection
     else if (code < 500) Status.ClientError
     else Status.ServerError
-
-  override def equals(other: Any): Boolean = other match {
-    case other: Status => other.code == code
-    case _ => false
-  }
-
-  override def hashCode(): Int = code.hashCode()
 
   def compare(that: Status): Int = code - that.code
 
@@ -73,10 +70,8 @@ object Status extends StatusCompanionCompat {
     type IsEntityAllowed = IsEntityAllowed0
   }
 
-  private[http4s] class Impl[Code0 <: Int, IsEntityAllowed0 <: Boolean](
-      val code: Code0,
-      override val reason: String,
-      val isEntityAllowed: IsEntityAllowed0)
+  private[http4s] final case class Impl[Code0 <: Int, IsEntityAllowed0 <: Boolean] private (
+      code: Code0)(override val reason: String, val isEntityAllowed: IsEntityAllowed0)
       extends Status(reason) {
     type Code = Code0
     type IsEntityAllowed = IsEntityAllowed0
@@ -85,13 +80,13 @@ object Status extends StatusCompanionCompat {
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     aux(code, reason, isEntityAllowed)
 
-  def unapply(status: Status): Some[Int] = Some(status.code)
+  def unapply(status: Status): Option[Int] = Some(status.code)
 
   def aux[Code0 <: Int, IsEntityAllowed0 <: Boolean](
       code: Code0,
       reason: String = "",
       isEntityAllowed: IsEntityAllowed0): Status.Aux[Code0, IsEntityAllowed0] =
-    new Impl(code, reason, isEntityAllowed)
+    Impl(code)(reason, isEntityAllowed)
 
   sealed trait ResponseClass {
     def isSuccess: Boolean

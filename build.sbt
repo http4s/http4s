@@ -142,7 +142,13 @@ lazy val core = libraryProject("core")
       // Status is sealed so these are ok
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Status.this"),
       ProblemFilters.exclude[DirectAbstractMethodProblem]("org.http4s.Status.isEntityAllowed"),
-      ProblemFilters.exclude[ReversedAbstractMethodProblem]("org.http4s.Status.isEntityAllowed")
+      ProblemFilters.exclude[ReversedAbstractMethodProblem]("org.http4s.Status.isEntityAllowed"),
+      ProblemFilters.exclude[DirectAbstractMethodProblem]("org.http4s.Status.code"),
+      ProblemFilters.exclude[ReversedAbstractMethodProblem]("org.http4s.Status.code"),
+      // these are present in the sole implementation
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Status.productArity"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Status.productElement"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Status.canEqual")
     ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect")
   )
