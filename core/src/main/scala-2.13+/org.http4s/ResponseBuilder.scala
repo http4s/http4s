@@ -24,17 +24,18 @@ import scala.annotation.{implicitNotFound, unused}
 import scala.util.NotGiven
 
 sealed abstract class ResponseBuilder[S <: Status, Body, G[x] <: Option[x]](
-    val s: S,
+    val status: S,
     val body: G[Body]) {
+
   def withEntity[T](b: T)(implicit
-      @implicitNotFound(s"This response status does not allow a body") @unused ev: S <:< Status.Aux[
-        _,
-        true]): ResponseBuilder[S, T, Some] =
-    new ResponseBuilder(s, Some(b)) {}
+      @implicitNotFound(
+        s"This response status does not allow a body") @unused ev: status.IsEntityAllowed <:< true)
+      : ResponseBuilder[S, T, Some] =
+    new ResponseBuilder(status, Some(b)) {}
 
   // TODO: implement
   def withEspressoShots(@unused n: Int)(implicit
-  @implicitNotFound("teapots cannot brew espresso") @unused ev: NotGiven[S <:< Status.Aux[418, _]])
+      @implicitNotFound("teapots cannot brew espresso") @unused ev: NotGiven[status.Code <:< 418])
       : ResponseBuilder[S, Body, G] =
     this
 
@@ -56,11 +57,11 @@ object ResponseBuilder {
     implicit def withEntity[F[_], A](implicit eec: EntityEncoder[F, A]): Build[F, A, Some] =
       new Build[F, A, Some] {
         def apply(rb: ResponseBuilder[_ <: Status, A, Some]): Response[F] =
-          Response(rb.s).withEntity(rb.body.value)
+          Response(rb.status).withEntity(rb.body.value)
       }
 
     implicit def noEntity[F[_]]: Build[F, Nothing, None] = new Build[F, Nothing, None] {
-      def apply(rb: ResponseBuilder[_ <: Status, Nothing, None]): Response[F] = Response(rb.s)
+      def apply(rb: ResponseBuilder[_ <: Status, Nothing, None]): Response[F] = Response(rb.status)
     }
   }
 }
@@ -72,13 +73,13 @@ object ResponseBuilderDemo {
   val `😳` : ResponseBuilder[Ok.type, Nothing, None] =
     ResponseBuilder(Status.Ok).withEspressoShots(6)
 
-  //  Response.builder(Status.NoContent).withEntity("hi")
+  // ResponseBuilder(Status.NoContent).withEntity("hi")
 
   //  [error] http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:62:47: This response status does not allow a body
   //  [error]   ResponseBuilder(Status.NoContent).withEntity("hi")
   //  [error]                                              ^
 
-  //  Response.builder(Status.ImATeapot).withEspressoShots(1)
+  // ResponseBuilder(Status.ImATeapot).withEspressoShots(1)
 
   // dotc:
   //  [error] -- Error: http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:74:57
@@ -87,10 +88,10 @@ object ResponseBuilderDemo {
   //  [error]    |                                           teapots cannot brew espresso
 
   // scalac:
-  //  [error] http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:85:55: ambiguous implicit values:
+  //  [error] http4s/core/src/main/scala-2.13+/org.http4s/ResponseBuilder.scala:85:54: ambiguous implicit values:
   //  [error]  both method instance1 in object NotGiven of type [A]scala.util.NotGiven[A]
   //  [error]  and method instance2 in object NotGiven of type [A](implicit ev: A): scala.util.NotGiven[A]
-  //  [error]  match expected type scala.util.NotGiven[org.http4s.Status.ImATeapot.type <:< org.http4s.Status.Aux[418, _]]
+  //  [error]  match expected type scala.util.NotGiven[Int(418) <:< 418]
   //  [error]   ResponseBuilder(Status.ImATeapot).withEspressoShots(1)
   //  [error]                                                      ^
 }
