@@ -46,8 +46,8 @@ package object oauth1 extends OAuth1Platform {
 
   /** Sign the request with an OAuth Authorization header
     *
-    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
-    *            will be entirely buffered due to signing requirements.
+    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies will be entirely
+    * buffered due to signing requirements.
     */
   def signRequest[F[_]](
       req: Request[F],

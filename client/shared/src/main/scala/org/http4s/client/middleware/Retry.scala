@@ -73,7 +73,7 @@ object Retry {
           policy(req, Right(response), attempts) match {
             case Some(duration) =>
               logger.info(
-                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #$attempts with reason ${response.status}. Retrying after $duration.")
               nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
             case None =>
               F.pure(response)
@@ -104,17 +104,16 @@ object Retry {
 
 object RetryPolicy {
 
-  /** Decomposes a retry policy into components that are typically configured
-    * individually.
+  /** Decomposes a retry policy into components that are typically configured individually.
     *
-    * @param backoff a function of attempts to an optional
-    * FiniteDuration.  Return None to stop retrying, or some
-    * duration after which the request will be retried.  See
-    * `exponentialBackoff` for a useful implementation.
+    * @param backoff
+    *   a function of attempts to an optional FiniteDuration. Return None to stop retrying, or some
+    *   duration after which the request will be retried. See `exponentialBackoff` for a useful
+    *   implementation.
     *
-    * @param retriable determines whether the request is retriable
-    * from the request and either the throwable or response that was
-    * returned.  Defaults to `defaultRetriable`.
+    * @param retriable
+    *   determines whether the request is retriable from the request and either the throwable or
+    *   response that was returned. Defaults to `defaultRetriable`.
     */
   def apply[F[_]](
       backoff: Int => Option[FiniteDuration],
@@ -137,31 +136,32 @@ object RetryPolicy {
   /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)
     * and the result is either a throwable or has one of the `RetriableStatuses`.
     *
-    * Caution: if the request body is effectful, the effects will be
-    * run twice.  The most common symptom of this will be resubmitting
-    * an idempotent request.
+    * Caution: if the request body is effectful, the effects will be run twice. The most common
+    * symptom of this will be resubmitting an idempotent request.
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
     (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
       isErrorOrRetriableStatus(result)
 
-  /** Like [[defaultRetriable]], but returns true even if the request method
-    * is not idempotent.  This is useful if failed requests are assumed to
-    * have not reached their destination, which is a dangerous assumption.
-    * Use at your own risk.
+  /** Like [[defaultRetriable]], but returns true even if the request method is not idempotent. This
+    * is useful if failed requests are assumed to have not reached their destination, which is a
+    * dangerous assumption. Use at your own risk.
     *
-    * Caution: if the request body is effectful, the effects will be
-    * run twice.  The most common symptom of this will be resubmitting
-    * an empty request body.
+    * Caution: if the request body is effectful, the effects will be run twice. The most common
+    * symptom of this will be resubmitting an empty request body.
     */
   def recklesslyRetriable[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     isErrorOrRetriableStatus(result)
 
-  /** Returns true if parameter is a Left or if the response contains a retriable status(as per HTTP spec) */
+  /** Returns true if parameter is a Left or if the response contains a retriable status(as per HTTP
+    * spec)
+    */
   def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     isErrorOrStatus(result, RetriableStatuses)
 
-  /** Like `isErrorOrRetriableStatus` but allows the caller to specify which statuses are considered retriable */
+  /** Like `isErrorOrRetriableStatus` but allows the caller to specify which statuses are considered
+    * retriable
+    */
   def isErrorOrStatus[F[_]](result: Either[Throwable, Response[F]], status: Set[Status]): Boolean =
     result match {
       case Right(resp) => status(resp.status)

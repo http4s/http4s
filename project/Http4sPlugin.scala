@@ -36,9 +36,9 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
-    http4sApiVersion := version.map {
-      case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
-    }.value,
+    http4sApiVersion := version.map { case VersionNumber(Seq(major, minor, _*), _, _) =>
+      (major.toInt, minor.toInt)
+    }.value
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
@@ -47,7 +47,7 @@ object Http4sPlugin extends AutoPlugin {
       val (major, minor) = http4sApiVersion.value
 
       val releases = latestPerMinorVersion(baseDirectory.value)
-        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.toString}""""}
+        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.toString}"""" }
         .mkString("\n")
 
       // Would be more elegant if `[versions.http4s]` was nested, but then
@@ -72,24 +72,26 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
     // servlet containers skipped until we figure out our Jakarta EE strategy
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
+    dependencyUpdatesFilter -= moduleFilter(
+      organization = "org.eclipse.jetty*",
+      revision = "10.0.*"),
+    dependencyUpdatesFilter -= moduleFilter(
+      organization = "org.eclipse.jetty*",
+      revision = "11.0.*"),
+    dependencyUpdatesFilter -= moduleFilter(
+      organization = "org.apache.tomcat",
+      revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
-
     headerSources / excludeFilter := HiddenFileFilter,
-
     nowarnCompatAnnotationProvider := None,
-
     mimaPreviousArtifacts := {
       mimaPreviousArtifacts.value.filterNot(
         // cursed release
         _.revision == "0.21.10"
       )
     },
-
-    doctestTestFramework := DoctestTestFramework.Munit,
+    doctestTestFramework := DoctestTestFramework.Munit
   )
 
   def extractApiVersion(version: String) = {
@@ -102,13 +104,11 @@ object Http4sPlugin extends AutoPlugin {
   def extractDocsPrefix(version: String) =
     extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
-  /**
-    * @return the version we want to document, for example in mdoc,
-    * given the version being built.
+  /** @return
+    *   the version we want to document, for example in mdoc, given the version being built.
     *
-    * For snapshots after a stable release, return the previous stable
-    * release.  For snapshots of 0.16.0 and 0.17.0, return the latest
-    * milestone.  Otherwise, just return the current version.
+    * For snapshots after a stable release, return the previous stable release. For snapshots of
+    * 0.16.0 and 0.17.0, return the latest milestone. Otherwise, just return the current version.
     */
   def docExampleVersion(currentVersion: String) = {
     val MilestoneVersionExtractor = """(0).(16|17).(0)a?-SNAPSHOT""".r
@@ -134,26 +134,28 @@ object Http4sPlugin extends AutoPlugin {
 
     // M before RC before final
     def patchSortKey(v: VersionNumber) = v match {
-      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q startsWith "M" =>
+      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q.startsWith("M") =>
         (patch, 0L, q.drop(1).toLong)
-      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q startsWith "RC" =>
+      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q.startsWith("RC") =>
         (patch, 1L, q.drop(2).toLong)
       case VersionNumber(Seq(_, _, patch), Seq(), _) => (patch, 2L, 0L)
       case _ => (-1L, -1L, -1L)
     }
 
-    JGit(file).tags.collect {
-      case ref if ref.getName.startsWith("refs/tags/v") =>
-        VersionNumber(ref.getName.substring("refs/tags/v".size))
-    }.foldLeft(Map.empty[(Long, Long), VersionNumber]) {
-      case (m, v) =>
+    JGit(file).tags
+      .collect {
+        case ref if ref.getName.startsWith("refs/tags/v") =>
+          VersionNumber(ref.getName.substring("refs/tags/v".size))
+      }
+      .foldLeft(Map.empty[(Long, Long), VersionNumber]) { case (m, v) =>
         majorMinor(v) match {
           case Some(key) =>
-            val max = m.get(key).fold(v) { v0 => Ordering[(Long, Long, Long)].on(patchSortKey).max(v, v0) }
+            val max =
+              m.get(key).fold(v)(v0 => Ordering[(Long, Long, Long)].on(patchSortKey).max(v, v0))
             m.updated(key, max)
           case None => m
         }
-    }
+      }
   }
 
   def docsProjectSettings: Seq[Setting[_]] = {
@@ -173,10 +175,12 @@ object Http4sPlugin extends AutoPlugin {
     import sbtghactions._
     import sbtghactions.GenerativeKeys._
 
-    val setupHugoStep = WorkflowStep.Run(List("""
+    val setupHugoStep = WorkflowStep.Run(
+      List("""
       |echo "$HOME/bin" > $GITHUB_PATH
       |HUGO_VERSION=0.26 scripts/install-hugo
-    """.stripMargin), name = Some("Setup Hugo"))
+    """.stripMargin),
+      name = Some("Setup Hugo"))
 
     def siteBuildJob(subproject: String) =
       WorkflowJob(
@@ -191,7 +195,8 @@ object Http4sPlugin extends AutoPlugin {
         )
       )
 
-    def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
+    def sitePublishStep(subproject: String) = WorkflowStep.Run(
+      List(s"""
       |eval "$$(ssh-agent -s)"
       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
       |git config --global user.name "GitHub Actions CI"
@@ -210,7 +215,9 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
+        WorkflowStep.Sbt(
+          List("unusedCompileDependenciesTest"),
+          name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
@@ -228,7 +235,7 @@ object Http4sPlugin extends AutoPlugin {
       ),
       githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
-        sitePublishStep("website"),
+        sitePublishStep("website")
         // sitePublishStep("docs")
       ),
       // this results in nonexistant directories trying to be compressed
@@ -236,7 +243,7 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowAddedJobs := Seq(
         siteBuildJob("website"),
         siteBuildJob("docs")
-      ),
+      )
     )
   }
 
@@ -360,7 +367,8 @@ object Http4sPlugin extends AutoPlugin {
     Def.setting("org.typelevel" %%% "scalacheck-effect" % V.scalacheckEffect)
   lazy val scalacheckEffectMunit =
     Def.setting("org.typelevel" %%% "scalacheck-effect-munit" % V.scalacheckEffect)
-  lazy val scalaJavaLocalesEnUS = Def.setting("io.github.cquiroz" %%% "locales-minimal-en_us-db" % V.scalaJavaLocales)
+  lazy val scalaJavaLocalesEnUS =
+    Def.setting("io.github.cquiroz" %%% "locales-minimal-en_us-db" % V.scalaJavaLocales)
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
   lazy val scalaJsDom = Def.setting("org.scala-js" %%% "scalajs-dom" % V.scalaJsDom)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv

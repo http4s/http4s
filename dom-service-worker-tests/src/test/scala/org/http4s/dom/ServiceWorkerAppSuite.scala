@@ -50,7 +50,7 @@ class ServiceWorkerAppSuite extends ServerRouteTestBattery("ServiceWorkerApp") {
         IO.fromPromise {
           IO {
             window.navigator.serviceWorker.register(
-              s"/dom-service-worker-tests/.js/target/scala-${scalaVersion}/http4s-dom-service-worker-tests-fastopt/main.js",
+              s"/dom-service-worker-tests/.js/target/scala-$scalaVersion/http4s-dom-service-worker-tests-fastopt/main.js",
               js.Dynamic.literal(scope = "/")
             )
           }

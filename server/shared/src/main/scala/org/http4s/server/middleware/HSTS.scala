@@ -23,8 +23,8 @@ import cats.data.Kleisli
 import org.http4s.headers.`Strict-Transport-Security`
 import scala.concurrent.duration._
 
-/** [[Middleware]] to add HTTP Strict Transport Security (HSTS) support adding
-  * the Strict Transport Security headers
+/** [[Middleware]] to add HTTP Strict Transport Security (HSTS) support adding the Strict Transport
+  * Security headers
   */
 object HSTS {
   // Default HSTS policy of waiting for 1 year and include sub domains

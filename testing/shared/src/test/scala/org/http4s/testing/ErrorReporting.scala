@@ -53,8 +53,8 @@ object ErrorReporting extends ErrorReportingPlatform {
             )))
     }
 
-  /** Silences `System.err`, only printing the output in case exceptions are
-    * thrown by the executed `thunk`.
+  /** Silences `System.err`, only printing the output in case exceptions are thrown by the executed
+    * `thunk`.
     */
   def silenceSystemErr[A](thunk: => A): A =
     synchronized {

@@ -50,12 +50,13 @@ object Expires {
 /** A Response header that _gives the date/time after which the response is considered stale_.
   *
   * The HTTP RFCs indicate that Expires should be in the range of now to 1 year in the future.
-  * However, it is a usual practice to set it to the past of far in the future
-  * Thus any instant is in practice allowed
+  * However, it is a usual practice to set it to the past of far in the future Thus any instant is
+  * in practice allowed
   *
   * [[https://tools.ietf.org/html/rfc7234#section-5.3 RFC-7234 Section 5.3]]
   *
-  * @param expirationDate the date of expiration. The RFC has a warning, that using large values
-  * can cause problems due to integer or clock overflows.
+  * @param expirationDate
+  *   the date of expiration. The RFC has a warning, that using large values can cause problems due
+  *   to integer or clock overflows.
   */
 final case class Expires(expirationDate: HttpDate)

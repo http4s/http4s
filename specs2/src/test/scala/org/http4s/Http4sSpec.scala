@@ -26,7 +26,7 @@ import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.scalacheck.Parameters
 import org.specs2.specification.core.Fragments
-import org.specs2.specification.create.{DefaultFragmentFactory}
+import org.specs2.specification.create.DefaultFragmentFactory
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
 

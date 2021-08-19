@@ -27,8 +27,7 @@ import org.typelevel.ci._
 import scala.concurrent.duration._
 import scala.util.hashing.MurmurHash3
 
-/** CORS middleware config options.
-  * You can give an instance of this class to the CORS middleware,
+/** CORS middleware config options. You can give an instance of this class to the CORS middleware,
   * to specify its behavior
   */
 
@@ -134,10 +133,8 @@ object CORS {
 
   val defaultVaryHeader = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
 
-  /** CORS middleware
-    * This middleware provides clients with CORS information
-    * based on information in CORS config.
-    * Currently, you cannot make permissions depend on request details
+  /** CORS middleware This middleware provides clients with CORS information based on information in
+    * CORS config. Currently, you cannot make permissions depend on request details
     */
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
       F: Applicative[F]): Http[F, G] =
