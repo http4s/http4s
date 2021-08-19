@@ -20,7 +20,6 @@ import cats.data.OptionT
 import cats.syntax.all._
 import cats.effect._
 import org.http4s._
-import org.http4s.syntax.kleisli._
 import org.http4s.headers.{Date => HDate}
 
 class DateSuite extends Http4sSuite {
