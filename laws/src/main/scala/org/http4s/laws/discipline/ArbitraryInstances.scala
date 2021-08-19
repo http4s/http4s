@@ -35,6 +35,7 @@ import java.time._
 import java.util.Locale
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.http4s.laws.discipline.ArbitraryInstances.genAlphaToken
 import org.http4s.syntax.literals._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
@@ -112,7 +113,7 @@ private[http4s] trait ArbitraryInstances {
     a <- stringOf(genTchar)
     b <- nonEmptyListOf(genNonTchar).map(_.mkString)
     c <- stringOf(genChar)
-  } yield (a + b + c)
+  } yield a + b + c
 
   val genVchar: Gen[Char] =
     oneOf('\u0021' to '\u007e')
@@ -358,8 +359,8 @@ private[http4s] trait ArbitraryInstances {
   def genLanguageTagNoQuality: Gen[LanguageTag] =
     frequency(
       3 -> (for {
-        primaryTag <- genToken
-        subTags <- frequency(4 -> Nil, 1 -> listOf(genToken))
+        primaryTag <- genAlphaToken
+        subTags <- frequency(4 -> Nil, 1 -> listOf(genAlphaToken))
       } yield LanguageTag(primaryTag, subTags = subTags)),
       1 -> const(LanguageTag.`*`)
     )
@@ -954,6 +955,9 @@ private[http4s] trait ArbitraryInstances {
 
 object ArbitraryInstances extends ArbitraryInstances {
   // http4s-0.21: add extra values here to prevent binary incompatibility.
+
+  val genAlphaToken: Gen[String] =
+    nonEmptyListOf(alphaChar).map(_.mkString)
 
   val genOptWs: Gen[String] = option(genLws).map(_.orEmpty)
 

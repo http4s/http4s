@@ -25,6 +25,7 @@ import fs2.{Pure, Stream}
 import fs2.text.utf8
 import java.io.File
 import org.http4s.headers._
+import org.http4s.syntax.KleisliSyntax
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
@@ -87,7 +88,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
       case None => w.headers
     }
-    change(body = entity.body, headers = headers.transform(_ ++ hs.headers))
+    change(body = entity.body, headers = headers ++ hs)
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
@@ -655,7 +656,7 @@ final class Response[F[_]] private (
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
 }
 
-object Response {
+object Response extends KleisliSyntax {
 
   /** Representation of the HTTP response to send back to the client
     *

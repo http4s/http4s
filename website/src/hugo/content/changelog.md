@@ -8,6 +8,73 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.3 (unreleased)
+
+## http4s-core
+
+### Semantic changes
+
+* [#5073](https://github.com/http4s/http4s/pull/5073): `withEntity` now replaces any existing headers with the same name with the headers from the `EntityEncoder`.  In v0.21, known single headers were replaced and recurring headers were appended.  Beginning in 0.22.0, everything was appended, which commonly resulted in duplicate `Content-Type` headers.  There is no longer a global registry of headers to infer singleton vs. recurring semantics, but in practice, `EntityEncoder` headers are single, so this is more correct and more similar to the pre-0.22 behavior.
+
+### Bugfixes
+
+* [#5076](https://github.com/http4s/http4s/pull/5076): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+
+### Enhancements
+
+* [#5042](https://github.com/http4s/http4s/pull/5042): Add a modeled header for `Access-Control-Request-Method`.
+* [#5076](https://github.com/http4s/http4s/pull/5076): Create `Uri.Host` from an ip4s `IpAddress`
+
+### Documentation
+
+* [#5061](https://github.com/http4s/http4s/pull/5061): Document that the `Allow` header MUST return the allowed methods.
+
+## http4s-client
+
+### Enhancements
+
+* [#5023](https://github.com/http4s/http4s/pull/5023): Parameterize the signature algorithm in the OAuth 1 middleware.  HMAC-SHA256 and HMAC-SHA512 are now supported in addition to HMAC-SHA1.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5056](https://github.com/http4s/http4s/pull/5056): In `GZip` middleware, don't add a `Content-Encoding` header if the response type doesn't support an entity.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#5075](https://github.com/http4s/http4s/pull/5075): Render the blaze version correctly in the default startup banner
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#5043](https://github.com/http4s/http4s/pull/5043): Fix several bugs where a body stream silenty ends if the peer closes its end of the socket without finishing writing. This now raises an error.
+
+## http4s-ember-client
+
+### Bugfixes
+
+* [#5041](https://github.com/http4s/http4s/pull/5041): Don't keep alive HTTP/1.0 connections without a `Connection: keep-alive` header.
+
+## http4s-ember-server
+
+### Deprecations
+
+* [#5040](https://github.com/http4s/http4s/pull/5040): `maxConcurrency` is renamed to `maxConnections`.  The former is now deprecated.
+
+## http4s-dsl
+
+### Enhancements
+
+* [#5063](https://github.com/http4s/http4s/pull/5063): Added `->>` infix extractor for a resource-oriented view of routing. Use this to define resource paths only once, and generate proper `405` responses with a correct `Allow` header when the method is not handled.
+
+## Dependency updates
+
+* netty-4.1.67
+
 # v0.21.26 (2021-08-12)
 
 The 0.21 series is no longer actively maintained by the team, but we'll continue to entertain binary compatible patches.  All users are still encouraged to upgrade to 0.22 (for Cats-Effect 2) or 0.23 (the latest stable series, on Cats-Effect 3).

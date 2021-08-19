@@ -22,6 +22,7 @@ import cats.effect.IO
 import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
+import org.http4s.headers.Allow
 
 final case class Limit(l: Long)
 
@@ -89,6 +90,11 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     case GET -> Root / "flagparam" :? Flag(flag) =>
       if (flag) Ok("flag present")
       else Ok("flag not present")
+    case withMethod ->> Root / "resource" =>
+      withMethod {
+        case GET => Ok("get resource")
+        case POST => Ok("post resource")
+      }
     case r =>
       NotFound(s"404 Not Found: ${r.pathInfo}")
   }
@@ -293,5 +299,26 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       serve(Request(GET, Uri(path = path"/flagparam", query = Query.unsafeFromString(""))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("flag not present")
+  }
+  test("Path DSL with ->> should match on GET") {
+    val response = serve(Request(GET, Uri(path = path"/resource")))
+    response.map(_.status).assertEquals(Ok) *>
+      response.flatMap(_.as[String]).assertEquals("get resource")
+  }
+  test("Path DSL with ->> should match on POST") {
+    val response = serve(Request(POST, Uri(path = path"/resource")))
+    response.map(_.status).assertEquals(Ok) *>
+      response.flatMap(_.as[String]).assertEquals("post resource")
+  }
+  test("Path DSL with ->> should return Method Not Allowed on DELETE") {
+    val response = serve(Request(DELETE, Uri(path = path"/resource")))
+    response.map(_.status).assertEquals(MethodNotAllowed) *>
+      response.map(_.headers.get[Allow]).assertEquals(Some(Allow(GET, POST)))
+  }
+  test("Path DSL with ->> should return Not Implemented on CHICKEN") {
+    val response = IO.fromEither(Method.fromString("CHICKEN")).flatMap { chicken =>
+      serve(Request(chicken, Uri(path = path"/resource")))
+    }
+    response.map(_.status).assertEquals(NotImplemented)
   }
 }
