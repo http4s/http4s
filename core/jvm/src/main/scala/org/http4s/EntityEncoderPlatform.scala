@@ -28,20 +28,17 @@ import org.http4s.headers._
 
 private[http4s] trait EntityEncoderCompanionPlatform { self: EntityEncoder.type =>
 
-  // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
+  implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
     filePathEncoder[F].contramap(_.toPath)
 
-  // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
+  implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
       Entity(Files[F].readAll(file.Path.fromNioPath(p), 4096, file.Flags.Read)) //2 KB :P
     }
 
-  // TODO parameterize chunk size
-  def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
+  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { (in: F[IS]) =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }

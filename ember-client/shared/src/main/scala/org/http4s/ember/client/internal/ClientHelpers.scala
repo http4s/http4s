@@ -34,10 +34,9 @@ import _root_.fs2.io.net.SocketGroup
 import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
 
-import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
-import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
+import com.comcast.ip4s.{Host, Port, SocketAddress}
 import java.nio.channels.ClosedChannelException
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {

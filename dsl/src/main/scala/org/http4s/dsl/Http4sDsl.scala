@@ -54,7 +54,8 @@ trait Http4sDsl[F[_]] extends Http4sDsl2[F, F] {
 }
 
 object Http4sDsl {
-  def apply[F[_]]: Http4sDsl[F] = new Http4sDsl[F] {}
+  // Does not return Http4sDslBinCompat for bincompat reasons. ¯\_(ツ)_/¯
+  def apply[F[_]]: Http4sDsl[F] with RequestDslBinCompat = new Http4sDslBinCompat[F] {}
 
   final class MethodOps(val method: Method) extends AnyVal {
     def |(another: Method) = new MethodConcat(Set(method, another))
@@ -64,3 +65,5 @@ object Http4sDsl {
     def |(another: Method) = new MethodConcat(methods.methods + another)
   }
 }
+
+trait Http4sDslBinCompat[F[_]] extends Http4sDsl[F] with RequestDslBinCompat
