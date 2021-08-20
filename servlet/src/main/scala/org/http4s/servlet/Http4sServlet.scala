@@ -98,34 +98,38 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       httpVersion = version,
       headers = toHeaders(req),
       body = servletIo.reader(req),
-      attributes = Vault.empty
-        .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri))
-        .insert(
-          Request.Keys.ConnectionInfo,
-          Request.Connection(
-            local = SocketAddress(
-              IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
-              Port.fromInt(req.getLocalPort).get),
-            remote = SocketAddress(
-              IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
-              Port.fromInt(req.getRemotePort).get),
-            secure = req.isSecure
+      attributes = {
+        val v0 = Vault.empty
+          .insert(
+            Request.Keys.ConnectionInfo,
+            Request.Connection(
+              local = SocketAddress(
+                IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
+                Port.fromInt(req.getLocalPort).get),
+              remote = SocketAddress(
+                IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
+                Port.fromInt(req.getRemotePort).get),
+              secure = req.isSecure
+            )
           )
-        )
-        .insert(Request.Keys.ServerSoftware, serverSoftware)
-        .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
-        .insert(
-          ServerRequestKeys.SecureSession,
-          (
-            Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
-            Option(
-              req
-                .getAttribute("javax.servlet.request.X509Certificate")
-                .asInstanceOf[Array[X509Certificate]]))
-            .mapN(SecureSession.apply)
-        )
+          .insert(Request.Keys.ServerSoftware, serverSoftware)
+          .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
+          .insert(
+            ServerRequestKeys.SecureSession,
+            (
+              Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
+              Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
+              Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
+              Option(
+                req
+                  .getAttribute("javax.servlet.request.X509Certificate")
+                  .asInstanceOf[Array[X509Certificate]]))
+              .mapN(SecureSession.apply)
+          )
+
+        val idx = getPathInfoIndex(req, uri)
+        if (idx >= 0) v0.insert(Request.Keys.PathInfoCaret, idx) else v0
+      }
     )
 
   private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
