@@ -28,24 +28,25 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.http4s.server.DefaultServiceErrorHandler
+import org.http4s.server.{DefaultServiceErrorHandler, Router}
 import scala.io.Source
 import scala.concurrent.duration._
 
 class BlockingHttp4sServletSuite extends Http4sSuite {
-  lazy val service = HttpRoutes
-    .of[IO] {
-      case GET -> Root / "simple" =>
-        Ok("simple")
-      case req @ POST -> Root / "echo" =>
-        Ok(req.body)
-      case GET -> Root / "shifted" =>
-        IO.shift(munitExecutionContext) *>
-          // Wait for a bit to make sure we lose the race
-          Timer[IO].sleep(50.millis) *>
-          Ok("shifted")
-    }
-    .orNotFound
+  lazy val service = Router(
+    "prefix" -> HttpRoutes
+      .of[IO] {
+        case GET -> Root / "simple" =>
+          Ok("simple")
+        case req @ POST -> Root / "echo" =>
+          Ok(req.body)
+        case GET -> Root / "shifted" =>
+          IO.shift(munitExecutionContext) *>
+            // Wait for a bit to make sure we lose the race
+            Timer[IO].sleep(50.millis) *>
+            Ok("shifted")
+      }
+  ).orNotFound
 
   val servletServer = ResourceFixture[Int](serverPortR)
 
@@ -69,15 +70,15 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
     }
 
   servletServer.test("Http4sBlockingServlet handle GET requests") { server =>
-    get(server, "simple").assertEquals("simple")
+    get(server, "prefix/simple").assertEquals("simple")
   }
 
   servletServer.test("Http4sBlockingServlet handle POST requests") { server =>
-    post(server, "echo", "input data").assertEquals("input data")
+    post(server, "prefix/echo", "input data").assertEquals("input data")
   }
 
   servletServer.test("Http4sBlockingServlet work for shifted IO") { server =>
-    get(server, "shifted").assertEquals("shifted")
+    get(server, "prefix/shifted").assertEquals("shifted")
   }
 
   lazy val servlet = new BlockingHttp4sServlet[IO](
