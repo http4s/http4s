@@ -30,6 +30,7 @@ import fs2.Chunk
 import fs2.Stream
 import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.Body
+import org.scalajs.dom.experimental.Fetch
 import org.scalajs.dom.experimental.ResponseInit
 import org.scalajs.dom.experimental.serviceworkers.ExtendableEvent
 import org.scalajs.dom.experimental.serviceworkers.FetchEvent
@@ -49,17 +50,17 @@ object ServiceWorker {
     handler <- Deferred.in[SyncIO, IO, Either[Throwable, HttpRoutes[IO]]]
     _ <- SyncIO(routes.attempt.flatMap(handler.complete).unsafeRunAndForget())
     jsHandler = { event =>
-      event
-        .asInstanceOf[ExtendableEvent]
-        .waitUntil(
-          Supervisor[IO]
-            .use { supervisor =>
-              OptionT
-                .liftF(handler.get.rethrow)
-                .flatMap(routesToListener(_, supervisor, FetchEventContext.IOKey).apply(event))
-                .foldF(IO.unit)(res => IO(event.respondWith(res)))
-            }
-            .unsafeToPromise())
+      event.respondWith(
+        (for {
+          supervisorResource <- Supervisor[IO].allocated
+          (supervisor, closeSupervisor) = supervisorResource
+          res <- OptionT
+            .liftF(handler.get.rethrow)
+            .flatMap(routesToListener(_, supervisor, FetchEventContext.IOKey).apply(event))
+            .getOrElseF(IO.fromPromise(IO(Fetch.fetch(event.request))))
+          _ <- IO(event.asInstanceOf[ExtendableEvent].waitUntil(closeSupervisor.unsafeToPromise()))
+        } yield res).unsafeToPromise()
+      )
     }: scalajs.js.Function1[FetchEvent, Unit]
     _ <- SyncIO(ServiceWorkerGlobalScope.self.addEventListener("fetch", jsHandler))
   } yield SyncIO(ServiceWorkerGlobalScope.self.removeEventListener("fetch", jsHandler))
