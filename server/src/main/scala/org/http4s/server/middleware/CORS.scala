@@ -25,12 +25,16 @@ import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 /** CORS middleware config options.
   * You can give an instance of this class to the CORS middleware,
   * to specify its behavior
   */
+@deprecated(
+  """Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
+  "0.21.27")
 final case class CORSConfig(
     anyOrigin: Boolean,
     allowCredentials: Boolean,
@@ -45,8 +49,14 @@ final case class CORSConfig(
 object CORS {
   private[CORS] val logger = getLogger
 
+  @deprecated(
+    "Not the actual default CORS Vary heder, and will be removed from the public API.",
+    "0.21.27")
   val defaultVaryHeader = Header("Vary", "Origin,Access-Control-Request-Method")
 
+  @deprecated(
+    "The default `CORSConfig` is insecure. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.",
+    "0.21.27")
   def DefaultCORSConfig =
     CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
 
@@ -55,6 +65,10 @@ object CORS {
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
+  @deprecated(
+    "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.",
+    "0.21.27")
+  @nowarn("cat=deprecation")
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = DefaultCORSConfig)(implicit
       F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
@@ -127,9 +141,15 @@ object CORS {
       }
     }
 
+  @deprecated(
+    """Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
+    "0.21.27")
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
 
+  @deprecated(
+    """Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
+    "0.21.27")
   def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
     apply(httpApp)
 }

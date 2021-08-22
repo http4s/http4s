@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.27
+
+This is a security release.
+
+## http4s-server
+
+### Security patches
+
+* [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6): Deprecates `apply` method that takes a `CORSConfig`.  The default configuration provides no actual CORS protection, and has several deficiences even when properly configured.  Please see the GHSA for a full discussion.
+
 # v0.21.26 (2021-08-12)
 
 The 0.21 series is no longer actively maintained by the team, but we'll continue to entertain binary compatible patches.  All users are still encouraged to upgrade to 0.22 (for Cats-Effect 2) or 0.23 (the latest stable series, on Cats-Effect 3).
