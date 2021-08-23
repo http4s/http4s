@@ -44,6 +44,11 @@ class CORSSuite extends Http4sSuite {
       resp.headers.get(`Access-Control-Allow-Origin`).map(_.value),
       origin.map(_.toString))
 
+  def assertAllowCredentials[F[_]](resp: Response[F], b: Boolean) =
+    assertEquals(
+      resp.headers.get(`Access-Control-Allow-Credentials`).map(_.value),
+      if (b) Some("true") else None)
+
   test("withAllowAnyOrigin, non-CORS request") {
     CORS.withAllowAnyOrigin(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
@@ -108,6 +113,48 @@ class CORSSuite extends Http4sSuite {
     CORS.withAllowOriginHostCi(_ => false)(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, None)
     }
+  }
+
+  test("withCredentials(true), specific origin, CORS request with matching origin") {
+    CORS
+      .withAllowOriginHeader(Set(exampleOriginHeader))
+      .withAllowCredentials(true)
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertAllowCredentials(resp, true)
+      }
+  }
+
+  test("withCredentials(false), specific origin, CORS request with matching origin") {
+    CORS
+      .withAllowOriginHeader(Set(exampleOriginHeader))
+      .withAllowCredentials(false)
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertAllowCredentials(resp, false)
+      }
+  }
+
+  test("withCredentials(true), any origin, CORS request with matching origin") {
+    CORS.withAllowAnyOrigin
+      .withAllowCredentials(true)
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertAllowCredentials(resp, false)
+      }
+  }
+
+  test("withCredentials(false), any origin, CORS request with matching origin") {
+    CORS.withAllowAnyOrigin
+      .withAllowCredentials(false)
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertAllowCredentials(resp, false)
+      }
   }
 
   val cors1 = CORS(routes)

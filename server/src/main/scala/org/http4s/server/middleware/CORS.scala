@@ -50,51 +50,81 @@ object CORS {
   private[CORS] val logger = getLogger
 
   private[CORS] object CommonHeaders {
-    val someAllowOriginWildcard =
-      Header.Raw(`Access-Control-Allow-Origin`.name, "*").some
+    val allowOriginWildcard =
+      Header.Raw(`Access-Control-Allow-Origin`.name, "*")
+    val someAllowCredentials =
+      Header.Raw(`Access-Control-Allow-Credentials`.name, "true").some
   }
 
   private[CORS] sealed trait AllowOrigin
-  object AllowOrigin {
+  private[CORS] object AllowOrigin {
     case object Any extends AllowOrigin
     case class Match(p: Origin => Boolean) extends AllowOrigin
   }
 
-  final class Policy private[CORS] (allowOrigin: AllowOrigin) {
-    def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = Kleisli { req =>
-      def dispatch =
+  private[CORS] sealed trait AllowCredentials
+  private[CORS] object AllowCredentials {
+    case object Allow extends AllowCredentials
+    case object Deny extends AllowCredentials
+  }
+
+  final class Policy private[CORS] (allowOrigin: AllowOrigin, allowCredentials: AllowCredentials) {
+    def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
+      def dispatch(req: Request[G]) =
         req.headers.get(Origin) match {
           case Some(origin) =>
-            handleCors(origin)
+            handleCors(req, origin)
           case None =>
             http(req)
         }
 
-      def handleCors(origin: Origin) = {
+      def handleCors(req: Request[G], origin: Origin) = {
         val resp = http(req)
-        allowOriginHeader(origin) match {
-          case Some(corsHeader) => resp.map(_.putHeaders(corsHeader))
+        allowOriginHeader(origin).map { ao =>
+          val buff = List.newBuilder[Header]
+          buff.addAll(ao)
+          allowCredentialsHeader.foreach(buff.addOne)
+          buff.result()
+        } match {
+          case Some(corsHeaders) => resp.map(_.putHeaders(corsHeaders: _*))
           case None => resp
         }
       }
 
-      def allowOriginHeader(origin: Origin): Option[Header] =
+      def allowOriginHeader(origin: Origin): Option[List[Header]] =
         allowOrigin match {
           case AllowOrigin.Any =>
-            CommonHeaders.someAllowOriginWildcard
+            List(CommonHeaders.allowOriginWildcard).some
           case AllowOrigin.Match(p) =>
             if (p(origin))
-              Header.Raw(`Access-Control-Allow-Origin`.name, origin.value).some
+              List(Header.Raw(`Access-Control-Allow-Origin`.name, origin.value)).some
             else
               None
         }
 
-      dispatch
+      def allowCredentialsHeader: Option[Header] =
+        allowCredentials match {
+          case AllowCredentials.Allow =>
+            CommonHeaders.someAllowCredentials
+          case AllowCredentials.Deny =>
+            None
+        }
+
+      if (allowOrigin == AllowOrigin.Any && allowCredentials == AllowCredentials.Allow) {
+        logger.warn(
+          "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses.")
+        http
+      } else
+        Kleisli(dispatch)
     }
 
-    def copy(allowOrigin: AllowOrigin = allowOrigin): Policy =
+    def copy(
+        allowOrigin: AllowOrigin = allowOrigin,
+        allowCredentials: AllowCredentials = allowCredentials
+    ): Policy =
       new Policy(
-        allowOrigin
+        allowOrigin,
+        allowCredentials
       )
 
     /** Allow CORS requests from any origin with an
@@ -132,18 +162,28 @@ object CORS {
         case Origin.Null => false
       })
 
-    /** Allow requests requests from any origin host whose
-      * case-insensitive rendering matches predicate `p`.  A concession
-      * to the fact that constructing [[Origin.Host]] values is verbose.
+    /** Allow requests from any origin host whose case-insensitive
+      * rendering matches predicate `p`.  A concession to the fact
+      * that constructing [[Origin.Host]] values is verbose.
       *
       * @see [[#withAllowOriginHost]]
       */
     def withAllowOriginHostCi(p: CIString => Boolean): Policy =
       withAllowOriginHost(p.compose(host => CIString(host.renderString)))
+
+    /** Allow credentials.  Sends an `Access-Control-Allow-Credentials: *`
+      * on valid CORS requests if true, and omits the header if false.
+      *
+      * For security purposes, it is an invalid per the Fetch Living Standard
+      * that defines CORS to set this to `true` when any origin is allowed.
+      */
+    def withAllowCredentials(b: Boolean): Policy =
+      copy(allowCredentials = if (b) AllowCredentials.Allow else AllowCredentials.Deny)
   }
 
   private val defaultPolicy: Policy = new Policy(
-    AllowOrigin.Match(Function.const(false))
+    AllowOrigin.Match(Function.const(false)),
+    AllowCredentials.Deny
   )
 
   /** A CORS policy that allows requests from any origin.
