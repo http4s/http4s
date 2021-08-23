@@ -28,25 +28,22 @@ import org.scalajs.dom.experimental.RequestRedirect
 import scala.concurrent.duration._
 
 /** Configure and obtain a FetchClient
+  *
   * @param requestTimeout maximum duration from the submission of a request through reading the body before a timeout.
   * @param cache how the request will interact with the browser’s HTTP cache
   * @param credentials what browsers do with credentials (cookies, HTTP authentication entries, and TLS client certificates)
-  * @param integrity subresource integrity value of the request
-  * @param keepAlive used to allow the request to outlive the page
   * @param mode mode you want to use for the request, e.g., cors, no-cors, or same-origin
   * @param redirect how to handle a redirect response
-  * @param referrer referrer of the request, this can be a same-origin URL, about:client, or an empty string.
+  * @param referrer referrer of the request
   * @param referrerPolicy referrer policy to use for the request
   */
 sealed abstract class FetchClientBuilder[F[_]] private (
     val requestTimeout: Duration,
     val cache: Option[RequestCache],
     val credentials: Option[RequestCredentials],
-    val integrity: Option[String],
-    val keepAlive: Option[Boolean],
     val mode: Option[RequestMode],
     val redirect: Option[RequestRedirect],
-    val referrer: Option[String],
+    val referrer: Option[FetchReferrer],
     val referrerPolicy: Option[ReferrerPolicy]
 )(implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
@@ -55,19 +52,15 @@ sealed abstract class FetchClientBuilder[F[_]] private (
       requestTimeout: Duration = requestTimeout,
       cache: Option[RequestCache] = cache,
       credentials: Option[RequestCredentials] = credentials,
-      integrity: Option[String] = integrity,
-      keepAlive: Option[Boolean] = keepAlive,
       mode: Option[RequestMode] = mode,
       redirect: Option[RequestRedirect] = redirect,
-      referrer: Option[String] = referrer,
+      referrer: Option[FetchReferrer] = referrer,
       referrerPolicy: Option[ReferrerPolicy] = referrerPolicy
   ): FetchClientBuilder[F] =
     new FetchClientBuilder[F](
       requestTimeout,
       cache,
       credentials,
-      integrity,
-      keepAlive,
       mode,
       redirect,
       referrer,
@@ -91,20 +84,6 @@ sealed abstract class FetchClientBuilder[F[_]] private (
   def withDefaultCredentials: FetchClientBuilder[F] =
     withCredentialsOption(None)
 
-  def withIntegrityOption(integrity: Option[String]): FetchClientBuilder[F] =
-    copy(integrity = integrity)
-  def withIntegrity(integrity: String): FetchClientBuilder[F] =
-    withIntegrityOption(Some(integrity))
-  def withDefaultIntegrity: FetchClientBuilder[F] =
-    withIntegrityOption(None)
-
-  def withKeepAliveOption(keepAlive: Option[Boolean]): FetchClientBuilder[F] =
-    copy(keepAlive = keepAlive)
-  def withKeepAlive(keepAlive: Boolean): FetchClientBuilder[F] =
-    withKeepAliveOption(Some(keepAlive))
-  def withDefaultKeepAlive: FetchClientBuilder[F] =
-    withKeepAliveOption(None)
-
   def withModeOption(mode: Option[RequestMode]): FetchClientBuilder[F] =
     copy(mode = mode)
   def withMode(mode: RequestMode): FetchClientBuilder[F] =
@@ -119,9 +98,9 @@ sealed abstract class FetchClientBuilder[F[_]] private (
   def withDefaultRedirect: FetchClientBuilder[F] =
     withRedirectOption(None)
 
-  def withReferrerOption(referrer: Option[String]): FetchClientBuilder[F] =
+  def withReferrerOption(referrer: Option[FetchReferrer]): FetchClientBuilder[F] =
     copy(referrer = referrer)
-  def withReferrer(referrer: String): FetchClientBuilder[F] =
+  def withReferrer(referrer: FetchReferrer): FetchClientBuilder[F] =
     withReferrerOption(Some(referrer))
   def withDefaultReferrer: FetchClientBuilder[F] =
     withReferrerOption(None)
@@ -137,14 +116,14 @@ sealed abstract class FetchClientBuilder[F[_]] private (
     */
   def create: Client[F] = FetchClient.makeClient(
     requestTimeout,
-    cache,
-    credentials,
-    integrity,
-    keepAlive,
-    mode,
-    redirect,
-    referrer,
-    referrerPolicy)
+    FetchOptions(
+      cache = cache,
+      credentials = credentials,
+      mode = mode,
+      redirect = redirect,
+      referrer = referrer,
+      referrerPolicy = referrerPolicy
+    ))
 
   def resource: Resource[F, Client[F]] =
     Resource.eval(F.delay(create))
@@ -159,8 +138,6 @@ object FetchClientBuilder {
       requestTimeout = defaults.RequestTimeout,
       cache = None,
       credentials = None,
-      integrity = None,
-      keepAlive = None,
       mode = None,
       redirect = None,
       referrer = None,

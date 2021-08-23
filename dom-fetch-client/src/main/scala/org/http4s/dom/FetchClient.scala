@@ -23,53 +23,55 @@ import cats.syntax.all._
 import cats.effect.syntax.all._
 import java.util.concurrent.TimeoutException
 import org.http4s.client.Client
+import org.http4s.headers.{`Referer`}
 import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.AbortController
 import org.scalajs.dom.experimental.Fetch
 import org.scalajs.dom.experimental.Headers
 import org.scalajs.dom.experimental.HttpMethod
-import org.scalajs.dom.experimental.ReferrerPolicy
-import org.scalajs.dom.experimental.RequestCache
-import org.scalajs.dom.experimental.RequestCredentials
 import org.scalajs.dom.experimental.RequestInit
-import org.scalajs.dom.experimental.RequestMode
-import org.scalajs.dom.experimental.RequestRedirect
 import org.scalajs.dom.experimental.{Response => FetchResponse}
 import scala.concurrent.duration._
+import org.typelevel.ci._
 
 object FetchClient {
 
   private[dom] def makeClient[F[_]](
       requestTimeout: Duration,
-      cache: Option[RequestCache],
-      credentials: Option[RequestCredentials],
-      integrity: Option[String],
-      keepAlive: Option[Boolean],
-      mode: Option[RequestMode],
-      redirect: Option[RequestRedirect],
-      referrer: Option[String],
-      referrerPolicy: Option[ReferrerPolicy]
+      options: FetchOptions
   )(implicit F: Async[F]): Client[F] = Client[F] { (req: Request[F]) =>
     Resource.eval(req.body.chunkAll.filter(_.nonEmpty).compile.last).flatMap { body =>
       Resource
         .makeCase {
           F.delay(new AbortController()).flatMap { abortController =>
+            val requestOptions = req.attributes.lookup(FetchOptions.Key)
+            val mergedOptions = requestOptions.fold(options)(options.overrideWith)
+
             val init = new RequestInit {}
 
             init.method = req.method.name.asInstanceOf[HttpMethod]
-            init.headers = new Headers(toDomHeaders(req.headers))
+            // Referer header is converted to a Fetch parameter below, since it's a forbidden header.
+            // See https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
+            init.headers = new Headers(
+              toDomHeaders(req.headers.transform(_.filterNot(_.name === Header[Referer].name))))
             body.foreach { body =>
               init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
             }
             init.signal = abortController.signal
-            cache.foreach(init.cache = _)
-            credentials.foreach(init.credentials = _)
-            integrity.foreach(init.integrity = _)
-            keepAlive.foreach(init.keepalive = _)
-            mode.foreach(init.mode = _)
-            redirect.foreach(init.redirect = _)
-            referrer.foreach(init.referrer = _)
-            referrerPolicy.foreach(init.referrerPolicy = _)
+            mergedOptions.cache.foreach(init.cache = _)
+            mergedOptions.credentials.foreach(init.credentials = _)
+            mergedOptions.integrity.foreach(init.integrity = _)
+            mergedOptions.keepAlive.foreach(init.keepalive = _)
+            mergedOptions.mode.foreach(init.mode = _)
+            mergedOptions.redirect.foreach(init.redirect = _)
+            // If there's a Referer header, it will have more priority than the client's `referrer` (if present)
+            // but less priority than the request's `referrer` (if present).
+            requestOptions
+              .flatMap(_.referrer)
+              .orElse(req.headers.get[Referer].map(_.uri))
+              .orElse(options.referrer)
+              .foreach(referrer => init.referrer = referrer.renderString)
+            mergedOptions.referrerPolicy.foreach(init.referrerPolicy = _)
 
             val fetch = F
               .fromPromise(F.delay(Fetch.fetch(req.uri.renderString, init)))
