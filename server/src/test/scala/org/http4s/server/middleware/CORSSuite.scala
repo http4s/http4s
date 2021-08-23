@@ -30,6 +30,27 @@ class CORSSuite extends Http4sSuite {
     case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
   }
+  val app = routes.orNotFound
+
+  def nonCorsReq = Request[IO](uri = uri"/foo")
+  def corsReq = nonCorsReq.putHeaders(Header("Origin", "https://example.com"))
+
+  def assertAllowOrigin[F[_]](resp: Response[F], origin: Option[String]) =
+    assertEquals(
+      resp.headers.get(`Access-Control-Allow-Origin`).map(_.value),
+      origin.map(_.toString))
+
+  test("Does not apply CORS headers to non-CORS request") {
+    CORS.withAllowAnyOrigin(app).run(nonCorsReq).map { resp =>
+      assertAllowOrigin(resp, None)
+    }
+  }
+
+  test("Applies Access-Control-Allow-Origin: * to CORS requests") {
+    CORS.withAllowAnyOrigin(app).run(corsReq).map { resp =>
+      assertAllowOrigin(resp, "*".some)
+    }
+  }
 
   val cors1 = CORS(routes)
   val cors2 = CORS(

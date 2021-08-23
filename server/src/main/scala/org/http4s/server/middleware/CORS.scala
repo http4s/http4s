@@ -18,7 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative, Monad}
+import cats.{Applicative, Functor, Monad}
 import cats.data.Kleisli
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
@@ -48,6 +48,63 @@ final case class CORSConfig(
 
 object CORS {
   private[CORS] val logger = getLogger
+
+  private[CORS] object CommonHeaders {
+    val someAllowOriginWildcard =
+      Header.Raw(`Access-Control-Allow-Origin`.name, "*").some
+  }
+
+  sealed trait AllowOrigin
+  object AllowOrigin {
+    case object Any extends AllowOrigin
+  }
+
+  final class Policy private[CORS] (allowOrigin: AllowOrigin) {
+    def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = Kleisli { req =>
+      def dispatch =
+        req.headers.get(Origin) match {
+          case Some(origin) =>
+            handleCors(origin)
+          case None =>
+            http(req)
+        }
+
+      def handleCors(origin: Origin) = {
+        val resp = http(req)
+        allowOriginsHeader(origin) match {
+          case Some(corsHeader) => resp.map(_.putHeaders(corsHeader))
+          case None => resp
+        }
+      }
+
+      def allowOriginsHeader(origin: Origin): Option[Header] = {
+        val _ = origin
+        allowOrigin match {
+          case AllowOrigin.Any =>
+            CommonHeaders.someAllowOriginWildcard
+        }
+      }
+
+      dispatch
+    }
+
+    def copy(allowOrigin: AllowOrigin = allowOrigin): Policy =
+      new Policy(
+        allowOrigin
+      )
+
+    /** Allow requests from any origin with an
+      * `Access-Control-Allow-Origin` of `*`.
+      */
+    def withAllowAnyOrigin: Policy =
+      copy(AllowOrigin.Any)
+  }
+
+  /** A CORS policy that allows requests from any origin with an
+    * `Access-Control-Allow-Origin` of `*`.
+    */
+  val withAllowAnyOrigin: Policy =
+    new Policy(AllowOrigin.Any)
 
   @deprecated(
     "Not the actual default CORS Vary heder, and will be removed from the public API.",
