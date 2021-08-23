@@ -32,7 +32,6 @@ import org.scalajs.dom.experimental.HttpMethod
 import org.scalajs.dom.experimental.RequestInit
 import org.scalajs.dom.experimental.{Response => FetchResponse}
 import scala.concurrent.duration._
-import org.typelevel.ci._
 
 object FetchClient {
 
