@@ -68,7 +68,7 @@ package object dom {
         case Resource.ExitCase.Succeeded =>
           rs.cancel(null)
         case Resource.ExitCase.Errored(ex) =>
-          rs.cancel(ex.toString())
+          rs.cancel(ex.getLocalizedMessage())
         case Resource.ExitCase.Canceled =>
           rs.cancel(null)
       }
