@@ -106,18 +106,36 @@ object CORS {
       def dispatch(req: Request[G]) =
         req.headers.get(Origin) match {
           case Some(origin) =>
-            handleCors(req, origin)
+            req.headers.get(`Access-Control-Request-Method`) match {
+              case Some(_) =>
+                handlePreflight(req, origin)
+              case _ =>
+                handleNonPreflight(req, origin)
+            }
           case None =>
             http(req)
         }
 
-      def handleCors(req: Request[G], origin: Origin) = {
+      def handleNonPreflight(req: Request[G], origin: Origin) = {
         val resp = http(req)
         allowOriginHeader(origin).map { ao =>
           val buff = List.newBuilder[Header]
           buff.addAll(ao)
           allowCredentialsHeader.foreach(buff.addOne)
           exposeHeadersHeader.foreach(buff.addOne)
+          buff.result()
+        } match {
+          case Some(corsHeaders) => resp.map(_.putHeaders(corsHeaders: _*))
+          case None => resp
+        }
+      }
+
+      def handlePreflight(req: Request[G], origin: Origin) = {
+        val resp = http(req)
+        allowOriginHeader(origin).map { ao =>
+          val buff = List.newBuilder[Header]
+          buff.addAll(ao)
+          allowCredentialsHeader.foreach(buff.addOne)
           buff.result()
         } match {
           case Some(corsHeaders) => resp.map(_.putHeaders(corsHeaders: _*))
