@@ -57,7 +57,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withAllowOriginHeader, non-CORS request") {
-    CORS.withAllowOriginHeader(_ => false)(app).run(nonCorsReq).map { resp =>
+    CORS.withAllowOriginHeader(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
     }
   }
@@ -68,8 +68,14 @@ class CORSSuite extends Http4sSuite {
     }
   }
 
+  test("withAllowOriginHeader, CORS request with non-matching origin") {
+    CORS.withAllowOriginHeader(_ => false)(app).run(corsReq).map { resp =>
+      assertAllowOrigin(resp, None)
+    }
+  }
+
   test("withAllowOriginHost, non-CORS request") {
-    CORS.withAllowOriginHost(_ => false)(app).run(nonCorsReq).map { resp =>
+    CORS.withAllowOriginHost(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
     }
   }
@@ -80,8 +86,14 @@ class CORSSuite extends Http4sSuite {
     }
   }
 
+  test("withAllowOriginHeader, CORS request with non-matching origin") {
+    CORS.withAllowOriginHeader(_ => false)(app).run(corsReq).map { resp =>
+      assertAllowOrigin(resp, None)
+    }
+  }
+
   test("withAllowOriginHostCi, non-CORS request") {
-    CORS.withAllowOriginHostCi(_ => false)(app).run(nonCorsReq).map { resp =>
+    CORS.withAllowOriginHostCi(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
     }
   }
@@ -89,6 +101,12 @@ class CORSSuite extends Http4sSuite {
   test("withAllowOriginHostCi, CORS request with matching origin") {
     CORS.withAllowOriginHostCi(Set("HTTPS://EXAMPLE.COM".ci))(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, Some("https://example.com"))
+    }
+  }
+
+  test("withAllowOriginHostCi, CORS request with non-matching origin") {
+    CORS.withAllowOriginHostCi(_ => false)(app).run(corsReq).map { resp =>
+      assertAllowOrigin(resp, None)
     }
   }
 
