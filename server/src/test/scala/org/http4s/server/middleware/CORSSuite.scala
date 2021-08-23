@@ -53,69 +53,83 @@ class CORSSuite extends Http4sSuite {
   def assertExposeHeaders[F[_]](resp: Response[F], names: Option[CIString]) =
     assertEquals(resp.headers.get(`Access-Control-Expose-Headers`).map(_.value.ci), names)
 
+  def assertVary[F[_]](resp: Response[F], headers: Option[CIString]) =
+    assertEquals(resp.headers.get(Vary).map(_.value.ci), headers)
+
   test("withAllowAnyOrigin, non-CORS request") {
     CORS.withAllowAnyOrigin(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
+      assertVary(resp, None)
     }
   }
 
   test("withAllowAnyOrigin, CORS request") {
     CORS.withAllowAnyOrigin(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, "*".some)
+      assertVary(resp, None)
     }
   }
 
   test("withAllowOriginHeader, non-CORS request") {
     CORS.withAllowOriginHeader(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
+      assertVary(resp, None)
     }
   }
 
   test("withAllowOriginHeader, CORS request with matching origin") {
     CORS.withAllowOriginHeader(Set(exampleOriginHeader))(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, Some("https://example.com"))
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
   test("withAllowOriginHeader, CORS request with non-matching origin") {
     CORS.withAllowOriginHeader(_ => false)(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, None)
+      assertVary(resp, None)
     }
   }
 
   test("withAllowOriginHost, non-CORS request") {
     CORS.withAllowOriginHost(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
+      assertVary(resp, None)
     }
   }
 
   test("withAllowOriginHost, CORS request with matching origin") {
     CORS.withAllowOriginHost(Set(exampleOrigin))(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, Some("https://example.com"))
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
   test("withAllowOriginHeader, CORS request with non-matching origin") {
     CORS.withAllowOriginHeader(_ => false)(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, None)
+      assertVary(resp, None)
     }
   }
 
   test("withAllowOriginHostCi, non-CORS request") {
     CORS.withAllowOriginHostCi(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
+      assertVary(resp, None)
     }
   }
 
   test("withAllowOriginHostCi, CORS request with matching origin") {
     CORS.withAllowOriginHostCi(Set("HTTPS://EXAMPLE.COM".ci))(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, Some("https://example.com"))
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
   test("withAllowOriginHostCi, CORS request with non-matching origin") {
     CORS.withAllowOriginHostCi(_ => false)(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, None)
+      assertVary(resp, None)
     }
   }
 

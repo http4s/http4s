@@ -56,6 +56,8 @@ object CORS {
       Header.Raw(`Access-Control-Allow-Credentials`.name, "true").some
     val someExposeHeadersWildcard =
       Header.Raw(`Access-Control-Expose-Headers`.name, "*").some
+    val varyOrigin =
+      Header.Raw(Vary.name, Origin.name.toString)
   }
 
   private[CORS] sealed trait AllowOrigin
@@ -129,7 +131,10 @@ object CORS {
             List(CommonHeaders.allowOriginWildcard).some
           case AllowOrigin.Match(p) =>
             if (p(origin))
-              List(Header.Raw(`Access-Control-Allow-Origin`.name, origin.value)).some
+              List(
+                Header.Raw(`Access-Control-Allow-Origin`.name, origin.value),
+                CommonHeaders.varyOrigin
+              ).some
             else
               None
         }
