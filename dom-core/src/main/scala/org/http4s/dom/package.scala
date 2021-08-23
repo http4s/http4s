@@ -60,19 +60,20 @@ package object dom {
       }
 
   private[dom] def closeReadableStream[F[_], A](rs: ReadableStream[A], exitCase: Resource.ExitCase)(
-      implicit F: Async[F]): F[Unit] = exitCase match {
-    case Resource.ExitCase.Succeeded =>
-      F.fromPromise {
-        F.delay {
-          // Best guess: Firefox internally locks a ReadableStream after it is "drained"
-          // This checks if the stream is locked before canceling it to avoid an error
-          if (!rs.locked) rs.cancel(null) else scalajs.js.Promise.resolve[Unit](())
-        }
-      }.void
-    case Resource.ExitCase.Errored(ex) =>
-      F.fromPromise(F.delay(rs.cancel(ex.getMessage()))).void
-    case Resource.ExitCase.Canceled =>
-      F.fromPromise(F.delay(rs.cancel(null))).void
-  }
+      implicit F: Async[F]): F[Unit] = F.fromPromise {
+    F.delay {
+      // Best guess: Firefox internally locks a ReadableStream after it is "drained"
+      // This checks if the stream is locked before canceling it to avoid an error
+      if (!rs.locked) exitCase match {
+        case Resource.ExitCase.Succeeded =>
+          rs.cancel(null)
+        case Resource.ExitCase.Errored(ex) =>
+          rs.cancel(ex.getLocalizedMessage())
+        case Resource.ExitCase.Canceled =>
+          rs.cancel(null)
+      }
+      else scalajs.js.Promise.resolve[Unit](())
+    }
+  }.void
 
 }
