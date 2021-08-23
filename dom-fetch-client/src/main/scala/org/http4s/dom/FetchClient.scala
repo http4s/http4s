@@ -36,22 +36,19 @@ import org.scalajs.dom.experimental.RequestMode
 import org.scalajs.dom.experimental.RequestRedirect
 import org.scalajs.dom.experimental.{Response => FetchResponse}
 import scala.concurrent.duration._
-import scala.scalajs.js
 
 object FetchClient {
 
-  def apply[F[_]](implicit F: Async[F]): Client[F] = apply()
-
-  def apply[F[_]](
-      requestTimeout: js.UndefOr[FiniteDuration] = js.undefined,
-      cache: js.UndefOr[RequestCache] = js.undefined,
-      credentials: js.UndefOr[RequestCredentials] = js.undefined,
-      integrity: js.UndefOr[String] = js.undefined,
-      keepalive: js.UndefOr[Boolean] = js.undefined,
-      mode: js.UndefOr[RequestMode] = js.undefined,
-      redirect: js.UndefOr[RequestRedirect] = js.undefined,
-      referrer: js.UndefOr[String] = js.undefined,
-      referrerPolicy: js.UndefOr[ReferrerPolicy] = js.undefined
+  private[dom] def makeClient[F[_]](
+      requestTimeout: Duration,
+      cache: Option[RequestCache],
+      credentials: Option[RequestCredentials],
+      integrity: Option[String],
+      keepalive: Option[Boolean],
+      mode: Option[RequestMode],
+      redirect: Option[RequestRedirect],
+      referrer: Option[String],
+      referrerPolicy: Option[ReferrerPolicy]
   )(implicit F: Async[F]): Client[F] = Client[F] { (req: Request[F]) =>
     Resource.eval(req.body.chunkAll.filter(_.nonEmpty).compile.last).flatMap { body =>
       Resource
@@ -75,8 +72,8 @@ object FetchClient {
 
             init
           } >>= {
-            requestTimeout.toOption match {
-              case Some(d: FiniteDuration) =>
+            requestTimeout match {
+              case d: FiniteDuration =>
                 init =>
                   Resource
                     .eval(F.delay(new AbortController()))
