@@ -54,6 +54,8 @@ object CORS {
       Header.Raw(`Access-Control-Allow-Origin`.name, "*")
     val someAllowCredentials =
       Header.Raw(`Access-Control-Allow-Credentials`.name, "true").some
+    val someExposeHeadersWildcard =
+      Header.Raw(`Access-Control-Expose-Headers`.name, "*").some
   }
 
   private[CORS] sealed trait AllowOrigin
@@ -68,8 +70,37 @@ object CORS {
     case object Deny extends AllowCredentials
   }
 
-  final class Policy private[CORS] (allowOrigin: AllowOrigin, allowCredentials: AllowCredentials) {
+  private[CORS] sealed trait ExposeHeaders
+  private[CORS] object ExposeHeaders {
+    case object All extends ExposeHeaders
+    case class In(names: Set[CIString]) extends ExposeHeaders
+    case object None extends ExposeHeaders
+  }
+
+  final class Policy private[CORS] (
+      allowOrigin: AllowOrigin,
+      allowCredentials: AllowCredentials,
+      exposeHeaders: ExposeHeaders) {
     def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
+
+      val allowCredentialsHeader: Option[Header] =
+        allowCredentials match {
+          case AllowCredentials.Allow =>
+            CommonHeaders.someAllowCredentials
+          case AllowCredentials.Deny =>
+            None
+        }
+
+      val exposeHeadersHeader: Option[Header] =
+        exposeHeaders match {
+          case ExposeHeaders.All =>
+            CommonHeaders.someExposeHeadersWildcard
+          case ExposeHeaders.In(names) =>
+            Header.Raw(`Access-Control-Expose-Headers`.name, names.mkString(", ")).some
+          case ExposeHeaders.None =>
+            None
+        }
+
       def dispatch(req: Request[G]) =
         req.headers.get(Origin) match {
           case Some(origin) =>
@@ -84,6 +115,7 @@ object CORS {
           val buff = List.newBuilder[Header]
           buff.addAll(ao)
           allowCredentialsHeader.foreach(buff.addOne)
+          exposeHeadersHeader.foreach(buff.addOne)
           buff.result()
         } match {
           case Some(corsHeaders) => resp.map(_.putHeaders(corsHeaders: _*))
@@ -102,14 +134,6 @@ object CORS {
               None
         }
 
-      def allowCredentialsHeader: Option[Header] =
-        allowCredentials match {
-          case AllowCredentials.Allow =>
-            CommonHeaders.someAllowCredentials
-          case AllowCredentials.Deny =>
-            None
-        }
-
       if (allowOrigin == AllowOrigin.Any && allowCredentials == AllowCredentials.Allow) {
         logger.warn(
           "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses.")
@@ -120,11 +144,13 @@ object CORS {
 
     def copy(
         allowOrigin: AllowOrigin = allowOrigin,
-        allowCredentials: AllowCredentials = allowCredentials
+        allowCredentials: AllowCredentials = allowCredentials,
+        exposeHeaders: ExposeHeaders = exposeHeaders
     ): Policy =
       new Policy(
         allowOrigin,
-        allowCredentials
+        allowCredentials,
+        exposeHeaders
       )
 
     /** Allow CORS requests from any origin with an
@@ -179,11 +205,38 @@ object CORS {
       */
     def withAllowCredentials(b: Boolean): Policy =
       copy(allowCredentials = if (b) AllowCredentials.Allow else AllowCredentials.Deny)
+
+    /** Exposes all response headers to the origin.
+      *
+      * Sends an `Access-Control-Expose-Headers: *` header on valid
+      * CORS non-preflight requests.
+      */
+    def withExposeHeadersAll: Policy =
+      copy(exposeHeaders = ExposeHeaders.All)
+
+    /** Exposes specific response headers to the origin.  These are in
+      * addition to CORS-safelisted response headers.
+      *
+      * Sends an `Access-Control-Expose-Headers` header with names as
+      * a comma-delimited string on valid CORS non-preflight requests.
+      */
+    def withExposeHeadersIn(names: Set[CIString]): Policy =
+      copy(exposeHeaders = ExposeHeaders.In(names))
+
+    /** Exposes no response headers to the origin beyond the
+      * CORS-safelisted response headers.
+      *
+      * Sends an `Access-Control-Expose-Headers` header with names as
+      * a comma-delimited string on valid CORS non-preflight requests.
+      */
+    def withExposeHeadersNone: Policy =
+      copy(exposeHeaders = ExposeHeaders.None)
   }
 
   private val defaultPolicy: Policy = new Policy(
     AllowOrigin.Match(Function.const(false)),
-    AllowCredentials.Deny
+    AllowCredentials.Deny,
+    ExposeHeaders.None
   )
 
   /** A CORS policy that allows requests from any origin.

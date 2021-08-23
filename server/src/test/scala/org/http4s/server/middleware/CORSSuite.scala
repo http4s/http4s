@@ -25,6 +25,7 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.headers._
 import org.http4s.Http4sSuite
+import org.http4s.util.{CaseInsensitiveString => CIString}
 
 class CORSSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
@@ -48,6 +49,9 @@ class CORSSuite extends Http4sSuite {
     assertEquals(
       resp.headers.get(`Access-Control-Allow-Credentials`).map(_.value),
       if (b) Some("true") else None)
+
+  def assertExposeHeaders[F[_]](resp: Response[F], names: Option[CIString]) =
+    assertEquals(resp.headers.get(`Access-Control-Expose-Headers`).map(_.value.ci), names)
 
   test("withAllowAnyOrigin, non-CORS request") {
     CORS.withAllowAnyOrigin(app).run(nonCorsReq).map { resp =>
@@ -154,6 +158,72 @@ class CORSSuite extends Http4sSuite {
       .run(corsReq)
       .map { resp =>
         assertAllowCredentials(resp, false)
+      }
+  }
+
+  test("withExposeHeadersAll, CORS request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withExposeHeadersAll
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertExposeHeaders(resp, "*".ci.some)
+      }
+  }
+
+  test("withExposeHeadersAll, CORS request with non-matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => false)
+      .withExposeHeadersAll
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertExposeHeaders(resp, None)
+      }
+  }
+
+  test("withExposeHeadersIn, CORS request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withExposeHeadersIn(Set("Content-Encoding".ci, "X-Cors-Suite".ci))
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertExposeHeaders(resp, "Content-Encoding, X-Cors-Suite".ci.some)
+      }
+  }
+
+  test("withExposeHeadersIn, CORS request with non-matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => false)
+      .withExposeHeadersIn(Set("Content-Encoding".ci, "X-Cors-Suite".ci))
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertExposeHeaders(resp, None)
+      }
+  }
+
+  test("withExposeHeadersNone, CORS request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withExposeHeadersNone
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertExposeHeaders(resp, None)
+      }
+  }
+
+  test("withExposeHeadersNone, CORS request with non-matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => false)
+      .withExposeHeadersNone
+      .apply(app)
+      .run(corsReq)
+      .map { resp =>
+        assertExposeHeaders(resp, None)
       }
   }
 
