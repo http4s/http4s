@@ -44,7 +44,7 @@ object FetchClient {
       cache: Option[RequestCache],
       credentials: Option[RequestCredentials],
       integrity: Option[String],
-      keepalive: Option[Boolean],
+      keepAlive: Option[Boolean],
       mode: Option[RequestMode],
       redirect: Option[RequestRedirect],
       referrer: Option[String],
@@ -53,7 +53,7 @@ object FetchClient {
     Resource.eval(req.body.chunkAll.filter(_.nonEmpty).compile.last).flatMap { body =>
       Resource
         .makeCase {
-          F.delay {
+          F.delay(new AbortController()).flatMap { abortController =>
             val init = new RequestInit {}
 
             init.method = req.method.name.asInstanceOf[HttpMethod]
@@ -61,34 +61,29 @@ object FetchClient {
             body.foreach { body =>
               init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
             }
+            init.signal = abortController.signal
             cache.foreach(init.cache = _)
             credentials.foreach(init.credentials = _)
             integrity.foreach(init.integrity = _)
-            keepalive.foreach(init.keepalive = _)
+            keepAlive.foreach(init.keepalive = _)
             mode.foreach(init.mode = _)
             redirect.foreach(init.redirect = _)
             referrer.foreach(init.referrer = _)
             referrerPolicy.foreach(init.referrerPolicy = _)
 
-            init
-          } >>= {
+            val fetch = F
+              .fromPromise(F.delay(Fetch.fetch(req.uri.renderString, init)))
+              .onCancel(F.delay(abortController.abort()))
+
             requestTimeout match {
               case d: FiniteDuration =>
-                init =>
-                  Resource
-                    .eval(F.delay(new AbortController()))
-                    .use(controller =>
-                      F.fromPromise(F.delay {
-                        init.signal = controller.signal
-                        Fetch.fetch(req.uri.renderString, init)
-                      }).timeoutTo(
-                        d,
-                        F.delay(controller.abort()) >>
-                          F.raiseError[FetchResponse](new TimeoutException(
-                            s"Request to ${req.uri.renderString} timed out after ${d.toMillis} ms"))
-                      ))
+                fetch.timeoutTo(
+                  d,
+                  F.raiseError[FetchResponse](new TimeoutException(
+                    s"Request to ${req.uri.renderString} timed out after ${d.toMillis} ms"))
+                )
               case _ =>
-                init => F.fromPromise(F.delay(Fetch.fetch(req.uri.renderString, init)))
+                fetch
             }
           }
         } { case (r, exitCase) =>
