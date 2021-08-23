@@ -69,13 +69,25 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withAllowOriginHost, non-CORS request") {
-    CORS.withAllowOriginHeader(_ => false)(app).run(nonCorsReq).map { resp =>
+    CORS.withAllowOriginHost(_ => false)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
     }
   }
 
   test("withAllowOriginHost, CORS request with matching origin") {
     CORS.withAllowOriginHost(Set(exampleOrigin))(app).run(corsReq).map { resp =>
+      assertAllowOrigin(resp, Some("https://example.com"))
+    }
+  }
+
+  test("withAllowOriginHostCi, non-CORS request") {
+    CORS.withAllowOriginHostCi(_ => false)(app).run(nonCorsReq).map { resp =>
+      assertAllowOrigin(resp, None)
+    }
+  }
+
+  test("withAllowOriginHostCi, CORS request with matching origin") {
+    CORS.withAllowOriginHostCi(Set("HTTPS://EXAMPLE.COM".ci))(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, Some("https://example.com"))
     }
   }

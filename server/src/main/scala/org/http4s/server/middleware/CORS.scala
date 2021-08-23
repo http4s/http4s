@@ -23,7 +23,7 @@ import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.util.{CaseInsensitiveString => CIString}
 import org.log4s.getLogger
 import scala.annotation.nowarn
 import scala.concurrent.duration._
@@ -72,13 +72,13 @@ object CORS {
 
       def handleCors(origin: Origin) = {
         val resp = http(req)
-        allowOriginsHeader(origin) match {
+        allowOriginHeader(origin) match {
           case Some(corsHeader) => resp.map(_.putHeaders(corsHeader))
           case None => resp
         }
       }
 
-      def allowOriginsHeader(origin: Origin): Option[Header] =
+      def allowOriginHeader(origin: Origin): Option[Header] =
         allowOrigin match {
           case AllowOrigin.Any =>
             CommonHeaders.someAllowOriginWildcard
@@ -131,6 +131,15 @@ object CORS {
         case Origin.HostList(NonEmptyList(h, _)) => p(h)
         case Origin.Null => false
       })
+
+    /** Allow requests requests from any origin host whose
+      * case-insensitive rendering matches predicate `p`.  A concession
+      * to the fact that constructing [[Origin.Host]] values is verbose.
+      *
+      * @see [[#withAllowOriginHost]]
+      */
+    def withAllowOriginHostCi(p: CIString => Boolean): Policy =
+      withAllowOriginHost(p.compose(host => CIString(host.renderString)))
   }
 
   private val defaultPolicy: Policy = new Policy(
@@ -160,6 +169,15 @@ object CORS {
     */
   def withAllowOriginHost(p: Origin.Host => Boolean): Policy =
     defaultPolicy.withAllowOriginHost(p)
+
+  /** A CORS policy that allows requests from any origin host whose
+    * case-insensitive rendering matches predicate `p`.  A concession
+    * to the fact that constructing [[Origin.Host]] values is verbose.
+    *
+    * @see [[Policy#withAllowOriginCi]]
+    */
+  def withAllowOriginHostCi(p: CIString => Boolean): Policy =
+    defaultPolicy.withAllowOriginHostCi(p)
 
   @deprecated(
     "Not the actual default CORS Vary heder, and will be removed from the public API.",
@@ -195,7 +213,7 @@ object CORS {
           config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
 
       def varyHeader(response: Response[G]): Response[G] =
-        response.headers.get(CaseInsensitiveString("Vary")) match {
+        response.headers.get(CIString("Vary")) match {
           case None => response.putHeaders(defaultVaryHeader)
           case _ => response
         }
