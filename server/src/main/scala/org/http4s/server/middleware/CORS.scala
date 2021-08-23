@@ -19,7 +19,7 @@ package server
 package middleware
 
 import cats.{Applicative, Functor, Monad}
-import cats.data.Kleisli
+import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
@@ -54,9 +54,10 @@ object CORS {
       Header.Raw(`Access-Control-Allow-Origin`.name, "*").some
   }
 
-  sealed trait AllowOrigin
+  private[CORS] sealed trait AllowOrigin
   object AllowOrigin {
     case object Any extends AllowOrigin
+    case class Match(p: Origin => Boolean) extends AllowOrigin
   }
 
   final class Policy private[CORS] (allowOrigin: AllowOrigin) {
@@ -77,13 +78,16 @@ object CORS {
         }
       }
 
-      def allowOriginsHeader(origin: Origin): Option[Header] = {
-        val _ = origin
+      def allowOriginsHeader(origin: Origin): Option[Header] =
         allowOrigin match {
           case AllowOrigin.Any =>
             CommonHeaders.someAllowOriginWildcard
+          case AllowOrigin.Match(p) =>
+            if (p(origin))
+              Header.Raw(`Access-Control-Allow-Origin`.name, origin.value).some
+            else
+              None
         }
-      }
 
       dispatch
     }
@@ -93,18 +97,69 @@ object CORS {
         allowOrigin
       )
 
-    /** Allow requests from any origin with an
+    /** Allow CORS requests from any origin with an
       * `Access-Control-Allow-Origin` of `*`.
       */
     def withAllowAnyOrigin: Policy =
       copy(AllowOrigin.Any)
+
+    /** Allow requests from any origin matching the predicate `p`.  On
+      * matching requests, the request origin is reflected as the
+      * `Access-Control-Allow-Origin` header.
+      *
+      * The Origin header contains some arcane settings, like multiple
+      * origins, or a `null` origin. `withAllowOriginHost` is generally
+      * more convenient.
+      */
+    def withAllowOriginHeader(p: Origin => Boolean): Policy =
+      copy(AllowOrigin.Match(p))
+
+    /** Allow requests from any origin host matching the predicate `p`.
+      * The origin host is the first value in the request's `Origin`
+      * header, if not `null` header, unless it is `null`.  Examples:
+      *
+      * - `Origin: http://www.example.com` => `http://www.example.com`
+      * - `Origin: http://www.example.com, http://example.net` =>
+      *   `http://www.example.com`
+      * - `Origin: null` => always false
+      *
+      * A `Set[Origin.Host]` is often a good choice here, but a predicate is
+      * offered to support more advanced matching.
+      */
+    def withAllowOriginHost(p: Origin.Host => Boolean): Policy =
+      withAllowOriginHeader(_ match {
+        case Origin.HostList(NonEmptyList(h, _)) => p(h)
+        case Origin.Null => false
+      })
   }
 
-  /** A CORS policy that allows requests from any origin with an
-    * `Access-Control-Allow-Origin` of `*`.
+  private val defaultPolicy: Policy = new Policy(
+    AllowOrigin.Match(Function.const(false))
+  )
+
+  /** A CORS policy that allows requests from any origin.
+    *
+    * @see {Policy#withAllowAnyOrigin}
     */
   val withAllowAnyOrigin: Policy =
-    new Policy(AllowOrigin.Any)
+    defaultPolicy.withAllowAnyOrigin
+
+  /** A CORS policy that allows requests from any origin header matching
+    * predicate `p`.  You probably want [[#withAllowOriginHost]]
+    *
+    * @see [[#withAllowOriginHost]]
+    * @see [[Policy#withAllowOriginHeader]]
+    */
+  def withAllowOriginHeader(p: Origin => Boolean): Policy =
+    defaultPolicy.withAllowOriginHeader(p)
+
+  /** A CORS policy that allows requests from any origin host matching
+    * predicate `p`.
+    *
+    * @see [[Policy#withAllowOriginHost]]
+    */
+  def withAllowOriginHost(p: Origin.Host => Boolean): Policy =
+    defaultPolicy.withAllowOriginHost(p)
 
   @deprecated(
     "Not the actual default CORS Vary heder, and will be removed from the public API.",

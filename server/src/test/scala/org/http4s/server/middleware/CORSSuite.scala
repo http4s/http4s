@@ -18,6 +18,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
 import org.http4s.dsl.io._
@@ -32,23 +33,50 @@ class CORSSuite extends Http4sSuite {
   }
   val app = routes.orNotFound
 
+  val exampleOrigin = Origin.Host(Uri.Scheme.https, Uri.RegName("example.com"), None)
+  val exampleOriginHeader = Origin.HostList(NonEmptyList.of(exampleOrigin))
+
   def nonCorsReq = Request[IO](uri = uri"/foo")
-  def corsReq = nonCorsReq.putHeaders(Header("Origin", "https://example.com"))
+  def corsReq = nonCorsReq.putHeaders(exampleOriginHeader)
 
   def assertAllowOrigin[F[_]](resp: Response[F], origin: Option[String]) =
     assertEquals(
       resp.headers.get(`Access-Control-Allow-Origin`).map(_.value),
       origin.map(_.toString))
 
-  test("Does not apply CORS headers to non-CORS request") {
+  test("withAllowAnyOrigin, non-CORS request") {
     CORS.withAllowAnyOrigin(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
     }
   }
 
-  test("Applies Access-Control-Allow-Origin: * to CORS requests") {
+  test("withAllowAnyOrigin, CORS request") {
     CORS.withAllowAnyOrigin(app).run(corsReq).map { resp =>
       assertAllowOrigin(resp, "*".some)
+    }
+  }
+
+  test("withAllowOriginHeader, non-CORS request") {
+    CORS.withAllowOriginHeader(_ => false)(app).run(nonCorsReq).map { resp =>
+      assertAllowOrigin(resp, None)
+    }
+  }
+
+  test("withAllowOriginHeader, CORS request with matching origin") {
+    CORS.withAllowOriginHeader(Set(exampleOriginHeader))(app).run(corsReq).map { resp =>
+      assertAllowOrigin(resp, Some("https://example.com"))
+    }
+  }
+
+  test("withAllowOriginHost, non-CORS request") {
+    CORS.withAllowOriginHeader(_ => false)(app).run(nonCorsReq).map { resp =>
+      assertAllowOrigin(resp, None)
+    }
+  }
+
+  test("withAllowOriginHost, CORS request with matching origin") {
+    CORS.withAllowOriginHost(Set(exampleOrigin))(app).run(corsReq).map { resp =>
+      assertAllowOrigin(resp, Some("https://example.com"))
     }
   }
 
