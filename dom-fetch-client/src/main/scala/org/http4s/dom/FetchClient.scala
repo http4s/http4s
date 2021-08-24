@@ -19,8 +19,9 @@ package dom
 
 import cats.effect.Async
 import cats.effect.Resource
-import cats.syntax.all._
+import cats.effect.Poll
 import cats.effect.syntax.all._
+import cats.syntax.all._
 import java.util.concurrent.TimeoutException
 import org.http4s.client.Client
 import org.http4s.headers.{`Referer`}
@@ -33,7 +34,7 @@ import org.scalajs.dom.experimental.RequestInit
 import org.scalajs.dom.experimental.{Response => FetchResponse}
 import scala.concurrent.duration._
 
-object FetchClient {
+private[dom] object FetchClient {
 
   private[dom] def makeClient[F[_]](
       requestTimeout: Duration,
@@ -41,7 +42,7 @@ object FetchClient {
   )(implicit F: Async[F]): Client[F] = Client[F] { (req: Request[F]) =>
     Resource.eval(req.body.chunkAll.filter(_.nonEmpty).compile.last).flatMap { body =>
       Resource
-        .makeCase {
+        .makeCaseFull { (poll: Poll[F]) =>
           F.delay(new AbortController()).flatMap { abortController =>
             val requestOptions = req.attributes.lookup(FetchOptions.Key)
             val mergedOptions = requestOptions.fold(options)(options.overrideWith)
@@ -72,8 +73,7 @@ object FetchClient {
               .foreach(referrer => init.referrer = referrer.renderString)
             mergedOptions.referrerPolicy.foreach(init.referrerPolicy = _)
 
-            val fetch = F
-              .fromPromise(F.delay(Fetch.fetch(req.uri.renderString, init)))
+            val fetch = poll(F.fromPromise(F.delay(Fetch.fetch(req.uri.renderString, init))))
               .onCancel(F.delay(abortController.abort()))
 
             requestTimeout match {

@@ -20,12 +20,12 @@ import org.http4s.Uri
 import org.http4s.util.Writer
 import org.http4s.util.Renderable
 
-sealed trait FetchReferrer extends Renderable
+sealed abstract class FetchReferrer extends Renderable
 object FetchReferrer {
-  final case object NoReferrer extends FetchReferrer {
+  case object NoReferrer extends FetchReferrer {
     override def render(writer: Writer): writer.type = writer << "no-referrer"
   }
-  final case object Client extends FetchReferrer {
+  case object Client extends FetchReferrer {
     override def render(writer: Writer): writer.type = writer << "client"
   }
   final case class URL(uri: Uri) extends FetchReferrer {
