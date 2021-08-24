@@ -87,7 +87,8 @@ object WebSocketHelpers {
     } yield ()
 
     handler.handleErrorWith {
-      case BrokenPipeError() => F.unit
+      case e @ BrokenPipeError() =>
+        logger.trace(e)("WebSocket connection abruptly terminated by client")
       case e => logger.error(e)("WebSocket connection terminated with exception")
     }
   }
