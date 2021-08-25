@@ -28,9 +28,9 @@ import java.time.Duration
 
 object `Keep-Alive` {
 sealed trait KeepAlive 
-final case class Timeout(timeout: Duration) extends KeepAlive
+final case class Timeout(timeoutSeconds: Long) extends KeepAlive
 final case class Max(max: Long) extends KeepAlive
-final case class Extension(ext: Map[String, String]) extends KeepAlive
+final case class Extension(ext: Map[String, Option[String]]) extends KeepAlive
 
 /*
 Keep-Alive           = "Keep-Alive" ":" 1#keep-alive-info
@@ -39,8 +39,10 @@ keep-alive-info      =   "timeout" "=" delta-seconds
                        / keep-alive-extension
 keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 */
-
-  def apply(timeout: Duration, max: Int, extension: Map[String, String]): `Keep-Alive` = `Keep-Alive`(timeout, max, extension)
+// TODO: Look at Q value.  URI is the hard one.  (Don't need to do this here)
+//Keep alive portion is handled by Header.rep1 
+//Unsafe constructor and rigid constructor please. 
+  def apply(timeoutSeconds: Long, max: Long, extension: Map[String, Option[String]]): `Keep-Alive` = `Keep-Alive`(timeout, max, extension)
 
   def parse(s: String): ParseResult[`Keep-Alive`] = ParseResult.fromParser(parser, "Invalid Keep-Alive header")(s)
   
@@ -48,16 +50,18 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     import Rfc5234.digit
 
   //"timeout" "=" delta-seconds
-  val timeout: Parser[Timeout] = Parser.string("timeout=") *> digit.rep.string.map(s => Timeout(Duration.ofSeconds(s.toLong)))
+  val timeout: Parser[Option[Timeout]] = Parser.string("timeout=") *> digit.rep.string.map(s => Timeout(s.toLong)) //mapFilter 
 
   //"max" "=" 1*DIGIT
-  val max: Parser[Max] = Parser.string("max=") *> digit.rep.string.map(s => Max(s.toLong))
+  val max: Parser[Option[Max]] = Parser.string("max=") *> digit.rep.string.map(s => Max(s.toLong)) //mapFilter for too big of a long
 
-  //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
-  val ext: Parser[Extension] = Parser.anyChar.rep *> Parser.char('=') *> (Parser.anyChar.rep).orElse(Parser.anyChar.rep.surroundedBy(Parser.char('=')))
+  //keep-alive-extension = token [ "=" ( token / quoted-string ) ]  --RFC7230 (answer)
+  val ext: Parser[Extension] = Parser.anyChar.rep ~ Parser.char('=') *> (Parser.anyChar.rep).orElse(Parser.anyChar.rep.surroundedBy(Parser.char('=')))
   timeout.orElse(max).orElse(ext)
  }
 
 }
 
-final case class `Keep-Alive`(timeout: Duration, max: Long, extension: Map[String, String])
+final case class `Keep-Alive`(timeoutSeconds: Long, max: Long, extension: Map[String, Option[String]]) { 
+  def toTimeoutDuration: FiniteDuration = ???
+}
