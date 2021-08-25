@@ -45,7 +45,7 @@ sealed abstract class FetchClientBuilder[F[_]] private (
     val redirect: Option[RequestRedirect],
     val referrer: Option[FetchReferrer],
     val referrerPolicy: Option[ReferrerPolicy]
-)(implicit protected val F: Async[F])
+)(override implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
 
   private def copy(
@@ -125,7 +125,7 @@ sealed abstract class FetchClientBuilder[F[_]] private (
       referrerPolicy = referrerPolicy
     ))
 
-  def resource: Resource[F, Client[F]] =
+  override def resource: Resource[F, Client[F]] =
     Resource.eval(F.delay(create))
 }
 

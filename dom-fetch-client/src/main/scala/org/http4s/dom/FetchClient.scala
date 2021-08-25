@@ -45,15 +45,14 @@ private[dom] object FetchClient {
         .makeCaseFull { (poll: Poll[F]) =>
           F.delay(new AbortController()).flatMap { abortController =>
             val requestOptions = req.attributes.lookup(FetchOptions.Key)
-            val mergedOptions = requestOptions.fold(options)(options.overrideWith)
+            val mergedOptions = requestOptions.fold(options)(options.merge)
 
             val init = new RequestInit {}
 
             init.method = req.method.name.asInstanceOf[HttpMethod]
             // Referer header is converted to a Fetch parameter below, since it's a forbidden header.
             // See https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
-            init.headers = new Headers(
-              toDomHeaders(req.headers.transform(_.filterNot(_.name === Header[Referer].name))))
+            init.headers = new Headers(toDomHeaders(req.headers))
             body.foreach { body =>
               init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
             }

@@ -23,12 +23,12 @@ import org.http4s.util.Renderable
 sealed abstract class FetchReferrer extends Renderable
 object FetchReferrer {
   case object NoReferrer extends FetchReferrer {
-    override def render(writer: Writer): writer.type = writer << "no-referrer"
+    override def render(writer: Writer): writer.type = writer << ""
   }
   case object Client extends FetchReferrer {
-    override def render(writer: Writer): writer.type = writer << "client"
+    override def render(writer: Writer): writer.type = writer << "about:client"
   }
-  final case class URL(uri: Uri) extends FetchReferrer {
-    override def render(writer: Writer): writer.type = writer << uri.renderString
+  final case class Path(path: Uri.Path) extends FetchReferrer {
+    override def render(writer: Writer): writer.type = writer << path.renderString
   }
 }
