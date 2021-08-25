@@ -50,8 +50,6 @@ private[dom] object FetchClient {
             val init = new RequestInit {}
 
             init.method = req.method.name.asInstanceOf[HttpMethod]
-            // Referer header is converted to a Fetch parameter below, since it's a forbidden header.
-            // See https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
             init.headers = new Headers(toDomHeaders(req.headers))
             body.foreach { body =>
               init.body = arrayBuffer2BufferSource(body.toJSArrayBuffer)
@@ -63,6 +61,8 @@ private[dom] object FetchClient {
             mergedOptions.keepAlive.foreach(init.keepalive = _)
             mergedOptions.mode.foreach(init.mode = _)
             mergedOptions.redirect.foreach(init.redirect = _)
+            // Referer headers are forbidden in Fetch, but we make a best effort to preserve behavior across clients.
+            // See https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
             // If there's a Referer header, it will have more priority than the client's `referrer` (if present)
             // but less priority than the request's `referrer` (if present).
             requestOptions
