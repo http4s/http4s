@@ -218,7 +218,7 @@ object CORS {
     httpRoutes(httpRoutes,CORSConfig.default)
 
   def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
-    httpApp(httpApp,CORSConfig)
+    httpApp(httpApp,CORSConfig.default)
  
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F], config: CORSConfig): HttpRoutes[F] = 
     apply(httpRoutes,config)
