@@ -41,14 +41,13 @@ keep-alive-info      =   "timeout" "=" delta-seconds
                        / keep-alive-extension
 keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 */
-//Keep alive portion is handled by Header.rep1 
-//Unsafe constructor and rigid constructor please. 
-  def apply(timeoutSeconds: Long, max: Long, extension: Map[String, Option[String]]): `Keep-Alive` = `Keep-Alive`(timeoutSeconds, max, extension)
-  def safeApply(timeoutSeconds: Long, max: Long, extension: Map[String, Option[String]]): Option[`Keep-Alive`] = ???
+
+  def apply(timeoutSeconds: Option[Long], max: Option[Long], extension: Map[String, Option[String]]): `Keep-Alive` = `Keep-Alive`(timeoutSeconds, max, extension)
+  def safeApply(timeoutSeconds: Option[Long], max: Option[Long], extension: Map[String, Option[String]]): Option[`Keep-Alive`] = ???
 
   def parse(s: String): ParseResult[`Keep-Alive`] = ParseResult.fromParser(parser, "Invalid Keep-Alive header")(s)
   
-  val parser: Parser[`Keep-Alive`] = { //private[http4s]  Make this private after double checking
+  private[http4s] val parser: Parser[`Keep-Alive`] = {
     import Rfc7230.{quotedString, token, headerRep1}
     import Numbers.digits
 
@@ -59,7 +58,6 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
         case _: NumberFormatException => None
       }
 
-  //TODO:  Parser for those strings will need "" added to them as literals
   //"timeout" "=" delta-seconds
   val timeout: Parser[Timeout] = Parser.string("timeout=") *> digits.mapFilter(s => safeToLong(s).map(Timeout))
 
@@ -67,21 +65,29 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   val max: Parser[Max] = Parser.string("max=") *> digits.mapFilter(s => safeToLong(s).map(Max))
 
   //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
-  val ext: Parser[Extension] = (token ~ (Parser.char('=') *> (token).orElse(quotedString).?)).map(p => Extension(p))
-  val oneOfThese: Parser[KeepAlive] = timeout.orElse(max).orElse(ext)
+  val keepAliveExtension: Parser[Extension] = (token ~ (Parser.char('=') *> (token).orElse(quotedString).?)).map(p => Extension(p))
   
+  /*
+  keep-alive-info      = "timeout" "=" delta-seconds
+                       / "max" "=" 1*DIGIT
+                       / keep-alive-extension
+  */
+  val keepAliveInfo: Parser[KeepAlive] = timeout.orElse(max).orElse(keepAliveExtension)
+  
+  /*
   //State of the fold
   case class KO(t: Option[Long], m: Option[Long], ex: Map[String, Option[String]])
-  headerRep1(oneOfThese).map { nel => 
+  headerRep1(keepAliveInfo).map { nel => 
     nel.foldLeft(KO(None, None, Map.empty)) { (acc, ka) => 
       ka match { 
         case Timeout(n) => if(acc.t.isEmpty) acc.copy(t = Some(n)) else acc //Do we want to throw away the other timeouts?
         case Max(n) => if(acc.m.isEmpty) acc.copy(m = Some(n)) else acc //Same as above
-        case Extension(p) => acc.copy(ex = )
+        case Extension(p) => acc //TODO ADD TO MAP
       }
     }  
   }
-   
+  */
+  Parser.string("").as(`Keep-Alive`(None, None, Map.empty)) //For compile
 }
 /*
   implicit val headerInstance: Header[`Keep-Alive`, Header.Single] = //Check on single or recurring. 
@@ -93,6 +99,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 */
 }
 
-final case class `Keep-Alive`(timeoutSeconds: Long, max: Long, extension: Map[String, Option[String]]) { 
-  def toTimeoutDuration: FiniteDuration = FiniteDuration(timeoutSeconds, TimeUnit.SECONDS)
+final case class `Keep-Alive`(timeoutSeconds: Option[Long], max: Option[Long], extension: Map[String, Option[String]]) { 
+  //This could be a nonempty list of the adt or an option of all of those types and the map what is better? 
+  def toTimeoutDuration: Option[FiniteDuration] = timeoutSeconds.map(FiniteDuration(_, TimeUnit.SECONDS))
 }
