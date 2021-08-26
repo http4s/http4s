@@ -73,8 +73,8 @@ object Path {
   def apply(list: List[String]): Path =
     list.foldLeft(Root: Path)(_ / _)
 
-  def apply(vector: Vector[String]): Path =
-    vector.foldLeft(Root: Path)(_ / _)
+  def unsafeFromString(fromPath: String): Path =
+    apply(fromPath)
 
   def unapplySeq(path: Path): Some[List[String]] =
     Some(path.toList)
