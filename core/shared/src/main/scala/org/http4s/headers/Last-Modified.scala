@@ -38,8 +38,8 @@ object `Last-Modified` {
 
 }
 
-/** Response header that indicates the time at which the server believes the
-  * entity was last modified.
+/** Response header that indicates the time at which the server believes the entity was last
+  * modified.
   *
   * [[https://tools.ietf.org/html/rfc7232#section-2.3 RFC-7232]]
   */

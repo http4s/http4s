@@ -28,8 +28,8 @@ import org.http4s.EntityEncoder.chunkEncoder
 import org.http4s.headers.`Content-Type`
 import scala.util.{Failure, Success}
 
-/** Generic factories for http4s encoders/decoders for boopickle
-  * Note that the media type is set for application/octet-stream
+/** Generic factories for http4s encoders/decoders for boopickle Note that the media type is set for
+  * application/octet-stream
   */
 trait BooPickleInstances {
   private def booDecoderByteBuffer[F[_]: Concurrent, A](m: Media[F])(implicit

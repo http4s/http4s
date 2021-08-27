@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser0 => P0, Parser => P}
+import cats.parse.{Numbers, Parser => P, Parser0 => P0}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci._

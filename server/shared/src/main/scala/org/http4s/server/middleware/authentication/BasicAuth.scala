@@ -31,16 +31,17 @@ object BasicAuth {
 
   private val authParams = Map("charset" -> "UTF-8")
 
-  /** Validates a plaintext password (presumably by comparing it to a
-    * hashed value).  A Some value indicates success; None indicates
-    * the password failed to validate.
+  /** Validates a plaintext password (presumably by comparing it to a hashed value). A Some value
+    * indicates success; None indicates the password failed to validate.
     */
   type BasicAuthenticator[F[_], A] = BasicCredentials => F[Option[A]]
 
-  /** Construct authentication middleware that can validate the client-provided
-    * plaintext password against something else (like a stored, hashed password).
-    * @param realm The realm used for authentication purposes.
-    * @param validate Function that validates a plaintext password
+  /** Construct authentication middleware that can validate the client-provided plaintext password
+    * against something else (like a stored, hashed password).
+    * @param realm
+    *   The realm used for authentication purposes.
+    * @param validate
+    *   Function that validates a plaintext password
     * @return
     */
   def apply[F[_]: Sync, A](

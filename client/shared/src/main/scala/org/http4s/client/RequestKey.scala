@@ -21,7 +21,7 @@ import org.http4s.Uri.{Authority, Scheme}
 
 /** Represents a key for requests that can conceivably share a [[Connection]]. */
 final case class RequestKey(scheme: Scheme, authority: Authority) {
-  override def toString = s"${scheme.value}://${authority}"
+  override def toString = s"${scheme.value}://$authority"
 }
 
 object RequestKey {
