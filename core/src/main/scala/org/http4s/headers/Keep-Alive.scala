@@ -17,18 +17,18 @@
 package org.http4s
 package headers
 
-//import cats.data.NonEmptyList
+import cats.implicits._
 import cats.parse._
-import com.comcast.ip4s.IpAddress
-import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
 import org.typelevel.ci._
-import java.time.Duration
 import scala.concurrent.duration.FiniteDuration
 import java.util.concurrent.TimeUnit
+import scala.collection.mutable.ListBuffer
 
 object `Keep-Alive` {
+
 sealed trait KeepAlive 
 final case class Timeout(timeoutSeconds: Long) extends KeepAlive
 final case class Max(max: Long) extends KeepAlive
@@ -42,21 +42,30 @@ keep-alive-info      =   "timeout" "=" delta-seconds
 keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 */
 
-  def apply(timeoutSeconds: Option[Long], max: Option[Long], extension: Map[String, Option[String]]): `Keep-Alive` = `Keep-Alive`(timeoutSeconds, max, extension)
-  def safeApply(timeoutSeconds: Option[Long], max: Option[Long], extension: Map[String, Option[String]]): Option[`Keep-Alive`] = ???
+  def apply(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]): ParseResult[`Keep-Alive`] = {
+    val validatedTimeoutSeconds = timeoutSeconds.traverse(nonNegativeLong)
+    val validatedMax = max.traverse(nonNegativeLong)
+    (validatedTimeoutSeconds, validatedMax).mapN((t, m) => unsafeApply(t, m, extension))
+  }
+
+  def unsafeApply(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]): `Keep-Alive` = 
+    apply(timeoutSeconds, max, extension).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Keep-Alive`] = ParseResult.fromParser(parser, "Invalid Keep-Alive header")(s)
   
-  private[http4s] val parser: Parser[`Keep-Alive`] = {
-    import Rfc7230.{quotedString, token, headerRep1}
-    import Numbers.digits
+  private[http4s] def nonNegativeLong(l: Long): ParseResult[Long] = 
+    if(l >= 0) ParseResult.success(l) else ParseResult.fail("Invalid value", s"$l must greater than or equal to 0 seconds")  
 
-    def safeToLong(s: String): Option[Long] =
+  private[http4s] def safeToLong(s: String): Option[Long] = {
       try { 
         Some(s.toLong)
       } catch { 
         case _: NumberFormatException => None
       }
+    }
+  private[http4s] val parser: Parser[`Keep-Alive`] = {
+    import Rfc7230.{quotedString, token, headerRep1}
+    import Numbers.digits
 
   //"timeout" "=" delta-seconds
   val timeout: Parser[Timeout] = Parser.string("timeout=") *> digits.mapFilter(s => safeToLong(s).map(Timeout))
@@ -74,32 +83,41 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   */
   val keepAliveInfo: Parser[KeepAlive] = timeout.orElse(max).orElse(keepAliveExtension)
   
-  /*
-  //State of the fold
-  case class KO(t: Option[Long], m: Option[Long], ex: Map[String, Option[String]])
   headerRep1(keepAliveInfo).map { nel => 
-    nel.foldLeft(KO(None, None, Map.empty)) { (acc, ka) => 
+    var timeoutSeconds: Option[Long] = None
+    var max: Option[Long] = None
+    val extension: ListBuffer[(String, Option[String])] = ListBuffer.empty
+    nel.foldLeft(()) { (_, ka) => 
       ka match { 
-        case Timeout(n) => if(acc.t.isEmpty) acc.copy(t = Some(n)) else acc //Do we want to throw away the other timeouts?
-        case Max(n) => if(acc.m.isEmpty) acc.copy(m = Some(n)) else acc //Same as above
-        case Extension(p) => acc //TODO ADD TO MAP
+        case Timeout(n) => if(timeoutSeconds.isEmpty) timeoutSeconds = Some(n) else ()
+        case Max(n) => if(max.isEmpty) max = Some(n) else ()
+        case Extension(p) => extension.prepend(p)
       }
-    }  
+    }
+    unsafeApply(timeoutSeconds, max, extension.toList)
   }
-  */
-  Parser.string("").as(`Keep-Alive`(None, None, Map.empty)) //For compile
 }
-/*
-  implicit val headerInstance: Header[`Keep-Alive`, Header.Single] = //Check on single or recurring. 
-    Header.createRendered(
-      ci"Keep-Alive",
-      A => B,
-      parse
-    )
-*/
+//Arb keep alive for testing.  IN tests module.  
+// Arb option of non neg long and arb list of token -> any string
+implicit val headerInstance: Header[`Keep-Alive`, Header.Single] = Header.createRendered(ci"Keep-Alive", 
+       v => new Renderable {
+          def render(writer: Writer): writer.type =
+            v match {
+              case `Keep-Alive`(t,m,e) =>
+                writer << e.head
+                e.tail.foreach { host =>
+                  writer << " "
+                  writer << host
+                }
+                writer
+              //case Null => writer << "null"
+            }
+          }, 
+          parse)
+
+
 }
 
-final case class `Keep-Alive`(timeoutSeconds: Option[Long], max: Option[Long], extension: Map[String, Option[String]]) { 
-  //This could be a nonempty list of the adt or an option of all of those types and the map what is better? 
+final case class `Keep-Alive`(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]) { 
   def toTimeoutDuration: Option[FiniteDuration] = timeoutSeconds.map(FiniteDuration(_, TimeUnit.SECONDS))
 }
