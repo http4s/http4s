@@ -35,7 +35,7 @@ object `Access-Control-Max-Age` {
 
 /** Constructs an `Access-Control-Max-Age` header.
   *
-  * The value of this field indicates how long the results of a preflight request (that is the information contained in the Access-Control-Allow-Methods and {@link `Access-Control-Allow-Headers`} headers) can be cached. A value of -1 will disable caching.
+  * The value of this field indicates how long the results of a preflight request (that is the information contained in the Access-Control-Allow-Methods and [[`Access-Control-Allow-Headers`]] headers) can be cached. A value of -1 will disable caching.
   *
   * @param age age of the response (in seconds)
   */
