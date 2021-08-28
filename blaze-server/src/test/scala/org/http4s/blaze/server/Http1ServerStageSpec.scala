@@ -563,7 +563,7 @@ class Http1ServerStageSpec extends Http4sSuite {
         head2 <- IO(runRequest(tw, reqCancelable, app))
         _ <- cancelableStarted.get
         _ <- IO(head2.sendInboundCommand(Disconnected))
-        _ <- cancelableCanceled.get.timeout(5.seconds)
+        _ <- cancelableCanceled.get
       } yield ()).assert
   }
 }
