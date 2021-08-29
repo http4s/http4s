@@ -18,7 +18,7 @@ it.
 
 ### Bugfixes
 
-* [#5076](https://github.com/http4s/http4s/pull/5076): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+* [#5070](https://github.com/http4s/http4s/pull/5070): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
 
 ### Enhancements
 
@@ -40,6 +40,10 @@ it.
 ### Bugfixes
 
 * [#5056](https://github.com/http4s/http4s/pull/5056): In `GZip` middleware, don't add a `Content-Encoding` header if the response type doesn't support an entity.
+
+### Enhancements
+
+* [#5112](https://github.com/http4s/http4s/pull/5112): Make `CORS` middleware configurable via `toHttpRoutes` and `toHttpApp` constructors.
 
 ## http4s-blaze-server
 
