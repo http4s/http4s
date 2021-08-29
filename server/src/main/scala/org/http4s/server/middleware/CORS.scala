@@ -99,12 +99,21 @@ object CORS {
     case object Reflect extends AllowHeaders
   }
 
+  private[CORS] sealed trait MaxAge
+  private[CORS] object MaxAge {
+    case class Some(seconds: Long) extends MaxAge
+    case object Default extends MaxAge
+    case object DisableCaching extends MaxAge
+  }
+
   final class Policy private[CORS] (
       allowOrigin: AllowOrigin,
       allowCredentials: AllowCredentials,
       exposeHeaders: ExposeHeaders,
       allowMethods: AllowMethods,
-      allowHeaders: AllowHeaders) {
+      allowHeaders: AllowHeaders,
+      maxAge: MaxAge
+  ) {
     def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
 
       val allowCredentialsHeader: Option[Header] =
@@ -141,6 +150,16 @@ object CORS {
             Header
               .Raw(`Access-Control-Allow-Headers`.name, headers.map(_.toString).mkString(", "))
               .some
+        }
+
+      val maxAgeHeader: Option[Header] =
+        maxAge match {
+          case MaxAge.Some(deltaSeconds) =>
+            Header.Raw(`Access-Control-Max-Age`.name, deltaSeconds.toString).some
+          case MaxAge.Default =>
+            None
+          case MaxAge.DisableCaching =>
+            Header.Raw(`Access-Control-Max-Age`.name, "-1").some
         }
 
       val varyHeaderNonOptions: Option[Header] =
@@ -233,6 +252,7 @@ object CORS {
             allowCredentialsHeader.foreach(buff.+=)
             buff += allowMethods
             buff += allowHeaders
+            maxAgeHeader.foreach(buff.+=)
             buff.result()
         }
         buff.result()
@@ -292,14 +312,16 @@ object CORS {
         allowCredentials: AllowCredentials = allowCredentials,
         exposeHeaders: ExposeHeaders = exposeHeaders,
         allowMethods: AllowMethods = allowMethods,
-        allowHeaders: AllowHeaders = allowHeaders
+        allowHeaders: AllowHeaders = allowHeaders,
+        maxAge: MaxAge = maxAge
     ): Policy =
       new Policy(
         allowOrigin,
         allowCredentials,
         exposeHeaders,
         allowMethods,
-        allowHeaders
+        allowHeaders,
+        maxAge
       )
 
     /** Allow CORS requests from any origin with an
@@ -438,6 +460,31 @@ object CORS {
       */
     def withAllowHeadersReflect: Policy =
       copy(allowHeaders = AllowHeaders.Reflect)
+
+    /** Sets the duration the results can be cached.  The duration is
+      * truncated to seconds.  A negative value results in a cache
+      * duration of zero.
+      *
+      * Sends an `Access-Control-Max-Age` header with the duration
+      * in seconds on preflight requests.
+      */
+    def withMaxAge(duration: FiniteDuration): Policy =
+      copy(maxAge =
+        if (duration >= Duration.Zero) MaxAge.Some(duration.toSeconds)
+        else MaxAge.Some(0L))
+
+    /** Sets the duration the results can be cached to the user agent's
+      * default. This suppresses the `Access-Control-Max-Age` header.
+      */
+    def withMaxAgeDefault: Policy =
+      copy(maxAge = MaxAge.Default)
+
+    /** Instructs the client to not cache any preflight results.
+      *
+      * Sends an `Access-Control-Max-Age: -1` header
+      */
+    def withMaxAgeDisableCaching: Policy =
+      copy(maxAge = MaxAge.DisableCaching)
   }
 
   private val defaultPolicy: Policy = new Policy(
@@ -446,7 +493,8 @@ object CORS {
     ExposeHeaders.None,
     AllowMethods.In(
       Set(Method.GET, Method.HEAD, Method.PUT, Method.PATCH, Method.POST, Method.DELETE)),
-    AllowHeaders.Reflect
+    AllowHeaders.Reflect,
+    MaxAge.Default
   )
 
   /** A CORS policy that allows requests from any origin.

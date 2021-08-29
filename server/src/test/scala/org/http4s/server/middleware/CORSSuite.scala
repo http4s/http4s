@@ -26,6 +26,7 @@ import org.http4s.syntax.all._
 import org.http4s.headers._
 import org.http4s.Http4sSuite
 import org.http4s.util.{CaseInsensitiveString => CIString}
+import scala.concurrent.duration._
 
 class CORSSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
@@ -64,6 +65,11 @@ class CORSSuite extends Http4sSuite {
 
   def assertAllowHeaders[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(resp.headers.get(`Access-Control-Allow-Headers`).map(_.value.ci), headers)
+
+  def assertMaxAge[F[_]](resp: Response[F], deltaSeconds: Option[Long]) =
+    assertEquals(
+      resp.headers.get(`Access-Control-Max-Age`).map(_.value),
+      deltaSeconds.map(_.toString))
 
   def assertVary[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(resp.headers.get(Vary).map(_.value.ci), headers)
@@ -592,6 +598,72 @@ class CORSSuite extends Http4sSuite {
         assertVary(
           resp,
           Some("Origin, Access-Control-Request-Method, Access-Control-Request-Headers".ci))
+      }
+  }
+
+  test("withMaxAge, non-preflight request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withMaxAge(10.seconds)
+      .apply(app)
+      .run(nonPreflightReq)
+      .map { resp =>
+        assertMaxAge(resp, None)
+      }
+  }
+
+  test("withMaxAge, preflight request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withMaxAge(10.seconds)
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertMaxAge(resp, 10L.some)
+      }
+  }
+
+  test("withMaxAge, preflight request with non-matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => false)
+      .withMaxAge(10.seconds)
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertMaxAge(resp, None)
+      }
+  }
+
+  test("withMaxAge negative, preflight request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withMaxAge(-10.seconds)
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertMaxAge(resp, 0L.some)
+      }
+  }
+
+  test("withMaxAgeDefault, preflight request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withMaxAgeDefault
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertMaxAge(resp, None)
+      }
+  }
+
+  test("withMaxAgeDisableCaching, preflight request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withMaxAgeDisableCaching
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertMaxAge(resp, -1L.some)
       }
   }
 }

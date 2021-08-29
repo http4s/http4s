@@ -90,7 +90,7 @@ val corsMethodSvc = CORS
   .withAllowOriginAll
   .withAllowMethodsIn(Set(Method.GET, Method.POST))
   .withAllowCredentials(false)
-  //.withMaxAge(1.day.toSeconds)
+  .withMaxAge(1.day)
   .apply(service)
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
@@ -112,7 +112,7 @@ val corsOriginSvc = CORS
     Origin.Host(Uri.Scheme.https, Uri.RegName("duckduckgo.com"), None)
   ))
   .withAllowCredentials(false)
-  //.withMaxAge(1.day.toSeconds)
+  .withMaxAge(1.day)
   .apply(service)
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
