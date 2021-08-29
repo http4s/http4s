@@ -30,8 +30,9 @@ import scala.concurrent.duration._
 
 class CORSSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
-    case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
-    case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
+    case req if req.pathInfo === "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
+    case req if req.pathInfo === "/vary" =>
+      Response[IO](Ok).putHeaders(Header.Raw(`Vary`.name, "X-Old-Vary")).pure[IO]
   }
   val app = routes.orNotFound
 
@@ -664,6 +665,16 @@ class CORSSuite extends Http4sSuite {
       .run(preflightReq)
       .map { resp =>
         assertMaxAge(resp, -1L.some)
+      }
+  }
+
+  test("merges old Vary header") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .apply(app)
+      .run(nonPreflightReq.withUri(uri"/vary"))
+      .map { resp =>
+        assertVary(resp, "X-Old-Vary, Origin".ci.some)
       }
   }
 }

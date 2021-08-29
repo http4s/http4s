@@ -240,14 +240,24 @@ object CORS {
         }
 
       def dispatch(req: Request[G]) = {
-        val cHeaders = corsHeaders(req)
-        val vHeader = varyHeader(req.method)
-        val headers = vHeader.fold(cHeaders)(_ :: cHeaders)
-        val resp = http(req)
+        var resp = http(req)
+        val headers = corsHeaders(req)
         if (headers.nonEmpty)
-          resp.map(_.putHeaders(headers: _*))
-        else
-          resp
+          resp = resp.map(_.putHeaders(headers: _*))
+        // Working around the poor model in 0.21
+        varyHeader(req.method).foreach { vary =>
+          resp = resp.map { r =>
+            r.putHeaders(
+              r.headers.get(`Vary`) match {
+                case None =>
+                  vary
+                case Some(oldVary) =>
+                  Header.Raw(`Vary`.name, oldVary.value + ", " + vary.value)
+              }
+            )
+          }
+        }
+        resp
       }
 
       def nonPreflightHeaders(origin: Origin) = {
