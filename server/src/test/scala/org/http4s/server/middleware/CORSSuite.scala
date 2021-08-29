@@ -68,29 +68,29 @@ class CORSSuite extends Http4sSuite {
   def assertVary[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(resp.headers.get(Vary).map(_.value.ci), headers)
 
-  test("withAllowAnyOrigin, non-CORS request") {
-    CORS.withAllowAnyOrigin(app).run(nonCorsReq).map { resp =>
+  test("withAllowOriginAll, non-CORS request") {
+    CORS.withAllowOriginAll(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
       assertVary(resp, None)
     }
   }
 
-  test("withAllowAnyOrigin, non-preflight request") {
-    CORS.withAllowAnyOrigin(app).run(nonPreflightReq).map { resp =>
+  test("withAllowOriginAll, non-preflight request") {
+    CORS.withAllowOriginAll(app).run(nonPreflightReq).map { resp =>
       assertAllowOrigin(resp, "*".some)
       assertVary(resp, None)
     }
   }
 
-  test("withAllowAnyOrigin, OPTIONS request without Access-Control-Request-Method") {
-    CORS.withAllowAnyOrigin(app).run(nonCorsReq.withMethod(Method.OPTIONS)).map { resp =>
+  test("withAllowOriginAll, OPTIONS request without Access-Control-Request-Method") {
+    CORS.withAllowOriginAll(app).run(nonCorsReq.withMethod(Method.OPTIONS)).map { resp =>
       assertAllowOrigin(resp, None)
       assertVary(resp, "Access-Control-Request-Method, Access-Control-Request-Headers".ci.some)
     }
   }
 
-  test("withAllowAnyOrigin, preflight request") {
-    CORS.withAllowAnyOrigin(app).run(preflightReq).map { resp =>
+  test("withAllowOriginAll, preflight request") {
+    CORS.withAllowOriginAll(app).run(preflightReq).map { resp =>
       assertAllowOrigin(resp, "*".some)
       assertVary(resp, "Access-Control-Request-Method, Access-Control-Request-Headers".ci.some)
     }
@@ -235,7 +235,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withCredentials(true), any origin, non-preflight request with matching origin") {
-    CORS.withAllowAnyOrigin
+    CORS.withAllowOriginAll
       .withAllowCredentials(true)
       .apply(app)
       .run(nonPreflightReq)
@@ -245,7 +245,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withCredentials(true), any origin, preflight request with matching origin") {
-    CORS.withAllowAnyOrigin
+    CORS.withAllowOriginAll
       .withAllowCredentials(true)
       .apply(app)
       .run(preflightReq)
@@ -255,7 +255,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withCredentials(false), any origin, non-preflight request with matching origin") {
-    CORS.withAllowAnyOrigin
+    CORS.withAllowOriginAll
       .withAllowCredentials(false)
       .apply(app)
       .run(nonPreflightReq)
@@ -265,7 +265,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withCredentials(false), any origin, preflight request with matching origin") {
-    CORS.withAllowAnyOrigin
+    CORS.withAllowOriginAll
       .withAllowCredentials(false)
       .apply(app)
       .run(preflightReq)

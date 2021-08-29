@@ -69,7 +69,7 @@ object CORS {
 
   private[CORS] sealed trait AllowOrigin
   private[CORS] object AllowOrigin {
-    case object Any extends AllowOrigin
+    case object All extends AllowOrigin
     case class Match(p: Origin => Boolean) extends AllowOrigin
   }
 
@@ -153,7 +153,7 @@ object CORS {
 
       val varyHeaderOptions: Option[Header] = {
         def origin = allowOrigin match {
-          case AllowOrigin.Any => Nil
+          case AllowOrigin.All => Nil
           case AllowOrigin.Match(_) => List(`Origin`.name)
         }
         def methods = allowMethods match {
@@ -240,7 +240,7 @@ object CORS {
 
       def allowOriginHeader(origin: Origin): Option[Header] =
         allowOrigin match {
-          case AllowOrigin.Any =>
+          case AllowOrigin.All =>
             CommonHeaders.someAllowOriginWildcard
           case AllowOrigin.Match(p) =>
             if (p(origin))
@@ -279,7 +279,7 @@ object CORS {
             Header.Raw(`Access-Control-Allow-Headers`.name, headers.mkString(", ")).some
         }
 
-      if (allowOrigin == AllowOrigin.Any && allowCredentials == AllowCredentials.Allow) {
+      if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
         logger.warn(
           "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses.")
         http
@@ -305,8 +305,8 @@ object CORS {
     /** Allow CORS requests from any origin with an
       * `Access-Control-Allow-Origin` of `*`.
       */
-    def withAllowAnyOrigin: Policy =
-      copy(AllowOrigin.Any)
+    def withAllowOriginAll: Policy =
+      copy(AllowOrigin.All)
 
     /** Allow requests from any origin matching the predicate `p`.  On
       * matching requests, the request origin is reflected as the
@@ -453,8 +453,8 @@ object CORS {
     *
     * @see {Policy#withAllowAnyOrigin}
     */
-  val withAllowAnyOrigin: Policy =
-    defaultPolicy.withAllowAnyOrigin
+  val withAllowOriginAll: Policy =
+    defaultPolicy.withAllowOriginAll
 
   /** A CORS policy that allows requests from any origin header matching
     * predicate `p`.  You probably want [[#withAllowOriginHost]]
