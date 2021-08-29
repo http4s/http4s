@@ -46,6 +46,23 @@ final case class CORSConfig(
     exposedHeaders: Option[Set[String]] = Set("*").some
 )
 
+/** Implements the CORS protocol.  A `Policy` is obtained from one of
+  * the `withAllowOrigin*` methods.  Further customization is available
+  * on the `Policy`, which can finally be applied to any `Http`.
+  *
+  * Requests with an Origin header will receive the appropriate CORS
+  * headers.  More headers are available for "pre-flight" requests,
+  * those whose method is `OPTIONS` and has an
+  * `Access-Control-Request-Method` header.
+  *
+  * Requests without the required headers, or requests that fail a
+  * CORS origin, method, or headers check are passed through to the
+  * underlying Http function, but do not receive any CORS headers in
+  * the response.  The user agent will then block sharing the resource
+  * across origins according to the CORS protocol.
+  *
+  * @see [[https://fetch.spec.whatwg.org/#http-cors-protocol CORS protocol specification]]
+  */
 object CORS {
   private[CORS] val logger = getLogger
 
