@@ -594,6 +594,14 @@ class CORSSuite extends Http4sSuite {
           Some("Origin, Access-Control-Request-Method, Access-Control-Request-Headers".ci))
       }
   }
+}
+
+@deprecated("This suite tests a deprecated feature", "0.21.27")
+trait CORSDeprecatedSuite extends Http4sSuite {
+  val routes = HttpRoutes.of[IO] {
+    case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
+    case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
+  }
 
   val cors1 = CORS(routes)
   val cors2 = CORS(
