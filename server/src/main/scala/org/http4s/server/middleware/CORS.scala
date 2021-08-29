@@ -50,15 +50,18 @@ object CORS {
   private[CORS] val logger = getLogger
 
   private[CORS] object CommonHeaders {
-    val allowOriginWildcard =
-      Header.Raw(`Access-Control-Allow-Origin`.name, "*")
+    val someAllowOriginWildcard =
+      Header.Raw(`Access-Control-Allow-Origin`.name, "*").some
     val someAllowCredentials =
       Header.Raw(`Access-Control-Allow-Credentials`.name, "true").some
     val someExposeHeadersWildcard =
       Header.Raw(`Access-Control-Expose-Headers`.name, "*").some
-    val varyOrigin =
-      Header.Raw(Vary.name, Origin.name.toString)
+    val someAllowMethodsWildcard =
+      Header.Raw(`Access-Control-Allow-Methods`.name, "*").some
   }
+
+  private[CORS] val wildcardMethod =
+    Method.fromString("*").fold(throw _, identity)
 
   private[CORS] sealed trait AllowOrigin
   private[CORS] object AllowOrigin {
@@ -79,10 +82,17 @@ object CORS {
     case object None extends ExposeHeaders
   }
 
+  private[CORS] sealed trait AllowMethods
+  private[CORS] object AllowMethods {
+    case object All extends AllowMethods
+    case class In(names: Set[Method]) extends AllowMethods
+  }
+
   final class Policy private[CORS] (
       allowOrigin: AllowOrigin,
       allowCredentials: AllowCredentials,
-      exposeHeaders: ExposeHeaders) {
+      exposeHeaders: ExposeHeaders,
+      allowMethods: AllowMethods) {
     def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
 
       val allowCredentialsHeader: Option[Header] =
@@ -103,56 +113,119 @@ object CORS {
             None
         }
 
-      def dispatch(req: Request[G]) =
+      val someAllowMethodsSpecificHeader =
+        allowMethods match {
+          case AllowMethods.All => None
+          case AllowMethods.In(methods) =>
+            Header
+              .Raw(`Access-Control-Allow-Methods`.name, methods.map(_.renderString).mkString(", "))
+              .some
+        }
+
+      val varyHeaderNonOptions: Option[Header] =
+        allowOrigin match {
+          case AllowOrigin.Match(_) =>
+            Header.Raw(`Vary`.name, `Origin`.name.toString).some
+          case _ =>
+            None
+        }
+
+      val varyHeaderOptions: Option[Header] = {
+        def origin = allowOrigin match {
+          case AllowOrigin.Any => Nil
+          case AllowOrigin.Match(_) => List(`Origin`.name)
+        }
+        def methods = allowMethods match {
+          case AllowMethods.All => Nil
+          case AllowMethods.In(_) => List(`Access-Control-Request-Method`.name)
+        }
+        (origin ++ methods) match {
+          case Nil =>
+            None
+          case nonEmpty =>
+            Header.Raw(`Vary`.name, nonEmpty.map(_.toString).mkString(", ")).some
+        }
+      }
+
+      def corsHeaders(req: Request[G]) =
         req.headers.get(Origin) match {
           case Some(origin) =>
             req.headers.get(`Access-Control-Request-Method`) match {
-              case Some(_) =>
-                handlePreflight(req, origin)
+              case Some(methodRaw) =>
+                Method.fromString(methodRaw.value) match {
+                  case Right(method) =>
+                    preflightHeaders(origin, method)
+                  case Left(_) =>
+                    Nil
+                }
               case _ =>
-                handleNonPreflight(req, origin)
+                nonPreflightHeaders(origin)
             }
           case None =>
-            http(req)
+            Nil
         }
 
-      def handleNonPreflight(req: Request[G], origin: Origin) = {
+      def varyHeader(method: Method) =
+        method match {
+          case Method.OPTIONS => varyHeaderOptions
+          case _ => varyHeaderNonOptions
+        }
+
+      def dispatch(req: Request[G]) = {
+        val cHeaders = corsHeaders(req)
+        val vHeader = varyHeader(req.method)
+        val headers = vHeader.fold(cHeaders)(_ :: cHeaders)
         val resp = http(req)
-        allowOriginHeader(origin).map { ao =>
-          val buff = List.newBuilder[Header]
-          buff.addAll(ao)
+        if (headers.nonEmpty)
+          resp.map(_.putHeaders(headers: _*))
+        else
+          resp
+      }
+
+      def nonPreflightHeaders(origin: Origin) = {
+        val buff = List.newBuilder[Header]
+        allowOriginHeader(origin).map { allowOrigin =>
+          buff.addOne(allowOrigin)
           allowCredentialsHeader.foreach(buff.addOne)
           exposeHeadersHeader.foreach(buff.addOne)
-          buff.result()
-        } match {
-          case Some(corsHeaders) => resp.map(_.putHeaders(corsHeaders: _*))
-          case None => resp
+          buff
         }
+        buff.result()
       }
 
-      def handlePreflight(req: Request[G], origin: Origin) = {
-        val resp = http(req)
-        allowOriginHeader(origin).map { ao =>
-          val buff = List.newBuilder[Header]
-          buff.addAll(ao)
-          allowCredentialsHeader.foreach(buff.addOne)
-          buff.result()
-        } match {
-          case Some(corsHeaders) => resp.map(_.putHeaders(corsHeaders: _*))
-          case None => resp
+      def preflightHeaders(origin: Origin, method: Method) = {
+        val buff = List.newBuilder[Header]
+        (allowOriginHeader(origin), allowMethodsHeader(method)).mapN {
+          case (allowOrigin, allowMethods) =>
+            buff.addOne(allowOrigin)
+            allowCredentialsHeader.foreach(buff.addOne)
+            buff.addOne(allowMethods)
+            buff.result()
         }
+        buff.result()
       }
 
-      def allowOriginHeader(origin: Origin): Option[List[Header]] =
+      def allowOriginHeader(origin: Origin): Option[Header] =
         allowOrigin match {
           case AllowOrigin.Any =>
-            List(CommonHeaders.allowOriginWildcard).some
+            CommonHeaders.someAllowOriginWildcard
           case AllowOrigin.Match(p) =>
             if (p(origin))
-              List(
-                Header.Raw(`Access-Control-Allow-Origin`.name, origin.value),
-                CommonHeaders.varyOrigin
-              ).some
+              Header.Raw(`Access-Control-Allow-Origin`.name, origin.value).some
+            else
+              None
+        }
+
+      def allowMethodsHeader(method: Method): Option[Header] =
+        allowMethods match {
+          case AllowMethods.All =>
+            if (allowCredentials == AllowCredentials.Deny || method === wildcardMethod)
+              CommonHeaders.someAllowMethodsWildcard
+            else
+              None
+          case AllowMethods.In(methods) =>
+            if (methods.contains(method))
+              someAllowMethodsSpecificHeader
             else
               None
         }
@@ -168,12 +241,14 @@ object CORS {
     def copy(
         allowOrigin: AllowOrigin = allowOrigin,
         allowCredentials: AllowCredentials = allowCredentials,
-        exposeHeaders: ExposeHeaders = exposeHeaders
+        exposeHeaders: ExposeHeaders = exposeHeaders,
+        allowMethods: AllowMethods = allowMethods
     ): Policy =
       new Policy(
         allowOrigin,
         allowCredentials,
-        exposeHeaders
+        exposeHeaders,
+        allowMethods
       )
 
     /** Allow CORS requests from any origin with an
@@ -254,12 +329,41 @@ object CORS {
       */
     def withExposeHeadersNone: Policy =
       copy(exposeHeaders = ExposeHeaders.None)
+
+    /** Allows CORS requests with any method if credentials are not
+      * allowed.  If credentials are allowed, allows requests with
+      * a literal method of `*`, which is almost certainly not what
+      * you mean, but per spec.
+      *
+      * Preflight requests must send a matching
+      * `Access-Control-Request-Method` header to receive a CORS
+      * response.
+      *
+      * Sends an `Access-Control-Allow-Headers: *` header on valid
+      * CORS preflight requests.
+      */
+    def withAllowMethodsAll: Policy =
+      copy(allowMethods = AllowMethods.All)
+
+    /** Allows CORS requests with any of the specified methods
+      * allowed.
+      *
+      * Preflight requests must send a matching
+      * `Access-Control-Request-Method` header to receive a CORS
+      * response.
+      *
+      * Sends an `Access-Control-Allow-Headers` header with the
+      * specified headers on valid CORS preflight requests.
+      */
+    def withAllowMethodsIn(methods: Set[Method]): Policy =
+      copy(allowMethods = AllowMethods.In(methods))
   }
 
   private val defaultPolicy: Policy = new Policy(
     AllowOrigin.Match(Function.const(false)),
     AllowCredentials.Deny,
-    ExposeHeaders.None
+    ExposeHeaders.None,
+    AllowMethods.In(Set(Method.GET, Method.POST, Method.HEAD))
   )
 
   /** A CORS policy that allows requests from any origin.

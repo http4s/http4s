@@ -39,9 +39,9 @@ class CORSSuite extends Http4sSuite {
 
   def nonCorsReq = Request[IO](uri = uri"/foo")
   def nonPreflightReq = nonCorsReq.putHeaders(exampleOriginHeader)
-  def preflightReq = nonPreflightReq.putHeaders(
-    Header.Raw(`Access-Control-Request-Method`.name, Method.POST.renderString)
-  )
+  def preflightReq = nonPreflightReq
+    .withMethod(Method.OPTIONS)
+    .putHeaders(Header.Raw(`Access-Control-Request-Method`.name, Method.POST.renderString))
 
   def assertAllowOrigin[F[_]](resp: Response[F], origin: Option[String]) =
     assertEquals(
@@ -55,6 +55,9 @@ class CORSSuite extends Http4sSuite {
 
   def assertExposeHeaders[F[_]](resp: Response[F], names: Option[CIString]) =
     assertEquals(resp.headers.get(`Access-Control-Expose-Headers`).map(_.value.ci), names)
+
+  def assertAllowMethods[F[_]](resp: Response[F], methods: Option[String]) =
+    assertEquals(resp.headers.get(`Access-Control-Allow-Methods`).map(_.value), methods)
 
   def assertVary[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(resp.headers.get(Vary).map(_.value.ci), headers)
@@ -73,17 +76,24 @@ class CORSSuite extends Http4sSuite {
     }
   }
 
+  test("withAllowAnyOrigin, OPTIONS request without Access-Control-Request-Method") {
+    CORS.withAllowAnyOrigin(app).run(nonCorsReq.withMethod(Method.OPTIONS)).map { resp =>
+      assertAllowOrigin(resp, None)
+      assertVary(resp, "Access-Control-Request-Method".ci.some)
+    }
+  }
+
   test("withAllowAnyOrigin, preflight request") {
-    CORS.withAllowAnyOrigin(app).run(nonPreflightReq).map { resp =>
+    CORS.withAllowAnyOrigin(app).run(preflightReq).map { resp =>
       assertAllowOrigin(resp, "*".some)
-      assertVary(resp, None)
+      assertVary(resp, "Access-Control-Request-Method".ci.some)
     }
   }
 
   test("withAllowOriginHeader, non-CORS request") {
     CORS.withAllowOriginHeader(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
-      assertVary(resp, None)
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
@@ -94,31 +104,41 @@ class CORSSuite extends Http4sSuite {
     }
   }
 
+  test("withAllowOriginHeader, OPTIONS request without Access-Control-Request-Method") {
+    CORS
+      .withAllowOriginHeader(Set(exampleOriginHeader))(app)
+      .run(nonCorsReq.withMethod(Method.OPTIONS))
+      .map { resp =>
+        assertAllowOrigin(resp, None)
+        assertVary(resp, "Origin, Access-Control-Request-Method".ci.some)
+      }
+  }
+
   test("withAllowOriginHeader, preflight request with matching origin") {
     CORS.withAllowOriginHeader(Set(exampleOriginHeader))(app).run(preflightReq).map { resp =>
       assertAllowOrigin(resp, Some("https://example.com"))
-      assertVary(resp, "Origin".ci.some)
+      assertVary(resp, "Origin, Access-Control-Request-Method".ci.some)
     }
   }
 
   test("withAllowOriginHeader, non-preflight request with non-matching origin") {
     CORS.withAllowOriginHeader(_ => false)(app).run(nonPreflightReq).map { resp =>
       assertAllowOrigin(resp, None)
-      assertVary(resp, None)
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
   test("withAllowOriginHeader, preflight request with non-matching origin") {
-    CORS.withAllowOriginHeader(_ => false)(app).run(nonPreflightReq).map { resp =>
+    CORS.withAllowOriginHeader(_ => false)(app).run(preflightReq).map { resp =>
       assertAllowOrigin(resp, None)
-      assertVary(resp, None)
+      assertVary(resp, "Origin, Access-Control-Request-Method".ci.some)
     }
   }
 
   test("withAllowOriginHost, non-CORS request") {
     CORS.withAllowOriginHost(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
-      assertVary(resp, None)
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
@@ -132,14 +152,14 @@ class CORSSuite extends Http4sSuite {
   test("withAllowOriginHeader, non-preflight request with non-matching origin") {
     CORS.withAllowOriginHeader(_ => false)(app).run(nonPreflightReq).map { resp =>
       assertAllowOrigin(resp, None)
-      assertVary(resp, None)
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
   test("withAllowOriginHostCi, non-CORS request") {
     CORS.withAllowOriginHostCi(_ => true)(app).run(nonCorsReq).map { resp =>
       assertAllowOrigin(resp, None)
-      assertVary(resp, None)
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
@@ -154,7 +174,7 @@ class CORSSuite extends Http4sSuite {
   test("withAllowOriginHostCi, non-preflight request with non-matching origin") {
     CORS.withAllowOriginHostCi(_ => false)(app).run(nonPreflightReq).map { resp =>
       assertAllowOrigin(resp, None)
-      assertVary(resp, None)
+      assertVary(resp, "Origin".ci.some)
     }
   }
 
@@ -286,7 +306,7 @@ class CORSSuite extends Http4sSuite {
       }
   }
 
-  test("withExposeHeadersIn, non-preflight request with matching origin") {
+  test("withExposeHeadersIn, preflight request with matching origin") {
     CORS
       .withAllowOriginHeader(_ => true)
       .withExposeHeadersIn(Set("Content-Encoding".ci, "X-Cors-Suite".ci))
@@ -327,6 +347,95 @@ class CORSSuite extends Http4sSuite {
       .run(nonPreflightReq)
       .map { resp =>
         assertExposeHeaders(resp, None)
+      }
+  }
+
+  test("withAllowMethodsAll, non-preflight request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withAllowMethodsAll
+      .apply(app)
+      .run(nonPreflightReq)
+      .map { resp =>
+        assertAllowMethods(resp, None)
+        assertVary(resp, Some("Origin".ci))
+      }
+  }
+
+  test(
+    "withAllowMethodsAll, credentials allowed, preflight request with matching origin, fails on literal wildcard") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withAllowCredentials(true)
+      .withAllowMethodsAll
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertAllowOrigin(resp, None)
+        assertAllowMethods(resp, None)
+        assertVary(resp, Some("Origin".ci))
+      }
+  }
+
+  test("withAllowMethodsAll, credentials disallowed, preflight request with matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withAllowCredentials(false)
+      .withAllowMethodsAll
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertAllowMethods(resp, Some("*"))
+        assertVary(resp, Some("Origin".ci))
+      }
+  }
+
+  test("withAllowMethodsAll, preflight request with non-matching origin") {
+    CORS
+      .withAllowOriginHeader(_ => false)
+      .withAllowMethodsAll
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertAllowMethods(resp, None)
+        assertVary(resp, Some("Origin".ci))
+      }
+  }
+
+  test("withAllowMethodsIn, preflight request with non-matching origin and matching method") {
+    CORS
+      .withAllowOriginHeader(_ => false)
+      .withAllowMethodsIn(Set(Method.GET, Method.POST))
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertAllowMethods(resp, None)
+        assertVary(resp, Some("Origin, Access-Control-Request-Method".ci))
+      }
+  }
+
+  test("withAllowMethodsIn, preflight request with matching origin and method") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withAllowMethodsIn(Set(Method.GET, Method.POST))
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertAllowMethods(resp, Some("GET, POST"))
+        assertVary(resp, Some("Origin, Access-Control-Request-Method".ci))
+      }
+  }
+
+  test("withAllowMethodsIn, preflight request with matching origin and non-matching method") {
+    CORS
+      .withAllowOriginHeader(_ => true)
+      .withAllowMethodsIn(Set(Method.GET, Method.POST))
+      .apply(app)
+      .run(preflightReq.putHeaders(
+        Header.Raw(`Access-Control-Request-Method`.name, Method.PUT.renderString)))
+      .map { resp =>
+        assertAllowMethods(resp, None)
+        assertVary(resp, Some("Origin, Access-Control-Request-Method".ci))
       }
   }
 
