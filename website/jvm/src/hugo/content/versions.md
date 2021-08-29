@@ -39,7 +39,7 @@ title: Versions
 	  <th class="text-center">Scala 2.12</th>
 	  <th class="text-center">Scala 2.13</th>
 	  <th class="text-center">Scala 3.0</th>
-		<th class="text-center">Scala.js</th>
+          <th class="text-center">Scala.js 1.x</th>
 	  <th>Cats</th>
 	  <th>FS2</th>
 	  <th>JDK</th>
