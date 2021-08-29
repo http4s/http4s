@@ -217,9 +217,9 @@ object CORS {
       def nonPreflightHeaders(origin: Origin) = {
         val buff = List.newBuilder[Header]
         allowOriginHeader(origin).map { allowOrigin =>
-          buff.addOne(allowOrigin)
-          allowCredentialsHeader.foreach(buff.addOne)
-          exposeHeadersHeader.foreach(buff.addOne)
+          buff += allowOrigin
+          allowCredentialsHeader.foreach(buff.+=)
+          exposeHeadersHeader.foreach(buff.+=)
           buff
         }
         buff.result()
@@ -229,10 +229,10 @@ object CORS {
         val buff = List.newBuilder[Header]
         (allowOriginHeader(origin), allowMethodsHeader(method), allowHeadersHeader(headers)).mapN {
           case (allowOrigin, allowMethods, allowHeaders) =>
-            buff.addOne(allowOrigin)
-            allowCredentialsHeader.foreach(buff.addOne)
-            buff.addOne(allowMethods)
-            buff.addOne(allowHeaders)
+            buff += allowOrigin
+            allowCredentialsHeader.foreach(buff.+=)
+            buff += allowMethods
+            buff += allowHeaders
             buff.result()
         }
         buff.result()
