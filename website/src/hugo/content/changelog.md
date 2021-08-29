@@ -18,7 +18,7 @@ it.
 
 ### Bugfixes
 
-* [#5076](https://github.com/http4s/http4s/pull/5076): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+* [#5070](https://github.com/http4s/http4s/pull/5070): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
 
 ### Enhancements
 
@@ -40,6 +40,16 @@ it.
 ### Bugfixes
 
 * [#5056](https://github.com/http4s/http4s/pull/5056): In `GZip` middleware, don't add a `Content-Encoding` header if the response type doesn't support an entity.
+
+### Enhancements
+
+* [#5112](https://github.com/http4s/http4s/pull/5112): Make `CORS` middleware configurable via `toHttpRoutes` and `toHttpApp` constructors.
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#5126](https://github.com/http4s/http4s/pull/5126): Upgrades to a Blaze version that uses a monotonic timer in the `TickWheelExecutor`.  This will improve scheduling correctness in the presence of an erratic clock.
 
 ## http4s-blaze-server
 
@@ -73,6 +83,7 @@ it.
 
 ## Dependency updates
 
+* blaze-0.15.2
 * netty-4.1.67
 
 # v0.21.26 (2021-08-12)
