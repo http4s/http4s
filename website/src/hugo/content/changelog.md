@@ -45,6 +45,12 @@ it.
 
 * [#5112](https://github.com/http4s/http4s/pull/5112): Make `CORS` middleware configurable via `toHttpRoutes` and `toHttpApp` constructors.
 
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#5126](https://github.com/http4s/http4s/pull/5126): Upgrades to a Blaze version that uses a monotonic timer in the `TickWheelExecutor`.  This will improve scheduling correctness in the presence of an erratic clock.
+
 ## http4s-blaze-server
 
 ### Bugfixes
@@ -77,6 +83,7 @@ it.
 
 ## Dependency updates
 
+* blaze-0.15.2
 * netty-4.1.67
 
 # v0.21.26 (2021-08-12)
