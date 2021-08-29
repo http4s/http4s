@@ -20,6 +20,15 @@ import org.http4s.Uri
 import org.http4s.util.Writer
 import org.http4s.util.Renderable
 
+/** Fetch's `RequestInit.referrer` parameter can be one of:
+  *   - Same-origin URL
+  *   - "about:client"
+  *   - the empty string
+  *
+  * To ensure same-origin URLs, we only allow relative URLs in the form of [[Uri.Path]].
+  *
+  * See https://fetch.spec.whatwg.org/#ref-for-dom-request-referrer%E2%91%A0
+  */
 sealed abstract class FetchReferrer extends Renderable
 object FetchReferrer {
   case object NoReferrer extends FetchReferrer {

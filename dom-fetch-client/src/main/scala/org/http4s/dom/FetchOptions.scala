@@ -47,55 +47,55 @@ sealed abstract class FetchOptions extends Product with Serializable {
   def referrerPolicy: Option[ReferrerPolicy]
 
   def withCacheOption(cache: Option[RequestCache]): FetchOptions
-  def withCache(cache: RequestCache): FetchOptions =
+  final def withCache(cache: RequestCache): FetchOptions =
     withCacheOption(Some(cache))
-  def withoutCache: FetchOptions =
+  final def withoutCache: FetchOptions =
     withCacheOption(None)
 
   def withCredentialsOption(credentials: Option[RequestCredentials]): FetchOptions
-  def withCredentials(credentials: RequestCredentials): FetchOptions =
+  final def withCredentials(credentials: RequestCredentials): FetchOptions =
     withCredentialsOption(Some(credentials))
-  def withoutCredentials: FetchOptions =
+  final def withoutCredentials: FetchOptions =
     withCredentialsOption(None)
 
   def withIntegrityOption(integrity: Option[String]): FetchOptions
-  def withIntegrity(integrity: String): FetchOptions =
+  final def withIntegrity(integrity: String): FetchOptions =
     withIntegrityOption(Some(integrity))
-  def withoutIntegrity: FetchOptions =
+  final def withoutIntegrity: FetchOptions =
     withIntegrityOption(None)
 
   def withKeepAliveOption(keepAlive: Option[Boolean]): FetchOptions
-  def withKeepAlive(keepAlive: Boolean): FetchOptions =
+  final def withKeepAlive(keepAlive: Boolean): FetchOptions =
     withKeepAliveOption(Some(keepAlive))
-  def withoutKeepAlive: FetchOptions =
+  final def withoutKeepAlive: FetchOptions =
     withKeepAliveOption(None)
 
   def withModeOption(mode: Option[RequestMode]): FetchOptions
-  def withMode(mode: RequestMode): FetchOptions =
+  final def withMode(mode: RequestMode): FetchOptions =
     withModeOption(Some(mode))
-  def withoutMode: FetchOptions =
+  final def withoutMode: FetchOptions =
     withModeOption(None)
 
   def withRedirectOption(redirect: Option[RequestRedirect]): FetchOptions
-  def withRedirect(redirect: RequestRedirect): FetchOptions =
+  final def withRedirect(redirect: RequestRedirect): FetchOptions =
     withRedirectOption(Some(redirect))
-  def withoutRedirect: FetchOptions =
+  final def withoutRedirect: FetchOptions =
     withRedirectOption(None)
 
   def withReferrerOption(referrer: Option[FetchReferrer]): FetchOptions
-  def withReferrer(referrer: FetchReferrer): FetchOptions =
+  final def withReferrer(referrer: FetchReferrer): FetchOptions =
     withReferrerOption(Some(referrer))
-  def withoutReferrer: FetchOptions =
+  final def withoutReferrer: FetchOptions =
     withReferrerOption(None)
 
   def withReferrerPolicyOption(referrerPolicy: Option[ReferrerPolicy]): FetchOptions
-  def withReferrerPolicy(referrerPolicy: ReferrerPolicy): FetchOptions =
+  final def withReferrerPolicy(referrerPolicy: ReferrerPolicy): FetchOptions =
     withReferrerPolicyOption(Some(referrerPolicy))
-  def withoutReferrerPolicy: FetchOptions =
+  final def withoutReferrerPolicy: FetchOptions =
     withReferrerPolicyOption(None)
 
   /** Merge Two FetchOptions. `other` is prioritized. */
-  def merge(other: FetchOptions): FetchOptions =
+  final def merge(other: FetchOptions): FetchOptions =
     FetchOptions(
       cache = other.cache.orElse(cache),
       credentials = other.credentials.orElse(credentials),
