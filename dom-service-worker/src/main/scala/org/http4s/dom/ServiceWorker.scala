@@ -32,7 +32,6 @@ import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.Body
 import org.scalajs.dom.experimental.Fetch
 import org.scalajs.dom.experimental.ResponseInit
-import org.scalajs.dom.experimental.serviceworkers.ExtendableEvent
 import org.scalajs.dom.experimental.serviceworkers.FetchEvent
 import org.scalajs.dom.experimental.serviceworkers.ServiceWorkerGlobalScope
 import org.scalajs.dom.experimental.{Response => DomResponse}
@@ -58,7 +57,7 @@ object ServiceWorker {
             .liftF(handler.get.rethrow)
             .flatMap(routesToListener(_, supervisor, FetchEventContext.IOKey).apply(event))
             .getOrElseF(IO.fromPromise(IO(Fetch.fetch(event.request))))
-          _ <- IO(event.asInstanceOf[ExtendableEvent].waitUntil(closeSupervisor.unsafeToPromise()))
+          _ <- IO(event.waitUntil(closeSupervisor.unsafeToPromise()))
         } yield res).unsafeToPromise()
       )
     }: scalajs.js.Function1[FetchEvent, Unit]

@@ -24,7 +24,6 @@ import cats.effect.kernel.Async
 import cats.effect.std.Supervisor
 import cats.syntax.all._
 import org.scalajs.dom.experimental.serviceworkers.FetchEvent
-import org.scalajs.dom.experimental.{Response => DomResponse}
 import org.typelevel.vault.Key
 
 final class FetchEventContext[F[_]] private (
@@ -46,9 +45,7 @@ object FetchEventContext {
       event.clientId,
       event.resultingClientId,
       OptionT(
-        F.fromPromise(F.pure(
-          // Another incorrectly typed facade :(
-          event.preloadResponse.asInstanceOf[scalajs.js.Promise[scalajs.js.UndefOr[DomResponse]]]))
+        F.fromPromise(F.pure(event.preloadResponse))
           .map(_.toOption)).semiflatMap(fromResponse[F]).value,
       supervisor
     )
