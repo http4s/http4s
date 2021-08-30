@@ -29,11 +29,15 @@ jobs:
         os: [ubuntu-latest]
         scala: [2.13.6, 2.12.14, 3.0.1]
         java: [adopt@1.8, adopt@1.11, adopt@1.16]
-        ci: [ciJVM, ciNodeJS, ciChrome]
+        ci: [ciJVM, ciNodeJS, ciFirefox, ciChrome]
         exclude:
           - ci: ciNodeJS
             java: adopt@1.11
           - ci: ciNodeJS
+            java: adopt@1.16
+          - ci: ciFirefox
+            java: adopt@1.11
+          - ci: ciFirefox
             java: adopt@1.16
           - ci: ciChrome
             java: adopt@1.11

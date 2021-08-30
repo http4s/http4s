@@ -77,6 +77,9 @@ private[http4s] object Rfc7230 {
     between(char('('), cText.orElse(quotedPair).orElse(comment).rep0.string, char(')'))
   }
 
+  def headerRep[A](element: Parser[A]): Parser0[List[A]] =
+    headerRep1(element).?.map(_.fold(List.empty[A])(_.toList))
+
   /* `1#element => *( "," OWS ) element *( OWS "," [ OWS element ] )` */
   def headerRep1[A](element: Parser[A]): Parser[NonEmptyList[A]] = {
     val prelude = (char(',') <* ows).rep0

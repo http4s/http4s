@@ -64,7 +64,7 @@ ThisBuild / githubWorkflowBuild := Seq(
     cond = Some("matrix.ci == 'ciJVM'"))
 )
 
-val ciVariants = List("ciJVM", "ciNodeJS", /*"ciFirefox",*/ "ciChrome")
+val ciVariants = List("ciJVM", "ciNodeJS", "ciFirefox", "ciChrome")
 val jsCiVariants = ciVariants.tail
 ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 
@@ -135,10 +135,12 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 addCommandAlias("ciJVM", "; project rootJVM")
 addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
-def browserCiCommand(browser: JSEnv) =
-  s"; set parallelExecution := false; set Global / useJSEnv := JSEnv.$browser; project rootBrowser"
-addCommandAlias("ciFirefox", browserCiCommand(Firefox))
-addCommandAlias("ciChrome", browserCiCommand(Chrome))
+addCommandAlias(
+  "ciFirefox",
+  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Firefox; project rootDom")
+addCommandAlias(
+  "ciChrome",
+  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Chrome; project rootBrowser")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -238,6 +240,15 @@ lazy val rootBrowser = project
     boopickle.js,
     jawn.js,
     circe.js,
+    domCore.js,
+    domFetchClient.js,
+    domServiceWorker.js,
+    domServiceWorkerTests.js
+  )
+
+lazy val rootDom = project
+  .enablePlugins(NoPublishPlugin)
+  .aggregate(
     domCore.js,
     domFetchClient.js,
     domServiceWorker.js,
