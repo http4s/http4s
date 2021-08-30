@@ -45,7 +45,7 @@ import org.http4s.server.middleware._
 ```
 
 ```scala mdoc
-val corsService = CORS(service)
+val corsService = CORS.withAllowOriginAll(service)
 
 corsService.orNotFound(request).unsafeRunSync()
 ```
@@ -64,7 +64,7 @@ that? And, as described in [Middleware], services and middleware can be
 composed such that only some of your endpoints are CORS enabled.
 
 ## Configuration
-The example above showed the default configuration for CORS, which adds the
+The example above showed one basic configuration for CORS, which adds the
 headers to any successful response, regardless of origin or HTTP method. There
 are configuration options to modify that.
 
@@ -85,14 +85,12 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc
-val methodConfig = CORSConfig.default
-                     .withAnyOrigin(false)
-                     .withAnyMethod(false)
-                     .withAllowedMethods(Some(Set(Method.GET, Method.POST)))
-                     .withAllowCredentials(true)
-                     .withMaxAge(1.seconds)
-
-val corsMethodSvc = CORS(service, methodConfig)
+val corsMethodSvc = CORS
+  .withAllowOriginAll
+  .withAllowMethodsIn(Set(Method.GET, Method.POST))
+  .withAllowCredentials(false)
+  .withMaxAge(1.day)
+  .apply(service)
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
 corsMethodSvc.orNotFound(yahooPut).unsafeRunSync()
@@ -101,16 +99,20 @@ corsMethodSvc.orNotFound(duckPost).unsafeRunSync()
 
 As you can see, the CORS headers were only added to the `GET` and `POST` requests.
 Next, we'll create a configuration that limits the origins to "yahoo.com" and
-"duckduckgo.com". allowedOrigins can use any expression that resolves into a boolean.
+"duckduckgo.com". `withAllowOriginHost` accepts an `Origin.Host => Boolean`.
+If you're simply enumerating allowed hosts, a `Set` is convenient:
 
 ```scala mdoc
-val originConfig = CORSConfig.default
-                     .withAnyOrigin(false)
-                     .withAllowedOrigins(Set("https://yahoo.com", "https://duckduckgo.com"))
-                     .withAllowCredentials(false)
-                     .withMaxAge(1.seconds)
+import org.http4s.headers.Origin
 
-val corsOriginSvc = CORS(service, originConfig)
+val corsOriginSvc = CORS
+  .withAllowOriginHost(Set(
+    Origin.Host(Uri.Scheme.https, Uri.RegName("yahoo.com"), None),
+    Origin.Host(Uri.Scheme.https, Uri.RegName("duckduckgo.com"), None)
+  ))
+  .withAllowCredentials(false)
+  .withMaxAge(1.day)
+  .apply(service)
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
 corsOriginSvc.orNotFound(yahooPut).unsafeRunSync()
@@ -118,7 +120,7 @@ corsOriginSvc.orNotFound(duckPost).unsafeRunSync()
 ```
 
 Again, the results are as expected. You can, of course, create a configuration that
-combines limits on both HTTP method and origin.
+combines limits on HTTP method, origin, and headers.
 
 As described in [Middleware], services and middleware can be composed such
 that only some of your endpoints are CORS enabled.
