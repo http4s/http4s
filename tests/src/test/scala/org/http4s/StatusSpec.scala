@@ -97,7 +97,7 @@ class StatusSpec extends Http4sSuite {
   test(
     "Finding a status by code and reason should succeed if the code is in the valid range, but not a standard code") {
     val s1 = getStatus(371, "some reason")
-    assertEquals(s1.code, 371)
+    assertEquals(s1.code: Int, 371)
     assertEquals(s1.reason, "some reason")
   }
 

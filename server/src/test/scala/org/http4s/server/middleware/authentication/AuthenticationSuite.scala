@@ -237,7 +237,7 @@ class AuthenticationSuite extends Http4sSuite {
           // We don't check whether res.status is Ok since it may not
           // be due to the low nonce stale timer.  Instead, we check
           // that it's found.
-          assertNotEquals(res.status, NotFound))
+          assertNotEquals(res.status, NotFound: Status))
         .toList
       results.parSequence
     }
