@@ -122,7 +122,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("Respond with 403 when origin is not valid") {
-    val req = buildRequest("/bar").withHeaders("Origin" -> "http://blah.com/")
+    val req = buildRequest("/bar").withHeaders("Origin" -> "http://blah.com")
     cors2
       .orNotFound(req)
       .map(_.status)
