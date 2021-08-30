@@ -937,6 +937,8 @@ private[http4s] trait ArbitraryInstances {
 
   implicit val http4sTestingCogenForSegment: Cogen[Uri.Path.Segment] =
     Cogen[String].contramap(_.encoded)
+
+  implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = ???
 }
 
 object ArbitraryInstances extends ArbitraryInstances {
