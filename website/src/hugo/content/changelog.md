@@ -19,6 +19,7 @@ it.
 ### Bugfixes
 
 * [#5070](https://github.com/http4s/http4s/pull/5070): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+* [#5105](https://github.com/http4s/http4s/pull/5105): Parse `UTF-8` charset tag on `Content-Disposition` filenames case-insensitively. This was a regression from 0.21.
 
 ### Enhancements
 
@@ -28,6 +29,10 @@ it.
 ### Documentation
 
 * [#5061](https://github.com/http4s/http4s/pull/5061): Document that the `Allow` header MUST return the allowed methods.
+
+### Dependency updates
+
+* blaze-0.15.2
 
 ## http4s-client
 
