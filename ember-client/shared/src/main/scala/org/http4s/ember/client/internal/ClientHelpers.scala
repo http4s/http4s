@@ -37,7 +37,6 @@ import org.typelevel.keypool._
 import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
 import com.comcast.ip4s.{Host, Port, SocketAddress}
-import java.nio.channels.ClosedChannelException
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: Sync](
