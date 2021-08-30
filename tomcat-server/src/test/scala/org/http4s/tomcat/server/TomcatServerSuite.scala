@@ -101,9 +101,10 @@ class TomcatServerSuite extends Http4sSuite {
       .assertEquals(prefix)
   }
 
-  tomcatServer.test("server should execute the service task on the service executor") { server =>
-    val prefix: String = "http4s-suite-"
-    get(server, "/thread/effect").map(_.take(prefix.size)).assertEquals(prefix)
+  tomcatServer.test("server should execute the service task on the service executor".flaky) {
+    server =>
+      val prefix: String = "http4s-suite-"
+      get(server, "/thread/effect").map(_.take(prefix.size)).assertEquals(prefix)
   }
 
   tomcatServer.test("server should be able to echo its input") { server =>
