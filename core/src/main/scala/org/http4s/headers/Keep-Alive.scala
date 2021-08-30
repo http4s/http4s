@@ -35,6 +35,8 @@ final case class Max(max: Long) extends KeepAlive
 final case class Extension(ext: (String, Option[String])) extends KeepAlive
 
 /*
+https://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01#Keep-Alive
+
 Keep-Alive           = "Keep-Alive" ":" 1#keep-alive-info
 keep-alive-info      =   "timeout" "=" delta-seconds
                        / "max" "=" 1*DIGIT
@@ -43,9 +45,9 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 */
 
   def apply(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]): ParseResult[`Keep-Alive`] = {
-    val validatedTimeoutSeconds = timeoutSeconds.traverse(nonNegativeLong)
-    val validatedMax = max.traverse(nonNegativeLong)
-    (validatedTimeoutSeconds, validatedMax).mapN((t, m) => unsafeApply(t, m, extension))
+    val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))
+    val validatedMax = max.traverse(m => nonNegativeLong(m, "max"))
+    (validatedTimeoutSeconds, validatedMax).mapN((t, m) => new `Keep-Alive`(t, m, extension))
   }
 
   def unsafeApply(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]): `Keep-Alive` = 
@@ -53,8 +55,8 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 
   def parse(s: String): ParseResult[`Keep-Alive`] = ParseResult.fromParser(parser, "Invalid Keep-Alive header")(s)
   
-  private[http4s] def nonNegativeLong(l: Long): ParseResult[Long] = 
-    if(l >= 0) ParseResult.success(l) else ParseResult.fail("Invalid value", s"$l must greater than or equal to 0 seconds")  
+  private[http4s] def nonNegativeLong(l: Long, fieldName: String): ParseResult[Long] = 
+    if(l >= 0) ParseResult.success(l) else ParseResult.fail(s"Invalid long for $fieldName", s"$fieldName which was $l must be greater than or equal to 0 seconds")  
 
   private[http4s] def safeToLong(s: String): Option[Long] = {
       try { 
@@ -91,7 +93,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
       ka match { 
         case Timeout(n) => if(timeoutSeconds.isEmpty) timeoutSeconds = Some(n) else ()
         case Max(n) => if(max.isEmpty) max = Some(n) else ()
-        case Extension(p) => extension.prepend(p)
+        case Extension(p) => extension.append(p)
       }
     }
     unsafeApply(timeoutSeconds, max, extension.toList)
@@ -99,18 +101,21 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 }
 //Arb keep alive for testing.  IN tests module.  
 // Arb option of non neg long and arb list of token -> any string
-implicit val headerInstance: Header[`Keep-Alive`, Header.Single] = Header.createRendered(ci"Keep-Alive", 
+
+//For the below:  No hanging ',' so we could make it all one list and use the nonempty list writer?
+implicit val headerInstance: Header[`Keep-Alive`, Header.Recurring] = Header.createRendered(ci"Keep-Alive", 
        v => new Renderable {
           def render(writer: Writer): writer.type =
             v match {
               case `Keep-Alive`(t,m,e) =>
-                writer << e.head
-                e.tail.foreach { host =>
-                  writer << " "
-                  writer << host
+                t.foreach(l => writer << "timeout=" << l << ", ")
+                m.foreach(l => writer << "max=" << l << ", ")
+                e.foreach { 
+                  p => writer << p._1 << "="
+                  p._2.foreach(s => writer << s)
+                  writer << ", "
                 }
-                writer
-              //case Null => writer << "null"
+               writer
             }
           }, 
           parse)
@@ -118,6 +123,6 @@ implicit val headerInstance: Header[`Keep-Alive`, Header.Single] = Header.create
 
 }
 
-final case class `Keep-Alive`(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]) { 
+final case class `Keep-Alive`private (timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]) { 
   def toTimeoutDuration: Option[FiniteDuration] = timeoutSeconds.map(FiniteDuration(_, TimeUnit.SECONDS))
 }
