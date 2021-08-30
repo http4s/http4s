@@ -395,7 +395,7 @@ object CORS {
     def withAllowOriginHostCi(p: CIString => Boolean): Policy =
       withAllowOriginHost(p.compose(host => CIString(host.renderString)))
 
-    /** Allow credentials.  Sends an `Access-Control-Allow-Credentials: *`
+    /** Allow cross-origin requests to be made on a user's behalf using their credentials (cookies, TLS client certificates, and HTTP authentication entries) .  Sends an `Access-Control-Allow-Credentials: *`
       * on valid CORS requests if true, and omits the header if false.
       *
       * For security purposes, it is an invalid per the Fetch Living Standard
