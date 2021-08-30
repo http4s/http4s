@@ -930,6 +930,7 @@ def http4sProject(
     .settings(
       moduleName := s"http4s-$name",
       testFrameworks += new TestFramework("munit.Framework"),
+      Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "-b"),
       initCommands()
     )
     .enablePlugins(Http4sPlugin)
