@@ -8,6 +8,27 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M25 (unreleased)
+
+This is the latest development release.  No binary compatibility is promised yet.  Includes all changes in v0.23.2.
+
+## http4s-core
+
+### Breaking changes
+
+* [#5051](https://github.com/http4s/http4s/pull/5051): Per spec, `Access-Control-Allow-Headers` and `Access-Control-Expose-Headers` can be empty.
+
+## http4s-dom-core
+
+### Enhancements
+
+* [#5049](https://github.com/http4s/http4s/pull/5049): Implement `EntityEncoder` for `File` and `ReadableStream[Unit8Array]`.
+* [#5094](https://github.com/http4s/http4s/pull/5094), [#5103](https://github.com/http4s/http4s/pull/5103): Fix readable stream cancellation bug in Firefox
+
+## Dependency updates
+
+* scalajs-dom-1.2.0
+
 # v1.0.0-M24 (2020-08-07)
 
 This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and browser service worker apps.
