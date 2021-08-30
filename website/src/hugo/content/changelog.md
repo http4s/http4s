@@ -8,6 +8,33 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.2 (unreleased)
+
+## http4s-core
+
+### Enhancements
+
+* [#5085](https://github.com/http4s/http4s/pull/5085): Make `EntityEncoder`s for `File`, `Path`, and `InputStream` implicit.  Since 0.23, they no longer require an explicit `Blocker` parameter, using Cats-Effect 3's runtime instead.
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#5118](https://github.com/http4s/http4s/pull/5118): Don't block the `TickWheelExecutor` on cancellation.  In-flight responses are canceled when a connection shuts down.  If the response cancellation hangs, it blocks the `TickWheelScheduler` thread.  When this thread blocks, subsequent scheduled events are not processed, and memory leaks with each newly scheduled event.
+
+### Enhancements
+
+* [#4782](https://github.com/http4s/http4s/pull/4782): Use `Async[F].executionContext` as a default `ExecutionContext` in `BlazeServerBuilder`.
+
+## http4s-ember-server
+
+* [#5106](https://github.com/http4s/http4s/pull/5106): Demote noisy `WebSocket connection terminated with exception` message to trace-level logging on broken pipes.  This relies on exception message parsing and may not work well in all locales.
+
+## Dependency updates
+
+* cats-effect-3.2.5
+* fs2-3.1.1
+
 # v0.22.3 (unreleased)
 
 ## http4s-core
