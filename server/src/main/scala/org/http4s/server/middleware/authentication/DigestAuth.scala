@@ -19,12 +19,13 @@ package server
 package middleware
 package authentication
 
-import cats.Applicative
+import bobcats.Hash
+import bobcats.unsafe.SecureRandom
 import cats.data.{Kleisli, NonEmptyList}
+import cats.Monad
 import cats.effect.Sync
 import cats.syntax.all._
 import java.math.BigInteger
-import java.security.SecureRandom
 import java.util.Date
 import org.http4s.headers._
 import scala.concurrent.duration._
@@ -87,11 +88,11 @@ object DigestAuth {
       }
     }
 
-  private def checkAuth[F[_], A](
+  private def checkAuth[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
-      req: Request[F])(implicit F: Applicative[F]): F[AuthReply[A]] =
+      req: Request[F])(implicit F: Monad[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
@@ -112,12 +113,12 @@ object DigestAuth {
         m
     }
 
-  private def checkAuthParams[F[_], A](
+  private def checkAuthParams[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
       req: Request[F],
-      paramsNel: NonEmptyList[(String, String)])(implicit F: Applicative[F]): F[AuthReply[A]] = {
+      paramsNel: NonEmptyList[(String, String)])(implicit F: Monad[F]): F[AuthReply[A]] = {
     val params = paramsNel.toList.toMap
     if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet))
       return F.pure(BadParameters)
@@ -134,22 +135,24 @@ object DigestAuth {
       case NonceKeeper.StaleReply => F.pure(StaleNonce)
       case NonceKeeper.BadNCReply => F.pure(BadNC)
       case NonceKeeper.OKReply =>
-        store(params("username")).map {
-          case None => UserUnknown
+        store(params("username")).flatMap {
+          case None => F.pure(UserUnknown)
           case Some((authInfo, password)) =>
-            val resp = DigestUtil.computeResponse(
-              method,
-              params("username"),
-              realm,
-              password,
-              uri,
-              nonce,
-              nc,
-              params("cnonce"),
-              params("qop"))
-
-            if (resp == params("response")) OK(authInfo)
-            else WrongResponse
+            DigestUtil
+              .computeResponse(
+                method,
+                params("username"),
+                realm,
+                password,
+                uri,
+                nonce,
+                nc,
+                params("cnonce"),
+                params("qop"))
+              .map { resp =>
+                if (resp == params("response")) OK(authInfo)
+                else WrongResponse
+              }
         }
     }
   }

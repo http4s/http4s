@@ -16,8 +16,12 @@
 
 package org.http4s.websocket
 
+import bobcats.Hash
+import bobcats.HashAlgorithm
+import cats.effect.SyncIO
+import scodec.bits.ByteVector
+
 import java.nio.charset.StandardCharsets._
-import java.security.MessageDigest
 import java.util.Base64
 import scala.util.Random
 
@@ -102,14 +106,10 @@ private[http4s] object WebSocketHandshake {
 
   private def decodeLen(key: String): Int = Base64.getDecoder.decode(key).length
 
-  private def genAcceptKey(str: String): String = {
-    val crypt = MessageDigest.getInstance("SHA-1")
-    crypt.reset()
-    crypt.update(str.getBytes(US_ASCII))
-    crypt.update(magicString)
-    val bytes = crypt.digest()
-    Base64.getEncoder.encodeToString(bytes)
-  }
+  private def genAcceptKey(str: String): String = (for {
+    data <- SyncIO.fromEither(ByteVector.encodeAscii(str))
+    digest <- Hash[SyncIO].digest(HashAlgorithm.SHA1, data)
+  } yield digest.toBase64).unsafeRunSync()
 
   private[websocket] def valueContains(key: String, value: String): Boolean = {
     val parts = value.split(",").map(_.trim)

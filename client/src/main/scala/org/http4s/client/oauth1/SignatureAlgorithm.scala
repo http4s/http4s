@@ -16,14 +16,15 @@
 
 package org.http4s.client.oauth1
 
+import bobcats.Crypto
+import bobcats.HmacAlgorithm
+import bobcats.Hmac
+import cats.MonadThrow
+import cats.syntax.all._
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
 import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
-
-import java.nio.charset.StandardCharsets.UTF_8
-import java.util.Base64
-import javax.crypto
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+import scodec.bits.ByteVector
+import bobcats.SecretKeySpec
 
 object SignatureAlgorithm {
 
@@ -70,18 +71,19 @@ trait SignatureAlgorithm {
     * @param secretKey The secret key
     * @return The base64-encoded output
     */
-  def generate(input: String, secretKey: String): String
+  def generate[F[_]: MonadThrow: Crypto](input: String, secretKey: String): F[String]
 
-  private[oauth1] def generateHMAC(input: String, algorithm: String, secretKey: String): String = {
+  private[oauth1] def generateHMAC[F[_]: MonadThrow: Hmac](
+      input: String,
+      algorithm: HmacAlgorithm,
+      secretKey: String): F[String] =
+    for {
+      keyData <- ByteVector.encodeUtf8(secretKey).liftTo[F]
+      sk = SecretKeySpec(keyData, algorithm)
+      data <- ByteVector.encodeUtf8(input).liftTo[F]
+      digest <- Hmac[F].digest(sk, data)
+    } yield digest.toBase64
 
-    val mac: Mac = crypto.Mac.getInstance(algorithm)
-    val sk = new SecretKeySpec(secretKey.getBytes(UTF_8), algorithm)
-    mac.init(sk)
-
-    val res = mac.doFinal(input.getBytes(UTF_8))
-    Base64.getEncoder.encodeToString(res)
-
-  }
 }
 
 /** An implementation of the `HMAC-SHA1` oauth signature method.
@@ -90,8 +92,10 @@ trait SignatureAlgorithm {
   */
 object HmacSha1 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA1`
-  override def generate(input: String, secretKey: String): String =
-    generateHMAC(input, "HmacSHA1", secretKey)
+  override def generate[F[_]: MonadThrow: Crypto](input: String, secretKey: String): F[String] = {
+    implicit val hmac = Crypto[F].hmac
+    generateHMAC(input, HmacAlgorithm.SHA1, secretKey)
+  }
 }
 
 /** An implementation of the `HMAC-SHA256` oauth signature method.
@@ -100,8 +104,10 @@ object HmacSha1 extends SignatureAlgorithm {
   */
 object HmacSha256 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA256`
-  override def generate(input: String, secretKey: String): String =
-    generateHMAC(input, "HmacSHA256", secretKey)
+  override def generate[F[_]: MonadThrow: Crypto](input: String, secretKey: String): F[String] = {
+    implicit val hmac = Crypto[F].hmac
+    generateHMAC(input, HmacAlgorithm.SHA256, secretKey)
+  }
 }
 
 /** An implementation of the `HMAC-SHA512` oauth signature method.
@@ -111,6 +117,8 @@ object HmacSha256 extends SignatureAlgorithm {
   */
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`
-  override def generate(input: String, secretKey: String): String =
-    generateHMAC(input, "HmacSHA512", secretKey)
+  override def generate[F[_]: MonadThrow: Crypto](input: String, secretKey: String): F[String] = {
+    implicit val hmac = Crypto[F].hmac
+    generateHMAC(input, HmacAlgorithm.SHA512, secretKey)
+  }
 }

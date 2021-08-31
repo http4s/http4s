@@ -111,6 +111,7 @@ lazy val core = libraryProject("core")
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
+      bobcats,
       caseInsensitive,
       catsCore,
       catsEffect,
@@ -187,6 +188,12 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF.this"), // private[middleware]
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF#CSRFBuilder.this"), // private[middleware]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.middleware.authentication.DigestUtil.computeResponse"), // private[authentication]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.middleware.authentication.DigestUtil.computeResponse"), // private[authentication]
+    )
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
@@ -220,6 +227,9 @@ lazy val client = libraryProject("client")
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       jettyServlet % Test,
+    ),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
     )
   )
   .dependsOn(

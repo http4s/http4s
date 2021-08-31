@@ -17,8 +17,10 @@
 package org.http4s
 package client
 
+import bobcats.Crypto
 import cats.{Monad, MonadThrow, Show}
 import cats.data.NonEmptyList
+import cats.effect.SyncIO
 import cats.syntax.all._
 import cats.instances.order._
 import org.http4s.client.oauth1.ProtocolParameter.{
@@ -60,10 +62,9 @@ package object oauth1 {
       token: Option[Token])(implicit
       F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
-    getUserParams(req).map { case (req, params) =>
-      val auth =
-        genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, HmacSha1)
-      req.putHeaders(auth)
+    getUserParams(req).flatMap { case (req, params) =>
+      genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, HmacSha1)
+        .map(auth => req.putHeaders(auth))
     }
 
   def signRequest[F[_]](
@@ -119,7 +120,7 @@ package object oauth1 {
       headers ++ List(token, callback, verifier).flatten
     }
 
-  private[oauth1] def genAuthHeader[F[_]: Monad](
+  private[oauth1] def genAuthHeader[F[_]: MonadThrow: Crypto](
       method: Method,
       uri: Uri,
       consumer: ProtocolParameter.Consumer,
@@ -141,21 +142,22 @@ package object oauth1 {
       nonceGenerator,
       callback,
       verifier
-    ).map { headers =>
+    ).flatMap { headers =>
       val baseStr = mkBaseString(
         method,
         uri,
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
       val alg = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
-      val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret), alg)
-      val creds = Credentials.AuthParams(
-        ci"OAuth",
-        NonEmptyList(
-          "oauth_signature" -> encode(sig),
-          realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
-      )
+      makeSHASig(baseStr, consumer.secret, token.map(_.secret), alg).map { sig =>
+        val creds = Credentials.AuthParams(
+          ci"OAuth",
+          NonEmptyList(
+            "oauth_signature" -> encode(sig),
+            realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
+        )
 
-      Authorization(creds)
+        Authorization(creds)
+      }
     }
 
   // Generate an authorization header with the provided user params and OAuth requirements.
@@ -169,9 +171,10 @@ package object oauth1 {
       callback: Option[Uri],
       verifier: Option[String],
       token: Option[Token]): Authorization =
-    genAuthHeader(method, uri, userParams, consumer, callback, verifier, token, HmacSha1)
+    genAuthHeader[SyncIO](method, uri, userParams, consumer, callback, verifier, token, HmacSha1)
+      .unsafeRunSync()
 
-  private[oauth1] def genAuthHeader(
+  private[oauth1] def genAuthHeader[F[_]: MonadThrow: Crypto](
       method: Method,
       uri: Uri,
       userParams: immutable.Seq[(String, String)],
@@ -179,7 +182,7 @@ package object oauth1 {
       callback: Option[Uri],
       verifier: Option[String],
       token: Option[Token],
-      algorithm: SignatureAlgorithm): Authorization = {
+      algorithm: SignatureAlgorithm): F[Authorization] = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
@@ -203,11 +206,12 @@ package object oauth1 {
       params ++ userParams.map { case (k, v) =>
         (encode(k), encode(v))
       })
-    val sig = makeSHASig(baseString, consumer.secret, token.map(_.secret), algorithm)
-    val creds =
-      Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
+    makeSHASig(baseString, consumer.secret, token.map(_.secret), algorithm).map { sig =>
+      val creds =
+        Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
 
-    Authorization(creds)
+      Authorization(creds)
+    }
   }
 
   // baseString must already be encoded, consumer and token must not be
@@ -225,13 +229,13 @@ package object oauth1 {
       baseString: String,
       consumerSecret: String,
       tokenSecret: Option[String]): String =
-    makeSHASig(baseString, consumerSecret, tokenSecret, HmacSha1)
+    makeSHASig[SyncIO](baseString, consumerSecret, tokenSecret, HmacSha1).unsafeRunSync()
 
-  private[oauth1] def makeSHASig(
+  private[oauth1] def makeSHASig[F[_]: MonadThrow: Crypto](
       baseString: String,
       consumerSecret: String,
       tokenSecret: Option[String],
-      algorithm: SignatureAlgorithm): String = {
+      algorithm: SignatureAlgorithm): F[String] = {
 
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
     algorithm.generate(baseString, key)
