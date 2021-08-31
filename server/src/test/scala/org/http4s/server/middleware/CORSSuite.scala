@@ -718,7 +718,7 @@ class CORSDeprecatedSuite extends Http4sSuite {
     val req = buildRequest("/foo")
     CORS(
       routes,
-      CORS.policyCORSConfig.copy(
+      CORS.DefaultCORSConfig.copy(
         anyOrigin = false,
         allowCredentials = true,
         allowedOrigins = Function.const(true)))
@@ -835,7 +835,7 @@ class CORSDeprecatedSuite extends Http4sSuite {
   test("Suppress Access-Control-Allow-Credentials on non-preflight request when anyOrigin is set") {
     val cors = CORS(
       routes.orNotFound,
-      CORS.policyCORSConfig.copy(anyOrigin = true, allowCredentials = true))
+      CORS.DefaultCORSConfig.copy(anyOrigin = true, allowCredentials = true))
     val req = buildRequest("/foo")
     cors.run(req).map { resp =>
       assertEquals(
@@ -848,7 +848,7 @@ class CORSDeprecatedSuite extends Http4sSuite {
   test("Suppress Access-Control-Allow-Credentials on preflight request when anyOrigin is set") {
     val cors = CORS(
       routes.orNotFound,
-      CORS.policyCORSConfig.copy(anyOrigin = true, allowCredentials = true))
+      CORS.DefaultCORSConfig.copy(anyOrigin = true, allowCredentials = true))
     val req = buildRequest("/foo")
     cors.run(req).map { resp =>
       assertEquals(
