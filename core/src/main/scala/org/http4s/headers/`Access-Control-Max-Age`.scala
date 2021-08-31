@@ -7,7 +7,6 @@ import org.typelevel.ci.CIStringSyntax
 import scala.concurrent.duration.{DurationLong, FiniteDuration}
 import scala.util.Try
 
-
 /** Constructs an `Access-Control-Max-Age` header.
   *
   * The value of this field indicates how long the results of a preflight request (that is the information contained in the Access-Control-Allow-Methods and [[`Access-Control-Allow-Headers`]] headers) can be cached. A value of -1 will disable caching.
@@ -25,7 +24,7 @@ object `Access-Control-Max-Age` {
     override def duration: Option[FiniteDuration] = Option.empty
 
     override def unsafeDuration: FiniteDuration = throw new UnsupportedOperationException(
-        "It's no possible to get cache duration if caching is disable")
+      "It's no possible to get cache duration if caching is disable")
   }
 
   final case class Cache private (age: Long) extends `Access-Control-Max-Age` {
@@ -58,7 +57,10 @@ object `Access-Control-Max-Age` {
   implicit val headerInstance: Header[`Access-Control-Max-Age`, Header.Single] =
     Header.createRendered(
       ci"Access-Control-Max-Age",
-      _.age,
+      {
+        case Cache(age) => age
+        case NoCaching => -1
+      },
       parse
     )
 }
