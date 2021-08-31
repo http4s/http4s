@@ -22,61 +22,67 @@ import org.scalacheck.Prop._
 
 class KeepAliveSuite extends HeaderLaws {
 
-checkAll("Keep-Alive", headerLaws[`Keep-Alive`])
+  checkAll("Keep-Alive", headerLaws[`Keep-Alive`])
 
-test("parse keep-alive with only timeout") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("timeout=3"),
-           `Keep-Alive`(Some(3), None, List.empty)
-      )
+  test("parse keep-alive with only timeout") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("timeout=3"),
+      `Keep-Alive`(Some(3), None, List.empty)
+    )
   }
 
-test("parse keep-alive with only max") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("max=33"),
-           `Keep-Alive`(None, Some(33), List.empty)
-      )
+  test("parse keep-alive with only max") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("max=33"),
+      `Keep-Alive`(None, Some(33), List.empty)
+    )
   }
 
-    test("parse keep-alive with timeout and max") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("timeout=3, max=33"),
-           `Keep-Alive`(Some(3), Some(33), List.empty)
-      )
+  test("parse keep-alive with timeout and max") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("timeout=3, max=33"),
+      `Keep-Alive`(Some(3), Some(33), List.empty)
+    )
   }
 
-    test("parse keep-alive with timeout, max, and extensions with quoted string") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey="il""""),
-           `Keep-Alive`(Some(3), Some(33), List(("extKey",Some("il"))))
-      )
+  test("parse keep-alive with timeout, max, and extensions with quoted string") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey="il""""),
+      `Keep-Alive`(Some(3), Some(33), List(("extKey", Some("il"))))
+    )
   }
 
- test("parse keep-alive with timeout, max, and extensions with 3 keys some have values and does not") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey="il", nextKey="pi", thirdKey="""),
-           `Keep-Alive`(Some(3), Some(33), List(("extKey",Some("il")),("nextKey", Some("pi")), ("thirdKey", None)))
-      )
+  test(
+    "parse keep-alive with timeout, max, and extensions with 3 keys some have values and does not") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey="il", nextKey="pi", thirdKey="""),
+      `Keep-Alive`(
+        Some(3),
+        Some(33),
+        List(("extKey", Some("il")), ("nextKey", Some("pi")), ("thirdKey", None)))
+    )
   }
 
-    test("parse keep-alive with only timeout, max, and extensions with no value") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("timeout=3, max=33, extKey="),
-           `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
-      )
+  test("parse keep-alive with only timeout, max, and extensions with no value") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey="),
+      `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
+    )
   }
 
-  test("parse keep-alive with only timeout, max, and extensions with multiple timeout values throwing these extras away") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=, timeout=8"),
-           `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
-      )
+  test(
+    "parse keep-alive with only timeout, max, and extensions with multiple timeout values throwing these extras away") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=, timeout=8"),
+      `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
+    )
   }
 
-  test("parse keep-alive with only timeout, max, and extensions with multiple max values throwing these extras away") { 
-      assertEquals(
-          Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=, max=8"),
-           `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
-      )
+  test(
+    "parse keep-alive with only timeout, max, and extensions with multiple max values throwing these extras away") {
+    assertEquals(
+      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=, max=8"),
+      `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
+    )
   }
 }
