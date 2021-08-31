@@ -680,7 +680,7 @@ class CORSSuite extends Http4sSuite {
 }
 
 @deprecated("This suite tests a deprecated feature", "0.21.27")
-trait CORSDeprecatedSuite extends Http4sSuite {
+class CORSDeprecatedSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
@@ -716,14 +716,19 @@ trait CORSDeprecatedSuite extends Http4sSuite {
 
   test("Respect Access-Control-Allow-Credentials") {
     val req = buildRequest("/foo")
-    cors1
+    CORS(
+      routes,
+      CORS.DefaultCORSConfig.copy(
+        anyOrigin = false,
+        allowCredentials = true,
+        allowedOrigins = Function.const(true)))
       .orNotFound(req)
       .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
       .assert *>
       cors2
         .orNotFound(req)
-        .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false"))
-        .assert
+        .map(_.headers.get(`Access-Control-Allow-Credentials`))
+        .assertEquals(None)
   }
 
   test("Respect Access-Control-Allow-Headers in preflight call") {
@@ -756,16 +761,16 @@ trait CORSDeprecatedSuite extends Http4sSuite {
       .map(resp =>
         resp.status.isSuccess && matchHeader(
           resp.headers,
-          `Access-Control-Allow-Credentials`,
-          "true"))
+          `Access-Control-Allow-Origin`,
+          "http://allowed.com"))
       .assert *>
       cors2
         .orNotFound(req)
         .map(resp =>
           resp.status.isSuccess && matchHeader(
             resp.headers,
-            `Access-Control-Allow-Credentials`,
-            "false"))
+            `Access-Control-Allow-Origin`,
+            "http://allowed.com"))
         .assert
   }
 
@@ -813,7 +818,7 @@ trait CORSDeprecatedSuite extends Http4sSuite {
 
     cors
       .orNotFound(req)
-      .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
+      .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Origin`, "http://allowed.com"))
       .assert
   }
 
@@ -823,7 +828,33 @@ trait CORSDeprecatedSuite extends Http4sSuite {
 
     cors
       .run(req)
-      .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
+      .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Origin`, "http://allowed.com"))
       .assert
+  }
+
+  test("Suppress Access-Control-Allow-Credentials on non-preflight request when anyOrigin is set") {
+    val cors = CORS(
+      routes.orNotFound,
+      CORS.DefaultCORSConfig.copy(anyOrigin = true, allowCredentials = true))
+    val req = buildRequest("/foo")
+    cors.run(req).map { resp =>
+      assertEquals(
+        resp.headers.get("Access-Control-Allow-Origin".ci).map(_.value),
+        "http://allowed.com".some)
+      assertEquals(resp.headers.get("Access-Control-Allow-Credentials".ci).map(_.value), None)
+    }
+  }
+
+  test("Suppress Access-Control-Allow-Credentials on preflight request when anyOrigin is set") {
+    val cors = CORS(
+      routes.orNotFound,
+      CORS.DefaultCORSConfig.copy(anyOrigin = true, allowCredentials = true))
+    val req = buildRequest("/foo")
+    cors.run(req).map { resp =>
+      assertEquals(
+        resp.headers.get("Access-Control-Allow-Origin".ci).map(_.value),
+        "http://allowed.com".some)
+      assertEquals(resp.headers.get("Access-Control-Allow-Credentials".ci).map(_.value), None)
+    }
   }
 }

@@ -574,11 +574,15 @@ object CORS {
     * Currently, you cannot make permissions depend on request details
     */
   @deprecated(
-    "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.",
+    "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.21.27.",
     "0.21.27")
   @nowarn("cat=deprecation")
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = DefaultCORSConfig)(implicit
-      F: Applicative[F]): Http[F, G] =
+      F: Applicative[F]): Http[F, G] = {
+    if (config.anyOrigin && config.allowCredentials)
+      logger.warn(
+        "Insecure CORS config detected: `anyOrigin=true` and `allowCredentials=true` are mutually exclusive. `Access-Control-Allow-Credentials` header will not be sent. Change either flag to false to remove this warning.")
+
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header, acrm: Header): Response[G] =
@@ -596,14 +600,19 @@ object CORS {
           case _ => response
         }
 
+      def allowCredentialsHeader(resp: Response[G]): Response[G] =
+        if (!config.anyOrigin && config.allowCredentials)
+          resp.putHeaders(Header("Access-Control-Allow-Credentials", "true"))
+        else
+          resp
+
       def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(
           resp: Response[G]): Response[G] = {
         val withMethodBasedHeader = methodBasedHeader(isPreflight)
           .fold(resp)(h => resp.putHeaders(h))
 
-        varyHeader(withMethodBasedHeader)
+        varyHeader(allowCredentialsHeader(withMethodBasedHeader))
           .putHeaders(
-            Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
             Header(
               "Access-Control-Allow-Methods",
               config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
@@ -648,6 +657,7 @@ object CORS {
           http(req)
       }
     }
+  }
 
   @deprecated(
     """Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
