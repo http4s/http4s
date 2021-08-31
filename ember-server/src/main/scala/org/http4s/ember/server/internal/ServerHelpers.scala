@@ -131,7 +131,7 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      requestVault: Vault)(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
+      socket: Socket[F])(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
     val parseWithHeaderTimeout = timeoutToMaybe(
@@ -144,6 +144,7 @@ private[server] object ServerHelpers {
     for {
       tmp <- parseWithHeaderTimeout
       (req, drain) = tmp
+      requestVault <- mkRequestVault(socket)
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
@@ -190,7 +191,6 @@ private[server] object ServerHelpers {
     type State = (Array[Byte], Boolean)
     val _ = logger
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
-    Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
       Stream
         .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
           case (buffer, reuse) =>
@@ -217,7 +217,7 @@ private[server] object ServerHelpers {
                 requestHeaderReceiveTimeout,
                 httpApp,
                 errorHandler,
-                requestVault)
+                socket)
             }
 
             result.attempt.flatMap {
@@ -266,7 +266,6 @@ private[server] object ServerHelpers {
           resp.headers.get[Connection].exists(_.hasKeepAlive)
         }
         .drain
-    }
   }
 
   private def mkRequestVault[F[_]: Applicative](socket: Socket[F]) =
