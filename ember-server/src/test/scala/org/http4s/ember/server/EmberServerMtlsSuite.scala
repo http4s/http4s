@@ -32,8 +32,7 @@ import org.http4s.testing.ErrorReporting
 import scala.io.Source
 import scala.util.Try
 
-/**
-  * Test cases for mTLS support in Ember Server.
+/** Test cases for mTLS support in Ember Server.
   */
 class EmberServerMtlsSuite extends Http4sSuite {
   {
