@@ -45,10 +45,14 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 */
 
   def apply(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]): ParseResult[`Keep-Alive`] = {
+    if(timeoutSeconds.isDefined || max.isDefined || extension.nonEmpty) { 
     val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))
     val validatedMax = max.traverse(m => nonNegativeLong(m, "max"))
     (validatedTimeoutSeconds, validatedMax).mapN((t, m) => new `Keep-Alive`(t, m, extension))
+  } else { 
+    ParseResult.fail("Invalid Keep-Alive header","All fields of Keep-Alive were empty")
   }
+}
 
   def unsafeApply(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]): `Keep-Alive` = 
     apply(timeoutSeconds, max, extension).fold(throw _, identity)
@@ -99,24 +103,40 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     unsafeApply(timeoutSeconds, max, extension.toList)
   }
 }
-//Arb keep alive for testing.  IN tests module.  
-// Arb option of non neg long and arb list of token -> any string
 
-//For the below:  No hanging ',' so we could make it all one list and use the nonempty list writer?
+  /* 
+                      s: NonEmptyList[T],
+      sep: String = ", ",
+      start: String = "",
+      end: String = ""): this.type = {
+    append(start)
+    append(s.head)
+    s.tail.foreach(s => append(sep).append(s))
+    append(end)*/
+    //Just use a var and loop over things and say if it was written to be true and then start puttin ","
 implicit val headerInstance: Header[`Keep-Alive`, Header.Recurring] = Header.createRendered(ci"Keep-Alive", 
        v => new Renderable {
           def render(writer: Writer): writer.type =
             v match {
               case `Keep-Alive`(t,m,e) =>
-                t.foreach(l => writer << "timeout=" << l << ", ")
-                m.foreach(l => writer << "max=" << l << ", ")
-                e.foreach { 
-                  p => writer << p._1 << "="
-                  p._2.foreach(s => writer << s)
-                  writer << ", "
+
+                var hasWritten = false
+                t.foreach { l => 
+                  writer << "timeout=" << l
+                  hasWritten = true
                 }
-               writer
-            }
+                m.foreach { l => 
+                  if(hasWritten) writer << ", "else hasWritten = true
+                  writer << "max=" << l
+                }
+
+                e.foreach { p => 
+                  if(hasWritten) writer << ", " else hasWritten = true 
+                  writer << p._1 << "="
+                  p._2.foreach(s => writer << s)
+                }
+                writer
+            }            
           }, 
           parse)
 

@@ -938,7 +938,14 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingCogenForSegment: Cogen[Uri.Path.Segment] =
     Cogen[String].contramap(_.encoded)
 
-  implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = ???
+  implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary { 
+    for { 
+      timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      max     <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      if(timeout.isDefined || max.isDefined)
+      ext     <- getArbitrary[List[(String, Option[String])]] //String should be token. Look at media type? Gen token and gen quoted string 
+    } yield `Keep-Alive`.unsafeApply(timeout, max, List.empty)
+  }
 }
 
 object ArbitraryInstances extends ArbitraryInstances {
