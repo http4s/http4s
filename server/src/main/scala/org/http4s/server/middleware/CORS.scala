@@ -411,7 +411,7 @@ sealed class CORSPolicy(
 
     if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
       logger.warn(
-        "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses.")
+        "Misconfiguration detected.  Sending `Access-Control-Allow-Origin: *` along with `Access-Control-Allow-Credentials: true` is blocked by Fetch-complaint user agents for security reasons.  Call `withAllowCredentials(false)`, or specify origins you trust with credential-tainted responses by calling `withAllowOriginHeader`, `withAllowOriginHost`, or `withAllowOriginHostCi`.")
       http
     } else
       Kleisli(dispatch)
