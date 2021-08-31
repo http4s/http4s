@@ -10,13 +10,31 @@ it.
 
 # v0.21.27
 
-This is a security release.
+This is a security release.  It is binary compatible with the 0.21.x series.
 
 ## http4s-server
 
 ### Security patches
 
-* [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6): Deprecates `apply` method that takes a `CORSConfig`.  The default configuration provides no actual CORS protection, and has several deficiences even when properly configured.  Please see the GHSA for a full discussion.
+* [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6):
+* Deprecates `apply` method that takes a `CORSConfig`, and `httpRoutes` anad `httpApp` that take no config.  The default configuration disables most actual CORS protection, and has several deficiences even when properly configured.  See the GHSA for a full discussion.
+* The deprecated implementation now ignores the `allowCredentials` setting when `anyOrigin` is true, and logs a warning.  If you insist on using the deprecated version, old behavior can be restored by setting `anyOrigin` to false and `allowOrigins` to `Function.const(true)`.
+* No longer renders an `Access-Control-Allow-Credentials: false` headerFor safety, the `allowCredentials` setting is now Please see the GHSA for a full discussion.
+* The new implementation, created from the new `CORS.Policy`, additionally fixes the following defects:
+  * No longer returns a `403 Forbidden` response when CORS checks fail.  The enforcement point of CORS is the user agent.  Any failing checks just suppress CORS headers in the http4s response.
+  * Add  `Access-Control-Request-Headers` to the `Vary` header on preflight responses when it can affect the response. This is important for caching.
+  * Validate the  `Access-Control-Request-Headers`, and return no CORS headers if any of the headers are disallowed.
+   * Remote `Vary: Access-Control-Request-Method` and `Access-Control-Max-Age` headers from non-preflight responses.  These are only relevant in preflight checks.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#5125](https://github.com/http4s/http4s/pull/5125): Upgrade to a blaze that uses monotonic time in the `TickWheelExecutor`. This is unrelated to the GHSA, but guards against a theoretical scheduling problem if the system clock is erratic.
+
+## Dependency updates
+
+* blaze-0.14.18
 
 # v0.21.26 (2021-08-12)
 
