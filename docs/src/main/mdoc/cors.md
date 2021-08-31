@@ -54,7 +54,7 @@ import org.http4s.server.middleware._
 ```
 
 ```scala mdoc
-val corsService = CORS.withAllowOriginAll(service)
+val corsService = CORS.policy.withAllowOriginAll(service)
 
 corsService.orNotFound(request).unsafeRunSync()
 ```
@@ -95,7 +95,7 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc
-val corsMethodSvc = CORS
+val corsMethodSvc = CORS.policy
   .withAllowOriginAll
   .withAllowMethodsIn(Set(Method.GET, Method.POST))
   .withAllowCredentials(false)
@@ -115,7 +115,7 @@ If you're simply enumerating allowed hosts, a `Set` is convenient:
 ```scala mdoc
 import org.http4s.headers.Origin
 
-val corsOriginSvc = CORS
+val corsOriginSvc = CORS.policy
   .withAllowOriginHost(Set(
     Origin.Host(Uri.Scheme.https, Uri.RegName("yahoo.com"), None),
     Origin.Host(Uri.Scheme.https, Uri.RegName("duckduckgo.com"), None)
