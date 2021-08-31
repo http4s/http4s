@@ -93,7 +93,7 @@ trait SignatureAlgorithm {
 object HmacSha1 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA1`
   override def generate[F[_]: MonadThrow: Crypto](input: String, secretKey: String): F[String] = {
-    implicit val hmac = Crypto[F].hmac
+    implicit val hmac: Hmac[F] = Crypto[F].hmac
     generateHMAC(input, HmacAlgorithm.SHA1, secretKey)
   }
 }
@@ -105,7 +105,7 @@ object HmacSha1 extends SignatureAlgorithm {
 object HmacSha256 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA256`
   override def generate[F[_]: MonadThrow: Crypto](input: String, secretKey: String): F[String] = {
-    implicit val hmac = Crypto[F].hmac
+    implicit val hmac: Hmac[F] = Crypto[F].hmac
     generateHMAC(input, HmacAlgorithm.SHA256, secretKey)
   }
 }
@@ -118,7 +118,7 @@ object HmacSha256 extends SignatureAlgorithm {
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`
   override def generate[F[_]: MonadThrow: Crypto](input: String, secretKey: String): F[String] = {
-    implicit val hmac = Crypto[F].hmac
+    implicit val hmac: Hmac[F] = Crypto[F].hmac
     generateHMAC(input, HmacAlgorithm.SHA512, secretKey)
   }
 }

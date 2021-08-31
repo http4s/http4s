@@ -344,7 +344,7 @@ object CSRF {
     def withCreateIfNotFound(createIfNotFound: Boolean): CSRFBuilder[F, G] =
       copy(createIfNotFound = createIfNotFound)
     def withKey(key: crypto.SecretKey): CSRFBuilder[F, G] =
-      copy(key = Hmac[SyncIO].importJavaKey(key).unsafeRunSync)
+      copy(key = Hmac[SyncIO].importJavaKey(key).unsafeRunSync())
     def withHeaderCheck(headerCheck: Request[G] => Boolean): CSRFBuilder[F, G] =
       copy(headerCheck = headerCheck)
     def withCSRFCheck(csrfCheck: CSRF[F, G] => CSRFCheck[F, G]): CSRFBuilder[F, G] =

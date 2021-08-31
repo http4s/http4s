@@ -108,7 +108,7 @@ private[http4s] object WebSocketHandshake {
 
   private def genAcceptKey(str: String): String = (for {
     data <- SyncIO.fromEither(ByteVector.encodeAscii(str))
-    digest <- Hash[SyncIO].digest(HashAlgorithm.SHA1, data)
+    digest <- Hash[SyncIO].digest(HashAlgorithm.SHA1, data ++ magicString)
   } yield digest.toBase64).unsafeRunSync()
 
   private[websocket] def valueContains(key: String, value: String): Boolean = {
@@ -124,7 +124,7 @@ private[http4s] object WebSocketHandshake {
   }
 
   private val magicString =
-    "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(US_ASCII)
+    ByteVector.view("258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(US_ASCII))
 
   private val clientBaseHeaders = List(
     ("Connection", "Upgrade"),
