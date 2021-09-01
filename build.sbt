@@ -132,6 +132,12 @@ lazy val core = libraryProject("core")
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
+    mimaBinaryIssueFilters ++= Seq(
+      // These will only cause problems when called via Java interop
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.apply"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.local"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText")
+    )
   )
 
 lazy val laws = libraryProject("laws")
