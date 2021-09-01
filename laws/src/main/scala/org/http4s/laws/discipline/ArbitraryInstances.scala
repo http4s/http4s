@@ -942,11 +942,11 @@ private[http4s] trait ArbitraryInstances {
     for {
       timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
       max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
-      if timeout.isDefined || max.isDefined
-      ext <- getArbitrary[List[
-        (String, Option[String])
-      ]] //String should be token. Look at media type? Gen token and gen quoted string genToken as well as 
-    } yield `Keep-Alive`.unsafeApply(timeout, max, List.empty)
+      extName <- genToken
+      extValue <- Gen.option(Gen.oneOf(genQuotedString, genToken))
+      l <- Gen.listOf((extName -> extValue))
+      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
+    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
   }
 }
 
