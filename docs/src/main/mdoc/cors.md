@@ -4,9 +4,18 @@ title: CORS
 weight: 122
 ---
 
-Http4s provides [Middleware], named `CORS`, for adding the appropriate headers
-to responses to allow Cross Origin Resource Sharing.
+For security reasons, modern web browsers enforce a [same origin policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy),
+restricting the ability of sites from a given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) 
+to access resources at a different origin. Http4s provides [Middleware], named `CORS`, for adding the appropriate headers
+to responses to allow limited exceptions to this via [cross origin resource sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).
 
+## ⚠️ Warning ⚠️
+This guide assumes you are already familiar with CORS and its attendant security risks. 
+By enabling CORS you are bypassing an important protection against malicious third-party 
+websites - before doing so for any potentially sensitive resource, make sure you understand 
+what you are doing and why.
+
+## Usage
 Examples in this document have the following dependencies.
 
 ```scala
@@ -45,7 +54,7 @@ import org.http4s.server.middleware._
 ```
 
 ```scala mdoc
-val corsService = CORS.withAllowOriginAll(service)
+val corsService = CORS.policy.withAllowOriginAll(service)
 
 corsService.orNotFound(request).unsafeRunSync()
 ```
@@ -85,7 +94,7 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc
-val corsMethodSvc = CORS
+val corsMethodSvc = CORS.policy
   .withAllowOriginAll
   .withAllowMethodsIn(Set(Method.GET, Method.POST))
   .withAllowCredentials(false)
@@ -105,7 +114,7 @@ If you're simply enumerating allowed hosts, a `Set` is convenient:
 ```scala mdoc
 import org.http4s.headers.Origin
 
-val corsOriginSvc = CORS
+val corsOriginSvc = CORS.policy
   .withAllowOriginHost(Set(
     Origin.Host(Uri.Scheme.https, Uri.RegName("yahoo.com"), None),
     Origin.Host(Uri.Scheme.https, Uri.RegName("duckduckgo.com"), None)
