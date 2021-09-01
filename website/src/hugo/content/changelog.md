@@ -8,7 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.23.2 (unreleased)
+# v0.23.2 (2021-09-01)
+
+This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in v0.22.3.
+
+This release is binary compatible with the 0.23 series.
 
 ## http4s-core
 
@@ -35,11 +39,11 @@ it.
 * cats-effect-3.2.5
 * fs2-3.1.1
 
-# v0.22.3 (unreleased)
+# v0.22.3 (2021-09-01)
 
 This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in 0.21.26 and 0.21.27.
 
-Binary compatible with the 0.22.2 series, with the exception of static forwarders in `HttpApp.apply`, `HttpApp.local`.  Unless you are calling `HttpApp` from a language other than Scala, you are not affected.
+Binary compatible with 0.22.2 series, with the exception of static forwarders in `HttpApp.apply`, `HttpApp.local`.  Unless you are calling `HttpApp` from a language other than Scala, you are not affected.
 
 ## http4s-core
 
