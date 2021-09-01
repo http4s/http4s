@@ -444,6 +444,7 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency")
     ),
     Test / parallelExecution := false
@@ -466,7 +467,10 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
-    libraryDependencies += keypool.value
+    libraryDependencies += keypool.value,
+    mimaBinaryIssueFilters := Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
+    )
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
   .jsSettings(
@@ -926,6 +930,7 @@ def http4sProject(
     .settings(
       moduleName := s"http4s-$name",
       testFrameworks += new TestFramework("munit.Framework"),
+      Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "-b"),
       initCommands()
     )
     .enablePlugins(Http4sPlugin)

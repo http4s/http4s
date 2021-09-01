@@ -29,6 +29,120 @@ This is the latest development release.  No binary compatibility is promised yet
 
 * scalajs-dom-1.2.0
 
+# v0.23.2 (unreleased)
+
+## http4s-core
+
+### Enhancements
+
+* [#5085](https://github.com/http4s/http4s/pull/5085): Make `EntityEncoder`s for `File`, `Path`, and `InputStream` implicit.  Since 0.23, they no longer require an explicit `Blocker` parameter, using Cats-Effect 3's runtime instead.
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#5118](https://github.com/http4s/http4s/pull/5118): Don't block the `TickWheelExecutor` on cancellation.  In-flight responses are canceled when a connection shuts down.  If the response cancellation hangs, it blocks the `TickWheelScheduler` thread.  When this thread blocks, subsequent scheduled events are not processed, and memory leaks with each newly scheduled event.
+
+### Enhancements
+
+* [#4782](https://github.com/http4s/http4s/pull/4782): Use `Async[F].executionContext` as a default `ExecutionContext` in `BlazeServerBuilder`.
+
+## http4s-ember-server
+
+* [#5106](https://github.com/http4s/http4s/pull/5106): Demote noisy `WebSocket connection terminated with exception` message to trace-level logging on broken pipes.  This relies on exception message parsing and may not work well in all locales.
+
+## Dependency updates
+
+* cats-effect-3.2.5
+* fs2-3.1.1
+
+# v0.22.3 (unreleased)
+
+## http4s-core
+
+### Semantic changes
+
+* [#5073](https://github.com/http4s/http4s/pull/5073): `withEntity` now replaces any existing headers with the same name with the headers from the `EntityEncoder`.  In v0.21, known single headers were replaced and recurring headers were appended.  Beginning in 0.22.0, everything was appended, which commonly resulted in duplicate `Content-Type` headers.  There is no longer a global registry of headers to infer singleton vs. recurring semantics, but in practice, `EntityEncoder` headers are single, so this is more correct and more similar to the pre-0.22 behavior.
+
+### Bugfixes
+
+* [#5070](https://github.com/http4s/http4s/pull/5070): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+* [#5105](https://github.com/http4s/http4s/pull/5105): Parse `UTF-8` charset tag on `Content-Disposition` filenames case-insensitively. This was a regression from 0.21.
+
+### Enhancements
+
+* [#5042](https://github.com/http4s/http4s/pull/5042): Add a modeled header for `Access-Control-Request-Method`.
+* [#5076](https://github.com/http4s/http4s/pull/5076): Create `Uri.Host` from an ip4s `IpAddress`
+
+### Documentation
+
+* [#5061](https://github.com/http4s/http4s/pull/5061): Document that the `Allow` header MUST return the allowed methods.
+
+### Dependency updates
+
+* blaze-0.15.2
+
+## http4s-client
+
+### Enhancements
+
+* [#5023](https://github.com/http4s/http4s/pull/5023): Parameterize the signature algorithm in the OAuth 1 middleware.  HMAC-SHA256 and HMAC-SHA512 are now supported in addition to HMAC-SHA1.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5056](https://github.com/http4s/http4s/pull/5056): In `GZip` middleware, don't add a `Content-Encoding` header if the response type doesn't support an entity.
+
+### Enhancements
+
+* [#5112](https://github.com/http4s/http4s/pull/5112): Make `CORS` middleware configurable via `toHttpRoutes` and `toHttpApp` constructors.
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#5126](https://github.com/http4s/http4s/pull/5126): Upgrades to a Blaze version that uses a monotonic timer in the `TickWheelExecutor`.  This will improve scheduling correctness in the presence of an erratic clock.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#5075](https://github.com/http4s/http4s/pull/5075): Render the blaze version correctly in the default startup banner
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#5043](https://github.com/http4s/http4s/pull/5043): Fix several bugs where a body stream silenty ends if the peer closes its end of the socket without finishing writing. This now raises an error.
+
+## http4s-ember-client
+
+### Bugfixes
+
+* [#5041](https://github.com/http4s/http4s/pull/5041): Don't keep alive HTTP/1.0 connections without a `Connection: keep-alive` header.
+
+## http4s-ember-server
+
+### Deprecations
+
+* [#5040](https://github.com/http4s/http4s/pull/5040): `maxConcurrency` is renamed to `maxConnections`.  The former is now deprecated.
+
+## http4s-dsl
+
+### Enhancements
+
+* [#5063](https://github.com/http4s/http4s/pull/5063): Added `->>` infix extractor for a resource-oriented view of routing. Use this to define resource paths only once, and generate proper `405` responses with a correct `Allow` header when the method is not handled.
+
+## Dependency updates
+
+* blaze-0.15.2
+* netty-4.1.67
+
+# v0.21.26 (2021-08-12)
+
+The 0.21 series is no longer actively maintained by the team, but we'll continue to entertain binary compatible patches.  All users are still encouraged to upgrade to 0.22 (for Cats-Effect 2) or 0.23 (the latest stable series, on Cats-Effect 3).
+
 # v1.0.0-M24 (2020-08-07)
 
 This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and browser service worker apps.
@@ -148,6 +262,11 @@ Includes all changes through 0.23.1.
 * scala-java-locales-1.2.1 (new)
 * scala-java-time-2.3.0 (new)
 * scala-js-dom-1.1.0 (new)
+=======
+* [#5064](https://github.com/http4s/http4s/pull/5064): Add a conservative retry policy for dead connections.  Connections can be terminated on the server side while idling in our pool, which does not manifest until we attempt to read the response.  This is now raised as a `java.nio.channels.ClosedChannelException`.   A `retryPolicy` configuration has been added to the `EmberClientBuilder`.  The default policy handles the error and resubmits the request if:
+   * The request method is idempotent OR has an `Idempotency-Key` header
+   * Less than 2 attempts have been made
+   * Ember detects that the connection was closed without reading any bytes
 
 # v0.23.1 (2021-08-06)
 

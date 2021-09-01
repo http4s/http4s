@@ -27,6 +27,8 @@ import com.comcast.ip4s.IDN
 
 private[internal] trait ClientHelpersPlatform {
 
+  private[internal] type ClosedChannelException = fs2.io.IOException
+
   private[internal] def mkTLSParameters(
       address: SocketAddress[Host],
       enableEndpointValidation: Boolean): TLSParameters =
