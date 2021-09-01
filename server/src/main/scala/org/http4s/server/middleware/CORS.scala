@@ -417,7 +417,7 @@ sealed class CORSPolicy(
       Kleisli(dispatch)
   }
 
-  def copy(
+  private def copy(
       allowOrigin: AllowOrigin = allowOrigin,
       allowCredentials: AllowCredentials = allowCredentials,
       exposeHeaders: ExposeHeaders = exposeHeaders,
