@@ -18,11 +18,17 @@ package org.http4s
 package headers
 
 import org.http4s.laws.discipline.ArbitraryInstances._
-import org.scalacheck.Prop._
 
 class KeepAliveSuite extends HeaderLaws {
 
   checkAll("Keep-Alive", headerLaws[`Keep-Alive`])
+
+  test("invalid (empty) Keep-Alives should result in failure") { 
+    assertEquals(
+      `Keep-Alive`(None, None, List.empty),
+      ParseResult.fail("Invalid Keep-Alive header", "All fields of Keep-Alive were empty")
+    )    
+  }
 
   test("parse keep-alive with only timeout") {
     assertEquals(

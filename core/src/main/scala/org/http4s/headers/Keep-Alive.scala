@@ -26,6 +26,7 @@ import org.typelevel.ci._
 import scala.concurrent.duration.FiniteDuration
 import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ListBuffer
+import cats.kernel.Semigroup
 
 object `Keep-Alive` {
 
@@ -114,16 +115,6 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     }
   }
 
-  /*
-                      s: NonEmptyList[T],
-      sep: String = ", ",
-      start: String = "",
-      end: String = ""): this.type = {
-    append(start)
-    append(s.head)
-    s.tail.foreach(s => append(sep).append(s))
-    append(end)*/
-  //Just use a var and loop over things and say if it was written to be true and then start puttin ","
   implicit val headerInstance: Header[`Keep-Alive`, Header.Recurring] = Header.createRendered(
     ci"Keep-Alive",
     v =>
@@ -151,6 +142,15 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
       },
     parse
   )
+
+  implicit val headerSemigroupInstance: Semigroup[`Keep-Alive`] = new Semigroup[`Keep-Alive`] { 
+      def combine(x: `Keep-Alive`, y: `Keep-Alive`): `Keep-Alive` = 
+        new `Keep-Alive`(
+          x.timeoutSeconds orElse y.timeoutSeconds,
+          x.max orElse y.max,
+          x.extension ++ y.extension
+        )
+  }
 
 }
 

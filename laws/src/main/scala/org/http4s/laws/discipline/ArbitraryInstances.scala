@@ -945,7 +945,7 @@ private[http4s] trait ArbitraryInstances {
       if timeout.isDefined || max.isDefined
       ext <- getArbitrary[List[
         (String, Option[String])
-      ]] //String should be token. Look at media type? Gen token and gen quoted string
+      ]] //String should be token. Look at media type? Gen token and gen quoted string genToken as well as 
     } yield `Keep-Alive`.unsafeApply(timeout, max, List.empty)
   }
 }
