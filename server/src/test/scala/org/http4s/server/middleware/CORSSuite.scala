@@ -111,9 +111,10 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withAllowOriginHeader, non-preflight request with matching origin") {
-    CORS.policy.withAllowOriginHeader(Set(exampleOriginHeader))(app).run(nonPreflightReq).map { resp =>
-      assertAllowOrigin(resp, Some("https://example.com"))
-      assertVary(resp, "Origin".ci.some)
+    CORS.policy.withAllowOriginHeader(Set(exampleOriginHeader))(app).run(nonPreflightReq).map {
+      resp =>
+        assertAllowOrigin(resp, Some("https://example.com"))
+        assertVary(resp, "Origin".ci.some)
     }
   }
 
