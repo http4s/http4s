@@ -16,6 +16,7 @@
 
 package org.http4s.internal
 
+import cats.Monad
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
@@ -59,7 +60,7 @@ object Logger {
       logHeaders: Boolean,
       logBodyText: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
+      log: String => F[Unit])(implicit F: Monad[F]): F[Unit] = {
     def prelude =
       message match {
         case req: Request[_] => s"${req.httpVersion} ${req.method} ${req.uri}"

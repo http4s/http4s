@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M25 (unreleased)
+# v1.0.0-M25 (2021-09-01)
 
 This is the latest development release.  No binary compatibility is promised yet.  Includes all changes in v0.23.2.
 
@@ -17,6 +17,7 @@ This is the latest development release.  No binary compatibility is promised yet
 ### Breaking changes
 
 * [#5051](https://github.com/http4s/http4s/pull/5051): Per spec, `Access-Control-Allow-Headers` and `Access-Control-Expose-Headers` can be empty.
+* [#5082](https://github.com/http4s/http4s/pull/5082): Remodel `Origin` header. `Origin.Null` is changed to `Origin.null`.  The obsolete `Origin.HostList` is gone in favor of `Origin.Host` being an `Origin`.  Fixes parsing of an empty header to be an error instead of returning `null`.
 
 ## http4s-dom-core
 
@@ -27,9 +28,14 @@ This is the latest development release.  No binary compatibility is promised yet
 
 ## Dependency updates
 
+* simpleclient-0.12.0 (Prometheus)
 * scalajs-dom-1.2.0
 
 # v0.23.2 (unreleased)
+
+This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in v0.22.3.
+
+This release is binary compatible with the 0.23 series.
 
 ## http4s-core
 
@@ -56,9 +62,17 @@ This is the latest development release.  No binary compatibility is promised yet
 * cats-effect-3.2.5
 * fs2-3.1.1
 
-# v0.22.3 (unreleased)
+# v0.22.3 (2021-09-01)
+
+This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in 0.21.26 and 0.21.27.
+
+Binary compatible with 0.22.2 series, with the exception of static forwarders in `HttpApp.apply`, `HttpApp.local`.  Unless you are calling `HttpApp` from a language other than Scala, you are not affected.
 
 ## http4s-core
+
+### Binary breaking changes
+
+* [#5071](https://github.com/http4s/http4s/pull/5071): Weakens constraints on `HttpApp.apply` and `HttpApp.local` from `Sync` to `Defer`.  This change is technically binary breaking, but will only affect static methods called via interop from a language other than Scala.
 
 ### Semantic changes
 
@@ -138,6 +152,34 @@ This is the latest development release.  No binary compatibility is promised yet
 
 * blaze-0.15.2
 * netty-4.1.67
+
+# v0.21.27 (2021-09-01)
+
+This is a security release.  It is binary compatible with the 0.21.x series.
+
+## http4s-server
+
+### Security patches
+
+* [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6):
+* Deprecates `apply` method that takes a `CORSConfig`, and `httpRoutes` anad `httpApp` that take no config.  The default configuration disables most actual CORS protection, and has several deficiences even when properly configured.  See the GHSA for a full discussion.  tl;dr: start from `CORS.policy`.
+* The deprecated implementation now ignores the `allowCredentials` setting when `anyOrigin` is true, and logs a warning.  If you insist on using the deprecated version, old behavior can be restored by setting `anyOrigin` to false and `allowOrigins` to `Function.const(true)`.
+* No longer renders an `Access-Control-Allow-Credentials: false` headerFor safety, the `allowCredentials` setting is now Please see the GHSA for a full discussion.
+* The replacement implementation, created from the new `CORS.policy`, additionally fixes the following defects:
+  * No longer returns a `403 Forbidden` response when CORS checks fail.  The enforcement point of CORS is the user agent.  Any failing checks just suppress CORS headers in the http4s response.
+  * Add  `Access-Control-Request-Headers` to the `Vary` header on preflight responses when it can affect the response. This is important for caching.
+  * Validate the  `Access-Control-Request-Headers`, and return no CORS headers if any of the headers are disallowed.
+   * Remote `Vary: Access-Control-Request-Method` and `Access-Control-Max-Age` headers from non-preflight responses.  These are only relevant in preflight checks.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#5125](https://github.com/http4s/http4s/pull/5125): Upgrade to a blaze that uses monotonic time in the `TickWheelExecutor`. This is unrelated to the GHSA, but guards against a theoretical scheduling problem if the system clock is erratic.
+
+## Dependency updates
+
+* blaze-0.14.18
 
 # v0.21.26 (2021-08-12)
 
