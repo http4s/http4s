@@ -30,6 +30,7 @@ import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import java.util.concurrent.ThreadFactory
 import javax.net.ssl._
+import org.http4s.{BuildInfo => Http4sBuildInfo}
 import org.http4s.blaze.channel._
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
@@ -95,7 +96,7 @@ import scodec.bits.ByteVector
   */
 class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
-    executionContext: ExecutionContext,
+    executionContextConfig: ExecutionContextConfig,
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     connectorPoolSize: Int,
@@ -121,7 +122,7 @@ class BlazeServerBuilder[F[_]] private (
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
-      executionContext: ExecutionContext = executionContext,
+      executionContextConfig: ExecutionContextConfig = executionContextConfig,
       idleTimeout: Duration = idleTimeout,
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       connectorPoolSize: Int = connectorPoolSize,
@@ -141,7 +142,7 @@ class BlazeServerBuilder[F[_]] private (
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
-      executionContext,
+      executionContextConfig,
       responseHeaderTimeout,
       idleTimeout,
       connectorPoolSize,
@@ -212,7 +213,7 @@ class BlazeServerBuilder[F[_]] private (
     copy(socketAddress = socketAddress)
 
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
-    copy(executionContext = executionContext)
+    copy(executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext))
 
   def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
@@ -297,7 +298,7 @@ class BlazeServerBuilder[F[_]] private (
           () => Vault.empty
       }
 
-    def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =
+    def http1Stage(executionContext: ExecutionContext, secure: Boolean, engine: Option[SSLEngine]) =
       Http1ServerStage(
         httpApp,
         requestAttributes(secure = secure, engine),
@@ -313,7 +314,7 @@ class BlazeServerBuilder[F[_]] private (
         dispatcher
       )
 
-    def http2Stage(engine: SSLEngine): ALPNServerSelector =
+    def http2Stage(executionContext: ExecutionContext, engine: SSLEngine): ALPNServerSelector =
       ProtocolSelector(
         engine,
         httpApp,
@@ -329,22 +330,24 @@ class BlazeServerBuilder[F[_]] private (
         dispatcher
       )
 
-    Future.successful {
-      engineConfig match {
-        case Some((ctx, configure)) =>
-          val engine = ctx.createSSLEngine()
-          engine.setUseClientMode(false)
-          configure(engine)
+    dispatcher.unsafeToFuture {
+      executionContextConfig.getExecutionContext[F].map { executionContext =>
+        engineConfig match {
+          case Some((ctx, configure)) =>
+            val engine = ctx.createSSLEngine()
+            engine.setUseClientMode(false)
+            configure(engine)
 
-          LeafBuilder(
-            if (isHttp2Enabled) http2Stage(engine)
-            else http1Stage(secure = true, engine.some)
-          ).prepend(new SSLStage(engine))
+            LeafBuilder(
+              if (isHttp2Enabled) http2Stage(executionContext, engine)
+              else http1Stage(executionContext, secure = true, engine.some)
+            ).prepend(new SSLStage(engine))
 
-        case None =>
-          if (isHttp2Enabled)
-            logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-          LeafBuilder(http1Stage(secure = false, None))
+          case None =>
+            if (isHttp2Enabled)
+              logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
+            LeafBuilder(http1Stage(executionContext, secure = false, None))
+        }
       }
     }
   }
@@ -385,7 +388,7 @@ class BlazeServerBuilder[F[_]] private (
           .foreach(logger.info(_))
 
         logger.info(
-          s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
+          s"http4s v${Http4sBuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
       })
 
     for {
@@ -424,9 +427,12 @@ class BlazeServerBuilder[F[_]] private (
 
 object BlazeServerBuilder {
   def apply[F[_]](executionContext: ExecutionContext)(implicit F: Async[F]): BlazeServerBuilder[F] =
+    apply[F].withExecutionContext(executionContext)
+
+  def apply[F[_]](implicit F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.IPv4SocketAddress,
-      executionContext = executionContext,
+      executionContextConfig = ExecutionContextConfig.DefaultContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
       connectorPoolSize = DefaultPoolSize,
@@ -543,4 +549,17 @@ object BlazeServerBuilder {
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
     }
+
+  private sealed trait ExecutionContextConfig extends Product with Serializable {
+    def getExecutionContext[F[_]: Async]: F[ExecutionContext] = this match {
+      case ExecutionContextConfig.DefaultContext => Async[F].executionContext
+      case ExecutionContextConfig.ExplicitContext(ec) => ec.pure[F]
+    }
+  }
+
+  private object ExecutionContextConfig {
+    case object DefaultContext extends ExecutionContextConfig
+    final case class ExplicitContext(executionContext: ExecutionContext)
+        extends ExecutionContextConfig
+  }
 }

@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.core
+package org.http4s
+package ember.core
 
 import cats._
+import cats.data.NonEmptyList
 import cats.effect.kernel.{Clock, Temporal}
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
+import java.util.Locale
+import org.http4s.headers.Connection
+import org.typelevel.ci._
 import scala.concurrent.duration._
 import java.time.Instant
 
 private[ember] object Util {
+
+  private[this] val closeCi = ci"close"
+  private[this] val keepAliveCi = ci"keep-alive"
+  private[this] val connectionCi = ci"connection"
+  private[this] val close = Connection(NonEmptyList.of(closeCi))
+  private[this] val keepAlive = Connection(NonEmptyList.one(keepAliveCi))
 
   private def streamCurrentTimeMillis[F[_]](clock: Clock[F]): Stream[F, Long] =
     Stream
@@ -93,4 +104,27 @@ private[ember] object Util {
       case fd: FiniteDuration => F.timeoutTo(fa, fd, ft)
       case _ => fa
     }
+
+  def connectionFor(httpVersion: HttpVersion, headers: Headers): Connection =
+    if (isKeepAlive(httpVersion, headers)) keepAlive
+    else close
+
+  def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
+    // We know this is raw because we have not parsed any headers in the underlying alg.
+    // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
+    // TODO: the problem is that any string that contains `expected` is admissible
+    def hasConnection(expected: String): Boolean =
+      headers.headers.exists {
+        case Header.Raw(name, value) =>
+          name == connectionCi && value.toLowerCase(Locale.ROOT).contains(expected)
+        case _ => false
+      }
+
+    httpVersion match {
+      case HttpVersion.`HTTP/1.0` => hasConnection(keepAliveCi.toString)
+      case HttpVersion.`HTTP/1.1` => !hasConnection(closeCi.toString)
+      case _ => sys.error("unsupported http version")
+    }
+  }
+
 }

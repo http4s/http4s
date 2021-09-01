@@ -41,6 +41,7 @@ import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 
+import java.io.IOException
 import java.nio.ByteBuffer
 import scala.concurrent.duration.Duration
 
@@ -88,8 +89,10 @@ object WebSocketHelpers extends WebSocketHelpersPlatform {
         else F.unit
     } yield ()
 
-    handler.handleErrorWith { e =>
-      logger.error(e)("WebSocket connection terminated with exception")
+    handler.handleErrorWith {
+      case e @ BrokenPipeError() =>
+        logger.trace(e)("WebSocket connection abruptly terminated by client")
+      case e => logger.error(e)("WebSocket connection terminated with exception")
     }
   }
 
@@ -269,4 +272,8 @@ object WebSocketHelpers extends WebSocketHelpersPlatform {
       extends ClientHandshakeError(Status.BadRequest, "Sec-WebSocket-Key header not present.")
 
   final case class EndOfStreamError() extends Exception("Reached End Of Stream")
+
+  object BrokenPipeError {
+    def unapply(err: IOException): Boolean = err.getMessage == "Broken pipe"
+  }
 }

@@ -36,6 +36,9 @@ title: Adopters
 [Netflix](https://www.netflix.com)
 : Uses http4s for internal tools.
 
+[NetworkedAssets](https://www.networkedassets.com)
+: Builds APIs and API clients with http4s.
+
 [Quantiply](https://www.quantiply.com)
 : Uses http4s to power the critical data APIs.
 

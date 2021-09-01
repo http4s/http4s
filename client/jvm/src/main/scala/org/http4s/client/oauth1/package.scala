@@ -49,6 +49,9 @@ package object oauth1 extends OAuth1Platform {
     * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies will be entirely
     * buffered due to signing requirements.
     */
+  @deprecated(
+    "Preserved for binary compatibility - use the other `signRequest` function which passes a signature method",
+    "0.22.3")
   def signRequest[F[_]](
       req: Request[F],
       consumer: Consumer,
@@ -56,9 +59,10 @@ package object oauth1 extends OAuth1Platform {
       verifier: Option[String],
       token: Option[Token])(implicit F: Async[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).flatMap { case (req, params) =>
-      genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token).map { auth =>
-        req.putHeaders(auth)
-      }
+      genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, HmacSha1)
+        .map { auth =>
+          req.putHeaders(auth)
+        }
     }
 
   def signRequest[F[_]](
@@ -141,7 +145,8 @@ package object oauth1 extends OAuth1Platform {
         method,
         uri,
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
-      makeSHASigPlatform[F](baseStr, consumer.secret, token.map(_.secret)).map { sig =>
+      val algorithm = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
+      makeSHASig[F](baseStr, consumer.secret, token.map(_.secret), algorithm).map { sig =>
         val creds = Credentials.AuthParams(
           ci"OAuth",
           NonEmptyList(
@@ -153,7 +158,6 @@ package object oauth1 extends OAuth1Platform {
       }
     }
 
-  // Generate an authorization header with the provided user params and OAuth requirements.
   private[oauth1] def genAuthHeader[F[_]: Async](
       method: Method,
       uri: Uri,
@@ -161,11 +165,12 @@ package object oauth1 extends OAuth1Platform {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token]): F[Authorization] = {
+      token: Option[Token],
+      algorithm: SignatureAlgorithm): F[Authorization] = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
-      params += "oauth_signature_method" -> "HMAC-SHA1"
+      params += "oauth_signature_method" -> algorithm.name
       params += "oauth_timestamp" -> (System.currentTimeMillis / 1000).toString
       params += "oauth_nonce" -> System.nanoTime.toString
       params += "oauth_version" -> "1.0"
@@ -185,20 +190,13 @@ package object oauth1 extends OAuth1Platform {
       params ++ userParams.map { case (k, v) =>
         (encode(k), encode(v))
       })
-    makeSHASig(baseString, consumer, token).map { sig =>
+    makeSHASig(baseString, consumer.secret, token.map(_.secret), algorithm).map { sig =>
       val creds =
         Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
 
       Authorization(creds)
     }
   }
-
-  // baseString must already be encoded, consumer and token must not be
-  private[oauth1] def makeSHASig[F[_]: Async](
-      baseString: String,
-      consumer: Consumer,
-      token: Option[Token]): F[String] =
-    makeSHASigPlatform[F](baseString, consumer.secret, token.map(_.secret))
 
   // Needs to have all params already encoded
   private[oauth1] def genBaseString(
@@ -209,7 +207,7 @@ package object oauth1 extends OAuth1Platform {
     mkBaseString(method, uri, paramsStr)
   }
 
-  def mkBaseString(method: Method, uri: Uri, paramsStr: String) =
+  def mkBaseString(method: Method, uri: Uri, paramsStr: String): String =
     immutable
       .Seq(
         method.name,
@@ -233,7 +231,7 @@ package object oauth1 extends OAuth1Platform {
           val bodyparams = urlform.values.toSeq
             .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.toList.map((k, _)) }
 
-          implicit val charset = req.charset.getOrElse(Charset.`UTF-8`)
+          implicit val charset: Charset = req.charset.getOrElse(Charset.`UTF-8`)
           req.withEntity(urlform) -> (qparams ++ bodyparams)
         }
 

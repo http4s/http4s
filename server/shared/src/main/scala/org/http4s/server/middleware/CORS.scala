@@ -19,9 +19,11 @@ package server
 package middleware
 
 import cats.{Applicative, Monad}
-import cats.data.{Kleisli, NonEmptyList}
+import cats.data.{Kleisli}
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
+import org.http4s.headers._
+import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci._
 import scala.concurrent.duration._
@@ -140,8 +142,10 @@ object CORS {
       F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
-      def createOptionsResponse(origin: Header.Raw, acrm: Header.Raw): Response[G] =
-        corsHeaders(origin.value, acrm.value, isPreflight = true)(Response())
+      def createOptionsResponse(
+          origin: Origin,
+          acrm: `Access-Control-Request-Method`): Response[G] =
+        corsHeaders(origin, acrm.method, isPreflight = true)(Response())
 
       def methodBasedHeader(isPreflight: Boolean) =
         if (isPreflight)
@@ -155,7 +159,7 @@ object CORS {
           case _ => response
         }
 
-      def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(
+      def corsHeaders(origin: Origin, method: Method, isPreflight: Boolean)(
           resp: Response[G]): Response[G] = {
         val withMethodBasedHeader = methodBasedHeader(isPreflight)
           .fold(resp)(h => resp.putHeaders(h))
@@ -165,44 +169,37 @@ object CORS {
             // TODO true is the only value here
             "Access-Control-Allow-Credentials" -> config.allowCredentials.toString,
             // TODO model me
-            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(acrm)(
+            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(method.renderString)(
               _.mkString("", ", ", "")),
             // TODO model me
-            "Access-Control-Allow-Origin" -> origin,
+            "Access-Control-Allow-Origin" -> origin.value,
             // TODO model me
             "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString
           )
       }
 
-      def allowCORS(origin: Header.Raw, acrm: Header.Raw): Boolean =
-        (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
-          case (true, true, _, _) => true
-          case (true, false, _, acrm) =>
-            config.allowedMethods.exists(_.find(_.name === acrm).nonEmpty)
-          case (false, true, origin, _) => config.allowedOrigins(origin)
-          case (false, false, origin, acrm) =>
-            config.allowedMethods.exists(_.find(_.name === acrm).nonEmpty) &&
-              config.allowedOrigins(origin)
-        }
+      def allowCORS(origin: Origin, method: Method): Boolean = {
+        def allowOrigin = config.anyOrigin || config.allowedOrigins(origin.value)
+        def allowMethod = config.anyMethod || config.allowedMethods.exists(_.exists(_ === method))
+
+        allowOrigin && allowMethod
+      }
 
       def headerFromStrings(headerName: String, values: Set[String]): Header.Raw =
         Header.Raw(CIString(headerName), values.mkString("", ", ", ""))
 
       (
         req.method,
-        req.headers.get(ci"Origin"),
-        req.headers.get(ci"Access-Control-Request-Method")) match {
-        case (OPTIONS, Some(NonEmptyList(origin, _)), Some(NonEmptyList(acrm, _)))
-            if allowCORS(origin, acrm) =>
+        req.headers.get[Origin],
+        req.headers.get[`Access-Control-Request-Method`]) match {
+        case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm.method) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
           createOptionsResponse(origin, acrm).pure[F]
-        case (_, Some(NonEmptyList(origin, _)), _) =>
-          if (allowCORS(
-              origin,
-              Header.Raw(ci"Access-Control-Request-Method", req.method.renderString)))
+        case (_, Some(origin), _) =>
+          if (allowCORS(origin, req.method))
             http(req).map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-              corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)
+              corsHeaders(origin, req.method, isPreflight = false)(resp)
             }
           else {
             logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
@@ -215,8 +212,21 @@ object CORS {
     }
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(httpRoutes)
+    apply(httpRoutes, CORSConfig.default)
 
   def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
-    apply(httpApp)
+    apply(httpApp, CORSConfig.default)
+
+  def httpRoutes[F[_]: Monad](
+      httpRoutes: HttpRoutes[F],
+      config: CORSConfig
+  ): HttpRoutes[F] =
+    apply(httpRoutes, config)
+
+  def httpApp[F[_]: Applicative](
+      httpApp: HttpApp[F],
+      config: CORSConfig
+  ): HttpApp[F] =
+    apply(httpApp, config)
+
 }
