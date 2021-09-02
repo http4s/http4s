@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.3 (2021-09-02)
+
+This is binary compatible with v0.23.3.  It includes the fixes in v0.22.2.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#5138](https://github.com/http4s/http4s/pull/5138): Correctly populate the `SecureSession` response attribute.
+
 # v0.22.4 (2021-09-02)
 
 This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.28.
