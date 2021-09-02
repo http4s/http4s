@@ -8,6 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.4 (2021-09-02)
+
+This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.28.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5130](https://github.com/http4s/http4s/pull/5130): Fix the parsing of empty `Origin` headers to be a parse failure instead of `Origin.Null`.
+
+## Dependency updates
+
+* scodec-bits-1.1.28
+
 # v0.21.28 (2021-09-02)
 
 This is a bugfix to yesterday's patch.  It is not a security issue, but a correctness issue.
