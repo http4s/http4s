@@ -8,6 +8,46 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M26 (2021-09-02)
+
+This release is a forward port of all the changes in v0.23.3.
+
+# v0.23.3 (2021-09-02)
+
+This is binary compatible with v0.23.3.  It includes the fixes in v0.22.2.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#5138](https://github.com/http4s/http4s/pull/5138): Correctly populate the `SecureSession` response attribute.
+
+# v0.22.4 (2021-09-02)
+
+This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.28.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5130](https://github.com/http4s/http4s/pull/5130): Fix the parsing of empty `Origin` headers to be a parse failure instead of `Origin.Null`.
+
+## Dependency updates
+
+* scodec-bits-1.1.28
+
+# v0.21.28 (2021-09-02)
+
+This is a bugfix to yesterday's patch.  It is not a security issue, but a correctness issue.
+
+This release is binary compatible with 0.21.x.
+
+## http4s-server
+
+### Breaking changes
+
+* [#5144](https://github.com/http4s/http4s/pull/5144): In the `CORS` middleware, respond to preflight `OPTIONS` requests with a 200 status.  It was previously passing through to the wrapped `Http`, most of which won't respond to `OPTIONS`.  The breaking change is that the constraint is promoted from `Functor` to `Applicative`.  The `Functor` version is left for binary compatibility with a runtime warning.
+
 # v1.0.0-M25 (2021-09-01)
 
 This is the latest development release.  No binary compatibility is promised yet.  Includes all changes in v0.23.2.
@@ -31,7 +71,7 @@ This is the latest development release.  No binary compatibility is promised yet
 * simpleclient-0.12.0 (Prometheus)
 * scalajs-dom-1.2.0
 
-# v0.23.2 (unreleased)
+# v0.23.2 (2021-09-01)
 
 This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in v0.22.3.
 
@@ -153,7 +193,7 @@ Binary compatible with 0.22.2 series, with the exception of static forwarders in
 * blaze-0.15.2
 * netty-4.1.67
 
-# v0.21.27 (2021-09-01)
+# v0.21.27 (2021-08-31)
 
 This is a security release.  It is binary compatible with the 0.21.x series.
 
