@@ -83,6 +83,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
     dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
