@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.28 (2021-09-02)
+
+This is a bugfix to yesterday's patch.  It is not a security issue, but a correctness issue.
+
+This release is binary compatible with 0.21.x.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5144](https://github.com/http4s/http4s/pull/5144): In the `CORS` middleware, respond to preflight `OPTIONS` requests with a 200 status.  It was previously passing through to the wrapped `Http`, most of which won't respond to `OPTIONS`.
+
 # v0.22.3 (unreleased)
 
 This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in 0.21.26 and 0.21.27.
@@ -99,7 +111,7 @@ Binary compatible with the 0.22.2 series, with the exception of static forwarder
 * blaze-0.15.2
 * netty-4.1.67
 
-# v0.21.27 (2021-09-01)
+# v0.21.27 (2021-08-31)
 
 This is a security release.  It is binary compatible with the 0.21.x series.
 
