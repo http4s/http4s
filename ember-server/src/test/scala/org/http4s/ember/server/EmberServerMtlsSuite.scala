@@ -68,7 +68,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
               assert(session.X509Certificate.isEmpty)
             }
 
-          Ok("success")
+          Ok(expectedNoAuthResponse)
       }
       .orNotFound
   }
