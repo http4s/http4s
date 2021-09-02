@@ -73,19 +73,18 @@ class OriginHeaderSuite extends munit.FunSuite {
     assertEquals(extracted, Some(origin))
   }
 
-  test("OriginHeader parser should Parse an empty origin") {
-    val text = ""
-    val origin = Origin.Null
-    val headers = Headers(("Origin", text))
-    val extracted = headers.get[Origin]
-    assertEquals(extracted, Some(origin))
-  }
-
   test("OriginHeader parser should Parse a 'null' origin") {
     val text = "null"
     val origin = Origin.Null
     val headers = Headers(("Origin", text))
     val extracted = headers.get[Origin]
     assertEquals(extracted, Some(origin))
+  }
+
+  test("OriginHeader should fail on an empty string") {
+    val text = ""
+    val headers = Headers(("Origin", text))
+    val extracted = headers.get[Origin]
+    assertEquals(extracted, None)
   }
 }

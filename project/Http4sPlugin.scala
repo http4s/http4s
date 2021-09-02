@@ -76,6 +76,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
+    // Breaking change deferred to 1.0
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
@@ -307,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.5"
     val log4cats = "2.1.1"
     val log4s = "1.10.0"
-    val munit = "0.7.28"
+    val munit = "0.7.29"
     val munitCatsEffect = "1.0.5"
     val munitDiscipline = "1.0.9"
     val netty = "4.1.67.Final"
@@ -321,7 +323,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "1.0.2"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.1"
-    val scodecBits = "1.1.27"
+    val scodecBits = "1.1.28"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
     val tomcat = "9.0.52"
