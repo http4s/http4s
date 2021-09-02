@@ -32,9 +32,9 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.23/">v0.23 (development)</a>
-  <a class="dropdown-item" href="/v0.22/">v0.22 (development)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -107,11 +107,11 @@ a working pull request accompanied by a tale of woe.</li>
 <h2 id="which-version-is-right-for-me">Which version is right for me?</h2>
 
 <ul>
-<li><em>I&rsquo;m on Scala 2, and milestones scare me:</em> 0.21.28</li>
 <li><em>I&rsquo;ll upgrade to Scala 3 before Cats-Effect 3:</em> 0.22.4</li>
 <li><em>I&rsquo;m ready for Cats-Effect 3:</em> 0.23.3</li>
 <li><em>I&rsquo;m new here, pick one:</em> 0.23.3</li>
 <li><em>I live on the bleeding edge:</em> 1.0.0-M25</li>
+<li><em>I&rsquo;m using Scala.js serverless or in the browser:</em> 1.0.0-M25</li>
 </ul>
 
 <p>##</p>
@@ -126,6 +126,7 @@ a working pull request accompanied by a tale of woe.</li>
       <th class="text-center">Scala 2.12</th>
       <th class="text-center">Scala 2.13</th>
       <th class="text-center">Scala 3.0</th>
+          <th class="text-center">Scala.js 1.x</th>
       <th>Cats</th>
       <th>FS2</th>
       <th>JDK</th>
@@ -140,41 +141,45 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-check"></i></td>
       <td>2.x</td>
       <td>3.x</td>
       <td>1.8+</td>
     </tr>
     <tr>
       <td><a href="/v0.23">0.23.3</a></td>
-      <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
+      <td class="text-center"><span class="badge badge-success">Stable</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td>2.x</td>
       <td>3.x</td>
       <td>1.8+</td>
     </tr>
     <tr>
       <td><a href="/v0.22">0.22.4</a></td>
-      <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
+      <td class="text-center"><span class="badge badge-success">Stable</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-gear"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td>2.x</td>
       <td>2.x</td>
       <td>1.8+</td>
     </tr>
     <tr>
       <td><a href="/v0.21">0.21.28</a></td>
-      <td class="text-center"><span class="badge badge-success">Stable</span></td>
+      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td>2.x</td>
       <td>2.x</td>
@@ -186,6 +191,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td>1.x</td>
@@ -200,6 +206,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td>1.x</td>
       <td>1.x</td>
       <td>1.8+</td>
@@ -210,6 +217,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td>1.x</td>
@@ -224,6 +232,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td>0.9.x</td>
       <td>0.9.x</td>
       <td>1.8+</td>
@@ -234,6 +243,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
@@ -248,6 +258,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
       <td></td>
       <td>1.8+</td>
@@ -258,6 +269,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
@@ -272,6 +284,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
       <td></td>
       <td>1.8+</td>
@@ -283,6 +296,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
@@ -300,6 +314,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
       <td></td>
       <td>1.8+</td>
@@ -311,6 +326,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
@@ -328,6 +344,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
       <td></td>
       <td>1.8+</td>
@@ -339,6 +356,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
@@ -356,6 +374,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
       <td></td>
       <td>1.8+</td>
@@ -367,6 +386,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
@@ -384,6 +404,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td></td>
       <td></td>
       <td>1.8+</td>
@@ -395,6 +416,7 @@ a working pull request accompanied by a tale of woe.</li>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
