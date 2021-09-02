@@ -159,12 +159,16 @@
                         <a href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream.">BracketRequestResponse</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">CORS</a>
+                        <a class="object" href="" title="Implements the CORS protocol."></a>
+                        <a href="" title="Implements the CORS protocol.">CORS</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="CORSPolicy$.html" title=""></a>
+                        <a class="class" href="CORSPolicy.html" title="A middleware that applies the CORS protocol to any Http value."></a>
+                        <a href="CORSPolicy.html" title="A middleware that applies the CORS protocol to any Http value.">CORSPolicy</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="CSRF$.html" title=""></a>
                         <a class="class" href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks."></a>
@@ -313,7 +317,9 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.26/server/src/main/scala/org/http4s/server/middleware/CORS.scala" target="_blank">CORS.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Implements the CORS protocol.  The actual middleware is a <a href="CORSPolicy.html" class="extype" name="org.http4s.server.middleware.CORSPolicy">CORSPolicy</a>,
+which can be obtained via <a href="#policy:org.http4s.server.middleware.CORSPolicy" class="extmbr" name="org.http4s.server.middleware.CORS#policy">#policy</a>.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.28/server/src/main/scala/org/http4s/server/middleware/CORS.scala" target="_blank">CORS.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="CORSPolicy.html" class="extype" name="org.http4s.server.middleware.CORSPolicy">CORSPolicy</a></p></span><span class="cmt"><p><a href="https://fetch.spec.whatwg.org/#http-cors-protocol" target="_blank">CORS protocol specification</a></p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -418,44 +424,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CORS#DefaultCORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DefaultCORSConfig:org.http4s.server.middleware.CORSConfig"></a><a id="DefaultCORSConfig:CORSConfig"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">DefaultCORSConfig</span><span class="result">: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.server.middleware.CORS#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.CORSConfig)(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](Http[F,G],CORSConfig)(Applicative[F]):Http[F,G]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.CORSConfig)(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>, <span name="config">config: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a> = <span class="symbol"><span class="name"><a href="#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig">DefaultCORSConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">CORS middleware
-This middleware provides clients with CORS information
-based on information in CORS config.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware
-This middleware provides clients with CORS information
-based on information in CORS config.
-Currently, you cannot make permissions depend on request details
-</p></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -496,22 +464,6 @@ Currently, you cannot make permissions depend on request details
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CORS#defaultVaryHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="defaultVaryHeader:org.http4s.Header.Raw"></a><a id="defaultVaryHeader:Raw"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#defaultVaryHeader:org.http4s.Header.Raw" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">defaultVaryHeader</span><span class="result">: <a href="../../Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -604,38 +556,6 @@ Currently, you cannot make permissions depend on request details
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CORS#httpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.Applicative[F]):org.http4s.HttpApp[F]"></a><a id="httpApp[F[_]](HttpApp[F])(Applicative[F]):HttpApp[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.Applicative[F]):org.http4s.HttpApp[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">httpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpApp.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpApp.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpApp.F">F</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.server.middleware.CORS#httpRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.Monad[F]):org.http4s.HttpRoutes[F]"></a><a id="httpRoutes[F[_]](HttpRoutes[F])(Monad[F]):HttpRoutes[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.Monad[F]):org.http4s.HttpRoutes[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">httpRoutes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpRoutes.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpRoutes.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpRoutes.F">F</span>]</span>
-      </span>
-      
-      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -706,6 +626,30 @@ Currently, you cannot make permissions depend on request details
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORS#policy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="policy:org.http4s.server.middleware.CORSPolicy"></a><a id="policy:CORSPolicy"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORS$.html#policy:org.http4s.server.middleware.CORSPolicy" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">policy</span><span class="result">: <a href="CORSPolicy.html" class="extype" name="org.http4s.server.middleware.CORSPolicy">CORSPolicy</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">The default CORS policy:
+- Sends <code>Access-Control-Allow-Origin: *</code>
+- Sends no <code>Access-Control-Allow-Credentials</code>
+- Sends no <code>Access-Control-Expose-Headers</code>
+- Sends <code>Access-Control-Allow-Methods: GET, HEAD, POST</code>
+- Reflects request's <code>Access-Control-Request-Headers</code> as
+  <code>Access-Control-Allow-Headers</code>
+- Sends no <code>Access-Control-Max-Age</code>
+</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -812,7 +756,116 @@ Currently, you cannot make permissions depend on request details
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.middleware.CORS#DefaultCORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DefaultCORSConfig:org.http4s.server.middleware.CORSConfig"></a><a id="DefaultCORSConfig:CORSConfig"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORS$.html#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.27) The default CORSConfig is insecure. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">DefaultCORSConfig</span><span class="result">: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> The default <code>CORSConfig</code> is insecure. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.</p></dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORS#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.CORSConfig)(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](Http[F,G],CORSConfig)(Applicative[F]):Http[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORS$.html#apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.CORSConfig)(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.27) Depends on a deficient CORSConfig. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the Access-Control-Allow-Credentials header will be suppressed starting with 0.21.27.">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>, <span name="config">config: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a> = <span class="symbol"><span class="name"><a href="#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig">DefaultCORSConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">CORS middleware
+This middleware provides clients with CORS information
+based on information in CORS config.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware
+This middleware provides clients with CORS information
+based on information in CORS config.
+Currently, you cannot make permissions depend on request details
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+                <span class="name">@<a href="../../../../scala/annotation/nowarn.html" class="extype" name="scala.annotation.nowarn">nowarn</a></span><span class="args">(<span>
+      value = 
+      <span class="symbol">&quot;cat=deprecation&quot;</span>
+    </span>)</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> Depends on a deficient <code>CORSConfig</code>. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the <code>Access-Control-Allow-Credentials</code> header will be suppressed starting with 0.21.27.</p></dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORS#defaultVaryHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="defaultVaryHeader:org.http4s.Header.Raw"></a><a id="defaultVaryHeader:Raw"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORS$.html#defaultVaryHeader:org.http4s.Header.Raw" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.27) Not the actual default CORS Vary heder, and will be removed from the public API.">defaultVaryHeader</span><span class="result">: <a href="../../Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> Not the actual default CORS Vary heder, and will be removed from the public API.</p></dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORS#httpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.Applicative[F]):org.http4s.HttpApp[F]"></a><a id="httpApp[F[_]](HttpApp[F])(Applicative[F]):HttpApp[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORS$.html#httpApp[F[_]](httpApp:org.http4s.HttpApp[F])(implicitevidence$2:cats.Applicative[F]):org.http4s.HttpApp[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.27) Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">httpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpApp.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpApp.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpApp.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.</p></dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORS#httpRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.Monad[F]):org.http4s.HttpRoutes[F]"></a><a id="httpRoutes[F[_]](HttpRoutes[F])(Monad[F]):HttpRoutes[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORS$.html#httpRoutes[F[_]](httpRoutes:org.http4s.HttpRoutes[F])(implicitevidence$1:cats.Monad[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.27) Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">httpRoutes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="httpRoutes">httpRoutes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpRoutes.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpRoutes.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.CORS.httpRoutes.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

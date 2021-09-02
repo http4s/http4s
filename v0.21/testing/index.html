@@ -6,12 +6,12 @@
 
   <title>http4s | Testing</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.21/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.21/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.21/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.21/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.21/css/style.css" >
 </head>
 
   <body>
@@ -108,7 +108,7 @@ import org.http4s.implicits._
 
 <pre><code class="language-scala">case class User(name: String, age: Int)  
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@235ced32
+// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@47f24192
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -148,14 +148,14 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[IO] = repl.MdocSession$App$$anon$3@5e078346
+// success: UserRepo[IO] = repl.MdocSession$App$$anon$3@5d8cc3aa
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8570/398127893@505f1223),
-//   cats.data.OptionT$$Lambda$8575/2116759671@5b42394b,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$21078/485427786@5305342d),
+//   cats.data.OptionT$$Lambda$21088/631279630@5784f37c,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -202,14 +202,14 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$4@1f337a6c 
+// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$4@2afd6cf 
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8570/398127893@7dccd77f),
-//   cats.data.OptionT$$Lambda$8575/2116759671@552a0cef,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$21078/485427786@3985c4a3),
+//   cats.data.OptionT$$Lambda$21088/631279630@43db3be2,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -250,14 +250,14 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$5@1fe8ff60 
+// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$5@33b42ff6 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/not-a-matching-path&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8570/398127893@1b8c16eb),
-//   cats.data.OptionT$$Lambda$8575/2116759671@604dca,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$21078/485427786@4f518ee1),
+//   cats.data.OptionT$$Lambda$21088/631279630@58e6fb74,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -407,7 +407,7 @@ test the expected <code>Response</code>.</p>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v0.21/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v0.21/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

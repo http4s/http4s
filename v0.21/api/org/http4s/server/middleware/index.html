@@ -191,12 +191,16 @@
                         <a href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream.">BracketRequestResponse</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="CORS$.html" title=""></a>
-                        <a href="CORS$.html" title="">CORS</a>
+                        <a class="object" href="CORS$.html" title="Implements the CORS protocol."></a>
+                        <a href="CORS$.html" title="Implements the CORS protocol.">CORS</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="CORSPolicy$.html" title=""></a>
+                        <a class="class" href="CORSPolicy.html" title="A middleware that applies the CORS protocol to any Http value."></a>
+                        <a href="CORSPolicy.html" title="A middleware that applies the CORS protocol to any Http value.">CORSPolicy</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="CSRF$.html" title=""></a>
                         <a class="class" href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks."></a>
@@ -446,24 +450,31 @@ for serious static content serving.
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="CORSConfigextendsProductwithSerializable"></a><a id="CORSConfig:CORSConfig"></a>
+              <ol><li name="org.http4s.server.middleware.CORSPolicy" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CORSPolicyextendsAnyRef"></a><a id="CORSPolicy:CORSPolicy"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORSConfig.html" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSPolicy.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
+        <span class="modifier">sealed </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name">CORSConfig</span></a><span class="params">(<span name="anyOrigin">anyOrigin: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="allowCredentials">allowCredentials: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxAge">maxAge: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="anyMethod">anyMethod: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>, <span name="allowedOrigins">allowedOrigins: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">_ =&gt; false</span></span>, <span name="allowedMethods">allowedMethods: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">None</a></span></span></span>, <span name="allowedHeaders">allowedHeaders: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="defval" name='<span class="name"><a href="../../../../scala/index.html">Set(&quot;Content-Type&quot;, &quot;Authorization&quot;, &quot;*&quot;).some</a></span>'>...</span></span>, <span name="exposedHeaders">exposedHeaders: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">Set(&quot;*&quot;).some</a></span></span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="A middleware that applies the CORS protocol to any Http value." href="CORSPolicy.html"><span class="name">CORSPolicy</span></a><span class="result"> extends <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
-      <p class="shortcomment cmt">CORS middleware config options.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware config options.
-You can give an instance of this class to the CORS middleware,
-to specify its behavior
+      <p class="shortcomment cmt">A middleware that applies the CORS protocol to any <code>Http</code> value.</p><div class="fullcomment"><div class="comment cmt"><p>A middleware that applies the CORS protocol to any <code>Http</code> value.
+Obtain a reference to a <code>CORSPolicy</code> via the <a href="CORS$.html" class="extype" name="org.http4s.server.middleware.CORS">CORS</a> object,
+which represents a default policy.</p><p>Requests with an Origin header will receive the appropriate CORS
+headers.  More headers are available for &quot;pre-flight&quot; requests,
+those whose method is <code>OPTIONS</code> and has an
+<code>Access-Control-Request-Method</code> header.</p><p>Requests without the required headers, or requests that fail a
+CORS origin, method, or headers check are passed through to the
+underlying Http function, but do not receive any CORS headers in
+the response.  The user agent will then block sharing the resource
+across origins according to the CORS protocol.
 </p></div></div>
     </li><li name="org.http4s.server.middleware.CSRF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CSRF[F[_],G[_]]extendsAnyRef"></a><a id="CSRF[F[_],G[_]]:CSRF[F,G]"></a>
@@ -495,6 +506,28 @@ Thus, you can provide some whitelisting capability for certain kinds of requests
 not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
 user data). Please do not use the CSRF protection from this middleware as a safety net for bad design.
 </p></div></div>
+    </li><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CORSConfigextendsProductwithSerializable"></a><a id="CORSConfig:CORSConfig"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSConfig.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.27) Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">CORSConfig</span></a><span class="params">(<span name="anyOrigin">anyOrigin: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="allowCredentials">allowCredentials: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxAge">maxAge: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="anyMethod">anyMethod: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>, <span name="allowedOrigins">allowedOrigins: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">_ =&gt; false</span></span>, <span name="allowedMethods">allowedMethods: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">None</a></span></span></span>, <span name="allowedHeaders">allowedHeaders: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="defval" name='<span class="name"><a href="../../../../scala/index.html">Set(&quot;Content-Type&quot;, &quot;Authorization&quot;, &quot;*&quot;).some</a></span>'>...</span></span>, <span name="exposedHeaders">exposedHeaders: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">Set(&quot;*&quot;).some</a></span></span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">CORS middleware config options.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware config options.
+You can give an instance of this class to the CORS middleware,
+to specify its behavior
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -544,7 +577,7 @@ reason that they exist is because due to the full termination of a
 Response being a function of the termination of the <code>fs2.Stream</code> which
 backs the response body, you can't actually use either
 <code>cats.effect.Bracket</code> or <code>fs2.Stream.bracket</code> directly.</p></div></div>
-    </li><li name="org.http4s.server.middleware.CORS" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.middleware.CORS" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CORS"></a><a id="CORS:CORS"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/CORS$.html" title="Permalink">
@@ -556,7 +589,25 @@ backs the response body, you can't actually use either
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="CORS$.html"><span class="name">CORS</span></a>
+        <a title="Implements the CORS protocol." href="CORS$.html"><span class="name">CORS</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Implements the CORS protocol.</p><div class="fullcomment"><div class="comment cmt"><p>Implements the CORS protocol.  The actual middleware is a <a href="CORSPolicy.html" class="extype" name="org.http4s.server.middleware.CORSPolicy">CORSPolicy</a>,
+which can be obtained via <a href="CORS$.html#policy:org.http4s.server.middleware.CORSPolicy" class="extmbr" name="org.http4s.server.middleware.CORS#policy">#policy</a>.
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="CORSPolicy.html" class="extype" name="org.http4s.server.middleware.CORSPolicy">CORSPolicy</a></p></span><span class="cmt"><p><a href="https://fetch.spec.whatwg.org/#http-cors-protocol" target="_blank">CORS protocol specification</a></p></span></dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORSPolicy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CORSPolicy"></a><a id="CORSPolicy:CORSPolicy"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSPolicy$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CORSPolicy$.html"><span class="name">CORSPolicy</span></a>
       </span>
       
       
