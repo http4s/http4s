@@ -74,13 +74,13 @@ class EmberServerMtlsSuite extends Http4sSuite {
   }
 
   lazy val authTlsClientContext: Resource[IO, TLSContext[IO]] =
-    Resource.eval(Network[IO].tlsContext
-      .fromKeyStoreResource(
-        "keystore.jks",
-        "password".toCharArray,
-        "password".toCharArray
-      )
-    )
+    Resource.eval(
+      Network[IO].tlsContext
+        .fromKeyStoreResource(
+          "keystore.jks",
+          "password".toCharArray,
+          "password".toCharArray
+        ))
 
   lazy val noAuthClientContext: SSLContext = {
     val js = KeyStore.getInstance("JKS")
@@ -103,26 +103,24 @@ class EmberServerMtlsSuite extends Http4sSuite {
   def fixture(tlsParams: TLSParameters, clientTlsContext: Resource[IO, TLSContext[IO]]) =
     (server(tlsParams), client(clientTlsContext)).mapN(FunFixture.map2(_, _))
 
-  def client(tlsContextResource: Resource[IO, TLSContext[IO]]) = {
+  def client(tlsContextResource: Resource[IO, TLSContext[IO]]) =
     ResourceFixture(clientResource(tlsContextResource))
-  }
 
-  def clientResource(tlsContextResource: Resource[IO, TLSContext[IO]]) = {
-    (for {
+  def clientResource(tlsContextResource: Resource[IO, TLSContext[IO]]) =
+    for {
       tlsContext <- tlsContextResource
-      emberClient <- EmberClientBuilder.default[IO]
+      emberClient <- EmberClientBuilder
+        .default[IO]
         .withTLSContext(tlsContext)
         .withoutCheckEndpointAuthentication
         .build
-    } yield emberClient)
-  }
+    } yield emberClient
 
-  def server(tlsParams: TLSParameters) = {
+  def server(tlsParams: TLSParameters) =
     ResourceFixture(serverResource(tlsParams))
-  }
 
   def serverResource(tlsParams: TLSParameters) =
-    (for {
+    for {
       tlsContext <- authTlsClientContext
       emberServer <- EmberServerBuilder
         .default[IO]
@@ -132,53 +130,66 @@ class EmberServerMtlsSuite extends Http4sSuite {
           tlsParams
         )
         .build
-    } yield emberServer)
+    } yield emberServer
 
-  fixture(TLSParameters(needClientAuth = true, protocols = List("TLSv1.2").some), authTlsClientContext).test("Server should handle mTLS request correctly") { case (server, client) =>
-    import org.http4s.dsl.io._
-    import org.http4s.client.dsl.io._
+  fixture(
+    TLSParameters(needClientAuth = true, protocols = List("TLSv1.2").some),
+    authTlsClientContext).test("Server should handle mTLS request correctly") {
+    case (server, client) =>
+      import org.http4s.dsl.io._
+      import org.http4s.client.dsl.io._
 
-    val uri = Uri
-      .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
-      .toOption
-      .get
-    val request = GET(uri)
-    for {
-      response <- client.fetchAs[String](request)
-    } yield assertEquals(clientCertCn, response)
+      val uri = Uri
+        .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
+        .toOption
+        .get
+      val request = GET(uri)
+      for {
+        response <- client.fetchAs[String](request)
+      } yield assertEquals(clientCertCn, response)
   }
 
-  fixture(TLSParameters(needClientAuth = true, protocols = List("TLSv1.2").some), noAuthTlsClientContext).test("Server should fail for invalid client auth") { case (server, client) =>
-    client.get(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")(_.status.pure[IO])
-      .intercept[IOException]
+  fixture(
+    TLSParameters(needClientAuth = true, protocols = List("TLSv1.2").some),
+    noAuthTlsClientContext).test("Server should fail for invalid client auth") {
+    case (server, client) =>
+      client
+        .statusFromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
+        .intercept[IOException]
   }
 
-  fixture(TLSParameters(wantClientAuth = true, protocols = List("TLSv1.2").some), authTlsClientContext).test("Server should handle mTLS request correctly with optional auth") { case (server, client) =>
-    import org.http4s.dsl.io._
-    import org.http4s.client.dsl.io._
+  fixture(
+    TLSParameters(wantClientAuth = true, protocols = List("TLSv1.2").some),
+    authTlsClientContext).test("Server should handle mTLS request correctly with optional auth") {
+    case (server, client) =>
+      import org.http4s.dsl.io._
+      import org.http4s.client.dsl.io._
 
-    val uri = Uri
-      .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
-      .toOption
-      .get
-    val request = GET(uri)
-    for {
-      response <- client.fetchAs[String](request)
-    } yield assertEquals(clientCertCn, response)
+      val uri = Uri
+        .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
+        .toOption
+        .get
+      val request = GET(uri)
+      for {
+        response <- client.fetchAs[String](request)
+      } yield assertEquals(clientCertCn, response)
   }
 
-  fixture(TLSParameters(wantClientAuth = true, protocols = List("TLSv1.2").some), noAuthTlsClientContext).test("Server should handle mTLS request correctly without clientAuth") { case (server, client) =>
-    import org.http4s.dsl.io._
-    import org.http4s.client.dsl.io._
+  fixture(
+    TLSParameters(wantClientAuth = true, protocols = List("TLSv1.2").some),
+    noAuthTlsClientContext).test("Server should handle mTLS request correctly without clientAuth") {
+    case (server, client) =>
+      import org.http4s.dsl.io._
+      import org.http4s.client.dsl.io._
 
-    val uri = Uri
-      .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/noauth")
-      .toOption
-      .get
-    val request = GET(uri)
-    for {
-      response <- client.fetchAs[String](request)
-    } yield assertEquals(expectedNoAuthResponse, response)
+      val uri = Uri
+        .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/noauth")
+        .toOption
+        .get
+      val request = GET(uri)
+      for {
+        response <- client.fetchAs[String](request)
+      } yield assertEquals(expectedNoAuthResponse, response)
   }
 
 }
