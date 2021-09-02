@@ -684,6 +684,11 @@ class CORSSuite extends Http4sSuite {
         assertVary(resp, ci"X-Old-Vary, Origin".some)
       }
   }
+
+  test("returns 200 on preflight requests even if routes don't handle OPTIONS") {
+    val routes = HttpRoutes.empty[IO]
+    CORS.policy.apply(routes).orNotFound.run(preflightReq).map(_.status).assertEquals(Status.Ok)
+  }
 }
 
 @deprecated("This suite tests a deprecated feature", "0.21.27")
