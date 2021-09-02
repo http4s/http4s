@@ -824,12 +824,12 @@ class CORSDeprecatedSuite extends Http4sSuite {
   }
 
   test("Be created via httpRoutes constructor") {
-    val cors = CORS.httpRoutes(routes)
+    CORS.httpRoutes(routes)
     // The default does nothing now, so we can only test that it compiles
   }
 
   test("Be created via httpApp constructor") {
-    val cors = CORS.httpApp(routes.orNotFound)
+    CORS.httpApp(routes.orNotFound)
     // The default does nothing now, so we can only test that it compiles
   }
 
