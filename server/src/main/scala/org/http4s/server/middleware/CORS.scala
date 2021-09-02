@@ -18,7 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative, Functor, Monad}
+import cats.{Applicative, Monad}
 import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
@@ -214,7 +214,7 @@ sealed class CORSPolicy(
 ) {
   import CORSPolicy._
 
-  def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
+  def apply[F[_]: Applicative, G[_]](http: Http[F, G]): Http[F, G] = {
 
     val allowCredentialsHeader: Option[Header] =
       allowCredentials match {
@@ -292,58 +292,36 @@ sealed class CORSPolicy(
       }
     }
 
-    def corsHeaders(req: Request[G]) =
+    def dispatch(req: Request[G]) =
       req.headers.get(Origin) match {
         case Some(origin) =>
-          req.headers.get(`Access-Control-Request-Method`) match {
-            case Some(methodRaw) =>
-              Method.fromString(methodRaw.value) match {
-                case Right(method) =>
-                  val headers = req.headers.get(`Access-Control-Request-Headers`) match {
-                    case Some(acrHeaders) =>
-                      acrHeaders.value.split("\\s*,\\s*").map(CIString(_)).toSet
-                    case None =>
-                      Set.empty[CIString]
+          req.method match {
+            case Method.OPTIONS =>
+              req.headers.get(`Access-Control-Request-Method`) match {
+                case Some(methodRaw) =>
+                  Method.fromString(methodRaw.value) match {
+                    case Right(method) =>
+                      val headers = req.headers.get(`Access-Control-Request-Headers`) match {
+                        case Some(acrHeaders) =>
+                          acrHeaders.value.split("\\s*,\\s*").map(CIString(_)).toSet
+                        case None =>
+                          Set.empty[CIString]
+                      }
+                      preflight(origin, method, headers)
+                    case Left(_) =>
+                      nonCors(req)
                   }
-                  preflightHeaders(origin, method, headers)
-                case Left(_) =>
-                  Nil
+                case None =>
+                  nonPreflight(req, origin)
               }
             case _ =>
-              nonPreflightHeaders(origin)
+              nonPreflight(req, origin)
           }
         case None =>
-          Nil
+          nonCors(req)
       }
 
-    def varyHeader(method: Method) =
-      method match {
-        case Method.OPTIONS => varyHeaderOptions
-        case _ => varyHeaderNonOptions
-      }
-
-    def dispatch(req: Request[G]) = {
-      var resp = http(req)
-      val headers = corsHeaders(req)
-      if (headers.nonEmpty)
-        resp = resp.map(_.putHeaders(headers: _*))
-      // Working around the poor model in 0.21
-      varyHeader(req.method).foreach { vary =>
-        resp = resp.map { r =>
-          r.putHeaders(
-            r.headers.get(`Vary`) match {
-              case None =>
-                vary
-              case Some(oldVary) =>
-                Header.Raw(`Vary`.name, oldVary.value + ", " + vary.value)
-            }
-          )
-        }
-      }
-      resp
-    }
-
-    def nonPreflightHeaders(origin: Origin) = {
+    def nonPreflight(req: Request[G], origin: Origin) = {
       val buff = List.newBuilder[Header]
       allowOriginHeader(origin).map { allowOrigin =>
         buff += allowOrigin
@@ -351,10 +329,10 @@ sealed class CORSPolicy(
         exposeHeadersHeader.foreach(buff.+=)
         buff
       }
-      buff.result()
+      http(req).map(_.putHeaders(buff.result(): _*)).map(varyHeader(req.method))
     }
 
-    def preflightHeaders(origin: Origin, method: Method, headers: Set[CIString]) = {
+    def preflight(origin: Origin, method: Method, headers: Set[CIString]) = {
       val buff = List.newBuilder[Header]
       (allowOriginHeader(origin), allowMethodsHeader(method), allowHeadersHeader(headers)).mapN {
         case (allowOrigin, allowMethods, allowHeaders) =>
@@ -363,10 +341,14 @@ sealed class CORSPolicy(
           buff += allowMethods
           buff += allowHeaders
           maxAgeHeader.foreach(buff.+=)
-          buff.result()
       }
-      buff.result()
+      // 204 is tempting here, but user agents expect 200
+      val resp = Response[G](Status.Ok, headers = Headers(buff.result()))
+      varyHeader(Method.OPTIONS)(resp).pure[F]
     }
+
+    def nonCors(req: Request[G]) =
+      http(req).map(varyHeader(req.method))
 
     def allowOriginHeader(origin: Origin): Option[Header] =
       allowOrigin match {
@@ -407,6 +389,28 @@ sealed class CORSPolicy(
             None
         case AllowHeaders.Reflect =>
           Header.Raw(`Access-Control-Allow-Headers`.name, headers.mkString(", ")).some
+      }
+
+    // Working around the poor model in 0.21.  If we just add a Vary
+    // header, it clobbers the existing one, because it's not properly
+    // flagged as recurring.  This doesn't need to be special when the
+    // Vary model is fixed.
+    def varyHeader(method: Method)(resp: Response[G]) =
+      (method match {
+        case Method.OPTIONS => varyHeaderOptions
+        case _ => varyHeaderNonOptions
+      }) match {
+        case Some(vary) =>
+          resp.putHeaders(
+            resp.headers.get(`Vary`) match {
+              case None =>
+                vary
+              case Some(oldVary) =>
+                Header.Raw(`Vary`.name, oldVary.value + ", " + vary.value)
+            }
+          )
+        case None =>
+          resp
       }
 
     if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
