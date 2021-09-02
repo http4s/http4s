@@ -86,8 +86,19 @@
           
           
 
-<p>Http4s provides <a href="../middleware">Middleware</a>, named <code>CORS</code>, for adding the appropriate headers
-to responses to allow Cross Origin Resource Sharing.</p>
+<p>For security reasons, modern web browsers enforce a <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy">same origin policy</a>,
+restricting the ability of sites from a given <a href="https://developer.mozilla.org/en-US/docs/Glossary/Origin">origin</a>
+to access resources at a different origin. Http4s provides <a href="../middleware">Middleware</a>, named <code>CORS</code>, for adding the appropriate headers
+to responses to allow limited exceptions to this via <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">cross origin resource sharing</a>.</p>
+
+<h2 id="warning">⚠️ Warning ⚠️</h2>
+
+<p>This guide assumes you are already familiar with CORS and its attendant security risks.
+By enabling CORS you are bypassing an important protection against malicious third-party
+websites - before doing so for any potentially sensitive resource, make sure you understand
+what you are doing and why.</p>
+
+<h2 id="usage">Usage</h2>
 
 <p>Examples in this document have the following dependencies.</p>
 
@@ -112,7 +123,7 @@ import org.http4s.implicits._
     Ok()
 }
 // service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8164/656854347@d698f79
+//   org.http4s.HttpRoutes$$$Lambda$8196/819117880@edea022
 // )
 
 val request = Request[IO](Method.GET, uri&quot;/&quot;)
@@ -122,7 +133,7 @@ val request = Request[IO](Method.GET, uri&quot;/&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@1ab6f769
+//   org.typelevel.vault.Vault@1e62610e
 // )
 
 service.orNotFound(request).unsafeRunSync()
@@ -131,7 +142,7 @@ service.orNotFound(request).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@4a793d0a
+//   org.typelevel.vault.Vault@617c5c59
 // )
 </code></pre>
 
@@ -140,9 +151,9 @@ service.orNotFound(request).unsafeRunSync()
 <pre><code class="language-scala">import org.http4s.server.middleware._
 </code></pre>
 
-<pre><code class="language-scala">val corsService = CORS(service)
+<pre><code class="language-scala">val corsService = CORS.policy.withAllowOriginAll(service)
 // corsService: Http[cats.data.OptionT[IO, A], IO] = Kleisli(
-//   org.http4s.server.middleware.CORS$$$Lambda$9026/1296677557@33f791cc
+//   org.http4s.server.middleware.CORSPolicy$$Lambda$9067/391075931@43ce007
 // )
 
 corsService.orNotFound(request).unsafeRunSync()
@@ -151,7 +162,7 @@ corsService.orNotFound(request).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@7224c28c
+//   org.typelevel.vault.Vault@7f989f12
 // )
 </code></pre>
 
@@ -165,16 +176,16 @@ in the requests and it must include a scheme. This, of course, is the responsibi
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://somewhere.com),
 //   Stream(..),
-//   org.typelevel.vault.Vault@1ab6f769
+//   org.typelevel.vault.Vault@1e62610e
 // )
 
 corsService.orNotFound(corsRequest).unsafeRunSync()
 // res2: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, Access-Control-Allow-Origin: https://somewhere.com, Access-Control-Max-Age: 86400),
+//   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   org.typelevel.vault.Vault@5f046e1e
+//   org.typelevel.vault.Vault@72fffbfe
 // )
 </code></pre>
 
@@ -184,7 +195,7 @@ composed such that only some of your endpoints are CORS enabled.</p>
 
 <h2 id="configuration">Configuration</h2>
 
-<p>The example above showed the default configuration for CORS, which adds the
+<p>The example above showed one basic configuration for CORS, which adds the
 headers to any successful response, regardless of origin or HTTP method. There
 are configuration options to modify that.</p>
 
@@ -198,7 +209,7 @@ have a variety of origins and methods.</p>
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://google.com),
 //   Stream(..),
-//   org.typelevel.vault.Vault@5c168999
+//   org.typelevel.vault.Vault@71e2ef6c
 // )
 val yahooPut = Request[IO](Method.PUT, uri&quot;/&quot;, headers = Headers(&quot;Origin&quot; -&gt; &quot;https://yahoo.com&quot;))
 // yahooPut: Request[IO] = (
@@ -207,7 +218,7 @@ val yahooPut = Request[IO](Method.PUT, uri&quot;/&quot;, headers = Headers(&quot
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://yahoo.com),
 //   Stream(..),
-//   org.typelevel.vault.Vault@53e00a26
+//   org.typelevel.vault.Vault@12bd058f
 // )
 val duckPost = Request[IO](Method.POST, uri&quot;/&quot;, headers = Headers(&quot;Origin&quot; -&gt; &quot;https://duckduckgo.com&quot;))
 // duckPost: Request[IO] = (
@@ -216,7 +227,7 @@ val duckPost = Request[IO](Method.POST, uri&quot;/&quot;, headers = Headers(&quo
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://duckduckgo.com),
 //   Stream(..),
-//   org.typelevel.vault.Vault@7048274
+//   org.typelevel.vault.Vault@29e668c5
 // )
 </code></pre>
 
@@ -226,89 +237,89 @@ and <code>POST</code>, pass that to the <code>CORS</code> middleware, and try it
 <pre><code class="language-scala">import scala.concurrent.duration._
 </code></pre>
 
-<pre><code class="language-scala">val methodConfig = CORSConfig.default
-                     .withAnyOrigin(false)
-                     .withAnyMethod(false)
-                     .withAllowedMethods(Some(Set(Method.GET, Method.POST)))
-                     .withAllowCredentials(true)
-                     .withMaxAge(1.seconds)
-// methodConfig: CORSConfig = CORSConfig(false,true,1 second,false,org.http4s.server.middleware.CORSConfig$$$Lambda$9025/1900340946@7b8c6814,Some(Set(GET, POST)),Some(Set(Content-Type, Authorization, *)),Some(Set(*)))
-
-val corsMethodSvc = CORS(service, methodConfig)
+<pre><code class="language-scala">val corsMethodSvc = CORS.policy
+  .withAllowOriginAll
+  .withAllowMethodsIn(Set(Method.GET, Method.POST))
+  .withAllowCredentials(false)
+  .withMaxAge(1.day)
+  .apply(service)
 // corsMethodSvc: Http[cats.data.OptionT[IO, A], IO] = Kleisli(
-//   org.http4s.server.middleware.CORS$$$Lambda$9026/1296677557@133e6cbd
+//   org.http4s.server.middleware.CORSPolicy$$Lambda$9067/391075931@24cb460c
 // )
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
 // res3: Response[IO] = (
-//   Status(403),
+//   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(),
+//   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   org.typelevel.vault.Vault@405ce5c6
+//   org.typelevel.vault.Vault@42345476
 // )
 corsMethodSvc.orNotFound(yahooPut).unsafeRunSync()
 // res4: Response[IO] = (
-//   Status(403),
+//   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(),
+//   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   org.typelevel.vault.Vault@6368c89b
+//   org.typelevel.vault.Vault@385fb0c2
 // )
 corsMethodSvc.orNotFound(duckPost).unsafeRunSync()
 // res5: Response[IO] = (
-//   Status(403),
+//   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(),
+//   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   org.typelevel.vault.Vault@7b3cd02a
+//   org.typelevel.vault.Vault@22e5474c
 // )
 </code></pre>
 
 <p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
 Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo.com&rdquo; and
-&ldquo;duckduckgo.com&rdquo;. allowedOrigins can use any expression that resolves into a boolean.</p>
+&ldquo;duckduckgo.com&rdquo;. <code>withAllowOriginHost</code> accepts an <code>Origin.Host =&gt; Boolean</code>.
+If you&rsquo;re simply enumerating allowed hosts, a <code>Set</code> is convenient:</p>
 
-<pre><code class="language-scala">val originConfig = CORSConfig.default
-                     .withAnyOrigin(false)
-                     .withAllowedOrigins(Set(&quot;https://yahoo.com&quot;, &quot;https://duckduckgo.com&quot;))
-                     .withAllowCredentials(false)
-                     .withMaxAge(1.seconds)
-// originConfig: CORSConfig = CORSConfig(false,false,1 second,true,Set(https://yahoo.com, https://duckduckgo.com),None,Some(Set(Content-Type, Authorization, *)),Some(Set(*)))
+<pre><code class="language-scala">import org.http4s.headers.Origin
 
-val corsOriginSvc = CORS(service, originConfig)
+val corsOriginSvc = CORS.policy
+  .withAllowOriginHost(Set(
+    Origin.Host(Uri.Scheme.https, Uri.RegName(&quot;yahoo.com&quot;), None),
+    Origin.Host(Uri.Scheme.https, Uri.RegName(&quot;duckduckgo.com&quot;), None)
+  ))
+  .withAllowCredentials(false)
+  .withMaxAge(1.day)
+  .apply(service)
 // corsOriginSvc: Http[cats.data.OptionT[IO, A], IO] = Kleisli(
-//   org.http4s.server.middleware.CORS$$$Lambda$9026/1296677557@1b870074
+//   org.http4s.server.middleware.CORSPolicy$$Lambda$9067/391075931@5c608e3a
 // )
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
 // res6: Response[IO] = (
-//   Status(403),
+//   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(),
+//   Headers(Content-Length: 0, Vary: Origin),
 //   Stream(..),
-//   org.typelevel.vault.Vault@3cd2b417
+//   org.typelevel.vault.Vault@3c17e624
 // )
 corsOriginSvc.orNotFound(yahooPut).unsafeRunSync()
 // res7: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: PUT, Access-Control-Allow-Origin: https://yahoo.com, Access-Control-Max-Age: 1),
+//   Headers(Content-Length: 0, Access-Control-Allow-Origin: https://yahoo.com, Vary: Origin),
 //   Stream(..),
-//   org.typelevel.vault.Vault@195b9f06
+//   org.typelevel.vault.Vault@798b98c4
 // )
 corsOriginSvc.orNotFound(duckPost).unsafeRunSync()
 // res8: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
-//   Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: POST, Access-Control-Allow-Origin: https://duckduckgo.com, Access-Control-Max-Age: 1),
+//   Headers(Content-Length: 0, Access-Control-Allow-Origin: https://duckduckgo.com, Vary: Origin),
 //   Stream(..),
-//   org.typelevel.vault.Vault@47ba187
+//   org.typelevel.vault.Vault@71dc6f9e
 // )
 </code></pre>
 
 <p>Again, the results are as expected. You can, of course, create a configuration that
-combines limits on both HTTP method and origin.</p>
+combines limits on HTTP method, origin, and headers.</p>
 
 <p>As described in <a href="../middleware">Middleware</a>, services and middleware can be composed such
 that only some of your endpoints are CORS enabled.</p>

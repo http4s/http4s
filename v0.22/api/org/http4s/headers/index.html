@@ -282,6 +282,10 @@
                         <a class="class" href="Access$minusControl$minusExpose$minusHeaders.html" title=""></a>
                         <a href="Access$minusControl$minusExpose$minusHeaders.html" title="">Access-Control-Expose-Headers</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="Access$minusControl$minusRequest$minusMethod$.html" title=""></a>
+                        <a class="class" href="Access$minusControl$minusRequest$minusMethod.html" title=""></a>
+                        <a href="Access$minusControl$minusRequest$minusMethod.html" title="">Access-Control-Request-Method</a>
+                      </li><li class="current-entities indented3">
                         <a class="object" href="Age$.html" title=""></a>
                         <a class="class" href="Age.html" title="Constructs an Age header."></a>
                         <a href="Age.html" title="Constructs an Age header.">Age</a>
@@ -796,7 +800,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.2/core/src/main/scala/org/http4s/headers/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.4/core/src/main/scala/org/http4s/headers/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -998,6 +1002,22 @@ to be translated into.</p><p><a href="https://tools.ietf.org/html/rfc7231#sectio
       </span>
       
       
+    </li><li name="org.http4s.headers.Access-Control-Request-Method" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Access-Control-Request-MethodextendsProductwithSerializable"></a><a id="Access-Control-Request-Method:Access-Control-Request-Method"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Access$minusControl$minusRequest$minusMethod.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Access$minusControl$minusRequest$minusMethod.html"><span title="gt4s: Access$minusControl$minusRequest$minusMethod" class="name">Access-Control-Request-Method</span></a><span class="params">(<span name="method">method: <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.headers.Age" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="AgeextendsProductwithSerializable"></a><a id="Age:Age"></a>
       <span class="permalink">
@@ -1031,7 +1051,8 @@ to be translated into.</p><p><a href="https://tools.ietf.org/html/rfc7231#sectio
       </span>
       
       <p class="shortcomment cmt">A Response header that lists the methods that are supported by the target resource.</p><div class="fullcomment"><div class="comment cmt"><p>A Response header that lists the methods that are supported by the target resource.
-Often attached to responses with status  <a href="https://tools.ietf.org/html/rfc7231#section-6.5.5" target="_blank">405 Not Allowed</a>.</p><p><a href="https://tools.ietf.org/html/rfc7231#section-7.4.1" target="_blank">RFC-7231 Section 7.4.1 Allow</a>
+Must be attached to responses with status  <a href="https://tools.ietf.org/html/rfc7231#section-6.5.5" target="_blank">405 Not Allowed</a>,
+though in practice not all servers honor this.</p><p><a href="https://tools.ietf.org/html/rfc7231#section-7.4.1" target="_blank">RFC-7231 Section 7.4.1 Allow</a>
 </p></div></div>
     </li><li name="org.http4s.headers.Authorization" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AuthorizationextendsProductwithSerializable"></a><a id="Authorization:Authorization"></a>
@@ -2086,6 +2107,22 @@ https://tools.ietf.org/html/rfc7231#section-7.4.2
       </span>
       <span class="symbol">
         <a title="" href="Access$minusControl$minusExpose$minusHeaders$.html"><span title="gt4s: Access$minusControl$minusExpose$minusHeaders" class="name">Access-Control-Expose-Headers</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.headers.Access-Control-Request-Method" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Access-Control-Request-Method"></a><a id="Access-Control-Request-Method:Access-Control-Request-Method"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Access$minusControl$minusRequest$minusMethod$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Access$minusControl$minusRequest$minusMethod$.html"><span title="gt4s: Access$minusControl$minusRequest$minusMethod" class="name">Access-Control-Request-Method</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       

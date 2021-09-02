@@ -183,7 +183,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.ember.server.EmberServerBuilder">EmberServerBuilder</a>[<span class="extype" name="org.http4s.ember.server.EmberServerBuilder.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.2/ember-server/src/main/scala/org/http4s/ember/server/EmberServerBuilder.scala" target="_blank">EmberServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.ember.server.EmberServerBuilder">EmberServerBuilder</a>[<span class="extype" name="org.http4s.ember.server.EmberServerBuilder.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.4/ember-server/src/main/scala/org/http4s/ember/server/EmberServerBuilder.scala" target="_blank">EmberServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -500,10 +500,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.ember.server.EmberServerBuilder#maxConcurrency" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="maxConcurrency:Int"></a>
+    </li><li name="org.http4s.ember.server.EmberServerBuilder#maxConnections" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="maxConnections:Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/ember/server/EmberServerBuilder.html#maxConcurrency:Int" title="Permalink">
+      <a href="../../../../org/http4s/ember/server/EmberServerBuilder.html#maxConnections:Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -512,7 +512,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">maxConcurrency</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">maxConnections</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       
@@ -846,10 +846,10 @@
       </span>
       
       
-    </li><li name="org.http4s.ember.server.EmberServerBuilder#withMaxConcurrency" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withMaxConcurrency(maxConcurrency:Int):org.http4s.ember.server.EmberServerBuilder[F]"></a><a id="withMaxConcurrency(Int):EmberServerBuilder[F]"></a>
+    </li><li name="org.http4s.ember.server.EmberServerBuilder#withMaxConnections" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withMaxConnections(maxConnections:Int):org.http4s.ember.server.EmberServerBuilder[F]"></a><a id="withMaxConnections(Int):EmberServerBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/ember/server/EmberServerBuilder.html#withMaxConcurrency(maxConcurrency:Int):org.http4s.ember.server.EmberServerBuilder[F]" title="Permalink">
+      <a href="../../../../org/http4s/ember/server/EmberServerBuilder.html#withMaxConnections(maxConnections:Int):org.http4s.ember.server.EmberServerBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -858,7 +858,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withMaxConcurrency</span><span class="params">(<span name="maxConcurrency">maxConcurrency: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.ember.server.EmberServerBuilder">EmberServerBuilder</a>[<span class="extype" name="org.http4s.ember.server.EmberServerBuilder.F">F</span>]</span>
+        <span class="name">withMaxConnections</span><span class="params">(<span name="maxConnections">maxConnections: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.ember.server.EmberServerBuilder">EmberServerBuilder</a>[<span class="extype" name="org.http4s.ember.server.EmberServerBuilder.F">F</span>]</span>
       </span>
       
       
@@ -1014,7 +1014,45 @@
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.ember.server.EmberServerBuilder#withOnError" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.ember.server.EmberServerBuilder#maxConcurrency" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="maxConcurrency:Int"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/ember/server/EmberServerBuilder.html#maxConcurrency:Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.3) Use org.http4s.ember.server.EmberServerBuilder.maxConnections">maxConcurrency</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.3)</i> Use org.http4s.ember.server.EmberServerBuilder.maxConnections</p></dd></dl></div>
+    </li><li name="org.http4s.ember.server.EmberServerBuilder#withMaxConcurrency" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withMaxConcurrency(maxConcurrency:Int):org.http4s.ember.server.EmberServerBuilder[F]"></a><a id="withMaxConcurrency(Int):EmberServerBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/ember/server/EmberServerBuilder.html#withMaxConcurrency(maxConcurrency:Int):org.http4s.ember.server.EmberServerBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.3) Use org.http4s.ember.server.EmberServerBuilder.withMaxConnections">withMaxConcurrency</span><span class="params">(<span name="maxConcurrency">maxConcurrency: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.ember.server.EmberServerBuilder">EmberServerBuilder</a>[<span class="extype" name="org.http4s.ember.server.EmberServerBuilder.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.3)</i> Use org.http4s.ember.server.EmberServerBuilder.withMaxConnections</p></dd></dl></div>
+    </li><li name="org.http4s.ember.server.EmberServerBuilder#withOnError" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withOnError(onError:Throwable=&gt;org.http4s.Response[F]):org.http4s.ember.server.EmberServerBuilder[F]"></a><a id="withOnError((Throwable)⇒Response[F]):EmberServerBuilder[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/ember/server/EmberServerBuilder.html#withOnError(onError:Throwable=&gt;org.http4s.Response[F]):org.http4s.ember.server.EmberServerBuilder[F]" title="Permalink">

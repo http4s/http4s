@@ -143,6 +143,10 @@
                         <a href="$minus$greater$.html" title="">-&gt;</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="$minus$greater$greater$.html" title=""></a>
+                        <a href="$minus$greater$greater$.html" title="">-&gt;&gt;</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="$div$.html" title=""></a>
                         <a href="$div$.html" title="">/</a>
                       </li><li class="current-entities indented4">
@@ -292,7 +296,7 @@ For an example see <a href="https://www.w3.org/DesignIssues/MatrixURIs.html" tar
 This is useful for representing a resource that may be addressed in multiple dimensions where order is unimportant</p><pre><span class="kw">object</span> BoardVar <span class="kw">extends</span> MatrixVar(<span class="lit">"square"</span>, <span class="std">List</span>(<span class="lit">"x"</span>, <span class="lit">"y"</span>))
 Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</span> {
   <span class="kw">case</span> Root / <span class="lit">"board"</span> / BoardVar(IntVar(x), IntVar(y)) <span class="kw">=&gt;</span> ...
-}</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.2/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
+}</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.4/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -343,9 +347,9 @@ Path(<span class="lit">"/board/square;x=5;y=3"</span>) <span class="kw">match</s
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.dsl.impl.MatrixVar#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(name:String,domain:F[String])(implicitevidence$1:cats.Foldable[F]):org.http4s.dsl.impl.MatrixVar[F]"></a><a id="&lt;init&gt;:MatrixVar[F]"></a>
+      <a id="&lt;init&gt;(name:String,domain:F[String])(implicitevidence$2:cats.Foldable[F]):org.http4s.dsl.impl.MatrixVar[F]"></a><a id="&lt;init&gt;:MatrixVar[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/MatrixVar.html#&lt;init&gt;(name:String,domain:F[String])(implicitevidence$1:cats.Foldable[F]):org.http4s.dsl.impl.MatrixVar[F]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/MatrixVar.html#&lt;init&gt;(name:String,domain:F[String])(implicitevidence$2:cats.Foldable[F]):org.http4s.dsl.impl.MatrixVar[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>

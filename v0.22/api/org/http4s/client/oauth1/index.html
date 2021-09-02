@@ -171,9 +171,25 @@
                         <a class="class" href="Consumer.html" title="Representation of a Consumer key and secret"></a>
                         <a href="Consumer.html" title="Representation of a Consumer key and secret">Consumer</a>
                       </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="HmacSha1$.html" title="An implementation of the HMAC-SHA1 oauth signature method."></a>
+                        <a href="HmacSha1$.html" title="An implementation of the HMAC-SHA1 oauth signature method.">HmacSha1</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="HmacSha256$.html" title="An implementation of the HMAC-SHA256 oauth signature method."></a>
+                        <a href="HmacSha256$.html" title="An implementation of the HMAC-SHA256 oauth signature method.">HmacSha256</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="HmacSha512$.html" title="An implementation of the HMAC-SHA512 oauth signature method."></a>
+                        <a href="HmacSha512$.html" title="An implementation of the HMAC-SHA512 oauth signature method.">HmacSha512</a>
+                      </li><li class="current-entities indented4">
                         <a class="object" href="ProtocolParameter$.html" title=""></a>
                         <a class="trait" href="ProtocolParameter.html" title=""></a>
                         <a href="ProtocolParameter.html" title="">ProtocolParameter</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="SignatureAlgorithm$.html" title=""></a>
+                        <a class="trait" href="SignatureAlgorithm.html" title="Implementations for Oauth1 signatures."></a>
+                        <a href="SignatureAlgorithm.html" title="Implementations for Oauth1 signatures.">SignatureAlgorithm</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="Token.html" title="Representation of an OAuth Token and Token secret"></a>
@@ -207,7 +223,7 @@
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Basic OAuth1 message signing support</p><p>This feature is not considered stable.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.2/client/src/main/scala/org/http4s/client/oauth1/oauth1.scala" target="_blank">oauth1.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.4/client/src/main/scala/org/http4s/client/oauth1/oauth1.scala" target="_blank">oauth1.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -291,6 +307,22 @@
       </span>
       
       
+    </li><li name="org.http4s.client.oauth1.SignatureAlgorithm" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SignatureAlgorithmextendsAnyRef"></a><a id="SignatureAlgorithm:SignatureAlgorithm"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/SignatureAlgorithm.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Implementations for Oauth1 signatures." href="SignatureAlgorithm.html"><span class="name">SignatureAlgorithm</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Implementations for Oauth1 signatures.</p>
     </li><li name="org.http4s.client.oauth1.Token" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="TokenextendsProductwithSerializable"></a><a id="Token:Token"></a>
       <span class="permalink">
@@ -347,24 +379,6 @@
       </span>
       
       
-    </li><li name="org.http4s.client.oauth1#signRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.Consumer,callback:Option[org.http4s.Uri],verifier:Option[String],token:Option[org.http4s.client.oauth1.Token])(implicitF:cats.MonadThrow[F],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]"></a><a id="signRequest[F[_]](Request[F],Consumer,Option[Uri],Option[String],Option[Token])(MonadThrow[F],EntityDecoder[F,UrlForm]):F[Request[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/oauth1/index.html#signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.Consumer,callback:Option[org.http4s.Uri],verifier:Option[String],token:Option[org.http4s.client.oauth1.Token])(implicitF:cats.MonadThrow[F],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">signRequest</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="consumer">consumer: <a href="Consumer.html" class="extype" name="org.http4s.client.oauth1.Consumer">Consumer</a></span>, <span name="callback">callback: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>]</span>, <span name="verifier">verifier: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="token">token: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Token.html" class="extype" name="org.http4s.client.oauth1.Token">Token</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="W">W: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>, <a href="../../UrlForm.html" class="extype" name="org.http4s.UrlForm">UrlForm</a>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Sign the request with an OAuth Authorization header</p><div class="fullcomment"><div class="comment cmt"><p>Sign the request with an OAuth Authorization header</p><p><u>WARNING:</u> POST requests with application/x-www-form-urlencoded bodies
-           will be entirely buffered due to signing requirements.
-</p></div></div>
     </li><li name="org.http4s.client.oauth1#takeSigHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="takeSigHeaders[F[_]](consumer:org.http4s.client.oauth1.ProtocolParameter.Consumer,token:Option[org.http4s.client.oauth1.ProtocolParameter.Token],signatureMethod:org.http4s.client.oauth1.ProtocolParameter.SignatureMethod,timestampGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Timestamp],version:org.http4s.client.oauth1.ProtocolParameter.Version,nonceGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Nonce],callback:Option[org.http4s.client.oauth1.ProtocolParameter.Callback],verifier:Option[org.http4s.client.oauth1.ProtocolParameter.Verifier])(implicitevidence$1:cats.Monad[F]):F[scala.collection.immutable.Seq[org.http4s.client.oauth1.ProtocolParameter]]"></a><a id="takeSigHeaders[F[_]](oauth1.ProtocolParameter.Consumer,Option[oauth1.ProtocolParameter.Token],SignatureMethod,F[Timestamp],Version,F[Nonce],Option[oauth1.ProtocolParameter.Callback],Option[Verifier])(Monad[F]):F[Seq[ProtocolParameter]]"></a>
       <span class="permalink">
@@ -381,6 +395,58 @@
       </span>
       
       
+    </li><li name="org.http4s.client.oauth1.HmacSha1" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HmacSha1"></a><a id="HmacSha1:HmacSha1"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/HmacSha1$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="An implementation of the HMAC-SHA1 oauth signature method." href="HmacSha1$.html"><span class="name">HmacSha1</span></a><span class="result"> extends <a href="SignatureAlgorithm.html" class="extype" name="org.http4s.client.oauth1.SignatureAlgorithm">SignatureAlgorithm</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">An implementation of the <code>HMAC-SHA1</code> oauth signature method.</p><div class="fullcomment"><div class="comment cmt"><p>An implementation of the <code>HMAC-SHA1</code> oauth signature method.</p><p>This uses the <code>HmacSHA1</code> implementation which every java platform is required to have.
+</p></div></div>
+    </li><li name="org.http4s.client.oauth1.HmacSha256" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HmacSha256"></a><a id="HmacSha256:HmacSha256"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/HmacSha256$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="An implementation of the HMAC-SHA256 oauth signature method." href="HmacSha256$.html"><span class="name">HmacSha256</span></a><span class="result"> extends <a href="SignatureAlgorithm.html" class="extype" name="org.http4s.client.oauth1.SignatureAlgorithm">SignatureAlgorithm</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">An implementation of the <code>HMAC-SHA256</code> oauth signature method.</p><div class="fullcomment"><div class="comment cmt"><p>An implementation of the <code>HMAC-SHA256</code> oauth signature method.</p><p>This uses the <code>HmacSHA256</code> implementation which every java platform is required to have.
+</p></div></div>
+    </li><li name="org.http4s.client.oauth1.HmacSha512" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HmacSha512"></a><a id="HmacSha512:HmacSha512"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/HmacSha512$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="An implementation of the HMAC-SHA512 oauth signature method." href="HmacSha512$.html"><span class="name">HmacSha512</span></a><span class="result"> extends <a href="SignatureAlgorithm.html" class="extype" name="org.http4s.client.oauth1.SignatureAlgorithm">SignatureAlgorithm</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">An implementation of the <code>HMAC-SHA512</code> oauth signature method.</p><div class="fullcomment"><div class="comment cmt"><p>An implementation of the <code>HMAC-SHA512</code> oauth signature method.</p><p>WARNING - This uses the <code>HmacSHA512</code> implementation which is *not* required to be present by the Java spec.
+(However, most modern Java runtimes tend to have it)
+</p></div></div>
     </li><li name="org.http4s.client.oauth1.ProtocolParameter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ProtocolParameter"></a><a id="ProtocolParameter:ProtocolParameter"></a>
       <span class="permalink">
@@ -397,13 +463,53 @@
       </span>
       
       
+    </li><li name="org.http4s.client.oauth1.SignatureAlgorithm" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SignatureAlgorithm"></a><a id="SignatureAlgorithm:SignatureAlgorithm"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/SignatureAlgorithm$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="SignatureAlgorithm$.html"><span class="name">SignatureAlgorithm</span></a>
+      </span>
+      
+      
     </li>
               </ol>
             </div>
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.client.oauth1#signRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.Consumer,callback:Option[org.http4s.Uri],verifier:Option[String],token:Option[org.http4s.client.oauth1.Token])(implicitF:cats.MonadThrow[F],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]"></a><a id="signRequest[F[_]](Request[F],Consumer,Option[Uri],Option[String],Option[Token])(MonadThrow[F],EntityDecoder[F,UrlForm]):F[Request[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/index.html#signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.Consumer,callback:Option[org.http4s.Uri],verifier:Option[String],token:Option[org.http4s.client.oauth1.Token])(implicitF:cats.MonadThrow[F],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.3) Preserved for binary compatibility - use the other signRequest function which passes a signature method">signRequest</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="consumer">consumer: <a href="Consumer.html" class="extype" name="org.http4s.client.oauth1.Consumer">Consumer</a></span>, <span name="callback">callback: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>]</span>, <span name="verifier">verifier: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="token">token: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Token.html" class="extype" name="org.http4s.client.oauth1.Token">Token</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="W">W: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>, <a href="../../UrlForm.html" class="extype" name="org.http4s.UrlForm">UrlForm</a>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Sign the request with an OAuth Authorization header</p><div class="fullcomment"><div class="comment cmt"><p>Sign the request with an OAuth Authorization header</p><p><u>WARNING:</u> POST requests with application/x-www-form-urlencoded bodies
+           will be entirely buffered due to signing requirements.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.3)</i> Preserved for binary compatibility - use the other <code>signRequest</code> function which passes a signature method</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
