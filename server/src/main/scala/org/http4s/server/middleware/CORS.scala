@@ -18,7 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative, Monad}
+import cats.{Applicative, Functor, Monad}
 import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
 import org.http4s.Method.OPTIONS
@@ -214,8 +214,17 @@ sealed class CORSPolicy(
 ) {
   import CORSPolicy._
 
-  def apply[F[_]: Applicative, G[_]](http: Http[F, G]): Http[F, G] = {
+  def apply[F[_]: Applicative, G[_]](http: Http[F, G]): Http[F, G] =
+    impl(http, Http.pure(Response(Status.Ok)))
 
+  @deprecated("Does not return 200 on preflight requests. Use the Applicative version", "0.21.28")
+  protected[CORSPolicy] def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
+    logger.warn(
+      "This CORSPolicy does not return 200 on preflight requests. It's kept for binary compatibility, but it's buggy. If you see this, upgrade to v0.21.28 or greater.")
+    impl(http, http)
+  }
+
+  def impl[F[_]: Functor, G[_]](http: Http[F, G], preflightResponder: Http[F, G]): Http[F, G] = {
     val allowCredentialsHeader: Option[Header] =
       allowCredentials match {
         case AllowCredentials.Allow =>
@@ -307,7 +316,7 @@ sealed class CORSPolicy(
                         case None =>
                           Set.empty[CIString]
                       }
-                      preflight(origin, method, headers)
+                      preflight(req, origin, method, headers)
                     case Left(_) =>
                       nonCors(req)
                   }
@@ -332,7 +341,7 @@ sealed class CORSPolicy(
       http(req).map(_.putHeaders(buff.result(): _*)).map(varyHeader(req.method))
     }
 
-    def preflight(origin: Origin, method: Method, headers: Set[CIString]) = {
+    def preflight(req: Request[G], origin: Origin, method: Method, headers: Set[CIString]) = {
       val buff = List.newBuilder[Header]
       (allowOriginHeader(origin), allowMethodsHeader(method), allowHeadersHeader(headers)).mapN {
         case (allowOrigin, allowMethods, allowHeaders) =>
@@ -342,9 +351,7 @@ sealed class CORSPolicy(
           buff += allowHeaders
           maxAgeHeader.foreach(buff.+=)
       }
-      // 204 is tempting here, but user agents expect 200
-      val resp = Response[G](Status.Ok, headers = Headers(buff.result()))
-      varyHeader(Method.OPTIONS)(resp).pure[F]
+      preflightResponder(req).map(_.putHeaders(buff.result(): _*)).map(varyHeader(Method.OPTIONS))
     }
 
     def nonCors(req: Request[G]) =
