@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.28
+
+This is a bugfix to yesterday's patch.  It is not a security issue, but a correctness issue.
+
+This release is binary compatible with 0.21.x.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5144](https://github.com/http4s/http4s/pull/5144): In the `CORS` middleware, respond to preflight `OPTIONS` requests with a 200 status.  It was previously passing through to the wrapped `Http`, most of which won't respond to `OPTIONS`.
+
 # v0.21.27 (2021-08-31)
 
 This is a security release.  It is binary compatible with the 0.21.x series.
