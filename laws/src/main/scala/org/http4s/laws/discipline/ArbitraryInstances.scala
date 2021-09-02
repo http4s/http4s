@@ -939,16 +939,20 @@ private[http4s] trait ArbitraryInstances {
     Cogen[String].contramap(_.encoded)
 
   implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
-    for {
-      timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
-      max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
-      extName <- genToken
-      extValue <- Gen.option(Gen.oneOf(genQuotedString, genToken))
-      l <- Gen.listOf((extName -> extValue))
-      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
-    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
+      val genExtension = for { 
+        extName <- genToken
+        quotedStringEquivWithoutQuotes = oneOf(genQDText, genQuotedPair) //The string parsed out does not have quotes around it
+        extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes.map(s => Right(s)), genToken.map(s => Left(s))))
+      } yield (extName -> extValue)
+
+      for {
+        timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+        max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))      
+        l <- Gen.listOf(genExtension)
+        if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
+      } yield `Keep-Alive`.unsafeApply(timeout, max, l)
+    }
   }
-}
 
 object ArbitraryInstances extends ArbitraryInstances {
   // http4s-0.21: add extra values here to prevent binary incompatibility.

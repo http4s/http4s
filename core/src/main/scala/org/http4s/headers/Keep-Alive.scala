@@ -33,7 +33,7 @@ object `Keep-Alive` {
   sealed trait KeepAlive
   final case class Timeout(timeoutSeconds: Long) extends KeepAlive
   final case class Max(max: Long) extends KeepAlive
-  final case class Extension(ext: (String, Option[String])) extends KeepAlive
+  final case class Extension(ext: (String, Option[Either[String, String]])) extends KeepAlive
 
   /*
 https://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01#Keep-Alive
@@ -48,7 +48,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   def apply(
       timeoutSeconds: Option[Long],
       max: Option[Long],
-      extension: List[(String, Option[String])]): ParseResult[`Keep-Alive`] =
+      extension: List[(String, Option[Either[String, String]])]): ParseResult[`Keep-Alive`] =
     if (timeoutSeconds.isDefined || max.isDefined || extension.nonEmpty) {
       val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))
       val validatedMax = max.traverse(m => nonNegativeLong(m, "max"))
@@ -60,7 +60,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   def unsafeApply(
       timeoutSeconds: Option[Long],
       max: Option[Long],
-      extension: List[(String, Option[String])]): `Keep-Alive` =
+      extension: List[(String, Option[Either[String, String]])]): `Keep-Alive` =
     apply(timeoutSeconds, max, extension).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Keep-Alive`] =
@@ -91,7 +91,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 
     //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     val keepAliveExtension: Parser[Extension] =
-      (token ~ (Parser.char('=') *> token.orElse(quotedString).?)).map(p => Extension(p))
+      (token ~ (Parser.char('=') *> token.map(Left(_)).orElse(quotedString.map(Right(_))).?)).map(p => Extension(p))
 
     /*
   keep-alive-info      = "timeout" "=" delta-seconds
@@ -103,7 +103,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     headerRep1(keepAliveInfo).map { nel =>
       var timeoutSeconds: Option[Long] = None
       var max: Option[Long] = None
-      val extension: ListBuffer[(String, Option[String])] = ListBuffer.empty
+      val extension: ListBuffer[(String, Option[Either[String, String]])] = ListBuffer.empty
       nel.foldLeft(()) { (_, ka) =>
         ka match {
           case Timeout(n) => if (timeoutSeconds.isEmpty) timeoutSeconds = Some(n) else ()
@@ -135,8 +135,12 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
               e.foreach { p =>
                 if (hasWritten) writer << ", " else hasWritten = true
                 writer << p._1 << "="
-                p._2.foreach(s => writer << s)
+                p._2.foreach { _ match {
+                  case token@Left(s) => writer << s
+                  case quotedString@Right(qts) => writer << s"""\"$qts\"""" //Add quotes to the quoted string
+                }
               }
+            }
               writer
           }
       },
@@ -157,7 +161,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 final case class `Keep-Alive` private (
     timeoutSeconds: Option[Long],
     max: Option[Long],
-    extension: List[(String, Option[String])]) {
+    extension: List[(String, Option[Either[String, String]])]) {
   def toTimeoutDuration: Option[FiniteDuration] =
     timeoutSeconds.map(FiniteDuration(_, TimeUnit.SECONDS))
 }
