@@ -42,14 +42,14 @@ object EmberServerSimpleExample extends IOApp {
           .default[IO]
           .withHost(host)
           .withPort(port)
-          .withHttpApp(service[IO])
+          .withHttpWebSocketApp(service[IO])
           .build
     } yield server
   }.use(server =>
     IO.delay(println(s"Server Has Started at ${server.address}")) >>
       IO.never.as(ExitCode.Success))
 
-  def service[F[_]: Async]: HttpApp[F] = {
+  def service[F[_]: Async](wsb: WebSocketBuilder[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -78,7 +78,7 @@ object EmberServerSimpleExample extends IOApp {
             case WebSocketFrame.Text(text, _) => Sync[F].delay(println(text))
             case other => Sync[F].delay(println(other))
           }
-          WebSocketBuilder[F].build(send, receive)
+          wsb.build(send, receive)
       }
       .orNotFound
   }

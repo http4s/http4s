@@ -17,7 +17,7 @@
 package org.http4s
 package server.websocket
 
-import cats.Applicative
+import cats.{ Applicative, ~> }
 import cats.syntax.all._
 import fs2.{Pipe, Stream}
 import org.http4s.websocket.{
@@ -27,6 +27,7 @@ import org.http4s.websocket.{
   WebSocketFrame,
   WebSocketSeparatePipe
 }
+import org.typelevel.vault.Key
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
@@ -41,14 +42,26 @@ final case class WebSocketBuilder[F[_]: Applicative](
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
-    filterPingPongs: Boolean
+    filterPingPongs: Boolean,
+    webSocketKey: Key[WebSocketContext[F]]
 ) {
+
+  /** Transform the parameterized effect from F to G. */
+  def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder[G] =
+    WebSocketBuilder[G](
+      headers,
+      fk(onNonWebSocketRequest).map(_.mapK(fk)),
+      fk(onHandshakeFailure).map(_.mapK(fk)),
+      fk(onClose),
+      filterPingPongs,
+      webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk))
+    )
 
   private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
     onNonWebSocketRequest
       .map(
         _.withAttribute(
-          websocketKey[F],
+          webSocketKey,
           WebSocketContext(
             webSocket,
             headers,
@@ -127,10 +140,12 @@ final case class WebSocketBuilder[F[_]: Applicative](
     case _: WebSocketFrame.Pong => true
     case _ => false
   }
+
 }
 
 object WebSocketBuilder {
-  def apply[F[_]: Applicative]: WebSocketBuilder[F] =
+
+  private[http4s] def apply[F[_]: Applicative](webSocketKey: Key[WebSocketContext[F]]): WebSocketBuilder[F] =
     new WebSocketBuilder[F](
       headers = Headers.empty,
       onNonWebSocketRequest =
@@ -138,6 +153,8 @@ object WebSocketBuilder {
       onHandshakeFailure =
         Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
-      filterPingPongs = true
+      filterPingPongs = true,
+      webSocketKey = webSocketKey
     )
+
 }

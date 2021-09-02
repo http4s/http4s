@@ -37,7 +37,7 @@ object BlazeWebSocketExample extends IOApp {
 }
 
 class BlazeWebSocketExampleApp[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
-  def routes: HttpRoutes[F] =
+  def routes(wsb: WebSocketBuilder[F]): HttpRoutes[F] =
     HttpRoutes.of[F] {
       case GET -> Root / "hello" =>
         Ok("Hello world.")
@@ -49,7 +49,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Async[F]) extends Http4sDsl[F] 
           case Text(t, _) => F.delay(println(t))
           case f => F.delay(println(s"Unknown type: $f"))
         }
-        WebSocketBuilder[F].build(toClient, fromClient)
+        wsb.build(toClient, fromClient)
 
       case GET -> Root / "wsecho" =>
         val echoReply: Pipe[F, WebSocketFrame, WebSocketFrame] =
@@ -75,14 +75,14 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Async[F]) extends Http4sDsl[F] 
           .flatMap { q =>
             val d: Stream[F, WebSocketFrame] = Stream.fromQueueNoneTerminated(q).through(echoReply)
             val e: Pipe[F, WebSocketFrame, Unit] = _.enqueueNoneTerminated(q)
-            WebSocketBuilder[F].build(d, e)
+            wsb.build(d, e)
           }
     }
 
   def stream: Stream[F, ExitCode] =
     BlazeServerBuilder[F](global)
       .bindHttp(8080)
-      .withHttpApp(routes.orNotFound)
+      .withHttpWebSocketApp(routes(_).orNotFound)
       .serve
 }
 

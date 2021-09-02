@@ -40,13 +40,14 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 import scala.concurrent.Await
+import org.http4s.websocket.WebSocketContext
 
 private[http4s] object Http1ServerStage {
   def apply[F[_]](
       routes: HttpApp[F],
       attributes: () => Vault,
       executionContext: ExecutionContext,
-      enableWebSockets: Boolean,
+      wsKey: Key[WebSocketContext[F]],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       chunkBufferMaxSize: Int,
@@ -55,32 +56,22 @@ private[http4s] object Http1ServerStage {
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
       dispatcher: Dispatcher[F])(implicit F: Async[F]): Http1ServerStage[F] =
-    if (enableWebSockets)
-      new Http1ServerStage(
-        routes,
-        attributes,
-        executionContext,
-        maxRequestLineLen,
-        maxHeadersLen,
-        chunkBufferMaxSize,
-        serviceErrorHandler,
-        responseHeaderTimeout,
-        idleTimeout,
-        scheduler,
-        dispatcher) with WebSocketSupport[F]
-    else
-      new Http1ServerStage(
-        routes,
-        attributes,
-        executionContext,
-        maxRequestLineLen,
-        maxHeadersLen,
-        chunkBufferMaxSize,
-        serviceErrorHandler,
-        responseHeaderTimeout,
-        idleTimeout,
-        scheduler,
-        dispatcher)
+    new Http1ServerStage(
+      routes,
+      attributes,
+      executionContext,
+      maxRequestLineLen,
+      maxHeadersLen,
+      chunkBufferMaxSize,
+      serviceErrorHandler,
+      responseHeaderTimeout,
+      idleTimeout,
+      scheduler,
+      dispatcher) with WebSocketSupport[F] {
+        val webSocketKey = wsKey
+      }
+
+
 }
 
 private[blaze] class Http1ServerStage[F[_]](
