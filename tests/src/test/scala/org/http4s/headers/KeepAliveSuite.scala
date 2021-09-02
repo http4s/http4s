@@ -23,11 +23,11 @@ class KeepAliveSuite extends HeaderLaws {
 
   checkAll("Keep-Alive", headerLaws[`Keep-Alive`])
 
-  test("invalid (empty) Keep-Alives should result in failure") { 
+  test("invalid (empty) Keep-Alives should result in failure") {
     assertEquals(
       `Keep-Alive`(None, None, List.empty),
       ParseResult.fail("Invalid Keep-Alive header", "All fields of Keep-Alive were empty")
-    )    
+    )
   }
 
   test("parse keep-alive with only timeout") {
@@ -54,18 +54,18 @@ class KeepAliveSuite extends HeaderLaws {
   test("parse keep-alive with timeout, max, and extensions with quoted string") {
     assertEquals(
       Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey="il""""),
-      `Keep-Alive`(Some(3), Some(33), List(("extKey", Some("il"))))
+      `Keep-Alive`(Some(3), Some(33), List(("extKey", Some(Right("il")))))
     )
   }
 
   test(
-    "parse keep-alive with timeout, max, and extensions with 3 keys some have values and does not") {
+    "parse keep-alive with timeout, max, and extensions with 3 keys (extKey as a token) some have values and one does not") {
     assertEquals(
-      Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey="il", nextKey="pi", thirdKey="""),
+      Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey=il, nextKey="pi", thirdKey="""),
       `Keep-Alive`(
         Some(3),
         Some(33),
-        List(("extKey", Some("il")), ("nextKey", Some("pi")), ("thirdKey", None)))
+        List(("extKey", Some(Left("il"))), ("nextKey", Some(Right("pi"))), ("thirdKey", None)))
     )
   }
 
