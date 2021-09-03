@@ -20,7 +20,7 @@ package middleware
 
 import cats.data.Kleisli
 import cats.syntax.all._
-import cats.{Applicative, Functor, Monad}
+import cats.{Applicative, Monad}
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.http4s.syntax.header._
@@ -304,22 +304,7 @@ sealed class CORSPolicy(
 ) {
   import CORSPolicy._
 
-  def apply[F[_]: Applicative, G[_]](http: Http[F, G]): Http[F, G] =
-    applicatively(http)
-
-  // Hack because httpRoutes and httpApp convenience constructors want this
-  private def applicatively[F[_]: Applicative, G[_]](http: Http[F, G]): Http[F, G] =
-    impl(http, Http.pure(Response(Status.Ok)))
-
-  @deprecated("Does not return 200 on preflight requests. Use the Applicative version", "0.21.28")
-  protected[CORSPolicy] def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
-    logger.warn(
-      "This CORSPolicy does not return 200 on preflight requests. It's kept for binary compatibility, but it's buggy. If you see this, upgrade to v0.23.3 or greater.")
-    impl(http, http)
-  }
-
-  def impl[F[_]: Functor, G[_]](http: Http[F, G], preflightResponder: Http[F, G]): Http[F, G] = {
-
+  def apply[F[_]: Applicative, G[_]](http: Http[F, G]): Http[F, G] = {
     val allowCredentialsHeader =
       allowCredentials match {
         case AllowCredentials.Allow =>
@@ -411,7 +396,7 @@ sealed class CORSPolicy(
                     case None =>
                       Set.empty[CIString]
                   }
-                  preflight(req, origin, acrm.method, headers)
+                  preflight(origin, acrm.method, headers)
                 case None =>
                   nonPreflight(req, origin)
               }
@@ -435,7 +420,7 @@ sealed class CORSPolicy(
         .map(varyHeader(req.method))
     }
 
-    def preflight(req: Request[G], origin: Origin, method: Method, headers: Set[CIString]) = {
+    def preflight(origin: Origin, method: Method, headers: Set[CIString]) = {
       val buff = List.newBuilder[Header.Raw]
       (allowOriginHeader(origin), allowMethodsHeader(method), allowHeadersHeader(headers)).mapN {
         case (allowOrigin, allowMethods, allowHeaders) =>
@@ -445,9 +430,8 @@ sealed class CORSPolicy(
           buff += allowHeaders
           maxAgeHeader.foreach(buff.+=)
       }
-      preflightResponder(req)
-        .map(_.putHeaders(buff.result().map(Header.ToRaw.rawToRaw): _*))
-        .map(varyHeader(Method.OPTIONS))
+      varyHeader(Method.OPTIONS)(
+        Response[G](Status.Ok, headers = Headers(buff.result().map(Header.ToRaw.rawToRaw)))).pure[F]
     }
 
     def nonCors(req: Request[G]) =
@@ -525,10 +509,10 @@ sealed class CORSPolicy(
   }
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    applicatively(httpRoutes)
+    apply(httpRoutes)
 
   def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
-    applicatively(httpApp)
+    apply(httpApp)
 
   private def copy(
       allowOrigin: AllowOrigin = allowOrigin,
