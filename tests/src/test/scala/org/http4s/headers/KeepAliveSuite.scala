@@ -54,7 +54,7 @@ class KeepAliveSuite extends HeaderLaws {
   test("parse keep-alive with timeout, max, and extensions with quoted string") {
     assertEquals(
       Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey="il""""),
-      `Keep-Alive`(Some(3), Some(33), List(("extKey", Some(Right("il")))))
+      `Keep-Alive`(Some(3), Some(33), List(("extKey", Some("il"))))
     )
   }
 
@@ -65,7 +65,7 @@ class KeepAliveSuite extends HeaderLaws {
       `Keep-Alive`(
         Some(3),
         Some(33),
-        List(("extKey", Some(Left("il"))), ("nextKey", Some(Right("pi"))), ("thirdKey", None)))
+        List(("extKey", Some("il")), ("nextKey", Some("pi")), ("thirdKey", None)))
     )
   }
 
