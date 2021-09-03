@@ -396,7 +396,7 @@ sealed class CORSPolicy(
                     case None =>
                       Set.empty[CIString]
                   }
-                  preflight(req, origin, acrm.method, headers)
+                  preflight(origin, acrm.method, headers)
                 case None =>
                   nonPreflight(req, origin)
               }
@@ -420,7 +420,7 @@ sealed class CORSPolicy(
         .map(varyHeader(req.method))
     }
 
-    def preflight(req: Request[G], origin: Origin, method: Method, headers: Set[CIString]) = {
+    def preflight(origin: Origin, method: Method, headers: Set[CIString]) = {
       val buff = List.newBuilder[Header.Raw]
       (allowOriginHeader(origin), allowMethodsHeader(method), allowHeadersHeader(headers)).mapN {
         case (allowOrigin, allowMethods, allowHeaders) =>
