@@ -34,29 +34,33 @@ private[http4s] trait EntityBodyWriter[F[_]] {
 
   /** Write a Chunk to the wire.
     *
-    * @param chunk BodyChunk to write to wire
-    * @return a future letting you know when its safe to continue
+    * @param chunk
+    *   BodyChunk to write to wire
+    * @return
+    *   a future letting you know when its safe to continue
     */
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit]
 
-  /** Write the ending chunk and, in chunked encoding, a trailer to the
-    * wire.
+  /** Write the ending chunk and, in chunked encoding, a trailer to the wire.
     *
-    * @param chunk BodyChunk to write to wire
-    * @return a future letting you know when its safe to continue (if `false`) or
-    * to close the connection (if `true`)
+    * @param chunk
+    *   BodyChunk to write to wire
+    * @return
+    *   a future letting you know when its safe to continue (if `false`) or to close the connection
+    *   (if `true`)
     */
   protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean]
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
   protected def exceptionFlush(): Future[Unit] = FutureUnit
 
-  /** Creates an effect that writes the contents of the EntityBody to the output.
-    * The writeBodyEnd triggers if there are no exceptions, and the result will
-    * be the result of the writeEnd call.
+  /** Creates an effect that writes the contents of the EntityBody to the output. The writeBodyEnd
+    * triggers if there are no exceptions, and the result will be the result of the writeEnd call.
     *
-    * @param p EntityBody to write out
-    * @return the Task which when run will unwind the Process
+    * @param p
+    *   EntityBody to write out
+    * @return
+    *   the Task which when run will unwind the Process
     */
   def writeEntityBody(p: EntityBody[F]): F[Boolean] = {
     val writeBody: F[Unit] = p.through(writePipe).compile.drain
@@ -64,10 +68,9 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     writeBody *> writeBodyEnd
   }
 
-  /** Writes each of the body chunks, if the write fails it returns
-    * the failed future which throws an error.
-    * If it errors the error stream becomes the stream, which performs an
-    * exception flush and then the stream fails.
+  /** Writes each of the body chunks, if the write fails it returns the failed future which throws
+    * an error. If it errors the error stream becomes the stream, which performs an exception flush
+    * and then the stream fails.
     */
   private def writePipe: Pipe[F, Byte, Unit] = { s =>
     val writeStream: Stream[F, Unit] =

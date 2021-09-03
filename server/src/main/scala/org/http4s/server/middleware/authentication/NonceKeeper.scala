@@ -31,10 +31,11 @@ private[authentication] object NonceKeeper {
 
 /** A thread-safe class used to manage a database of nonces.
   *
-  * @param staleTimeout Amount of time (in milliseconds) after which a nonce
-  *                     is considered stale (i.e. not used for authentication
-  *                     purposes anymore).
-  * @param bits The number of random bits a nonce should consist of.
+  * @param staleTimeout
+  *   Amount of time (in milliseconds) after which a nonce is considered stale (i.e. not used for
+  *   authentication purposes anymore).
+  * @param bits
+  *   The number of random bits a nonce should consist of.
   */
 private[authentication] class NonceKeeper(
     staleTimeout: Long,
@@ -44,8 +45,8 @@ private[authentication] class NonceKeeper(
   private val nonces = new LinkedHashMap[String, Nonce]
   private var lastCleanup = System.currentTimeMillis()
 
-  /** Removes nonces that are older than staleTimeout
-    * Note: this _MUST_ be executed inside a block synchronized on `nonces`
+  /** Removes nonces that are older than staleTimeout Note: this _MUST_ be executed inside a block
+    * synchronized on `nonces`
     */
   private def checkStale() = {
     val d = System.currentTimeMillis()
@@ -66,7 +67,8 @@ private[authentication] class NonceKeeper(
   }
 
   /** Get a fresh nonce in form of a {@link String}.
-    * @return A fresh nonce.
+    * @return
+    *   A fresh nonce.
     */
   def newNonce(): String = {
     var n: Nonce = null
@@ -78,12 +80,14 @@ private[authentication] class NonceKeeper(
     n.data
   }
 
-  /** Checks if the nonce {@link data} is known and the {@link nc} value is
-    * correct. If this is so, the nc value associated with the nonce is increased
-    * and the appropriate status is returned.
-    * @param data The nonce.
-    * @param nc The nonce counter.
-    * @return A reply indicating the status of (data, nc).
+  /** Checks if the nonce {@link data} is known and the {@link nc} value is correct. If this is so,
+    * the nc value associated with the nonce is increased and the appropriate status is returned.
+    * @param data
+    *   The nonce.
+    * @param nc
+    *   The nonce counter.
+    * @return
+    *   A reply indicating the status of (data, nc).
     */
   def receiveNonce(data: String, nc: Int): NonceKeeper.Reply =
     nonces.synchronized {

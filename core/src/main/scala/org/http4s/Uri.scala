@@ -31,11 +31,16 @@ import scala.reflect.macros.whitebox
 
 /** Representation of the [[Request]] URI
   *
-  * @param scheme     optional Uri Scheme. eg, http, https
-  * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
-  * @param path       url-encoded string representation of the path component of the Uri.
-  * @param query      optional Query. url-encoded.
-  * @param fragment   optional Uri Fragment. url-encoded.
+  * @param scheme
+  *   optional Uri Scheme. eg, http, https
+  * @param authority
+  *   optional Uri Authority. eg, localhost:8080, www.foo.bar
+  * @param path
+  *   url-encoded string representation of the path component of the Uri.
+  * @param query
+  *   optional Query. url-encoded.
+  * @param fragment
+  *   optional Uri Fragment. url-encoded.
   */
 // TODO fix Location header, add unit tests
 final case class Uri(
@@ -49,7 +54,8 @@ final case class Uri(
   import Uri._
 
   /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
-    * @param path the path string to replace
+    * @param path
+    *   the path string to replace
     */
   def withPath(path: Path): Uri = copy(path = path)
 
@@ -59,8 +65,10 @@ final case class Uri(
 
   /** Urlencodes and adds a path segment to the Uri
     *
-    * @param newSegment the segment to add.
-    * @return a new uri with the segment added to the path
+    * @param newSegment
+    *   the segment to add.
+    * @return
+    *   a new uri with the segment added to the path
     */
   def addSegment(newSegment: Path): Uri = copy(path = toSegment(path, newSegment))
 
@@ -68,10 +76,12 @@ final case class Uri(
     */
   def /(newSegment: Path): Uri = addSegment(newSegment)
 
-  /** Splits the path segments and adds each of them to the path url-encoded.
-    * A segment is delimited by /
-    * @param morePath the path to add
-    * @return a new uri with the segments added to the path
+  /** Splits the path segments and adds each of them to the path url-encoded. A segment is delimited
+    * by /
+    * @param morePath
+    *   the path to add
+    * @return
+    *   a new uri with the segments added to the path
     */
   def addPath(morePath: Path): Uri =
     copy(path = morePath.split("/").foldLeft(path)((p, segment) => toSegment(p, segment)))
@@ -84,22 +94,20 @@ final case class Uri(
 
   /** Representation of the query string as a map
     *
-    * In case a parameter is available in query string but no value is there the
-    * sequence will be empty. If the value is empty the the sequence contains an
-    * empty string.
+    * In case a parameter is available in query string but no value is there the sequence will be
+    * empty. If the value is empty the the sequence contains an empty string.
     *
     * =====Examples=====
-    * <table>
-    * <tr><th>Query String</th><th>Map</th></tr>
+    * <table> <tr><th>Query String</th><th>Map</th></tr>
     * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
     * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
     * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
     * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
-    * </table>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" ->
+    * Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr> </table>
     *
-    * The query string is lazily parsed. If an error occurs during parsing
-    * an empty `Map` is returned.
+    * The query string is lazily parsed. If an error occurs during parsing an empty `Map` is
+    * returned.
     */
   def multiParams: Map[String, immutable.Seq[String]] = query.multiParams
 
@@ -107,7 +115,8 @@ final case class Uri(
     *
     * In case a parameter has no value the map returns an empty string.
     *
-    * @see multiParams
+    * @see
+    *   multiParams
     */
   def params: Map[String, String] = query.params
 
@@ -172,12 +181,12 @@ final case class Uri(
     newPath
   }
 
-  /** Converts this request to origin-form, which is the absolute path and optional
-    * query.  If the path is relative, it is assumed to be relative to the root.
+  /** Converts this request to origin-form, which is the absolute path and optional query. If the
+    * path is relative, it is assumed to be relative to the root.
     */
   def toOriginForm: Uri =
     if (path.startsWith("/")) Uri(path = path, query = query)
-    else Uri(path = s"/${path}", query = query)
+    else Uri(path = s"/$path", query = query)
 }
 
 object Uri {
@@ -209,11 +218,10 @@ object Uri {
       .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid URI", e.format(s)))
 
-  /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
-    *  fails, throws a [[ParseFailure]].
+  /** Parses a String to a [[Uri]] according to RFC 3986. If decoding fails, throws a
+    * [[ParseFailure]].
     *
-    *  For totality, call [[#fromString]].  For compile-time
-    *  verification of literals, call [[#uri]].
+    * For totality, call [[#fromString]]. For compile-time verification of literals, call [[#uri]].
     */
   def unsafeFromString(s: String): Uri =
     fromString(s).valueOr(throw _)
@@ -224,13 +232,14 @@ object Uri {
       .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
 
-  /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a
-    * specification for assigning identifiers within that scheme.
+  /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a specification for assigning
+    * identifiers within that scheme.
     *
-    * If the scheme is defined, the URI is absolute.  If the scheme is
-    * not defined, the URI is a relative reference.
+    * If the scheme is defined, the URI is absolute. If the scheme is not defined, the URI is a
+    * relative reference.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
+    * @see
+    *   [[https://tools.ietf.org/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
   final class Scheme private (val value: String) extends Ordered[Scheme] {
     override def equals(o: Any) =
@@ -340,19 +349,19 @@ object Uri {
       }
   }
 
-  /** The userinfo subcomponent may consist of a user name and,
-    * optionally, scheme-specific information about how to gain
-    * authorization to access the resource.  The user information, if
-    * present, is followed by a commercial at-sign ("@") that delimits
-    * it from the host.
+  /** The userinfo subcomponent may consist of a user name and, optionally, scheme-specific
+    * information about how to gain authorization to access the resource. The user information, if
+    * present, is followed by a commercial at-sign ("@") that delimits it from the host.
     *
-    * @param username The username component, decoded.
+    * @param username
+    *   The username component, decoded.
     *
-    * @param password The password, decoded.  Passing a password in
-    * clear text in a URI is a security risk and deprecated by RFC
-    * 3986, but preserved in this model for losslessness.
+    * @param password
+    *   The password, decoded. Passing a password in clear text in a URI is a security risk and
+    *   deprecated by RFC 3986, but preserved in this model for losslessness.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
+    * @see
+    *   [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
   final case class UserInfo private (username: String, password: Option[String])
       extends Ordered[UserInfo] {
@@ -526,7 +535,7 @@ object Uri {
         case Array(a, b, c, d) =>
           Right(Ipv4Address(a, b, c, d))
         case _ =>
-          Left(ParseFailure("Invalid Ipv4Address", s"Byte array not exactly four bytes: ${bytes}"))
+          Left(ParseFailure("Invalid Ipv4Address", s"Byte array not exactly four bytes: $bytes"))
       }
 
     def fromInet4Address(address: Inet4Address): Ipv4Address =
@@ -534,7 +543,7 @@ object Uri {
         case Array(a, b, c, d) =>
           Ipv4Address(a, b, c, d)
         case array =>
-          throw bug(s"Inet4Address.getAddress not exactly four bytes: ${array}")
+          throw bug(s"Inet4Address.getAddress not exactly four bytes: $array")
       }
 
     private[http4s] trait Parser { self: PbParser with IpParser =>

@@ -24,10 +24,9 @@ import scala.collection.immutable.BitSet
 import scala.collection.mutable.Builder
 import scala.io.Codec
 
-/** Split an encoded query string into unencoded key value pairs
-  * It always assumes any input is a  valid query, including "".
-  * If "" should be interpreted as no query that __MUST__ be
-  * checked beforehand.
+/** Split an encoded query string into unencoded key value pairs It always assumes any input is a
+  * valid query, including "". If "" should be interpreted as no query that __MUST__ be checked
+  * beforehand.
   */
 private[http4s] class QueryParser(
     codec: Codec,
@@ -35,14 +34,12 @@ private[http4s] class QueryParser(
     qChars: BitSet = QueryParser.ExtendedQChars) {
   import QueryParser._
 
-  /** Decodes the input into key value pairs.
-    * `flush` signals that this is the last input
+  /** Decodes the input into key value pairs. `flush` signals that this is the last input
     */
   def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] =
     decodeVector(input, flush).map(Query.fromVector)
 
-  /** Decodes the input into key value pairs.
-    * `flush` signals that this is the last input
+  /** Decodes the input into key value pairs. `flush` signals that this is the last input
     */
   def decodeVector(input: CharBuffer, flush: Boolean): ParseResult[Vector[Query.KeyValue]] = {
     val acc: Builder[Query.KeyValue, Vector[Query.KeyValue]] = Vector.newBuilder
@@ -142,14 +139,12 @@ private[http4s] object QueryParser {
   private case object KEY extends State
   private case object VALUE extends State
 
-  /** Defines the characters that are allowed unquoted within a query string as
-    * defined in RFC 3986
+  /** Defines the characters that are allowed unquoted within a query string as defined in RFC 3986
     */
   val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq: _*)
 
-  /** PHP also includes square brackets ([ and ]) with query strings. This goes
-    * against the spec but due to PHP's widespread adoption it is necessary to
-    * support this extension.
+  /** PHP also includes square brackets ([ and ]) with query strings. This goes against the spec but
+    * due to PHP's widespread adoption it is necessary to support this extension.
     */
   val ExtendedQChars = QChars ++ ("[]".map(_.toInt).toSet)
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet

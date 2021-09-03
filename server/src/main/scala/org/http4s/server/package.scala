@@ -82,15 +82,20 @@ package object server {
       Key.newKey[IO, Option[SecureSession]].unsafeRunSync()
   }
 
-  /** A middleware is a function of one [[Service]] to another, possibly of a
-    * different [[Request]] and [[Response]] type.  http4s comes with several
-    * middlewares for composing common functionality into services.
+  /** A middleware is a function of one [[Service]] to another, possibly of a different [[Request]]
+    * and [[Response]] type. http4s comes with several middlewares for composing common
+    * functionality into services.
     *
-    * @tparam F the effect type of the services
-    * @tparam A the request type of the original service
-    * @tparam B the response type of the original service
-    * @tparam C the request type of the resulting service
-    * @tparam D the response type of the resulting service
+    * @tparam F
+    *   the effect type of the services
+    * @tparam A
+    *   the request type of the original service
+    * @tparam B
+    *   the response type of the original service
+    * @tparam C
+    *   the request type of the resulting service
+    * @tparam D
+    *   the response type of the resulting service
     */
   type Middleware[F[_], A, B, C, D] = Kleisli[F, A, B] => Kleisli[F, C, D]
 

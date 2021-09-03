@@ -86,15 +86,13 @@ object MultipartParser {
 
   /** Split a chunk in the case of a complete match:
     *
-    * If it is a chunk that is between a partial match
-    * (middleChunked), consider the prior partial match
-    * as part of the data to emit.
+    * If it is a chunk that is between a partial match (middleChunked), consider the prior partial
+    * match as part of the data to emit.
     *
-    * If it is a fully matched, fresh chunk (no carry over partial match),
-    * emit everything until the match, and everything after the match.
+    * If it is a fully matched, fresh chunk (no carry over partial match), emit everything until the
+    * match, and everything after the match.
     *
-    * If it is the continuation of a partial match,
-    * emit everything after the partial match.
+    * If it is the continuation of a partial match, emit everything after the partial match.
     */
   private def splitCompleteMatch[F[_]](
       middleChunked: Boolean,
@@ -120,9 +118,8 @@ object MultipartParser {
 
   /** Split a chunk in the case of a partial match:
     *
-    * DO NOT USE. Was made private[http4s] because
-    * Jose messed up hard like 5 patches ago and now it breaks bincompat to
-    * remove.
+    * DO NOT USE. Was made private[http4s] because Jose messed up hard like 5 patches ago and now it
+    * breaks bincompat to remove.
     */
   private def splitPartialMatch[F[_]](
       middleChunked: Boolean,
@@ -140,18 +137,15 @@ object MultipartParser {
       (currState, acc, carry ++ Stream.chunk(c))
   }
 
-  /** Split a chunk as part of either a left or right
-    * stream depending on the byte sequence in `values`.
+  /** Split a chunk as part of either a left or right stream depending on the byte sequence in
+    * `values`.
     *
-    * `state` represents the current counter position
-    * for `values`, which is necessary to keep track of in the
-    * case of partial matches.
+    * `state` represents the current counter position for `values`, which is necessary to keep track
+    * of in the case of partial matches.
     *
-    * `acc` holds the cumulative left stream values,
-    * and `carry` holds the values that may possibly
-    * be the byte sequence. As such, carry is re-emitted if it was an
-    * incomplete match, or ignored (as such excluding the sequence
-    * from the subsequent split stream).
+    * `acc` holds the cumulative left stream values, and `carry` holds the values that may possibly
+    * be the byte sequence. As such, carry is re-emitted if it was an incomplete match, or ignored
+    * (as such excluding the sequence from the subsequent split stream).
     */
   @nowarn("cat=unused")
   private[http4s] def splitOnChunk[F[_]: Sync](
@@ -188,8 +182,7 @@ object MultipartParser {
 
   /** The first part of our streaming stages:
     *
-    * Ignore the prelude and remove the first boundary. Only traverses until the first
-    * part
+    * Ignore the prelude and remove the first boundary. Only traverses until the first part
     */
   private[this] def ignorePrelude[F[_]: Sync](
       b: Boundary,
@@ -269,12 +262,11 @@ object MultipartParser {
         }
       }
 
-  /** Split a stream in half based on `values`,
-    * but check if it is either double dash terminated (end of multipart).
-    * SplitOrFinish also tracks a header limit size
+  /** Split a stream in half based on `values`, but check if it is either double dash terminated
+    * (end of multipart). SplitOrFinish also tracks a header limit size
     *
-    * If it is, drain the epilogue and return the empty stream. if it is not,
-    * split on the `values` and raise an error if we lack a match
+    * If it is, drain the epilogue and return the empty stream. if it is not, split on the `values`
+    * and raise an error if we lack a match
     */
   private def splitOrFinish[F[_]: Sync](
       values: Array[Byte],
@@ -373,8 +365,7 @@ object MultipartParser {
     }
   }
 
-  /** Take the stream of headers separated by
-    * double CRLF bytes and return the headers
+  /** Take the stream of headers separated by double CRLF bytes and return the headers
     */
   private def parseHeaders[F[_]: Sync](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
@@ -401,9 +392,8 @@ object MultipartParser {
       .fold(Headers.empty)(_ ++ _)
   }
 
-  /** Spit our `Stream[F, Byte]` into two halves.
-    * If we reach the end and the state is 0 (meaning we didn't match at all),
-    * then we return the concatenated parts of the stream.
+  /** Spit our `Stream[F, Byte]` into two halves. If we reach the end and the state is 0 (meaning we
+    * didn't match at all), then we return the concatenated parts of the stream.
     *
     * This method _always_ caps
     */
@@ -438,15 +428,13 @@ object MultipartParser {
 
   /** Split a chunk in the case of a complete match:
     *
-    * If it is a chunk that is between a partial match
-    * (middleChunked), consider the prior partial match
-    * as part of the data to emit.
+    * If it is a chunk that is between a partial match (middleChunked), consider the prior partial
+    * match as part of the data to emit.
     *
-    * If it is a fully matched, fresh chunk (no carry over partial match),
-    * emit everything until the match, and everything after the match.
+    * If it is a fully matched, fresh chunk (no carry over partial match), emit everything until the
+    * match, and everything after the match.
     *
-    * If it is the continuation of a partial match,
-    * emit everything after the partial match.
+    * If it is the continuation of a partial match, emit everything after the partial match.
     */
   private def splitCompleteLimited[F[_]](
       state: Int,
@@ -474,17 +462,13 @@ object MultipartParser {
 
   /** Split a chunk in the case of a partial match:
     *
-    * If it is a chunk that is between a partial match
-    * (middle chunked), the prior partial match is added to
-    * the accumulator, and the current partial match is
-    * considered to carry over.
+    * If it is a chunk that is between a partial match (middle chunked), the prior partial match is
+    * added to the accumulator, and the current partial match is considered to carry over.
     *
-    * If it is a fresh chunk (no carry over partial match),
-    * everything prior to the partial match is added to the accumulator,
-    * and the partial match is considered the carry over.
+    * If it is a fresh chunk (no carry over partial match), everything prior to the partial match is
+    * added to the accumulator, and the partial match is considered the carry over.
     *
-    * Else, if the whole block is a partial match,
-    * add it to the carry over
+    * Else, if the whole block is a partial match, add it to the carry over
     */
   @nowarn("cat=unused")
   private[http4s] def splitPartialLimited[F[_]: Sync](
@@ -546,8 +530,7 @@ object MultipartParser {
   // File writing encoder
   ///////////////////////////////////////////////////////////
 
-  /** Same as the other streamed parsing, except
-    * after a particular size, it buffers on a File.
+  /** Same as the other streamed parsing, except after a particular size, it buffers on a File.
     */
   def parseStreamedFile[F[_]: Sync: ContextShift](
       boundary: Boundary,
@@ -587,8 +570,7 @@ object MultipartParser {
 
   /** The first part of our streaming stages:
     *
-    * Ignore the prelude and remove the first boundary. Only traverses until the first
-    * part
+    * Ignore the prelude and remove the first boundary. Only traverses until the first part
     */
   private[this] def ignorePreludeFileStream[F[_]: Sync: ContextShift](
       b: Boundary,

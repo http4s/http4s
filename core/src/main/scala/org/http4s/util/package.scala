@@ -78,7 +78,9 @@ package object util {
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
 
-  /** Constructs an assertion error with a reference back to our issue tracker. Use only with head hung low. */
+  /** Constructs an assertion error with a reference back to our issue tracker. Use only with head
+    * hung low.
+    */
   @deprecated("For internal use only. Will be removed from public API.", "0.20.22")
   def bug(message: String): AssertionError = org.http4s.internal.bug(message)
 

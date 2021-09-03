@@ -26,7 +26,8 @@ import org.http4s.util._
 
 /** An HTTP version, as seen on the start line of an HTTP request or response.
   *
-  * @see [[http://tools.ietf.org/html/rfc7230#section-2.6 RFC 7320, Section 2.6, Protocol Versioning]]
+  * @see
+  *   [[http://tools.ietf.org/html/rfc7230#section-2.6 RFC 7320, Section 2.6, Protocol Versioning]]
   */
 final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
     extends Renderable

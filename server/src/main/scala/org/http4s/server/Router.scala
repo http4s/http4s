@@ -25,13 +25,14 @@ import scala.annotation.nowarn
 object Router {
 
   /** Defines an [[HttpRoutes]] based on list of mappings.
-    * @see define
+    * @see
+    *   define
     */
   def apply[F[_]: Monad](mappings: (String, HttpRoutes[F])*): HttpRoutes[F] =
     define(mappings: _*)(HttpRoutes.empty[F])
 
-  /** Defines an [[HttpRoutes]] based on list of mappings and
-    * a default Service to be used when none in the list match incomming requests.
+  /** Defines an [[HttpRoutes]] based on list of mappings and a default Service to be used when none
+    * in the list match incomming requests.
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */

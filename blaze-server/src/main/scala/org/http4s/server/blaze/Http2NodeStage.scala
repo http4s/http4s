@@ -28,7 +28,7 @@ import org.http4s.{Headers => HHeaders, Method => HMethod}
 import org.http4s.Header.Raw
 import org.http4s.blaze.http.{HeaderNames, Headers}
 import org.http4s.blaze.http.http2._
-import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.pipeline.{Command => Cmd, TailStage}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.{End, Http2Writer}

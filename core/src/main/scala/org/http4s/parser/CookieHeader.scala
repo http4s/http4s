@@ -91,7 +91,7 @@ private[parser] trait CookieHeader {
           } |
           StringValue ~> { (cookie: ResponseCookie, stringValue: String) =>
             val ext0 = cookie.extension match {
-              case Some(extension) => s"${extension}; $stringValue"
+              case Some(extension) => s"$extension; $stringValue"
               case scala.None => stringValue
             }
             cookie.copy(extension = Some(ext0))

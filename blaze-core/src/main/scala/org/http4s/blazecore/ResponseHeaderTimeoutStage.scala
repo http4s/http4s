@@ -18,7 +18,7 @@ package org.http4s
 package blazecore
 
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.{AtomicReference}
+import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
 import org.log4s.getLogger
@@ -68,7 +68,7 @@ final private[http4s] class ResponseHeaderTimeoutStage[A](
 
   override def stageStartup(): Unit = {
     super.stageStartup()
-    logger.debug(s"Starting response header timeout stage with timeout of ${timeout}")
+    logger.debug(s"Starting response header timeout stage with timeout of $timeout")
   }
 
   def init(cb: Callback[TimeoutException]): Unit = {

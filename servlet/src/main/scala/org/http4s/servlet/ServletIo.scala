@@ -41,8 +41,8 @@ sealed abstract class ServletIo[F[_]: Async] {
 
 /** Use standard blocking reads and writes.
   *
-  * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
-  * require a larger request thread pool for the same load.
+  * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to require a
+  * larger request thread pool for the same load.
   */
 final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, blocker: Blocker)
     extends ServletIo[F] {
@@ -68,12 +68,12 @@ final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, b
   }
 }
 
-/** Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.
+/** Use non-blocking reads and writes. Available only on containers that support Servlet 3.1.
   *
-  * This can support more concurrent connections on a smaller request thread pool than [[BlockingServletIo]],
-  * but consumes more CPU per request.  It is also known to cause IllegalStateExceptions in the logs
-  * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
-  * operationally annoying.
+  * This can support more concurrent connections on a smaller request thread pool than
+  * [[BlockingServletIo]], but consumes more CPU per request. It is also known to cause
+  * IllegalStateExceptions in the logs under high load up through at least Tomcat 8.0.15. These
+  * appear to be harmless, but are operationally annoying.
   */
 final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
   private[this] val logger = getLogger

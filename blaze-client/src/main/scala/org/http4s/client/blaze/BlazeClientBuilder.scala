@@ -35,8 +35,8 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import java.net.InetSocketAddress
 
-/** @param sslContext Some custom `SSLContext`, or `None` if the
-  * default SSL context is to be lazily instantiated.
+/** @param sslContext
+  *   Some custom `SSLContext`, or `None` if the default SSL context is to be lazily instantiated.
   */
 sealed abstract class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
@@ -203,7 +203,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withDefaultSslContext: BlazeClientBuilder[F] =
     withSslContext(SSLContext.getDefault())
 
-  /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None` */
+  /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None`
+    */
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext = sslContext)
 
@@ -341,8 +342,10 @@ object BlazeClientBuilder {
 
   /** Creates a BlazeClientBuilder
     *
-    * @param executionContext the ExecutionContext for blaze's internal Futures
-    * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
+    * @param executionContext
+    *   the ExecutionContext for blaze's internal Futures
+    * @param sslContext
+    *   Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
     */
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
