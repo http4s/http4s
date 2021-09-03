@@ -298,7 +298,7 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
   .jsSettings(
     libraryDependencies ++= Seq(
       scalaJavaLocalesEnUS.value,
-      scalaJavaTime.value,
+      scalaJavaTime.value
     ),
     scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") }
   )
@@ -444,8 +444,10 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency")
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency")
     ),
     Test / parallelExecution := false
   )
@@ -469,7 +471,8 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
     startYear := Some(2019),
     libraryDependencies += keypool.value,
     mimaBinaryIssueFilters := Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.this")
     )
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
@@ -779,8 +782,8 @@ lazy val docs = http4sProject("docs", CrossType.Full, List(JVMPlatform))
     fatalWarningsInCI := false,
     Hugo / baseURL := {
       val docsPrefix = extractDocsPrefix(version.value)
-      if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
+      if (isCi.value) new URI(s"https://http4s.org$docsPrefix")
+      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}$docsPrefix")
     },
     siteMappings := {
       val docsPrefix = extractDocsPrefix(version.value)
@@ -795,8 +798,7 @@ lazy val docs = http4sProject("docs", CrossType.Full, List(JVMPlatform))
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
         def accept(f: File) =
-          f.getCanonicalPath.startsWith(
-            (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
+          f.getCanonicalPath.startsWith((ghpagesRepository.value / s"$docsPrefix").getCanonicalPath)
       }
     },
     apiMappings ++= {

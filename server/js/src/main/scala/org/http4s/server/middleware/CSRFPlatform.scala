@@ -49,17 +49,15 @@ private[middleware] trait CSRFPlatform[F[_], G[_]] { self: CSRF[F, G] =>
       byteArray
     }
 
-  /** Sign our token using the current time in milliseconds as a nonce
-    * Signing and generating a token is potentially a unsafe operation
-    * if constructed with a bad key.
+  /** Sign our token using the current time in milliseconds as a nonce Signing and generating a
+    * token is potentially a unsafe operation if constructed with a bad key.
     */
   def signToken[M[_]](rawToken: String)(implicit F: Async[M]): M[CSRFToken] = {
     val joined = rawToken + "-" + clock.millis().toString()
     signTokenNonce(joined).map(ba => lift(joined + "-" + encodeHexString(ba)))
   }
 
-  /** Decode our CSRF token, check the signature
-    * and extract the original token string to sign
+  /** Decode our CSRF token, check the signature and extract the original token string to sign
     */
   def extractRaw[M[_]](rawToken: String)(implicit F: Async[M]): M[Either[CSRFCheckFailed, String]] =
     rawToken.split("-") match {
@@ -107,15 +105,13 @@ private[middleware] trait CSRFSingletonPlatform { self: CSRF.type =>
       }
     }.map(_.asInstanceOf[SecretKey])
 
-  /** Build a new HMACSHA1 Key for our CSRF Middleware
-    * from key bytes. This operation is unsafe, in that
-    * any amount less than 20 bytes will throw an exception when loaded
-    * into `Mac`. Any keys larger than 64 bytes are just hashed.
+  /** Build a new HMACSHA1 Key for our CSRF Middleware from key bytes. This operation is unsafe, in
+    * that any amount less than 20 bytes will throw an exception when loaded into `Mac`. Any keys
+    * larger than 64 bytes are just hashed.
     *
     * For more information, refer to: https://tools.ietf.org/html/rfc2104#section-3
     *
-    * Use for loading a key from a config file, after having generated
-    * one safely
+    * Use for loading a key from a config file, after having generated one safely
     */
   def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Async[F]): F[SecretKey] =
     F.fromPromise {

@@ -18,7 +18,7 @@ package org.http4s
 package bench
 
 import cats.syntax.all._
-import java.nio.charset.{UnsupportedCharsetException, Charset => NioCharset}
+import java.nio.charset.{Charset => NioCharset, UnsupportedCharsetException}
 import java.util.{HashMap, Locale}
 import java.util.concurrent.TimeUnit
 import org.http4s.internal.CollectionCompat.CollectionConverters._

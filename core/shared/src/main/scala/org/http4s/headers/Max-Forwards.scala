@@ -20,9 +20,8 @@ package headers
 import org.http4s.parser.AdditionalRules
 import org.typelevel.ci._
 
-/** Request header, used with the TRACE and OPTION request methods,
-  * that gives an upper bound on how many times the request can be
-  * forwarded by a proxy before it is rejected.
+/** Request header, used with the TRACE and OPTION request methods, that gives an upper bound on how
+  * many times the request can be forwarded by a proxy before it is rejected.
   *
   * [[https://tools.ietf.org/html/rfc7231#section-5.1.2 RFC-7231]]
   */

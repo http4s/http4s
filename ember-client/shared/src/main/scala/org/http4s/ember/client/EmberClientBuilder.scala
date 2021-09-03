@@ -31,7 +31,7 @@ import fs2.io.net.tls._
 import fs2.io.net.Network
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{`User-Agent`}
+import org.http4s.headers.`User-Agent`
 import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.client.middleware.Retry
@@ -137,7 +137,7 @@ final class EmberClientBuilder[F[_]: Async] private (
                     checkEndpointIdentification,
                     sg,
                     additionalSocketOptions
-                  )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+                  )) <* logger.trace(s"Created Connection - RequestKey: $requestKey"),
             { case connection =>
               logger.trace(
                 s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>

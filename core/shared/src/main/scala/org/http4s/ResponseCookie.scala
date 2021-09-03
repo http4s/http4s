@@ -31,9 +31,9 @@ import java.time.{DateTimeException, ZoneOffset, ZonedDateTime}
 import org.http4s.internal.parsing.{Rfc1034, Rfc2616, Rfc6265}
 import org.http4s.util.{Renderable, Writer}
 
-/** @param extension The extension attributes of the cookie.  If there is more
-  * than one, they are joined by semi-colon, which must not appear in an
-  * attribute value.
+/** @param extension
+  *   The extension attributes of the cookie. If there is more than one, they are joined by
+  *   semi-colon, which must not appear in an attribute value.
   */
 final case class ResponseCookie(
     name: String,

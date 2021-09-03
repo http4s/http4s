@@ -115,8 +115,8 @@ trait CirceInstances extends JawnInstances {
 
   /** An [[EntityDecoder]] that uses circe's accumulating decoder for decoding the JSON.
     *
-    * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
-    * a [[DecodingFailures]] exception, from which the errors can be extracted.
+    * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing a
+    * [[DecodingFailures]] exception, from which the errors can be extracted.
     */
   def accumulatingJsonOf[F[_], A](implicit
       F: Concurrent[F],
@@ -153,7 +153,9 @@ trait CirceInstances extends JawnInstances {
       DecodeResult.successT(media.body.chunks.through(unwrapJsonArray))
     }
 
-  /** An [[EntityEncoder]] for a [[fs2.Stream]] of JSONs, which will encode it as a single JSON array. */
+  /** An [[EntityEncoder]] for a [[fs2.Stream]] of JSONs, which will encode it as a single JSON
+    * array.
+    */
   def streamJsonArrayEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Stream[F, Json]] =
     EntityEncoder
       .streamEncoder[F, Chunk[Byte]]
@@ -165,7 +167,9 @@ trait CirceInstances extends JawnInstances {
   def streamJsonArrayEncoderOf[F[_], A: Encoder]: EntityEncoder[F, Stream[F, A]] =
     streamJsonArrayEncoderWithPrinterOf(defaultPrinter)
 
-  /** An [[EntityEncoder]] for a [[fs2.Stream]] of values, which will encode it as a single JSON array. */
+  /** An [[EntityEncoder]] for a [[fs2.Stream]] of values, which will encode it as a single JSON
+    * array.
+    */
   def streamJsonArrayEncoderWithPrinterOf[F[_], A](printer: Printer)(implicit
       encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
     streamJsonArrayEncoderWithPrinter[F](printer).contramap[Stream[F, A]](_.map(encoder.apply))

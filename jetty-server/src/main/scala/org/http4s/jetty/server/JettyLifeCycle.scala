@@ -25,16 +25,14 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListe
 private[jetty] object JettyLifeCycle {
 
   /** Wrap a Jetty [[org.eclipse.jetty.util.component.LifeCycle]] value in a
-    * [[cats.effect.Resource]]. This calls
-    * [[org.eclipse.jetty.util.component.LifeCycle#start]] on startup and
-    * waits for the component to emit an event stating it is started, failing
-    * if it is already started (or starting). On release
-    * [[org.eclipse.jetty.util.component.LifeCycle#stop]] is called.
+    * [[cats.effect.Resource]]. This calls [[org.eclipse.jetty.util.component.LifeCycle#start]] on
+    * startup and waits for the component to emit an event stating it is started, failing if it is
+    * already started (or starting). On release [[org.eclipse.jetty.util.component.LifeCycle#stop]]
+    * is called.
     *
-    * @note If `A` is _also_ a subtype of
-    *       [[org.eclipse.jetty.util.component.Destroyable]] then
-    *       [[org.eclipse.jetty.util.component.Destroyable#destroy]] will also
-    *       be invoked.
+    * @note
+    *   If `A` is _also_ a subtype of [[org.eclipse.jetty.util.component.Destroyable]] then
+    *   [[org.eclipse.jetty.util.component.Destroyable#destroy]] will also be invoked.
     */
   def lifeCycleAsResource[F[_], A <: LifeCycle](
       fa: F[A]
@@ -50,10 +48,10 @@ private[jetty] object JettyLifeCycle {
 
   /** Attempt to invoke [[org.eclipse.jetty.util.component.LifeCycle#stop]] on a
     * [[org.eclipse.jetty.util.component.LifeCycle]]. If the
-    * [[org.eclipse.jetty.util.component.LifeCycle]] is already stopped then
-    * this method will return immediately. This can be valid in some cases
-    * where a [[org.eclipse.jetty.util.component.LifeCycle]] is stopped
-    * internally, e.g. due to some internal error occurring.
+    * [[org.eclipse.jetty.util.component.LifeCycle]] is already stopped then this method will return
+    * immediately. This can be valid in some cases where a
+    * [[org.eclipse.jetty.util.component.LifeCycle]] is stopped internally, e.g. due to some
+    * internal error occurring.
     */
   private[this] def stopLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
     F.async_[Unit] { cb =>
@@ -92,8 +90,8 @@ private[jetty] object JettyLifeCycle {
   /** Attempt to [[org.eclipse.jetty.util.component.LifeCycle#start]] on a
     * [[org.eclipse.jetty.util.component.LifeCycle]].
     *
-    * If the [[org.eclipse.jetty.util.component.LifeCycle]] is already started
-    * (or starting) this will fail.
+    * If the [[org.eclipse.jetty.util.component.LifeCycle]] is already started (or starting) this
+    * will fail.
     */
   private[this] def startLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
     F.async_[Unit] { cb =>

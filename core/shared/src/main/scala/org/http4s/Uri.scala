@@ -29,7 +29,7 @@ package org.http4s
 import cats.{Eval, Hash, Order, Show}
 import cats.data.NonEmptyList
 import cats.kernel.Semigroup
-import cats.parse.{Parser0, Parser => P}
+import cats.parse.{Parser => P, Parser0}
 import cats.syntax.all._
 import com.comcast.ip4s
 import java.nio.{ByteBuffer, CharBuffer}
@@ -44,11 +44,16 @@ import scala.math.Ordered
 
 /** Representation of the [[Request]] URI
   *
-  * @param scheme     optional Uri Scheme. eg, http, https
-  * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
-  * @param path       url-encoded string representation of the path component of the Uri.
-  * @param query      optional Query. url-encoded.
-  * @param fragment   optional Uri Fragment. url-encoded.
+  * @param scheme
+  *   optional Uri Scheme. eg, http, https
+  * @param authority
+  *   optional Uri Authority. eg, localhost:8080, www.foo.bar
+  * @param path
+  *   url-encoded string representation of the path component of the Uri.
+  * @param query
+  *   optional Query. url-encoded.
+  * @param fragment
+  *   optional Uri Fragment. url-encoded.
   */
 final case class Uri(
     scheme: Option[Uri.Scheme] = None,
@@ -60,7 +65,8 @@ final case class Uri(
     with Renderable {
 
   /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
-    * @param path the path string to replace
+    * @param path
+    *   the path string to replace
     */
   @deprecated("Use {withPath(Uri.Path)} instead", "0.22.0-M1")
   def withPath(path: String): Uri = copy(path = Uri.Path.unsafeFromString(path))
@@ -73,8 +79,10 @@ final case class Uri(
 
   /** Urlencodes and adds a path segment to the Uri
     *
-    * @param newSegment the segment to add.
-    * @return a new uri with the segment added to the path
+    * @param newSegment
+    *   the segment to add.
+    * @return
+    *   a new uri with the segment added to the path
     */
   def addSegment(newSegment: String): Uri = copy(path = toSegment(path, newSegment))
 
@@ -82,10 +90,12 @@ final case class Uri(
     */
   def /(newSegment: String): Uri = addSegment(newSegment)
 
-  /** Splits the path segments and adds each of them to the path url-encoded.
-    * A segment is delimited by /
-    * @param morePath the path to add
-    * @return a new uri with the segments added to the path
+  /** Splits the path segments and adds each of them to the path url-encoded. A segment is delimited
+    * by /
+    * @param morePath
+    *   the path to add
+    * @return
+    *   a new uri with the segments added to the path
     */
   def addPath(morePath: String): Uri =
     copy(path = morePath.split("/").foldLeft(path)((p, segment) => toSegment(p, segment)))
@@ -98,22 +108,20 @@ final case class Uri(
 
   /** Representation of the query string as a map
     *
-    * In case a parameter is available in query string but no value is there the
-    * sequence will be empty. If the value is empty the the sequence contains an
-    * empty string.
+    * In case a parameter is available in query string but no value is there the sequence will be
+    * empty. If the value is empty the the sequence contains an empty string.
     *
     * =====Examples=====
-    * <table>
-    * <tr><th>Query String</th><th>Map</th></tr>
+    * <table> <tr><th>Query String</th><th>Map</th></tr>
     * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
     * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
     * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
     * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
-    * </table>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" ->
+    * Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr> </table>
     *
-    * The query string is lazily parsed. If an error occurs during parsing
-    * an empty `Map` is returned.
+    * The query string is lazily parsed. If an error occurs during parsing an empty `Map` is
+    * returned.
     */
   def multiParams: Map[String, immutable.Seq[String]] = query.multiParams
 
@@ -121,7 +129,8 @@ final case class Uri(
     *
     * In case a parameter has no value the map returns an empty string.
     *
-    * @see multiParams
+    * @see
+    *   multiParams
     */
   def params: Map[String, String] = query.params
 
@@ -175,8 +184,8 @@ final case class Uri(
   private def toSegment(path: Uri.Path, newSegment: String): Uri.Path =
     path / Uri.Path.Segment(newSegment)
 
-  /** Converts this request to origin-form, which is the absolute path and optional
-    * query.  If the path is relative, it is assumed to be relative to the root.
+  /** Converts this request to origin-form, which is the absolute path and optional query. If the
+    * path is relative, it is assumed to be relative to the root.
     */
   def toOriginForm: Uri =
     Uri(path = path.toAbsolute, query = query)
@@ -188,11 +197,10 @@ object Uri extends UriPlatform {
   def fromString(s: String): ParseResult[Uri] =
     ParseResult.fromParser(Parser.uriReferenceUtf8, "Invalid URI")(s)
 
-  /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
-    *  fails, throws a [[ParseFailure]].
+  /** Parses a String to a [[Uri]] according to RFC 3986. If decoding fails, throws a
+    * [[ParseFailure]].
     *
-    *  For totality, call [[#fromString]].  For compile-time
-    *  verification of literals, call [[#uri]].
+    * For totality, call [[#fromString]]. For compile-time verification of literals, call [[#uri]].
     */
   def unsafeFromString(s: String): Uri =
     fromString(s).valueOr(throw _)
@@ -201,13 +209,14 @@ object Uri extends UriPlatform {
   def requestTarget(s: String): ParseResult[Uri] =
     ParseResult.fromParser(Parser.requestTargetParser, "Invalid request target")(s)
 
-  /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a
-    * specification for assigning identifiers within that scheme.
+  /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a specification for assigning
+    * identifiers within that scheme.
     *
-    * If the scheme is defined, the URI is absolute.  If the scheme is
-    * not defined, the URI is a relative reference.
+    * If the scheme is defined, the URI is absolute. If the scheme is not defined, the URI is a
+    * relative reference.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
+    * @see
+    *   [[https://tools.ietf.org/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
   final class Scheme private[http4s] (val value: String) extends Ordered[Scheme] {
     override def equals(o: Any) =
@@ -420,13 +429,17 @@ object Uri extends UriPlatform {
         }
     }
 
-    /** This constructor allows you to construct the path directly.
-      * Each path segment needs to be encoded for it to be used here.
+    /** This constructor allows you to construct the path directly. Each path segment needs to be
+      * encoded for it to be used here.
       *
-      * @param segments the segments that this path consists of. MUST be Urlencoded.
-      * @param absolute if the path is absolute. I.E starts with a "/"
-      * @param endsWithSlash if the path is a "directory", ends with a "/"
-      * @return a Uri.Path that can be used in Uri, or by itself.
+      * @param segments
+      *   the segments that this path consists of. MUST be Urlencoded.
+      * @param absolute
+      *   if the path is absolute. I.E starts with a "/"
+      * @param endsWithSlash
+      *   if the path is a "directory", ends with a "/"
+      * @return
+      *   a Uri.Path that can be used in Uri, or by itself.
       */
     def apply(
         segments: Vector[Segment],
@@ -474,19 +487,19 @@ object Uri extends UriPlatform {
 
   }
 
-  /** The userinfo subcomponent may consist of a user name and,
-    * optionally, scheme-specific information about how to gain
-    * authorization to access the resource.  The user information, if
-    * present, is followed by a commercial at-sign ("@") that delimits
-    * it from the host.
+  /** The userinfo subcomponent may consist of a user name and, optionally, scheme-specific
+    * information about how to gain authorization to access the resource. The user information, if
+    * present, is followed by a commercial at-sign ("@") that delimits it from the host.
     *
-    * @param username The username component, decoded.
+    * @param username
+    *   The username component, decoded.
     *
-    * @param password The password, decoded.  Passing a password in
-    * clear text in a URI is a security risk and deprecated by RFC
-    * 3986, but preserved in this model for losslessness.
+    * @param password
+    *   The password, decoded. Passing a password in clear text in a URI is a security risk and
+    *   deprecated by RFC 3986, but preserved in this model for losslessness.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
+    * @see
+    *   [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
   final case class UserInfo private (username: String, password: Option[String])
       extends Ordered[UserInfo] {
@@ -559,9 +572,8 @@ object Uri extends UriPlatform {
 
     /** Create a [[Host]] value from an [[com.comcast.ip4s.IpAddress]].
       *
-      * This is a convenience method for creating the correct host based on
-      * the underlying IP protocol version of the given address, either IPv4
-      * or IPv6.
+      * This is a convenience method for creating the correct host based on the underlying IP
+      * protocol version of the given address, either IPv4 or IPv6.
       */
     def fromIpAddress(value: ip4s.IpAddress): Host =
       value match {
@@ -641,7 +653,7 @@ object Uri extends UriPlatform {
         case Array(a, b, c, d) =>
           Right(fromBytes(a, b, c, d))
         case _ =>
-          Left(ParseFailure("Invalid Ipv4Address", s"Byte array not exactly four bytes: ${bytes}"))
+          Left(ParseFailure("Invalid Ipv4Address", s"Byte array not exactly four bytes: $bytes"))
       }
 
     def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Ipv4Address =
@@ -737,9 +749,8 @@ object Uri extends UriPlatform {
   final case class RegName(host: CIString) extends Host {
     def value: String = host.toString
 
-    /** Converts this registered name to a Hostname. In the spec, for
-      * generic schemes, a registered name need not be a valid host
-      * name. In HTTP practice, this conversion should succeed.
+    /** Converts this registered name to a Hostname. In the spec, for generic schemes, a registered
+      * name need not be a valid host name. In HTTP practice, this conversion should succeed.
       */
     def toHostname: Option[ip4s.Hostname] =
       ip4s.Hostname.fromString(host.toString)
@@ -781,8 +792,7 @@ object Uri extends UriPlatform {
     target.withPath(removeDotSegments(target.path))
   }
 
-  /** Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
-    * Adapted from"
+  /** Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4 Adapted from"
     * https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b08f570/norconex-commons-lang/src/main/java/com/norconex/commons/lang/url/URLNormalizer.java#L429
     */
   def removeDotSegments(path: Uri.Path): Uri.Path = {
@@ -869,17 +879,19 @@ object Uri extends UriPlatform {
 
   private[http4s] def Unreserved = UriCoding.Unreserved
 
-  /** Percent-encodes a string.  Depending on the parameters, this method is
-    * appropriate for URI or URL form encoding.  Any resulting percent-encodings
-    * are normalized to uppercase.
+  /** Percent-encodes a string. Depending on the parameters, this method is appropriate for URI or
+    * URL form encoding. Any resulting percent-encodings are normalized to uppercase.
     *
-    * @param toEncode the string to encode
-    * @param charset the charset to use for characters that are percent encoded
-    * @param spaceIsPlus if space is not skipped, determines whether it will be
-    * rendreed as a `"+"` or a percent-encoding according to `charset`.
-    * @param toSkip a predicate of characters exempt from encoding.  In typical
-    * use, this is composed of all Unreserved URI characters and sometimes a
-    * subset of Reserved URI characters.
+    * @param toEncode
+    *   the string to encode
+    * @param charset
+    *   the charset to use for characters that are percent encoded
+    * @param spaceIsPlus
+    *   if space is not skipped, determines whether it will be rendreed as a `"+"` or a
+    *   percent-encoding according to `charset`.
+    * @param toSkip
+    *   a predicate of characters exempt from encoding. In typical use, this is composed of all
+    *   Unreserved URI characters and sometimes a subset of Reserved URI characters.
     */
   def encode(
       toEncode: String,
@@ -899,11 +911,15 @@ object Uri extends UriPlatform {
 
   /** Percent-decodes a string.
     *
-    * @param toDecode the string to decode
-    * @param charset the charset of percent-encoded characters
-    * @param plusIsSpace true if `'+'` is to be interpreted as a `' '`
-    * @param toSkip a predicate of characters whose percent-encoded form
-    * is left percent-encoded.  Almost certainly should be left empty.
+    * @param toDecode
+    *   the string to decode
+    * @param charset
+    *   the charset of percent-encoded characters
+    * @param plusIsSpace
+    *   true if `'+'` is to be interpreted as a `' '`
+    * @param toSkip
+    *   a predicate of characters whose percent-encoded form is left percent-encoded. Almost
+    *   certainly should be left empty.
     */
   def decode(
       toDecode: String,
@@ -1231,9 +1247,9 @@ object Uri extends UriPlatform {
       import cats.parse.Parser.string
 
       P.oneOf0(
-        ((string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
+        (string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
           (Some(a), p)
-        }) :: (pathAbsolute.map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map(
+        } :: (pathAbsolute.map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map(
           (None, _))) :: Nil)
     }
 

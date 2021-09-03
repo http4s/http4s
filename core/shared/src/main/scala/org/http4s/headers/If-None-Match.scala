@@ -24,11 +24,11 @@ import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 
 /** {{{
-  *  The "If-None-Match" header field makes the request method conditional
-  *  on a recipient cache or origin server either not having any current
-  *  representation of the target resource, when the field-value is "*",
-  *  or having a selected representation with an entity-tag that does not
-  *  match any of those listed in the field-value.
+  *   The "If-None-Match" header field makes the request method conditional
+  *   on a recipient cache or origin server either not having any current
+  *   representation of the target resource, when the field-value is "*",
+  *   or having a selected representation with an entity-tag that does not
+  *   match any of those listed in the field-value.
   * }}}
   *
   * From [[https://tools.ietf.org/html/rfc7232#section-3.2 RFC-7232]]

@@ -111,7 +111,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
   def withOnError(onError: Throwable => Response[F]) =
-    withErrorHandler({ case e => onError(e).pure[F] })
+    withErrorHandler { case e => onError(e).pure[F] }
 
   def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
     copy(errorHandler = errorHandler)
@@ -160,7 +160,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       )
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
-      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
+      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: $bindAddress"))
     } yield new Server {
       val address = bindAddress
       val isSecure = tlsInfoOpt.isDefined
