@@ -89,9 +89,11 @@ private[http4s] trait ArbitraryInstances {
 
   val genQDText: Gen[String] = nonEmptyListOf(oneOf(allowedQDText)).map(_.mkString)
 
+  @deprecated("Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.", "0.22.5") 
   val genQuotedPair: Gen[String] =
     genChar.map(c => s"\\$c")
 
+  @deprecated("Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.", "0.22.5") 
   val genQuotedString: Gen[String] = oneOf(genQDText, genQuotedPair).map(s => s"""\"$s\"""")
 
   private val tchars =
@@ -941,8 +943,8 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
       val genExtension = for { 
         extName <- genToken
-        quotedStringEquivWithoutQuotes = oneOf(genQDText, genQuotedPair) //The string parsed out does not have quotes around it
-        extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes.map(s => Right(s)), genToken.map(s => Left(s))))
+        quotedStringEquivWithoutQuotes = genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
+        extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
       } yield (extName -> extValue)
 
       for {
