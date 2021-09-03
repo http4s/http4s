@@ -34,40 +34,39 @@ import cats.syntax.all._
   * scala> case class Bar(fs: List[Foo], f: Foo, d: Boolean)
   * scala>
   * scala> implicit val fooMapper: FormDataDecoder[Foo] = (
-  *      |   field[String]("a"),
-  *      |   field[Boolean]("b")
-  *      | ).mapN(Foo.apply)
+  *       |   field[String]("a"),
+  *       |   field[Boolean]("b")
+  *       | ).mapN(Foo.apply)
   * scala>
   * scala> val barMapper = (
-  *      |   list[Foo]("fs"),
-  *      |   nested[Foo]("f"),
-  *      |   field[Boolean]("d")
-  *      | ).mapN(Bar.apply)
+  *       |   list[Foo]("fs"),
+  *       |   nested[Foo]("f"),
+  *       |   field[Boolean]("d")
+  *       | ).mapN(Bar.apply)
   * scala>
   * scala> barMapper(
-  *      |   Map(
-  *      |    "fs[].a" -> Chain("a1", "a2"),
-  *      |    "fs[].b" -> Chain("true", "false"),
-  *      |    "f.a" -> Chain("fa"),
-  *      |    "f.b" -> Chain("false"),
-  *      |    "d" -> Chain("true"))
-  *      | )
+  *       |   Map(
+  *       |    "fs[].a" -> Chain("a1", "a2"),
+  *       |    "fs[].b" -> Chain("true", "false"),
+  *       |    "f.a" -> Chain("fa"),
+  *       |    "f.b" -> Chain("false"),
+  *       |    "d" -> Chain("true"))
+  *       | )
   * res1: ValidatedNel[ParseFailure, Bar] = Valid(Bar(List(Foo(a1,true), Foo(a2,false)),Foo(fa,false),true))
   *
   * }}}
   *
-  * The companion object provides a [[EntityDecoder]] from
-  * HTML form parameters.
+  * The companion object provides a [[EntityDecoder]] from HTML form parameters.
   * @example
   * {{{
   *   import org.http4s.FormDataDecoder.formEntityDecoder
   *   HttpRoutes
-  *    .of[F] {
-  *      case req @ POST -> Root =>
-  *        req.as[MyEntity].flatMap { entity =>
-  *          Ok()
-  *        }
-  *    }
+  *     .of[F] {
+  *       case req @ POST -> Root =>
+  *         req.as[MyEntity].flatMap { entity =>
+  *           Ok()
+  *         }
+  *     }
   * }}}
   *
   * For more examples, check the tests
@@ -148,16 +147,16 @@ object FormDataDecoder {
 
   def fieldOptional[A: QueryParamDecoder](key: String) = fieldEither(key).optional
 
-  /** For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
-    * E.g. For a field named "bar" inside a nested class under the field "foo",
-    * the parameter name is "foo.bar".
+  /** For nested, this decoder assumes that the form parameter name use "." as deliminator for
+    * levels. E.g. For a field named "bar" inside a nested class under the field "foo", the
+    * parameter name is "foo.bar".
     */
   def nested[A: FormDataDecoder](key: String): FormDataDecoder[A] =
     nestedEither(key).required
 
-  /** For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
-    * E.g. For a field named "bar" inside a nested class under the field "foo",
-    * the parameter name is "foo.bar".
+  /** For nested, this decoder assumes that the form parameter name use "." as deliminator for
+    * levels. E.g. For a field named "bar" inside a nested class under the field "foo", the
+    * parameter name is "foo.bar".
     */
   def nestedOptional[A: FormDataDecoder](key: String): FormDataDecoder[Option[A]] =
     nestedEither(key).optional
@@ -196,14 +195,14 @@ object FormDataDecoder {
         .traverse(d => A(d))
     )
 
-  /** For repeated nested values, assuming that the form parameter name use "[]." as a suffix
-    * E.g. "foos[].bar"
+  /** For repeated nested values, assuming that the form parameter name use "[]." as a suffix E.g.
+    * "foos[].bar"
     */
   def list[A: FormDataDecoder](key: String) =
     chain(key).map(_.toList)
 
-  /** For repeated primitive values, assuming that the form parameter name use "[]" as a suffix
-    * E.g. "foos[]"
+  /** For repeated primitive values, assuming that the form parameter name use "[]" as a suffix E.g.
+    * "foos[]"
     */
   def listOf[A](key: String)(implicit A: QueryParamDecoder[A]) =
     chainOf(key)(A).map(_.toList)

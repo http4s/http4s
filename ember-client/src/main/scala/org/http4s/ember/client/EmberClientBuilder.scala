@@ -146,7 +146,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                     checkEndpointIdentification,
                     sg,
                     additionalSocketOptions
-                  )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+                  )) <* logger.trace(s"Created Connection - RequestKey: $requestKey"),
             { case connection =>
               logger.trace(
                 s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>

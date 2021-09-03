@@ -638,7 +638,10 @@ private[http4s] trait ArbitraryInstances {
 
   private implicit def http4sTestingSemigroupForGen[T: Semigroup]: Semigroup[Gen[T]] =
     new Semigroup[Gen[T]] {
-      def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for { t1 <- g1; t2 <- g2 } yield t1 |+| t2
+      def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for {
+        t1 <- g1
+        t2 <- g2
+      } yield t1 |+| t2
     }
 
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =

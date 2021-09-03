@@ -17,7 +17,7 @@
 package org.http4s.client
 
 import cats.effect.{Resource, Sync}
-import java.net.{InetSocketAddress}
+import java.net.InetSocketAddress
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import javax.servlet.http.HttpServlet

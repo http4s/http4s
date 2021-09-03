@@ -46,8 +46,8 @@ package object oauth1 {
 
   /** Sign the request with an OAuth Authorization header
     *
-    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
-    *            will be entirely buffered due to signing requirements.
+    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies will be entirely
+    * buffered due to signing requirements.
     */
   @deprecated(
     "Preserved for binary compatibility - use the other `signRequest` function which passes a signature method",

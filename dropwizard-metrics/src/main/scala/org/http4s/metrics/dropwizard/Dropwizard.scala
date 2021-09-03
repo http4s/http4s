@@ -27,8 +27,8 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
 
 /** [[MetricsOps]] algebra capable of recording Dropwizard metrics
   *
-  * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a [[org.http4s.server.middleware.Metrics]]
-  * that records metrics to a given metric registry.
+  * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a
+  * [[org.http4s.server.middleware.Metrics]] that records metrics to a given metric registry.
   * {{{
   * import org.http4s.client.middleware.Metrics
   * import org.http4s.client.dropwizard.Dropwizard
@@ -36,8 +36,9 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
   * val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
   * }}}
   *
-  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.middleware.Metrics]]
-  * that records metrics to a given Metric Registry, classifying the metrics by HTTP method.
+  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a
+  * [[org.http4s.client.middleware.Metrics]] that records metrics to a given Metric Registry,
+  * classifying the metrics by HTTP method.
   * {{{
   * import org.http4s.client.metrics.core.Metrics
   * import org.http4s.client.metrics.dropwizard.Dropwizard
@@ -48,34 +49,26 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
   *
   * Registers the following metrics:
   *
-  * {prefix}.{classifier}.active.requests - Counter
-  * {prefix}.{classifier}.requests.headers - Timer
-  * {prefix}.{classifier}.requests.total - Timer
-  * {prefix}.{classifier}.get-requests - Timer
-  * {prefix}.{classifier}.post-requests - Timer
-  * {prefix}.{classifier}.put-requests - Timer
-  * {prefix}.{classifier}.head-requests - Timer
-  * {prefix}.{classifier}.move-requests - Timer
-  * {prefix}.{classifier}.options-requests - Timer
-  * {prefix}.{classifier}.trace-requests - Timer
-  * {prefix}.{classifier}.connect-requests - Timer
-  * {prefix}.{classifier}.delete-requests - Timer
-  * {prefix}.{classifier}.other-requests - Timer
-  * {prefix}.{classifier}.1xx-responses - Timer
-  * {prefix}.{classifier}.2xx-responses - Timer
-  * {prefix}.{classifier}.3xx-responses - Timer
-  * {prefix}.{classifier}.4xx-responses - Timer
-  * {prefix}.{classifier}.5xx-responses - Timer
-  * {prefix}.{classifier}.errors - Timer
-  * {prefix}.{classifier}.timeouts - Timer
+  * {prefix}.{classifier}.active.requests - Counter {prefix}.{classifier}.requests.headers - Timer
+  * {prefix}.{classifier}.requests.total - Timer {prefix}.{classifier}.get-requests - Timer
+  * {prefix}.{classifier}.post-requests - Timer {prefix}.{classifier}.put-requests - Timer
+  * {prefix}.{classifier}.head-requests - Timer {prefix}.{classifier}.move-requests - Timer
+  * {prefix}.{classifier}.options-requests - Timer {prefix}.{classifier}.trace-requests - Timer
+  * {prefix}.{classifier}.connect-requests - Timer {prefix}.{classifier}.delete-requests - Timer
+  * {prefix}.{classifier}.other-requests - Timer {prefix}.{classifier}.1xx-responses - Timer
+  * {prefix}.{classifier}.2xx-responses - Timer {prefix}.{classifier}.3xx-responses - Timer
+  * {prefix}.{classifier}.4xx-responses - Timer {prefix}.{classifier}.5xx-responses - Timer
+  * {prefix}.{classifier}.errors - Timer {prefix}.{classifier}.timeouts - Timer
   * {prefix}.{classifier}.abnormal-terminations - Timer
   */
 object Dropwizard {
 
   /** Creates a [[MetricsOps]] that supports Dropwizard metrics
     *
-    * @param registry a dropwizard metric registry
-    * @param prefix a prefix that will be added to all metrics
+    * @param registry
+    *   a dropwizard metric registry
+    * @param prefix
+    *   a prefix that will be added to all metrics
     */
   def apply[F[_]](registry: MetricRegistry, prefix: String = "org.http4s.server")(implicit
       F: Sync[F]): MetricsOps[F] =
@@ -155,7 +148,7 @@ object Dropwizard {
         }
 
       private def namespace(prefix: String, classifier: Option[String]): String =
-        classifier.map(d => s"${prefix}.${d}").getOrElse(s"${prefix}.default")
+        classifier.map(d => s"$prefix.$d").getOrElse(s"$prefix.default")
 
       private def registerStatusCode(status: Status, elapsed: Long, classifier: Option[String]) =
         (status.code match {

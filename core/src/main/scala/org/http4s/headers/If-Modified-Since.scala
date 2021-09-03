@@ -37,11 +37,9 @@ object `If-Modified-Since` {
 
 }
 
-/** {{
-  *   The "If-Modified-Since" header field makes a GET or HEAD request
-  *   method conditional on the selected representation's modification date
-  *   being more recent than the date provided in the field-value.
-  * }}
+/** {{ The "If-Modified-Since" header field makes a GET or HEAD request method conditional on the
+  * selected representation's modification date being more recent than the date provided in the
+  * field-value. }}
   *
   * [[https://tools.ietf.org/html/rfc7232#section-3.3 RFC-7232]]
   */

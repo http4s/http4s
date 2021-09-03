@@ -35,37 +35,43 @@ import org.http4s.Uri.Scheme
 import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 
-/** Middleware to avoid Cross-site request forgery attacks.
-  * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
+/** Middleware to avoid Cross-site request forgery attacks. More info on CSRF at:
+  * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
   *
   * This middleware is modeled after the double submit cookie pattern:
   * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#Double_Submit_Cookie
   *
-  * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.  (Alternatively,
-  * an authenticating service can be wrapped in `withNewToken`).
+  * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.
+  * (Alternatively, an authenticating service can be wrapped in `withNewToken`).
   *
-  * By default, for requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the `validated` method in the
-  * middleware will check that the csrf token is present in both the header `headerName` and the cookie `cookieName`.
-  * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
-  * custom header, resulting in a `403 Forbidden` response.
+  * By default, for requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the
+  * `validated` method in the middleware will check that the csrf token is present in both the
+  * header `headerName` and the cookie `cookieName`. Due to the Same-Origin policy, an attacker will
+  * be unable to reproduce this value in a custom header, resulting in a `403 Forbidden` response.
   *
-  * By default, requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
-  * or will receive a refreshed token based off of the previous token to mitigate the BREACH vulnerability. If a request
-  * contains an invalid token, regardless of whether it is a safe method, this middleware will fail it with
-  * `403 Forbidden`. In this situation, your user(s) should clear their cookies for your page, to receive a new
-  * token.
+  * By default, requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token
+  * embedded in them if there isn't one, or will receive a refreshed token based off of the previous
+  * token to mitigate the BREACH vulnerability. If a request contains an invalid token, regardless
+  * of whether it is a safe method, this middleware will fail it with `403 Forbidden`. In this
+  * situation, your user(s) should clear their cookies for your page, to receive a new token.
   *
-  * The default can be overridden by modifying the `predicate` in `validate`. It will, by default, check if the method is safe.
-  * Thus, you can provide some whitelisting capability for certain kinds of requests.
+  * The default can be overridden by modifying the `predicate` in `validate`. It will, by default,
+  * check if the method is safe. Thus, you can provide some whitelisting capability for certain
+  * kinds of requests.
   *
-  * We'd like to emphasize that you please follow proper design principles in creating endpoints, as to
-  * not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
-  * user data). Please do not use the CSRF protection from this middleware as a safety net for bad design.
+  * We'd like to emphasize that you please follow proper design principles in creating endpoints, as
+  * to not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET
+  * method, or altering user data). Please do not use the CSRF protection from this middleware as a
+  * safety net for bad design.
   *
-  * @param headerName your CSRF header name
-  * @param cookieSettings the CSRF cookie settings
-  * @param key the CSRF signing key
-  * @param clock clock used as a nonce
+  * @param headerName
+  *   your CSRF header name
+  * @param cookieSettings
+  *   the CSRF cookie settings
+  * @param key
+  *   the CSRF signing key
+  * @param clock
+  *   clock used as a nonce
   */
 final class CSRF[F[_], G[_]] private[middleware] (
     headerName: CIString,
@@ -81,9 +87,8 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
   private val csrfChecker: CSRFCheck[F, G] = csrfCheck(self)
 
-  /** Sign our token using the current time in milliseconds as a nonce
-    * Signing and generating a token is potentially a unsafe operation
-    * if constructed with a bad key.
+  /** Sign our token using the current time in milliseconds as a nonce Signing and generating a
+    * token is potentially a unsafe operation if constructed with a bad key.
     */
   def signToken[M[_]](rawToken: String)(implicit F: Sync[M]): M[CSRFToken] =
     F.delay {
@@ -100,7 +105,8 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
   /** Create a Response cookie from a signed CSRF token
     *
-    * @param token the signed csrf token
+    * @param token
+    *   the signed csrf token
     * @return
     */
   def createResponseCookie(token: CSRFToken): ResponseCookie =
@@ -120,9 +126,10 @@ final class CSRF[F[_], G[_]] private[middleware] (
   def createRequestCookie(token: CSRFToken): RequestCookie =
     RequestCookie(name = cookieSettings.cookieName, content = unlift(token))
 
-  /** Extract a `CsrfToken`, if present, from the request,
-    * then try to generate a new token signature, or fail with a validation error
-    * @return newly refreshed token
+  /** Extract a `CsrfToken`, if present, from the request, then try to generate a new token
+    * signature, or fail with a validation error
+    * @return
+    *   newly refreshed token
     */
   def refreshedToken[M[_]](r: Request[G])(implicit
       F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
@@ -134,10 +141,10 @@ final class CSRF[F[_], G[_]] private[middleware] (
         EitherT(F.pure(Left(CSRFCheckFailed)))
     }
 
-  /** Extract a `CsrfToken`, if present, from the request,
-    * then try generate a new token signature, or fail with a validation error.
-    * If not present, generate a new token
-    * @return newly refreshed token
+  /** Extract a `CsrfToken`, if present, from the request, then try generate a new token signature,
+    * or fail with a validation error. If not present, generate a new token
+    * @return
+    *   newly refreshed token
     */
   def refreshOrCreate[M[_]](r: Request[G])(implicit
       F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
@@ -149,8 +156,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
         EitherT.liftF(generateToken[M])
     }
 
-  /** Decode our CSRF token, check the signature
-    * and extract the original token string to sign
+  /** Decode our CSRF token, check the signature and extract the original token string to sign
     */
   def extractRaw(rawToken: String): Either[CSRFCheckFailed, String] =
     rawToken.split("-") match {
@@ -171,8 +177,8 @@ final class CSRF[F[_], G[_]] private[middleware] (
         Left(CSRFCheckFailed)
     }
 
-  /** To be only used on safe methods: if the method is safe (i.e doesn't modify data)
-    * and a token is present, validate and regenerate it for BREACH to be impractical
+  /** To be only used on safe methods: if the method is safe (i.e doesn't modify data) and a token
+    * is present, validate and regenerate it for BREACH to be impractical
     */
   private[middleware] def validate(r: Request[G], response: F[Response[G]])(implicit
       F: Sync[F]): F[Response[G]] =
@@ -194,8 +200,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
   /** Check for CSRF validity for an unsafe action.
     *
-    * Exposed to users in case of manual plumbing of csrf token
-    * (i.e websocket or query param)
+    * Exposed to users in case of manual plumbing of csrf token (i.e websocket or query param)
     */
   def checkCSRFToken(r: Request[G], respAction: F[Response[G]], rawToken: String)(implicit
       F: Sync[F]): F[Response[G]] =
@@ -218,14 +223,12 @@ final class CSRF[F[_], G[_]] private[middleware] (
   /** Check for CSRF validity for an unsafe action. */
   def checkCSRF(r: Request[G], http: F[Response[G]]): F[Response[G]] = csrfChecker(r, http)
 
-  /** Constructs a middleware that will check for the csrf token
-    * presence on both the proper cookie, and header values,
-    * if the predicate is not satisfied
+  /** Constructs a middleware that will check for the csrf token presence on both the proper cookie,
+    * and header values, if the predicate is not satisfied
     *
-    * If it is a valid token, it will then embed a new one,
-    * to effectively randomize the complete token while
-    * avoiding the generation of a new secure random Id, to guard
-    * against [BREACH](http://breachattack.com/)
+    * If it is a valid token, it will then embed a new one, to effectively randomize the complete
+    * token while avoiding the generation of a new secure random Id, to guard against
+    * [BREACH](http://breachattack.com/)
     */
   def validate(predicate: Request[G] => Boolean = _.method.isSafe)
       : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
@@ -461,12 +464,10 @@ object CSRF {
   val SHA1ByteLen: Int = 20
   val CSRFTokenLength: Int = 32
 
-  /** An instance of SecureRandom to generate
-    * tokens, properly seeded:
+  /** An instance of SecureRandom to generate tokens, properly seeded:
     * https://tersesystems.com/blog/2015/12/17/the-right-way-to-use-securerandom/
     *
-    * Note: The user is responsible for setting the proper
-    * SecureRandom use via jvm flags.
+    * Note: The user is responsible for setting the proper SecureRandom use via jvm flags.
     */
   private val InitialSeedArraySize: Int = 20
   private val CachedRandom: SecureRandom = {
@@ -508,15 +509,13 @@ object CSRF {
   def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[SecretKey] =
     F.delay(KeyGenerator.getInstance(SigningAlgo).generateKey())
 
-  /** Build a new HMACSHA1 Key for our CSRF Middleware
-    * from key bytes. This operation is unsafe, in that
-    * any amount less than 20 bytes will throw an exception when loaded
-    * into `Mac`. Any keys larger than 64 bytes are just hashed.
+  /** Build a new HMACSHA1 Key for our CSRF Middleware from key bytes. This operation is unsafe, in
+    * that any amount less than 20 bytes will throw an exception when loaded into `Mac`. Any keys
+    * larger than 64 bytes are just hashed.
     *
     * For more information, refer to: https://tools.ietf.org/html/rfc2104#section-3
     *
-    * Use for loading a key from a config file, after having generated
-    * one safely
+    * Use for loading a key from a config file, after having generated one safely
     */
   def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[SecretKey] =
     F.delay(new SecretKeySpec(array, SigningAlgo))

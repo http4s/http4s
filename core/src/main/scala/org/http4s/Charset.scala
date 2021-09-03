@@ -11,7 +11,7 @@
 package org.http4s
 
 import cats._
-import java.nio.charset.{StandardCharsets, Charset => NioCharset}
+import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 import java.util.{HashMap, Locale}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.util._

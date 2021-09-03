@@ -19,8 +19,8 @@ package org.http4s.client
 import java.io.IOException
 import java.net.InetSocketAddress
 
-/** Indicates a failure to establish a client connection, preserving the request key
-  * that we tried to connect to.
+/** Indicates a failure to establish a client connection, preserving the request key that we tried
+  * to connect to.
   */
 class ConnectionFailure(
     val requestKey: RequestKey,

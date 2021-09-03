@@ -26,12 +26,12 @@ import fs2.io._
 import okhttp3.{
   Call,
   Callback,
-  OkHttpClient,
-  Protocol,
-  RequestBody,
   Headers => OKHeaders,
   MediaType => OKMediaType,
+  OkHttpClient,
+  Protocol,
   Request => OKRequest,
+  RequestBody,
   Response => OKResponse
 }
 import okio.BufferedSink
@@ -44,16 +44,18 @@ import scala.util.control.NonFatal
 
 /** A builder for [[org.http4s.client.Client]] with an OkHttp backend.
   *
-  * @define BLOCKINGEC an execution context onto which all blocking
-  * I/O operations will be shifted.
+  * @define BLOCKINGEC
+  *   an execution context onto which all blocking I/O operations will be shifted.
   *
-  * @define WHYNOSHUTDOWN It is assumed that the OkHttp client is
-  * passed to us as a Resource, or that the caller will shut it down, or
-  * that the caller is comfortable letting OkHttp's resources expire on
-  * their own.
+  * @define WHYNOSHUTDOWN
+  *   It is assumed that the OkHttp client is passed to us as a Resource, or that the caller will
+  *   shut it down, or that the caller is comfortable letting OkHttp's resources expire on their
+  *   own.
   *
-  * @param okHttpClient the underlying OkHttp client.
-  * @param blockingExecutionContext $BLOCKINGEC
+  * @param okHttpClient
+  *   the underlying OkHttp client.
+  * @param blockingExecutionContext
+  *   $BLOCKINGEC
   */
 sealed abstract class OkHttpBuilder[F[_]] private (
     val okHttpClient: OkHttpClient,
@@ -79,7 +81,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
   /** Creates the [[org.http4s.client.Client]]
     *
-    * The shutdown method on this client is a no-op.  $WHYNOSHUTDOWN
+    * The shutdown method on this client is a no-op. $WHYNOSHUTDOWN
     */
   def create: Client[F] = Client(run)
 
@@ -186,27 +188,29 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
 /** Builder for a [[org.http4s.client.Client]] with an OkHttp backend
   *
-  * @define BLOCKER a [[cats.effect.Blocker]] onto which all blocking
-  * I/O operations will be shifted.
+  * @define BLOCKER
+  *   a [[cats.effect.Blocker]] onto which all blocking I/O operations will be shifted.
   */
 object OkHttpBuilder {
   private[this] val logger = getLogger
 
   /** Creates a builder.
     *
-    * @param okHttpClient the underlying client.
-    * @param blocker $BLOCKER
+    * @param okHttpClient
+    *   the underlying client.
+    * @param blocker
+    *   $BLOCKER
     */
   def apply[F[_]: ConcurrentEffect: ContextShift](
       okHttpClient: OkHttpClient,
       blocker: Blocker): OkHttpBuilder[F] =
     new OkHttpBuilder[F](okHttpClient, blocker) {}
 
-  /** Create a builder with a default OkHttp client.  The builder is
-    * returned as a `Resource` so we shut down the OkHttp client that
-    * we create.
+  /** Create a builder with a default OkHttp client. The builder is returned as a `Resource` so we
+    * shut down the OkHttp client that we create.
     *
-    * @param blocker $BLOCKER
+    * @param blocker
+    *   $BLOCKER
     */
   def withDefaultClient[F[_]: ConcurrentEffect: ContextShift](
       blocker: Blocker): Resource[F, OkHttpBuilder[F]] =

@@ -29,10 +29,11 @@ object DestinationAttribute {
       client.run(req.withAttribute(Destination, destination))
     }
 
-  /** The returned function can be used as classifier function when creating the [[Metrics]] middleware, to use the destination
-    * attribute from the request as classifier.
+  /** The returned function can be used as classifier function when creating the [[Metrics]]
+    * middleware, to use the destination attribute from the request as classifier.
     *
-    * @return the classifier function
+    * @return
+    *   the classifier function
     */
   def getDestination[F[_]](): Request[F] => Option[String] = _.attributes.lookup(Destination)
 
