@@ -175,10 +175,9 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
     rule {
       // more loose than the spec which only allows 1 to max. 3 digits/zeros
       (capture(ch('0') ~ optional(ch('.') ~ oneOrMore(Digit))) ~>
-        (
-          org.http4s.QValue
-            .fromString(_)
-            .valueOr(e => throw e.copy(sanitized = "Invalid q-value")))) |
+        (org.http4s.QValue
+          .fromString(_)
+          .valueOr(e => throw e.copy(sanitized = "Invalid q-value")))) |
         (ch('1') ~ optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(org.http4s.QValue.One))
     }
 

@@ -43,9 +43,11 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
 
 /** Constructs an Age header.
   *
-  * The value of this field is a positive number of seconds (in decimal) with an estimate of the amount of time since the response
+  * The value of this field is a positive number of seconds (in decimal) with an estimate of the
+  * amount of time since the response
   *
-  * @param age age of the response
+  * @param age
+  *   age of the response
   */
 sealed abstract case class Age(age: Long) extends Header.Parsed {
   val key = Age

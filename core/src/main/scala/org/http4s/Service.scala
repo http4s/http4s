@@ -24,15 +24,14 @@ import cats.syntax.all._
 @deprecated("Deprecated in favor of Kleisli", "0.18")
 object Service {
 
-  /** Lifts a total function to a `Service`. The function is expected to handle
-    * all requests it is given.  If `f` is a `PartialFunction`, use `apply`
-    * instead.
+  /** Lifts a total function to a `Service`. The function is expected to handle all requests it is
+    * given. If `f` is a `PartialFunction`, use `apply` instead.
     */
   def lift[F[_], A, B](f: A => F[B]): Service[F, A, B] =
     Kleisli(f)
 
-  /** Lifts a partial function to an `Service`.  Responds with the
-    * zero of [B] for any request where `pf` is not defined.
+  /** Lifts a partial function to an `Service`. Responds with the zero of [B] for any request where
+    * `pf` is not defined.
     */
   def apply[F[_], A, B: Monoid](pf: PartialFunction[A, F[B]])(implicit
       F: Applicative[F]): Service[F, A, B] =
@@ -43,7 +42,7 @@ object Service {
   def const[F[_], A, B](b: F[B]): Service[F, A, B] =
     lift(_ => b)
 
-  /**  Lifts a value into a [[Service]].
+  /** Lifts a value into a [[Service]].
     */
   def constVal[F[_], A, B](b: => B)(implicit F: Sync[F]): Service[F, A, B] =
     lift(_ => F.delay(b))

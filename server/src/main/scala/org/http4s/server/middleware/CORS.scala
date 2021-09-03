@@ -28,8 +28,7 @@ import org.log4s.getLogger
 import scala.annotation.nowarn
 import scala.concurrent.duration._
 
-/** CORS middleware config options.
-  * You can give an instance of this class to the CORS middleware,
+/** CORS middleware config options. You can give an instance of this class to the CORS middleware,
   * to specify its behavior
   */
 @deprecated(
@@ -46,23 +45,24 @@ final case class CORSConfig(
     exposedHeaders: Option[Set[String]] = Set("*").some
 )
 
-/** Implements the CORS protocol.  The actual middleware is a [[CORSPolicy]],
-  * which can be obtained via [[#policy]].
+/** Implements the CORS protocol. The actual middleware is a [[CORSPolicy]], which can be obtained
+  * via [[#policy]].
   *
-  * @see [[CORSPolicy]]
-  * @see [[https://fetch.spec.whatwg.org/#http-cors-protocol CORS protocol specification]]
+  * @see
+  *   [[CORSPolicy]]
+  * @see
+  *   [[https://fetch.spec.whatwg.org/#http-cors-protocol CORS protocol specification]]
   */
 object CORS {
   private[CORS] val logger = getLogger
 
   /** The default CORS policy:
-    * - Sends `Access-Control-Allow-Origin: *`
-    * - Sends no `Access-Control-Allow-Credentials`
-    * - Sends no `Access-Control-Expose-Headers`
-    * - Sends `Access-Control-Allow-Methods: GET, HEAD, POST`
-    * - Reflects request's `Access-Control-Request-Headers` as
-    *   `Access-Control-Allow-Headers`
-    * - Sends no `Access-Control-Max-Age`
+    *   - Sends `Access-Control-Allow-Origin: *`
+    *   - Sends no `Access-Control-Allow-Credentials`
+    *   - Sends no `Access-Control-Expose-Headers`
+    *   - Sends `Access-Control-Allow-Methods: GET, HEAD, POST`
+    *   - Reflects request's `Access-Control-Request-Headers` as `Access-Control-Allow-Headers`
+    *   - Sends no `Access-Control-Max-Age`
     */
   val policy: CORSPolicy = new CORSPolicy(
     CORSPolicy.AllowOrigin.All,
@@ -85,10 +85,8 @@ object CORS {
   def DefaultCORSConfig =
     CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
 
-  /** CORS middleware
-    * This middleware provides clients with CORS information
-    * based on information in CORS config.
-    * Currently, you cannot make permissions depend on request details
+  /** CORS middleware This middleware provides clients with CORS information based on information in
+    * CORS config. Currently, you cannot make permissions depend on request details
     */
   @deprecated(
     "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.21.27.",
@@ -189,20 +187,17 @@ object CORS {
     apply(httpApp)
 }
 
-/** A middleware that applies the CORS protocol to any `Http` value.
-  * Obtain a reference to a `CORSPolicy` via the [[CORS]] object,
-  * which represents a default policy.
+/** A middleware that applies the CORS protocol to any `Http` value. Obtain a reference to a
+  * `CORSPolicy` via the [[CORS]] object, which represents a default policy.
   *
-  * Requests with an Origin header will receive the appropriate CORS
-  * headers.  More headers are available for "pre-flight" requests,
-  * those whose method is `OPTIONS` and has an
+  * Requests with an Origin header will receive the appropriate CORS headers. More headers are
+  * available for "pre-flight" requests, those whose method is `OPTIONS` and has an
   * `Access-Control-Request-Method` header.
   *
-  * Requests without the required headers, or requests that fail a
-  * CORS origin, method, or headers check are passed through to the
-  * underlying Http function, but do not receive any CORS headers in
-  * the response.  The user agent will then block sharing the resource
-  * across origins according to the CORS protocol.
+  * Requests without the required headers, or requests that fail a CORS origin, method, or headers
+  * check are passed through to the underlying Http function, but do not receive any CORS headers in
+  * the response. The user agent will then block sharing the resource across origins according to
+  * the CORS protocol.
   */
 sealed class CORSPolicy(
     allowOrigin: CORSPolicy.AllowOrigin,
@@ -445,34 +440,29 @@ sealed class CORSPolicy(
       maxAge
     )
 
-  /** Allow CORS requests from any origin with an
-    * `Access-Control-Allow-Origin` of `*`.
+  /** Allow CORS requests from any origin with an `Access-Control-Allow-Origin` of `*`.
     */
   def withAllowOriginAll: CORSPolicy =
     copy(AllowOrigin.All)
 
-  /** Allow requests from any origin matching the predicate `p`.  On
-    * matching requests, the request origin is reflected as the
-    * `Access-Control-Allow-Origin` header.
+  /** Allow requests from any origin matching the predicate `p`. On matching requests, the request
+    * origin is reflected as the `Access-Control-Allow-Origin` header.
     *
-    * The Origin header contains some arcane settings, like multiple
-    * origins, or a `null` origin. `withAllowOriginHost` is generally
-    * more convenient.
+    * The Origin header contains some arcane settings, like multiple origins, or a `null` origin.
+    * `withAllowOriginHost` is generally more convenient.
     */
   def withAllowOriginHeader(p: Origin => Boolean): CORSPolicy =
     copy(AllowOrigin.Match(p))
 
-  /** Allow requests from any origin host matching the predicate `p`.
-    * The origin host is the first value in the request's `Origin`
-    * header, if not `null` header, unless it is `null`.  Examples:
+  /** Allow requests from any origin host matching the predicate `p`. The origin host is the first
+    * value in the request's `Origin` header, if not `null` header, unless it is `null`. Examples:
     *
-    * - `Origin: http://www.example.com` => `http://www.example.com`
-    * - `Origin: http://www.example.com, http://example.net` =>
-    *   `http://www.example.com`
-    * - `Origin: null` => always false
+    *   - `Origin: http://www.example.com` => `http://www.example.com`
+    *   - `Origin: http://www.example.com, http://example.net` => `http://www.example.com`
+    *   - `Origin: null` => always false
     *
-    * A `Set[Origin.Host]` is often a good choice here, but a predicate is
-    * offered to support more advanced matching.
+    * A `Set[Origin.Host]` is often a good choice here, but a predicate is offered to support more
+    * advanced matching.
     */
   def withAllowOriginHost(p: Origin.Host => Boolean): CORSPolicy =
     withAllowOriginHeader(_ match {
@@ -480,122 +470,113 @@ sealed class CORSPolicy(
       case Origin.Null => false
     })
 
-  /** Allow requests from any origin host whose case-insensitive
-    * rendering matches predicate `p`.  A concession to the fact
-    * that constructing [[Origin.Host]] values is verbose.
+  /** Allow requests from any origin host whose case-insensitive rendering matches predicate `p`. A
+    * concession to the fact that constructing [[Origin.Host]] values is verbose.
     *
-    * @see [[#withAllowOriginHost]]
+    * @see
+    *   [[#withAllowOriginHost]]
     */
   def withAllowOriginHostCi(p: CIString => Boolean): CORSPolicy =
     withAllowOriginHost(p.compose(host => CIString(host.renderString)))
 
-  /** Allow cross-origin requests to be made on a user's behalf using their credentials (cookies, TLS client certificates, and HTTP authentication entries) .  Sends an `Access-Control-Allow-Credentials: *`
-    * on valid CORS requests if true, and omits the header if false.
+  /** Allow cross-origin requests to be made on a user's behalf using their credentials (cookies,
+    * TLS client certificates, and HTTP authentication entries) . Sends an
+    * `Access-Control-Allow-Credentials: *` on valid CORS requests if true, and omits the header if
+    * false.
     *
-    * For security purposes, it is an invalid per the Fetch Living Standard
-    * that defines CORS to set this to `true` when any origin is allowed.
+    * For security purposes, it is an invalid per the Fetch Living Standard that defines CORS to set
+    * this to `true` when any origin is allowed.
     */
   def withAllowCredentials(b: Boolean): CORSPolicy =
     copy(allowCredentials = if (b) AllowCredentials.Allow else AllowCredentials.Deny)
 
   /** Exposes all response headers to the origin.
     *
-    * Sends an `Access-Control-Expose-Headers: *` header on valid
-    * CORS non-preflight requests.
+    * Sends an `Access-Control-Expose-Headers: *` header on valid CORS non-preflight requests.
     */
   def withExposeHeadersAll: CORSPolicy =
     copy(exposeHeaders = ExposeHeaders.All)
 
-  /** Exposes specific response headers to the origin.  These are in
-    * addition to CORS-safelisted response headers.
+  /** Exposes specific response headers to the origin. These are in addition to CORS-safelisted
+    * response headers.
     *
-    * Sends an `Access-Control-Expose-Headers` header with names as
-    * a comma-delimited string on valid CORS non-preflight requests.
+    * Sends an `Access-Control-Expose-Headers` header with names as a comma-delimited string on
+    * valid CORS non-preflight requests.
     */
   def withExposeHeadersIn(names: Set[CIString]): CORSPolicy =
     copy(exposeHeaders = ExposeHeaders.In(names))
 
-  /** Exposes no response headers to the origin beyond the
-    * CORS-safelisted response headers.
+  /** Exposes no response headers to the origin beyond the CORS-safelisted response headers.
     *
-    * Sends an `Access-Control-Expose-Headers` header with names as
-    * a comma-delimited string on valid CORS non-preflight requests.
+    * Sends an `Access-Control-Expose-Headers` header with names as a comma-delimited string on
+    * valid CORS non-preflight requests.
     */
   def withExposeHeadersNone: CORSPolicy =
     copy(exposeHeaders = ExposeHeaders.None)
 
-  /** Allows CORS requests with any method if credentials are not
-    * allowed.  If credentials are allowed, allows requests with
-    * a literal method of `*`, which is almost certainly not what
-    * you mean, but per spec.
+  /** Allows CORS requests with any method if credentials are not allowed. If credentials are
+    * allowed, allows requests with a literal method of `*`, which is almost certainly not what you
+    * mean, but per spec.
     *
-    * Sends an `Access-Control-Allow-Headers: *` header on valid
-    * CORS preflight requests.
+    * Sends an `Access-Control-Allow-Headers: *` header on valid CORS preflight requests.
     */
   def withAllowMethodsAll: CORSPolicy =
     copy(allowMethods = AllowMethods.All)
 
-  /** Allows CORS requests with any of the specified methods
-    * allowed.
+  /** Allows CORS requests with any of the specified methods allowed.
     *
-    * Preflight requests must send a matching
-    * `Access-Control-Request-Method` header to receive a CORS
-    * response.
+    * Preflight requests must send a matching `Access-Control-Request-Method` header to receive a
+    * CORS response.
     *
-    * Sends an `Access-Control-Allow-Headers` header with the
-    * specified headers on valid CORS preflight requests.
+    * Sends an `Access-Control-Allow-Headers` header with the specified headers on valid CORS
+    * preflight requests.
     */
   def withAllowMethodsIn(methods: Set[Method]): CORSPolicy =
     copy(allowMethods = AllowMethods.In(methods))
 
-  /** Allows CORS requests with any headers if credentials are not
-    * allowed.  If credentials are allowed, allows requests with a
-    * literal header name of `*`, which is almost certainly not what
+  /** Allows CORS requests with any headers if credentials are not allowed. If credentials are
+    * allowed, allows requests with a literal header name of `*`, which is almost certainly not what
     * you mean, but per spec.
     *
-    * Sends an `Access-Control-Allow-Headers: *` header on valid
-    * CORS preflight requests.
+    * Sends an `Access-Control-Allow-Headers: *` header on valid CORS preflight requests.
     */
   def withAllowHeadersAll: CORSPolicy =
     copy(allowHeaders = AllowHeaders.All)
 
-  /** Allows CORS requests whose request headers are a subset of the
-    * headers enumerated here, or are CORS-safelisted.
+  /** Allows CORS requests whose request headers are a subset of the headers enumerated here, or are
+    * CORS-safelisted.
     *
-    * If preflight requests send an `Access-Control-Request-Headers`
-    * header, its value must be a subset of those passed here.
+    * If preflight requests send an `Access-Control-Request-Headers` header, its value must be a
+    * subset of those passed here.
     *
-    * Sends an `Access-Control-Allow-Headers` header with the
-    * specified headers on valid CORS preflight requests.
+    * Sends an `Access-Control-Allow-Headers` header with the specified headers on valid CORS
+    * preflight requests.
     */
   def withAllowHeadersIn(headers: Set[CIString]): CORSPolicy =
     copy(allowHeaders = AllowHeaders.In(headers))
 
-  /** Reflects the `Access-Control-Request-Headers` back as
-    * `Access-Control-Allow-Headers` on preflight requests. This is
-    * most useful when credentials are allowed and a wildcard for
+  /** Reflects the `Access-Control-Request-Headers` back as `Access-Control-Allow-Headers` on
+    * preflight requests. This is most useful when credentials are allowed and a wildcard for
     * `Access-Control-Allow-Headers` would be treated literally.
     *
-    * Sends an `Access-Control-Allow-Headers` header with the
-    * specified headers on valid CORS preflight requests.
+    * Sends an `Access-Control-Allow-Headers` header with the specified headers on valid CORS
+    * preflight requests.
     */
   def withAllowHeadersReflect: CORSPolicy =
     copy(allowHeaders = AllowHeaders.Reflect)
 
-  /** Sets the duration the results can be cached.  The duration is
-    * truncated to seconds.  A negative value results in a cache
-    * duration of zero.
+  /** Sets the duration the results can be cached. The duration is truncated to seconds. A negative
+    * value results in a cache duration of zero.
     *
-    * Sends an `Access-Control-Max-Age` header with the duration
-    * in seconds on preflight requests.
+    * Sends an `Access-Control-Max-Age` header with the duration in seconds on preflight requests.
     */
   def withMaxAge(duration: FiniteDuration): CORSPolicy =
     copy(maxAge =
       if (duration >= Duration.Zero) MaxAge.Some(duration.toSeconds)
       else MaxAge.Some(0L))
 
-  /** Sets the duration the results can be cached to the user agent's
-    * default. This suppresses the `Access-Control-Max-Age` header.
+  /** Sets the duration the results can be cached to the user agent's default. This suppresses the
+    * `Access-Control-Max-Age` header.
     */
   def withMaxAgeDefault: CORSPolicy =
     copy(maxAge = MaxAge.Default)

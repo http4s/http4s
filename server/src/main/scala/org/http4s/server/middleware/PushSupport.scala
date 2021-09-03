@@ -87,9 +87,12 @@ object PushSupport {
 
   /** Transform the route such that requests will gather pushed resources
     *
-    * @param routes HttpRoutes to transform
-    * @param verify method that determines if the location should be pushed
-    * @return      Transformed route
+    * @param routes
+    *   HttpRoutes to transform
+    * @param verify
+    *   method that determines if the location should be pushed
+    * @return
+    *   Transformed route
     */
   def apply[F[_]: Monad](
       routes: HttpRoutes[F],

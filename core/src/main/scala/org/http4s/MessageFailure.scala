@@ -40,10 +40,12 @@ trait MessageFailure extends RuntimeException {
 
 /** Indicates an error parsing an HTTP [[Message]].
   *
-  * @param sanitized May safely be displayed to a client to describe an error
-  *                  condition.  Should not echo any part of a Request.
-  * @param details Contains any relevant details omitted from the sanitized
-  *                version of the error.  This may freely echo a Request.
+  * @param sanitized
+  *   May safely be displayed to a client to describe an error condition. Should not echo any part
+  *   of a Request.
+  * @param details
+  *   Contains any relevant details omitted from the sanitized version of the error. This may freely
+  *   echo a Request.
   */
 final case class ParseFailure(sanitized: String, details: String)
     extends MessageFailure
@@ -81,8 +83,8 @@ object ParseResult {
     catsStdInstancesForEither[ParseFailure]
 }
 
-/** Indicates a problem decoding a [[Message]].  This may either be a problem with
-  * the entity headers or with the entity itself.
+/** Indicates a problem decoding a [[Message]]. This may either be a problem with the entity headers
+  * or with the entity itself.
   */
 trait DecodeFailure extends MessageFailure
 
@@ -138,7 +140,8 @@ final case class MediaTypeMissing(expected: Set[MediaRange]) extends Unsupported
   def message: String = responseMsg
 }
 
-/** Indicates that no [[EntityDecoder]] matches the [[MediaType]] of the [[Message]] being decoded */
+/** Indicates that no [[EntityDecoder]] matches the [[MediaType]] of the [[Message]] being decoded
+  */
 final case class MediaTypeMismatch(messageType: MediaType, expected: Set[MediaRange])
     extends UnsupportedMediaTypeFailure {
   def sanitizedResponsePrefix: String =

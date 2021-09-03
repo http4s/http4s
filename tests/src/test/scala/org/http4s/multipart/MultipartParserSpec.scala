@@ -73,7 +73,7 @@ object MultipartParserSpec extends Specification {
       partsPipe: Boundary => Pipe[IO, Byte, Part[IO]]): Fragment = {
     s"form streaming parsing for $testName" should {
       Fragments.foreach(List(1, 2, 3, 5, 8, 13, 21, 987)) { chunkSize =>
-        s"produce the body from a single part with chunk size ${chunkSize}" in {
+        s"produce the body from a single part with chunk size $chunkSize" in {
           val unprocessedInput =
             """
               |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI

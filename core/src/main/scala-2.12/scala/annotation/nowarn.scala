@@ -16,7 +16,6 @@
 
 package scala.annotation
 
-/** Shims Scala 2.13.2's `@nowarn` so it compiles on Scala 2.12.
-  * Silencer has rudimentary support.
+/** Shims Scala 2.13.2's `@nowarn` so it compiles on Scala 2.12. Silencer has rudimentary support.
   */
 class nowarn(val value: String = "") extends StaticAnnotation

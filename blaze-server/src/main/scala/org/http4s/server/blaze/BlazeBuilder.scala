@@ -30,33 +30,41 @@ import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-/** BlazeBuilder is the component for the builder pattern aggregating
-  * different components to finally serve requests.
+/** BlazeBuilder is the component for the builder pattern aggregating different components to
+  * finally serve requests.
   *
   * Variables:
-  * @param socketAddress: Socket Address the server will be mounted at
-  * @param executionContext: Execution Context the underlying blaze futures
-  *    will be executed upon.
-  * @param idleTimeout: Period of Time a connection can remain idle before the
-  *    connection is timed out and disconnected.
-  *    Duration.Inf disables this feature.
-  * @param isNio2: Whether or not to use NIO2 or NIO1 Socket Server Group
-  * @param connectorPoolSize: Number of worker threads for the new Socket Server Group
-  * @param bufferSize: Buffer size to use for IO operations
-  * @param enableWebsockets: Enables Websocket Support
-  * @param sslBits: If defined enables secure communication to the server using the
-  *    sslContext
-  * @param isHttp2Enabled: Whether or not to enable Http2 Server Features
-  * @param maxRequestLineLength: Maximum request line to parse
-  *    If exceeded returns a 400 Bad Request.
-  * @param maxHeadersLen: Maximum data that composes the headers.
-  *    If exceeded returns a 400 Bad Request.
-  * @param serviceMounts: The services that are mounted on this server to serve.
-  *    These services get assembled into a Router with the longer prefix winning.
-  * @param serviceErrorHandler: The last resort to recover and generate a response
-  *    this is necessary to recover totality from the error condition.
-  * @param banner: Pretty log to display on server start. An empty sequence
-  *    such as Nil disables this
+  * @param socketAddress:
+  *   Socket Address the server will be mounted at
+  * @param executionContext:
+  *   Execution Context the underlying blaze futures will be executed upon.
+  * @param idleTimeout:
+  *   Period of Time a connection can remain idle before the connection is timed out and
+  *   disconnected. Duration.Inf disables this feature.
+  * @param isNio2:
+  *   Whether or not to use NIO2 or NIO1 Socket Server Group
+  * @param connectorPoolSize:
+  *   Number of worker threads for the new Socket Server Group
+  * @param bufferSize:
+  *   Buffer size to use for IO operations
+  * @param enableWebsockets:
+  *   Enables Websocket Support
+  * @param sslBits:
+  *   If defined enables secure communication to the server using the sslContext
+  * @param isHttp2Enabled:
+  *   Whether or not to enable Http2 Server Features
+  * @param maxRequestLineLength:
+  *   Maximum request line to parse If exceeded returns a 400 Bad Request.
+  * @param maxHeadersLen:
+  *   Maximum data that composes the headers. If exceeded returns a 400 Bad Request.
+  * @param serviceMounts:
+  *   The services that are mounted on this server to serve. These services get assembled into a
+  *   Router with the longer prefix winning.
+  * @param serviceErrorHandler:
+  *   The last resort to recover and generate a response this is necessary to recover totality from
+  *   the error condition.
+  * @param banner:
+  *   Pretty log to display on server start. An empty sequence such as Nil disables this
   */
 @deprecated("Use BlazeServerBuilder instead", "0.19.0-M2")
 class BlazeBuilder[F[_]](
@@ -113,11 +121,12 @@ class BlazeBuilder[F[_]](
 
   /** Configure HTTP parser length limits
     *
-    * These are to avoid denial of service attacks due to,
-    * for example, an infinite request line.
+    * These are to avoid denial of service attacks due to, for example, an infinite request line.
     *
-    * @param maxRequestLineLen maximum request line to parse
-    * @param maxHeadersLen maximum data that compose headers
+    * @param maxRequestLineLen
+    *   maximum request line to parse
+    * @param maxHeadersLen
+    *   maximum data that compose headers
     */
   def withLengthLimits(
       maxRequestLineLen: Int = maxRequestLineLen,

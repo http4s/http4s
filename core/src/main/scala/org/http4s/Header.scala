@@ -18,7 +18,8 @@ import org.http4s.util._
 import scala.util.hashing.MurmurHash3
 
 /** Abstract representation o the HTTP header
-  * @see org.http4s.HeaderKey
+  * @see
+  *   org.http4s.HeaderKey
   */
 sealed trait Header extends Renderable with Product {
   import Header.Raw
@@ -73,10 +74,12 @@ object Header {
 
   /** Raw representation of the Header
     *
-    * This can be considered the simplest representation where the header is specified as the product of
-    * a key and a value
-    * @param name case-insensitive string used to identify the header
-    * @param value String representation of the header value
+    * This can be considered the simplest representation where the header is specified as the
+    * product of a key and a value
+    * @param name
+    *   case-insensitive string used to identify the header
+    * @param value
+    *   String representation of the header value
     */
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
     private[this] var _parsed: Header = null
@@ -97,10 +100,11 @@ object Header {
 
   /** A recurring header that satisfies this clause of the Spec:
     *
-    * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
-    * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
-    * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
-    * of the message, by appending each subsequent field-value to the first, each separated by a comma.
+    * Multiple message-header fields with the same field-name MAY be present in a message if and
+    * only if the entire field-value for that header field is defined as a comma-separated list
+    * [i.e., #(values)]. It MUST be possible to combine the multiple header fields into one
+    * "field-name: field-value" pair, without changing the semantics of the message, by appending
+    * each subsequent field-value to the first, each separated by a comma.
     */
   trait Recurring extends Parsed {
     type Value

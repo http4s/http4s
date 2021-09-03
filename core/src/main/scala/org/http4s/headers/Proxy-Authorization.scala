@@ -22,6 +22,6 @@ package headers
   *   itself (or its user) to a proxy that requires authentication.
   * }}}
   *
-  *  From [[https://tools.ietf.org/html/rfc7235#section-4.4 RFC-7235]]
+  * From [[https://tools.ietf.org/html/rfc7235#section-4.4 RFC-7235]]
   */
 object `Proxy-Authorization` extends HeaderKey.Default

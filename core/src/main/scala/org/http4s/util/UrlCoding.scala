@@ -28,17 +28,19 @@ private[http4s] object UrlCodingUtils {
   private val toSkip =
     org.http4s.Uri.Unreserved ++ "!$&'()*+,;=:/?@"
 
-  /** Percent-encodes a string.  Depending on the parameters, this method is
-    * appropriate for URI or URL form encoding.  Any resulting percent-encodings
-    * are normalized to uppercase.
+  /** Percent-encodes a string. Depending on the parameters, this method is appropriate for URI or
+    * URL form encoding. Any resulting percent-encodings are normalized to uppercase.
     *
-    * @param toEncode the string to encode
-    * @param charset the charset to use for characters that are percent encoded
-    * @param spaceIsPlus if space is not skipped, determines whether it will be
-    * rendreed as a `"+"` or a percent-encoding according to `charset`.
-    * @param toSkip a predicate of characters exempt from encoding.  In typical
-    * use, this is composed of all Unreserved URI characters and sometimes a
-    * subset of Reserved URI characters.
+    * @param toEncode
+    *   the string to encode
+    * @param charset
+    *   the charset to use for characters that are percent encoded
+    * @param spaceIsPlus
+    *   if space is not skipped, determines whether it will be rendreed as a `"+"` or a
+    *   percent-encoding according to `charset`.
+    * @param toSkip
+    *   a predicate of characters exempt from encoding. In typical use, this is composed of all
+    *   Unreserved URI characters and sometimes a subset of Reserved URI characters.
     */
   @deprecated("Moved to org.http4s.Uri.encode", "0.20.13")
   def urlEncode(
@@ -54,11 +56,15 @@ private[http4s] object UrlCodingUtils {
 
   /** Percent-decodes a string.
     *
-    * @param toDecode the string to decode
-    * @param charset the charset of percent-encoded characters
-    * @param plusIsSpace true if `'+'` is to be interpreted as a `' '`
-    * @param toSkip a predicate of characters whose percent-encoded form
-    * is left percent-encoded.  Almost certainly should be left empty.
+    * @param toDecode
+    *   the string to decode
+    * @param charset
+    *   the charset of percent-encoded characters
+    * @param plusIsSpace
+    *   true if `'+'` is to be interpreted as a `' '`
+    * @param toSkip
+    *   a predicate of characters whose percent-encoded form is left percent-encoded. Almost
+    *   certainly should be left empty.
     */
   @deprecated("Moved to org.http4s.Uri.decode", "0.20.13")
   def urlDecode(

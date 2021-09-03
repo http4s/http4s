@@ -35,14 +35,13 @@ private[impl] object ResponseGenerator {
     }
 }
 
-/**  Helper for the generation of a [[org.http4s.Response]] which will not contain a body
+/** Helper for the generation of a [[org.http4s.Response]] which will not contain a body
   *
   * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
   * offer shortcut syntax to make intention clear and concise.
   *
-  * @example {{{
-  * val resp: F[Response] = Status.Continue()
-  * }}}
+  * @example
+  *   {{{val resp: F[Response] = Status.Continue()}}}
   */
 trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
@@ -51,13 +50,11 @@ trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
   *
-  * While it is possible to construct the [[org.http4s.Response]]
-  * manually, the EntityResponseGenerators offer shortcut syntax to
-  * make intention clear and concise.
+  * While it is possible to construct the [[org.http4s.Response]] manually, the
+  * EntityResponseGenerators offer shortcut syntax to make intention clear and concise.
   *
-  * @example {{{
-  * val resp: IO[Response] = Ok("Hello world!")
-  * }}}
+  * @example
+  *   {{{val resp: IO[Response] = Ok("Hello world!")}}}
   */
 trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def liftG: FunctionK[G, F]
@@ -77,11 +74,11 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   }
 }
 
-/** Helper for the generation of a [[org.http4s.Response]] which may contain
-  * a Location header and may contain a body.
+/** Helper for the generation of a [[org.http4s.Response]] which may contain a Location header and
+  * may contain a body.
   *
-  * A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
-  * distinguishes this from other `EntityResponseGenerator`s.
+  * A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which distinguishes
+  * this from other `EntityResponseGenerator`s.
   */
 trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGenerator[F, G] {
   @deprecated("Use `apply(Location(location))` instead", "0.18.0-M2")
@@ -104,11 +101,11 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
   }
 }
 
-/** Helper for the generation of a [[org.http4s.Response]] which must contain
-  * a WWW-Authenticate header and may contain a body.
+/** Helper for the generation of a [[org.http4s.Response]] which must contain a WWW-Authenticate
+  * header and may contain a body.
   *
-  * A 401 status MUST contain a `WWW-Authenticate` header, which
-  * distinguishes this from other `ResponseGenerator`s.
+  * A 401 status MUST contain a `WWW-Authenticate` header, which distinguishes this from other
+  * `ResponseGenerator`s.
   */
 trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   @deprecated("Use ``apply(`WWW-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
@@ -137,11 +134,11 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
   }
 }
 
-/** Helper for the generation of a [[org.http4s.Response]] which must contain
-  * an Allow header and may contain a body.
+/** Helper for the generation of a [[org.http4s.Response]] which must contain an Allow header and
+  * may contain a body.
   *
-  * A 405 status MUST contain an `Allow` header, which
-  * distinguishes this from other `ResponseGenerator`s.
+  * A 405 status MUST contain an `Allow` header, which distinguishes this from other
+  * `ResponseGenerator`s.
   */
 trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(allow: Allow, headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
@@ -156,11 +153,11 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   }
 }
 
-/** Helper for the generation of a [[org.http4s.Response]] which must contain
-  * a Proxy-Authenticate header and may contain a body.
+/** Helper for the generation of a [[org.http4s.Response]] which must contain a Proxy-Authenticate
+  * header and may contain a body.
   *
-  * A 407 status MUST contain a `Proxy-Authenticate` header, which
-  * distinguishes this from other `EntityResponseGenerator`s.
+  * A 407 status MUST contain a `Proxy-Authenticate` header, which distinguishes this from other
+  * `EntityResponseGenerator`s.
   */
 trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   @deprecated("Use ``apply(`Proxy-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")

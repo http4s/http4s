@@ -30,7 +30,8 @@ object Http1Client {
 
   /** Construct a new PooledHttp1Client
     *
-    * @param config blaze client configuration options
+    * @param config
+    *   blaze client configuration options
     */
   private def resource[F[_]](config: BlazeClientConfig)(implicit
       F: ConcurrentEffect[F]): Resource[F, Client[F]] = {

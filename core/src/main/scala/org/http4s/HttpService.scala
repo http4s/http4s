@@ -22,16 +22,15 @@ import cats.data.{Kleisli, OptionT}
 @deprecated("Replaced by HttpRoutes", "0.19")
 object HttpService extends Serializable {
 
-  /** Lifts a total function to an `HttpService`. The function is expected to
-    * handle all requests it is given.  If `f` is a `PartialFunction`, use
-    * `apply` instead.
+  /** Lifts a total function to an `HttpService`. The function is expected to handle all requests it
+    * is given. If `f` is a `PartialFunction`, use `apply` instead.
     */
   @deprecated("Use liftF with an OptionT[F, Response[F]] instead", "0.18")
   def lift[F[_]: Functor](f: Request[F] => F[Response[F]]): HttpService[F] =
     Kleisli(f.andThen(OptionT.liftF(_)))
 
-  /** Lifts a partial function to [[HttpRoutes]].  Responds with
-    * `OptionT.none` for any request where `pf` is not defined.
+  /** Lifts a partial function to [[HttpRoutes]]. Responds with `OptionT.none` for any request where
+    * `pf` is not defined.
     *
     * Unlike `HttpRoutes.of`, does not suspend the application of `pf`.
     */

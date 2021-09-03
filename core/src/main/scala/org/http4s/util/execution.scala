@@ -24,8 +24,8 @@ object execution {
 
   /** Execute `Runnable`s directly on the current thread, using a stack frame.
     *
-    * This is not safe to use for recursive function calls as you will ultimately
-    * encounter a stack overflow. For those situations, use `trampoline`.
+    * This is not safe to use for recursive function calls as you will ultimately encounter a stack
+    * overflow. For those situations, use `trampoline`.
     */
   val direct: ExecutionContextExecutor = new ExecutionContextExecutor {
     def execute(runnable: Runnable): Unit =
@@ -37,10 +37,9 @@ object execution {
 
   /** A trampolining `ExecutionContext`
     *
-    * This `ExecutionContext` is run thread locally to avoid context switches.
-    * Because this is a thread-local executor, if there is a dependency between
-    * the submitted `Runnable`s and the thread becomes blocked, there will be
-    * a deadlock.
+    * This `ExecutionContext` is run thread locally to avoid context switches. Because this is a
+    * thread-local executor, if there is a dependency between the submitted `Runnable`s and the
+    * thread becomes blocked, there will be a deadlock.
     */
   val trampoline: ExecutionContextExecutor = new ExecutionContextExecutor {
     private val local = new ThreadLocal[ThreadLocalTrampoline]

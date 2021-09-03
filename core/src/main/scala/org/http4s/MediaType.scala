@@ -244,8 +244,7 @@ object MediaType extends MimeDB {
 
   /** Parse a MediaType
     *
-    * For totality, call [[#parse]]. For compile-time
-    * verification of literals, call [[#mediaType]].
+    * For totality, call [[#parse]]. For compile-time verification of literals, call [[#mediaType]].
     */
   def unsafeParse(s: String): MediaType =
     parse(s).fold(throw _, identity)
@@ -305,8 +304,7 @@ object MediaType extends MimeDB {
       }
   }
 
-  /** Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
-    * at compile time.
+  /** Literal syntax for MediaTypes. Invalid or non-literal arguments are rejected at compile time.
     */
   @deprecated("""use mediaType"" string interpolation instead""", "0.20")
   def mediaType(s: String): MediaType = macro MediaType.Macros.mediaTypeLiteral

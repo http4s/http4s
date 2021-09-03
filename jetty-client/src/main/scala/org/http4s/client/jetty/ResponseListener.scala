@@ -25,7 +25,7 @@ import fs2._
 import fs2.Stream._
 import fs2.concurrent.Queue
 import java.nio.ByteBuffer
-import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
+import org.eclipse.jetty.client.api.{Response => JettyResponse, Result}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.client.jetty.ResponseListener.Item

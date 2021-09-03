@@ -31,17 +31,16 @@ import scala.concurrent.{ExecutionContext, blocking}
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
-  * The java.net client adds no dependencies beyond `http4s-client`.
-  * This client is generally not production grade, but convenient for
-  * exploration in a REPL.
+  * The java.net client adds no dependencies beyond `http4s-client`. This client is generally not
+  * production grade, but convenient for exploration in a REPL.
   *
   * All I/O operations in this client are blocking.
   *
-  * @param blockingExecutionContext An `ExecutionContext` on which
-  * blocking operations will be performed.
-  * @define WHYNOSHUTDOWN Creation of the client allocates no
-  * resources, and any resources allocated while using this client
-  * are reclaimed by the JVM at its own leisure.
+  * @param blockingExecutionContext
+  *   An `ExecutionContext` on which blocking operations will be performed.
+  * @define WHYNOSHUTDOWN
+  *   Creation of the client allocates no resources, and any resources allocated while using this
+  *   client are reclaimed by the JVM at its own leisure.
   */
 sealed abstract class JavaNetClientBuilder[F[_]] private (
     val connectTimeout: Duration,
@@ -222,8 +221,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`. */
 object JavaNetClientBuilder {
 
-  /** @param blockingExecutionContext An `ExecutionContext` on which
-    * blocking operations will be performed.
+  /** @param blockingExecutionContext
+    *   An `ExecutionContext` on which blocking operations will be performed.
     */
   def apply[F[_]: Async: ContextShift](blocker: Blocker): JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](

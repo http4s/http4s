@@ -46,9 +46,12 @@ object HttpHeaderParser
 
   /** Add a parser to the global header parser registry
     *
-    * @param key name of the header to register the parser for
-    * @param parser [[Header]] parser
-    * @return any existing parser already registered to that key
+    * @param key
+    *   name of the header to register the parser for
+    * @param parser
+    *   [[Header]] parser
+    * @return
+    *   any existing parser already registered to that key
     */
   def addParser(key: CaseInsensitiveString, parser: HeaderParser): Option[HeaderParser] =
     Option(allParsers.put(key, parser))
@@ -60,8 +63,10 @@ object HttpHeaderParser
 
   /** Remove the parser for the specified header key
     *
-    * @param key name of the header to be removed
-    * @return `Some(parser)` if the parser exists, else `None`
+    * @param key
+    *   name of the header to be removed
+    * @return
+    *   `Some(parser)` if the parser exists, else `None`
     */
   def dropParser(key: CaseInsensitiveString): Option[HeaderParser] =
     Option(allParsers.remove(key))
@@ -79,8 +84,8 @@ object HttpHeaderParser
         }
     }
 
-  /** Warm up the header parsers by triggering the loading of most classes in this package,
-    * so as to increase the speed of the first usage.
+  /** Warm up the header parsers by triggering the loading of most classes in this package, so as to
+    * increase the speed of the first usage.
     */
   def warmUp(): Unit = {
     val results = List(
