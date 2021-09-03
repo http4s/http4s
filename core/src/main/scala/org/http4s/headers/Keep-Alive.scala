@@ -52,7 +52,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     if (timeoutSeconds.isDefined || max.isDefined || extension.nonEmpty) {
       val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))
       val validatedMax = max.traverse(m => nonNegativeLong(m, "max"))
-      (validatedTimeoutSeconds, validatedMax).mapN((t, m) => new `Keep-Alive`(t, m, extension))
+      (validatedTimeoutSeconds, validatedMax).mapN((t, m) => impl(t, m, extension))
     } else {
       ParseResult.fail("Invalid Keep-Alive header", "All fields of Keep-Alive were empty")
     }
@@ -115,6 +115,9 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     }
   }
 
+  private def impl(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]) = 
+    new `Keep-Alive`(timeoutSeconds, max, extension) {}
+
   implicit val headerInstance: Header[`Keep-Alive`, Header.Recurring] = Header.createRendered(
     ci"Keep-Alive",
     v =>
@@ -145,7 +148,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 
   implicit val headerSemigroupInstance: Semigroup[`Keep-Alive`] = new Semigroup[`Keep-Alive`] { 
       def combine(x: `Keep-Alive`, y: `Keep-Alive`): `Keep-Alive` = 
-        new `Keep-Alive`(
+        impl(
           x.timeoutSeconds orElse y.timeoutSeconds,
           x.max orElse y.max,
           x.extension ++ y.extension
@@ -153,8 +156,8 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   }
 
 }
-//Scalac flag try out for privatized.  
-final case class `Keep-Alive` private (
+//Sealed abstract case class.    
+sealed abstract case class `Keep-Alive` private(
     timeoutSeconds: Option[Long],
     max: Option[Long],
     extension: List[(String, Option[String])]) {
