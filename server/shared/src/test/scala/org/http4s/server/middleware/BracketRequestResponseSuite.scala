@@ -20,7 +20,6 @@ import fs2.Stream
 import cats.data._
 import cats.effect._
 import org.http4s._
-import org.http4s.syntax.kleisli._
 import org.http4s.server._
 
 final class BracketRequestResponseSuite extends Http4sSuite {

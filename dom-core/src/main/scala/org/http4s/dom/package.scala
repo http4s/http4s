@@ -66,11 +66,11 @@ package object dom {
       // This checks if the stream is locked before canceling it to avoid an error
       if (!rs.locked) exitCase match {
         case Resource.ExitCase.Succeeded =>
-          rs.cancel(null)
+          rs.cancel(scalajs.js.undefined)
         case Resource.ExitCase.Errored(ex) =>
           rs.cancel(ex.getLocalizedMessage())
         case Resource.ExitCase.Canceled =>
-          rs.cancel(null)
+          rs.cancel(scalajs.js.undefined)
       }
       else scalajs.js.Promise.resolve[Unit](())
     }

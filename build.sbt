@@ -64,7 +64,7 @@ ThisBuild / githubWorkflowBuild := Seq(
     cond = Some("matrix.ci == 'ciJVM'"))
 )
 
-val ciVariants = List("ciJVM", "ciNodeJS", /*"ciFirefox",*/ "ciChrome")
+val ciVariants = List("ciJVM", "ciNodeJS", "ciFirefox", "ciChrome")
 val jsCiVariants = ciVariants.tail
 ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 
@@ -135,10 +135,12 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 addCommandAlias("ciJVM", "; project rootJVM")
 addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
-def browserCiCommand(browser: JSEnv) =
-  s"; set parallelExecution := false; set Global / useJSEnv := JSEnv.$browser; project rootBrowser"
-addCommandAlias("ciFirefox", browserCiCommand(Firefox))
-addCommandAlias("ciChrome", browserCiCommand(Chrome))
+addCommandAlias(
+  "ciFirefox",
+  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Firefox; project rootDom")
+addCommandAlias(
+  "ciChrome",
+  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Chrome; project rootBrowser")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -238,6 +240,15 @@ lazy val rootBrowser = project
     boopickle.js,
     jawn.js,
     circe.js,
+    domCore.js,
+    domFetchClient.js,
+    domServiceWorker.js,
+    domServiceWorkerTests.js
+  )
+
+lazy val rootDom = project
+  .enablePlugins(NoPublishPlugin)
+  .aggregate(
     domCore.js,
     domFetchClient.js,
     domServiceWorker.js,
@@ -433,6 +444,7 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency")
     ),
     Test / parallelExecution := false
@@ -455,7 +467,10 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
-    libraryDependencies += keypool.value
+    libraryDependencies += keypool.value,
+    mimaBinaryIssueFilters := Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
+    )
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
   .jsSettings(
@@ -915,6 +930,7 @@ def http4sProject(
     .settings(
       moduleName := s"http4s-$name",
       testFrameworks += new TestFramework("munit.Framework"),
+      Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "-b"),
       initCommands()
     )
     .enablePlugins(Http4sPlugin)

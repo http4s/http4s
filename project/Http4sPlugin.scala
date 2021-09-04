@@ -77,6 +77,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
+    // Breaking change deferred to 1.0
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
 
     headerSources / excludeFilter := HiddenFileFilter,
 
@@ -245,17 +247,17 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.1"
+    val blaze = "0.15.2"
     val boopickle = "1.4.0"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
-    val catsEffect = "3.2.2"
+    val catsEffect = "3.2.5"
     val catsParse = "0.3.4"
     val circe = "0.15.0-M1"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.3"
-    val fs2 = "3.1.0"
+    val fs2 = "3.1.1"
     val ip4s = "3.0.3"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
@@ -266,14 +268,14 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.5"
     val log4cats = "2.1.1"
     val log4s = "1.10.0"
-    val munit = "0.7.27"
+    val munit = "0.7.29"
     val munitCatsEffect = "1.0.5"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.66.Final"
+    val netty = "4.1.67.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.9.2"
-    val prometheusClient = "0.11.0"
+    val prometheusClient = "0.12.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
@@ -283,7 +285,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaJsDom = "1.2.0"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.1"
-    val scodecBits = "1.1.27"
+    val scodecBits = "1.1.28"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
     val tomcat = "9.0.52"

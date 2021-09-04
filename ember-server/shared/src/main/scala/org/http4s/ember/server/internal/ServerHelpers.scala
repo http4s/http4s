@@ -17,7 +17,6 @@
 package org.http4s.ember.server.internal
 
 import cats._
-import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.kernel.Resource
 import cats.syntax.all._
@@ -26,30 +25,17 @@ import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s._
-import org.http4s.ember.core.Drain
-import org.http4s.ember.core.EmptyStreamError
-import org.http4s.ember.core.Encoder
-import org.http4s.ember.core.Parser
-import org.http4s.ember.core.Read
-import org.http4s.ember.core.Util.timeoutMaybe
-import org.http4s.ember.core.Util.timeoutToMaybe
 import org.http4s.headers.Connection
+import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
+import org.http4s.ember.core.Util._
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
-import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
 
-import java.util.Locale
 import scala.concurrent.duration._
 
 private[server] object ServerHelpers extends ServerHelpersPlatform {
-
-  private[this] val closeCi = ci"close"
-  private[this] val keepAliveCi = ci"keep-alive"
-  private[this] val connectionCi = ci"connection"
-  private[this] val close = Connection(NonEmptyList.of(closeCi))
-  private[this] val keepAlive = Connection(NonEmptyList.one(keepAliveCi))
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
@@ -142,7 +128,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      requestVault: Vault)(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
+      socket: Socket[F])(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
     val parseWithHeaderTimeout = timeoutToMaybe(
@@ -155,6 +141,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     for {
       tmp <- parseWithHeaderTimeout
       (req, drain) = tmp
+      requestVault <- mkRequestVault(socket)
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
@@ -181,30 +168,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
-    val connection: Connection =
-      if (isKeepAlive(req.httpVersion, req.headers)) keepAlive
-      else close
+    val connection = connectionFor(req.httpVersion, req.headers)
     for {
       date <- HttpDate.current[F].map(Date(_))
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
-  }
-
-  private[internal] def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
-    // We know this is raw because we have not parsed any headers in the underlying alg.
-    // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
-    // TODO: the problem is that any string that contains `expected` is admissible
-    def hasConnection(expected: String): Boolean =
-      headers.headers.exists {
-        case Header.Raw(name, value) =>
-          name == connectionCi && value.toLowerCase(Locale.ROOT).contains(expected)
-        case _ => false
-      }
-
-    httpVersion match {
-      case HttpVersion.`HTTP/1.0` => hasConnection(keepAliveCi.toString)
-      case HttpVersion.`HTTP/1.1` => !hasConnection(closeCi.toString)
-      case _ => false
-    }
   }
 
   private[internal] def runConnection[F[_]: Async](
@@ -221,83 +188,81 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     type State = (Array[Byte], Boolean)
     val _ = logger
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
-    Stream.eval(mkRequestVault(socket)).flatMap { requestVault =>
-      Stream
-        .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
-          case (buffer, reuse) =>
-            val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
-              // next request has already been (partially) received
-              buffer.pure[F]
-            } else if (reuse) {
-              // the connection is keep-alive, but we don't have any bytes.
-              // we want to be on the idle timeout until the next request is received.
-              read.flatMap {
-                case Some(chunk) => chunk.toArray.pure[F]
-                case None => Concurrent[F].raiseError(EmptyStreamError())
+    Stream
+      .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
+        case (buffer, reuse) =>
+          val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
+            // next request has already been (partially) received
+            buffer.pure[F]
+          } else if (reuse) {
+            // the connection is keep-alive, but we don't have any bytes.
+            // we want to be on the idle timeout until the next request is received.
+            read.flatMap {
+              case Some(chunk) => chunk.toArray.pure[F]
+              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+            }
+          } else {
+            // first request begins immediately
+            Array.emptyByteArray.pure[F]
+          }
+
+          val result = initRead.flatMap { initBuffer =>
+            runApp(
+              initBuffer,
+              read,
+              maxHeaderSize,
+              requestHeaderReceiveTimeout,
+              httpApp,
+              errorHandler,
+              socket)
+          }
+
+          result.attempt.flatMap {
+            case Right((req, resp, drain)) =>
+              // TODO: Should we pay this cost for every HTTP request?
+              // Intercept the response for various upgrade paths
+              resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
+                case Some(ctx) =>
+                  drain.flatMap {
+                    case Some(buffer) =>
+                      WebSocketHelpers
+                        .upgrade(
+                          socket,
+                          req,
+                          ctx,
+                          buffer,
+                          receiveBufferSize,
+                          idleTimeout,
+                          onWriteFailure,
+                          errorHandler,
+                          logger)
+                        .as(None)
+                    case None =>
+                      Concurrent[F].pure(None)
+                  }
+                case None =>
+                  for {
+                    nextResp <- postProcessResponse(req, resp)
+                    _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                    nextBuffer <- drain
+                  } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
               }
-            } else {
-              // first request begins immediately
-              Array.emptyByteArray.pure[F]
-            }
-
-            val result = initRead.flatMap { initBuffer =>
-              runApp(
-                initBuffer,
-                read,
-                maxHeaderSize,
-                requestHeaderReceiveTimeout,
-                httpApp,
-                errorHandler,
-                requestVault)
-            }
-
-            result.attempt.flatMap {
-              case Right((req, resp, drain)) =>
-                // TODO: Should we pay this cost for every HTTP request?
-                // Intercept the response for various upgrade paths
-                resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
-                  case Some(ctx) =>
-                    drain.flatMap {
-                      case Some(buffer) =>
-                        WebSocketHelpers
-                          .upgrade(
-                            socket,
-                            req,
-                            ctx,
-                            buffer,
-                            receiveBufferSize,
-                            idleTimeout,
-                            onWriteFailure,
-                            errorHandler,
-                            logger)
-                          .as(None)
-                      case None =>
-                        Concurrent[F].pure(None)
-                    }
-                  case None =>
-                    for {
-                      nextResp <- postProcessResponse(req, resp)
-                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                      nextBuffer <- drain
-                    } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
-                }
-              case Left(err) =>
-                err match {
-                  case EmptyStreamError() =>
-                    Applicative[F].pure(None)
-                  case err =>
-                    errorHandler(err)
-                      .handleError(_ => serverFailure.covary[F])
-                      .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-                      .as(None)
-                }
-            }
-        }
-        .takeWhile { case (_, resp) =>
-          resp.headers.get[Connection].exists(_.hasKeepAlive)
-        }
-        .drain
-    }
+            case Left(err) =>
+              err match {
+                case EmberException.EmptyStream() =>
+                  Applicative[F].pure(None)
+                case err =>
+                  errorHandler(err)
+                    .handleError(_ => serverFailure.covary[F])
+                    .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+                    .as(None)
+              }
+          }
+      }
+      .takeWhile { case (_, resp) =>
+        resp.headers.get[Connection].exists(_.hasKeepAlive)
+      }
+      .drain
   }
 
   private def mkRequestVault[F[_]: Applicative](socket: Socket[F]) =

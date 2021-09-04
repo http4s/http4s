@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.http4s.dsl
+package org.http4s.headers
 
-import org.http4s.Uri
+import org.http4s._
+import org.typelevel.ci._
 
-object request extends RequestDslBinCompat {
-  val Path: Uri.Path.type = Uri.Path
-  val Root: Uri.Path.Root.type = Uri.Path.Root
-  val / : impl./.type = impl./
-  val :? : impl.:?.type = impl.:?
-  val ~ : impl.~.type = impl.~
-  val -> : impl.->.type = impl.->
-  val /: : impl./:.type = impl./:
-  val +& : impl.+&.type = impl.+&
+final case class `Access-Control-Request-Method`(method: Method)
 
-  val IntVar: impl.IntVar.type = impl.IntVar
-  val LongVar: impl.LongVar.type = impl.LongVar
-  val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
+object `Access-Control-Request-Method` {
+  def parse(s: String): ParseResult[`Access-Control-Request-Method`] =
+    ParseResult.fromParser(parser, "Invalid Access-Control-Request-Method header")(s)
+
+  private[http4s] val parser = Method.parser.map(apply)
+
+  implicit val headerInstance: Header[`Access-Control-Request-Method`, Header.Single] =
+    Header.create(
+      ci"Access-Control-Request-Method",
+      _.method.renderString,
+      parse
+    )
 }
