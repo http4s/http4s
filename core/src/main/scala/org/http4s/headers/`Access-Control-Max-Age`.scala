@@ -19,25 +19,16 @@ package headers
 
 import org.http4s.parser.AdditionalRules
 import org.typelevel.ci.CIStringSyntax
-
 import scala.concurrent.duration.{DurationLong, FiniteDuration}
 import scala.util.Try
 
 /** The `Access-Control-Max-Age` header. */
-trait `Access-Control-Max-Age` {
-  def duration: Option[FiniteDuration]
-  def unsafeDuration: FiniteDuration
-}
+trait `Access-Control-Max-Age`
 
 object `Access-Control-Max-Age` {
 
   /** A value of -1 of the age parameter will disable caching. */
-  final case object NoCaching extends `Access-Control-Max-Age` {
-    override def duration: Option[FiniteDuration] = Option.empty
-
-    override def unsafeDuration: FiniteDuration = throw new UnsupportedOperationException(
-      "It's no possible to get cache duration if caching is disable")
-  }
+  final case object NoCaching extends `Access-Control-Max-Age`
 
   /** The value of this field indicates how long the results of a preflight request (that is the information contained in the Access-Control-Allow-Methods and [[`Access-Control-Allow-Headers`]] headers) can be cached.
     *
@@ -68,7 +59,7 @@ object `Access-Control-Max-Age` {
   def parse(s: String): ParseResult[`Access-Control-Max-Age`] =
     ParseResult.fromParser(parser, "Invalid Access-Control-Max-Age header")(s)
 
-  private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
+  private[http4s] val parser = AdditionalRules.Long.map(unsafeFromLong)
 
   implicit val headerInstance: Header[`Access-Control-Max-Age`, Header.Single] =
     Header.createRendered(
