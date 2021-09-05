@@ -90,11 +90,15 @@ private[http4s] trait ArbitraryInstances {
 
   val genQDText: Gen[String] = nonEmptyListOf(oneOf(allowedQDText)).map(_.mkString)
 
-  @deprecated("Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.", "0.22.5") 
+  @deprecated(
+    "Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.",
+    "0.22.5")
   val genQuotedPair: Gen[String] =
     genChar.map(c => s"\\$c")
 
-  @deprecated("Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.", "0.22.5") 
+  @deprecated(
+    "Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.",
+    "0.22.5")
   val genQuotedString: Gen[String] = oneOf(genQDText, genQuotedPair).map(s => s"""\"$s\"""")
 
   private val tchars =
@@ -942,20 +946,21 @@ private[http4s] trait ArbitraryInstances {
     Cogen[String].contramap(_.encoded)
 
   implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
-      val genExtension = for { 
-        extName <- genToken
-        quotedStringEquivWithoutQuotes = genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
-        extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
-      } yield (extName -> extValue)
+    val genExtension = for {
+      extName <- genToken
+      quotedStringEquivWithoutQuotes =
+        genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
+      extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
+    } yield (extName -> extValue)
 
-      for {
-        timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
-        max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))      
-        l <- Gen.listOf(genExtension)
-        if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
-      } yield `Keep-Alive`.unsafeApply(timeout, max, l)
-    }
+    for {
+      timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      l <- Gen.listOf(genExtension)
+      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
+    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
   }
+}
 
 object ArbitraryInstances extends ArbitraryInstances {
   // http4s-0.21: add extra values here to prevent binary incompatibility.

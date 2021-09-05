@@ -115,7 +115,10 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     }
   }
 
-  private def impl(timeoutSeconds: Option[Long], max: Option[Long], extension: List[(String, Option[String])]) = 
+  private def impl(
+      timeoutSeconds: Option[Long],
+      max: Option[Long],
+      extension: List[(String, Option[String])]) =
     new `Keep-Alive`(timeoutSeconds, max, extension) {}
 
   implicit val headerInstance: Header[`Keep-Alive`, Header.Recurring] = Header.createRendered(
@@ -138,26 +141,29 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
               e.foreach { p =>
                 if (hasWritten) writer << ", " else hasWritten = true
                 writer << p._1 << "="
-                p._2.foreach(qts => writer.quote(qts)) //All tokens are valid if we quote them as if they were quoted-string
+                p._2.foreach(qts =>
+                  writer.quote(
+                    qts
+                  )) //All tokens are valid if we quote them as if they were quoted-string
               }
               writer
-            }
-          },
+          }
+      },
     parse
   )
 
-  implicit val headerSemigroupInstance: Semigroup[`Keep-Alive`] = new Semigroup[`Keep-Alive`] { 
-      def combine(x: `Keep-Alive`, y: `Keep-Alive`): `Keep-Alive` = 
-        impl(
-          x.timeoutSeconds orElse y.timeoutSeconds,
-          x.max orElse y.max,
-          x.extension ++ y.extension
-        )
+  implicit val headerSemigroupInstance: Semigroup[`Keep-Alive`] = new Semigroup[`Keep-Alive`] {
+    def combine(x: `Keep-Alive`, y: `Keep-Alive`): `Keep-Alive` =
+      impl(
+        x.timeoutSeconds.orElse(y.timeoutSeconds),
+        x.max.orElse(y.max),
+        x.extension ++ y.extension
+      )
   }
 
 }
 
-sealed abstract case class `Keep-Alive` private(
+sealed abstract case class `Keep-Alive` private (
     timeoutSeconds: Option[Long],
     max: Option[Long],
     extension: List[(String, Option[String])]) {
