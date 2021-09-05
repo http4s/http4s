@@ -294,9 +294,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
 
   // MediaRange exepects the quoted pair without quotes
-  val http4sGenUnquotedPair = genQuotedPair.map { c =>
-    c.substring(1, c.length - 1)
-  }
+  val http4sGenUnquotedPair = genQDText
 
   val http4sGenMediaRangeExtension: Gen[(String, String)] =
     for {
