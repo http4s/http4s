@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.core
+package org.http4s
 
-private[ember] final case class EmptyStreamError() extends Exception("Cannot Parse Empty Stream")
+import org.http4s.laws.discipline.ArbitraryInstances._
+import cats.kernel.laws.discipline._
+
+final class ResponsePreludeSuite extends Http4sSuite {
+  checkAll("Hash[ResponsePrelude]", HashTests[ResponsePrelude].hash)
+  checkAll("Order[ResponsePrelude]", OrderTests[ResponsePrelude].order)
+}

@@ -47,7 +47,7 @@ object `Content-Disposition` {
     }
     val valueChars = attrChar.orElse(pctEncoded).rep
     val language = Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0
-    val charset = Parser.string("UTF-8").as(StandardCharsets.UTF_8)
+    val charset = Parser.ignoreCase("UTF-8").as(StandardCharsets.UTF_8)
     val extValue = (Rfc5234.dquote *> Parser.charsWhile0(
       CharPredicate.All -- '"') <* Rfc5234.dquote) | (charset ~ (Parser.string(
       "'") *> language.? <* Parser.string("'")) ~ valueChars).map { case ((charset, _), values) =>

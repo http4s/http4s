@@ -21,7 +21,9 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.{Cancelable, Execution, TickWheelExecutor}
+import org.http4s.blazecore.IdleTimeoutStage.{Disabled, Enabled, ShutDown, State}
 
+import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
@@ -32,20 +34,9 @@ final private[http4s] class IdleTimeoutStage[A](
     ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
 
-  @volatile private var cb: Callback[TimeoutException] = null
-
-  private val timeoutState = new AtomicReference[Cancelable](NoOpCancelable)
+  private val timeoutState = new AtomicReference[State](Disabled)
 
   override def name: String = "IdleTimeoutStage"
-
-  private val killSwitch = new Runnable {
-    override def run(): Unit = {
-      val t = new TimeoutException(s"Idle timeout after ${timeout.toMillis} ms.")
-      logger.debug(t.getMessage)
-      cb(Right(t))
-      removeStage()
-    }
-  }
 
   override def readRequest(size: Int): Future[A] =
     channelRead(size).andThen { case _ => resetTimeout() }(Execution.directec)
@@ -61,32 +52,96 @@ final private[http4s] class IdleTimeoutStage[A](
   }
 
   override protected def stageShutdown(): Unit = {
-    cancelTimeout()
     logger.debug(s"Shutting down idle timeout stage")
+
+    @tailrec def go(): Unit =
+      timeoutState.get() match {
+        case old @ IdleTimeoutStage.Enabled(_, cancel) =>
+          if (timeoutState.compareAndSet(old, ShutDown)) cancel.cancel()
+          else go()
+        case old =>
+          if (!timeoutState.compareAndSet(old, ShutDown)) go()
+      }
+
+    go()
+
     super.stageShutdown()
   }
 
-  def init(cb: Callback[TimeoutException]): Unit = {
-    logger.debug(s"Starting idle timeout stage with timeout of ${timeout.toMillis} ms")
-    stage.cb = cb
-    resetTimeout()
+  def init(cb: Callback[TimeoutException]): Unit = setTimeout(cb)
+
+  def setTimeout(cb: Callback[TimeoutException]): Unit = {
+    logger.debug(s"Starting idle timeout with timeout of ${timeout.toMillis} ms")
+
+    val timeoutTask = new Runnable {
+      override def run(): Unit = {
+        val t = new TimeoutException(s"Idle timeout after ${timeout.toMillis} ms.")
+        logger.debug(t.getMessage)
+        cb(Right(t))
+      }
+    }
+
+    @tailrec def go(): Unit =
+      timeoutState.get() match {
+        case Disabled =>
+          val newCancel = exec.schedule(timeoutTask, timeout)
+          if (timeoutState.compareAndSet(Disabled, Enabled(timeoutTask, newCancel))) ()
+          else {
+            newCancel.cancel()
+            go()
+          }
+        case old @ Enabled(_, oldCancel) =>
+          val newCancel = exec.schedule(timeoutTask, timeout)
+          if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel))) oldCancel.cancel()
+          else {
+            newCancel.cancel()
+            go()
+          }
+        case _ => ()
+      }
+
+    go()
   }
 
-  private def setAndCancel(next: Cancelable): Unit = {
-    val _ = timeoutState.getAndSet(next).cancel()
-  }
+  @tailrec private def resetTimeout(): Unit =
+    timeoutState.get() match {
+      case old @ Enabled(timeoutTask, oldCancel) =>
+        val newCancel = exec.schedule(timeoutTask, timeout)
+        if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel))) oldCancel.cancel()
+        else {
+          newCancel.cancel()
+          resetTimeout()
+        }
+      case _ => ()
+    }
 
-  private def resetTimeout(): Unit =
+  @tailrec def cancelTimeout(): Unit =
+    timeoutState.get() match {
+      case old @ IdleTimeoutStage.Enabled(_, cancel) =>
+        if (timeoutState.compareAndSet(old, Disabled)) cancel.cancel()
+        else cancelTimeout()
+      case _ => ()
+    }
+
+  def tryScheduling(timeoutTask: Runnable): Option[Cancelable] =
     if (exec.isAlive) {
-      try setAndCancel(exec.schedule(killSwitch, ec, timeout))
+      try Some(exec.schedule(timeoutTask, ec, timeout))
       catch {
         case TickWheelExecutor.AlreadyShutdownException =>
           logger.warn(s"Resetting timeout after tickwheelexecutor is shutdown")
-          cancelTimeout()
+          None
         case NonFatal(e) => throw e
       }
-    } else cancelTimeout()
+    } else {
+      None
+    }
+}
 
-  private def cancelTimeout(): Unit =
-    setAndCancel(NoOpCancelable)
+object IdleTimeoutStage {
+
+  sealed trait State
+  case object Disabled extends State
+  case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
+  case object ShutDown extends State
+
 }

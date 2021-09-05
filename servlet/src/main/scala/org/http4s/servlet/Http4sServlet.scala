@@ -104,10 +104,10 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
           Request.Keys.ConnectionInfo,
           Request.Connection(
             local = SocketAddress(
-              IpAddress.fromString(req.getLocalAddr).get,
+              IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
               Port.fromInt(req.getLocalPort).get),
             remote = SocketAddress(
-              IpAddress.fromString(req.getRemoteAddr).get,
+              IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
               Port.fromInt(req.getRemotePort).get),
             secure = req.isSecure
           )
@@ -145,4 +145,6 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
     } yield name -> value
     Headers(headers.toList)
   }
+  private final def stripBracketsFromAddr(addr: String): String =
+    addr.stripPrefix("[").stripSuffix("]")
 }

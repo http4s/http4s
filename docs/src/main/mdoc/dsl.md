@@ -419,6 +419,41 @@ val req = GET(uri"/weather/temperature/2016-11-05")
 dailyWeatherService.orNotFound(req).unsafeRunSync()
 ```
 
+### Handling matrix path parameters
+
+[Matrix path parameters](https://www.w3.org/DesignIssues/MatrixURIs.html) can be extracted using `MatrixVar`.
+
+```scala mdoc:silent
+import org.http4s.dsl.impl.MatrixVar
+```
+
+In following example, we extract the `first` and `last` matrix path parameters. 
+By default, matrix path parameters are extracted as `String`s.
+
+```scala mdoc
+object FullNameExtractor extends MatrixVar("name", List("first", "last"))
+
+val greetingService = HttpRoutes.of[IO] {
+  case GET -> Root / "hello" / FullNameExtractor(first, last) / "greeting" =>
+    Ok(s"Hello, $first $last.")
+}
+
+greetingService.orNotFound(GET(uri"/hello/name;first=john;last=doe/greeting")).unsafeRunSync()
+```
+
+Like standard path parameters, matrix path parameters can be extracted as numeric types using `IntVar` or `LongVar`.
+
+```scala mdoc
+object FullNameAndIDExtractor extends MatrixVar("name", List("first", "last", "id"))
+
+val greetingWithIdService = HttpRoutes.of[IO] {
+  case GET -> Root / "hello" / FullNameAndIDExtractor(first, last, IntVar(id)) / "greeting" =>
+    Ok(s"Hello, $first $last. Your User ID is $id.")
+}
+
+greetingWithIdService.orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting")).unsafeRunSync()
+```
+
 ### Handling query parameters
 A query parameter needs to have a `QueryParamDecoderMatcher` provided to
 extract it. In order for the `QueryParamDecoderMatcher` to work there needs to

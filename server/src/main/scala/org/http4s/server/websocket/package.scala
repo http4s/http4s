@@ -23,7 +23,7 @@ import org.typelevel.vault.Key
 
 package object websocket {
   private[this] object Keys {
-    val WebSocket: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
+    val WebSocket: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
   }
 
   def websocketKey[F[_]]: Key[WebSocketContext[F]] =

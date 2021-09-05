@@ -25,7 +25,6 @@ import cats.syntax.all._
 import fs2._
 import java.io.IOException
 import org.http4s.headers.Host
-import org.http4s.syntax.kleisli._
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */

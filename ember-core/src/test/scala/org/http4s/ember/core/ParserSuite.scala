@@ -547,7 +547,7 @@ class ParsingSuite extends Http4sSuite {
     Helpers.taking[IO, Byte](byteStream).flatMap { take =>
       Parser.MessageP
         .parseMessage[IO](Array.emptyByteArray, take, 10)
-        .intercept[Parser.MessageP.MessageTooLongError]
+        .intercept[EmberException.MessageTooLong]
     }
   }
 }

@@ -38,25 +38,20 @@ private[ember] object Parser {
         F: MonadThrow[F]): F[MessageP] = {
       val endIndex = buffer.take(maxHeaderSize).indexOfSlice(doubleCrlf)
       if (endIndex == -1 && buffer.length > maxHeaderSize) {
-        F.raiseError(MessageTooLongError(maxHeaderSize))
+        F.raiseError(EmberException.MessageTooLong(maxHeaderSize))
       } else if (endIndex == -1) {
         read.flatMap {
           case Some(chunk) =>
             val nextBuffer = combineArrays(buffer, chunk.toArray)
             parseMessage(nextBuffer, read, maxHeaderSize)
-          case None if buffer.length > 0 => F.raiseError(EndOfStreamError())
-          case _ => F.raiseError(EmptyStreamError())
+          case None if buffer.length > 0 => F.raiseError(EmberException.ReachedEndOfStream())
+          case _ => F.raiseError(EmberException.EmptyStream())
         }
       } else {
         val (bytes, rest) = buffer.splitAt(endIndex + 4)
         MessageP(bytes, rest).pure[F]
       }
     }
-
-    final case class MessageTooLongError(maxHeaderSize: Int)
-        extends Exception(s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes")
-
-    final case class EndOfStreamError() extends Exception("Reached End Of Stream")
 
   }
 
@@ -402,30 +397,13 @@ private[ember] object Parser {
             .pure[F]
         } else {
           val unread = contentLength - buffer.length
-          Ref.of[F, Either[Long, Array[Byte]]](Left(unread)).map { state =>
-            val bodyStream = Stream.eval(state.get).flatMap {
-              case Right(_) =>
-                Stream.raiseError(BodyAlreadyConsumedError())
-              case Left(remaining) =>
-                readStream(read).chunks
-                  .evalMapAccumulate(remaining) { case (r, chunk) =>
-                    if (chunk.size >= r) {
-                      val (rest, after) = chunk.splitAt(r.toInt)
-                      state.set(Right(after.toArray)).as((0L, rest))
-                    } else {
-                      val r2 = r - chunk.size
-                      state.set(Left(r2)).as((r2, chunk))
-                    }
-                  }
-                  .takeThrough(_._1 > 0)
-                  .flatMap(t => Stream.chunk(t._2))
-            }
-
+          Ref.of[F, Option[Array[Byte]]](None).map { state =>
+            val body = decode(unread, buffer, state, read)
             // If the remaining bytes for the body have not yet been read, close the connection.
             // followup: Check if there are bytes immediately available without blocking
-            val drain: Drain[F] = state.get.map(_.toOption)
+            val drain: Drain[F] = state.get
 
-            (Stream.chunk(Chunk.bytes(buffer)) ++ bodyStream, drain)
+            (body, drain)
           }
         }
       } else {
@@ -435,12 +413,33 @@ private[ember] object Parser {
     final case class BodyAlreadyConsumedError()
         extends Exception("Body Has Been Consumed Completely Already")
 
-    private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
-      Stream.eval(read).flatMap {
-        case Some(bytes) =>
-          Stream.chunk(bytes) ++ readStream(read)
-        case None => Stream.empty
+    def decode[F[_]: Concurrent](
+        unread: Long,
+        buffer: Array[Byte],
+        nextBuffer: Ref[F, Option[Array[Byte]]],
+        read: Read[F]): Stream[F, Byte] = {
+      def go(remaining: Long): Pull[F, Byte, Unit] =
+        Pull.eval(read).flatMap {
+          case Some(chunk) =>
+            if (chunk.size >= remaining) {
+              val (rest, after) = chunk.splitAt(remaining.toInt)
+              Pull.eval(nextBuffer.set(Some(after.toArray))) >> Pull.output(rest) >> Pull.done
+            } else {
+              Pull.output(chunk) >> go(remaining - chunk.size)
+            }
+          case None => Pull.raiseError(EmberException.ReachedEndOfStream())
+        }
+
+      // TODO: This doesn't forbid concurrent reads of the body stream, only sequential reads.
+      val pull = Pull.eval(nextBuffer.get).flatMap {
+        case Some(_) =>
+          Pull.raiseError(BodyAlreadyConsumedError())
+        case None =>
+          Pull.output(Chunk.bytes(buffer)) >> go(unread)
       }
+
+      pull.stream
+    }
   }
 
   private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {

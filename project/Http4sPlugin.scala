@@ -1,5 +1,6 @@
 package org.http4s.sbt
 
+import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -25,7 +26,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.6"
   val scala_212 = "2.12.14"
-  val scala_3 = "3.0.0"
+  val scala_3 = "3.0.1"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -82,6 +83,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
     dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
@@ -135,6 +137,8 @@ object Http4sPlugin extends AutoPlugin {
         _.revision == "0.21.10"
       )
     },
+
+    doctestTestFramework := DoctestTestFramework.Munit,
   )
 
   def extractApiVersion(version: String) = {
@@ -287,44 +291,45 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.1"
-    val boopickle = "1.3.3"
+    val blaze = "0.15.2"
+    val boopickle = "1.4.0"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
-    val catsEffect = "2.5.1"
+    val catsEffect = "2.5.3"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
-    val dropwizardMetrics = "4.2.0"
-    val fs2 = "2.5.6"
+    val dropwizardMetrics = "4.2.3"
+    val fs2 = "2.5.9"
     val ip4s = "2.0.3"
-    val jawn = "1.1.2"
+    val javaWebSocket = "1.5.2"
+    val jawn = "1.2.0"
     val jawnFs2 = "1.1.3"
-    val jetty = "9.4.41.v20210516"
+    val jetty = "9.4.43.v20210629"
     val keypool = "0.3.5"
     val literally = "1.0.2"
-    val logback = "1.2.3"
+    val logback = "1.2.5"
     val log4cats = "1.3.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
-    val munitCatsEffect = "1.0.3"
+    val munitCatsEffect = "1.0.5"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.65.Final"
+    val netty = "4.1.67.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.9.2"
-    val prometheusClient = "0.10.0"
+    val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.2"
     val scalatags = "0.9.4"
-    val scalaXml = "2.0.0"
-    val scodecBits = "1.1.27"
+    val scalaXml = "2.0.1"
+    val scodecBits = "1.1.28"
     val servlet = "3.1.0"
-    val slf4j = "1.7.30"
-    val tomcat = "9.0.46"
+    val slf4j = "1.7.32"
+    val tomcat = "9.0.52"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.13"
@@ -357,6 +362,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
+  lazy val javaWebSocket                    = "org.java-websocket"     %  "Java-WebSocket"            % V.javaWebSocket
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
