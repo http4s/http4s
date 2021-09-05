@@ -91,7 +91,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 
     //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     val keepAliveExtension: Parser[Extension] =
-      (token ~ (Parser.char('=') *> token.orElse(quotedString).?)).map(p => Extension(p))
+      (token ~ (Parser.char('=') *> token.orElse(quotedString).?)).map(Extension)
 
     /*
   keep-alive-info      = "timeout" "=" delta-seconds
@@ -156,7 +156,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   }
 
 }
-//Sealed abstract case class.    
+
 sealed abstract case class `Keep-Alive` private(
     timeoutSeconds: Option[Long],
     max: Option[Long],
