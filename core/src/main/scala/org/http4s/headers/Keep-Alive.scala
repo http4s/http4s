@@ -30,14 +30,13 @@ import cats.kernel.Semigroup
 
 object `Keep-Alive` {
 
-  private sealed trait Paramater
-  private final case class Timeout(timeoutSeconds: Long) extends Paramater
-  private final case class Max(max: Long) extends Paramater
-  private final case class Extension(ext: (String, Option[String])) extends Paramater
+  private sealed trait Parameter
+  private final case class Timeout(timeoutSeconds: Long) extends Parameter
+  private final case class Max(max: Long) extends Parameter
+  private final case class Extension(ext: (String, Option[String])) extends Parameter
 
   /*
-Based on: https://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01#Keep-Alive
-Newest Version: https://datatracker.ietf.org/doc/html/draft-thomson-hybi-http-timeout-03 (Note:  Max is deprecated and gone)
+Spec Version: https://datatracker.ietf.org/doc/html/draft-thomson-hybi-http-timeout-03 (Note:  Max is deprecated and gone)
 Keep-Alive           = "Keep-Alive" ":" 1#keep-alive-info
 keep-alive-info      =   "timeout" "=" delta-seconds
                        / "max" "=" 1*DIGIT
@@ -105,7 +104,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
                        / "max" "=" 1*DIGIT
                        / keep-alive-extension
      */
-    val keepAliveInfo: Parser[Paramater] = timeout.orElse(max).orElse(keepAliveExtension)
+    val keepAliveInfo: Parser[Parameter] = timeout.orElse(max).orElse(keepAliveExtension)
 
     headerRep1(keepAliveInfo).map { nel =>
       var timeoutSeconds: Option[Long] = None
