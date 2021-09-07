@@ -30,14 +30,14 @@ import cats.kernel.Semigroup
 
 object `Keep-Alive` {
 
-  sealed trait KeepAlive
-  final case class Timeout(timeoutSeconds: Long) extends KeepAlive
-  final case class Max(max: Long) extends KeepAlive
-  final case class Extension(ext: (String, Option[String])) extends KeepAlive
+  private sealed trait Paramater
+  private final case class Timeout(timeoutSeconds: Long) extends Paramater
+  private final case class Max(max: Long) extends Paramater
+  private final case class Extension(ext: (String, Option[String])) extends Paramater
 
   /*
-https://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01#Keep-Alive
-
+Based on: https://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01#Keep-Alive
+Newest Version: https://datatracker.ietf.org/doc/html/draft-thomson-hybi-http-timeout-03 (Note:  Max is deprecated and gone)
 Keep-Alive           = "Keep-Alive" ":" 1#keep-alive-info
 keep-alive-info      =   "timeout" "=" delta-seconds
                        / "max" "=" 1*DIGIT
@@ -66,19 +66,19 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   def parse(s: String): ParseResult[`Keep-Alive`] =
     ParseResult.fromParser(parser, "Invalid Keep-Alive header")(s)
 
-  private[http4s] def nonNegativeLong(l: Long, fieldName: String): ParseResult[Long] =
+  private def nonNegativeLong(l: Long, fieldName: String): ParseResult[Long] =
     if (l >= 0) ParseResult.success(l)
     else
       ParseResult.fail(
         s"Invalid long for $fieldName",
         s"$fieldName which was $l must be greater than or equal to 0 seconds")
 
-  private[http4s] def safeToLong(s: String): Option[Long] =
+  private def safeToLong(s: String): Option[Long] =
     try Some(s.toLong)
     catch {
       case _: NumberFormatException => None
     }
-  private[http4s] val parser: Parser[`Keep-Alive`] = {
+  private val parser: Parser[`Keep-Alive`] = {
     import Rfc7230.{headerRep1, quotedString, token}
     import Numbers.digits
 
@@ -91,14 +91,14 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 
     //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     val keepAliveExtension: Parser[Extension] =
-      (token ~ (Parser.char('=') *> token.orElse(quotedString).?)).map(Extension)
+      (token ~ (Parser.char('=') *> token.orElse(quotedString)).?).map(Extension)
 
     /*
   keep-alive-info      = "timeout" "=" delta-seconds
                        / "max" "=" 1*DIGIT
                        / keep-alive-extension
      */
-    val keepAliveInfo: Parser[KeepAlive] = timeout.orElse(max).orElse(keepAliveExtension)
+    val keepAliveInfo: Parser[Paramater] = timeout.orElse(max).orElse(keepAliveExtension)
 
     headerRep1(keepAliveInfo).map { nel =>
       var timeoutSeconds: Option[Long] = None
@@ -140,11 +140,13 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 
               e.foreach { p =>
                 if (hasWritten) writer << ", " else hasWritten = true
-                writer << p._1 << "="
-                p._2.foreach(qts =>
+                writer << p._1
+                p._2.foreach { qts =>
+                  writer << "="
                   writer.quote(
                     qts
-                  )) //All tokens are valid if we quote them as if they were quoted-string
+                  )
+                 } //All tokens are valid if we quote them as if they were quoted-string
               }
               writer
           }
