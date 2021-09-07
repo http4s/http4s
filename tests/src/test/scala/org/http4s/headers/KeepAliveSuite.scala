@@ -61,7 +61,7 @@ class KeepAliveSuite extends HeaderLaws {
   test(
     "parse keep-alive with timeout, max, and extensions with 3 keys (extKey as a token) some have values and one does not") {
     assertEquals(
-      Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey=il, nextKey="pi", thirdKey="""),
+      Header[`Keep-Alive`].parse("""timeout=3, max=33, extKey=il, nextKey="pi", thirdKey"""),
       `Keep-Alive`(
         Some(3),
         Some(33),
@@ -69,9 +69,9 @@ class KeepAliveSuite extends HeaderLaws {
     )
   }
 
-  test("parse keep-alive with only timeout, max, and extensions with no value") {
+  test("parse keep-alive with only timeout, max, and extensions where the token is missing the '='") {
     assertEquals(
-      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey="),
+      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey"),
       `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
     )
   }
@@ -79,7 +79,7 @@ class KeepAliveSuite extends HeaderLaws {
   test(
     "parse keep-alive with only timeout, max, and extensions with multiple timeout values throwing these extras away") {
     assertEquals(
-      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=, timeout=8"),
+      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey, timeout=8"),
       `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
     )
   }
@@ -87,8 +87,8 @@ class KeepAliveSuite extends HeaderLaws {
   test(
     "parse keep-alive with only timeout, max, and extensions with multiple max values throwing these extras away") {
     assertEquals(
-      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=, max=8"),
-      `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
+      Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=1, max=8"),
+      `Keep-Alive`(Some(3), Some(33), List(("extKey", Some("1"))))
     )
   }
 }
