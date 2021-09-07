@@ -50,9 +50,16 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
       max: Option[Long],
       extension: List[(String, Option[String])]): ParseResult[`Keep-Alive`] =
     if (timeoutSeconds.isDefined || max.isDefined || extension.nonEmpty) {
-      val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))
-      val validatedMax = max.traverse(m => nonNegativeLong(m, "max"))
-      (validatedTimeoutSeconds, validatedMax).mapN((t, m) => impl(t, m, extension))
+      val reservedTokens = List("token", "max")
+      if (extension.exists(p => reservedTokens.contains(p._1))) {
+        ParseResult.fail(
+          "Invalid Keep-Alive header",
+          s"Reserved token of list $reservedTokens was found in the extensions.")
+      } else {
+        val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))
+        val validatedMax = max.traverse(m => nonNegativeLong(m, "max"))
+        (validatedTimeoutSeconds, validatedMax).mapN((t, m) => impl(t, m, extension))
+      }
     } else {
       ParseResult.fail("Invalid Keep-Alive header", "All fields of Keep-Alive were empty")
     }
@@ -146,7 +153,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
                   writer.quote(
                     qts
                   )
-                 } //All tokens are valid if we quote them as if they were quoted-string
+                } //All tokens are valid if we quote them as if they were quoted-string
               }
               writer
           }

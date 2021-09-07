@@ -69,7 +69,8 @@ class KeepAliveSuite extends HeaderLaws {
     )
   }
 
-  test("parse keep-alive with only timeout, max, and extensions where the token is missing the '='") {
+  test(
+    "parse keep-alive with only timeout, max, and extensions where the token is missing the '='") {
     assertEquals(
       Header[`Keep-Alive`].parse("timeout=3, max=33, extKey"),
       `Keep-Alive`(Some(3), Some(33), List(("extKey", None)))
