@@ -942,22 +942,6 @@ private[http4s] trait ArbitraryInstances {
 
   implicit val http4sTestingCogenForSegment: Cogen[Uri.Path.Segment] =
     Cogen[String].contramap(_.encoded)
-
-  implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
-    val genExtension = for {
-      extName <- genToken
-      quotedStringEquivWithoutQuotes =
-        genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
-      extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
-    } yield (extName -> extValue)
-
-    for {
-      timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
-      max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
-      l <- Gen.listOf(genExtension)
-      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
-    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
-  }
 }
 
 object ArbitraryInstances extends ArbitraryInstances {
@@ -1019,4 +1003,20 @@ object ArbitraryInstances extends ArbitraryInstances {
   implicit val http4sTestingCogenForResponsePrelude: Cogen[ResponsePrelude] =
     Cogen[(Headers, HttpVersion, Status)].contramap(value =>
       (value.headers, value.httpVersion, value.status))
+
+  implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
+    val genExtension = for {
+      extName <- genToken
+      quotedStringEquivWithoutQuotes =
+        genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
+      extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
+    } yield (extName -> extValue)
+
+    for {
+      timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      l <- Gen.listOf(genExtension)
+      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
+    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
+  }
 }
