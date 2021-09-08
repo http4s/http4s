@@ -373,8 +373,8 @@ class TlsSuite extends Http4sSuite {
     "TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256" -> 128
   )
 
-  test("deduceKeyLength should return expected results for known cipher suites") {
-    cipherSuiteMap.foreach { case (name, expectedValue) =>
+  cipherSuiteMap.foreach { case (name, expectedValue) =>
+    test(s"deduceKeyLength should return expected result for $name") {
       assertEquals(tls.deduceKeyLength(name), expectedValue)
     }
   }
