@@ -521,4 +521,48 @@ class Http1ServerStageSpec extends Http4sSuite {
       assert(head.closeCauses == Seq(None))
     }
   }
+
+  tickWheel.test("Prevent response splitting attacks on status reason phrase") { tw =>
+    val rawReq = "GET /?reason=%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
+    val head = runRequest(
+      tw,
+      List(rawReq),
+      HttpApp { req =>
+        Response[IO](Status.NoContent.withReason(req.params("reason"))).pure[IO]
+      })
+    head.result.map { buff =>
+      val (_, headers, _) = ResponseParser.parseBuffer(buff)
+      assertEquals(headers.find(_.name === "Evil".ci), None)
+    }
+  }
+
+  tickWheel.test("Prevent response splitting attacks on field name") { tw =>
+    val rawReq = "GET /?fieldName=Fine:%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
+    val head = runRequest(
+      tw,
+      List(rawReq),
+      HttpApp { req =>
+        Response[IO](Status.NoContent).putHeaders(Header(req.params("fieldName"), "oops")).pure[IO]
+      })
+    head.result.map { buff =>
+      val (_, headers, _) = ResponseParser.parseBuffer(buff)
+      assertEquals(headers.find(_.name === "Evil".ci), None)
+    }
+  }
+
+  tickWheel.test("Prevent response splitting attacks on field value") { tw =>
+    val rawReq = "GET /?fieldValue=%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
+    val head = runRequest(
+      tw,
+      List(rawReq),
+      HttpApp { req =>
+        Response[IO](Status.NoContent)
+          .putHeaders(Header("X-Oops", req.params("fieldValue")))
+          .pure[IO]
+      })
+    head.result.map { buff =>
+      val (_, headers, _) = ResponseParser.parseBuffer(buff)
+      assertEquals(headers.find(_.name === "Evil".ci), None)
+    }
+  }
 }
