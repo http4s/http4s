@@ -21,6 +21,8 @@ import org.http4s.util.{Renderable, Writer}
 
 object Server extends HeaderCompanion[Server]("Server") {
 
+  override val name = super.name
+
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
 

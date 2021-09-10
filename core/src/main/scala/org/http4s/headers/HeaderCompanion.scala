@@ -23,7 +23,7 @@ import org.http4s.util.Renderer
 
 private[headers] abstract class HeaderCompanion[A](_name: String) {
 
-  protected val name: CIString = CIString(_name)
+  protected def name: CIString = CIString(_name)
 
   private[http4s] val parser: Parser0[A]
 
