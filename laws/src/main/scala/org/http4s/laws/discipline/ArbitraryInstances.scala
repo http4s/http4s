@@ -44,6 +44,8 @@ import scala.concurrent.Future
 import scala.util.Try
 
 private[http4s] trait ArbitraryInstances {
+  import ArbitraryInstances._
+
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
@@ -145,12 +147,12 @@ private[http4s] trait ArbitraryInstances {
 
   val genCustomStatus = for {
     code <- genValidStatusCode
-    reason <- getArbitrary[String]
-  } yield Status.fromIntAndReason(code, reason).yolo
+    reason <- genCustomStatusReason
+  } yield Status.fromInt(code).yolo.withReason(reason)
 
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
     frequency(
-      10 -> genStandardStatus,
+      4 -> genStandardStatus,
       1 -> genCustomStatus
     ))
   implicit val http4sTestingCogenForStatus: Cogen[Status] =
@@ -917,4 +919,23 @@ object ArbitraryInstances extends ArbitraryInstances {
     Cogen
       .tuple3[Option[Uri.UserInfo], Uri.Host, Option[Int]]
       .contramap(a => (a.userInfo, a.host, a.port))
+
+  val genCustomStatusReason: Gen[String] = {
+    val word = poisson(5).flatMap(stringOfN(_, alphaChar))
+    val normal = poisson(3).flatMap(listOfN(_, word)).map(_.mkString(" "))
+    val exotic = stringOf(
+      frequency(
+        1 -> '\t',
+        1 -> const(' '),
+        94 -> asciiPrintableChar
+      ))
+    val unsanitizedAscii = asciiStr
+    val unsanitized = getArbitrary[String]
+    oneOf(
+      normal,
+      exotic,
+      unsanitizedAscii,
+      unsanitized
+    )
+  }
 }
