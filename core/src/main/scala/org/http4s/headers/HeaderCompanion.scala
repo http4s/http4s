@@ -27,6 +27,8 @@ private[headers] abstract class HeaderCompanion[A](_name: String) {
 
   private[http4s] val parser: Parser0[A]
 
+  implicit val headerInstance: Header[A, _ <: Header.Type]
+
   private val invalidHeader = s"Invalid $name header"
   def parse(s: String): ParseResult[A] =
     ParseResult.fromParser(parser, invalidHeader)(s)
