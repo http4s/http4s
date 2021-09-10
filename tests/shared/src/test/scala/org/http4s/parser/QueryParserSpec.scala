@@ -105,7 +105,7 @@ class QueryParserSpec extends Http4sSuite {
 
   test("The QueryParser should be stack safe") {
     val value = CollectionCompat.LazyList.continually('X').take(1000000).mkString
-    val query = s"little=x&big=${value}"
+    val query = s"little=x&big=$value"
     assertEquals(parseQueryString(query), Right(Query("little" -> Some("x"), "big" -> Some(value))))
   }
 

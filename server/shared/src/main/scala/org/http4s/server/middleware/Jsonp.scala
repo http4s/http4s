@@ -29,12 +29,11 @@ import org.log4s.getLogger
 
 /** Middleware to support wrapping json responses in jsonp.
   *
-  * Jsonp wrapping occurs when the request contains a parameter with the given name and
-  * the request Content-Type is `application/json`.
+  * Jsonp wrapping occurs when the request contains a parameter with the given name and the request
+  * Content-Type is `application/json`.
   *
-  * If the wrapping is done, the response Content-Type is changed into
-  * `application/javascript` and the appropriate jsonp callback is
-  * applied.
+  * If the wrapping is done, the response Content-Type is changed into `application/javascript` and
+  * the appropriate jsonp callback is applied.
   */
 object Jsonp {
   private val logger = getLogger

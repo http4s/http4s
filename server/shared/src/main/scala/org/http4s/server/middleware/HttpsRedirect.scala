@@ -29,11 +29,10 @@ import org.typelevel.ci._
 
 import org.log4s.getLogger
 
-/** [[Middleware]] to redirect http traffic to https.
-  * Inspects `X-Forwarded-Proto` header and if it is set to `http`,
-  * redirects to `Host` with same URL with https schema; otherwise does nothing.
-  * This middleware is useful when a service is deployed behind a load balancer
-  * which does not support such redirect feature, e.g. Heroku.
+/** [[Middleware]] to redirect http traffic to https. Inspects `X-Forwarded-Proto` header and if it
+  * is set to `http`, redirects to `Host` with same URL with https schema; otherwise does nothing.
+  * This middleware is useful when a service is deployed behind a load balancer which does not
+  * support such redirect feature, e.g. Heroku.
   */
 object HttpsRedirect {
   private[HttpsRedirect] val logger = getLogger

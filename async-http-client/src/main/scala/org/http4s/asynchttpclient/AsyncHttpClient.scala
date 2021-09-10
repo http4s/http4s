@@ -72,7 +72,8 @@ object AsyncHttpClient {
 
   /** Create an HTTP client based on the AsyncHttpClient library
     *
-    * @param config configuration for the client
+    * @param config
+    *   configuration for the client
     */
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: Async[F]): Resource[F, Client[F]] =
@@ -83,9 +84,10 @@ object AsyncHttpClient {
 
   /** Create a bracketed HTTP client based on the AsyncHttpClient library.
     *
-    * @param config configuration for the client
-    * @return a singleton stream of the client.  The client will be
-    * shutdown when the stream terminates.
+    * @param config
+    *   configuration for the client
+    * @return
+    *   a singleton stream of the client. The client will be shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: Async[F]): Stream[F, Client[F]] =
@@ -93,8 +95,10 @@ object AsyncHttpClient {
 
   /** Create a custom AsyncHttpClientConfig
     *
-    * @param configurationFn function that maps from the builder of the defaultConfig to the custom config's builder
-    * @return a custom configuration.
+    * @param configurationFn
+    *   function that maps from the builder of the defaultConfig to the custom config's builder
+    * @return
+    *   a custom configuration.
     */
   def configure(
       configurationFn: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder
