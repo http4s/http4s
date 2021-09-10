@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import org.http4s.parser.AdditionalRules
-import org.typelevel.ci._
 
 /** Request header, used with the TRACE and OPTION request methods,
   * that gives an upper bound on how many times the request can be
@@ -28,7 +27,7 @@ import org.typelevel.ci._
   */
 sealed abstract case class `Max-Forwards`(count: Long)
 
-object `Max-Forwards` {
+object `Max-Forwards` extends HeaderCompanion[`Max-Forwards`]("Max-Forwards") {
   private class MaxForwardsImpl(length: Long) extends `Max-Forwards`(length)
 
   val zero: `Max-Forwards` = new MaxForwardsImpl(0)
@@ -40,16 +39,8 @@ object `Max-Forwards` {
   def unsafeFromLong(length: Long): `Max-Forwards` =
     fromLong(length).fold(throw _, identity)
 
-  def parse(s: String): ParseResult[`Max-Forwards`] =
-    ParseResult.fromParser(parser, "Invalid Max-Forwards header")(s)
-
   private[http4s] val parser = AdditionalRules.NonNegativeLong.mapFilter(l => fromLong(l).toOption)
 
   implicit val headerInstance: Header[`Max-Forwards`, Header.Single] =
-    Header.createRendered(
-      ci"Max-Forwards",
-      _.count,
-      parse
-    )
-
+    createRendered(_.count)
 }
