@@ -13,6 +13,7 @@ package org.http4s
 import cats.{Eq, Order, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
+import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.util.hashing.MurmurHash3
@@ -24,6 +25,11 @@ sealed trait Header extends Renderable with Product {
   import Header.Raw
 
   def name: CaseInsensitiveString
+
+  /** True if [[name]] is a valid field-name per RFC7230.  Where it
+    * is not, the header may be dropped by the backend.
+    */
+  def isNameValid: Boolean = true
 
   def parsed: Header
 
@@ -71,6 +77,9 @@ object Header {
 
   def apply(name: String, value: String): Raw = Raw(name.ci, value)
 
+  private val FieldNamePredicate =
+    CharPredicate("!#$%&'*+-.^_`|~`") ++ CharPredicate.AlphaNum
+
   /** Raw representation of the Header
     *
     * This can be considered the simplest representation where the header is specified as the product of
@@ -86,6 +95,9 @@ object Header {
       _parsed
     }
     override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+    override lazy val isNameValid: Boolean =
+      name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
   }
 
   /** A Header that is already parsed from its String representation. */

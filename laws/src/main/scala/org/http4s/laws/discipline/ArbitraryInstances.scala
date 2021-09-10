@@ -539,7 +539,7 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
-        token <- genToken
+        token <- frequency(8 -> genToken, 1 -> asciiStr, 1 -> getArbitrary[String])
         value <- genFieldValue
       } yield Header.Raw(token.ci, value)
     }

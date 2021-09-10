@@ -19,8 +19,8 @@ package org.http4s
 import cats.kernel.laws.discipline.OrderTests
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.headers._
-import org.http4s.util.StringWriter
 import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.util.StringWriter
 import org.scalacheck.Prop._
 
 class HeaderSuite extends munit.DisciplineSuite {
@@ -92,5 +92,13 @@ class HeaderSuite extends munit.DisciplineSuite {
 
   test("Order instance for Header should be lawful") {
     checkAll("Order[Header]", OrderTests[Header].order)
+  }
+
+  test("isNameValid") {
+    forAll { (h: Header) =>
+      val tchar =
+        Set(0x21.toChar to 0x7e.toChar: _*).diff(Set("\"(),/:;<=>?@[\\]{}": _*)).map(_.toByte)
+      assertEquals(h.isNameValid, h.name.toString.getBytes(ISO_8859_1).forall(tchar), h.name)
+    }
   }
 }
