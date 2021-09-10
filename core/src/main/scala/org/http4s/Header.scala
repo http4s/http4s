@@ -14,6 +14,7 @@ import cats.{Eq, Order, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.internal.sanitize
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.util.hashing.MurmurHash3
@@ -79,6 +80,8 @@ object Header {
 
   private val FieldNamePredicate =
     CharPredicate("!#$%&'*+-.^_`|~`") ++ CharPredicate.AlphaNum
+  private val FieldValueInvalidPredicate =
+    CharPredicate(0x0.toChar, '\r', '\n')
 
   /** Raw representation of the Header
     *
@@ -94,7 +97,8 @@ object Header {
         _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
       _parsed
     }
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
+    override def renderValue(writer: Writer): writer.type =
+      writer.append(sanitize(value, FieldValueInvalidPredicate, ' '))
 
     override lazy val isNameValid: Boolean =
       name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
