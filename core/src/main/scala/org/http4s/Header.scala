@@ -4,7 +4,8 @@ import cats.{Foldable, Hash, Order, Semigroup, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci.CIString
-import org.http4s.util.{Renderer, Writer}
+import org.http4s.internal.CharPredicate
+import org.http4s.util.{Renderer, StringWriter, Writer}
 import cats.data.Ior
 
 /** Typeclass representing an HTTP header, which all the http4s
@@ -13,10 +14,17 @@ import cats.data.Ior
   * `Header[YourModelledHeader]`
   */
 trait Header[A, T <: Header.Type] {
+  import Header._
 
   /** Name of the header. Not case sensitive.
     */
   def name: CIString
+
+  /** True if [[name]] is a valid field-name per RFC7230.  Where it
+    * is not, the header may be dropped by the backend.
+    */
+  def isNameValid: Boolean =
+    name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
 
   /** Value of the header, which is represented as a String.
     * Will be a comma separated String for headers with multiple values.
@@ -33,6 +41,17 @@ trait Header[A, T <: Header.Type] {
 object Header {
   final case class Raw(val name: CIString, val value: String) {
     override def toString: String = s"${name}: ${value}"
+
+    /** True if [[name]] is a valid field-name per RFC7230.  Where it
+      * is not, the header may be dropped by the backend.
+      */
+    def isNameValid: Boolean =
+      name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
+
+    def sanitizedValue: String = {
+      val w = new StringWriter
+      w.sanitize(_ << value).result
+    }
   }
 
   object Raw {
@@ -50,8 +69,10 @@ object Header {
           case c => c
         }
 
-      def render(writer: Writer, h: Raw): writer.type =
-        writer << h.name << ':' << ' ' << h.value
+      def render(writer: Writer, h: Raw): writer.type = {
+        writer << h.name << ':' << ' '
+        writer.sanitize(_ << h.value)
+      }
     }
   }
 
@@ -219,4 +240,7 @@ object Header {
           }
       }
   }
+
+  private val FieldNamePredicate =
+    CharPredicate("!#$%&'*+-.^_`|~`") ++ CharPredicate.AlphaNum
 }

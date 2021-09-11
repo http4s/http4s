@@ -49,12 +49,14 @@ private[ember] object Encoder {
 
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
-        stringBuilder
-          .append(h.name)
-          .append(": ")
-          .append(h.value)
-          .append(CRLF)
-        ()
+        if (h.isNameValid) {
+          stringBuilder
+            .append(h.name)
+            .append(": ")
+            .append(h.value)
+            .append(CRLF)
+          ()
+        }
       }
       if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
         stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
