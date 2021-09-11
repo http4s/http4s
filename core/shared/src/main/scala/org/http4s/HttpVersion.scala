@@ -22,8 +22,6 @@ import cats.kernel.BoundedEnumerable
 import cats.parse.{Parser => P}
 import cats.parse.Rfc5234.digit
 import org.http4s.util._
-import cats.kernel.Order
-
 
 /** An HTTP version, as seen on the start line of an HTTP request or response.
   *
@@ -103,7 +101,4 @@ object HttpVersion {
     override def minBound: HttpVersion = HttpVersion(0, 0)
     override def maxBound: HttpVersion = HttpVersion(9, 9)
   }
-
-  implicit val stdLibOrderingInstance: Ordering[HttpVersion] =
-    catsInstancesForHttp4sHttpVersion.toOrdering 
 }
