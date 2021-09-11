@@ -14,7 +14,6 @@ import cats.{Eq, Order, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.internal.parboiled2.CharPredicate
-import org.http4s.internal.sanitize
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.util.hashing.MurmurHash3
@@ -41,6 +40,11 @@ sealed trait Header extends Renderable with Product {
     renderValue(w).result
   }
 
+  final def sanitizedValue: String = {
+    val w = new StringWriter
+    w.sanitize(renderValue(_)).result
+  }
+
   def is(key: HeaderKey): Boolean = key.matchHeader(this).isDefined
 
   def isNot(key: HeaderKey): Boolean = !is(key)
@@ -51,7 +55,7 @@ sealed trait Header extends Renderable with Product {
 
   final def render(writer: Writer): writer.type = {
     writer << name << ':' << ' '
-    renderValue(writer)
+    writer.sanitize(renderValue(_))
   }
 
   final override def hashCode(): Int =
@@ -80,8 +84,6 @@ object Header {
 
   private val FieldNamePredicate =
     CharPredicate("!#$%&'*+-.^_`|~`") ++ CharPredicate.AlphaNum
-  private val FieldValueInvalidPredicate =
-    CharPredicate(0x0.toChar, '\r', '\n')
 
   /** Raw representation of the Header
     *
@@ -98,7 +100,7 @@ object Header {
       _parsed
     }
     override def renderValue(writer: Writer): writer.type =
-      writer.append(sanitize(value, FieldValueInvalidPredicate, ' '))
+      writer.append(value)
 
     override lazy val isNameValid: Boolean =
       name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)

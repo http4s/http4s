@@ -30,7 +30,6 @@ import cats.effect.{Async, Concurrent, ConcurrentEffect, ContextShift, Effect, I
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
-import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.util.execution.direct
 import org.log4s.Logger
 
@@ -356,25 +355,4 @@ package object internal {
       tail: Eval[Int]*
   ): Int =
     reduceComparisons_(NonEmptyChain(Eval.now(head), tail: _*))
-
-  /** Sanitizes String {{s}}, replacing any characters matching
-    * {{invalid}} with {{replacement}}.
-    */
-  private[http4s] def sanitize(s: String, invalid: CharPredicate, replacement: Char): String = {
-    var i = 0
-    val len = s.length
-    while (i < len && !invalid(s.charAt(i))) i += 1
-    if (i == len) {
-      s
-    } else {
-      val chars = s.toCharArray
-      while (i < len) {
-        if (invalid(chars(i))) {
-          chars(i) = replacement
-        }
-        i += 1
-      }
-      new String(chars)
-    }
-  }
 }

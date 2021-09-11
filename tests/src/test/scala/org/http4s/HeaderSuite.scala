@@ -98,7 +98,7 @@ class HeaderSuite extends munit.DisciplineSuite {
     forAll { (h: Header) =>
       val tchar =
         Set(0x21.toChar to 0x7e.toChar: _*).diff(Set("\"(),/:;<=>?@[\\]{}": _*)).map(_.toByte)
-      assertEquals(h.isNameValid, h.name.toString.getBytes(ISO_8859_1).forall(tchar), h.name)
+      assertEquals(h.isNameValid, h.name.toString.nonEmpty && h.name.toString.getBytes(ISO_8859_1).forall(tchar), h.name)
     }
   }
 }

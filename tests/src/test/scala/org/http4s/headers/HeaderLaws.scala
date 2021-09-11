@@ -21,7 +21,6 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
 import org.typelevel.discipline.Laws
 import org.http4s.laws.discipline.ArbitraryInstances._
-import org.http4s.util.StringWriter
 
 trait HeaderLaws extends munit.DisciplineSuite with Laws {
   import HeaderLaws._
@@ -46,11 +45,9 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
       """matchHeader does not match other names""" -> forAll { (header: Header) =>
         key.name != header.name ==> assert(key.matchHeader(header).isEmpty)
       },
-      """sanitizes prohibited header characters""" -> forAll { (header: Header) =>
-        val sw = new StringWriter
-        header.renderValue(sw)
-        val value = sw.result
-        assert(!value.exists(ProhibitedFieldValueChars), value)
+      """sanitizes prohibited header characters""" -> forAll { (a: key.HeaderT) =>
+        val s = a.renderString
+        assert(!s.exists(ProhibitedFieldValueChars), s)
       }
     )
 }
