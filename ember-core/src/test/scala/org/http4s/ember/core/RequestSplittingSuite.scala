@@ -41,13 +41,13 @@ class RequestSplittingSuite extends Http4sSuite {
 
   test("Prevent request splitting attacks on URI path") {
     val req = Request[IO](uri = Uri(path = "/ HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:"))
-    attack(req).map(_.status).assertEquals(Status.Ok)
+    attack(req).intercept[IllegalArgumentException]
   }
 
   test("Prevent request splitting attacks on URI regname") {
     val req = Request[IO](uri = Uri(
       authority = Uri.Authority(None, Uri.RegName("example.com\r\nEvil:true\r\n")).some,
       path = "/"))
-    attack(req).map(_.status).assertEquals(Status.Ok)
+    attack(req).intercept[IllegalArgumentException]
   }
 }
