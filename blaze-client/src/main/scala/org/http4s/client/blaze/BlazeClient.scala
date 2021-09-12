@@ -179,8 +179,14 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
                  )(implicit F: ConcurrentEffect[F]) extends DefaultClient[F]{
 
   override def run(req: Request[F]): Resource[F, Response[F]] = for {
-    (conn, idleTimeoutF, responseHeaderTimeoutF) <- prepareConnection(RequestKey.fromRequest(req))
-    responseResource <- Resource.eval(runRequest(conn, req, idleTimeoutF, responseHeaderTimeoutF, RequestKey.fromRequest(req)))
+    _ <- Resource.pure[F, Unit](())
+    key = RequestKey.fromRequest(req)
+    requestTimeoutF <- scheduleRequestTimeout(key)
+    (conn, idleTimeoutF, responseHeaderTimeoutF) <- prepareConnection(key)
+    timeout = idleTimeoutF
+      .race(responseHeaderTimeoutF).map(_.merge)
+      .race(requestTimeoutF).map(_.merge)
+    responseResource <- Resource.eval(runRequest(conn, req, timeout))
     response <- responseResource
   } yield response
 
@@ -203,7 +209,6 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
           Deferred[F, Either[Throwable, TimeoutException]].flatMap( timeout => F.delay {
             val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
             conn.spliceBefore(stage)
-            timeout.get.start.map(_.join)
             stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
             (timeout.get.rethrow, F.delay(stage.removeStage()))
           })
@@ -225,23 +230,27 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
       case _ => Resource.pure[F, F[TimeoutException]](F.never)
     }
 
-  private def runRequest(conn: A, req: Request[F], idleTimeoutF: F[TimeoutException], responseHeaderTimeoutF: F[TimeoutException], key: RequestKey): F[Resource[F, Response[F]]] =
-    conn.runRequest(req, idleTimeoutF)
-      .race(responseHeaderTimeoutF.flatMap(F.raiseError[Resource[F, Response[F]]](_))).map(_.merge)
-      .race(requestTimeout(key).flatMap(F.raiseError[Resource[F, Response[F]]](_))).map(_.merge)
-
-  private def requestTimeout(key: RequestKey): F[TimeoutException] =
+  private def scheduleRequestTimeout(key: RequestKey): Resource[F, F[TimeoutException]] =
     requestTimeout match {
       case d: FiniteDuration =>
         F.cancelable[TimeoutException] { cb =>
+          println("scheduling request timeout")
           val c = scheduler.schedule (
-            () => cb (Right (new TimeoutException (s"Request to $key timed out after ${d.toMillis} ms") ) ),
+            () => {
+              println("request timeout happened")
+              cb(Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
+            },
             ec,
             d
           )
-          F.delay(c.cancel())
-        }
-      case _ => F.never
+          F.delay{println("cancel"); c.cancel()}
+        }.background.map(_.guaranteeCase(caze => F.delay(println(caze.toString))))
+      case _ => Resource.pure[F, F[TimeoutException]](F.never)
     }
+
+  private def runRequest(conn: A, req: Request[F], timeout: F[TimeoutException]): F[Resource[F, Response[F]]] =
+    conn.runRequest(req, timeout)
+      .race(timeout.flatMap(F.raiseError[Resource[F, Response[F]]](_))).map(_.merge)
+      .flatTap(_ => F.delay("runRequest"))
 
 }

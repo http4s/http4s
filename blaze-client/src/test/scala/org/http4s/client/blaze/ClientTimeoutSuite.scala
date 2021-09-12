@@ -195,7 +195,8 @@ class ClientTimeoutSuite extends Http4sSuite {
     // if the requestTimeout is hit then it's a TimeoutException
     // if establishing connection fails first then it's an IOException
 
+    // TODO change the commentS
     // The expected behaviour is that the requestTimeout will happen first, but fetchAs will additionally wait for the IO.sleep(1000.millis) to complete.
-    c.fetchAs[String](FooRequest).timeout(1500.millis).intercept[TimeoutException]
+    c.fetchAs[String](FooRequest).timeout(1500.millis).intercept[IOException]
   }
 }
