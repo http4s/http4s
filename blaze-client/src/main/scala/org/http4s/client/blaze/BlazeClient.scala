@@ -178,12 +178,11 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
                   ec: ExecutionContext
                  )(implicit F: ConcurrentEffect[F]) extends DefaultClient[F]{
 
-  override def run(req: Request[F]): Resource[F, Response[F]] =
-    for {
-      (conn, idleTimeoutF, responseHeaderTimeoutF) <- prepareConnection(RequestKey.fromRequest(req))
-      getResponse <- Resource.eval(runRequest(conn, req, idleTimeoutF, responseHeaderTimeoutF, RequestKey.fromRequest(req)))
-      response <- getResponse
-    } yield response
+  override def run(req: Request[F]): Resource[F, Response[F]] = for {
+    (conn, idleTimeoutF, responseHeaderTimeoutF) <- prepareConnection(RequestKey.fromRequest(req))
+    responseResource <- Resource.eval(runRequest(conn, req, idleTimeoutF, responseHeaderTimeoutF, RequestKey.fromRequest(req)))
+    response <- responseResource
+  } yield response
 
   private def prepareConnection(key: RequestKey): Resource[F, (A, F[TimeoutException], F[TimeoutException])] = for {
     conn <- borrowConnection(key)
@@ -192,7 +191,10 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
   } yield (conn, idleTimeoutF, responseHeaderTimeoutF)
 
   private def borrowConnection(key: RequestKey): Resource[F, A] =
-    Resource.make(manager.borrow(key).map(_.connection))(conn => manager.release(conn))
+    Resource.makeCase(manager.borrow(key).map(_.connection)) {
+      case (conn, ExitCase.Canceled) => manager.invalidate(conn) // TODO why can't we just release and let the pool figure it out?
+      case (conn, _) => manager.release(conn)
+    }
 
   private def addIdleTimeout(conn: A): Resource[F, F[TimeoutException]] =
     idleTimeout match {
@@ -201,7 +203,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
           Deferred[F, Either[Throwable, TimeoutException]].flatMap( timeout => F.delay {
             val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
             conn.spliceBefore(stage)
-              timeout.get.start.map(_.join)
+            timeout.get.start.map(_.join)
             stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
             (timeout.get.rethrow, F.delay(stage.removeStage()))
           })
@@ -213,7 +215,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
     responseHeaderTimeout match {
       case d: FiniteDuration =>
         Resource.apply(
-          Deferred[F, Either[Throwable, TimeoutException]].flatMap( timeout => F.delay {
+          Deferred[F, Either[Throwable, TimeoutException]].flatMap(timeout => F.delay {
             val stage = new ResponseHeaderTimeoutStage[ByteBuffer](d, scheduler, ec)
             conn.spliceBefore(stage)
             stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
