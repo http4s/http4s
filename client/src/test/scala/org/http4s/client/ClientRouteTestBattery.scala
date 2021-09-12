@@ -37,10 +37,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   def testServlet =
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-        GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(r) =>
-            renderResponse(srv, r.unsafeRunSync()).unsafeRunSync() // We are outside the IO world
-          case None => srv.sendError(404)
+        req.getPathInfo match {
+          case "/request-splitting" =>
+            Option(req.getHeader("Evil")) match {
+              case None => srv.setStatus(200)
+              case Some(_) => srv.sendError(500)
+            }
+          case _ =>
+            GetRoutes.getPaths.get(req.getRequestURI) match {
+              case Some(r) =>
+                renderResponse(srv, r.unsafeRunSync())
+                  .unsafeRunSync() // We are outside the IO world
+              case None => srv.sendError(404)
+            }
         }
 
       override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
@@ -118,6 +127,28 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
         .use(resp => expected.flatMap(expectedResponse => checkResponse(resp, expectedResponse)))
         .assert
     }
+  }
+
+  test("Mitigates request splitting attack in URI path") {
+    val address = jetty().addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val req = Request[IO](
+      uri = Uri(
+        authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
+        path = "/request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:"))
+    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in URI RegName") {
+    val address = jetty().addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val req = Request[IO](uri = Uri(
+      authority =
+        Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
+      path = "/request-splitting"))
+    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
