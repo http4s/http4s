@@ -69,7 +69,7 @@ jobs:
 
       - name: Setup NodeJS v16
         if: matrix.ci == 'ciNodeJS'
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v2.4.0
         with:
           node-version: 16
 

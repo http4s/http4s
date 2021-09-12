@@ -27,7 +27,7 @@ ThisBuild / githubWorkflowUseSbtThinClient := false
 ThisBuild / githubWorkflowBuildPreamble ++=
   Seq(
     WorkflowStep.Use(
-      UseRef.Public("actions", "setup-node", "v2.1.5"),
+      UseRef.Public("actions", "setup-node", "v2.4.0"),
       name = Some("Setup NodeJS v16"),
       params = Map("node-version" -> "16"),
       cond = Some("matrix.ci == 'ciNodeJS'")),
