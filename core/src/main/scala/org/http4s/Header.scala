@@ -14,17 +14,10 @@ import cats.data.Ior
   * `Header[YourModelledHeader]`
   */
 trait Header[A, T <: Header.Type] {
-  import Header._
 
   /** Name of the header. Not case sensitive.
     */
   def name: CIString
-
-  /** True if [[name]] is a valid field-name per RFC7230.  Where it
-    * is not, the header may be dropped by the backend.
-    */
-  def isNameValid: Boolean =
-    name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
 
   /** Value of the header, which is represented as a String.
     * Will be a comma separated String for headers with multiple values.
