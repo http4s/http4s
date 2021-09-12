@@ -530,7 +530,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       })
     head.result.map { buff =>
       val (_, headers, _) = ResponseParser.parseBuffer(buff)
-      assertEquals(headers.find(_.name === "Evil".ci), None)
+      assertEquals(headers.find(_.name === ci"Evil"), None)
     }
   }
 
@@ -540,11 +540,11 @@ class Http1ServerStageSpec extends Http4sSuite {
       tw,
       List(rawReq),
       HttpApp { req =>
-        Response[IO](Status.NoContent).putHeaders(Header(req.params("fieldName"), "oops")).pure[IO]
+        Response[IO](Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]
       })
     head.result.map { buff =>
       val (_, headers, _) = ResponseParser.parseBuffer(buff)
-      assertEquals(headers.find(_.name === "Evil".ci), None)
+      assertEquals(headers.find(_.name === ci"Evil"), None)
     }
   }
 
@@ -555,12 +555,12 @@ class Http1ServerStageSpec extends Http4sSuite {
       List(rawReq),
       HttpApp { req =>
         Response[IO](Status.NoContent)
-          .putHeaders(Header("X-Oops", req.params("fieldValue")))
+          .putHeaders("X-Oops" -> req.params("fieldValue"))
           .pure[IO]
       })
     head.result.map { buff =>
       val (_, headers, _) = ResponseParser.parseBuffer(buff)
-      assertEquals(headers.find(_.name === "Evil".ci), None)
+      assertEquals(headers.find(_.name === ci"Evil"), None)
     }
   }
 }
