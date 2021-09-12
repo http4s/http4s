@@ -640,7 +640,7 @@ final class Response[F[_]] private (
 
   def canEqual(that: Any): Boolean =
     that match {
-      case _: Response[F] => true
+      case _: Response[_] => true
       case _ => false
     }
 
