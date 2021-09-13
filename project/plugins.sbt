@@ -1,4 +1,4 @@
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.5"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.6"
 libraryDependencies += "org.scala-js" %% "scalajs-env-selenium" % "1.1.1"
 
 // https://github.com/coursier/coursier/issues/450

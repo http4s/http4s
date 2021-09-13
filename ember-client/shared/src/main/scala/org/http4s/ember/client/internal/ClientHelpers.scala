@@ -17,6 +17,7 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
+import fs2.io.ClosedChannelException
 import fs2.io.net._
 import cats._
 import cats.data.NonEmptyList

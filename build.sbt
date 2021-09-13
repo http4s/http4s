@@ -27,7 +27,7 @@ ThisBuild / githubWorkflowUseSbtThinClient := false
 ThisBuild / githubWorkflowBuildPreamble ++=
   Seq(
     WorkflowStep.Use(
-      UseRef.Public("actions", "setup-node", "v2.1.5"),
+      UseRef.Public("actions", "setup-node", "v2.4.0"),
       name = Some("Setup NodeJS v16"),
       params = Map("node-version" -> "16"),
       cond = Some("matrix.ci == 'ciNodeJS'")),
@@ -451,7 +451,7 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
   )
   .jsSettings(
     libraryDependencies += log4catsNoop.value,
-    Test / npmDependencies += "ws" -> "8.0.0",
+    Test / npmDependencies += "ws" -> "8.2.2",
     useYarn := true,
     yarnExtraArgs += "--frozen-lockfile",
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))

@@ -29,8 +29,6 @@ import scala.annotation.tailrec
 
 private[internal] trait ClientHelpersPlatform {
 
-  private[internal] type ClosedChannelException = java.nio.channels.ClosedChannelException
-
   private[internal] def mkTLSParameters(
       address: SocketAddress[Host],
       enableEndpointValidation: Boolean): TLSParameters =
