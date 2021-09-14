@@ -22,14 +22,15 @@ import scala.util.hashing.MurmurHash3
   * @see org.http4s.HeaderKey
   */
 sealed trait Header extends Renderable with Product {
-  import Header.Raw
+  import Header._
 
   def name: CaseInsensitiveString
 
   /** True if [[name]] is a valid field-name per RFC7230.  Where it
     * is not, the header may be dropped by the backend.
     */
-  def isNameValid: Boolean = true
+  def isNameValid: Boolean =
+    name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
 
   def parsed: Header
 
@@ -101,9 +102,6 @@ object Header {
     }
     override def renderValue(writer: Writer): writer.type =
       writer.append(value)
-
-    override lazy val isNameValid: Boolean =
-      name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
   }
 
   /** A Header that is already parsed from its String representation. */
