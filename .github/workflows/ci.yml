@@ -134,7 +134,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.14 website/makeSite website/ghpagesPushSite
+          sbt ++2.12.15 website/makeSite website/ghpagesPushSite
 
                 
 
@@ -147,7 +147,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.14 docs/makeSite docs/ghpagesPushSite
+          sbt ++2.12.15 docs/makeSite docs/ghpagesPushSite
 
                 
 
