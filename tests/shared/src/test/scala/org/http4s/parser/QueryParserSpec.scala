@@ -19,7 +19,6 @@ package parser
 
 import java.nio.CharBuffer
 import org.http4s.internal.CollectionCompat
-import scala.io.Codec
 
 class QueryParserSpec extends Http4sSuite {
   def parseQueryString(str: String): ParseResult[Query] =
@@ -55,7 +54,7 @@ class QueryParserSpec extends Http4sSuite {
   }
 
   test("The QueryParser should Handle '=' in a query string") {
-    assertEquals(parseQueryString("a=b=c").map(_.renderString), Right("a=b=c"))
+    assertEquals(parseQueryString("a=b=c").map(_.normalize), Right(Query("a" -> Some("b=c"))))
   }
 
 //    test("The QueryParser should Gracefully handle invalid URL encoding") {
@@ -67,14 +66,15 @@ class QueryParserSpec extends Http4sSuite {
   }
 
   test("The QueryParser should Allow PHP-style [] in keys") {
-    assertEquals(parseQueryString("a[]=b&a[]=c").map(_.renderString), Right("a[]=b&a[]=c"))
-
+    assertEquals(
+      parseQueryString("a[]=b&a[]=c").map(_.normalize),
+      Right(Query("a[]" -> Some("b"), "a[]" -> Some("c"))))
   }
 
   test("The QueryParser should QueryParser using QChars doesn't allow PHP-style [] in keys") {
     val queryString = "a[]=b&a[]=c"
     assert(
-      new QueryParser(Codec.UTF8, true, QueryParser.QChars)
+      new QueryParser(true, QueryParser.QChars)
         .decode(CharBuffer.wrap(queryString), true)
         .isLeft)
   }
@@ -88,16 +88,16 @@ class QueryParserSpec extends Http4sSuite {
   test("The QueryParser should Keep CharBuffer position if not flushing") {
     val s = "key=value&stuff=cat"
     val cs = CharBuffer.wrap(s)
-    val r = new QueryParser(Codec.UTF8, true).decode(cs, false)
+    val r = new QueryParser(true).decode(cs, false)
 
     assertEquals(r, Right(Query("key" -> Some("value"))))
     assertEquals(cs.remaining, 9)
 
-    val r2 = new QueryParser(Codec.UTF8, true).decode(cs, false)
+    val r2 = new QueryParser(true).decode(cs, false)
     assertEquals(r2, Right(Query()))
     assertEquals(cs.remaining(), 9)
 
-    val r3 = new QueryParser(Codec.UTF8, true).decode(cs, true)
+    val r3 = new QueryParser(true).decode(cs, true)
     assertEquals(r3, Right(Query("stuff" -> Some("cat"))))
     assertEquals(cs.remaining(), 0)
   }

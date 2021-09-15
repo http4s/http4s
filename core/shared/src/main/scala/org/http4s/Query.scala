@@ -102,6 +102,8 @@ final class Query private (val components: Vector[Component]) extends QueryOps w
     writer
   }
 
+  def normalize: Query = new Query(components.map(_.normalize))
+
   /** Map[String, String] representation of the [[Query]]
     *
     * If multiple values exist for a key, the first is returned. If
@@ -147,6 +149,8 @@ object Query {
     def key: String
     def value: Option[String]
 
+    def normalize: Component
+
     override def equals(that: Any): Boolean = that match {
       case that: Component => that.renderString == renderString
       case _ => false
@@ -165,17 +169,19 @@ object Query {
   object Component {
     sealed abstract class KeyValue extends Component {
       override def value: Some[String]
+      override def normalize: KeyValue
     }
 
     object KeyValue {
-      def apply(key: String, value: String): KeyValue = KeyValueDecoded(key, value)
+      def apply(key: String, value: String): KeyValue = new KeyValueDecoded(key, value)
     }
     sealed abstract class KeyOnly extends Component {
       override val value: None.type = None
+      override def normalize: KeyOnly
     }
 
     object KeyOnly {
-      def apply(name: String): KeyOnly = KeyOnlyDecoded(name)
+      def apply(name: String): KeyOnly = new KeyOnlyDecoded(name)
       def unapply(wv: KeyOnly): Some[String] = Some(wv.key)
     }
 
@@ -184,13 +190,14 @@ object Query {
 
     def unapply(kv: Component): Some[(String, Option[String])] = Some(kv.key -> kv.value)
 
-    def apply(key: String, value: String): KeyValue = KeyValueDecoded(key, value)
+    def apply(key: String, value: String): KeyValue = new KeyValueDecoded(key, value)
 
     def apply(key: String, value: Option[String]): Component =
-      value.fold[Component](KeyOnlyDecoded(key))(KeyValueDecoded(key, _))
+      value.fold[Component](new KeyOnlyDecoded(key))(new KeyValueDecoded(key, _))
 
-    private[http4s] final case class KeyValueDecoded(key: String, v: String) extends KeyValue {
+    private[http4s] final class KeyValueDecoded(val key: String, v: String) extends KeyValue {
       override lazy val value: Some[String] = Some(v)
+      override def normalize: KeyValue = this
       override def render(writer: Writer): writer.type =
         writer
           .append(encode(key))
@@ -198,7 +205,7 @@ object Query {
           .append(encode(v))
     }
 
-    private[http4s] final case class KeyValueEncoded(
+    private[http4s] final class KeyValueEncoded(
         rawKey: String,
         rawVal: String,
         override val separator: Char)
@@ -207,19 +214,23 @@ object Query {
 
       override def value: Some[String] = Some(decodeParam(rawVal))
 
+      override def normalize: KeyValue = KeyValue(key, value.value)
+
       override def render(writer: Writer): writer.type =
         writer.append(rawKey).append("=").append(rawVal)
     }
-    private[http4s] final case class KeyOnlyDecoded(key: String) extends KeyOnly {
+    private[http4s] final class KeyOnlyDecoded(val key: String) extends KeyOnly {
+      override def normalize: KeyOnly = this
       override def render(writer: Writer): writer.type =
         writer.append(encode(key))
     }
 
-    private[http4s] final case class KeyOnlyEncoded(
+    private[http4s] final class KeyOnlyEncoded(
         override val renderString: String,
         override val separator: Char)
         extends KeyOnly {
       override def key: String = decodeParam(renderString)
+      override def normalize: KeyOnly = KeyOnly(key)
 
       override def render(writer: Writer): writer.type =
         writer.append(renderString)
@@ -274,14 +285,6 @@ object Query {
       case (m, (k, Seq())) => m :+ Component(k, None)
       case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ Component(k, Some(v)) }
     })
-
-  private def parse(query: String): Vector[Component] =
-    if (query.isEmpty) blank.toVector
-    else
-      QueryParser.parseQueryStringVector(query) match {
-        case Right(query) => query
-        case Left(_) => Vector.empty
-      }
 
   /* query       = *( pchar / "/" / "?" )
    *

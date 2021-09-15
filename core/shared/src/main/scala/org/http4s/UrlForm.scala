@@ -23,7 +23,6 @@ import cats.syntax.all._
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
-import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -130,7 +129,7 @@ object UrlForm {
   def decodeString(charset: Charset)(
       urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
-      .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
+      .parseQueryString(urlForm.replace("+", "%20"))
       .map(q => UrlForm(CollectionCompat.mapValues(q.multiParams)(Chain.fromSeq)))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)
