@@ -33,26 +33,33 @@ import scala.collection.mutable.ListBuffer
 /** Collection representation of a query string
   *
   * It is a indexed sequence of key and maybe a value pairs which maps
-  * precisely to a query string, modulo the identity of separators.
+  * precisely to a query string, modulo
+  * [[https://datatracker.ietf.org/doc/html/rfc3986#section-2.1 percent-encoding]]
+  * and the identity of separators.
+  *
+  * The internal representation is not percent-encoded; percent-encoding is
+  * applied when rendering and decoded when parsing. For example, the strings
+  * "://" and "%3A%2F%2F" will both be parsed as "://" and rendered as "%3A//".
   *
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private (value: Either[Vector[KeyValue], String])
+final class Query private (value: Either[Vector[Component], String])
     extends QueryOps
     with Renderable {
-  private[this] var _pairs: Vector[KeyValue] = null
 
-  def pairs: Vector[KeyValue] = {
+  private[this] var _pairs: Vector[Component] = null
+
+  def pairs: Vector[Component] = {
     if (_pairs == null) {
       _pairs = value.fold(identity, Query.parse)
     }
     _pairs
   }
 
-  private def this(vec: Vector[KeyValue]) = this(Left(vec))
+  private def this(vec: Vector[Component]) = this(Left(vec))
 
-  def apply(idx: Int): KeyValue = pairs(idx)
+  def apply(idx: Int): Component = pairs(idx)
 
   def length: Int = pairs.length
 
@@ -66,36 +73,36 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   def dropRight(n: Int): Query = new Query(Left(pairs.dropRight(n)))
 
-  def exists(f: KeyValue => Boolean): Boolean =
+  def exists(f: Component => Boolean): Boolean =
     pairs.exists(f)
 
-  def filterNot(f: KeyValue => Boolean): Query =
+  def filterNot(f: Component => Boolean): Query =
     new Query(Left(pairs.filterNot(f)))
 
-  def filter(f: KeyValue => Boolean): Query =
+  def filter(f: Component => Boolean): Query =
     new Query(Left(pairs.filter(f)))
 
-  def foreach(f: KeyValue => Unit): Unit =
+  def foreach(f: Component => Unit): Unit =
     pairs.foreach(f)
 
-  def foldLeft[Z](z: Z)(f: (Z, KeyValue) => Z): Z =
+  def foldLeft[Z](z: Z)(f: (Z, Component) => Z): Z =
     pairs.foldLeft(z)(f)
 
-  def foldRight[Z](z: Eval[Z])(f: (KeyValue, Eval[Z]) => Eval[Z]): Eval[Z] =
+  def foldRight[Z](z: Eval[Z])(f: (Component, Eval[Z]) => Eval[Z]): Eval[Z] =
     Foldable[Vector].foldRight(pairs, z)(f)
 
-  def +:(elem: KeyValue): Query =
+  def +:(elem: Component): Query =
     new Query(Left(elem +: pairs))
 
-  def :+(elem: KeyValue): Query =
+  def :+(elem: Component): Query =
     new Query(Left(pairs :+ elem))
 
-  def ++(pairs: collection.Iterable[(String, Option[String])]): Query =
+  def ++(pairs: collection.Iterable[Component]): Query =
     new Query(Left(this.pairs ++ pairs))
 
-  def toVector: Vector[(String, Option[String])] = pairs
+  def toVector: Vector[Component] = pairs
 
-  def toList: List[(String, Option[String])] = toVector.toList
+  def toList: List[Component] = toVector.toList
 
   /** Render the Query as a `String`.
     *
@@ -105,26 +112,10 @@ final class Query private (value: Either[Vector[KeyValue], String])
     { pairs =>
       var first = true
 
-      def encode(s: String) =
-        UriCoding.encode(
-          s,
-          spaceIsPlus = false,
-          charset = StandardCharsets.UTF_8,
-          toSkip = UriCoding.QueryNoEncode)
-
-      pairs.foreach {
-        case (n, None) =>
-          if (!first) writer.append('&')
-          else first = false
-          writer.append(encode(n))
-
-        case (n, Some(v)) =>
-          if (!first) writer.append('&')
-          else first = false
-          writer
-            .append(encode(n))
-            .append("=")
-            .append(encode(v))
+      pairs.foreach { kv =>
+        if (!first) writer.append('&')
+        else first = false
+        kv.render(writer)
       }
       writer
     },
@@ -148,8 +139,8 @@ final class Query private (value: Either[Vector[KeyValue], String])
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]
       toVector.foreach {
-        case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
-        case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
+        case Component(k, None) => m.getOrElseUpdate(k, new ListBuffer)
+        case Component(k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
       CollectionCompat.mapValues(m.toMap)(_.toList)
     }
@@ -171,24 +162,91 @@ final class Query private (value: Either[Vector[KeyValue], String])
 }
 
 object Query {
-  type KeyValue = (String, Option[String])
+  sealed abstract class Component extends Renderable {
+    def key: String
+    def value: Option[String]
+  }
+
+  private def encode(s: String) =
+    UriCoding.encode(
+      s,
+      spaceIsPlus = false,
+      charset = StandardCharsets.UTF_8,
+      toSkip = UriCoding.QueryNoEncode)
+
+  object Component {
+    sealed abstract class KeyValue extends Component {
+      override def value: Some[String]
+    }
+
+    object KeyValue {
+      def apply(key: String, value: String): KeyValue = KeyValueImpl(key, value)
+    }
+    sealed abstract class KeyOnly extends Component {
+      override def value: None.type
+    }
+
+    object KeyOnly {
+      def apply(name: String): KeyOnly = KeyOnlyImpl(name)
+      def unapply(wv: KeyOnly): Some[String] = Some(wv.key)
+    }
+
+    // TODO: remove indirection
+    implicit val ord: Order[Component] = Order.by(kv => (kv.key, kv.value))
+
+    def unapply(kv: Component): Some[(String, Option[String])] = Some(kv.key -> kv.value)
+
+    def apply(key: String, value: String): KeyValue = KeyValueImpl(key, value)
+
+    def apply(key: String, value: Option[String]): Component =
+      value.fold[Component](KeyOnlyImpl(key))(KeyValueImpl(key, _))
+
+    def withoutValue(key: String): KeyOnly = KeyOnlyImpl(key)
+    private[Query] final case class KeyValueImpl(key: String, v: String) extends KeyValue {
+      override lazy val value: Some[String] = Some(v)
+      override def render(writer: Writer): writer.type =
+        writer
+          .append(encode(key))
+          .append("=")
+          .append(encode(v))
+    }
+
+    private[http4s] final case class KeyValueParsed(key: String, v: String, rawKey: String, rawVal: String)
+        extends KeyValue {
+      override lazy val value: Some[String] = Some(v)
+
+      override def render(writer: Writer): writer.type =
+        writer.append(rawKey).append("=").append(rawVal)
+    }
+    private[Query] final case class KeyOnlyImpl(key: String) extends KeyOnly {
+      override val value: None.type = None
+      override def render(writer: Writer): writer.type =
+        writer.append(encode(key))
+    }
+
+    private[http4s] final case class KeyOnlyParsed(key: String, rawKey: String) extends KeyOnly {
+      override val value: None.type = None
+      override def render(writer: Writer): writer.type =
+        writer.append(rawKey)
+    }
+  }
 
   /** Represents the absence of a query string. */
   val empty: Query = new Query(Vector.empty)
 
   /** Represents a query string with no keys or values: `?` */
-  val blank = new Query(Vector("" -> None))
+  val blank = new Query(Vector(Component("", None)))
 
-  def apply(xs: (String, Option[String])*): Query =
+  def apply(xs: Component*): Query =
     new Query(xs.toVector)
 
-  def fromVector(xs: Vector[(String, Option[String])]): Query =
+  def fromVector(xs: Vector[Component]): Query =
     new Query(xs)
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
-        m :+ (k -> Some(s))
+      xs.toList.foldLeft(Vector.empty[Component]) { case (m, (k, s)) =>
+        m :+ Component(k, Some(s))
       }
     )
 
@@ -197,7 +255,7 @@ object Query {
     * If parsing fails, the empty [[Query]] is returned
     */
   def unsafeFromString(query: String): Query =
-    if (query.isEmpty) new Query(Vector("" -> None))
+    if (query.isEmpty) new Query(Vector(Component("", None)))
     else
       QueryParser.parseQueryString(query) match {
         case Right(query) => query
@@ -210,12 +268,12 @@ object Query {
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
-    new Query(map.foldLeft(Vector.empty[KeyValue]) {
-      case (m, (k, Seq())) => m :+ (k -> None)
-      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
+    new Query(map.foldLeft(Vector.empty[Component]) {
+      case (m, (k, Seq())) => m :+ Component(k, None)
+      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ Component(k, Some(v)) }
     })
 
-  private def parse(query: String): Vector[KeyValue] =
+  private def parse(query: String): Vector[Component] =
     if (query.isEmpty) blank.toVector
     else
       QueryParser.parseQueryStringVector(query) match {

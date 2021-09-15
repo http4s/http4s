@@ -32,6 +32,7 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Version
 }
 import org.http4s.headers.Authorization
+import org.http4s.Query
 import org.typelevel.ci._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
@@ -221,7 +222,7 @@ package object oauth1 extends OAuth1Platform {
   private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
       F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
-    val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
+    val qparams = req.uri.query.pairs.map { case Query.Component(k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
       case Some(t)

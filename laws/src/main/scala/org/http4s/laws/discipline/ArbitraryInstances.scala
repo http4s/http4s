@@ -166,16 +166,16 @@ private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
   implicit val http4sTestingCogenForStatus: Cogen[Status] =
     Cogen[Int].contramap(_.code)
 
-  implicit val http4sTestingArbitraryForQueryParam: Arbitrary[(String, Option[String])] =
+  implicit val http4sTestingArbitraryForQueryParam: Arbitrary[Query.KeyValue] =
     Arbitrary {
       frequency(
         5 -> {
           for {
             k <- getArbitrary[String]
             v <- getArbitrary[Option[String]]
-          } yield (k, v)
+          } yield Query.KeyValue(k, v)
         },
-        2 -> const(("foo" -> Some("bar"))) // Want some repeats
+        2 -> const(Query.KeyValue("foo", "bar")) // Want some repeats
       )
     }
 
@@ -183,7 +183,7 @@ private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
     Arbitrary {
       for {
         n <- size
-        vs <- containerOfN[Vector, (String, Option[String])](
+        vs <- containerOfN[Vector, Query.KeyValue](
           n % 8,
           http4sTestingArbitraryForQueryParam.arbitrary)
       } yield Query(vs: _*)
@@ -963,7 +963,7 @@ object ArbitraryInstances extends ArbitraryInstances {
     sequence[List[String], String](List(genOptWs, const(","), genOptWs)).map(_.mkString)
 
   implicit val http4sTestingCogenForQuery: Cogen[Query] =
-    Cogen[Vector[(String, Option[String])]].contramap(_.toVector)
+    Cogen[Vector[Query.KeyValue]].contramap(_.toVector)
 
   implicit val http4sTestingArbitraryForRegName: Arbitrary[Uri.RegName] =
     Arbitrary(

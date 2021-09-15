@@ -37,9 +37,9 @@ object UrlFormLifter {
     Kleisli { req =>
       def addUrlForm(form: UrlForm): F[Response[G]] = {
         val flatForm = form.values.toVector.flatMap { case (k, vs) =>
-          vs.toVector.map(v => (k, Some(v)))
+          vs.toVector.map(v => Query.Component(k, v))
         }
-        val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]
+        val params = req.uri.query.toVector ++ flatForm: Vector[Query.Component]
         val newQuery = Query(params: _*)
 
         val newRequest = req

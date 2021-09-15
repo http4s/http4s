@@ -19,6 +19,7 @@ package org.http4s
 import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
 import org.http4s.UriTemplate.{Fragment, Path}
 import org.http4s.util.StringWriter
+import org.http4s.Query.Component
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
@@ -308,11 +309,11 @@ object UriTemplate extends UriTemplateCompanionPlatform {
   }
 
   protected def buildQuery(q: Query): org.http4s.Query = {
-    val vec = q.foldLeft(Vector.empty[(String, Option[String])]) {
-      case (elements, ParamElm(n, Nil)) => elements :+ (n -> None)
-      case (elements, ParamElm(n, List(v))) => elements :+ (n -> Some(v))
+    val vec = q.foldLeft(Vector.empty[Component]) {
+      case (elements, ParamElm(n, Nil)) => elements :+ Component(n, None)
+      case (elements, ParamElm(n, List(v))) => elements :+ Component(n, v)
       case (elements, ParamElm(n, vs)) =>
-        vs.toList.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
+        vs.toList.foldLeft(elements) { case (elements, v) => elements :+ Component(n, v) }
       case u =>
         throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }

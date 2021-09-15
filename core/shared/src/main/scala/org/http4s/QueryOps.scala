@@ -16,6 +16,8 @@
 
 package org.http4s
 
+import Query.Component
+
 trait QueryOps {
   protected type Self <: QueryOps
 
@@ -88,7 +90,7 @@ trait QueryOps {
 
   private def _containsQueryParam(name: QueryParameterKey): Boolean =
     if (query.isEmpty) false
-    else query.exists { case (k, _) => k == name.value }
+    else query.exists { case Component(k, _) => k == name.value }
 
   /** Creates maybe a new `Self` without the specified parameter in query.
     * If no parameter with the given `key` exists then `this` will be
@@ -100,7 +102,7 @@ trait QueryOps {
   private def _removeQueryParam(name: QueryParameterKey): Self =
     if (query.isEmpty) self
     else {
-      val newQuery = query.filterNot { case (n, _) => n == name.value }
+      val newQuery = query.filterNot { case Component(n, _) => n == name.value }
       replaceQuery(newQuery)
     }
 
@@ -112,9 +114,9 @@ trait QueryOps {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
     val vec = params.foldLeft(query.toVector) {
-      case (m, (k, Seq())) => m :+ (penc.getKey(k).value -> None)
+      case (m, (k, Seq())) => m :+ Component(penc.getKey(k).value, None)
       case (m, (k, vs)) =>
-        vs.foldLeft(m) { case (m, v) => m :+ (penc.getKey(k).value -> Some(venc.encode(v).value)) }
+        vs.foldLeft(m) { case (m, v) => m :+ Component(penc.getKey(k).value, venc.encode(v).value) }
     }
     replaceQuery(Query.fromVector(vec))
   }
@@ -177,12 +179,12 @@ trait QueryOps {
       name: QueryParameterKey,
       values: collection.Seq[QueryParameterValue]): Self = {
     val q = if (query == Query.blank) Query.empty else query
-    val baseQuery = q.toVector.filter(_._1 != name.value)
+    val baseQuery = q.toVector.filter(_.key != name.value)
     val vec =
-      if (values.isEmpty) baseQuery :+ (name.value -> None)
+      if (values.isEmpty) baseQuery :+ Component.KeyOnly(name.value)
       else
         values.toList.foldLeft(baseQuery) { case (vec, v) =>
-          vec :+ (name.value -> Some(v.value))
+          vec :+ Component(name.value, v.value)
         }
 
     replaceQuery(Query.fromVector(vec))
