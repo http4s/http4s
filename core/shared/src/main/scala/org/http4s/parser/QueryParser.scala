@@ -123,8 +123,7 @@ private[http4s] object QueryParser {
     if (queryString.isEmpty) Right(Query.empty)
     else new QueryParser(true).decode(CharBuffer.wrap(queryString), true)
 
-  def parseQueryStringVector(
-      queryString: String): ParseResult[Vector[Component]] =
+  def parseQueryStringVector(queryString: String): ParseResult[Vector[Component]] =
     if (queryString.isEmpty) Right(Vector.empty)
     else new QueryParser(true).decodeVector(CharBuffer.wrap(queryString), true)
 
