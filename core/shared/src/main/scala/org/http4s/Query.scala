@@ -225,7 +225,7 @@ object Query {
         override val separator: Char,
         codec: Codec)
         extends KeyOnly {
-                override def key: String = decode(renderString, codec)
+      override def key: String = decode(renderString, codec)
       override def normalize: KeyOnly = KeyOnly(key)
 
       override def render(writer: Writer): writer.type =
