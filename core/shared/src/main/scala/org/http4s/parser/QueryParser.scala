@@ -80,8 +80,8 @@ private[http4s] class QueryParser(
 
     def endPair(_sep: Char): Unit = {
       if (!flush) input.mark()
-      sep = _sep
       appendValue()
+      sep = _sep
       state = KEY
     }
 
