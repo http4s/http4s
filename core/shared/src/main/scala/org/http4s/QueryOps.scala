@@ -116,7 +116,9 @@ trait QueryOps {
     val vec = params.foldLeft(query.toVector) {
       case (m, (k, Seq())) => m :+ Component.KeyOnly(penc.getKey(k).value)
       case (m, (k, vs)) =>
-        vs.foldLeft(m) { case (m, v) => m :+ Component.KeyValue(penc.getKey(k).value, venc.encode(v).value) }
+        vs.foldLeft(m) { case (m, v) =>
+          m :+ Component.KeyValue(penc.getKey(k).value, venc.encode(v).value)
+        }
     }
     replaceQuery(Query.fromVector(vec))
   }
