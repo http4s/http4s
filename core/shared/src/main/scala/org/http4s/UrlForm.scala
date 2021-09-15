@@ -23,6 +23,7 @@ import cats.syntax.all._
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
+import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -103,12 +104,14 @@ object UrlForm {
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder[F[_]](implicit F: Concurrent[F]): EntityDecoder[F, UrlForm] =
+  implicit def entityDecoder[F[_]](implicit
+      F: Concurrent[F],
+      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder
           .decodeText(m)
-          .map(decodeString)
+          .map(decodeString(m.charset.getOrElse(defaultCharset)))
       )
     }
 
@@ -124,9 +127,10 @@ object UrlForm {
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
+  def decodeString(charset: Charset)(
+      urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
-      .parseQueryString(urlForm.replace("+", "%20"))
+      .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(CollectionCompat.mapValues(q.multiParams)(Chain.fromSeq)))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)

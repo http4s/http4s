@@ -18,6 +18,7 @@ package org.http4s
 package parser
 
 import java.nio.CharBuffer
+import scala.io.Codec
 import org.http4s.internal.CollectionCompat
 
 class QueryParserSpec extends Http4sSuite {
@@ -74,7 +75,7 @@ class QueryParserSpec extends Http4sSuite {
   test("The QueryParser should QueryParser using QChars doesn't allow PHP-style [] in keys") {
     val queryString = "a[]=b&a[]=c"
     assert(
-      new QueryParser(true, QueryParser.QChars)
+      new QueryParser(Codec.UTF8, true, QueryParser.QChars)
         .decode(CharBuffer.wrap(queryString), true)
         .isLeft)
   }
@@ -88,16 +89,16 @@ class QueryParserSpec extends Http4sSuite {
   test("The QueryParser should Keep CharBuffer position if not flushing") {
     val s = "key=value&stuff=cat"
     val cs = CharBuffer.wrap(s)
-    val r = new QueryParser(true).decode(cs, false)
+    val r = new QueryParser(Codec.UTF8, true).decode(cs, false)
 
     assertEquals(r, Right(Query("key" -> Some("value"))))
     assertEquals(cs.remaining, 9)
 
-    val r2 = new QueryParser(true).decode(cs, false)
+    val r2 = new QueryParser(Codec.UTF8, true).decode(cs, false)
     assertEquals(r2, Right(Query()))
     assertEquals(cs.remaining(), 9)
 
-    val r3 = new QueryParser(true).decode(cs, true)
+    val r3 = new QueryParser(Codec.UTF8, true).decode(cs, true)
     assertEquals(r3, Right(Query("stuff" -> Some("cat"))))
     assertEquals(cs.remaining(), 0)
   }
