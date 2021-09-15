@@ -18,6 +18,7 @@ package org.http4s
 package blaze
 package client
 
+import cats.syntax.all._
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import java.net.InetSocketAddress
@@ -31,6 +32,7 @@ import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.util.fromFutureNoShift
 import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.ExecutionContextConfig
 
 import org.http4s.client.{ConnectionFailure, RequestKey}
 import org.http4s.headers.`User-Agent`
@@ -46,7 +48,7 @@ final private class Http1Support[F[_]](
     sslContextOption: SSLContextOption,
     bufferSize: Int,
     asynchronousChannelGroup: Option[AsynchronousChannelGroup],
-    executionContext: ExecutionContext,
+    executionContextConfig: ExecutionContextConfig,
     scheduler: TickWheelExecutor,
     checkEndpointIdentification: Boolean,
     maxResponseLineSize: Int,
@@ -71,18 +73,21 @@ final private class Http1Support[F[_]](
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
-      case Right(a) => fromFutureNoShift(F.delay(buildPipeline(requestKey, a)))
+      case Right(a) =>
+        fromFutureNoShift(executionContextConfig.getExecutionContext.flatMap(ec =>
+          F.delay(buildPipeline(requestKey, a, ec))))
       case Left(t) => F.raiseError(t)
     }
 
   private def buildPipeline(
       requestKey: RequestKey,
-      addr: InetSocketAddress): Future[BlazeConnection[F]] =
+      addr: InetSocketAddress,
+      executionContext: ExecutionContext): Future[BlazeConnection[F]] =
     connectionManager
       .connect(addr)
       .transformWith {
         case Success(head) =>
-          buildStages(requestKey, head) match {
+          buildStages(requestKey, head, executionContext) match {
             case Right(connection) =>
               Future.successful {
                 head.inboundCommand(Command.Connected)
@@ -96,9 +101,11 @@ final private class Http1Support[F[_]](
 
   private def buildStages(
       requestKey: RequestKey,
-      head: HeadStage[ByteBuffer]): Either[IllegalStateException, BlazeConnection[F]] = {
+      head: HeadStage[ByteBuffer],
+      executionContext: ExecutionContext): Either[IllegalStateException, BlazeConnection[F]] = {
 
-    val idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]] = makeIdleTimeoutStage()
+    val idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]] = makeIdleTimeoutStage(
+      executionContext)
     val ssl: Either[IllegalStateException, Option[SSLStage]] = makeSslStage(requestKey)
 
     val connection = new Http1Connection(
@@ -124,7 +131,8 @@ final private class Http1Support[F[_]](
     }
   }
 
-  private def makeIdleTimeoutStage(): Option[IdleTimeoutStage[ByteBuffer]] =
+  private def makeIdleTimeoutStage(
+      executionContext: ExecutionContext): Option[IdleTimeoutStage[ByteBuffer]] =
     idleTimeout match {
       case d: FiniteDuration =>
         Some(new IdleTimeoutStage[ByteBuffer](d, scheduler, executionContext))

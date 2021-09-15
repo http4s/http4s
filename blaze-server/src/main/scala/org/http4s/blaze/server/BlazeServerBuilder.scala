@@ -39,7 +39,7 @@ import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.server.BlazeServerBuilder._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
-import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.blazecore.{BlazeBackendBuilder, ExecutionContextConfig, tickWheelResource}
 import org.http4s.internal.threads.threadFactory
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -538,17 +538,4 @@ object BlazeServerBuilder {
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
     }
-
-  private sealed trait ExecutionContextConfig extends Product with Serializable {
-    def getExecutionContext[F[_]: Async]: F[ExecutionContext] = this match {
-      case ExecutionContextConfig.DefaultContext => Async[F].executionContext
-      case ExecutionContextConfig.ExplicitContext(ec) => ec.pure[F]
-    }
-  }
-
-  private object ExecutionContextConfig {
-    case object DefaultContext extends ExecutionContextConfig
-    final case class ExplicitContext(executionContext: ExecutionContext)
-        extends ExecutionContextConfig
-  }
 }

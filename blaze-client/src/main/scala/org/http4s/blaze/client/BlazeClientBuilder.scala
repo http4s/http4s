@@ -26,7 +26,7 @@ import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.blazecore.{BlazeBackendBuilder, ExecutionContextConfig, tickWheelResource}
 import org.http4s.client.{Client, ConnectionBuilder, RequestKey, defaults}
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.{BackendBuilder, SSLContextOption}
@@ -74,7 +74,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val chunkBufferMaxSize: Int,
     val parserMode: ParserMode,
     val bufferSize: Int,
-    val executionContext: ExecutionContext,
+    val executionContextConfig: ExecutionContextConfig,
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions,
@@ -103,7 +103,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       chunkBufferMaxSize: Int = chunkBufferMaxSize,
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
-      executionContext: ExecutionContext = executionContext,
+      executionContextConfig: ExecutionContextConfig = executionContextConfig,
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions,
@@ -126,7 +126,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
       bufferSize = bufferSize,
-      executionContext = executionContext,
+      executionContextConfig = executionContextConfig,
       scheduler = scheduler,
       asynchronousChannelGroup = asynchronousChannelGroup,
       channelOptions = channelOptions,
@@ -208,7 +208,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(bufferSize = bufferSize)
 
   def withExecutionContext(executionContext: ExecutionContext): BlazeClientBuilder[F] =
-    copy(executionContext = executionContext)
+    copy(executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext))
 
   def withScheduler(scheduler: TickWheelExecutor): BlazeClientBuilder[F] =
     copy(scheduler = scheduler.pure[Resource[F, *]])
@@ -236,6 +236,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       _ <- Resource.eval(verifyAllTimeoutsAccuracy(scheduler))
       _ <- Resource.eval(verifyTimeoutRelations())
       manager <- connectionManager(scheduler, dispatcher)
+      executionContext <- Resource.eval(executionContextConfig.getExecutionContext)
     } yield BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
@@ -289,7 +290,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       sslContextOption = sslContext,
       bufferSize = bufferSize,
       asynchronousChannelGroup = asynchronousChannelGroup,
-      executionContext = executionContext,
+      executionContextConfig = executionContextConfig,
       scheduler = scheduler,
       checkEndpointIdentification = checkEndpointIdentification,
       maxResponseLineSize = maxResponseLineSize,
@@ -305,24 +306,46 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
     ).makeClient
     Resource.make(
-      ConnectionManager.pool(
-        builder = http1,
-        maxTotal = maxTotalConnections,
-        maxWaitQueueLimit = maxWaitQueueLimit,
-        maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
-        responseHeaderTimeout = responseHeaderTimeout,
-        requestTimeout = requestTimeout,
-        executionContext = executionContext
-      ))(_.shutdown)
+      executionContextConfig.getExecutionContext.flatMap(executionContext =>
+        ConnectionManager.pool(
+          builder = http1,
+          maxTotal = maxTotalConnections,
+          maxWaitQueueLimit = maxWaitQueueLimit,
+          maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
+          responseHeaderTimeout = responseHeaderTimeout,
+          requestTimeout = requestTimeout,
+          executionContext = executionContext
+        )))(_.shutdown)
   }
 }
 
 object BlazeClientBuilder {
 
-  /** Creates a BlazeClientBuilder
-    *
-    * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
-    */
+  def apply[F[_]: Async]: BlazeClientBuilder[F] =
+    new BlazeClientBuilder[F](
+      responseHeaderTimeout = Duration.Inf,
+      idleTimeout = 1.minute,
+      requestTimeout = defaults.RequestTimeout,
+      connectTimeout = defaults.ConnectTimeout,
+      userAgent = Some(`User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version)))),
+      maxTotalConnections = 10,
+      maxWaitQueueLimit = 256,
+      maxConnectionsPerRequestKey = Function.const(256),
+      sslContext = SSLContextOption.TryDefaultSSLContext,
+      checkEndpointIdentification = true,
+      maxResponseLineSize = 4096,
+      maxHeaderLength = 40960,
+      maxChunkSize = Int.MaxValue,
+      chunkBufferMaxSize = 1024 * 1024,
+      parserMode = ParserMode.Strict,
+      bufferSize = 8192,
+      executionContextConfig = ExecutionContextConfig.DefaultContext,
+      scheduler = tickWheelResource,
+      asynchronousChannelGroup = None,
+      channelOptions = ChannelOptions(Vector.empty),
+      customDnsResolver = None
+    ) {}
+
   def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
@@ -341,7 +364,7 @@ object BlazeClientBuilder {
       chunkBufferMaxSize = 1024 * 1024,
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
-      executionContext = executionContext,
+      executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext),
       scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty),
