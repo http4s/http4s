@@ -103,14 +103,12 @@ object UrlForm {
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder[F[_]](implicit
-      F: Concurrent[F],
-      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
+  implicit def entityDecoder[F[_]](implicit F: Concurrent[F]): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder
           .decodeText(m)
-          .map(decodeString(m.charset.getOrElse(defaultCharset)))
+          .map(decodeString)
       )
     }
 
@@ -126,8 +124,7 @@ object UrlForm {
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(
-      urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
+  def decodeString(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"))
       .map(q => UrlForm(CollectionCompat.mapValues(q.multiParams)(Chain.fromSeq)))

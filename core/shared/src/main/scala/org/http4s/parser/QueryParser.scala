@@ -20,6 +20,7 @@ package parser
 import java.nio.CharBuffer
 import scala.collection.immutable.BitSet
 import scala.collection.mutable.Builder
+import scala.io.Codec
 
 import org.http4s.Query.Component
 
@@ -29,6 +30,7 @@ import org.http4s.Query.Component
   * checked beforehand.
   */
 private[http4s] class QueryParser(
+    codec: Codec,
     colonSeparators: Boolean,
     qChars: BitSet = QueryParser.ExtendedQChars) {
   import QueryParser._
@@ -66,13 +68,13 @@ private[http4s] class QueryParser(
       if (state == KEY) {
         val s = valAcc.result()
         valAcc.clear()
-        acc(new Component.KeyOnlyEncoded(s, sep))
+        acc(new Component.KeyOnlyEncoded(s, sep, codec))
       } else {
         val k = key
         key = null
         val s = valAcc.result()
         valAcc.clear()
-        acc(new Component.KeyValueEncoded(k, s, sep))
+        acc(new Component.KeyValueEncoded(k, s, codec, sep))
       }
       ()
     }
@@ -119,13 +121,15 @@ private[http4s] class QueryParser(
 private[http4s] object QueryParser {
   private val InitialBufferCapactiy = 32
 
-  def parseQueryString(queryString: String): ParseResult[Query] =
+  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] =
     if (queryString.isEmpty) Right(Query.empty)
-    else new QueryParser(true).decode(CharBuffer.wrap(queryString), true)
+    else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
 
-  def parseQueryStringVector(queryString: String): ParseResult[Vector[Component]] =
+  def parseQueryStringVector(
+      queryString: String,
+      codec: Codec = Codec.UTF8): ParseResult[Vector[Component]] =
     if (queryString.isEmpty) Right(Vector.empty)
-    else new QueryParser(true).decodeVector(CharBuffer.wrap(queryString), true)
+    else new QueryParser(codec, true).decodeVector(CharBuffer.wrap(queryString), true)
 
   private sealed trait State
   private case object KEY extends State

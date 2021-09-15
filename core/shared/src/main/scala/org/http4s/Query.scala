@@ -19,7 +19,6 @@ package org.http4s
 import cats.parse.Parser0
 import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
-import java.nio.charset.StandardCharsets
 import org.http4s.Query._
 import org.http4s.internal.{CollectionCompat, UriCoding}
 import org.http4s.internal.parsing.Rfc3986
@@ -31,6 +30,7 @@ import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import java.io.UnsupportedEncodingException
+import java.nio.charset.StandardCharsets
 
 /** Collection representation of a query string
   *
@@ -40,7 +40,9 @@ import java.io.UnsupportedEncodingException
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private (val components: Vector[Component]) extends QueryOps with Renderable {
+final class Query private[http4s] (val components: Vector[Component])
+    extends QueryOps
+    with Renderable {
 
   def apply(idx: Int): Component = components(idx)
 
@@ -158,14 +160,6 @@ object Query {
 
     override def hashCode = renderString.##
   }
-
-  private def encode(s: String) =
-    UriCoding.encode(
-      s,
-      spaceIsPlus = false,
-      charset = StandardCharsets.UTF_8,
-      toSkip = UriCoding.QueryNoEncode)
-
   object Component {
     sealed abstract class KeyValue extends Component {
       override def value: Some[String]
@@ -208,11 +202,12 @@ object Query {
     private[http4s] final class KeyValueEncoded(
         rawKey: String,
         rawVal: String,
+        codec: Codec,
         override val separator: Char)
         extends KeyValue {
-      override def key: String = decodeParam(rawKey)
+      override def key: String = decode(rawKey, codec)
 
-      override def value: Some[String] = Some(decodeParam(rawVal))
+      override def value: Some[String] = Some(decode(rawVal, codec))
 
       override def normalize: KeyValue = KeyValue(key, value.value)
 
@@ -227,14 +222,29 @@ object Query {
 
     private[http4s] final class KeyOnlyEncoded(
         override val renderString: String,
-        override val separator: Char)
+        override val separator: Char,
+        codec: Codec)
         extends KeyOnly {
-      override def key: String = decodeParam(renderString)
+                override def key: String = decode(renderString, codec)
       override def normalize: KeyOnly = KeyOnly(key)
 
       override def render(writer: Writer): writer.type =
         writer.append(renderString)
     }
+
+    private def encode(s: String) =
+      UriCoding.encode(
+        s,
+        spaceIsPlus = false,
+        charset = StandardCharsets.UTF_8,
+        toSkip = UriCoding.QueryNoEncode)
+
+    private def decode(str: String, codec: Codec): String =
+      try Uri.decode(str, codec.charSet, plusIsSpace = true)
+      catch {
+        case _: IllegalArgumentException => ""
+        case _: UnsupportedEncodingException => ""
+      }
   }
 
   /** Represents the absence of a query string. */
@@ -255,13 +265,6 @@ object Query {
         m :+ Component(k, Some(s))
       }
     )
-
-  private def decodeParam(str: String): String =
-    try Uri.decode(str, Codec.UTF8.charSet, plusIsSpace = true)
-    catch {
-      case _: IllegalArgumentException => ""
-      case _: UnsupportedEncodingException => ""
-    }
 
   /** Generate a [[Query]] from its `String` representation
     *
