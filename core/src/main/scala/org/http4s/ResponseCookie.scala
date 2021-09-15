@@ -201,7 +201,7 @@ object ResponseCookie {
       .orElse(extensionAv)
 
     /* set-cookie-string = cookie-pair *( ";" SP cookie-av ) */
-    (cookiePair ~ (string(";") *> string(" ").? *> cookieAv).rep0).map {
+    (cookiePair ~ (char(';') *> char(' ').rep0 *> cookieAv).rep0).map {
       case ((name, value), avs) =>
         avs.foldLeft(ResponseCookie(name, value))((p, f) => f(p))
     }
