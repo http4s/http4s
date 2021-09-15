@@ -55,7 +55,7 @@ class QueryParserSpec extends Http4sSuite {
   }
 
   test("The QueryParser should Handle '=' in a query string") {
-    assertEquals(parseQueryString("a=b=c"), Right(Query("a" -> Some("b=c"))))
+    assertEquals(parseQueryString("a=b=c").map(_.renderString), Right("a=b=c"))
   }
 
 //    test("The QueryParser should Gracefully handle invalid URL encoding") {
@@ -67,9 +67,8 @@ class QueryParserSpec extends Http4sSuite {
   }
 
   test("The QueryParser should Allow PHP-style [] in keys") {
-    assertEquals(
-      parseQueryString("a[]=b&a[]=c"),
-      Right(Query("a[]" -> Some("b"), "a[]" -> Some("c"))))
+    assertEquals(parseQueryString("a[]=b&a[]=c").map(_.renderString), Right("a[]=b&a[]=c"))
+
   }
 
   test("The QueryParser should QueryParser using QChars doesn't allow PHP-style [] in keys") {

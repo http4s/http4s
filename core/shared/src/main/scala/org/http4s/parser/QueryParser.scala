@@ -17,7 +17,6 @@
 package org.http4s
 package parser
 
-import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
 import scala.collection.immutable.BitSet
 import scala.collection.mutable.Builder
@@ -62,27 +61,26 @@ private[http4s] class QueryParser(
     var error: String = null
     var key: String = null
     var state: State = KEY
+    var sep: Char = '&'
 
     def appendValue(): Unit = {
       if (state == KEY) {
         val s = valAcc.result()
-        val k = decodeParam(s)
         valAcc.clear()
-        acc(Component.KeyOnlyParsed(k, s))
+        acc(Component.KeyOnlyEncoded(s, sep))
       } else {
-        val k = decodeParam(key)
-        val rawKey = key
+        val k = key
         key = null
         val s = valAcc.result()
         valAcc.clear()
-        val v = decodeParam(s)
-        acc(Component.KeyValueParsed(k, v, rawKey, s))
+        acc(Component.KeyValueEncoded(k, s, sep))
       }
       ()
     }
 
-    def endPair(): Unit = {
+    def endPair(_sep: Char): Unit = {
       if (!flush) input.mark()
+      sep = _sep
       appendValue()
       state = KEY
     }
@@ -93,9 +91,9 @@ private[http4s] class QueryParser(
     while (error == null && input.hasRemaining) {
       val c = input.get()
       c match {
-        case '&' => endPair()
+        case '&' => endPair('&')
 
-        case ';' if colonSeparators => endPair()
+        case ';' if colonSeparators => endPair(';')
 
         case '=' =>
           if (state == VALUE) valAcc.append('=')
@@ -117,13 +115,6 @@ private[http4s] class QueryParser(
       None
     }
   }
-
-  private def decodeParam(str: String): String =
-    try Uri.decode(str, codec.charSet, plusIsSpace = true)
-    catch {
-      case _: IllegalArgumentException => ""
-      case _: UnsupportedEncodingException => ""
-    }
 }
 
 private[http4s] object QueryParser {

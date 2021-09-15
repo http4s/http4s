@@ -102,7 +102,7 @@ trait QueryOps {
   private def _removeQueryParam(name: QueryParameterKey): Self =
     if (query.isEmpty) self
     else {
-      val newQuery = query.filterNot { case Component(n, _) => n == name.value }
+      val newQuery = query.filterNot(_.key == name.value)
       replaceQuery(newQuery)
     }
 
@@ -114,9 +114,9 @@ trait QueryOps {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
     val vec = params.foldLeft(query.toVector) {
-      case (m, (k, Seq())) => m :+ Component(penc.getKey(k).value, None)
+      case (m, (k, Seq())) => m :+ Component.KeyOnly(penc.getKey(k).value)
       case (m, (k, vs)) =>
-        vs.foldLeft(m) { case (m, v) => m :+ Component(penc.getKey(k).value, venc.encode(v).value) }
+        vs.foldLeft(m) { case (m, v) => m :+ Component.KeyValue(penc.getKey(k).value, venc.encode(v).value) }
     }
     replaceQuery(Query.fromVector(vec))
   }
@@ -184,7 +184,7 @@ trait QueryOps {
       if (values.isEmpty) baseQuery :+ Component.KeyOnly(name.value)
       else
         values.toList.foldLeft(baseQuery) { case (vec, v) =>
-          vec :+ Component(name.value, v.value)
+          vec :+ Component.KeyValue(name.value, v.value)
         }
 
     replaceQuery(Query.fromVector(vec))
