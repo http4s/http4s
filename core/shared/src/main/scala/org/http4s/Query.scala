@@ -33,7 +33,7 @@ import scala.collection.mutable.ListBuffer
 /** Collection representation of a query string
   *
   * It is a indexed sequence of key and maybe a value pairs which maps
-  * precisely to a query string, the identity of separators.
+  * precisely to a query string, modulo the identity of separators.
   *
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
