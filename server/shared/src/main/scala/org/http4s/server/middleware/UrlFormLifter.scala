@@ -40,7 +40,7 @@ object UrlFormLifter {
           vs.toVector.map(v => Query.Component(k, v))
         }
         val params = req.uri.query.toVector ++ flatForm: Vector[Query.Component]
-        val newQuery = Query(params: _*)
+        val newQuery = Query.fromVector(params)
 
         val newRequest = req
           .withUri(req.uri.copy(query = newQuery))

@@ -222,7 +222,9 @@ package object oauth1 extends OAuth1Platform {
   private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
       F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
-    val qparams = req.uri.query.components.map { case Query.Component(k, ov) => (k, ov.getOrElse("")) }
+    val qparams = req.uri.query.components.map { case Query.Component(k, ov) =>
+      (k, ov.getOrElse(""))
+    }
 
     req.contentType match {
       case Some(t)
