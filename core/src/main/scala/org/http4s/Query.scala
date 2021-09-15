@@ -33,10 +33,10 @@ import scala.collection.mutable.ListBuffer
 /** Collection representation of a query string
   *
   * It is a indexed sequence of key and maybe a value pairs which maps
-  * precisely to a query string, modulo 
-  * [[https://datatracker.ietf.org/doc/html/rfc3986#section-2.1 percent-encoding]] 
+  * precisely to a query string, modulo
+  * [[https://datatracker.ietf.org/doc/html/rfc3986#section-2.1 percent-encoding]]
   * and the identity of separators.
-  * 
+  *
   * The internal representation is not percent-encoded; percent-encoding is
   * applied when rendering and decoded when parsing. For example, the strings
   * "://" and "%3A%2F%2F" will both be parsed as "://" and rendered as "%3A//".
