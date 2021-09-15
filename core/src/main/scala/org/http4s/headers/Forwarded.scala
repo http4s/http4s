@@ -204,4 +204,6 @@ final case class Forwarded(values: NonEmptyList[Forwarded.Element])
 
   def apply(firstElem: Forwarded.Element, otherElems: Forwarded.Element*): Forwarded =
     Forwarded(NonEmptyList.of(firstElem, otherElems: _*))
+
+  override def isNameValid: Boolean = true
 }

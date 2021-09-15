@@ -24,6 +24,8 @@ import org.http4s.util.{Renderable, Writer}
 sealed abstract class Origin extends Header.Parsed {
   def key: Origin.type =
     Origin
+
+  override def isNameValid: Boolean = true
 }
 
 object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {

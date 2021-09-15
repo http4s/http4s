@@ -50,4 +50,6 @@ final case class `Accept-Language`(values: NonEmptyList[LanguageTag])
       .fold(QValue.Zero)(_._2)
 
   def satisfiedBy(languageTag: LanguageTag): Boolean = qValue(languageTag) > QValue.Zero
+
+  override def isNameValid: Boolean = true
 }

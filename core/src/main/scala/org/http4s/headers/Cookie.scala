@@ -34,4 +34,6 @@ final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.Recu
     values.tail.foreach(writer << "; " << _)
     writer
   }
+
+  override def isNameValid: Boolean = true
 }

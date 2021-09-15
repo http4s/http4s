@@ -35,4 +35,6 @@ final case class `X-B3-TraceId`(idMostSigBits: Long, idLeastSigBits: Option[Long
     xB3RenderValueImpl(writer, idMostSigBits, idLeastSigBits)
 
   def asUUID: UUID = new UUID(idMostSigBits, idLeastSigBits.getOrElse(0L))
+
+  override def isNameValid: Boolean = true
 }

@@ -57,4 +57,6 @@ sealed abstract case class Age(age: Long) extends Header.Parsed {
   def duration: Option[FiniteDuration] = Try(age.seconds).toOption
 
   def unsafeDuration: FiniteDuration = age.seconds
+
+  override def isNameValid: Boolean = true
 }

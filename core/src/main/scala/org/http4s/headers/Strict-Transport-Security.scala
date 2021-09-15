@@ -84,4 +84,6 @@ sealed abstract case class `Strict-Transport-Security`(
       this.maxAge,
       this.includeSubDomains,
       preload)
+
+  override def isNameValid: Boolean = true
 }

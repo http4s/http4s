@@ -46,4 +46,6 @@ final case class Host(host: String, port: Option[Int] = None) extends Header.Par
     if (port.isDefined) writer << ':' << port.get
     writer
   }
+
+  override def isNameValid: Boolean = true
 }

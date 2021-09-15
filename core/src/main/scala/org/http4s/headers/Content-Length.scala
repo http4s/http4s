@@ -32,6 +32,8 @@ sealed abstract case class `Content-Length`(length: Long) extends Header.Parsed 
   override def renderValue(writer: Writer): writer.type = writer.append(length)
   def modify(f: Long => Long): Option[`Content-Length`] =
     `Content-Length`.fromLong(f(length)).toOption
+
+  override def isNameValid: Boolean = true
 }
 
 object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton {

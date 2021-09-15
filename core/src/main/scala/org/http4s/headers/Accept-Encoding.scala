@@ -48,4 +48,6 @@ final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])
   }
 
   def satisfiedBy(coding: ContentCoding): Boolean = qValue(coding) > QValue.Zero
+
+  override def isNameValid: Boolean = true
 }

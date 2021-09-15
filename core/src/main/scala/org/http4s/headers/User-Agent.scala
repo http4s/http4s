@@ -53,4 +53,6 @@ final case class `User-Agent`(product: AgentProduct, other: List[AgentToken] = N
     }
     writer
   }
+
+  override def isNameValid: Boolean = true
 }

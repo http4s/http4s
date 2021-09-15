@@ -60,4 +60,6 @@ final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange])
     ranges.tail.foreach(writer << ',' << _)
     writer
   }
+
+  override def isNameValid: Boolean = true
 }

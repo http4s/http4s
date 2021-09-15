@@ -44,4 +44,6 @@ final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]])
     if (add.isDefined) w.append(add.get.getHostAddress)
     else w.append("unknown")
   }
+
+  override def isNameValid: Boolean = true
 }

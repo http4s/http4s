@@ -33,4 +33,6 @@ final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding])
   override def key: `Transfer-Encoding`.type = `Transfer-Encoding`
   def hasChunked: Boolean = values.exists(_ === TransferCoding.chunked)
   type Value = TransferCoding
+
+  override def isNameValid: Boolean = true
 }

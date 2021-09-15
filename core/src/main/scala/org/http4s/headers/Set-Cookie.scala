@@ -41,4 +41,6 @@ object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
 final case class `Set-Cookie`(cookie: ResponseCookie) extends Header.Parsed {
   override def key: `Set-Cookie`.type = `Set-Cookie`
   override def renderValue(writer: Writer): writer.type = cookie.render(writer)
+
+  override def isNameValid: Boolean = true
 }

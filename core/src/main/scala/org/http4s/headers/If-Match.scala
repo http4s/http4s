@@ -47,4 +47,6 @@ final case class `If-Match`(tags: Option[NonEmptyList[ETag.EntityTag]]) extends 
       case Some(tags) => tags.mkString_("", ",", "")
     }
   override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  override def isNameValid: Boolean = true
 }

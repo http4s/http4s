@@ -39,4 +39,6 @@ final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])
       rangeUnits.tail.foreach(r => writer.append(", ").append(r))
       writer
     }
+
+  override def isNameValid: Boolean = true
 }

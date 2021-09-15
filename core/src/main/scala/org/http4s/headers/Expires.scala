@@ -40,4 +40,6 @@ final case class Expires(expirationDate: HttpDate) extends Header.Parsed {
   val key = `Expires`
   override val value = Renderer.renderString(expirationDate)
   override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  override def isNameValid: Boolean = true
 }

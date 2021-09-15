@@ -29,4 +29,6 @@ final case class Date(date: HttpDate) extends Header.Parsed {
   def key: Date.type = Date
   override def value: String = Renderer.renderString(date)
   override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  override def isNameValid: Boolean = true
 }

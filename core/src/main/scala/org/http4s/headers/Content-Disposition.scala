@@ -37,4 +37,6 @@ final case class `Content-Disposition`(dispositionType: String, parameters: Map[
     parameters.foreach(p => writer << "; " << p._1 << "=\"" << p._2 << '"')
     writer
   }
+
+  override def isNameValid: Boolean = true
 }
