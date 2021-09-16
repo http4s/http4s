@@ -120,10 +120,12 @@ private[ember] object Encoder {
           if (h.is(`Content-Length`)) appliedContentLength = true
           else ()
 
-          stringBuilder
-            .append(h.renderString)
-            .append(CRLF)
-          ()
+          if (h.isNameValid) {
+            stringBuilder
+              .append(h.renderString)
+              .append(CRLF)
+            ()
+          }
         }
 
         if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {

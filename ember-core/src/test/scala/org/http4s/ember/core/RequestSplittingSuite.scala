@@ -50,4 +50,14 @@ class RequestSplittingSuite extends Http4sSuite {
       path = "/"))
     attack(req).intercept[IllegalArgumentException]
   }
+
+  test("Prevent request splitting attacks on field name") {
+    val req = Request[IO]().putHeaders(Header.Raw("Fine:\r\nEvil:true\r\n".ci, "oops"))
+    attack(req).map(_.status).assertEquals(Status.Ok)
+  }
+
+  test("Prevent request splitting attacks on field value") {
+    val req = Request[IO]().putHeaders(Header.Raw("X-Carrier".ci, "\r\nEvil:true\r\n"))
+    attack(req).map(_.status).assertEquals(Status.Ok)
+  }
 }
