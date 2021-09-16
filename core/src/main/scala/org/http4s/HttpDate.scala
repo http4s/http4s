@@ -298,4 +298,7 @@ object HttpDate {
 
     imfFixdate.orElse(obsDate)
   }
+   
+  implicit val stdLibOrderingInstance: Ordering[HttpDate] =
+    catsOrderForHttp4sHttpDate.toOrdering
 }
