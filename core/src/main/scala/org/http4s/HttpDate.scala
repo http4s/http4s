@@ -17,13 +17,13 @@
 package org.http4s
 
 import cats.Functor
+import cats.kernel.Order
 import cats.effect.Clock
 import cats.implicits._
 import cats.parse.{Parser, Rfc5234}
 import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
 import org.http4s.util.{Renderable, Writer}
 import scala.concurrent.duration.SECONDS
-import cats.kernel.Order
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it
@@ -55,7 +55,11 @@ class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[H
 object HttpDate {
   private val MinEpochSecond = -2208988800L
   private val MaxEpochSecond = 253402300799L
-  implicit val stdLibOrderingInstance: Ordering[HttpDate] = Order[HttpDate].toOrdering
+  implicit val catsOrderForHttp4sHttpDate: Order[HttpDate] =
+    new Order[HttpDate] {
+      override def compare(x: HttpDate, y: HttpDate): Int =
+        x.headerName.compareTo(y.headerName)
+    }
 
   /** The earliest value reprsentable as an HTTP-date, `Mon, 01 Jan 1900 00:00:00 GMT`.
     *
@@ -294,5 +298,4 @@ object HttpDate {
 
     imfFixdate.orElse(obsDate)
   }
-
 }
