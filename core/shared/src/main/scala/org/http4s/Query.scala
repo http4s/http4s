@@ -179,6 +179,8 @@ object Query {
       def unapply(wv: KeyOnly): Some[String] = Some(wv.key)
     }
 
+    val empty: KeyOnly = KeyOnly("")
+
     // TODO: remove indirection
     implicit val ord: Order[Component] = Order.by(kv => (kv.key, kv.value))
 
@@ -251,7 +253,7 @@ object Query {
   val empty: Query = new Query(Vector.empty)
 
   /** Represents a query string with no keys or values: `?` */
-  val blank = new Query(Vector(Component("", None)))
+  val blank = new Query(Vector(Component.empty))
 
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector.map(kv => Component(kv._1, kv._2)))
@@ -262,7 +264,7 @@ object Query {
   def fromPairs(xs: (String, String)*): Query =
     new Query(
       xs.toList.foldLeft(Vector.empty[Component]) { case (m, (k, s)) =>
-        m :+ Component(k, Some(s))
+        m :+ Component(k, s)
       }
     )
 
@@ -271,7 +273,7 @@ object Query {
     * If parsing fails, the empty [[Query]] is returned
     */
   def unsafeFromString(query: String): Query =
-    if (query.isEmpty) new Query(Vector(Component("", None)))
+    if (query.isEmpty) Query.blank
     else
       QueryParser.parseQueryString(query) match {
         case Right(query) => query
@@ -285,8 +287,8 @@ object Query {
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
     new Query(map.foldLeft(Vector.empty[Component]) {
-      case (m, (k, Seq())) => m :+ Component(k, None)
-      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ Component(k, Some(v)) }
+      case (m, (k, Seq())) => m :+ Component.KeyOnly(k)
+      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ Component(k, v) }
     })
 
   /* query       = *( pchar / "/" / "?" )
