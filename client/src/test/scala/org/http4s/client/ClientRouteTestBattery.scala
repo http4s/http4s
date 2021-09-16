@@ -25,6 +25,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.multipart.{Multipart, Part}
 import scala.concurrent.duration._
 import java.util.Arrays
@@ -142,12 +143,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
 
   test("Mitigates request splitting attack in URI RegName") {
     val address = jetty().addresses.head
-    val name = address.getHostName
-    val port = address.getPort
-    val req = Request[IO](uri = Uri(
-      authority =
-        Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
-      path = "/request-splitting"))
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw("Fine:\r\nEvil:true\r\n".ci, "oops"))
+    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field name") {
+    val address = jetty().addresses.head
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw("X-Carrier".ci, "\r\nEvil:true\r\n"))
     client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
