@@ -54,7 +54,9 @@ class ResponseSplittingSuite extends Http4sSuite {
 
   test("Prevent response splitting attacks on field value") {
     val app = HttpApp[IO] { req =>
-      Response(Status.NoContent).putHeaders(Header(req.params("fieldValue"), "oops")).pure[IO]
+      Response[IO](Status.NoContent)
+        .putHeaders(Header("X-Oops", req.params("fieldValue")))
+        .pure[IO]
     }
     val req = Request[IO](uri = uri"/?fieldValue=%0D%0AEvil:true%0D%0A")
     attack(app, req).map { resp =>
