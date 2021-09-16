@@ -55,8 +55,8 @@ class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[H
 object HttpDate {
   private val MinEpochSecond = -2208988800L
   private val MaxEpochSecond = 253402300799L
-  implicit def stdLibOrdering: Ordering[HttpDate] = 
-    Order[HttpDate].toOrdering 
+  implicit val stdLibOrderingInstance: Ordering[HttpDate] = Order[HttpDate].toOrdering
+
   /** The earliest value reprsentable as an HTTP-date, `Mon, 01 Jan 1900 00:00:00 GMT`.
     *
     * The minimum year is specified by RFC5322 as 1900.
