@@ -41,11 +41,6 @@ sealed trait Header extends Renderable with Product {
     renderValue(w).result
   }
 
-  final def sanitizedValue: String = {
-    val w = new StringWriter
-    w.sanitize(renderValue(_)).result
-  }
-
   def is(key: HeaderKey): Boolean = key.matchHeader(this).isDefined
 
   def isNot(key: HeaderKey): Boolean = !is(key)
