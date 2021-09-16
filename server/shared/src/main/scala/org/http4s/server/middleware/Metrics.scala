@@ -17,6 +17,7 @@
 package org.http4s.server.middleware
 
 import cats.data.Kleisli
+import cats.effect.Clock
 import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
@@ -57,15 +58,37 @@ object Metrics {
         None
       }
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
+    effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
+
+  /** A server middleware capable of recording metrics
+    *
+    * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects.
+    * Failed attempt to classify the request (e.g. failing with `F.raiseError`) leads to not recording metrics for that request.
+    *
+    * @note Compiling the request body in `classifierF` is unsafe, unless you are using some caching middleware.
+    *
+    * @param ops a algebra describing the metrics operations
+    * @param emptyResponseHandler an optional http status to be registered for requests that do not match
+    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
+    * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @return the metrics middleware
+    */
+  def effect[F[_]](
+      ops: MetricsOps[F],
+      emptyResponseHandler: Option[Status] = Status.NotFound.some,
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
+      classifierF: Request[F] => F[Option[String]]
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
       (request: Request[F]) =>
-        val classifier: Option[String] = classifierF(request)
-        ops.increaseActiveRequests(classifier) *>
-          F.monotonic
-            .map(startTime =>
-              ContextRequest(
-                MetricsRequestContext(request.method, startTime.toNanos, classifier),
-                request))
+        classifierF(request).flatMap { classifier =>
+          ops.increaseActiveRequests(classifier) *>
+            F.monotonic
+              .map(startTime =>
+                ContextRequest(
+                  MetricsRequestContext(request.method, startTime.toNanos, classifier),
+                  request))
+        }
     } { case (context, maybeStatus, outcome) =>
       // Decrease active requests _first_ in case any of the other effects
       // trigger an error. This differs from the < 0.21.14 semantics, which
@@ -112,4 +135,5 @@ object Metrics {
                   headerTime,
                   contextRequest.context.classifier)) *> C.pure(
               ContextResponse(response.status, response)))))
+
 }

@@ -51,9 +51,14 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       })(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
-    Client(withMetrics(client, ops, classifierF(_).pure[F]))
+    effect(ops, classifierF(_).pure[F])(client)
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
+    *
+    * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects or examining the body.
+    * Failed attempt to classify the request (e.g. failing with `F.raiseError`) leads to not recording metrics for that request.
+    *
+    * @note Compiling the request body in `classifierF` is unsafe, unless you are using some caching middleware.
     *
     * @param ops a algebra describing the metrics operations
     * @param classifierF a function that allows to add a classifier that can be customized per request
