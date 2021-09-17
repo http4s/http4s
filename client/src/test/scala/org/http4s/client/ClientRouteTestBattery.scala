@@ -143,6 +143,17 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
 
   test("Mitigates request splitting attack in URI RegName") {
     val address = jetty().addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val req = Request[IO](uri = Uri(
+      authority =
+        Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
+      path = "/request-splitting"))
+    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field name") {
+    val address = jetty().addresses.head
     val req = Request[IO](
       uri =
         Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
@@ -150,7 +161,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
-  test("Mitigates request splitting attack in field name") {
+  test("Mitigates request splitting attack in field value") {
     val address = jetty().addresses.head
     val req = Request[IO](
       uri =
