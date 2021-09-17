@@ -139,7 +139,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       uri = Uri(
         authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
         path = Uri.Path.Root / Uri.Path.Segment.encoded(
-          "/request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")
+          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")
       ))
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
