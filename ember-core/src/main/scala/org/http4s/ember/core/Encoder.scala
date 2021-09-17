@@ -20,7 +20,7 @@ import cats.ApplicativeThrow
 import fs2._
 import org.http4s._
 import org.http4s.headers.{Host, `Content-Length`}
-import org.http4s.internal.CharPredicate
+import org.http4s.internal.{CharPredicate, appendSanitized}
 import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
@@ -55,8 +55,8 @@ private[ember] object Encoder {
           stringBuilder
             .append(h.name)
             .append(": ")
-            .append(h.value)
-            .append(CRLF)
+          appendSanitized(stringBuilder, h.value)
+          stringBuilder.append(CRLF)
           ()
         }
       }
@@ -120,12 +120,14 @@ private[ember] object Encoder {
 
         // Apply each header followed by a CRLF
         req.headers.foreach { h =>
-          stringBuilder
-            .append(h.name)
-            .append(": ")
-            .append(h.value)
-            .append(CRLF)
-          ()
+          if (h.isNameValid) {
+            stringBuilder
+              .append(h.name)
+              .append(": ")
+            appendSanitized(stringBuilder, h.value)
+            stringBuilder.append(CRLF)
+            ()
+          }
         }
 
         if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {

@@ -28,6 +28,7 @@ class RequestSplittingSuite extends Http4sSuite {
         .reqToBytes(req)
         .compile
         .to(Array)
+      _ = println(new String(reqBytes))
       app = HttpApp[F] { req =>
         (req.headers.get(ci"Evil") match {
           case Some(_) => Response[F](Status.InternalServerError)
@@ -49,6 +50,16 @@ class RequestSplittingSuite extends Http4sSuite {
     val req = Request[IO](uri = Uri(
       authority = Uri.Authority(None, Uri.RegName("example.com\r\nEvil:true\r\n")).some,
       path = Uri.Path.Root))
+    attack(req).map(_.status).assertEquals(Status.Ok)
+  }
+
+  test("Prevent request splitting attacks on field name") {
+    val req = Request[IO]().putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
+    attack(req).map(_.status).assertEquals(Status.Ok)
+  }
+
+  test("Prevent request splitting attacks on field value") {
+    val req = Request[IO]().putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
     attack(req).map(_.status).assertEquals(Status.Ok)
   }
 }

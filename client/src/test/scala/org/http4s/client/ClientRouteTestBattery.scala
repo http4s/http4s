@@ -155,6 +155,24 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
+  test("Mitigates request splitting attack in field name") {
+    val address = jetty().addresses.head
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw("Fine:\r\nEvil:true\r\n".ci, "oops"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field value") {
+    val address = jetty().addresses.head
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw("X-Carrier".ci, "\r\nEvil:true\r\n"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
     // This isn't a generically safe normalization for all header, but
     // it's close enough for our purposes

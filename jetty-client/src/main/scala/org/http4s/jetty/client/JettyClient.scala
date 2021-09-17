@@ -91,7 +91,8 @@ object JettyClient {
         }
       )
 
-    for (h <- request.headers.headers) jReq.header(h.name.toString, h.value)
+    for (h <- request.headers.headers if h.isNameValid)
+      jReq.header(h.name.toString, h.value)
     jReq.content(dcp)
   }
 }
