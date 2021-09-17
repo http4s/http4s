@@ -138,7 +138,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       uri = Uri(
         authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
         path = "/request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:"))
-    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
   test("Mitigates request splitting attack in URI RegName") {
@@ -149,7 +149,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       authority =
         Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
       path = "/request-splitting"))
-    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
   test("Mitigates request splitting attack in field name") {
@@ -158,7 +158,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       uri =
         Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
       .putHeaders(Header.Raw("Fine:\r\nEvil:true\r\n".ci, "oops"))
-    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
   test("Mitigates request splitting attack in field value") {
@@ -167,7 +167,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       uri =
         Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
       .putHeaders(Header.Raw("X-Carrier".ci, "\r\nEvil:true\r\n"))
-    client().status(req).recover(_ => Status.Ok).assertEquals(Status.Ok)
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
