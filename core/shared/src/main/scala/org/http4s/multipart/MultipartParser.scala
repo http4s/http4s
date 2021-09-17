@@ -17,7 +17,7 @@
 package org.http4s
 package multipart
 
-import cats.effect.Concurrent
+import fs2.Compiler.Target
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Pipe
@@ -48,7 +48,7 @@ object MultipartParser extends MultipartParserPlatform {
   private[multipart] final case class PartChunk(value: Chunk[Byte]) extends Event
   private[multipart] case object PartEnd extends Event
 
-  def parseStreamed[F[_]: Concurrent](
+  def parseStreamed[F[_]: Target](
       boundary: Boundary,
       limit: Int = 1024): Pipe[F, Byte, Multipart[F]] = { st =>
     st.through(
@@ -58,7 +58,7 @@ object MultipartParser extends MultipartParserPlatform {
   }
 
   def parseToPartsStream[F[_]](boundary: Boundary, limit: Int = 1024)(implicit
-      F: Concurrent[F]): Pipe[F, Byte, Part[F]] = { st =>
+      F: Target[F]): Pipe[F, Byte, Part[F]] = { st =>
     st.through(
       parseEvents[F](boundary, limit)
     )
@@ -216,7 +216,7 @@ object MultipartParser extends MultipartParserPlatform {
     * If it is, drain the epilogue and return the empty stream. if it is not,
     * split on the `values` and raise an error if we lack a match
     */
-  private def splitOrFinish[F[_]: Concurrent](
+  private def splitOrFinish[F[_]: Target](
       values: Array[Byte],
       stream: Stream[F, Byte],
       limit: Int): SplitStream[F] = {
@@ -293,7 +293,7 @@ object MultipartParser extends MultipartParserPlatform {
   /** Take the stream of headers separated by
     * double CRLF bytes and return the headers
     */
-  private def parseHeaders[F[_]: Concurrent](strim: Stream[F, Byte]): F[Headers] = {
+  private def parseHeaders[F[_]: Target](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap { case (l, r) =>
         l.through(fs2.text.utf8.decode[F])
@@ -468,7 +468,7 @@ object MultipartParser extends MultipartParserPlatform {
     *
     * Any number of such sequences may be produced.
     */
-  private[multipart] def parseEvents[F[_]: Concurrent](
+  private[multipart] def parseEvents[F[_]: Target](
       boundary: Boundary,
       headerLimit: Int
   ): Pipe[F, Byte, Event] =
@@ -479,7 +479,7 @@ object MultipartParser extends MultipartParserPlatform {
   /** Drain the prelude and remove the first boundary. Only traverses until the first
     * part.
     */
-  private[this] def skipPrelude[F[_]: Concurrent](
+  private[this] def skipPrelude[F[_]: Target](
       boundary: Boundary,
       stream: Stream[F, Byte]
   ): Pull[F, Nothing, Stream[F, Byte]] = {
@@ -499,7 +499,7 @@ object MultipartParser extends MultipartParserPlatform {
   }
 
   /** Pull part events for parts until the end of the stream. */
-  private[this] def pullPartsEvents[F[_]: Concurrent](
+  private[this] def pullPartsEvents[F[_]: Target](
       boundary: Boundary,
       stream: Stream[F, Byte],
       headerLimit: Int
@@ -532,7 +532,7 @@ object MultipartParser extends MultipartParserPlatform {
   }
 
   /** Pulls part events for a single part. */
-  private[this] def pullPartEvents[F[_]: Concurrent](
+  private[this] def pullPartEvents[F[_]: Target](
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
       delimiterBytes: Array[Byte]
@@ -551,7 +551,7 @@ object MultipartParser extends MultipartParserPlatform {
       }
 
   /** Split the stream on `delimiterBytes`, emitting the left part as `PartChunk` events. */
-  private[this] def pullPartChunks[F[_]: Concurrent](
+  private[this] def pullPartChunks[F[_]: Target](
       delimiterBytes: Array[Byte],
       stream: Stream[F, Byte]
   ): Pull[F, PartChunk, Stream[F, Byte]] = {

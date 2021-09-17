@@ -21,7 +21,7 @@ package middleware
 import cats.arrow.FunctionK
 import cats.{FlatMap, ~>}
 import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.Sync
+import fs2.Compiler.Target
 import cats.syntax.all._
 import fs2._
 import org.http4s.headers._
@@ -29,7 +29,7 @@ import org.typelevel.ci._
 import scala.collection.mutable.ListBuffer
 
 object ChunkAggregator {
-  def apply[F[_]: FlatMap, G[_]: Sync, A](f: G ~> F)(
+  def apply[F[_]: FlatMap, G[_]: Target, A](f: G ~> F)(
       http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
@@ -42,10 +42,10 @@ object ChunkAggregator {
           })
     }
 
-  def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Target](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(OptionT.liftK[F])(httpRoutes)
 
-  def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: Target](httpApp: HttpApp[F]): HttpApp[F] =
     apply(FunctionK.id[F])(httpApp)
 
   /* removes the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
