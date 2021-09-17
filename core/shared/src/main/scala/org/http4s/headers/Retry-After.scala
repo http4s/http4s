@@ -69,7 +69,8 @@ object `Retry-After` {
   *
   * [[https://tools.ietf.org/html/rfc7231#section-7.1.3 RFC-7231 Section 7.1.3]]
   *
-  * @param retry Indicates the retry time, either as a date of expiration or as a number of seconds from the current time
-  * until that expiration.
+  * @param retry
+  *   Indicates the retry time, either as a date of expiration or as a number of seconds from the
+  *   current time until that expiration.
   */
 sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long])

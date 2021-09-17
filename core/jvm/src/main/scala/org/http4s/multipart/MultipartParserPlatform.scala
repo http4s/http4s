@@ -38,8 +38,7 @@ trait MultipartParserPlatform { self: MultipartParser.type =>
   // File writing encoder
   ///////////////////////////////////////////////////////////
 
-  /** Same as the other streamed parsing, except
-    * after a particular size, it buffers on a File.
+  /** Same as the other streamed parsing, except after a particular size, it buffers on a File.
     */
   @deprecated("Use parseSupervisedFile", "0.23")
   def parseStreamedFile[F[_]: Concurrent: Files](

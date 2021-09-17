@@ -27,7 +27,8 @@ private[http4s] object WebSocketHandshake extends WebSocketHandshakePlatform {
   /** Creates a new [[ClientHandshaker]] */
   def clientHandshaker(host: String): ClientHandshaker = new ClientHandshaker(host)
 
-  /** Provides the initial headers and a 16 byte Base64 encoded random key for websocket connections */
+  /** Provides the initial headers and a 16 byte Base64 encoded random key for websocket connections
+    */
   class ClientHandshaker(host: String) {
 
     /** Randomly generated 16-byte key in Base64 encoded form */
@@ -65,7 +66,8 @@ private[http4s] object WebSocketHandshake extends WebSocketHandshakePlatform {
           .getOrElse(Async[F].pure(Left("Missing Sec-WebSocket-Accept header")))
   }
 
-  /** Checks the headers received from the client and if they are valid, generates response headers */
+  /** Checks the headers received from the client and if they are valid, generates response headers
+    */
   def serverHandshake[F[_]: Async](headers: Iterable[(String, String)])
       : F[Either[(Int, String), collection.Seq[(String, String)]]] =
     if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") })

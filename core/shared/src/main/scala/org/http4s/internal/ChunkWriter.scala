@@ -22,7 +22,8 @@ import org.http4s.util.Writer
 import scala.collection.mutable.Buffer
 
 /** [[Writer]] that will result in a `Chunk`
-  * @param toChunk initial `Chunk`
+  * @param toChunk
+  *   initial `Chunk`
   */
 private[http4s] class ChunkWriter(
     charset: Charset = StandardCharsets.UTF_8

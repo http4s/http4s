@@ -28,8 +28,10 @@ object tls {
 
   /** Return X509 certificates for the session.
     *
-    * @param sslSession Session from which certificate to be read
-    * @return Empty array if no certificates can be read from {{{sslSession}}}
+    * @param sslSession
+    *   Session from which certificate to be read
+    * @return
+    *   Empty array if no certificates can be read from {{{sslSession}}}
     */
   def getCertChain(sslSession: SSLSession): List[X509Certificate] =
     Try {
@@ -45,23 +47,15 @@ object tls {
     * encryption routines.
     *
     * This is based on the information on effective key lengths in RFC 2246 - The TLS Protocol
-    * Version 1.0, Appendix C. CipherSuite definitions:
-    * <pre>
-    *                         Effective
-    *     Cipher       Type    Key Bits
+    * Version 1.0, Appendix C. CipherSuite definitions: <pre> Effective Cipher Type Key Bits
     *
-    *     NULL       * Stream     0
-    *     IDEA_CBC     Block    128
-    *     RC2_CBC_40 * Block     40
-    *     RC4_40     * Stream    40
-    *     RC4_128      Stream   128
-    *     DES40_CBC  * Block     40
-    *     DES_CBC      Block     56
-    *     3DES_EDE_CBC Block    168
-    * </pre>
+    * NULL * Stream 0 IDEA_CBC Block 128 RC2_CBC_40 * Block 40 RC4_40 * Stream 40 RC4_128 Stream 128
+    * DES40_CBC * Block 40 DES_CBC Block 56 3DES_EDE_CBC Block 168 </pre>
     *
-    * @param cipherSuite String name of the TLS cipher suite.
-    * @return int indicating the effective key entropy bit-length.
+    * @param cipherSuite
+    *   String name of the TLS cipher suite.
+    * @return
+    *   int indicating the effective key entropy bit-length.
     */
   def deduceKeyLength(cipherSuite: String): Int =
     if (cipherSuite == null) 0

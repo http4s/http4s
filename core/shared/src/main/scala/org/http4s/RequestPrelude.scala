@@ -22,11 +22,11 @@ import org.http4s.internal.reduceComparisons
 
 /** A projection of a [[Request]] without the body.
   *
-  * @note The [[Request#attributes]] are omitted in this encoding because they
-  *       do not (and can not) have a [[cats.kernel.Order]] instance. If they
-  *       were included here, then we could not write a [[cats.kernel.Order]]
-  *       instance for [[RequestPrelude]], limiting some of its utility, e.g. it
-  *       could not be used in a [[cats.data.NonEmptySet]].
+  * @note
+  *   The [[Request#attributes]] are omitted in this encoding because they do not (and can not) have
+  *   a [[cats.kernel.Order]] instance. If they were included here, then we could not write a
+  *   [[cats.kernel.Order]] instance for [[RequestPrelude]], limiting some of its utility, e.g. it
+  *   could not be used in a [[cats.data.NonEmptySet]].
   */
 sealed abstract class RequestPrelude extends Product with Serializable {
   def headers: Headers
@@ -55,7 +55,7 @@ sealed abstract class RequestPrelude extends Product with Serializable {
 
   final override def toString: String =
     s"RequestPrelude(headers = ${headers
-      .redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
+      .redactSensitive()}, httpVersion = $httpVersion, method = $method, uri = $uri)"
 }
 
 object RequestPrelude {

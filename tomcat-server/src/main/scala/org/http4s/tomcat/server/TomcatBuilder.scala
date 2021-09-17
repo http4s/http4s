@@ -249,7 +249,7 @@ sealed class TomcatBuilder[F[_]] private (
           case _ => ServerInfo.getServerInfo // well, we tried
         }
         logger.info(
-          s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
+          s"http4s v${BuildInfo.version} on Tomcat v$tomcatVersion started at ${server.baseUri}")
 
         server -> shutdown
       }))

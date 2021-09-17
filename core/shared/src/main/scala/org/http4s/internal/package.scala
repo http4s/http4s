@@ -45,14 +45,16 @@ package object internal {
 
   /** Encode a byte Array into a hexadecimal string
     *
-    * @param data the array
-    * @return a hexadecimal encoded string
+    * @param data
+    *   the array
+    * @return
+    *   a hexadecimal encoded string
     */
   private[http4s] final def encodeHexString(data: Array[Byte]): String =
     new String(encodeHex(data))
 
-  /** Encode a string to a Hexadecimal string representation
-    * Adapted from apache commons Hex.encodeHex
+  /** Encode a string to a Hexadecimal string representation Adapted from apache commons
+    * Hex.encodeHex
     */
   private[http4s] final def encodeHex(data: Array[Byte]): Array[Char] = {
     val l = data.length
@@ -77,8 +79,7 @@ package object internal {
 
   private object HexDecodeException extends Exception with NoStackTrace
 
-  /** Dirty, optimized hex decoding based off of apache
-    * common hex decoding, ported over to scala
+  /** Dirty, optimized hex decoding based off of apache common hex decoding, ported over to scala
     *
     * @param data
     * @return
@@ -129,7 +130,7 @@ package object internal {
 
   private[http4s] def bug(message: String): AssertionError =
     new AssertionError(
-      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: $message")
 
   // TODO Remove in 1.0. We can do better with MurmurHash3.
   private[http4s] def hashLower(s: String): Int = {
@@ -219,15 +220,14 @@ package object internal {
 
   // Helper functions for writing Order instances //
 
-  /** This is the same as `Order.by(f).compare(a, b)`, but with the parameters
-    * re-arraigned to make it easier to partially apply the function to two
-    * instances of a type before supplying the `A => B`.
+  /** This is the same as `Order.by(f).compare(a, b)`, but with the parameters re-arraigned to make
+    * it easier to partially apply the function to two instances of a type before supplying the `A
+    * => B`.
     *
-    * The intended use case is that `f: A => B` will extract out a single
-    * field from two instances of some Product type and then compare the value
-    * of the field. This can then be done in turn for each field of a Product,
-    * significantly reducing the amount of code needed to write an `Order`
-    * instance for a Product with many fields.
+    * The intended use case is that `f: A => B` will extract out a single field from two instances
+    * of some Product type and then compare the value of the field. This can then be done in turn
+    * for each field of a Product, significantly reducing the amount of code needed to write an
+    * `Order` instance for a Product with many fields.
     *
     * See the `Order` instance for `Uri` for an example of this usage.
     */
@@ -238,25 +238,23 @@ package object internal {
   ): Int =
     Order.by[A, B](f).compare(a, b)
 
-  /** Given at least one `Int` intended to represent the result of a comparison
-    * of two fields of some Product type, reduce the result to the first
-    * non-zero value, or return 0 if all comparisons are 0.
+  /** Given at least one `Int` intended to represent the result of a comparison of two fields of
+    * some Product type, reduce the result to the first non-zero value, or return 0 if all
+    * comparisons are 0.
     *
-    * The intended use case for this function is to reduce the amount of code
-    * needed to write an `Order` instance for Product types. One can use
-    * [[#compareField]] to generate a comparison for each field in a product
-    * type, then apply this function to get a ordering for the entire Product
-    * type.
+    * The intended use case for this function is to reduce the amount of code needed to write an
+    * `Order` instance for Product types. One can use [[#compareField]] to generate a comparison for
+    * each field in a product type, then apply this function to get a ordering for the entire
+    * Product type.
     *
     * See the `Order` instance for `Uri` for an example of this usage.
     *
-    * @note The values of the `NonEmptyChain` are encoded `F[Int]`, where `F`
-    *       is some `Comonad`. The primary Comonads with which we are
-    *       concerned are `Eval` and `Id`. `Eval` will give lazy evaluation of
-    *       the Ordering, stopping as soon as the result is known, and `Id`
-    *       will give strict evaluation, in the case where the caller has good
-    *       reason to believe that evaluating the thunks will be slower than
-    *       strictly evaluating the result over all fields.
+    * @note
+    *   The values of the `NonEmptyChain` are encoded `F[Int]`, where `F` is some `Comonad`. The
+    *   primary Comonads with which we are concerned are `Eval` and `Id`. `Eval` will give lazy
+    *   evaluation of the Ordering, stopping as soon as the result is known, and `Id` will give
+    *   strict evaluation, in the case where the caller has good reason to believe that evaluating
+    *   the thunks will be slower than strictly evaluating the result over all fields.
     */
   private[http4s] def reduceComparisons_[F[_]: Comonad](
       comparisons: NonEmptyChain[F[Int]]
@@ -275,10 +273,9 @@ package object internal {
       .getOrElse(0)
   }
 
-  /** Similar to [[#reduceComparisons_]] but with the `F` type forced to `Eval`
-    * for every comparison other than the first one. This encodes the commonly
-    * desired use case of only evaluating the minimum number of comparisons
-    * required to determine the ordering.
+  /** Similar to [[#reduceComparisons_]] but with the `F` type forced to `Eval` for every comparison
+    * other than the first one. This encodes the commonly desired use case of only evaluating the
+    * minimum number of comparisons required to determine the ordering.
     */
   private[http4s] def reduceComparisons(
       head: Int,
