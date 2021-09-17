@@ -58,7 +58,7 @@ object HttpDate {
   implicit val catsOrderForHttp4sHttpDate: Order[HttpDate] =
     new Order[HttpDate] {
       override def compare(x: HttpDate, y: HttpDate): Int =
-        x.headerName.compareTo(y.headerName)
+        x.epochSecond.compareTo(y.epochSecond)
     }
 
   /** The earliest value reprsentable as an HTTP-date, `Mon, 01 Jan 1900 00:00:00 GMT`.
