@@ -69,8 +69,8 @@ object EmberParserBench {
     def setup(): Unit = {
       req = Request[IO]().withEntity("Hello Bench!")
       resp = Response[IO]().withEntity("Hello Bench!")
-      reqBytes = org.http4s.ember.core.Encoder.reqToBytes(req).compile.to(Array).unsafeRunSync
-      respBytes = org.http4s.ember.core.Encoder.respToBytes(resp).compile.to(Array).unsafeRunSync
+      reqBytes = org.http4s.ember.core.Encoder.reqToBytes(req).compile.to(Array).unsafeRunSync()
+      respBytes = org.http4s.ember.core.Encoder.respToBytes(resp).compile.to(Array).unsafeRunSync()
 
       println(s"Content-Length: ${req.contentLength}")
     }

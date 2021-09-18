@@ -404,7 +404,7 @@ class ParsingSuite extends Http4sSuite {
     } yield message
 
     result
-      .map { case (req, drain) =>
+      .map { case (req, _) =>
         assertEquals(req.method, Method.POST)
         assertEquals(
           req.headers,
