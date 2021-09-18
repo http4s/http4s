@@ -51,7 +51,7 @@ import scala.concurrent.duration._
   * @param chunkBufferMaxSize Size of the buffer that is used when Content-Length header is not specified.
   * @param parserMode lenient or strict parsing mode. The lenient mode will accept illegal chars but replaces them with � (0xFFFD)
   * @param bufferSize internal buffer size of the blaze client
-  * @param executionContext custom executionContext to run async computations.
+  * @param executionContextConfig optional custom executionContext to run async computations.
   * @param scheduler execution scheduler
   * @param asynchronousChannelGroup custom AsynchronousChannelGroup to use other than the system default
   * @param channelOptions custom socket options
@@ -74,7 +74,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val chunkBufferMaxSize: Int,
     val parserMode: ParserMode,
     val bufferSize: Int,
-    val executionContextConfig: ExecutionContextConfig,
+    executionContextConfig: ExecutionContextConfig,
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions,
