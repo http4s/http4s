@@ -498,7 +498,7 @@ lazy val bench = http4sProject("bench")
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
   )
-  .dependsOn(core, circe)
+  .dependsOn(core, circe, emberCore)
 
 lazy val docs = http4sProject("docs")
   .enablePlugins(
