@@ -146,8 +146,8 @@ class ParsingSuite extends Http4sSuite {
       _ <- result.map(_.uri.fragment).assertEquals(expected.uri.fragment)
       _ <- result.map(_.headers).assertEquals(expected.headers)
       r <- result
-      a <- r.body.through(fs2.text.utf8Decode).compile.string
-      b <- expected.body.through(fs2.text.utf8Decode).compile.string
+      a <- r.body.through(fs2.text.utf8.decode).compile.string
+      b <- expected.body.through(fs2.text.utf8.decode).compile.string
     } yield assertEquals(a, b)
   }
 
