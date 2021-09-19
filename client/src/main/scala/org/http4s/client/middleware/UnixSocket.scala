@@ -19,7 +19,7 @@ package org.http4s.client.middleware
 import org.http4s.client.Client
 import org.http4s.Request
 import cats.effect.kernel.MonadCancelThrow
-
+/** Middleware to direct all requests to the provided `UnixSocketAddress` */
 object UnixSocket {
   def apply[F[_]: MonadCancelThrow](address: fs2.io.net.unixsocket.UnixSocketAddress)(
       client: Client[F]): Client[F] =
