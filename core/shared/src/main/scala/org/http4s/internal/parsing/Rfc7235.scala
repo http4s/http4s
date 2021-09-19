@@ -58,9 +58,8 @@ private[http4s] object Rfc7235 {
 
   val credentials: Parser[Credentials] =
     ((scheme <* sp) ~ headerRep1(authParam.backtrack).map(Right(_)).orElse(token68.map(Left(_))))
-      .mapFilter {
-        case (scheme, Left(token)) => Some(Credentials.Token(scheme, token))
-        case (scheme, Right(nel)) => Some(Credentials.AuthParams(scheme, nel))
-        case (_, _) => None
+      .map {
+        case (scheme, Left(token)) => Credentials.Token(scheme, token)
+        case (scheme, Right(nel)) => Credentials.AuthParams(scheme, nel)
       }
 }

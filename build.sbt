@@ -444,8 +444,10 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp")
     ),
     Test / parallelExecution := false
   )
@@ -564,8 +566,7 @@ lazy val domServiceWorkerTests =
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
-    description := "jetty implementation for http4s clients",
-    startYear := Some(2018),
+    description := "jetty implementation for http4s clients", startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
@@ -743,7 +744,7 @@ lazy val bench = http4sProject("bench")
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {}
   )
-  .dependsOn(core, circe)
+  .dependsOn(core, circe, emberCore)
 
 // Workaround via full cross
 lazy val docs = http4sProject("docs", CrossType.Full, List(JVMPlatform))

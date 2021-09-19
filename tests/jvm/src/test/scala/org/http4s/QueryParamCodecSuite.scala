@@ -61,7 +61,7 @@ class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
     test("QueryParamCodec[ZonedDateTime] handles DateTimeException") {
       implicit val zonedDateTimeQueryParamCodec: QueryParamCodec[ZonedDateTime] =
         QueryParamCodec.zonedDateTimeQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
-      forAll { instant: Instant =>
+      forAll { (instant: Instant) =>
         QueryParamDecoder[ZonedDateTime].decode(QueryParameterValue(instant.toString)) match {
           case Validated.Invalid(NonEmptyList(ParseFailure(_, _), _)) => ()
           case Validated.Valid(zdt) => fail(s"Parsing incorrectly succeeded with $zdt")

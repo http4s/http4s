@@ -34,7 +34,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
-    val resp = mkClient(0).use(_.expect[String](u).attempt)
+    val resp = builder(0).resource.use(_.expect[String](u).attempt)
     resp.assertEquals(Left(NoConnectionAllowedException(RequestKey(u.scheme.get, u.authority.get))))
   }
 
@@ -43,7 +43,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
-    val resp = mkClient(1).use(_.expect[String](u))
+    val resp = builder(1).resource.use(_.expect[String](u))
     resp.map(_.length > 0).assertEquals(true)
   }
 
@@ -52,7 +52,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
-    val resp = mkClient(1, sslContextOption = None)
+    val resp = builder(1, sslContextOption = None).resource
       .use(_.expect[String](u))
       .attempt
     resp
@@ -68,7 +68,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
-    mkClient(1, responseHeaderTimeout = 100.millis)
+    builder(1, responseHeaderTimeout = 100.millis).resource
       .use { client =>
         val submit = client.expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
         submit
@@ -81,7 +81,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
-    mkClient(1, responseHeaderTimeout = 20.seconds)
+    builder(1, responseHeaderTimeout = 20.seconds).resource
       .use { client =>
         val submit = client.expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
         for {
@@ -99,7 +99,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val name = address.getHostName
     val port = address.getPort
 
-    val resp = mkClient(1, responseHeaderTimeout = 20.seconds)
+    val resp = builder(1, responseHeaderTimeout = 20.seconds).resource
       .use { drainTestClient =>
         drainTestClient
           .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
@@ -128,7 +128,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = address.getPort
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
-        mkClient(1, requestTimeout = 2.seconds).use { client =>
+        builder(1, requestTimeout = 2.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
           val req = Request[IO](
             method = Method.POST,
@@ -151,7 +151,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = address.getPort
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
-        mkClient(1, requestTimeout = 2.seconds).use { client =>
+        builder(1, requestTimeout = 2.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
           val req = Request[IO](
             method = Method.POST,
@@ -169,7 +169,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
-    mkClient(1, requestTimeout = 500.millis, responseHeaderTimeout = Duration.Inf)
+    builder(1, requestTimeout = 500.millis, responseHeaderTimeout = Duration.Inf).resource
       .use { client =>
         val body = Stream(0.toByte).repeat
         val req = Request[IO](
@@ -192,7 +192,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
-    mkClient(1, requestTimeout = Duration.Inf, responseHeaderTimeout = 500.millis)
+    builder(1, requestTimeout = Duration.Inf, responseHeaderTimeout = 500.millis).resource
       .use { client =>
         val body = Stream(0.toByte).repeat
         val req = Request[IO](
@@ -216,7 +216,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = address.getPort
     val uri = Uri.fromString(s"http://$name:$port/simple").yolo
 
-    mkClient(1)
+    builder(1).resource
       .use { client =>
         val req = Request[IO](uri = uri)
         client
@@ -232,11 +232,34 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should raise a ConnectionFailure when a host can't be resolved") {
-    mkClient(1)
+    builder(1).resource
       .use { client =>
         client.status(Request[IO](uri = uri"http://example.invalid/"))
       }
       .interceptMessage[ConnectionFailure](
         "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
+  }
+
+  test("Keeps stats".flaky) {
+    val addresses = server().addresses
+    val address = addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val uri = Uri.fromString(s"http://$name:$port/simple").yolo
+    builder(1, requestTimeout = 2.seconds).resourceWithState.use { case (client, state) =>
+      for {
+        // We're not thoroughly exercising the pool stats.  We're doing a rudimentary check.
+        _ <- state.allocated.assertEquals(Map.empty[RequestKey, Int])
+        reading <- Deferred[IO, Unit]
+        done <- Deferred[IO, Unit]
+        body = Stream.eval(reading.complete(())) *> (Stream.empty: EntityBody[IO]) <* Stream.eval(
+          done.get)
+        req = Request[IO](Method.POST, uri = uri).withEntity(body)
+        _ <- client.status(req).start
+        _ <- reading.get
+        _ <- state.allocated.map(_.get(RequestKey.fromRequest(req))).assertEquals(Some(1))
+        _ <- done.complete(())
+      } yield ()
+    }
   }
 }
