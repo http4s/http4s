@@ -20,7 +20,7 @@ import cats.syntax.all._
 import cats.effect._
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
-import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
+import fs2.io.net.unixsocket.{JnrUnixSockets, UnixSocketAddress}
 import org.http4s.client.middleware.UnixSocket
 import scala.concurrent.duration._
 
@@ -33,7 +33,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
       localSocket = UnixSocketAddress("/tmp/" ++ id ++ ".sock")
       _ <- EmberServerBuilder
         .default[IO]
-        .withUnixSocketConfig(UnixSockets[IO], localSocket)
+        .withUnixSocketConfig(JnrUnixSockets.forAsync[IO], localSocket)
         .withHttpApp(app)
         .build
       client <- EmberClientBuilder.default[IO].build.map(UnixSocket(localSocket))
