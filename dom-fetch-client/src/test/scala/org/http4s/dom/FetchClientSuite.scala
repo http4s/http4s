@@ -23,5 +23,5 @@ import org.http4s.client.Client
 import org.http4s.client.ClientRouteTestBattery
 
 class FetchClientSuite extends ClientRouteTestBattery("FetchClient") with Http4sSuite {
-  override def clientResource: Resource[IO, Client[IO]] = Resource.pure(FetchClient[IO])
+  override def clientResource: Resource[IO, Client[IO]] = FetchClientBuilder[IO].resource
 }
