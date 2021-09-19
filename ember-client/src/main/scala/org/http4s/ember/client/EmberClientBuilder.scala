@@ -135,7 +135,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       tlsContextOptWithDefault <- Resource.eval(
         tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F]))
       builder =
-        KeyPoolBuilder
+        KeyPool.Builder
           .apply[F, RequestKey, EmberConnection[F]](
             (requestKey: RequestKey) =>
               EmberConnection(
