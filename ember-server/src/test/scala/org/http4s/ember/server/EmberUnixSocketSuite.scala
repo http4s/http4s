@@ -36,7 +36,11 @@ class EmberUnixSocketSuite extends Http4sSuite {
         .withUnixSocketConfig(JnrUnixSockets.forAsync[IO], localSocket)
         .withHttpApp(app)
         .build
-      client <- EmberClientBuilder.default[IO].build.map(UnixSocket(localSocket))
+      client <- EmberClientBuilder
+        .default[IO]
+        .withUnixSockets(JnrUnixSockets.forAsync[IO])
+        .build
+        .map(UnixSocket(localSocket))
       _ <- Resource.eval(IO.sleep(1.second))
       resp <- client.run(Request[IO](Method.GET))
       body <- Resource.eval(resp.bodyText.compile.string)
