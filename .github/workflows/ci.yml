@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.14, 3.0.1]
+        scala: [2.13.6, 2.12.15, 3.0.1]
         java: [adopt@1.8, adopt@1.11, adopt@1.16]
     runs-on: ${{ matrix.os }}
     steps:
@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v13
         with:
           java-version: ${{ matrix.java }}
 
@@ -54,26 +54,26 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Check that workflows are up to date
-        run: sbt --client '++${{ matrix.scala }}; githubWorkflowCheck'
+        run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
         if: matrix.scala != '3.0.1'
-        run: sbt --client '++${{ matrix.scala }}; scalafmtCheckAll'
+        run: sbt ++${{ matrix.scala }} scalafmtCheckAll
 
       - name: Check headers
-        run: 'sbt --client ''++${{ matrix.scala }}; headerCheck; test:headerCheck'''
+        run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
 
       - name: Compile
-        run: 'sbt --client ''++${{ matrix.scala }}; test:compile'''
+        run: 'sbt ++${{ matrix.scala }} test:compile'
 
       - name: Check binary compatibility
-        run: sbt --client '++${{ matrix.scala }}; mimaReportBinaryIssues'
+        run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
       - name: Run tests
-        run: sbt --client '++${{ matrix.scala }}; test'
+        run: sbt ++${{ matrix.scala }} test
 
       - name: Build docs
-        run: sbt --client '++${{ matrix.scala }}; doc'
+        run: sbt ++${{ matrix.scala }} doc
 
   publish:
     name: Publish Artifacts
@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.14]
+        scala: [2.12.15]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -92,7 +92,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v13
         with:
           java-version: ${{ matrix.java }}
 
@@ -113,10 +113,10 @@ jobs:
 
       - run: git status
 
-      - run: sbt --client '++${{ matrix.scala }}; +publish'
+      - run: sbt ++${{ matrix.scala }} +publish
 
       - if: startsWith(github.ref, 'refs/tags/v')
-        run: sbt --client '++${{ matrix.scala }}; sonatypeBundleRelease'
+        run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
       - name: Setup Hugo
         run: |
@@ -134,7 +134,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.14 website/makeSite website/ghpagesPushSite
+          sbt ++2.12.15 website/makeSite website/ghpagesPushSite
 
                 
 
@@ -143,7 +143,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.14]
+        scala: [2.12.15]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -153,7 +153,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v13
         with:
           java-version: ${{ matrix.java }}
 
@@ -165,14 +165,14 @@ jobs:
 
       
       - name: Build website
-        run: sbt --client '++${{ matrix.scala }}; website/makeSite'
+        run: sbt ++${{ matrix.scala }} website/makeSite
 
   docs:
     name: Build docs
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.14]
+        scala: [2.12.15]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -182,7 +182,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v13
         with:
           java-version: ${{ matrix.java }}
 
@@ -194,14 +194,14 @@ jobs:
 
       
       - name: Build docs
-        run: sbt --client '++${{ matrix.scala }}; docs/makeSite'
+        run: sbt ++${{ matrix.scala }} docs/makeSite
 
   scalafix:
     name: Scalafix
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.14, 3.0.1]
+        scala: [2.13.6, 2.12.15, 3.0.1]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -211,7 +211,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v13
         with:
           java-version: ${{ matrix.java }}
 

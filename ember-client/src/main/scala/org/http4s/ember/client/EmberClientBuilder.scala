@@ -135,7 +135,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       tlsContextOptWithDefault <- Resource.eval(
         tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F]))
       builder =
-        KeyPoolBuilder
+        KeyPool.Builder
           .apply[F, RequestKey, EmberConnection[F]](
             (requestKey: RequestKey) =>
               EmberConnection(
@@ -147,11 +147,10 @@ final class EmberClientBuilder[F[_]: Async] private (
                     sg,
                     additionalSocketOptions
                   )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            { case connection =>
+            (connection: EmberConnection[F]) =>
               logger.trace(
                 s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
                 connection.cleanup
-            }
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)

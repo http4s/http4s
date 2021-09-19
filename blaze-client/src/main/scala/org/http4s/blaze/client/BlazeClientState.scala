@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.http4s
-package headers
+package org.http4s.blaze.client
 
-import java.nio.charset.StandardCharsets
+import org.http4s.client.RequestKey
+import scala.collection.immutable
 
-object Referer extends HeaderCompanion[Referer]("Referer") {
-
-  private[http4s] val parser = Uri.Parser
-    .absoluteUri(StandardCharsets.ISO_8859_1)
-    .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
-    .map(Referer(_))
-
-  implicit val headerInstance: Header[Referer, Header.Single] =
-    createRendered(_.uri)
-
+trait BlazeClientState[F[_]] {
+  def isClosed: F[Boolean]
+  def allocated: F[immutable.Map[RequestKey, Int]]
+  def idleQueueDepth: F[immutable.Map[RequestKey, Int]]
+  def waitQueueDepth: F[Int]
 }
-
-final case class Referer(uri: Uri)

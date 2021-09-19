@@ -23,6 +23,8 @@ import fs2._
 import fs2.io.file.{Files, Path}
 import java.io.File
 import org.http4s.multipart.{Multipart, MultipartDecoder}
+import scodec.bits.ByteVector
+
 import scala.annotation.implicitNotFound
 import cats.effect.Resource
 
@@ -192,6 +194,10 @@ object EntityDecoder {
   def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
     DecodeResult.success(m.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
 
+  /** Helper method which simply gathers the body into a single ByteVector */
+  private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] =
+    DecodeResult.success(m.body.compile.toVector.map(ByteVector(_)))
+
   /** Decodes a message to a String */
   def decodeText[F[_]](
       m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
@@ -212,6 +218,9 @@ object EntityDecoder {
 
   implicit def byteArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.toArray)
+
+  implicit def byteVector[F[_]: Concurrent]: EntityDecoder[F, ByteVector] =
+    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectByteVector[F])
 
   implicit def text[F[_]](implicit
       F: Concurrent[F],
