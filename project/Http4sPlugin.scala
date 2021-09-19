@@ -125,13 +125,6 @@ object Http4sPlugin extends AutoPlugin {
 
     nowarnCompatAnnotationProvider := None,
 
-    mimaPreviousArtifacts := {
-      mimaPreviousArtifacts.value.filterNot(
-        // cursed release
-        _.revision == "0.21.10"
-      )
-    },
-
     doctestTestFramework := DoctestTestFramework.Munit,
   )
 

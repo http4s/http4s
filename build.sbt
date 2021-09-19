@@ -8,7 +8,7 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
-ThisBuild / baseVersion := "1.0"
+ThisBuild / baseVersion := "0.23"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
@@ -283,6 +283,7 @@ lazy val emberServer = libraryProject("ember-server")
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp")
     ),
     Test / parallelExecution := false
@@ -317,6 +318,10 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters := Seq(
+      // private constructor 
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.server.BlazeServerBuilder.this")
+    )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
@@ -345,8 +350,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
-    description := "jetty implementation for http4s clients",
-    startYear := Some(2018),
+    description := "jetty implementation for http4s clients", startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
