@@ -240,7 +240,7 @@ class BlazeClientSuite extends BlazeClientBase {
         "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
   }
 
-  test("Keeps stats") {
+  test("Keeps stats".flaky) {
     val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
