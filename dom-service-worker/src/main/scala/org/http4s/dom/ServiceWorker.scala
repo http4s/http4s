@@ -39,7 +39,7 @@ import org.typelevel.vault.Key
 
 object ServiceWorker {
 
-  /** Adds a listener for `FetchEvent`.
+  /** Adds a listener for `FetchEvent`. The provided `IO` is run once to install the `routes`.
     * If the event is not intercepted by `routes` then it is treated as an ordinary request.
     * Additional context can be retrieved via [[FetchEventContext]] including a [[Supervisor]] for running background tasks.
     * @return an action for removing the listener.
@@ -74,11 +74,12 @@ object ServiceWorker {
       val OptionF = Async[OptionT[F, *]]
       val req = event.request
       for {
-        method <- OptionF.fromEither(Method.fromString(req.method.asInstanceOf[String]))
+        method <- OptionF.fromEither(Method.fromString(req.method.toString))
         uri <- OptionF.fromEither(Uri.fromString(req.url))
         headers = fromDomHeaders(req.headers)
         body = Stream
           .evalUnChunk(
+            // TODO remove cast after next scala-js-dom release
             F.fromPromise(F.delay(req.asInstanceOf[Body].arrayBuffer())).map(Chunk.jsArrayBuffer))
           .covary[F]
         request = Request(method, uri, headers = headers, body = body)
