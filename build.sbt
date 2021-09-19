@@ -229,7 +229,9 @@ lazy val client = libraryProject("client")
       jettyServlet % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
+      ProblemFilters.exclude[Problem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.makeSHASig"), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.*.generateHMAC"), // private[oauth1]
     )
   )
   .dependsOn(
