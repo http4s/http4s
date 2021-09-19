@@ -31,7 +31,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
     val test = for {
       id <- Resource.eval(IO(java.util.UUID.randomUUID().toString()))
       localSocket = UnixSocketAddress("/tmp/" ++ id ++ ".sock")
-      server <- EmberServerBuilder
+      _ <- EmberServerBuilder
         .default[IO]
         .withUnixSocketConfig(UnixSockets[IO], localSocket)
         .withHttpApp(app)
