@@ -267,7 +267,8 @@ lazy val emberServer = libraryProject("ember-server")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       log4catsSlf4j, 
-      javaWebSocket % Test
+      javaWebSocket % Test,
+      jnrUnixSocket % Test, // Necessary for jdk < 16
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
