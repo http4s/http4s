@@ -23,6 +23,7 @@ import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import java.time.Instant
 import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
+import org.http4s.internal.CollectionCompat
 import org.log4s.getLogger
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -45,7 +46,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     requestTimeout: Duration,
     semaphore: Semaphore[F],
     implicit private val executionContext: ExecutionContext)(implicit F: Concurrent[F])
-    extends ConnectionManager[F, A] {
+    extends ConnectionManager.Stateful[F, A] { self =>
   private sealed case class Waiting(
       key: RequestKey,
       callback: Callback[NextConnection],
@@ -375,6 +376,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
           curTotal = 0
         }
       }
+    }
+
+  def state: BlazeClientState[F] =
+    new BlazeClientState[F] {
+      def isClosed = F.delay(self.isClosed)
+      def allocated = F.delay(self.allocated.toMap)
+      def idleQueueDepth = F.delay(CollectionCompat.mapValues(self.idleQueues.toMap)(_.size))
+      def waitQueueDepth = F.delay(self.waitQueue.size)
     }
 }
 
