@@ -33,7 +33,8 @@ import scala.collection.mutable.ListBuffer
 /** Collection representation of a query string
   *
   * It is a indexed sequence of key and maybe a value pairs which maps
-  * precisely to a query string, modulo the identity of separators.
+  * precisely to a query string, modulo
+  * [[https://datatracker.ietf.org/doc/html/rfc3986#section-2.1 percent-encoding]].
   *
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
