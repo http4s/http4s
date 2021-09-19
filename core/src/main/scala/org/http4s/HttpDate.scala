@@ -59,7 +59,7 @@ object HttpDate {
     new Order[HttpDate] with Hash[HttpDate] {
       override def compare(x: HttpDate, y: HttpDate): Int =
         x.epochSecond.compareTo(y.epochSecond)
-      
+
       override def hash(x: HttpDate): Int =
         x.hashCode
     }
@@ -301,7 +301,7 @@ object HttpDate {
 
     imfFixdate.orElse(obsDate)
   }
-   
+
   implicit val stdLibOrderingInstance: Ordering[HttpDate] =
     catsOrderForHttp4sHttpDate.toOrdering
 }
