@@ -84,7 +84,8 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      logger: Logger[F]
+      logger: Logger[F],
+      true
     )
   }
 
@@ -106,15 +107,17 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F]
   ) = {
-    val server = UnixSockets
-      .forAsync[F]
-      .server(unixSocketAddress, deleteIfExists, deleteOnClose)
-      .attempt
-      .evalTap(e =>
-        ready.complete(
-          e.as(InetSocketAddress.createUnresolved(unixSocketAddress.path, 80))
-        )) // Our interface has an issue
-      .rethrow
+    val server =
+      // Our interface has an issue
+      Stream
+        .eval(
+          ready.complete(
+            Either.right(InetSocketAddress.createUnresolved(unixSocketAddress.path, 80))))
+        .drain ++
+        UnixSockets
+          .forAsync[F]
+          .server(unixSocketAddress, deleteIfExists, deleteOnClose)
+
     serverInternal(
       server,
       httpApp: HttpApp[F],
@@ -128,7 +131,8 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      logger: Logger[F]
+      logger: Logger[F],
+      false
     )
   }
 
@@ -145,7 +149,8 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      logger: Logger[F]
+      logger: Logger[F],
+      createRequestVault: Boolean
   ) = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
@@ -163,7 +168,8 @@ private[server] object ServerHelpers {
                 requestHeaderReceiveTimeout,
                 httpApp,
                 errorHandler,
-                onWriteFailure
+                onWriteFailure,
+                createRequestVault
               ))
 
         handler.handleErrorWith { t =>
@@ -208,7 +214,9 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      socket: Socket[F])(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
+      socket: Socket[F],
+      createRequestVault: Boolean
+  )(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
     val parseWithHeaderTimeout = timeoutToMaybe(
@@ -221,7 +229,7 @@ private[server] object ServerHelpers {
     for {
       tmp <- parseWithHeaderTimeout
       (req, drain) = tmp
-      requestVault <- mkRequestVault(socket)
+      requestVault <- if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F]
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
@@ -263,7 +271,8 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[org.http4s.Response[F]],
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      createRequestVault: Boolean
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
@@ -294,7 +303,9 @@ private[server] object ServerHelpers {
               requestHeaderReceiveTimeout,
               httpApp,
               errorHandler,
-              socket)
+              socket,
+              createRequestVault
+            )
           }
 
           result.attempt.flatMap {
@@ -345,7 +356,7 @@ private[server] object ServerHelpers {
       .drain
   }
 
-  private def mkRequestVault[F[_]: Applicative](socket: Socket[F]) =
+  private def mkRequestVault[F[_]: Applicative](socket: Socket[F]): F[Vault] =
     (mkConnectionInfo(socket), mkSecureSession(socket)).mapN(_ ++ _)
 
   private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =
