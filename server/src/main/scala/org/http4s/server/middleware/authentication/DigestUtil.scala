@@ -19,8 +19,8 @@ package server
 package middleware
 package authentication
 
-import bobcats.Hash
-import bobcats.HashAlgorithm
+import org.http4s.crypto.Hash
+import org.http4s.crypto.HashAlgorithm
 import cats.Monad
 import cats.syntax.all._
 import scodec.bits.ByteVector

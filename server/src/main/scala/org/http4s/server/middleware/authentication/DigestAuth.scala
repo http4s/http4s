@@ -19,8 +19,8 @@ package server
 package middleware
 package authentication
 
-import bobcats.Hash
-import bobcats.unsafe.SecureRandom
+import org.http4s.crypto.Hash
+import org.http4s.crypto.unsafe.SecureRandom
 import cats.data.{Kleisli, NonEmptyList}
 import cats.Monad
 import cats.effect.Sync

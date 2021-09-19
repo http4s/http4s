@@ -18,11 +18,11 @@ package org.http4s
 package server
 package middleware
 
-import bobcats.Hmac
-import bobcats.HmacAlgorithm
-import bobcats.SecretKey
-import bobcats.SecureEq
-import bobcats.unsafe.SecureRandom
+import org.http4s.crypto.Hmac
+import org.http4s.crypto.HmacAlgorithm
+import org.http4s.crypto.SecretKey
+import org.http4s.crypto.SecureEq
+import org.http4s.crypto.unsafe.SecureRandom
 import cats.~>
 import cats.Applicative
 import cats.data.{EitherT, Kleisli}

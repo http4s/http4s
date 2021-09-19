@@ -17,7 +17,6 @@
 package org.http4s
 package client
 
-import bobcats.Crypto
 import cats.{Monad, MonadThrow, Show}
 import cats.data.NonEmptyList
 import cats.effect.SyncIO
@@ -120,7 +119,7 @@ package object oauth1 {
       headers ++ List(token, callback, verifier).flatten
     }
 
-  private[oauth1] def genAuthHeader[F[_]: MonadThrow: Crypto](
+  private[oauth1] def genAuthHeader[F[_]: MonadThrow](
       method: Method,
       uri: Uri,
       consumer: ProtocolParameter.Consumer,
@@ -174,7 +173,7 @@ package object oauth1 {
     genAuthHeader[SyncIO](method, uri, userParams, consumer, callback, verifier, token, HmacSha1)
       .unsafeRunSync()
 
-  private[oauth1] def genAuthHeader[F[_]: MonadThrow: Crypto](
+  private[oauth1] def genAuthHeader[F[_]: MonadThrow](
       method: Method,
       uri: Uri,
       userParams: immutable.Seq[(String, String)],
@@ -231,7 +230,7 @@ package object oauth1 {
       tokenSecret: Option[String]): String =
     makeSHASig[SyncIO](baseString, consumerSecret, tokenSecret, HmacSha1).unsafeRunSync()
 
-  private[oauth1] def makeSHASig[F[_]: MonadThrow: Crypto](
+  private[oauth1] def makeSHASig[F[_]: MonadThrow](
       baseString: String,
       consumerSecret: String,
       tokenSecret: Option[String],

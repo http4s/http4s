@@ -111,11 +111,11 @@ lazy val core = libraryProject("core")
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
-      bobcats,
       caseInsensitive,
       catsCore,
       catsEffect,
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
+      crypto,
       fs2Core,
       fs2Io,
       ip4sCore,

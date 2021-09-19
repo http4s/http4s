@@ -16,8 +16,8 @@
 
 package org.http4s.websocket
 
-import bobcats.Hash
-import bobcats.HashAlgorithm
+import org.http4s.crypto.Hash
+import org.http4s.crypto.HashAlgorithm
 import cats.effect.SyncIO
 import scodec.bits.ByteVector
 
