@@ -89,15 +89,8 @@ private[dom] object FetchClient {
         } { case (r, exitCase) =>
           closeReadableStream(r.body, exitCase)
         }
-        .evalMap { response =>
-          F.fromEither(Status.fromInt(response.status)).map { status =>
-            Response[F](
-              status = status,
-              headers = fromDomHeaders(response.headers),
-              body = readableStreamToStream(response.body)
-            )
-          }
-        }
+        .evalMap(fromResponse[F])
+
     }
   }
 

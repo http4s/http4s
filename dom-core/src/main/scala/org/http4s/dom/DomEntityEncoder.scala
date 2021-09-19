@@ -33,12 +33,12 @@ object DomEntityEncoder {
           // lol, the facade is still broken. next time
           F.delay(file.stream().asInstanceOf[ReadableStream[Uint8Array]])
         } { case (rs, exitCase) => closeReadableStream(rs, exitCase) }
-        .flatMap(readableStreamToStream[F])
+        .flatMap(fromReadableStream[F])
     }
 
   implicit def readableStreamEncoder[F[_]: Async]: EntityEncoder[F, ReadableStream[Uint8Array]] =
     EntityEncoder.entityBodyEncoder.contramap { rs =>
-      readableStreamToStream(rs)
+      fromReadableStream(rs)
     }
 
 }
