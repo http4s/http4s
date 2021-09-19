@@ -42,7 +42,7 @@ class ServiceWorkerSuite extends ServerRouteTestBattery("ServiceWorker") {
   else
     BuildInfo.scalaVersion
 
-  override def clientResource: Resource[IO, Client[IO]] = Resource.pure(FetchClient[IO])
+  override def clientResource: Resource[IO, Client[IO]] = FetchClientBuilder[IO].resource
 
   override def serverResource(app: HttpApp[IO]): Resource[IO, Server] =
     Resource

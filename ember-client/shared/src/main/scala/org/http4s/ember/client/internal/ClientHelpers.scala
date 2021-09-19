@@ -17,6 +17,7 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
+import fs2.io.ClosedChannelException
 import fs2.io.net._
 import cats._
 import cats.data.NonEmptyList
@@ -26,14 +27,16 @@ import cats.syntax.all._
 import scala.concurrent.duration._
 import org.http4s._
 import org.http4s.client.RequestKey
+import org.http4s.client.middleware._
+import org.http4s.ember.core.EmberException
 import org.typelevel.ci._
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.fs2.io.net.SocketGroup
 import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
 
-import org.http4s.headers.{Connection, Date, `User-Agent`}
-import _root_.org.http4s.ember.core.Util.{timeoutMaybe, timeoutToMaybe}
+import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
+import _root_.org.http4s.ember.core.Util._
 import com.comcast.ip4s.{Host, Port, SocketAddress}
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
@@ -116,6 +119,13 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       processedReq <- preprocessRequest(request, userAgent)
       res <- writeRead(processedReq)
     } yield res
+  }.adaptError { case e: EmberException.EmptyStream =>
+    new ClosedChannelException() {
+      initCause(e)
+
+      override def getMessage(): String =
+        "Remote Disconnect: Received zero bytes after sending request"
+    }
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
@@ -140,8 +150,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
-        val requestClose = req.headers.get[Connection].exists(_.hasClose)
-        val responseClose = resp.headers.get[Connection].exists(_.hasClose)
+        val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
+        val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
         else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
@@ -179,4 +189,25 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
               Sync[F].raiseError(new SocketException("Fresh connection from pool was not open")))
         )
     }
+
+  private[ember] object RetryLogic {
+    private val retryNow = 0.seconds.some
+    def retryUntilFresh[F[_]]: RetryPolicy[F] = { (req, result, retries) =>
+      if (emberDeadFromPoolPolicy(req, result) && retries <= 2) retryNow
+      else None
+    }
+
+    def emberDeadFromPoolPolicy[F[_]](
+        req: Request[F],
+        result: Either[Throwable, Response[F]]): Boolean =
+      (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
+        isEmptyStreamError(result)
+
+    def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+      result match {
+        case Right(_) => false
+        case Left(EmberException.EmptyStream()) => true
+        case _ => false
+      }
+  }
 }

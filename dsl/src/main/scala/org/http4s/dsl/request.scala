@@ -18,7 +18,7 @@ package org.http4s.dsl
 
 import org.http4s.Uri
 
-object request extends RequestDsl {
+object request extends RequestDslBinCompat {
   val Path: Uri.Path.type = Uri.Path
   val Root: Uri.Path.Root.type = Uri.Path.Root
   val / : impl./.type = impl./

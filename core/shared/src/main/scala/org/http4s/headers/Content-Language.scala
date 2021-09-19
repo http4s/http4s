@@ -33,7 +33,7 @@ object `Content-Language` {
     val languageTag: Parser[LanguageTag] =
       (Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0).map {
         case (main: String, sub: collection.Seq[String]) =>
-          LanguageTag(main, QValue.One, sub.toList)
+          LanguageTag(main, QValue.One, sub)
       }
     Rfc7230.headerRep1(languageTag).map { tags =>
       headers.`Content-Language`(tags)

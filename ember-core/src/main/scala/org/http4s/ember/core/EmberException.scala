@@ -39,4 +39,16 @@ object EmberException {
   final case class ChunkedEncodingError(message: String) extends EmberException {
     override def getMessage: String = message
   }
+
+  final case class EmptyStream() extends EmberException {
+    override def getMessage: String = "Cannot Parse Empty Stream"
+  }
+
+  final case class ReachedEndOfStream() extends EmberException {
+    override def getMessage: String = "Reached End Of Stream While Reading"
+  }
+
+  final case class MessageTooLong(maxHeaderSize: Int) extends EmberException {
+    override def getMessage: String = s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes"
+  }
 }

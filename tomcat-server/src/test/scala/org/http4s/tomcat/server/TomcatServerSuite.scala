@@ -91,16 +91,17 @@ class TomcatServerSuite extends Http4sSuite {
         .mkString
     }
 
-  tomcatServer.test("server should route requests on the service executor") { server =>
+  tomcatServer.test("server should route requests on the service executor".flaky) { server =>
     val prefix: String = "http4s-suite-"
     get(server, "/thread/routing")
       .map(_.take(prefix.size))
       .assertEquals(prefix)
   }
 
-  tomcatServer.test("server should execute the service task on the service executor") { server =>
-    val prefix: String = "http4s-suite-"
-    get(server, "/thread/effect").map(_.take(prefix.size)).assertEquals(prefix)
+  tomcatServer.test("server should execute the service task on the service executor".flaky) {
+    server =>
+      val prefix: String = "http4s-suite-"
+      get(server, "/thread/effect").map(_.take(prefix.size)).assertEquals(prefix)
   }
 
   tomcatServer.test("server should be able to echo its input") { server =>

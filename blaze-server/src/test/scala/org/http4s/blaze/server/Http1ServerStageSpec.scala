@@ -25,7 +25,7 @@ import cats.effect.kernel.Deferred
 import cats.effect.std.Dispatcher
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.Command.Connected
+import org.http4s.blaze.pipeline.Command.{Connected, Disconnected}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
@@ -533,5 +533,37 @@ class Http1ServerStageSpec extends Http4sSuite {
     head.result.map { _ =>
       assert(head.closeCauses == Seq(None))
     }
+  }
+
+  fixture.test("Http1ServerStage: don't deadlock TickWheelExecutor with uncancelable request") {
+    tw =>
+      val reqUncancelable = List("GET /uncancelable HTTP/1.0\r\n\r\n")
+      val reqCancelable = List("GET /cancelable HTTP/1.0\r\n\r\n")
+
+      (for {
+        uncancelableStarted <- Deferred[IO, Unit]
+        uncancelableCanceled <- Deferred[IO, Unit]
+        cancelableStarted <- Deferred[IO, Unit]
+        cancelableCanceled <- Deferred[IO, Unit]
+        app = HttpApp[IO] {
+          case req if req.pathInfo === path"/uncancelable" =>
+            uncancelableStarted.complete(()) *>
+              IO.uncancelable { poll =>
+                poll(uncancelableCanceled.complete(())) *>
+                  cancelableCanceled.get
+              }.as(Response[IO]())
+          case _ =>
+            cancelableStarted.complete(()) *> IO.never.guarantee(
+              cancelableCanceled.complete(()).void)
+        }
+        head <- IO(runRequest(tw, reqUncancelable, app))
+        _ <- uncancelableStarted.get
+        _ <- uncancelableCanceled.get
+        _ <- IO(head.sendInboundCommand(Disconnected))
+        head2 <- IO(runRequest(tw, reqCancelable, app))
+        _ <- cancelableStarted.get
+        _ <- IO(head2.sendInboundCommand(Disconnected))
+        _ <- cancelableCanceled.get
+      } yield ()).assert
   }
 }
