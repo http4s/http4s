@@ -192,23 +192,21 @@ final class EmberClientBuilder[F[_]: Async] private (
       def unixSocketClient(
           request: Request[F],
           address: UnixSocketAddress): Resource[F, Response[F]] =
-        UnixSockets[F].client(address).flatMap { socket =>
-          Resource
-            .eval(EmberConnection(ClientHelpers.unixSocket(request, address, tlsContextOpt)))
-            .flatMap(connection =>
-              Resource.eval(
-                ClientHelpers
-                  .request[F](
-                    request,
-                    connection,
-                    chunkSize,
-                    maxResponseHeaderSize,
-                    idleConnectionTime,
-                    timeout,
-                    userAgent
-                  )
-                  .map(_._1)))
-        }
+        Resource
+          .eval(EmberConnection(ClientHelpers.unixSocket(request, address, tlsContextOpt)))
+          .flatMap(connection =>
+            Resource.eval(
+              ClientHelpers
+                .request[F](
+                  request,
+                  connection,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleConnectionTime,
+                  timeout,
+                  userAgent
+                )
+                .map(_._1)))
       val client = Client[F] { request =>
         request.attributes
           .lookup(Request.Keys.UnixSocketAddress)
