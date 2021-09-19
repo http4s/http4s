@@ -16,14 +16,11 @@
 
 package org.http4s.ember.server
 
-import org.http4s.ember.client._
-
 import cats.syntax.all._
 import cats.effect._
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
-import org.http4s._
 import org.http4s.client.middleware.UnixSocket
 import scala.concurrent.duration._
 
