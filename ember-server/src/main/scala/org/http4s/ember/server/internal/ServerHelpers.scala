@@ -112,7 +112,7 @@ private[server] object ServerHelpers {
       // Our interface has an issue
       Stream
         .eval(
-          ready.complete( // Ready Complete Does Nothing - We don't have a signal
+          ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
             Either.right(InetSocketAddress.createUnresolved(unixSocketAddress.path, 0))
           )
         ) // Sketchy
