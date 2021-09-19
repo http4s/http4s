@@ -21,13 +21,9 @@ import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.{Renderable, Writer}
 import scala.util.Try
-import org.typelevel.ci._
 
-object Host {
+object Host extends HeaderCompanion[Host]("Host") {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
-
-  def parse(s: String): ParseResult[Host] =
-    ParseResult.fromParser(parser, "Invalid Host header")(s)
 
   private[http4s] val parser = {
     val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
@@ -39,18 +35,15 @@ object Host {
     }
   }
   implicit val headerInstance: Header[Host, Header.Single] =
-    Header.createRendered(
-      ci"Host",
-      h =>
-        new Renderable {
-          def render(writer: Writer): writer.type = {
-            writer.append(h.host)
-            if (h.port.isDefined) writer << ':' << h.port.get
-            writer
-          }
-        },
-      parse
-    )
+    createRendered { h =>
+      new Renderable {
+        def render(writer: Writer): writer.type = {
+          writer.append(h.host)
+          if (h.port.isDefined) writer << ':' << h.port.get
+          writer
+        }
+      }
+    }
 }
 
 /** A Request header, that provides the host and port information
