@@ -94,7 +94,7 @@ final case class ResponseCookie(
 
 object ResponseCookie {
   private[http4s] val parser: Parser[ResponseCookie] = {
-    import Parser.{char, charIn, failWith, ignoreCase, pure, string}
+    import Parser.{char, charIn, failWith, ignoreCase, pure}
     import Rfc2616.Rfc1123Date
     import Rfc5234.digit
     import Rfc6265.{cookieName, cookieValue}
@@ -217,7 +217,7 @@ object ResponseCookie {
       .orElse(extensionAv)
 
     /* set-cookie-string = cookie-pair *( ";" SP cookie-av ) */
-    (cookiePair ~ (string("; ") *> cookieAv).rep0).map { case ((name, value), avs) =>
+    (cookiePair ~ (char(';') *> char(' ').rep0 *> cookieAv).rep0).map { case ((name, value), avs) =>
       avs.foldLeft(ResponseCookie(name, value))((p, f) => f(p))
     }
   }

@@ -20,9 +20,10 @@ import cats.{Applicative, Functor, Monad, SemigroupK}
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2._
-import scala.annotation.implicitNotFound
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartDecoder
+import scala.annotation.implicitNotFound
+import scodec.bits.ByteVector
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -190,6 +191,10 @@ object EntityDecoder extends EntityDecoderCompanionPlatform {
   def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
     DecodeResult.success(m.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
 
+  /** Helper method which simply gathers the body into a single ByteVector */
+  private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] =
+    DecodeResult.success(m.body.compile.toVector.map(ByteVector(_)))
+
   /** Decodes a message to a String */
   def decodeText[F[_]](
       m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
@@ -210,6 +215,9 @@ object EntityDecoder extends EntityDecoderCompanionPlatform {
 
   implicit def byteArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.toArray)
+
+  implicit def byteVector[F[_]: Concurrent]: EntityDecoder[F, ByteVector] =
+    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectByteVector[F])
 
   implicit def text[F[_]](implicit
       F: Concurrent[F],
