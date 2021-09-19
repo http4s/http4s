@@ -123,7 +123,7 @@ object FileService {
         OptionT(getPartialContentFile(path, config, req))
           .orElse(
             StaticFile
-              .fromPath(path, config.bufferSize, Some(req), StaticFile.calcETag)
+              .fromPath(path, config.bufferSize, Some(req), StaticFile.calculateETag)
               .map(_.putHeaders(AcceptRangeHeader))
           )
           .value
@@ -156,7 +156,13 @@ object FileService {
             val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
 
             StaticFile
-              .fromPath(file, start, end + 1, config.bufferSize, Some(req), StaticFile.calcETag)
+              .fromPath(
+                file,
+                start,
+                end + 1,
+                config.bufferSize,
+                Some(req),
+                StaticFile.calculateETag)
               .map { resp =>
                 val hs = resp.headers
                   .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))

@@ -122,7 +122,7 @@ object StaticFile {
     })
   }
 
-  @deprecated("Use overload with fs2.io.file.Path", "0.23.4")
+  @deprecated("Use calculateETag", "0.23.4")
   def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
       Files[F]
@@ -130,7 +130,7 @@ object StaticFile {
         .map(isFile =>
           if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
-  def calcETag[F[_]: Files: Functor](implicit dummy: DummyImplicit): Path => F[String] =
+  def calculateETag[F[_]: Files: Functor](implicit dummy: DummyImplicit): Path => F[String] =
     f =>
       Files[F]
         .getBasicFileAttributes(f)
@@ -143,12 +143,12 @@ object StaticFile {
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromPath(Path.fromNioPath(f.toPath()), DefaultBufferSize, req, calcETag[F])
+    fromPath(Path.fromNioPath(f.toPath()), DefaultBufferSize, req, calculateETag[F])
 
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromPath(f, DefaultBufferSize, req, calcETag[F])
+    fromPath(f, DefaultBufferSize, req, calculateETag[F])
 
   @deprecated("Use fromPath", "0.23.4")
   def fromFile[F[_]: Files: MonadThrow](
