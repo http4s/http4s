@@ -58,6 +58,21 @@ private[client] object ClientHelpers {
     )
   }
 
+  def unixSocket[F[_]: Async](
+      request: Request[F],
+      address: fs2.io.net.unixsocket.UnixSocketAddress,
+      tlsContextOpt: Option[TLSContext[F]]
+  ): Resource[F, RequestKeySocket[F]] = {
+    val requestKey = RequestKey.fromRequest(request)
+    elevateSocket(
+      requestKey,
+      fs2.io.net.unixsocket.UnixSockets.forAsync[F].client(address),
+      tlsContextOpt,
+      false,
+      None
+    )
+  }
+
   def requestKeyToSocketWithKey[F[_]: Sync](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
@@ -65,27 +80,47 @@ private[client] object ClientHelpers {
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] =
+    Resource
+      .eval(getAddress(requestKey))
+      .flatMap { address =>
+        val s = sg.client(address, options = additionalSocketOptions)
+        elevateSocket(
+          requestKey: RequestKey,
+          s: Resource[F, Socket[F]],
+          tlsContextOpt: Option[TLSContext[F]],
+          enableEndpointValidation: Boolean,
+          Some(address)
+        )
+      }
+
+  def elevateSocket[F[_]: Sync](
+      requestKey: RequestKey,
+      initSocket: Resource[F, Socket[F]],
+      tlsContextOpt: Option[TLSContext[F]],
+      enableEndpointValidation: Boolean,
+      optionNames: Option[SocketAddress[Host]]
+  ): Resource[F, RequestKeySocket[F]] =
     for {
-      address <- Resource.eval(getAddress(requestKey))
-      initSocket <- sg.client(address, options = additionalSocketOptions)
+      iSocket <- initSocket
       socket <- {
-        if (requestKey.scheme === Uri.Scheme.https)
+        if (requestKey.scheme === Uri.Scheme.https) {
           tlsContextOpt.fold[Resource[F, Socket[F]]] {
             ApplicativeThrow[Resource[F, *]].raiseError(
               new Throwable("EmberClient Not Configured for Https")
             )
           } { tlsContext =>
             tlsContext
-              .clientBuilder(initSocket)
-              .withParameters(
-                TLSParameters(
-                  serverNames = extractHostname(address.host).map(List(_)),
-                  endpointIdentificationAlgorithm =
-                    if (enableEndpointValidation) Some("HTTPS") else None))
+              .clientBuilder(iSocket)
+              .withParameters(TLSParameters(
+                serverNames = optionNames.flatMap(address =>
+                  extractHostname(address.host).map(List(_))),
+                endpointIdentificationAlgorithm =
+                  if (enableEndpointValidation) Some("HTTPS") else None
+              ))
               .build
               .widen[Socket[F]]
           }
-        else initSocket.pure[Resource[F, *]]
+        } else iSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
 

@@ -37,6 +37,8 @@ import org.typelevel.vault.Vault
 
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
+import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
 
 private[server] object ServerHelpers {
 
@@ -69,7 +71,82 @@ private[server] object ServerHelpers {
         .evalTap(e => ready.complete(e.map(_._1.toInetSocketAddress)))
         .rethrow
         .flatMap(_._2)
+    serverInternal(
+      server,
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F]
+    )
+  }
 
+  def unixSocketServer[F[_]: Async](
+      unixSocketAddress: UnixSocketAddress,
+      deleteIfExists: Boolean,
+      deleteOnClose: Boolean,
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      ready: Deferred[F, Either[Throwable, InetSocketAddress]],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F]
+  ) = {
+    val server = UnixSockets
+      .forAsync[F]
+      .server(unixSocketAddress, deleteIfExists, deleteOnClose)
+      .attempt
+      .evalTap(e =>
+        ready.complete(
+          e.as(InetSocketAddress.createUnresolved("unixsocket", 80))
+        )) // Our interface has an issue
+      .rethrow
+    serverInternal(
+      server,
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F]
+    )
+  }
+
+  def serverInternal[F[_]: Async](
+      server: Stream[F, Socket[F]],
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F]
+  ) = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>

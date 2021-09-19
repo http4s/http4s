@@ -19,9 +19,11 @@ package org.http4s.ember.server
 import cats._
 import cats.syntax.all._
 import cats.effect._
+import cats.effect.syntax.all._
 import com.comcast.ip4s._
 import fs2.io.net.{Network, SocketGroup, SocketOption}
 import fs2.io.net.tls._
+import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s._
 import org.http4s.server.Server
 import java.net.InetSocketAddress
@@ -46,7 +48,8 @@ final class EmberServerBuilder[F[_]: Async] private (
     val idleTimeout: Duration,
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
-    private val logger: Logger[F]
+    private val logger: Logger[F],
+    private val unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)]
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -67,7 +70,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       idleTimeout: Duration = self.idleTimeout,
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
-      logger: Logger[F] = self.logger
+      logger: Logger[F] = self.logger,
+      unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)] = self.unixSocketConfig
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -84,7 +88,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       idleTimeout = idleTimeout,
       shutdownTimeout = shutdownTimeout,
       additionalSocketOptions = additionalSocketOptions,
-      logger = logger
+      logger = logger,
+      unixSocketConfig = unixSocketConfig
     )
 
   def withHostOption(host: Option[Host]) = copy(host = host)
@@ -129,18 +134,49 @@ final class EmberServerBuilder[F[_]: Async] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]) = copy(logger = l)
 
+  // If used will bind to UnixSocket
+  def withUnixSocketConfig(
+      unixSocketAddress: UnixSocketAddress,
+      deleteIfExists: Boolean = true,
+      deleteOnClose: Boolean = true) =
+    copy(unixSocketConfig = Some((unixSocketAddress, deleteIfExists, deleteOnClose)))
+  def withoutUnixSocketConfig =
+    copy(unixSocketConfig = None)
+
   def build: Resource[F, Server] =
     for {
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, InetSocketAddress]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      _ <- Concurrent[F].background(
+      _ <- unixSocketConfig.fold(
+        Concurrent[F].background(
+          ServerHelpers
+            .server(
+              host,
+              port,
+              additionalSocketOptions,
+              sg,
+              httpApp,
+              tlsInfoOpt,
+              ready,
+              shutdown,
+              errorHandler,
+              onWriteFailure,
+              maxConnections,
+              receiveBufferSize,
+              maxHeaderSize,
+              requestHeaderReceiveTimeout,
+              idleTimeout,
+              logger
+            )
+            .compile
+            .drain
+        )) { case (unixSocketAddress, deleteIfExists, deleteOnClose) =>
         ServerHelpers
-          .server(
-            host,
-            port,
-            additionalSocketOptions,
-            sg,
+          .unixSocketServer(
+            unixSocketAddress,
+            deleteIfExists,
+            deleteOnClose,
             httpApp,
             tlsInfoOpt,
             ready,
@@ -156,7 +192,8 @@ final class EmberServerBuilder[F[_]: Async] private (
           )
           .compile
           .drain
-      )
+          .background
+      }
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
@@ -183,7 +220,8 @@ object EmberServerBuilder {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      logger = Slf4jLogger.getLogger[F]
+      logger = Slf4jLogger.getLogger[F],
+      None
     )
 
   private object Defaults {

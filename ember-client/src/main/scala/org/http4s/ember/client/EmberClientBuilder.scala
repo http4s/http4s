@@ -36,6 +36,8 @@ import org.http4s.headers.{`User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.client.middleware.Retry
+import org.http4s.{Request, Response}
+import fs2.io.net.unixsocket._
 
 final class EmberClientBuilder[F[_]: Async] private (
     private val tlsContextOpt: Option[TLSContext[F]],
@@ -152,7 +154,7 @@ final class EmberClientBuilder[F[_]: Async] private (
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
     } yield {
-      val client = Client[F] { request =>
+      def webClient(request: Request[F]): Resource[F, Response[F]] =
         for {
           managed <- ClientHelpers.getValidManaged(pool, request)
           _ <- Resource.eval(
@@ -186,6 +188,33 @@ final class EmberClientBuilder[F[_]: Async] private (
             }
           }
         } yield responseResource._1
+
+      def unixSocketClient(
+          request: Request[F],
+          address: UnixSocketAddress): Resource[F, Response[F]] =
+        UnixSockets[F].client(address).flatMap { socket =>
+          Resource
+            .eval(EmberConnection(ClientHelpers.unixSocket(request, address, tlsContextOpt)))
+            .flatMap(connection =>
+              Resource.eval(
+                ClientHelpers
+                  .request[F](
+                    request,
+                    connection,
+                    chunkSize,
+                    maxResponseHeaderSize,
+                    idleConnectionTime,
+                    timeout,
+                    userAgent
+                  )
+                  .map(_._1)))
+        }
+      val client = Client[F] { request =>
+        request.attributes
+          .lookup(Request.Keys.UnixSocketAddress)
+          .fold(webClient(request)) { (address: UnixSocketAddress) =>
+            unixSocketClient(request, address)
+          }
       }
       val stackClient = Retry(retryPolicy)(client)
       new EmberClient[F](stackClient, pool)
