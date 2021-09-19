@@ -51,7 +51,7 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       })(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
-    effect(ops, classifierF(_).pure[F])(client)
+    effect(ops, classifierF.andThen(_.pure[F]))(client)
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
