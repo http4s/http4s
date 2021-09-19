@@ -21,8 +21,9 @@ package staticcontent
 import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.kernel.Async
 import cats.syntax.all._
+import fs2.io
 import java.io.File
-import java.nio.file.{Files, LinkOption, NoSuchFileException, Path, Paths}
+import java.nio.file.{Files, LinkOption, Path, Paths}
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
@@ -58,12 +59,14 @@ object FileService {
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
-      val pathCollector: PathCollector[F] = filesOnly
+      val pathCollector: PathCollector[F] = (f, c, r) =>
+        filesOnly(io.file.Path.fromNioPath(f.toPath()), c, r)
       Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
   }
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
+  // TODO needs toRealPath in fs2.io to complete the port
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     Try(Paths.get(config.systemPath).toRealPath()) match {
@@ -96,7 +99,7 @@ object FileService {
             }
         })
 
-      case Failure(_: NoSuchFileException) =>
+      case Failure(_: io.file.NoSuchFileException) =>
         logger.error(
           s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none.")
         Kleisli(_ => OptionT.none)
@@ -108,19 +111,19 @@ object FileService {
     }
   }
 
-  private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(implicit
+  private def filesOnly[F[_]](path: io.file.Path, config: Config[F], req: Request[F])(implicit
       F: Async[F]): OptionT[F, Response[F]] =
-    OptionT(F.defer {
-      if (file.isDirectory)
+    OptionT(io.file.Files[F].getBasicFileAttributes(path).flatMap { attr =>
+      if (attr.isDirectory)
         StaticFile
-          .fromFile(new File(file, "index.html"), Some(req))
+          .fromPath(path / "index.html", Some(req))
           .value
-      else if (!file.isFile) F.pure(None)
+      else if (!attr.isRegularFile) F.pure(None)
       else
-        OptionT(getPartialContentFile(file, config, req))
+        OptionT(getPartialContentFile(path, config, req))
           .orElse(
             StaticFile
-              .fromFile(file, config.bufferSize, Some(req), StaticFile.calcETag)
+              .fromPath(path, config.bufferSize, Some(req), StaticFile.calcETag)
               .map(_.putHeaders(AcceptRangeHeader))
           )
           .value
@@ -133,42 +136,42 @@ object FileService {
     })
 
   // Attempt to find a Range header and collect only the subrange of content requested
-  private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(implicit
-      F: Async[F]): F[Option[Response[F]]] = {
-    def nope: F[Option[Response[F]]] = F.delay(file.length()).map { size =>
-      Some(
-        Response[F](
-          status = Status.RangeNotSatisfiable,
-          headers = Headers
-            .apply(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
-    }
+  private def getPartialContentFile[F[_]](file: io.file.Path, config: Config[F], req: Request[F])(
+      implicit F: Async[F]): F[Option[Response[F]]] =
+    io.file.Files[F].getBasicFileAttributes(file).flatMap { attr =>
+      def nope: F[Option[Response[F]]] =
+        Some(
+          Response[F](
+            status = Status.RangeNotSatisfiable,
+            headers = Headers
+              .apply(
+                AcceptRangeHeader,
+                `Content-Range`(SubRange(0, attr.size - 1), Some(attr.size))))).pure[F].widen
 
-    req.headers.get[Range] match {
-      case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
-        if (validRange(s, e, file.length))
-          F.defer {
-            val size = file.length()
+      req.headers.get[Range] match {
+        case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
+          if (validRange(s, e, attr.size)) {
+            val size = attr.size
             val start = if (s >= 0) s else math.max(0, size + s)
             val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
 
             StaticFile
-              .fromFile(file, start, end + 1, config.bufferSize, Some(req), StaticFile.calcETag)
+              .fromPath(file, start, end + 1, config.bufferSize, Some(req), StaticFile.calcETag)
               .map { resp =>
                 val hs = resp.headers
                   .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
                 resp.copy(status = Status.PartialContent, headers = hs)
               }
               .value
+          } else nope
+        case _ =>
+          req.headers.get(ci"Range") match {
+            case Some(_) =>
+              // It exists, but it didn't parse
+              nope
+            case None =>
+              F.pure(None)
           }
-        else nope
-      case _ =>
-        req.headers.get(ci"Range") match {
-          case Some(_) =>
-            // It exists, but it didn't parse
-            nope
-          case None =>
-            F.pure(None)
-        }
+      }
     }
-  }
 }

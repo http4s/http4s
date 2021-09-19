@@ -43,11 +43,15 @@ object Part {
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
       Stream.emit(value).through(utf8.encode))
 
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.4")
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
+    fileData(name, Path.fromNioPath(file.toPath), headers: _*)
+
+  def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =
     fileData(
       name,
-      file.getName,
-      Files[F].readAll(Path.fromNioPath(file.toPath), ChunkSize, Flags.Read),
+      path.fileName.toString,
+      Files[F].readAll(path, ChunkSize, Flags.Read),
       headers: _*)
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =

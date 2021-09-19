@@ -233,16 +233,24 @@ object EntityDecoder {
     text.map(_.toArray)
 
   // File operations
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.4")
   def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
+    binFile(Path.fromNioPath(file.toPath())).map(_ => file)
+
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.4")
+  def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
+    textFile(Path.fromNioPath(file.toPath())).map(_ => file)
+
+  def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = Files[F].writeAll(Path.fromNioPath(file.toPath))
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+      val pipe = Files[F].writeAll(path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
     }
 
-  def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
+  def textFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = Files[F].writeAll(Path.fromNioPath(file.toPath))
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+      val pipe = Files[F].writeAll(path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
     }
 
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
