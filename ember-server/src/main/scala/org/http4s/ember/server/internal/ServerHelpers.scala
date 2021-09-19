@@ -112,7 +112,7 @@ private[server] object ServerHelpers {
       .attempt
       .evalTap(e =>
         ready.complete(
-          e.as(InetSocketAddress.createUnresolved("unixsocket", 80))
+          e.as(InetSocketAddress.createUnresolved(unixSocketAddress.path, 80))
         )) // Our interface has an issue
       .rethrow
     serverInternal(
