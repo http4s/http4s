@@ -28,6 +28,7 @@ import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.multipart.{Multipart, Part}
+import org.typelevel.ci._
 import scala.concurrent.duration._
 import java.util.Arrays
 
@@ -160,7 +161,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val req = Request[IO](
       uri =
         Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
-      .putHeaders(Header.Raw("Fine:\r\nEvil:true\r\n".ci, "oops"))
+      .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
@@ -169,7 +170,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val req = Request[IO](
       uri =
         Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
-      .putHeaders(Header.Raw("X-Carrier".ci, "\r\nEvil:true\r\n"))
+      .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 

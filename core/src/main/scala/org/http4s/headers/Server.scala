@@ -18,17 +18,13 @@ package org.http4s
 package headers
 
 import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci._
 
-object Server {
+object Server extends HeaderCompanion[Server]("Server") {
+
+  override val name = super.name
 
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
-
-  val name = ci"Server"
-
-  def parse(s: String): ParseResult[Server] =
-    ParseResult.fromParser(parser, "Invalid Server header")(s)
 
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
@@ -37,21 +33,18 @@ object Server {
     }
 
   implicit val headerInstance: Header[Server, Header.Single] =
-    Header.createRendered(
-      name,
-      h =>
-        new Renderable {
-          def render(writer: Writer): writer.type = {
-            writer << h.product
-            h.rest.foreach {
-              case p: ProductId => writer << ' ' << p
-              case ProductComment(c) => writer << ' ' << '(' << c << ')'
-            }
-            writer
+    createRendered { h =>
+      new Renderable {
+        def render(writer: Writer): writer.type = {
+          writer << h.product
+          h.rest.foreach {
+            case p: ProductId => writer << ' ' << p
+            case ProductComment(c) => writer << ' ' << '(' << c << ')'
           }
-        },
-      parse
-    )
+          writer
+        }
+      }
+    }
 
 }
 
