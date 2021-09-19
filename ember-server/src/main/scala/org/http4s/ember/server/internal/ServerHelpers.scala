@@ -90,6 +90,7 @@ private[server] object ServerHelpers {
   }
 
   def unixSocketServer[F[_]: Async](
+      unixSockets: UnixSockets[F],
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean,
       deleteOnClose: Boolean,
@@ -111,11 +112,12 @@ private[server] object ServerHelpers {
       // Our interface has an issue
       Stream
         .eval(
-          ready.complete(
-            Either.right(InetSocketAddress.createUnresolved(unixSocketAddress.path, 80))))
+          ready.complete( // Ready Complete Does Nothing - We don't have a signal
+            Either.right(InetSocketAddress.createUnresolved(unixSocketAddress.path, 0))
+          )
+        ) // Sketchy
         .drain ++
-        UnixSockets
-          .forAsync[F]
+        unixSockets
           .server(unixSocketAddress, deleteIfExists, deleteOnClose)
 
     serverInternal(

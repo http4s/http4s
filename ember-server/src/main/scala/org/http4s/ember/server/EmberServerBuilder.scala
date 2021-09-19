@@ -23,7 +23,7 @@ import cats.effect.syntax.all._
 import com.comcast.ip4s._
 import fs2.io.net.{Network, SocketGroup, SocketOption}
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
 import org.http4s._
 import org.http4s.server.Server
 import java.net.InetSocketAddress
@@ -49,7 +49,7 @@ final class EmberServerBuilder[F[_]: Async] private (
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F],
-    private val unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)]
+    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)]
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -71,7 +71,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger,
-      unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)] = self.unixSocketConfig
+      unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
+        self.unixSocketConfig
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -136,10 +137,11 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   // If used will bind to UnixSocket
   def withUnixSocketConfig(
+      unixSockets: UnixSockets[F],
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
       deleteOnClose: Boolean = true) =
-    copy(unixSocketConfig = Some((unixSocketAddress, deleteIfExists, deleteOnClose)))
+    copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
   def withoutUnixSocketConfig =
     copy(unixSocketConfig = None)
 
@@ -171,9 +173,10 @@ final class EmberServerBuilder[F[_]: Async] private (
             )
             .compile
             .drain
-        )) { case (unixSocketAddress, deleteIfExists, deleteOnClose) =>
+        )) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
         ServerHelpers
           .unixSocketServer(
+            unixSockets,
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,

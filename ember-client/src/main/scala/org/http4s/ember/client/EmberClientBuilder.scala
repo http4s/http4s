@@ -53,7 +53,8 @@ final class EmberClientBuilder[F[_]: Async] private (
     val additionalSocketOptions: List[SocketOption],
     val userAgent: Option[`User-Agent`],
     val checkEndpointIdentification: Boolean,
-    val retryPolicy: RetryPolicy[F]
+    val retryPolicy: RetryPolicy[F],
+    private val unixSockets: Option[UnixSockets[F]]
 ) { self =>
 
   private def copy(
@@ -70,7 +71,8 @@ final class EmberClientBuilder[F[_]: Async] private (
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent,
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
-      retryPolicy: RetryPolicy[F] = self.retryPolicy
+      retryPolicy: RetryPolicy[F] = self.retryPolicy,
+      unixSockets: Option[UnixSockets[F]] = self.unixSockets
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -86,7 +88,8 @@ final class EmberClientBuilder[F[_]: Async] private (
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent,
       checkEndpointIdentification = checkEndpointIdentification,
-      retryPolicy = retryPolicy
+      retryPolicy = retryPolicy,
+      unixSockets = unixSockets
     )
 
   def withTLSContext(tlsContext: TLSContext[F]) =
@@ -122,6 +125,9 @@ final class EmberClientBuilder[F[_]: Async] private (
 
   def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
     copy(retryPolicy = retryPolicy)
+
+  def withUnixSockets(unixSockets: UnixSockets[F]) =
+    copy(unixSockets = Some(unixSockets))
 
   def build: Resource[F, Client[F]] =
     for {
@@ -193,7 +199,12 @@ final class EmberClientBuilder[F[_]: Async] private (
           request: Request[F],
           address: UnixSocketAddress): Resource[F, Response[F]] =
         Resource
-          .eval(EmberConnection(ClientHelpers.unixSocket(request, address, tlsContextOpt)))
+          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.getOrElse(UnixSockets.forAsync[F])))
+          .flatMap(unixSockets =>
+            Resource
+              .make(EmberConnection(
+                ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)))(ec =>
+                ec.shutdown))
           .flatMap(connection =>
             Resource.eval(
               ClientHelpers
@@ -236,7 +247,8 @@ object EmberClientBuilder {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent,
       checkEndpointIdentification = true,
-      retryPolicy = Defaults.retryPolicy
+      retryPolicy = Defaults.retryPolicy,
+      unixSockets = None
     )
 
   private object Defaults {

@@ -60,13 +60,14 @@ private[client] object ClientHelpers {
 
   def unixSocket[F[_]: Async](
       request: Request[F],
+      unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
       address: fs2.io.net.unixsocket.UnixSocketAddress,
       tlsContextOpt: Option[TLSContext[F]]
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     elevateSocket(
       requestKey,
-      fs2.io.net.unixsocket.UnixSockets.forAsync[F].client(address),
+      unixSockets.client(address),
       tlsContextOpt,
       false,
       None
