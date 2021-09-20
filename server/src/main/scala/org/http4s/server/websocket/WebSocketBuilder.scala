@@ -20,13 +20,7 @@ package server.websocket
 import cats.Applicative
 import cats.syntax.all._
 import fs2.{Pipe, Stream}
-import org.http4s.websocket.{
-  WebSocket,
-  WebSocketCombinedPipe,
-  WebSocketContext,
-  WebSocketFrame,
-  WebSocketSeparatePipe
-}
+import org.http4s.websocket.WebSocketFrame
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
@@ -47,18 +41,15 @@ final case class WebSocketBuilder[F[_]: Applicative](
     filterPingPongs: Boolean
 ) {
 
-  private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
-    onNonWebSocketRequest
-      .map(
-        _.withAttribute(
-          websocketKey[F],
-          WebSocketContext(
-            webSocket,
-            headers,
-            onHandshakeFailure
-          )
-        )
-      )
+  private lazy val delegate: WebSocketBuilder2[F] =
+    WebSocketBuilder2(
+      headers,
+      onNonWebSocketRequest,
+      onHandshakeFailure,
+      onClose,
+      filterPingPongs,
+      websocketKey[F]
+    )
 
   /** @param sendReceive The send-receive stream represents transforming of incoming messages to outgoing for a single websocket
     *                    Once the stream have terminated, the server will initiate a close of the websocket connection.
@@ -80,16 +71,8 @@ final case class WebSocketBuilder[F[_]: Applicative](
     *                    are plans to address this limitation in the future.
     * @return
     */
-  def build(sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame]): F[Response[F]] = {
-
-    val finalSendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] =
-      if (filterPingPongs)
-        sendReceive.compose(inputStream => inputStream.filterNot(isPingPong))
-      else
-        sendReceive
-
-    buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose))
-  }
+  def build(sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame]): F[Response[F]] =
+    delegate.build(sendReceive)
 
   /** @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
     * @param receive  The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages
@@ -114,22 +97,9 @@ final case class WebSocketBuilder[F[_]: Applicative](
     */
   def build(
       send: Stream[F, WebSocketFrame],
-      receive: Pipe[F, WebSocketFrame, Unit]): F[Response[F]] = {
+      receive: Pipe[F, WebSocketFrame, Unit]): F[Response[F]] =
+    delegate.build(send, receive)
 
-    val finalReceive: Pipe[F, WebSocketFrame, Unit] =
-      if (filterPingPongs)
-        _.filterNot(isPingPong).through(receive)
-      else
-        receive
-
-    buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose))
-  }
-
-  private val isPingPong: WebSocketFrame => Boolean = {
-    case _: WebSocketFrame.Ping => true
-    case _: WebSocketFrame.Pong => true
-    case _ => false
-  }
 }
 
 object WebSocketBuilder {
