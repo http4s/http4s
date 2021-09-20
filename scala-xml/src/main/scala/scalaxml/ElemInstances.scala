@@ -31,8 +31,7 @@ trait ElemInstances {
 
   implicit def xmlEncoder[F[_]](implicit
       charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
-    EntityEncoder
-      .stringEncoder[F]
+    EntityEncoder.stringEncoder
       .contramap[Elem] { node =>
         val sw = new StringWriter
         XML.write(sw, node, charset.nioCharset.name, true, null)

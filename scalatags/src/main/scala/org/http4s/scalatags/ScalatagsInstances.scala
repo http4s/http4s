@@ -27,8 +27,7 @@ trait ScalatagsInstances {
 
   private def contentEncoder[F[_], C <: Frag[_, String]](mediaType: MediaType)(implicit
       charset: Charset): EntityEncoder[F, C] =
-    EntityEncoder
-      .stringEncoder[F]
+    EntityEncoder.stringEncoder
       .contramap[C](content => content.render)
       .withContentType(`Content-Type`(mediaType, charset))
 }

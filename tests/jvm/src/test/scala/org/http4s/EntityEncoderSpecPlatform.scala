@@ -29,7 +29,7 @@ trait EntityEncoderSpecPlatform { self: EntityEncoderSpec =>
     val w = new FileWriter(tmpFile)
     try w.write("render files test")
     finally w.close()
-    writeToString(tmpFile)(EntityEncoder.fileEncoder)
+    writeToString(tmpFile)(EntityEncoder.fileEncoder[IO])
       .guarantee(IO.delay(tmpFile.delete()).void)
       .assertEquals("render files test")
 

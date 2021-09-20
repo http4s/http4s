@@ -443,7 +443,7 @@ class EntityDecoderSuite extends Http4sSuite {
   // we want to return a specific kind of error when there is a MessageFailure
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
-    EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
+    EntityEncoder.simple[ErrorJson](`Content-Type`(MediaType.application.json))(json =>
       Chunk.array(json.value.getBytes()))
 
 // TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]
