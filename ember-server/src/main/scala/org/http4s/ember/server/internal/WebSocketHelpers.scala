@@ -16,17 +16,18 @@
 
 package org.http4s.ember.server.internal
 
-import cats.effect.{Concurrent, Sync}
-import cats.syntax.all._
+import cats.MonadThrow
 import cats.data.NonEmptyList
+import cats.effect.{Async, Concurrent, Ref}
+import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Stream}
-import fs2.io.tcp._
+import fs2.io.net._
 import org.http4s.syntax.all._
 import org.http4s._
 import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
 import org.http4s.headers._
 import org.http4s.ember.core.Read
-import org.http4s.ember.core.Util.durationToFinite
+import org.http4s.ember.core.Util.timeoutMaybe
 import org.http4s.headers.Connection
 import org.http4s.websocket.{Rfc6455, WebSocketCombinedPipe, WebSocketFrame, WebSocketSeparatePipe}
 import org.typelevel.ci._
@@ -38,7 +39,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.ByteBuffer
 import org.typelevel.log4cats.Logger
 import fs2.concurrent.SignallingRef
-import cats.effect.concurrent.Ref
+
+import java.io.IOException
 
 object WebSocketHelpers {
 
@@ -59,7 +61,7 @@ object WebSocketHelpers {
       idleTimeout: Duration,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       errorHandler: Throwable => F[Response[F]],
-      logger: Logger[F])(implicit F: Concurrent[F]): F[Unit] = {
+      logger: Logger[F])(implicit F: Async[F]): F[Unit] = {
     val wsResponse = clientHandshake(req) match {
       case Right(key) =>
         serverHandshake(key)
@@ -84,8 +86,10 @@ object WebSocketHelpers {
         else F.unit
     } yield ()
 
-    handler.handleErrorWith { e =>
-      logger.error(e)("WebSocket connection terminated with exception")
+    handler.handleErrorWith {
+      case e @ BrokenPipeError() =>
+        logger.trace(e)("WebSocket connection abruptly terminated by client")
+      case e => logger.error(e)("WebSocket connection terminated with exception")
     }
   }
 
@@ -94,12 +98,13 @@ object WebSocketHelpers {
       ctx: WebSocketContext[F],
       buffer: Array[Byte],
       receiveBufferSize: Int,
-      idleTimeout: Duration)(implicit F: Concurrent[F]): F[Unit] = {
-    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
-    val write = socket.writes(durationToFinite(idleTimeout))
+      idleTimeout: Duration)(implicit F: Async[F]): F[Unit] = {
+    val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
+    def write(s: Stream[F, Byte]) =
+      s.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout))
     val frameTranscoder = new FrameTranscoder(false)
 
-    val incoming = Stream.chunk(Chunk.bytes(buffer)) ++ readStream(read)
+    val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
 
     // TODO followup: handle close frames from the user?
     SignallingRef[F, Close](Open).flatMap { close =>
@@ -177,7 +182,7 @@ object WebSocketHelpers {
           // TODO followup: improve the buffering here
           val bytes = new Array[Byte](buffer.remaining())
           buffer.get(bytes)
-          Chunk.bytes(bytes)
+          Chunk.array(bytes)
         }
         Stream
           .iterable(chunks)
@@ -185,7 +190,7 @@ object WebSocketHelpers {
       }
 
   private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit
-      F: Concurrent[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
+      F: Async[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
     def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
       rest.pull.uncons.flatMap {
         case Some((chunk, next)) =>
@@ -236,14 +241,15 @@ object WebSocketHelpers {
     (connection, upgrade, version, key).mapN { case (_, _, _, key) => key }
   }
 
-  private def serverHandshake[F[_]](value: String)(implicit F: Sync[F]): F[ByteVector] = F.delay {
-    val crypt = MessageDigest.getInstance("SHA-1")
-    crypt.reset()
-    crypt.update(value.getBytes(StandardCharsets.US_ASCII))
-    crypt.update(Rfc6455.handshakeMagicBytes)
-    val bytes = crypt.digest()
-    ByteVector(bytes)
-  }
+  private def serverHandshake[F[_]](value: String)(implicit F: MonadThrow[F]): F[ByteVector] =
+    F.catchNonFatal {
+      val crypt = MessageDigest.getInstance("SHA-1")
+      crypt.reset()
+      crypt.update(value.getBytes(StandardCharsets.US_ASCII))
+      crypt.update(Rfc6455.handshakeMagicBytes)
+      val bytes = crypt.digest()
+      ByteVector(bytes)
+    }
 
   private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
     Stream.eval(read).flatMap {
@@ -273,4 +279,8 @@ object WebSocketHelpers {
       extends ClientHandshakeError(Status.BadRequest, "Sec-WebSocket-Key header not present.")
 
   final case class EndOfStreamError() extends Exception("Reached End Of Stream")
+
+  object BrokenPipeError {
+    def unapply(err: IOException): Boolean = err.getMessage == "Broken pipe"
+  }
 }

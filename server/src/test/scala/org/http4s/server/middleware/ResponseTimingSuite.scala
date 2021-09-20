@@ -16,15 +16,17 @@
 
 package org.http4s.server.middleware
 
-import cats.syntax.all._
+import cats.implicits._
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import org.http4s._
 import org.http4s.dsl.io._
 import org.typelevel.ci._
 import org.http4s.syntax.all._
 
-import scala.concurrent.duration.TimeUnit
+import scala.concurrent.duration._
+import java.util.concurrent.TimeUnit
+import cats.Applicative
 
 class ResponseTimingSuite extends Http4sSuite {
   import Sys.clock
@@ -48,13 +50,17 @@ class ResponseTimingSuite extends Http4sSuite {
 }
 
 object Sys {
-  private val currentTime: Ref[IO, Long] = Ref.unsafe[IO, Long](System.currentTimeMillis())
+  private val currentTime: Ref[IO, Long] = Ref.unsafe[IO, Long](0L)
 
   def tick(): IO[Long] = currentTime.modify(l => (l + 1L, l))
 
   implicit val clock: Clock[IO] = new Clock[IO] {
-    override def realTime(unit: TimeUnit): IO[Long] = currentTime.get
+    override def applicative: Applicative[IO] = Applicative[IO]
 
-    override def monotonic(unit: TimeUnit): IO[Long] = currentTime.get
+    override def realTime: IO[FiniteDuration] =
+      currentTime.get.map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
+
+    override def monotonic: IO[FiniteDuration] =
+      currentTime.get.map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
   }
 }

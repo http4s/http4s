@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.multipart
+package org.http4s
+package multipart
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.std._
+import cats.implicits._
 import cats.instances.string._
 import fs2._
 import org.http4s._
@@ -26,9 +28,10 @@ import org.http4s.util._
 import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
+import java.nio.file.NoSuchFileException
+import scala.annotation.nowarn
 
 class MultipartParserSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
 
@@ -43,10 +46,10 @@ class MultipartParserSuite extends Http4sSuite {
 
     def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =
       if (s.length <= 1)
-        acc ++ Stream.chunk(Chunk.bytes(s.getBytes()))
+        acc ++ Stream.chunk(Chunk.array(s.getBytes()))
       else {
         val (l, r) = s.splitAt(rand.nextInt(s.length - 1) + 1)
-        jumbleAccum(r, acc ++ Stream.chunk(Chunk.bytes(l.getBytes)))
+        jumbleAccum(r, acc ++ Stream.chunk(Chunk.array(l.getBytes)))
       }
 
     jumbleAccum(str, Stream.empty)
@@ -69,7 +72,20 @@ class MultipartParserSuite extends Http4sSuite {
       testName: String,
       multipartPipe: Boundary => Pipe[IO, Byte, Multipart[IO]],
       limitedPipe: (Boundary, Int) => Pipe[IO, Byte, Multipart[IO]],
-      partsPipe: Boundary => Pipe[IO, Byte, Part[IO]])(implicit loc: munit.Location): Unit = {
+      partsPipe: Boundary => Pipe[IO, Byte, Part[IO]])(implicit loc: munit.Location): Unit =
+    multipartParserResourceTests(
+      testName,
+      boundary => Resource.pure(multipartPipe(boundary)),
+      (boundary, limit) => Resource.pure(limitedPipe(boundary, limit)),
+      boundary => Resource.pure(partsPipe(boundary))
+    )
+
+  def multipartParserResourceTests(
+      testName: String,
+      mkMultipartPipe: Boundary => Resource[IO, Pipe[IO, Byte, Multipart[IO]]],
+      mkLimitedPipe: (Boundary, Int) => Resource[IO, Pipe[IO, Byte, Multipart[IO]]],
+      mkPartsPipe: Boundary => Resource[IO, Pipe[IO, Byte, Part[IO]]])(implicit
+      loc: munit.Location): Unit = {
 
     val testNamePrefix = s"form streaming parsing for $testName"
 
@@ -103,23 +119,27 @@ class MultipartParserSuite extends Http4sSuite {
               |catch me if you can!
               |""".stripMargin)
 
-        val results =
-          unspool(input, chunkSize).through(multipartPipe(boundary))
+        val mkResults =
+          mkMultipartPipe(boundary).map(
+            _(unspool(input, chunkSize))
+          )
 
-        for {
-          multipartMaterialized <- results.compile.last.map(_.get)
-          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
-          bodies = multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
-            .through(asciiDecode)
-            .compile
-            .foldMonoid
-          result <- bodies.attempt
-        } yield {
-          headers.headers.foreach(h => println(">> " + h))
-          expectedHeaders.headers.foreach(h => println("<< " + h))
-          assertEquals(headers, expectedHeaders)
-          assertEquals(result, Right(expected))
+        mkResults.use { results =>
+          for {
+            multipartMaterialized <- results.compile.last.map(_.get)
+            headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+            bodies = multipartMaterialized.parts
+              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .through(asciiDecode)
+              .compile
+              .foldMonoid
+            result <- bodies.attempt
+          } yield {
+            headers.headers.foreach(h => println(">> " + h))
+            expectedHeaders.headers.foreach(h => println("<< " + h))
+            assertEquals(headers, expectedHeaders)
+            assertEquals(result, Right(expected))
+          }
         }
       }
 
@@ -139,8 +159,10 @@ class MultipartParserSuite extends Http4sSuite {
             |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
-      val results =
-        unspool(input, 15).through(multipartPipe(boundary))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(unspool(input, 15))
+        )
 
       val expectedHeaders = Headers(
         `Content-Disposition`(
@@ -155,19 +177,21 @@ class MultipartParserSuite extends Http4sSuite {
             |catch me if you can!
             |""".stripMargin)
 
-      for {
-        multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
-        bodies =
-          multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
-            .through(asciiDecode)
-            .compile
-            .foldMonoid
-        result <- bodies.attempt
-      } yield {
-        assertEquals(headers, expectedHeaders)
-        assertEquals(result, Right(expected))
+      mkResults.use { results =>
+        for {
+          multipartMaterialized <- results.compile.last.map(_.get)
+          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+          bodies =
+            multipartMaterialized.parts
+              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .through(asciiDecode)
+              .compile
+              .foldMonoid
+          result <- bodies.attempt
+        } yield {
+          assertEquals(headers, expectedHeaders)
+          assertEquals(result, Right(expected))
+        }
       }
     }
 
@@ -185,9 +209,10 @@ class MultipartParserSuite extends Http4sSuite {
             |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
-      val results =
-        unspool(input, 15, StandardCharsets.UTF_8)
-          .through(multipartPipe(boundary))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(unspool(input, 15, StandardCharsets.UTF_8))
+        )
 
       val expectedHeaders = Headers(
         "Content-Disposition" -> """form-data; name*="http4s很棒"; filename*="我老婆太漂亮.txt"""",
@@ -200,20 +225,22 @@ class MultipartParserSuite extends Http4sSuite {
             |catch me if you can!
             |""".stripMargin)
 
-      for {
-        multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
-        bodies =
-          multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
-            .through(asciiDecode)
-            .compile
-            .foldMonoid
-        result <- bodies.attempt
-      } yield {
+      mkResults.use { results =>
+        for {
+          multipartMaterialized <- results.compile.last.map(_.get)
+          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+          bodies =
+            multipartMaterialized.parts
+              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .through(asciiDecode)
+              .compile
+              .foldMonoid
+          result <- bodies.attempt
+        } yield {
 
-        assertEquals(headers, expectedHeaders)
-        assertEquals(result, Right(expected))
+          assertEquals(headers, expectedHeaders)
+          assertEquals(result, Right(expected))
+        }
       }
     }
 
@@ -231,9 +258,10 @@ class MultipartParserSuite extends Http4sSuite {
             |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
-      val results =
-        unspool(input, 15, StandardCharsets.UTF_8)
-          .through(multipartPipe(boundary))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(unspool(input, 15, StandardCharsets.UTF_8))
+        )
 
       val expectedHeaders = Headers(
         // #4513 for why this isn't a modeled header
@@ -249,19 +277,21 @@ class MultipartParserSuite extends Http4sSuite {
             |catch me if you can!
             |""".stripMargin)
 
-      for {
-        multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
-        bodies =
-          multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
-            .through(asciiDecode)
-            .compile
-            .foldMonoid
-        result <- bodies.attempt
-      } yield {
-        assertEquals(headers, expectedHeaders)
-        assertEquals(result, Right(expected))
+      mkResults.use { results =>
+        for {
+          multipartMaterialized <- results.compile.last.map(_.get)
+          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+          bodies =
+            multipartMaterialized.parts
+              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .through(asciiDecode)
+              .compile
+              .foldMonoid
+          result <- bodies.attempt
+        } yield {
+          assertEquals(headers, expectedHeaders)
+          assertEquals(result, Right(expected))
+        }
       }
     }
 
@@ -297,38 +327,43 @@ class MultipartParserSuite extends Http4sSuite {
         Stream
           .constant("Misery is the river of the world")
           .take(10)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
       val crlf: Stream[IO, Byte] =
         Stream
           .emit(Boundary.CRLF)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
       val epilogue: Stream[IO, Byte] =
         Stream
           .constant("Everybody Row!\n")
           .take(10)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
-      val results = (
-        preamble ++
-          crlf ++
-          unspool(input, 15) ++
-          epilogue
-      ).through(multipartPipe(boundary))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(
+            preamble ++
+              crlf ++
+              unspool(input, 15) ++
+              epilogue
+          )
+        )
 
-      for {
-        multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
-        bodies = multipartMaterialized.parts
-          .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
-          .through(asciiDecode)
-          .compile
-          .foldMonoid
-        result <- bodies.attempt
-      } yield {
-        assertEquals(headers, expectedHeaders)
-        assertEquals(result, Right(expected))
+      mkResults.use { results =>
+        for {
+          multipartMaterialized <- results.compile.last.map(_.get)
+          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+          bodies = multipartMaterialized.parts
+            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .through(asciiDecode)
+            .compile
+            .foldMonoid
+          result <- bodies.attempt
+        } yield {
+          assertEquals(headers, expectedHeaders)
+          assertEquals(result, Right(expected))
+        }
       }
     }
 
@@ -356,12 +391,16 @@ class MultipartParserSuite extends Http4sSuite {
             |Content-Transfer-Encoding: binary""".stripMargin
       val maxSize = ruinDelims(headerSection).length
 
-      val results =
-        unspool(input, 15).through(limitedPipe(boundary, maxSize))
+      val mkResults =
+        mkLimitedPipe(boundary, maxSize).map(
+          _(unspool(input, 15))
+        )
 
-      results.compile.toVector
-        .interceptMessage[MalformedMessageBodyFailure](
-          s"Malformed message body: Part header was longer than $maxSize-byte limit")
+      mkResults.use { results =>
+        results.compile.toVector
+          .interceptMessage[MalformedMessageBodyFailure](
+            s"Malformed message body: Part header was longer than $maxSize-byte limit")
+      }
     }
 
     test(s"$testNamePrefix: handle a miserably large body on one line") {
@@ -385,24 +424,28 @@ class MultipartParserSuite extends Http4sSuite {
       val crlf: Stream[IO, Byte] =
         Stream
           .emit(Boundary.CRLF)
-          .through(text.utf8Encode)
+          .through(text.utf8.encode)
 
       val body: Stream[IO, Byte] = Stream
         .constant("Misery is the river of the world")
         .take(100000)
-        .through(text.utf8Encode)
+        .through(text.utf8.encode)
 
-      val results = (
-        unspool(input) ++
-          body ++
-          crlf ++
-          unspool(end)
-      ).through(multipartPipe(boundary))
+      val mkResults = mkMultipartPipe(boundary).map(
+        _(
+          unspool(input) ++
+            body ++
+            crlf ++
+            unspool(end)
+        )
+      )
 
-      results.compile.last
-        .map(_.get)
-        .map(_.parts.foldLeft(Headers.empty)(_ ++ _.headers))
-        .assertEquals(expectedHeaders)
+      mkResults.use { results =>
+        results.compile.last
+          .map(_.get)
+          .map(_.parts.foldLeft(Headers.empty)(_ ++ _.headers))
+          .assertEquals(expectedHeaders)
+      }
     }
 
     test(s"$testNamePrefix: produce the body from a single part input of one chunk") {
@@ -434,19 +477,25 @@ class MultipartParserSuite extends Http4sSuite {
             |catch me if you can!
             |""".stripMargin)
 
-      val results = unspool(input).through(multipartPipe(boundary))
-      for {
-        multipartMaterialized <- results.compile.last.map(_.get)
-        headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
-        bodies = multipartMaterialized.parts
-          .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
-          .through(asciiDecode)
-          .compile
-          .foldMonoid
-        result <- bodies.attempt
-      } yield {
-        assertEquals(headers, expectedHeaders)
-        assertEquals(result, Right(expected))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(unspool(input))
+        )
+
+      mkResults.use { results =>
+        for {
+          multipartMaterialized <- results.compile.last.map(_.get)
+          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+          bodies = multipartMaterialized.parts
+            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .through(asciiDecode)
+            .compile
+            .foldMonoid
+          result <- bodies.attempt
+        } yield {
+          assertEquals(headers, expectedHeaders)
+          assertEquals(result, Right(expected))
+        }
       }
     }
 
@@ -470,16 +519,22 @@ class MultipartParserSuite extends Http4sSuite {
 
       val input = ruinDelims(unprocessedInput)
 
-      val results = unspool(input).through(multipartPipe(boundary))
-      results.compile.last
-        .map(_.get)
-        .map(
-          _.parts(1).body
-            .through(asciiDecode)
-            .compile
-            .foldMonoid)
-        .flatMap(_.attempt)
-        .assertEquals(Right("bar"))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(unspool(input))
+        )
+
+      mkResults.use { results =>
+        results.compile.last
+          .map(_.get)
+          .map(
+            _.parts(1).body
+              .through(asciiDecode)
+              .compile
+              .foldMonoid)
+          .flatMap(_.attempt)
+          .assertEquals(Right("bar"))
+      }
     }
 
     test(s"$testNamePrefix: parse uneven input properly") {
@@ -507,16 +562,22 @@ class MultipartParserSuite extends Http4sSuite {
           .flatMap(Stream.chunk)
           .covary[IO]
 
-      val results = unprocessed.through(multipartPipe(boundary))
-      results.compile.last
-        .map(_.get)
-        .map(
-          _.parts(1).body
-            .through(asciiDecode)
-            .compile
-            .foldMonoid)
-        .flatMap(_.attempt)
-        .assertEquals(Right("bar"))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(unprocessed)
+        )
+
+      mkResults.use { results =>
+        results.compile.last
+          .map(_.get)
+          .map(
+            _.parts(1).body
+              .through(asciiDecode)
+              .compile
+              .foldMonoid)
+          .flatMap(_.attempt)
+          .assertEquals(Right("bar"))
+      }
     }
 
     def parseRandomizedChunkLength(count: Int): Unit =
@@ -540,16 +601,22 @@ class MultipartParserSuite extends Http4sSuite {
 
         val unprocessed = jumble(unprocessedInput)
 
-        val results = unprocessed.through(multipartPipe(boundary))
-        results.compile.last
-          .map(_.get)
-          .map(
-            _.parts(1).body
-              .through(asciiDecode)
-              .compile
-              .foldMonoid)
-          .flatMap(_.attempt)
-          .assertEquals(Right("bar"))
+        val mkResults =
+          mkMultipartPipe(boundary).map(
+            _(unprocessed)
+          )
+
+        mkResults.use { results =>
+          results.compile.last
+            .map(_.get)
+            .map(
+              _.parts(1).body
+                .through(asciiDecode)
+                .compile
+                .foldMonoid)
+            .flatMap(_.attempt)
+            .assertEquals(Right("bar"))
+        }
       }
 
     List.range(0, 100).foreach(parseRandomizedChunkLength)
@@ -570,22 +637,27 @@ class MultipartParserSuite extends Http4sSuite {
       val input = ruinDelims(unprocessedInput)
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
-      val results = unspool(input).through(multipartPipe(boundaryTest))
+      val mkResults =
+        mkMultipartPipe(boundaryTest).map(
+          _(unspool(input))
+        )
 
-      results.compile.last
-        .map(_.get)
-        .map(_.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers)))
-        .assertEquals(
-          List(
-            Headers(
-              `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
-              `Content-Type`(MediaType.text.plain)
-            ),
-            Headers(
-              `Content-Disposition`("form-data", Map(ci"name" -> "field2"))
+      mkResults.use { results =>
+        results.compile.last
+          .map(_.get)
+          .map(_.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers)))
+          .assertEquals(
+            List(
+              Headers(
+                `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
+                `Content-Type`(MediaType.text.plain)
+              ),
+              Headers(
+                `Content-Disposition`("form-data", Map(ci"name" -> "field2"))
+              )
             )
           )
-        )
+      }
     }
 
     test(s"$testNamePrefix: parse parts lazily") {
@@ -607,26 +679,31 @@ class MultipartParserSuite extends Http4sSuite {
       val input = ruinDelims(unprocessedInput)
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
-      val results = unspool(input).through(partsPipe(boundaryTest))
+      val mkResults =
+        mkPartsPipe(boundaryTest).map(
+          _(unspool(input))
+        )
 
-      for {
-        firstPart <- results.take(1).compile.last.map(_.get)
-        confirmedError <- results.compile.drain.attempt
-        _ <- firstPart.body
-          .through(text.utf8Decode[IO])
-          .compile
-          .foldMonoid
-      } yield {
-        assertEquals(
-          firstPart.headers,
-          Headers(
-            `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
-            `Content-Type`(MediaType.text.plain)))
-        assert(confirmedError.isInstanceOf[Left[_, _]])
-        assert(
-          confirmedError.left
-            .getOrElse(throw new Exception)
-            .isInstanceOf[MalformedMessageBodyFailure])
+      mkResults.use { results =>
+        for {
+          firstPart <- results.take(1).compile.last.map(_.get)
+          confirmedError <- results.compile.drain.attempt
+          _ <- firstPart.body
+            .through(text.utf8.decode[IO])
+            .compile
+            .foldMonoid
+        } yield {
+          assertEquals(
+            firstPart.headers,
+            Headers(
+              `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
+              `Content-Type`(MediaType.text.plain)))
+          assert(confirmedError.isInstanceOf[Left[_, _]])
+          assert(
+            confirmedError.left
+              .getOrElse(throw new Exception)
+              .isInstanceOf[MalformedMessageBodyFailure])
+        }
       }
     }
 
@@ -643,15 +720,17 @@ class MultipartParserSuite extends Http4sSuite {
 
         val input = ruinDelims(unprocessedInput)
 
-        for {
-          // This should be false until we drain the whole input.
-          ref <- Ref[IO].of(false)
-          trackedInput = unspool(input, chunkSize) ++ Stream.eval(ref.set(true)).drain
+        mkMultipartPipe(boundary).use { multipartPipe =>
+          for {
+            // This should be false until we drain the whole input.
+            ref <- Ref[IO].of(false)
+            trackedInput = unspool(input, chunkSize) ++ Stream.eval(ref.set(true)).drain
 
-          _ <- trackedInput.through(multipartPipe(boundary)).compile.drain
+            _ <- trackedInput.through(multipartPipe).compile.drain
 
-          reachedTheEnd <- ref.get
-        } yield assert(reachedTheEnd)
+            reachedTheEnd <- ref.get
+          } yield assert(reachedTheEnd)
+        }
       }
 
     List(1, 2, 3, 5, 8, 13, 21, 987).foreach(drainEpilogue)
@@ -669,9 +748,14 @@ class MultipartParserSuite extends Http4sSuite {
             |catch me if you can!""".stripMargin
       val input = ruinDelims(unprocessedInput)
 
-      val results = unspool(input).through(multipartPipe(boundary))
+      val mkResults =
+        mkMultipartPipe(boundary).map(
+          _(unspool(input))
+        )
 
-      results.compile.toVector.intercept[MalformedMessageBodyFailure]
+      mkResults.use { results =>
+        results.compile.toVector.intercept[MalformedMessageBodyFailure]
+      }
     }
   }
 
@@ -681,11 +765,22 @@ class MultipartParserSuite extends Http4sSuite {
     MultipartParser.parseStreamed[IO],
     MultipartParser.parseToPartsStream[IO](_))
 
-  multipartParserTests(
-    "mixed file parser",
-    MultipartParser.parseStreamedFile[IO](_, Http4sSuite.TestBlocker),
-    MultipartParser.parseStreamedFile[IO](_, Http4sSuite.TestBlocker, _),
-    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSuite.TestBlocker)
+  {
+    @nowarn("cat=deprecation")
+    val testDeprecated = multipartParserTests(
+      "mixed file parser",
+      MultipartParser.parseStreamedFile[IO](_),
+      MultipartParser.parseStreamedFile[IO](_, _),
+      MultipartParser.parseToPartsStreamedFile[IO](_)
+    )
+    testDeprecated
+  }
+
+  multipartParserResourceTests(
+    "supervised file parser",
+    b => Supervisor[IO].map(MultipartParser.parseSupervisedFile[IO](_, b)),
+    (b, limit) => Supervisor[IO].map(MultipartParser.parseSupervisedFile[IO](_, b, limit)),
+    b => Supervisor[IO].map(MultipartParser.parseToPartsSupervisedFile[IO](_, b))
   )
 
   test("Multipart mixed file parser: truncate parts when limit set") {
@@ -705,9 +800,9 @@ class MultipartParserSuite extends Http4sSuite {
     val input = ruinDelims(unprocessedInput)
 
     val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    @nowarn("cat=deprecation")
     val results =
-      unspool(input).through(
-        MultipartParser.parseStreamedFile[IO](boundaryTest, Http4sSuite.TestBlocker, maxParts = 1))
+      unspool(input).through(MultipartParser.parseStreamedFile[IO](boundaryTest, maxParts = 1))
 
     results.compile.last
       .map(_.get)
@@ -739,16 +834,122 @@ class MultipartParserSuite extends Http4sSuite {
     val input = ruinDelims(unprocessedInput)
 
     val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    @nowarn("cat=deprecation")
     val results = unspool(input).through(
       MultipartParser
-        .parseStreamedFile[IO](
-          boundaryTest,
-          Http4sSuite.TestBlocker,
-          maxParts = 1,
-          failOnLimit = true))
+        .parseStreamedFile[IO](boundaryTest, maxParts = 1, failOnLimit = true))
 
     results.compile.last
       .map(_.get)
       .intercept[MalformedMessageBodyFailure]
+  }
+
+  test("Multipart supervised file parser: truncate parts when limit set") {
+    val unprocessedInput =
+      """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+
+    val input = ruinDelims(unprocessedInput)
+
+    val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    val mkResults =
+      Supervisor[IO].map { supervisor =>
+        unspool(input).through(
+          MultipartParser.parseSupervisedFile[IO](supervisor, boundaryTest, maxParts = 1))
+      }
+
+    mkResults.use { results =>
+      results.compile.last
+        .map(_.get)
+        .map(_.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers)))
+        .assertEquals(
+          List(
+            Headers(
+              `Content-Disposition`("form-data", Map(ci"name" -> "field1")),
+              `Content-Type`(MediaType.text.plain)
+            )
+          ))
+    }
+  }
+
+  test(
+    "Multipart supervised file parser: fail parsing when parts limit exceeded if set fail as option") {
+    val unprocessedInput =
+      """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+
+    val input = ruinDelims(unprocessedInput)
+
+    val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    val mkResults =
+      Supervisor[IO].map { supervisor =>
+        unspool(input).through(
+          MultipartParser
+            .parseSupervisedFile[IO](supervisor, boundaryTest, maxParts = 1, failOnLimit = true))
+      }
+
+    mkResults.map { results =>
+      results.compile.last
+        .map(_.get)
+        .intercept[MalformedMessageBodyFailure]
+    }
+  }
+
+  test("Multipart supervised file parser: dispose of the files when the resource is released") {
+    val unprocessedInput =
+      """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+
+    val input = ruinDelims(unprocessedInput)
+
+    val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+    val mkResults =
+      Supervisor[IO].map { supervisor =>
+        unspool(input).through(
+          MultipartParser
+            // Make sure the data will get written to files
+            .parseSupervisedFile[IO](supervisor, boundaryTest, maxSizeBeforeWrite = 8))
+      }
+
+    // This is roundabout, but there's no way to test this directly without stubbing `Files` somehow.
+    mkResults
+      .use { results =>
+        results.compile.last
+          .map(_.get)
+      }
+      .flatMap { stale =>
+        // At this point, the supervisor was released, so the files have to have been deleted.
+        stale.parts.traverse_(
+          _.body.compile.drain
+            .intercept[NoSuchFileException]
+        )
+      }
   }
 }

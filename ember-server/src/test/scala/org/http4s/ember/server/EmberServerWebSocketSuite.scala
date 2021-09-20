@@ -18,26 +18,26 @@ package org.http4s.ember.server
 
 import cats.syntax.all._
 import cats.effect._
+import cats.effect.std.{Dispatcher, Queue}
 import fs2.{Pipe, Stream}
 import org.http4s._
 import org.http4s.server.Server
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
+import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.server.websocket.WebSocketBuilder
 
 import org.java_websocket.client.WebSocketClient
 import java.net.URI
-import cats.effect.concurrent.Deferred
 import org.java_websocket.handshake.ServerHandshake
-import fs2.concurrent.Queue
 import org.java_websocket.WebSocket
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-class EmberServerWebSocketSuite extends Http4sSuite {
+class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
   def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
@@ -66,7 +66,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
       .withHttpApp(service[IO])
       .build
 
-  def fixture = ResourceFixture(serverResource)
+  def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
   case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
@@ -87,7 +87,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
     }
   }
 
-  def createClient(target: URI): IO[Client] =
+  def createClient(target: URI, dispatcher: Dispatcher[IO]): IO[Client] =
     for {
       waitOpen <- Deferred[IO, Option[Throwable]]
       waitClose <- Deferred[IO, Option[Throwable]]
@@ -97,66 +97,75 @@ class EmberServerWebSocketSuite extends Http4sSuite {
       client = new WebSocketClient(target) {
         override def onOpen(handshakedata: ServerHandshake): Unit = {
           val fa = waitOpen.complete(None)
-          fa.unsafeRunSync()
+          dispatcher.unsafeRunSync(fa)
+          ()
         }
         override def onClose(code: Int, reason: String, remote: Boolean): Unit = {
           val fa = waitOpen
             .complete(Some(new Throwable(s"closed: code: $code, reason: $reason")))
             .attempt >> waitClose.complete(None)
-          fa.unsafeRunSync()
+          dispatcher.unsafeRunSync(fa)
+          ()
         }
         override def onMessage(msg: String): Unit =
-          queue.enqueue1(msg).unsafeRunSync()
+          dispatcher.unsafeRunSync(queue.offer(msg))
         override def onError(ex: Exception): Unit = {
           val fa = waitOpen.complete(Some(ex)).attempt >> waitClose.complete(Some(ex)).attempt.void
-          fa.unsafeRunSync()
+          dispatcher.unsafeRunSync(fa)
         }
-        override def onWebsocketPong(conn: WebSocket, f: Framedata): Unit =
-          pongQueue
-            .enqueue1(new String(f.getPayloadData().array(), StandardCharsets.UTF_8))
-            .unsafeRunSync()
-        override def onClosing(code: Int, reason: String, remote: Boolean): Unit =
-          remoteClosed.complete(()).unsafeRunSync()
+        override def onWebsocketPong(conn: WebSocket, f: Framedata): Unit = {
+          val fa = pongQueue
+            .offer(new String(f.getPayloadData().array(), StandardCharsets.UTF_8))
+          dispatcher.unsafeRunSync(fa)
+        }
+        override def onClosing(code: Int, reason: String, remote: Boolean): Unit = {
+          dispatcher.unsafeRunSync(remoteClosed.complete(()))
+          ()
+        }
       }
     } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, client)
 
-  fixture.test("open and close connection to server") { server =>
+  fixture.test("open and close connection to server") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher)
       _ <- client.connect
       _ <- client.close
     } yield ()
   }
 
-  fixture.test("send and receive a message") { server =>
+  fixture.test("send and receive a message") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher)
       _ <- client.connect
       _ <- client.send("foo")
-      msg <- client.messages.dequeue1
+      msg <- client.messages.take
       _ <- client.close
     } yield assertEquals(msg, "foo")
   }
 
-  fixture.test("respond to pings") { server =>
+  fixture.test("respond to pings") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher)
       _ <- client.connect
       _ <- client.ping("hello")
-      data <- client.pongs.dequeue1
+      data <- client.pongs.take
       _ <- client.close
     } yield assertEquals(data, "hello")
   }
 
-  fixture.test("initiate close sequence on stream termination") { server =>
+  fixture.test("initiate close sequence on stream termination") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
+        dispatcher)
       _ <- client.connect
-      _ <- client.messages.dequeue1
+      _ <- client.messages.take
       _ <- client.remoteClosed.get
     } yield ()
   }

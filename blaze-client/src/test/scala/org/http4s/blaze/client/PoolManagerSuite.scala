@@ -104,13 +104,13 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       _ <- IO.sleep(timeout + 20.milliseconds)
       waiting3 <- pool.borrow(key).void.start
       _ <- pool.release(conn.connection)
-      result1 <- waiting1.join.void.attempt
-      result2 <- waiting2.join.void.attempt
-      result3 <- waiting3.join.void.attempt
+      result1 <- waiting1.join
+      result2 <- waiting2.join
+      result3 <- waiting3.join
     } yield {
-      assert(result1 == Left(WaitQueueTimeoutException))
-      assert(result2 == Left(WaitQueueTimeoutException))
-      assert(result3.isRight)
+      assertEquals(result1, Outcome.errored[IO, Throwable, Unit](WaitQueueTimeoutException))
+      assertEquals(result2, Outcome.errored[IO, Throwable, Unit](WaitQueueTimeoutException))
+      assertEquals(result3, Outcome.succeeded[IO, Throwable, Unit](IO.unit))
     }
   }
 

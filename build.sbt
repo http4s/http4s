@@ -8,7 +8,7 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
-ThisBuild / baseVersion := "0.22"
+ThisBuild / baseVersion := "0.23"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
@@ -113,7 +113,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= Seq(
       caseInsensitive,
       catsCore,
-      catsEffect,
+      catsEffectStd,
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
@@ -146,7 +146,8 @@ lazy val laws = libraryProject("laws")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
-      catsEffectLaws,
+      catsEffect,
+      catsEffectTestkit,
       catsLaws,
       disciplineCore,
       ip4sTestKit,
@@ -165,12 +166,12 @@ lazy val testing = libraryProject("testing")
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck,
       munitCatsEffect,
       munitDiscipline,
+      scalacheck,
       scalacheckEffect,
       scalacheckEffectMunit,
-    ),
+    ).map(_ % Test),
   )
   .dependsOn(laws)
 
@@ -218,9 +219,6 @@ lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      jettyServlet % Test,
-    )
   )
   .dependsOn(
     core,
@@ -286,6 +284,7 @@ lazy val emberServer = libraryProject("ember-server")
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp")
     ),
     Test / parallelExecution := false
@@ -320,7 +319,9 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
+    mimaBinaryIssueFilters := Seq(
+      // private constructor 
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.server.BlazeServerBuilder.this")
     )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
@@ -350,8 +351,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
-    description := "jetty implementation for http4s clients",
-    startYear := Some(2018),
+    description := "jetty implementation for http4s clients", startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
@@ -445,7 +445,7 @@ lazy val circe = libraryProject("circe")
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
-      circeTesting % Test,
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")

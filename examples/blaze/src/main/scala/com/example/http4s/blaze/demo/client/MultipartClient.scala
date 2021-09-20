@@ -16,7 +16,7 @@
 
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import java.net.URL
@@ -33,31 +33,28 @@ import scala.concurrent.ExecutionContext.global
 object MultipartClient extends MultipartHttpClient
 
 class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4sClientDsl[IO] {
-  private val image: IO[URL] = IO(getClass.getResource("/beerbottle.png"))
+  private val image: IO[URL] = IO.blocking(getClass.getResource("/beerbottle.png"))
 
-  private def multipart(url: URL, blocker: Blocker) =
+  private def multipart(url: URL) =
     Multipart[IO](
       Vector(
         Part.formData("name", "gvolpe"),
-        Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png))
+        Part.fileData("rick", url, `Content-Type`(MediaType.image.png))
       )
     )
 
-  private def request(blocker: Blocker) =
+  private def request =
     image
-      .map(multipart(_, blocker))
+      .map(multipart)
       .map(body => POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers))
 
-  private val resources: Resource[IO, (Blocker, Client[IO])] =
-    for {
-      blocker <- Blocker[IO]
-      client <- BlazeClientBuilder[IO](global).resource
-    } yield (blocker, client)
+  private val resources: Resource[IO, Client[IO]] =
+    BlazeClientBuilder[IO](global).resource
 
   private val example =
     for {
-      (blocker, client) <- Stream.resource(resources)
-      req <- Stream.eval(request(blocker))
+      client <- Stream.resource(resources)
+      req <- Stream.eval(request)
       value <- Stream.eval(client.expect[String](req))
       _ <- S.putStrLn(value)
     } yield ()

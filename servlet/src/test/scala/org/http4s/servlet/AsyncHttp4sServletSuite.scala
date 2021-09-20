@@ -18,7 +18,8 @@ package org.http4s
 package servlet
 
 import cats.syntax.all._
-import cats.effect.{IO, Resource, Timer}
+import cats.effect.{IO, Resource}
+import cats.effect.std.Dispatcher
 import java.net.URL
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
@@ -39,17 +40,16 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
       case req @ POST -> Root / "echo" =>
         Ok(req.body)
       case GET -> Root / "shifted" =>
-        IO.shift(munitExecutionContext) *>
-          // Wait for a bit to make sure we lose the race
-          Timer[IO].sleep(50.millis) *>
-          Ok("shifted")
+        // Wait for a bit to make sure we lose the race
+        (IO.sleep(50.millis) *>
+          Ok("shifted")).evalOn(munitExecutionContext)
     }
     .orNotFound
 
   val servletServer = ResourceFixture[Int](serverPortR)
 
   def get(serverPort: Int, path: String): IO[String] =
-    testBlocker.delay[IO, String](
+    IO.blocking[String](
       Source
         .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
         .getLines()
@@ -79,15 +79,13 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
               .execute()
               .toCompletableFuture()
           }.flatMap { cf =>
-            IO.cancelable[Response] { cb =>
-              val stage = cf.handle[Unit] {
-                case (response, null) => cb(Right(response))
-                case (_, t) => cb(Left(t))
-              }
-
-              IO {
-                stage.cancel(false)
-                ()
+            IO.async[Response] { cb =>
+              IO.delay {
+                val stage = cf.handle[Unit] {
+                  case (response, null) => cb(Right(response))
+                  case (_, t) => cb(Left(t))
+                }
+                Some(IO.delay(stage.cancel(false)).void)
               }
             }
           }.flatMap { response =>
@@ -102,28 +100,29 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
     get(server, "shifted").assertEquals("shifted")
   }
 
-  lazy val servlet = new AsyncHttp4sServlet[IO](
-    service = service,
-    servletIo = NonBlockingServletIo[IO](4096),
-    serviceErrorHandler = DefaultServiceErrorHandler[IO]
-  )
+  lazy val serverPortR = for {
+    dispatcher <- Dispatcher[IO]
+    server <- Resource.make(IO(new EclipseServer))(server => IO(server.stop()))
+    servlet = new AsyncHttp4sServlet[IO](
+      service = service,
+      dispatcher = dispatcher,
+      servletIo = NonBlockingServletIo[IO](4096),
+      serviceErrorHandler = DefaultServiceErrorHandler[IO]
+    )
+    port <- Resource.eval(IO {
+      val connector =
+        new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
 
-  lazy val serverPortR = Resource
-    .make(IO(new EclipseServer))(server => IO(server.stop()))
-    .evalMap { server =>
-      IO {
-        val connector =
-          new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
+      val context = new ServletContextHandler
+      context.addServlet(new ServletHolder(servlet), "/*")
 
-        val context = new ServletContextHandler
-        context.addServlet(new ServletHolder(servlet), "/*")
+      server.addConnector(connector)
+      server.setHandler(context)
 
-        server.addConnector(connector)
-        server.setHandler(context)
+      server.start()
 
-        server.start()
+      connector.getLocalPort
+    })
+  } yield port
 
-        connector.getLocalPort
-      }
-    }
 }

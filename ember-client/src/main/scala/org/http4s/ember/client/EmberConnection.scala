@@ -19,7 +19,7 @@ package org.http4s.ember.client
 import cats._
 import cats.effect.{Concurrent, Resource}
 import cats.syntax.all._
-import cats.effect.concurrent.Ref
+import cats.effect.kernel.Ref
 
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
@@ -29,7 +29,6 @@ private[ember] final case class EmberConnection[F[_]](
     nextBytes.set(Array.emptyByteArray) >>
       keySocket.socket.endOfInput.attempt.void >>
       keySocket.socket.endOfOutput.attempt.void >>
-      keySocket.socket.close.attempt.void >>
       shutdown.attempt.void
 }
 

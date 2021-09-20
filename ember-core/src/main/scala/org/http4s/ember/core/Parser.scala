@@ -15,16 +15,15 @@
  */
 
 package org.http4s.ember.core
-
 import cats._
-import cats.effect.{MonadThrow => _, _}
-import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.kernel.{Concurrent, Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
+import scodec.bits.ByteVector
 import cats.data.EitherT
 
 private[ember] object Parser {
@@ -402,7 +401,9 @@ private[ember] object Parser {
       if (contentLength > 0) {
         if (buffer.length >= contentLength) {
           val (body, rest) = buffer.splitAt(contentLength.toInt)
-          (Stream.chunk(Chunk.bytes(body)).covary[F], (Some(rest): Option[Array[Byte]]).pure[F])
+          (
+            Stream.chunk(Chunk.byteVector(ByteVector(body))).covary[F],
+            (Some(rest): Option[Array[Byte]]).pure[F])
             .pure[F]
         } else {
           val unread = contentLength - buffer.length
@@ -444,7 +445,7 @@ private[ember] object Parser {
         case Some(_) =>
           Pull.raiseError(BodyAlreadyConsumedError())
         case None =>
-          Pull.output(Chunk.bytes(buffer)) >> go(unread)
+          Pull.output(Chunk.array(buffer)) >> go(unread)
       }
 
       pull.stream

@@ -22,6 +22,5 @@ import cats.effect.IO
 import org.http4s.client.ClientRouteTestBattery
 
 class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
-  def clientResource =
-    OkHttpBuilder.withDefaultClient[IO](testBlocker).map(_.create)
+  def clientResource = OkHttpBuilder.withDefaultClient[IO].flatMap(_.resource)
 }

@@ -18,10 +18,10 @@ package org.http4s
 
 import cats.{Contravariant, Show}
 import cats.data.NonEmptyList
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
-import fs2.io.file.readAll
+import fs2.io.file.{Files, Path => Fs2Path}
 import fs2.io.readInputStream
 import java.io._
 import java.nio.CharBuffer
@@ -99,7 +99,7 @@ object EntityEncoder {
       charset: Charset = DefaultCharset,
       show: Show[A]): EntityEncoder[F, A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
+    simple[F, A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
   }
 
   def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
@@ -133,7 +133,7 @@ object EntityEncoder {
   implicit def stringEncoder[F[_]](implicit
       charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
+    simple(hdr)(s => Chunk.array(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder[F[_]](implicit
@@ -144,7 +144,7 @@ object EntityEncoder {
     simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
 
   implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
-    chunkEncoder[F].contramap(Chunk.bytes)
+    chunkEncoder[F].contramap(Chunk.array[Byte])
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know
@@ -155,29 +155,24 @@ object EntityEncoder {
       Entity(body, None)
     }
 
-  // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, File] =
-    filePathEncoder[F](blocker).contramap(_.toPath)
+  implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
+    filePathEncoder[F].contramap(_.toPath)
 
-  // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
-    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
-      Entity(readAll[F](p, blocker, 4096)) //2 KB :P
+  implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
+    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
+      Entity(Files[F].readAll(Fs2Path.fromNioPath(p)))
     }
 
-  // TODO parameterize chunk size
-  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
-      blocker: Blocker): EntityEncoder[F, F[IS]] =
+  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { (in: F[IS]) =>
-      readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
+      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(implicit
+  implicit def readerEncoder[F[_], R <: Reader](implicit
       F: Sync[F],
-      cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
@@ -185,7 +180,7 @@ object EntityEncoder {
       def readToBytes(r: Reader): F[Option[Chunk[Byte]]] =
         for {
           // Read into the buffer
-          readChars <- blocker.delay(r.read(charBuffer))
+          readChars <- F.blocking(r.read(charBuffer))
         } yield {
           // Flip to read
           charBuffer.flip()
@@ -198,7 +193,7 @@ object EntityEncoder {
             // Read into a Chunk
             val b = new Array[Byte](bb.remaining())
             bb.get(b)
-            Some(Chunk.bytes(b))
+            Some(Chunk.array(b))
           }
         }
 

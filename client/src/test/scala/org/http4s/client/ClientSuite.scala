@@ -17,18 +17,17 @@
 package org.http4s
 package client
 
-import cats.effect.concurrent.Deferred
+import cats.effect.kernel.Deferred
 import cats.effect._
 import cats.syntax.all._
-import java.io.IOException
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
 import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
-import org.http4s.syntax.AllSyntax
+import org.http4s.syntax.all._
 
-class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
-  private val app = HttpApp[IO] { r =>
+class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
+  private val app = HttpApp[IO] { case r =>
     Response[IO](Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpApp(app)
@@ -46,10 +45,8 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
         client.run(req).use(IO.pure).flatMap(_.as[String])
       }
       .attempt
-      .map {
-        case Left(e: IOException) => e.getMessage == "response was disposed"
-        case _ => false
-      }
+      .map(_.left.toOption.get.getMessage)
+      .assertEquals("response was disposed")
   }
 
   test("mock client should include a Host header in requests whose URIs are absolute") {
@@ -94,17 +91,17 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
 
         val cancelClient = Client.fromHttpApp(routes.orNotFound)
 
-        Deferred[IO, ExitCase[Throwable]]
-          .flatTap { exitCase =>
+        Deferred[IO, Outcome[IO, Throwable, String]]
+          .flatTap { outcome =>
             cancelClient
               .expect[String](Request[IO](GET, uri"https://http4s.org/"))
-              .guaranteeCase(exitCase.complete)
+              .guaranteeCase(oc => outcome.complete(oc).void)
               .start
               .flatTap(fiber =>
                 cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
           }
           .flatMap(_.get)
       }
-      .assertEquals(ExitCase.Canceled)
+      .assertEquals(Outcome.canceled[IO, Throwable, String])
   }
 }

@@ -18,37 +18,39 @@ package org.http4s.ember.server.internal
 
 import cats._
 import cats.effect._
-import cats.effect.concurrent._
-import cats.effect.implicits._
+import cats.effect.kernel.Resource
 import cats.syntax.all._
-import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s._
 import fs2.Stream
-import fs2.io.tcp._
-import fs2.io.tls._
-import java.net.InetSocketAddress
+import fs2.io.net._
+import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.ember.core.Util._
+import org.http4s.headers.Connection
+import java.net.InetSocketAddress
 import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
 import org.http4s.headers.Date
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.{SecureSession, ServerRequestKeys}
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
+
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
-import org.http4s.headers.Connection
 
 private[server] object ServerHelpers {
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
-  def server[F[_]: ContextShift](
-      bindAddress: InetSocketAddress,
+  def server[F[_]](
+      host: Option[Host],
+      port: Port,
+      additionalSocketOptions: List[SocketOption],
+      sg: SocketGroup[F],
       httpApp: HttpApp[F],
-      sg: SocketGroup,
-      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
-      ready: Deferred[F, Either[Throwable, Unit]],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      ready: Deferred[F, Either[Throwable, InetSocketAddress]],
       shutdown: Shutdown[F],
       // Defaults
       errorHandler: Throwable => F[Response[F]],
@@ -58,25 +60,22 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
-
-    val server: Stream[F, Resource[F, Socket[F]]] =
+  )(implicit F: Async[F]): Stream[F, Nothing] = {
+    val server: Stream[F, Socket[F]] =
       Stream
-        .resource(
-          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
+        .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
         .attempt
-        .evalTap(e => ready.complete(e.void))
+        .evalTap(e => ready.complete(e.map(_._1.toInetSocketAddress)))
         .rethrow
-        .flatMap { case (_, clients) => clients }
+        .flatMap(_._2)
 
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
         val handler = shutdown.trackConnection >>
           Stream
-            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt, logger)))
+            .resource(upgradeSocket(connect, tlsInfoOpt, logger))
             .flatMap(
               runConnection(
                 _,
@@ -95,7 +94,10 @@ private[server] object ServerHelpers {
         }
       }
 
-    StreamForking.forking(streams, maxConnections)
+    streams.parJoin(
+      maxConnections
+    ) // TODO: replace with forking after we fix serverResource upstream
+    // StreamForking.forking(streams, maxConnections)
   }
 
   // private[internal] def reachedEndError[F[_]: Sync](
@@ -108,33 +110,36 @@ private[server] object ServerHelpers {
   //     case Some(value) => Stream.chunk(value)
   //   }
 
-  private[internal] def upgradeSocket[F[_]: Concurrent: ContextShift](
+  private[internal] def upgradeSocket[F[_]: Monad](
       socketInit: Socket[F],
-      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       logger: Logger[F]
   ): Resource[F, Socket[F]] =
     tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
       context
-        .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
+        .serverBuilder(socketInit)
+        .withParameters(params)
+        .withLogging(s => logger.trace(s))
+        .build
         .widen[Socket[F]]
     }
 
-  private[internal] def runApp[F[_]: Concurrent: Timer](
-      buffer: Array[Byte],
+  private[internal] def runApp[F[_]](
+      head: Array[Byte],
       read: Read[F],
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      socket: Socket[F]): F[(Request[F], Response[F], Drain[F])] = {
-    val parse = Parser.Request.parser(maxHeaderSize)(buffer, read)
-    val parseWithHeaderTimeout =
-      durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration =>
-        parse.timeoutTo(
-          duration,
-          ApplicativeThrow[F].raiseError(
-            new java.util.concurrent.TimeoutException(
-              s"Timed Out on EmberServer Header Receive Timeout: $duration"))))
+      socket: Socket[F])(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
+
+    val parse = Parser.Request.parser(maxHeaderSize)(head, read)
+    val parseWithHeaderTimeout = timeoutToMaybe(
+      parse,
+      requestHeaderReceiveTimeout,
+      F.raiseError[(Request[F], F[Option[Array[Byte]]])](new java.util.concurrent.TimeoutException(
+        s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout"))
+    )
 
     for {
       tmp <- parseWithHeaderTimeout
@@ -147,24 +152,23 @@ private[server] object ServerHelpers {
     } yield (req, resp, drain)
   }
 
-  private[internal] def send[F[_]: Sync](socket: Socket[F])(
+  private[internal] def send[F[_]: Temporal](socket: Socket[F])(
       request: Option[Request[F]],
       resp: Response[F],
       idleTimeout: Duration,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]): F[Unit] =
     Encoder
       .respToBytes[F](resp)
-      .through(socket.writes(durationToFinite(idleTimeout)))
+      .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
       .compile
       .drain
       .attempt
       .flatMap {
-        case Left(err) =>
-          onWriteFailure(request, resp, err)
-        case Right(()) => Sync[F].pure(())
+        case Left(err) => onWriteFailure(request, resp, err)
+        case Right(()) => Applicative[F].unit
       }
 
-  private[internal] def postProcessResponse[F[_]: Timer: Monad](
+  private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
     val connection = connectionFor(req.httpVersion, req.headers)
@@ -173,7 +177,7 @@ private[server] object ServerHelpers {
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
   }
 
-  private[internal] def runConnection[F[_]: Concurrent: Timer](
+  private[internal] def runConnection[F[_]: Async](
       socket: Socket[F],
       logger: Logger[F],
       idleTimeout: Duration,
@@ -186,7 +190,7 @@ private[server] object ServerHelpers {
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
-    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
     Stream
       .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
         case (buffer, reuse) =>
@@ -269,12 +273,12 @@ private[server] object ServerHelpers {
 
   private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =
     (socket.localAddress, socket.remoteAddress).mapN {
-      case (local: InetSocketAddress, remote: InetSocketAddress) =>
+      case (local, remote) =>
         Vault.empty.insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
-            local = SocketAddress.fromInetSocketAddress(local),
-            remote = SocketAddress.fromInetSocketAddress(remote),
+            local = local,
+            remote = remote,
             secure = socket.isInstanceOf[TLSSocket[F]]
           )
         )

@@ -55,6 +55,13 @@ case class Audio(body: String) extends Resp
 case class Video(body: String) extends Resp
 ```
 
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent:nest
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+```
+
 ```scala mdoc
 val response = Ok("").map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
 val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { (m: Media[IO]) =>

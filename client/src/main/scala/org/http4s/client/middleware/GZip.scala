@@ -19,8 +19,9 @@ package client
 package middleware
 
 import cats.data.NonEmptyList
-import cats.effect.{BracketThrow, Sync}
+import cats.effect.Async
 import fs2.{Pipe, Pull, Stream}
+import fs2.compression.{Compression, DeflateParams}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import org.typelevel.ci._
 import scala.util.control.NoStackTrace
@@ -31,7 +32,7 @@ object GZip {
   private val supportedCompressions =
     NonEmptyList.of(ContentCoding.gzip, ContentCoding.deflate)
 
-  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Sync[F]): Client[F] =
+  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Async[F]): Client[F] =
     Client[F] { req =>
       val reqWithEncoding = addHeaders(req)
       val responseResource = client.run(reqWithEncoding)
@@ -50,18 +51,18 @@ object GZip {
     }
 
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: Sync[F]): Response[F] =
+      F: Async[F]): Response[F] =
     response.headers.get[`Content-Encoding`] match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
-          _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
+          _.through(Compression[F].gunzip(bufferSize)).flatMap(_.content)
         response
           .filterHeaders(nonCompressionHeader)
           .withBodyStream(response.body.through(decompressWith(gunzip)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
-        val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(bufferSize)
+        val deflate: Pipe[F, Byte, Byte] = Compression[F].deflate(DeflateParams(bufferSize))
         response
           .filterHeaders(nonCompressionHeader)
           .withBodyStream(response.body.through(decompressWith(deflate)))
@@ -71,7 +72,7 @@ object GZip {
     }
 
   private def decompressWith[F[_]](decompressor: Pipe[F, Byte, Byte])(implicit
-      F: BracketThrow[F]): Pipe[F, Byte, Byte] =
+      F: Async[F]): Pipe[F, Byte, Byte] =
     _.pull.peek1
       .flatMap {
         case None => Pull.raiseError(EmptyBodyException)

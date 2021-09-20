@@ -17,9 +17,9 @@
 package org.http4s
 
 package object syntax {
-  object all extends AllSyntaxBinCompat
+  object all extends AllSyntax
   @deprecated("import is no longer needed", "0.22.3")
-  object kleisli extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliSyntaxBinCompat1
+  object kleisli extends KleisliSyntax
   object literals extends LiteralsSyntax
   object string extends StringSyntax
   object header extends HeaderSyntax

@@ -13,7 +13,7 @@ package ember.core
 
 import cats._
 import cats.syntax.all._
-import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.kernel.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
@@ -36,7 +36,9 @@ private[ember] object ChunkedEncoding {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
     def go(expect: Either[ByteVector, Long], head: Array[Byte]): Pull[F, Byte, Unit] = {
-      val nextChunk = if (head.nonEmpty) Pull.pure(Some(Chunk.bytes(head))) else Pull.eval(read)
+      val nextChunk =
+        if (head.nonEmpty) Pull.pure(Some(Chunk.byteVector(ByteVector.apply(head))))
+        else Pull.eval(read)
       nextChunk.flatMap {
         case None =>
           Pull.raiseError(EmberException.ReachedEndOfStream())
@@ -76,16 +78,16 @@ private[ember] object ChunkedEncoding {
 
             case Right(remains) =>
               if (remains == bv.size)
-                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(
+                Pull.output(Chunk.byteVector(bv)) >> go(
                   Left(ByteVector.empty),
                   Array.emptyByteArray)
               else if (remains > bv.size)
-                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(
+                Pull.output(Chunk.byteVector(bv)) >> go(
                   Right(remains - bv.size),
                   Array.emptyByteArray)
               else {
                 val (out, next) = bv.splitAt(remains.toLong)
-                Pull.output(Chunk.ByteVectorChunk(out)) >> go(Left(ByteVector.empty), next.toArray)
+                Pull.output(Chunk.byteVector(out)) >> go(Left(ByteVector.empty), next.toArray)
               }
           }
       }
@@ -116,7 +118,7 @@ private[ember] object ChunkedEncoding {
     }
 
   private val lastChunk: Chunk[Byte] =
-    Chunk.ByteVectorChunk((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
+    Chunk.byteVector((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
 
   /** Encodes chunk of bytes to http chunked encoding.
     */
@@ -124,7 +126,7 @@ private[ember] object ChunkedEncoding {
     def encodeChunk(bv: ByteVector): Chunk[Byte] =
       if (bv.isEmpty) Chunk.empty
       else
-        Chunk.ByteVectorChunk(
+        Chunk.byteVector(
           ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ `\r\n` ++ bv ++ `\r\n`)
     _.mapChunks { ch =>
       encodeChunk(ch.toByteVector)

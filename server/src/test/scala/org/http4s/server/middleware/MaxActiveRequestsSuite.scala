@@ -19,7 +19,6 @@ package org.http4s.server.middleware
 import cats.implicits._
 import cats.effect._
 import cats.data._
-import cats.effect.concurrent._
 import org.http4s._
 import org.http4s.syntax.all._
 

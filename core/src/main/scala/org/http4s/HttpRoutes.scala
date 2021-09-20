@@ -31,7 +31,7 @@ object HttpRoutes {
     * @param run the function to lift
     * @return an [[HttpRoutes]] that wraps `run`
     */
-  def apply[F[_]: Defer](run: Request[F] => OptionT[F, Response[F]]): HttpRoutes[F] =
+  def apply[F[_]: Monad](run: Request[F] => OptionT[F, Response[F]]): HttpRoutes[F] =
     Http(run)
 
   /** Lifts an effectful [[Response]] into an [[HttpRoutes]].
@@ -62,7 +62,7 @@ object HttpRoutes {
     * @return An [[HttpRoutes]] whose input is transformed by `f` before
     * being applied to `fa`
     */
-  def local[F[_]: Defer](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
+  def local[F[_]: Monad](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
     Http.local[OptionT[F, *], F](f)(fa)
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
@@ -75,8 +75,8 @@ object HttpRoutes {
     * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def of[F[_]: Defer: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
-    Kleisli(req => OptionT(Defer[F].defer(pf.lift(req).sequence)))
+  def of[F[_]: Monad](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
+    Kleisli(req => OptionT(Applicative[F].unit >> pf.lift(req).sequence))
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
     * partial function is not suspended in `F`, unlike [[of]]. This allows for less

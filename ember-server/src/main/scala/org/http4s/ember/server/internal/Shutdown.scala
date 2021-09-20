@@ -19,7 +19,6 @@ package org.http4s.ember.server.internal
 import cats.syntax.all._
 import cats.effect._
 import cats.effect.implicits._
-import cats.effect.concurrent._
 import fs2.Stream
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -36,15 +35,14 @@ private[server] abstract class Shutdown[F[_]] {
 
 private[server] object Shutdown {
 
-  def apply[F[_]](timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] =
+  def apply[F[_]](timeout: Duration)(implicit F: Temporal[F]): F[Shutdown[F]] =
     timeout match {
       case fi: FiniteDuration =>
         if (fi.length == 0) immediateShutdown else timedShutdown(timeout)
       case _ => timedShutdown(timeout)
     }
 
-  private def timedShutdown[F[_]](
-      timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
+  private def timedShutdown[F[_]](timeout: Duration)(implicit F: Temporal[F]): F[Shutdown[F]] = {
     case class State(isShutdown: Boolean, active: Int)
 
     for {
@@ -84,7 +82,7 @@ private[server] object Shutdown {
           .modify { case s @ State(isShutdown, active) =>
             val conns = active - 1
             if (isShutdown && conns <= 0) {
-              s.copy(active = conns) -> unblockFinish.complete(())
+              s.copy(active = conns) -> unblockFinish.complete(()).void
             } else {
               s.copy(active = conns) -> F.unit
             }
@@ -97,7 +95,7 @@ private[server] object Shutdown {
   private def immediateShutdown[F[_]](implicit F: Concurrent[F]): F[Shutdown[F]] =
     Deferred[F, Unit].map { unblock =>
       new Shutdown[F] {
-        override val await: F[Unit] = unblock.complete(())
+        override val await: F[Unit] = unblock.complete(()).void
         override val signal: F[Unit] = unblock.get
         override val newConnection: F[Unit] = F.unit
         override val removeConnection: F[Unit] = F.unit

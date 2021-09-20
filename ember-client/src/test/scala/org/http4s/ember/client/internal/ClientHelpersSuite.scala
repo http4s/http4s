@@ -18,7 +18,6 @@ package org.http4s.ember.client.internal
 
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent._
 import org.http4s._
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder

@@ -23,6 +23,7 @@ import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.util.Renderer.renderString
 import org.scalacheck.Prop._
+import java.net.Inet6Address
 
 class Ipv6AddressSuite extends Http4sSuite {
   checkAll("Order[Ipv6Address]", OrderTests[Ipv6Address].order)
@@ -48,7 +49,7 @@ class Ipv6AddressSuite extends Http4sSuite {
 
   test("fromInet6Address should round trip with toInet6Address") {
     forAll { (ipv6: Ipv6Address) =>
-      Ipv6Address.fromInet6Address(ipv6.toInet6Address) == ipv6
+      Ipv6Address.fromInet6Address(ipv6.toInetAddress.asInstanceOf[Inet6Address]) == ipv6
     }
   }
 

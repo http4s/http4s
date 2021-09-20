@@ -21,6 +21,9 @@ title: Adopters
 [Formation](https://www.formation.ai/)
 : Uses the client internally
 
+[HiFi](https://hi.fi/)
+: Uses http4s for internal web services
+
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
@@ -36,8 +39,17 @@ title: Adopters
 [Quantiply](https://www.quantiply.com)
 : Uses http4s to power the critical data APIs.
 
+[SecurityScorecard](https://securityscorecard.io)
+: Uses http4s to power its critical data pipeline.
+
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
+
+[Wegtam GmbH](https://www.wegtam.com)
+: Uses http4s to implement service and microservice architectures as well as web applications for customers.
+
+[Wolt](https://wolt.com/)
+: Uses http4s for some API services.
 
 ## Libraries
 
@@ -91,6 +103,9 @@ title: Adopters
 [Docspell](https://github.com/eikek/docspell)
 : A personal document (pdf) organizer
 
+[fink](https://github.com/dozed/fink-http4s)
+: A simple Scala-based content management system
+
 [fleet-buddy](https://github.com/reactormonk/fleet-buddy)
 : Eve Online fleet buddy based on the CREST API
 
@@ -139,6 +154,12 @@ G8 templates provide a fast way to get started with SBT projects by just running
 
 [http4s.g8](https://github.com/http4s/http4s.g8)
 : Bootstrap Http4s services
+
+[http4s-app.g8](https://codeberg.org/wegtam/http4s-app.g8)
+: Bootstrap web apps based on Http4s including database migrations and on Typelevel Stack
+
+[http4s-tapir.g8](https://codeberg.org/wegtam/http4s-tapir.g8)
+: Bootstrap HTTP services using Http4s and sttp tapir (Typed API descRiptions)
 
 [typelevel-stack.g8](https://github.com/gvolpe/typelevel-stack.g8)
 : Typelevel Stack (Http4s / Doobie / Circe / Cats Effect / Fs2)

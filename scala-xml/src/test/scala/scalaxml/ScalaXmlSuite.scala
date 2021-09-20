@@ -20,7 +20,7 @@ package scalaxml
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.text.{utf8Decode, utf8Encode}
+import fs2.text.utf8
 import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Status.Ok
@@ -32,9 +32,9 @@ import java.nio.charset.StandardCharsets
 
 class ScalaXmlSuite extends Http4sSuite {
   def getBody(body: EntityBody[IO]): IO[String] =
-    body.through(utf8Decode).foldMonoid.compile.lastOrError
+    body.through(utf8.decode).foldMonoid.compile.lastOrError
 
-  def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8Encode)
+  def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8.encode)
 
   val server: Request[IO] => IO[Response[IO]] = { req =>
     req.decode { (elem: Elem) =>
@@ -80,7 +80,7 @@ class ScalaXmlSuite extends Http4sSuite {
       xmlEncoder[IO](Charset.`UTF-8`)
         .toEntity(hello)
         .body
-        .through(fs2.text.utf8Decode)
+        .through(fs2.text.utf8.decode)
         .compile
         .string,
       """<?xml version='1.0' encoding='UTF-8'?>
@@ -132,7 +132,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse UTF-8 charset with explicit encoding") {
     // https://tools.ietf.org/html/rfc7303#section-8.1
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0" encoding="utf-8"?><hello name="Günther"/>""".getBytes(
           StandardCharsets.UTF_8)),
       "application/xml; charset=utf-8",
@@ -143,7 +143,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse UTF-8 charset with no encoding") {
     // https://tools.ietf.org/html/rfc7303#section-8.1
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_8)),
       "application/xml; charset=utf-8",
       "Günther")
@@ -152,7 +152,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse UTF-16 charset with explicit encoding") {
     // https://tools.ietf.org/html/rfc7303#section-8.2
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0" encoding="utf-16"?><hello name="Günther"/>""".getBytes(
           StandardCharsets.UTF_16)),
       "application/xml; charset=utf-16",
@@ -163,7 +163,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse UTF-16 charset with no encoding") {
     // https://tools.ietf.org/html/rfc7303#section-8.2
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_16)),
       "application/xml; charset=utf-16",
       "Günther")
@@ -172,7 +172,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse omitted charset and 8-Bit MIME Entity") {
     // https://tools.ietf.org/html/rfc7303#section-8.3
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0" encoding="iso-8859-1"?><hello name="Günther"/>""".getBytes(
           StandardCharsets.ISO_8859_1)),
       "application/xml",
@@ -183,7 +183,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse omitted charset and 16-Bit MIME Entity") {
     // https://tools.ietf.org/html/rfc7303#section-8.4
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0" encoding="utf-16"?><hello name="Günther"/>""".getBytes(
           StandardCharsets.UTF_16)),
       "application/xml",
@@ -193,7 +193,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse omitted charset, no internal encoding declaration") {
     // https://tools.ietf.org/html/rfc7303#section-8.5
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_8)),
       "application/xml",
       "Günther")
@@ -202,7 +202,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse utf-16be charset") {
     // https://tools.ietf.org/html/rfc7303#section-8.6
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_16BE)),
       "application/xml; charset=utf-16be",
       "Günther")
@@ -211,7 +211,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse non-utf charset") {
     // https://tools.ietf.org/html/rfc7303#section-8.7
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0" encoding="iso-2022-kr"?><hello name="문재인"/>""".getBytes(
           "iso-2022-kr")),
       "application/xml; charset=iso-2022kr",
@@ -222,7 +222,7 @@ class ScalaXmlSuite extends Http4sSuite {
   test("parse conflicting charset and internal encoding") {
     // https://tools.ietf.org/html/rfc7303#section-8.8
     encodingTest(
-      Chunk.bytes(
+      Chunk.array(
         """<?xml version="1.0" encoding="utf-8"?><hello name="Günther"/>""".getBytes(
           StandardCharsets.ISO_8859_1)),
       "application/xml; charset=iso-8859-1",

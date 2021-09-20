@@ -76,13 +76,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
-    // CE3
-    dependencyUpdatesFilter -= moduleFilter(name = "log4cats-*", revision = "2.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "ip4s-*", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "cats-effect*", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
+    // Breaking change deferred to 1.0
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
@@ -130,13 +124,6 @@ object Http4sPlugin extends AutoPlugin {
       },
 
     nowarnCompatAnnotationProvider := None,
-
-    mimaPreviousArtifacts := {
-      mimaPreviousArtifacts.value.filterNot(
-        // cursed release
-        _.revision == "0.21.10"
-      )
-    },
 
     doctestTestFramework := DoctestTestFramework.Munit,
   )
@@ -278,11 +265,14 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
         sitePublishStep("website"),
-        sitePublishStep("docs")
+        // sitePublishStep("docs")
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
+      githubWorkflowAddedJobs := Seq(
+        siteBuildJob("website"),
+        siteBuildJob("docs")
+      ),
     )
   }
 
@@ -295,22 +285,22 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.4.0"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
-    val catsEffect = "2.5.4"
+    val catsEffect = "3.2.9"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.3"
-    val fs2 = "2.5.9"
-    val ip4s = "2.0.3"
+    val fs2 = "3.1.2"
+    val ip4s = "3.0.3"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
-    val jawnFs2 = "1.1.3"
+    val jawnFs2 = "2.1.0"
     val jetty = "9.4.43.v20210629"
-    val keypool = "0.3.5"
+    val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.5"
-    val log4cats = "1.3.1"
+    val log4cats = "2.1.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.5"
@@ -332,7 +322,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.53"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.13"
+    val vault = "3.0.4"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
@@ -343,7 +333,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val caseInsensitiveTesting           = "org.typelevel"          %% "case-insensitive-testing"  % V.caseInsensitive
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
+  lazy val catsEffectStd                    = "org.typelevel"          %% "cats-effect-std"           % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
+  lazy val catsEffectTestkit                = "org.typelevel"          %% "cats-effect-testkit"       % V.catsEffect
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
   lazy val catsParse                        = "org.typelevel"          %% "cats-parse"                % V.catsParse
   lazy val circeCore                        = "io.circe"               %% "circe-core"                % V.circe
@@ -362,8 +354,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val ip4sCore                         = "com.comcast"            %% "ip4s-core"                 % V.ip4s
   lazy val ip4sTestKit                      = "com.comcast"            %% "ip4s-test-kit"             % V.ip4s
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
+  lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
   lazy val javaWebSocket                    = "org.java-websocket"     %  "Java-WebSocket"            % V.javaWebSocket
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % V.jetty
@@ -381,7 +373,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
-  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-2"       % V.munitCatsEffect
+  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-3"       % V.munitCatsEffect
   lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val nettyBuffer                      = "io.netty"               %  "netty-buffer"              % V.netty
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty

@@ -19,6 +19,7 @@ package com.example.http4s.ember
 import fs2._
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
@@ -32,8 +33,8 @@ import scala.concurrent.duration._
 object EmberServerSimpleExample extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] = {
-    val host = "0.0.0.0"
-    val port = 8080
+    val host = host"0.0.0.0"
+    val port = port"8080"
     for {
       // Server Level Resources Here
       server <-
@@ -48,7 +49,7 @@ object EmberServerSimpleExample extends IOApp {
     IO.delay(println(s"Server Has Started at ${server.address}")) >>
       IO.never.as(ExitCode.Success))
 
-  def service[F[_]: Sync: Timer]: HttpApp[F] = {
+  def service[F[_]: Async]: HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -68,7 +69,7 @@ object EmberServerSimpleExample extends IOApp {
             .covary[F]
             .repeat
             .take(100)
-            .through(fs2.text.utf8Encode[F])
+            .through(fs2.text.utf8.encode[F])
           Ok(body).map(_.withContentType(headers.`Content-Type`(MediaType.text.plain)))
         case GET -> Root / "ws" =>
           val send: Stream[F, WebSocketFrame] =

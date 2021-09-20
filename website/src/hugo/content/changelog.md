@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.3 (2021-09-02)
+
+This is binary compatible with v0.23.3.  It includes the fixes in v0.22.2.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#5138](https://github.com/http4s/http4s/pull/5138): Correctly populate the `SecureSession` response attribute.
+
 # v0.22.4 (2021-09-02)
 
 This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.28.
@@ -34,11 +44,42 @@ This release is binary compatible with 0.21.x.
 
 * [#5144](https://github.com/http4s/http4s/pull/5144): In the `CORS` middleware, respond to preflight `OPTIONS` requests with a 200 status.  It was previously passing through to the wrapped `Http`, most of which won't respond to `OPTIONS`.  The breaking change is that the constraint is promoted from `Functor` to `Applicative`.  The `Functor` version is left for binary compatibility with a runtime warning.
 
-# v0.22.3 (unreleased)
+# v0.23.2 (2021-09-01)
+
+This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in v0.22.3.
+
+This release is binary compatible with the 0.23 series.
+
+## http4s-core
+
+### Enhancements
+
+* [#5085](https://github.com/http4s/http4s/pull/5085): Make `EntityEncoder`s for `File`, `Path`, and `InputStream` implicit.  Since 0.23, they no longer require an explicit `Blocker` parameter, using Cats-Effect 3's runtime instead.
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#5118](https://github.com/http4s/http4s/pull/5118): Don't block the `TickWheelExecutor` on cancellation.  In-flight responses are canceled when a connection shuts down.  If the response cancellation hangs, it blocks the `TickWheelScheduler` thread.  When this thread blocks, subsequent scheduled events are not processed, and memory leaks with each newly scheduled event.
+
+### Enhancements
+
+* [#4782](https://github.com/http4s/http4s/pull/4782): Use `Async[F].executionContext` as a default `ExecutionContext` in `BlazeServerBuilder`.
+
+## http4s-ember-server
+
+* [#5106](https://github.com/http4s/http4s/pull/5106): Demote noisy `WebSocket connection terminated with exception` message to trace-level logging on broken pipes.  This relies on exception message parsing and may not work well in all locales.
+
+## Dependency updates
+
+* cats-effect-3.2.5
+* fs2-3.1.1
+
+# v0.22.3 (2021-09-01)
 
 This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in 0.21.26 and 0.21.27.
 
-Binary compatible with the 0.22.2 series, with the exception of static forwarders in `HttpApp.apply`, `HttpApp.local`.  Unless you are calling `HttpApp` from a language other than Scala, you are not affected.
+Binary compatible with 0.22.2 series, with the exception of static forwarders in `HttpApp.apply`, `HttpApp.local`.  Unless you are calling `HttpApp` from a language other than Scala, you are not affected.
 
 ## http4s-core
 
@@ -166,6 +207,16 @@ The 0.21 series is no longer actively maintained by the team, but we'll continue
    * Less than 2 attempts have been made
    * Ember detects that the connection was closed without reading any bytes
 
+# v0.23.1 (2021-08-06)
+
+Includes all changes through v0.22.2.
+
+### Dependency updates
+
+* cats-effect-3.2.2
+* fs2-3.1.0
+* vault-3.0.4
+
 # v0.22.2 (2021-08-06)
 
 ## http4s-core
@@ -183,6 +234,39 @@ The 0.21 series is no longer actively maintained by the team, but we'll continue
 
 * cats-effect-2.5.3
 * tomcat-9.0.52
+
+# v0.23.0 (2021-07-30)
+
+This is the first production release with Cats-Effect 3 support.  All subsequent 0.23.x releases will be binary compatible with this.
+
+Includes all changes through v0.22.1.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4997](https://github.com/http4s/http4s/pull/4997): Refresh MimeDB from the IANA registry.  It shuffles some constants in ways that offend MiMa, but you almost certainly won't notice.
+
+### Enhancements
+
+* [#4915](https://github.com/http4s/http4s/pull/4915): Add file-based multipart decoder with better resource handling.  This deprecates the priod `mixedMultipart` decoder in favor of a `mixedMultipartResource`, which cleans up temporary storage on release of the resource.  Please see the scaladoc for a usage example.
+
+## Various modules
+
+### Breaking changes
+
+* [#4998](https://github.com/http4s/http4s/pull/4998): Removes everything deprecated since 0.20.0, over 24 months and three breaking releases ago.  See the pull request for a comprehensive list.
+
+### Refactoring
+
+* [#4986](https://github.com/http4s/http4s/pull/4986): Light refactoring of fs2 pipes in Ember and Blaze backends.  Should not be visible.
+
+## Dependency updates
+
+* cats-effect-3.2.0
+* fs2-3.0.6
+* jawn-fs2-2.1.0
+* keypool-0.4.6
 
 # v0.22.1 (2021-07-30)
 
@@ -290,6 +374,36 @@ Includes all changes from v0.21.25.
 * slf4j-1.7.31
 * tomcat-9.0.50
 
+# v1.0.0-M23 (2021-05-26)
+
+Functionally equivalent to v0.23.0-RC1. Keeps the 1.0 milestones current as we continue our roadmap. Includes the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
+
+# v0.23.0-RC1 (2021-05-26)
+
+Includes the changes of v0.22.0-RC1, including the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4884](https://github.com/http4s/http4s/pull/4884): Use `Monad` instead of `Defer` constraints on `HttpApp`, `HttpRoutes`, `AuthedRoutes`, `ContextRoutes`, and related syntax. This avoids diverging implicits when only a `Concurrent` constraint is available in Cats-Effect-3.
+
+### Noteworthy refactoring
+
+* [#4773](https://github.com/http4s/http4s/pull/4787): Refactor the internals of the `Multipart` parser.
+
+## http4s-ember-client
+
+### Noteworthy refactoring
+
+* [#4882](https://github.com/http4s/http4s/pull/4882): Use `Network` instead of `Network.forAsync` to get the socket group.
+
+## http4s-ember-server
+
+### Noteworthy refactoring
+
+* [#4882](https://github.com/http4s/http4s/pull/4882): Use `Network` instead of `Network.forAsync` to get the socket group.
+
 # v0.22.0-RC1 (2021-05-26)
 
 Includes the changes of 0.21.24, including the [vulnerability fix](https://github.com/http4s/http4s-ghsa-6h7w-fc84-x7p6) to `StaticFile.fromUrl`.
@@ -341,9 +455,34 @@ Contains a vulnerability fix for `StaticFile.fromUrl`.
 
 * blaze-0.14.17
 
+# v1.0.0-M22 (2021-05-21)
+
+Functionally equivalent to v0.23.0-M1.  Keeps the 1.0 milestones current as we continue our roadmap.
+
+# v0.23.0-M1 (2021-05-21)
+
+We are opening an 0.23 series to offer full support for Scala 3 and Cats-Effect 3 while giving ourselves a bit more time to finish our more ambitious goals for 1.0.  We will release v0.23.0 with production support as soon as circe-0.14 is out.
+
+This release picks up from v1.0.0-M21 with its Cats-Effect 3 support, and includes all improvements from v0.22.0-M8.
+
+## Documentation
+
+* [#4845](https://github.com/http4s/http4s/pull/4845): Mention `Client.fromHttpApp`
+
+## Dependency updates
+
+* cats-effect-3.1.0
+* fs2-3.0.4
+* ip4s-3.0.2
+* jawn-fs2-2.0.2
+* keypool-0.4.5
+* log4cats-2.1.1
+* scalacheck-effect-1.0.2
+* vault-3.0.3
+
 # v0.22.0-M8 (2021-05-21)
 
-Includes the changes of v0.21.23.  This is the first release with support for Scala 3.0.0.  We intend to make this a production release as soon as circe-0.14 is out.
+Includes the changes of v0.21.23.  This is the first release with support for Scala 3.0.0.  We will release v0.22.0 with production support as circe-0.14 is out.
 
 There are several package renames in the backends.  To help, we've provided a Scalafix:
 
@@ -514,6 +653,18 @@ This is the final planned release in the 0.21 series.  Bugfixes and community su
 * scodec-bits-1.1.27
 * tomcat-9.0.46
 
+# v1.0.0-M21 (2021-04-10)
+
+Contains all the changes of v0.22.0-M7.
+
+## Dependency updates
+
+* cats-effect-3.0.1
+* jawn-fs2-2.0.1
+* keypool-0.4.1
+* log4cats-2.0.1
+* vault-3.0.1
+
 # v0.22.0-M7 (2021-04-10)
 
 Contains all the changes of v0.21.22.
@@ -564,6 +715,19 @@ Contains all the changes of v0.21.22.
 * scodec-bits-1.1.25
 * tomcat-9.0.45
 * twirl-1.5.1
+
+# v1.0.0-M20 (2021-03-29)
+
+Includes all the changes of v0.21.21 and v0.22.0-M6.
+
+## Dependency updates
+
+* cats-effect-3.0.0
+* fs2-3.0.0
+* jawn-fs2-2.0.0
+* keypool-0.4.0
+* log4cats-2.0.0
+* vault-3.0.0
 
 # v0.22.0-M6 (2021-03-29)
 
@@ -660,6 +824,12 @@ Includes all the changes of v0.21.21.
 * scalatags-0.9.4
 * tomcat-9.0.44
 
+# v1.0.0-M19 (2021-03-03)
+
+This is the first 1.0 milestone with Scala 3 support.  Scala 3.0.0-RC1 is supported for all modules except http4s-boopickle, http4s-scalatags, and http4s-twirl.
+
+This release contains all the changes of v0.22.0-M5.
+
 # v0.22.0-M5 (2021-03-03)
 
 This is the first release with Scala 3 support.  Scala 3.0.0-RC1 is supported for all modules except http4s-boopickle, http4s-scalatags, and http4s-twirl.
@@ -695,7 +865,51 @@ See [#4415](https://github.com/http4s/http4s/pull/4415), [#4526](https://github.
 
 * [#4579](https://github.com/http4s/http4s/pull/4579): Regenerate MimeDB from the IANA registry
 
+# v1.0.0-M18 (2021-03-02)
+
+Includes changes from v0.22.0-M4.
+
+## http4s-core
+
+### Breaking changes
+
+* [#4516](https://github.com/http4s/http4s/pull/4516): Replace `Defer: Applicative` constraint with `Monad` in `HttpRoutes.of` and `ContextRoutes.of`.  This should be source compatible for nearly all users.  Users who can't abide this constraint can use `.strict`, at the cost of efficiency in combinining routes.
+
+### Enhancements
+
+* [#4351](https://github.com/http4s/http4s/pull/4351): Optimize multipart parser for the fact that pull can't return empty chunks
+* [#4485](https://github.com/http4s/http4s/pull/4485): Drop dependency to `cats-effect-std`. There are no hard dependencies on `cats.effect.IO` outside the tests.
+
+## http4s-blaze-core
+
+### Enhancements
+
+* [#4425](https://github.com/http4s/http4s/pull/4425): Optimize entity body writer
+
+## http4s-ember-server
+
+### Breaking changes
+
+* [#4471](https://github.com/http4s/http4s/pull/4471): `EmberServerBuilder` takes an ip4s `Option[Host]` and `Port` in its config instead of `String` and `Int`.
+* [#4515](https://github.com/http4s/http4s/pull/4515): Temporarily revert the graceful shutdown until a new version of FS2 suports it.
+
+### Dependency updates
+
+* cats-effect-3.0.0-RC2
+* fs2-3.0.0-M9
+* jawn-fs2-2.0.0-RC3
+* ip4s-3.0.0-RC2
+* keypool-0.4.0-RC2
+* log4cats-2.0.0-RC1
+* vault-3.0.0-RC2
+
+~~# v1.0.0-M17 (2021-03-02)~~
+
+Missed the forward merges from 0.22.0-M4. Proceed directly to 1.0.0-M18.
+
 # v0.22.0-M4 (2021-03-02)
+
+Includes changes from v0.21.19 and v0.21.20.
 
 ## http4s-core
 
@@ -861,6 +1075,16 @@ See [#4415](https://github.com/http4s/http4s/pull/4415), [#4526](https://github.
 * okio-2.9.0
 * tomcat-9.0.43
 
+# v1.0.0-M16 (2021-02-02)
+
+Inherits the fixes of v0.21.18
+
+~~# v1.0.0-M15 (2021-02-02)~~
+
+~~Build failure.~~
+
+Accidentally published from the 0.21.x series after a series of unfortunate events. Do not use.
+
 # v0.22.0-M3 (2021-02-02)
 
 Inherits the fixes of v0.21.18
@@ -879,6 +1103,20 @@ Inherits the fixes of v0.21.18
 
 * [#4335](https://github.com/http4s/http4s/pull/4335): Don't render an empty body with chunked transfer encoding on response statuses that don't permit a body (e.g., `204 No Content`).
  
+# v1.0.0-M14
+
+* [GHSA-xhv5-w9c5-2r2w](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w): Additionally to the fix in v0.21.17, drops support for NIO2.
+
+## http4s-okhttp-client
+
+### Breaking changes
+
+* [#4299](https://github.com/http4s/http4s/pull/4299): Manage the `Dispatcher` internally in `OkHttpBuilder`. `create` becomes a private method.
+
+### Documentation
+
+* [#4306](https://github.com/http4s/http4s/pull/4306): Update the copyright notice to 2021.
+
 # v0.22.0-M2 (2021-02-02)
 
 This release fixes a [High Severity vulnerability](https://github.com/http4s/http4s/security/advisories/GHSA-xhv5-w9c5-2r2w) in blaze-server.
@@ -960,6 +1198,176 @@ This release fixes a [High Severity vulnerability](https://github.com/http4s/htt
 
 * blaze-0.14.15
 * okhttp-4.9.1
+
+# v1.0.0-M13 (2021-01-25)
+
+This is the first milestone built on Cats-Effect 3.  To track Cats-Effect 2 development, please see the new 0.22.x series.  Everything in 0.22.0-M1, including the cats-parse port, is here.
+
+## http4s-core
+
+### Breaking changes
+
+* [#3784](https://github.com/http4s/http4s/pull/3784), [#3865](https://github.com/http4s/http4s/pull/3784): Inexhaustively,
+  * Many `EntityDecoder` constraints relaxed from `Sync` to `Concurrent`.
+  * File-related operations require a `Files` constraint.
+  * `Blocker` arguments are no longer required.
+  * `ContextShift` constraints are no longer required.
+  * The deprecated, non-HTTP `AsyncSyntax` is removed.
+* [#3886](https://github.com/http4s/http4s/pull/3886):
+  * Relax `Sync` to `Defer` in `HttpApp` constructor.
+  * Relax `Sync` to `Concurrent` in `Logger` constructors.
+  * Remove `Sync` constraint from `Part` constructors.
+  * Relax `Sync` to `Functor` in various Kleisli syntax.
+
+## http4s-laws
+
+### Breaking changes
+
+* [#3807](https://github.com/http4s/http4s/pull/3807): Several arbitraries and cogens now require a `Dispatcher` and a `TestContext`.
+## http4s-client
+
+* [#3857](https://github.com/http4s/http4s/pull/3857): Inexhaustively,
+  * `Monad: Clock` constraints changed to `Temporal`
+  * `Client.translate` requires an `Async` and `MonadCancel`
+  * Removal of `Blocker` from `JavaNetClientBuilder`
+  * `PoolManager` changed from `Concurrent` to `Async`
+  * Many middlewares changed from `Sync` to `Async`
+* [#4081](https://github.com/http4s/http4s/pull/4081): Change `Metrics` constraints from `Temporal` to `Clock: Concurrent`
+
+## http4s-server
+
+* [#3857](https://github.com/http4s/http4s/pull/3857): Inexhaustively,
+  * `Monad: Clock` constraints changed to `Temporal`
+  * Many middlewares changed from `Sync` to `Async`
+* [#4081](https://github.com/http4s/http4s/pull/4081): Change `Metrics` constraints from `Temporal` to `Clock: Concurrent`
+
+## http4s-async-http-client
+
+### Breaking changes
+
+* [#4149](https://github.com/http4s/http4s/pull/4149): `ConcurrentEffect` constraint relaxed to `Async`. `apply` method changed to `fromClient` and returns a `Resource` to account for the `Dispatcher`.
+
+## http4s-blaze-core
+
+### Breaking changes
+
+* [#3894](https://github.com/http4s/http4s/pull/3894): Most `Effect` constraints relaxed to `Async`.
+
+## http4s-blaze-server
+
+### Breaking changes
+
+* [#4097](https://github.com/http4s/http4s/pull/4097), [#4137](https://github.com/http4s/http4s/pull/4137): `ConcurrentEffect` constraint relaxed to `Async`. Remove deprecated `BlazeBuilder`
+
+## http4s-blaze-client
+
+### Breaking changes
+
+* [#4097](https://github.com/http4s/http4s/pull/4097): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-ember-client
+
+### Breaking changes
+
+* [#4256](https://github.com/http4s/http4s/pull/4256): `Concurrent: Timer: ContextShift` constraint turned to `Async`
+
+## http4s-ember-server
+
+### Breaking changes
+
+* [#4256](https://github.com/http4s/http4s/pull/4256): `Concurrent: Timer: ContextShift` constraint turned to `Async`
+
+## http4s-okhttp-client
+
+### Breaking changes
+
+* [#4102](https://github.com/http4s/http4s/pull/4102), [#4136](https://github.com/http4s/http4s/pull/4136):
+  * `OkHttpBuilder` takes a `Dispatcher`
+  * `ConcurrentEffect` and `ContextShift` constraints replaced by `Async`
+
+## http4s-servlet
+
+### Breaking changes
+
+* [#4175](https://github.com/http4s/http4s/pull/4175): Servlets naow take a `Dispatcher`. The blocker is removed from `BlockingIo`. `ConcurrentEffect` constraint relaxed to `Async`.
+
+## http4s-jetty-client
+
+### Breaking changes
+
+* [#4165](https://github.com/http4s/http4s/pull/4165): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-jetty
+
+### Breaking changes
+
+* [#4191](https://github.com/http4s/http4s/pull/4191): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-tomcat
+
+### Breaking changes
+
+* [#4216](https://github.com/http4s/http4s/pull/4216): `ConcurrentEffect` constraint relaxed to `Async`
+
+## http4s-jawn
+
+### Breaking changes
+
+* [#3871](https://github.com/http4s/http4s/pull/3871): `Sync` constraints relaxed to `Concurrent`
+
+## http4s-argonaut
+
+### Breaking changes
+
+* [#3961](https://github.com/http4s/http4s/pull/3961): `Sync` constraints relaxed to `Concurrent`
+
+## http4s-circe
+
+### Breaking changes
+
+* [#3965](https://github.com/http4s/http4s/pull/3965): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-json4s
+
+### Breaking changes
+
+* [#3885](https://github.com/http4s/http4s/pull/3885): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-play-json
+
+### Breaking changes
+
+* [#3962](https://github.com/http4s/http4s/pull/3962): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-scala-xml
+
+### Breaking changes
+
+* [#4054](https://github.com/http4s/http4s/pull/4054): `Sync` constraints relaxed to to `Concurrent`.
+
+## http4s-boopickle
+
+### Breaking changes
+
+* [#3871](https://github.com/http4s/http4s/pull/3852): `Sync` constraints relaxed to `Concurrent`
+
+## Dependency updates
+
+* cats-effect-3.0.0-M5
+* fs2-3.0.0-M7
+* jawn-1.0.3
+* jawn-fs2-2.0.0-M2
+* keypool-0.4.0-M1 (moved to `org.typelevel`)
+* log4cats-2.0.0-M1
+* vault-3.0.0-M1
+
+~~# v1.0.0-M12 (2021-01-25)~~
+
+Build failure
+
+~~# v1.0.0-M11 (2021-01-25)~~
+
+Partial publish after build failure
 
 # v0.22.0-M1 (2021-01-24)
 
@@ -1073,7 +1481,17 @@ The headline change is that all parboiled2 parsers have been replaced with cats-
 
 * [#4124](https://github.com/http4s/http4s/pull/4124): Avoid intermediate `ByteBuffer` duplication
 
+# v1.0.0-M10 (2020-12-31)
+
+## http4s-client
+
+### Enhancements
+
+* [#4051](https://github.com/http4s/http4s/pull/4051): Add `customized` function to `Logger` middleware that takes a function to produce the log string. Add a `colored` implementation on that that adds colors to the logs.
+
 ## Dependency updates
+
+* argonaut-6.3.3
 
 * dropwizard-metrics-4.1.17
 * netty-4.1.58.Final

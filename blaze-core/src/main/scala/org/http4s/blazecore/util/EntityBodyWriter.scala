@@ -24,7 +24,7 @@ import fs2._
 import scala.concurrent._
 
 private[http4s] trait EntityBodyWriter[F[_]] {
-  implicit protected def F: Effect[F]
+  implicit protected def F: Async[F]
 
   protected val wroteHeader: Promise[Unit] = Promise[Unit]()
 
@@ -58,7 +58,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     * @return the Task which when run will unwind the Process
     */
   def writeEntityBody(p: EntityBody[F]): F[Boolean] = {
-    val writeBody: F[Unit] = p.through(writePipe).compile.drain
+    val writeBody: F[Unit] = writePipe(p).compile.drain
     val writeBodyEnd: F[Boolean] = fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
     writeBody *> writeBodyEnd
   }
@@ -68,10 +68,19 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     * If it errors the error stream becomes the stream, which performs an
     * exception flush and then the stream fails.
     */
-  private def writePipe: Pipe[F, Byte, Unit] = { s =>
-    val writeStream: Stream[F, Unit] =
-      s.chunks.evalMap(chunk => fromFutureNoShift(F.delay(writeBodyChunk(chunk, flush = false))))
-    val errorStream: Throwable => Stream[F, Unit] = e =>
+  private def writePipe(s: Stream[F, Byte]): Stream[F, INothing] = {
+    def writeChunk(chunk: Chunk[Byte]): F[Unit] =
+      fromFutureNoShift(F.delay(writeBodyChunk(chunk, flush = false)))
+
+    val writeStream: Stream[F, INothing] =
+      s.repeatPull {
+        _.uncons.flatMap {
+          case None => Pull.pure(None)
+          case Some((hd, tl)) => Pull.eval(writeChunk(hd)).as(Some(tl))
+        }
+      }
+
+    val errorStream: Throwable => Stream[F, INothing] = e =>
       Stream
         .eval(fromFutureNoShift(F.delay(exceptionFlush())))
         .flatMap(_ => Stream.raiseError[F](e))

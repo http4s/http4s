@@ -19,10 +19,9 @@ package server
 
 import cats.syntax.all._
 import cats.effect._
-import cats.effect.concurrent.Ref
 import fs2._
 import fs2.concurrent.{Signal, SignallingRef}
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.InetSocketAddress
 import org.http4s.internal.BackendBuilder
 import scala.collection.immutable
 
@@ -58,7 +57,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   final def serve: Stream[F, ExitCode] =
     for {
       signal <- Stream.eval(SignallingRef[F, Boolean](false))
-      exitCode <- Stream.eval(Ref[F].of(ExitCode.Success))
+      exitCode <- Stream.eval(F.ref(ExitCode.Success))
       serve <- serveWhile(signal, exitCode)
     } yield serve
 
@@ -77,29 +76,6 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
 
   /** Disable the banner when the server starts up */
   final def withoutBanner: Self = withBanner(immutable.Seq.empty)
-}
-
-object ServerBuilder {
-  @deprecated("Use InetAddress.getLoopbackAddress.getHostAddress", "0.20.0-M2")
-  val LoopbackAddress = InetAddress.getLoopbackAddress.getHostAddress
-  @deprecated("Use org.http4s.server.defaults.Host", "0.20.0-M2")
-  val DefaultHost = defaults.Host
-  @deprecated("Use org.http4s.server.defaults.HttpPort", "0.20.0-M2")
-  val DefaultHttpPort = defaults.HttpPort
-  @deprecated("Use org.http4s.server.defaults.SocketAddress", "0.20.0-M2")
-  val DefaultSocketAddress = defaults.SocketAddress
-  @deprecated("Use org.http4s.server.defaults.Banner", "0.20.0-M2")
-  val DefaultBanner = defaults.Banner
-}
-
-object IdleTimeoutSupport {
-  @deprecated("Moved to org.http4s.server.defaults.IdleTimeout", "0.20.0-M2")
-  val DefaultIdleTimeout = defaults.IdleTimeout
-}
-
-object AsyncTimeoutSupport {
-  @deprecated("Moved to org.http4s.server.defaults.AsyncTimeout", "0.20.0-M2")
-  val DefaultAsyncTimeout = defaults.ResponseTimeout
 }
 
 object SSLKeyStoreSupport {

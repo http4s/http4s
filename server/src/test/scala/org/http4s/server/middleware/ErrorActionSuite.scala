@@ -16,8 +16,7 @@
 
 package org.http4s.server.middleware
 
-import cats.effect.IO
-import cats.effect.concurrent.Ref
+import cats.effect.{IO, Ref}
 import com.comcast.ip4s.{Ipv4Address, Port, SocketAddress}
 import org.http4s._
 import org.http4s.Request.Connection

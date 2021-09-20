@@ -24,7 +24,7 @@ import scala.util.Random
 
 final case class Boundary(value: String) extends AnyVal {
   def toChunk: Chunk[Byte] =
-    Chunk.bytes(value.getBytes(StandardCharsets.UTF_8))
+    Chunk.array(value.getBytes(StandardCharsets.UTF_8))
 }
 
 object Boundary {

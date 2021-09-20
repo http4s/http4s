@@ -16,16 +16,16 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, ~>}
+import cats.{Applicative, Monad, ~>}
 import cats.data.NonEmptyList
+import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
-import cats.effect.{IO, Sync}
 import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
 import fs2.{Pure, Stream}
-import fs2.text.utf8Encode
+import fs2.text.utf8
 import java.io.File
 import org.http4s.headers._
-import org.http4s.syntax.{KleisliSyntax, KleisliSyntaxBinCompat0, KleisliSyntaxBinCompat1}
+import org.http4s.syntax.KleisliSyntax
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
@@ -65,10 +65,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     change(attributes = attributes)
 
   // Body methods
-
-  @deprecated("Use withEntity", "0.19")
-  def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): F[Self] =
-    F.pure(withEntity(b))
 
   /** Replace the body of this message with a new body
     *
@@ -182,10 +178,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   // Specific header methods
 
-  @deprecated("Use withContentType(`Content-Type`(t)) instead", "0.20.0-M2")
-  def withType(t: MediaType)(implicit F: Functor[F]): Self =
-    withContentType(`Content-Type`(t))
-
   def withContentType(contentType: `Content-Type`): Self =
     putHeaders(contentType)
 
@@ -228,7 +220,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 object Message {
   private[http4s] val logger = getLogger
   object Keys {
-    private[this] val trailerHeaders: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
+    private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
     def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]
   }
 }
@@ -544,10 +536,10 @@ object Request {
       secure: Boolean)
 
   object Keys {
-    val PathInfoCaret: Key[Int] = Key.newKey[IO, Int].unsafeRunSync()
-    val PathTranslated: Key[File] = Key.newKey[IO, File].unsafeRunSync()
-    val ConnectionInfo: Key[Connection] = Key.newKey[IO, Connection].unsafeRunSync()
-    val ServerSoftware: Key[ServerSoftware] = Key.newKey[IO, ServerSoftware].unsafeRunSync()
+    val PathInfoCaret: Key[Int] = Key.newKey[SyncIO, Int].unsafeRunSync()
+    val PathTranslated: Key[File] = Key.newKey[SyncIO, File].unsafeRunSync()
+    val ConnectionInfo: Key[Connection] = Key.newKey[SyncIO, Connection].unsafeRunSync()
+    val ServerSoftware: Key[ServerSoftware] = Key.newKey[SyncIO, ServerSoftware].unsafeRunSync()
   }
 }
 
@@ -664,7 +656,7 @@ final class Response[F[_]] private (
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
 }
 
-object Response extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliSyntaxBinCompat1 {
+object Response extends KleisliSyntax {
 
   /** Representation of the HTTP response to send back to the client
     *
@@ -691,7 +683,7 @@ object Response extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliS
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
-      body = Stream("Not found").through(utf8Encode),
+      body = Stream("Not found").through(utf8.encode),
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L)

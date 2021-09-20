@@ -16,19 +16,18 @@
 
 package org.http4s
 
-import cats.Eq
+import cats._
 import cats.effect.IO
-import cats.syntax.all._
 import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
 import cats.laws.discipline.eq._
-import cats.laws.discipline.arbitrary._
 import fs2._
+import cats.laws.discipline.arbitrary._
+
 import java.io._
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeoutException
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
-import scala.concurrent.duration._
+import org.scalacheck.Arbitrary
 
 class EntityEncoderSpec extends Http4sSuite {
   {
@@ -80,7 +79,7 @@ class EntityEncoderSpec extends Http4sSuite {
       val w = new FileWriter(tmpFile)
       try w.write("render files test")
       finally w.close()
-      writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlocker))
+      writeToString(tmpFile)(EntityEncoder.fileEncoder)
         .guarantee(IO.delay(tmpFile.delete()).void)
         .assertEquals("render files test")
 
@@ -88,13 +87,13 @@ class EntityEncoderSpec extends Http4sSuite {
 
     test("EntityEncoder should render input streams") {
       val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
-      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder(testBlocker))
+      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder)
         .assertEquals("input stream")
     }
 
     test("EntityEncoder should render readers") {
       val reader = new StringReader("string reader")
-      writeToString(IO(reader))(EntityEncoder.readerEncoder(testBlocker))
+      writeToString(IO(reader))(EntityEncoder.readerEncoder)
         .assertEquals("string reader")
     }
 
@@ -103,14 +102,14 @@ class EntityEncoderSpec extends Http4sSuite {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker))
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder)
         .assertEquals(longString)
     }
 
     test("EntityEncoder should render readers with UTF chars") {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker))
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder)
         .assertEquals(utfString)
     }
 
@@ -128,9 +127,9 @@ class EntityEncoderSpec extends Http4sSuite {
       sealed case class ModelB(name: String, id: Long)
 
       implicit val w1: EntityEncoder[IO, ModelA] =
-        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.bytes("A".getBytes))
+        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.array("A".getBytes))
       implicit val w2: EntityEncoder[IO, ModelB] =
-        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
+        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.array("B".getBytes))
 
       assertEquals(EntityEncoder[IO, ModelA], w1)
       assertEquals(EntityEncoder[IO, ModelB], w2)
@@ -138,25 +137,24 @@ class EntityEncoderSpec extends Http4sSuite {
   }
 
   {
-    implicit val throwableEq: Eq[Throwable] =
-      Eq.fromUniversalEquals
-
-    implicit def entityEq: Eq[Entity[IO]] =
-      Eq.by[Entity[IO], Either[Throwable, (Option[Long], Vector[Byte])]] { entity =>
-        entity.body.compile.toVector
-          .map(bytes => (entity.length, bytes))
-          .attempt
-          .unsafeRunTimed(1.second)
-          .getOrElse(throw new TimeoutException)
+    implicit def entityEq: Eq[Entity[Id]] =
+      Eq.by[Entity[Id], (Option[Long], Vector[Byte])] { entity =>
+        (entity.length, entity.body.compile.toVector)
       }
 
-    implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[IO, A]] =
-      Eq.by[EntityEncoder[IO, A], (Headers, A => Entity[IO])] { enc =>
+    implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[Id, A]] =
+      Eq.by[EntityEncoder[Id, A], (Headers, A => Entity[Id])] { enc =>
         (enc.headers, enc.toEntity)
       }
 
+    // todo this is needed for scala 2.12, remove once we no longer support it
+    implicit def contravariant: Contravariant[EntityEncoder[Id, *]] =
+      EntityEncoder.entityEncoderContravariant[Id]
+    implicit def arb[A: org.scalacheck.Cogen]: Arbitrary[EntityEncoder[Id, A]] =
+      http4sTestingArbitraryForEntityEncoder[Id, A]
+
     checkAll(
       "Contravariant[EntityEncoder[F, *]]",
-      ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt])
+      ContravariantTests[EntityEncoder[Id, *]].contravariant[MiniInt, MiniInt, MiniInt])
   }
 }

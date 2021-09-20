@@ -38,11 +38,10 @@ object HttpServer {
       "/" -> ctx.httpServices
     ).orNotFound
 
-  def stream[F[_]: ConcurrentEffect: ContextShift: Timer]: Stream[F, ExitCode] =
+  def stream[F[_]: Async]: Stream[F, ExitCode] =
     for {
-      blocker <- Stream.resource(Blocker[F])
       client <- BlazeClientBuilder[F](global).stream
-      ctx <- Stream(new Module[F](client, blocker))
+      ctx <- Stream(new Module[F](client))
       exitCode <- BlazeServerBuilder[F](global)
         .bindHttp(8080)
         .withHttpApp(httpApp(ctx))

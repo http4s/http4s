@@ -17,37 +17,36 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
-import fs2.io.tcp._
+import fs2.io.net._
 import cats._
 import cats.data.NonEmptyList
-import cats.effect._
-import cats.effect.implicits._
-import cats.effect.concurrent._
+import cats.effect.kernel.{Async, Clock, Concurrent, Ref, Resource, Sync}
 import cats.syntax.all._
+
 import scala.concurrent.duration._
-import java.net.InetSocketAddress
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.core.EmberException
 import org.typelevel.ci._
 import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.fs2.io.tcp.SocketGroup
-import _root_.fs2.io.tls._
+import _root_.fs2.io.net.SocketGroup
+import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
+
 import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
+import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
 import java.nio.channels.ClosedChannelException
 
 private[client] object ClientHelpers {
-
-  def requestToSocketWithKey[F[_]: Concurrent: ContextShift](
+  def requestToSocketWithKey[F[_]: Sync](
       request: Request[F],
-      tlsContextOpt: Option[TLSContext],
+      tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
-      sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      sg: SocketGroup[F],
+      additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -59,16 +58,16 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Concurrent: ContextShift](
+  def requestKeyToSocketWithKey[F[_]: Sync](
       requestKey: RequestKey,
-      tlsContextOpt: Option[TLSContext],
+      tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
-      sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      sg: SocketGroup[F],
+      additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] =
     for {
       address <- Resource.eval(getAddress(requestKey))
-      initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
+      initSocket <- sg.client(address, options = additionalSocketOptions)
       socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
           tlsContextOpt.fold[Resource[F, Socket[F]]] {
@@ -77,20 +76,26 @@ private[client] object ClientHelpers {
             )
           } { tlsContext =>
             tlsContext
-              .client(
-                initSocket,
+              .clientBuilder(initSocket)
+              .withParameters(
                 TLSParameters(
-                  serverNames = Some(List(new SNIHostName(address.getHostName))),
+                  serverNames = extractHostname(address.host).map(List(_)),
                   endpointIdentificationAlgorithm =
-                    if (enableEndpointValidation) Some("HTTPS") else None)
-              )
+                    if (enableEndpointValidation) Some("HTTPS") else None))
+              .build
               .widen[Socket[F]]
           }
         else initSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
 
-  def request[F[_]: Concurrent: Timer](
+  private def extractHostname(from: Host): Option[SNIHostName] = from match {
+    case hostname: Hostname => new SNIHostName(hostname.normalized.toString).some
+    case address: IpAddress => new SNIHostName(address.toString).some
+    case idn: IDN => extractHostname(idn.hostname)
+  }
+
+  def request[F[_]: Async](
       request: Request[F],
       connection: EmberConnection[F],
       chunkSize: Int,
@@ -100,30 +105,25 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`]
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
-    def writeRequestToSocket(
-        req: Request[F],
-        socket: Socket[F],
-        timeout: Option[FiniteDuration]): F[Unit] =
+    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
       Encoder
         .reqToBytes(req)
-        .through(socket.writes(timeout))
+        .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
         .compile
         .drain
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket, durationToFinite(idleTimeout)) >>
+      writeRequestToSocket(req, connection.keySocket.socket) >>
         connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
-          val finiteDuration = durationToFinite(timeout)
           val parse = Parser.Response.parser(maxResponseHeaderSize)(
             head,
-            connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
+            timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout)
           )
-
-          finiteDuration.fold(parse)(duration =>
-            parse.timeoutTo(
-              duration,
-              ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
-                s"Timed Out on EmberClient Header Receive Timeout: $duration"))))
+          timeoutToMaybe(
+            parse,
+            timeout,
+            ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
+              s"Timed Out on EmberClient Header Receive Timeout: $timeout")))
         }
 
     for {
@@ -170,12 +170,14 @@ private[client] object ClientHelpers {
     }
 
   // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
-  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
+  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
-        Sync[F].delay(new InetSocketAddress(host, port))
+        Sync[F].delay(
+          SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)
+        ) // FIXME
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool

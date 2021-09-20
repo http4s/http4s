@@ -34,14 +34,12 @@ import org.http4s.implicits._
 import org.http4s.blaze.server._
 ```
 
-Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
-[[`ContextShift`]].  The following lines are not necessary if you are
-in an [[`IOApp`]]:
+The following is provided by an `IOApp`, but necessary if following
+along in a REPL:
 
 ```scala mdoc:silent:nest
-import scala.concurrent.ExecutionContext.global
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
 Finish setting up our server:
@@ -95,12 +93,10 @@ It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
 ```scala mdoc:silent:nest
-import cats.effect.Blocker
 import java.util.concurrent._
 
 val blockingPool = Executors.newFixedThreadPool(5)
-val blocker = Blocker.liftExecutorService(blockingPool)
-val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
+val httpClient: Client[IO] = JavaNetClientBuilder[IO].create
 ```
 
 ### Describing a call
@@ -239,7 +235,6 @@ import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
 ```scala mdoc:nest
-implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
@@ -269,7 +264,6 @@ import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
 ```
 ```scala mdoc:nest
-implicit val clock = Clock.create[IO]
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
 val meteredClient: Resource[IO, Client[IO]] =
@@ -382,8 +376,6 @@ blockingPool.shutdown()
 [service]: ../service
 [entity]: ../entity
 [json]: ../json
-[`ContextShift`]: https://typelevel.org/cats-effect/datatypes/contextshift.html
-[`ConcurrentEffect`]: https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html
 [`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
 [middleware]: ../middleware
 [Follow Redirect]: ../api/org/http4s/client/middleware/FollowRedirect$

@@ -25,7 +25,7 @@ import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 
-import java.net.BindException
+import java.net.{BindException, ConnectException}
 
 class EmberServerSuite extends Http4sSuite {
 
@@ -67,6 +67,14 @@ class EmberServerSuite extends Http4sSuite {
       .assertEquals(Status.Ok)
   }
 
+  client.test("server shuts down after exiting resource scope") { client =>
+    serverResource.use(server => IO.pure(server.address)).flatMap { address =>
+      client
+        .get(s"http://${address.getHostName}:${address.getPort}")(_.status.pure[IO])
+        .intercept[ConnectException]
+    }
+  }
+
   server().test("server startup fails if address is already in use") { case _ =>
     serverResource.use(_ => IO.unit).intercept[BindException]
   }
@@ -79,7 +87,7 @@ class EmberServerSuite extends Http4sSuite {
       import org.http4s.client.dsl.io._
 
       val body: Stream[IO, Byte] =
-        Stream.emits(Seq("hello")).repeatN(256).through(fs2.text.utf8Encode).covary[IO]
+        Stream.emits(Seq("hello")).repeatN(256).through(fs2.text.utf8.encode).covary[IO]
       val expected = "hello" * 256
 
       val uri = Uri

@@ -18,7 +18,9 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.implicits._
-import fs2.io.tls.{TLSContext, TLSParameters}
+import fs2.io.net.Network
+import fs2.io.net.tls.TLSContext
+import fs2.io.net.tls.TLSParameters
 
 import java.io.IOException
 import java.security.KeyStore
@@ -66,19 +68,19 @@ class EmberServerMtlsSuite extends Http4sSuite {
               assert(session.X509Certificate.isEmpty)
             }
 
-          Ok("success")
+          Ok(expectedNoAuthResponse)
       }
       .orNotFound
   }
 
-  lazy val authTlsClientContext: Resource[IO, TLSContext] =
+  lazy val authTlsClientContext: Resource[IO, TLSContext[IO]] =
     Resource.eval(
-      TLSContext.fromKeyStoreResource[IO](
-        "keystore.jks",
-        "password".toCharArray,
-        "password".toCharArray,
-        testBlocker
-      ))
+      Network[IO].tlsContext
+        .fromKeyStoreResource(
+          "keystore.jks",
+          "password".toCharArray,
+          "password".toCharArray
+        ))
 
   lazy val noAuthClientContext: SSLContext = {
     val js = KeyStore.getInstance("JKS")
@@ -93,18 +95,18 @@ class EmberServerMtlsSuite extends Http4sSuite {
     sc
   }
 
-  lazy val noAuthTlsClientContext: Resource[IO, TLSContext] =
+  lazy val noAuthTlsClientContext: Resource[IO, TLSContext[IO]] =
     Resource.eval(
-      TLSContext.fromSSLContext(noAuthClientContext, testBlocker).pure[IO]
+      TLSContext.Builder.forAsync[IO].fromSSLContext(noAuthClientContext).pure[IO]
     )
 
-  def fixture(tlsParams: TLSParameters, clientTlsContext: Resource[IO, TLSContext]) =
+  def fixture(tlsParams: TLSParameters, clientTlsContext: Resource[IO, TLSContext[IO]]) =
     (server(tlsParams), client(clientTlsContext)).mapN(FunFixture.map2(_, _))
 
-  def client(tlsContextResource: Resource[IO, TLSContext]) =
+  def client(tlsContextResource: Resource[IO, TLSContext[IO]]) =
     ResourceFixture(clientResource(tlsContextResource))
 
-  def clientResource(tlsContextResource: Resource[IO, TLSContext]) =
+  def clientResource(tlsContextResource: Resource[IO, TLSContext[IO]]) =
     for {
       tlsContext <- tlsContextResource
       emberClient <- EmberClientBuilder
@@ -152,8 +154,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
     noAuthTlsClientContext).test("Server should fail for invalid client auth") {
     case (server, client) =>
       client
-        .get(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")(
-          _.status.pure[IO])
+        .statusFromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
         .intercept[IOException]
   }
 

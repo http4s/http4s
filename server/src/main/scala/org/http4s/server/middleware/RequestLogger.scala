@@ -21,14 +21,12 @@ package middleware
 import cats.~>
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{BracketThrow, Concurrent, ExitCase, Sync}
+import cats.effect.kernel.{Async, MonadCancelThrow, Outcome, Sync}
 import cats.effect.implicits._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
-import cats.effect.Sync._
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
@@ -42,8 +40,8 @@ object RequestLogger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(http: Http[G, F])(implicit
-      F: Concurrent[F],
-      G: BracketThrow[G]
+      F: Async[F],
+      G: MonadCancelThrow[G]
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
@@ -54,8 +52,8 @@ object RequestLogger {
       redactHeadersWhen: CIString => Boolean,
       logAction: Option[String => F[Unit]]
   )(http: Http[G, F])(implicit
-      F: Concurrent[F],
-      G: BracketThrow[G]
+      F: Async[F],
+      G: MonadCancelThrow[G]
   ): Http[G, F] = {
     val log = logAction.fold { (s: String) =>
       Sync[F].delay(logger.info(s))
@@ -83,12 +81,11 @@ object RequestLogger {
         // As None Is Successful, but we oly want to log on Some
         http(req)
           .guaranteeCase {
-            case ExitCase.Canceled => fk(logAct)
-            case ExitCase.Error(_) => fk(logAct)
-            case ExitCase.Completed => G.unit
+            case Outcome.Succeeded(_) => G.unit
+            case _ => fk(logAct)
           } <* fk(logAct)
       } else
-        fk(Ref[F].of(Vector.empty[Chunk[Byte]]))
+        fk(F.ref(Vector.empty[Chunk[Byte]]))
           .flatMap { vec =>
             val newBody = Stream
               .eval(vec.get)
@@ -98,15 +95,16 @@ object RequestLogger {
             val changedRequest = req.withBodyStream(
               req.body
                 // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
+                .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
             )
             def logRequest: F[Unit] =
               logMessage(req.withBodyStream(newBody))
             val response: G[Response[F]] =
               http(changedRequest)
                 .guaranteeCase {
-                  case ExitCase.Completed => G.unit
+                  case Outcome.Succeeded(_) => G.unit
                   case _ => fk(logRequest)
+
                 }
                 .map(resp => resp.withBodyStream(resp.body.onFinalizeWeak(logRequest)))
             response
@@ -114,7 +112,7 @@ object RequestLogger {
     }
   }
 
-  def httpApp[F[_]: Concurrent](
+  def httpApp[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -122,7 +120,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutes[F[_]: Concurrent](
+  def httpRoutes[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -130,7 +128,7 @@ object RequestLogger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpAppLogBodyText[F[_]: Concurrent](
+  def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -138,7 +136,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutesLogBodyText[F[_]: Concurrent](
+  def httpRoutesLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

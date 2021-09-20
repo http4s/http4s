@@ -314,7 +314,7 @@ sealed class CORSPolicy(
   @deprecated("Does not return 200 on preflight requests. Use the Applicative version", "0.21.28")
   protected[CORSPolicy] def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
     logger.warn(
-      "This CORSPolicy does not return 200 on preflight requests. It's kept for binary compatibility, but it's buggy. If you see this, upgrade to v0.22.4 or greater.")
+      "This CORSPolicy does not return 200 on preflight requests. It's kept for binary compatibility, but it's buggy. If you see this, upgrade to v0.23.3 or greater.")
     impl(http, http)
   }
 

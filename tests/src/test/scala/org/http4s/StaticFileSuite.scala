@@ -30,7 +30,7 @@ import java.net.UnknownHostException
 class StaticFileSuite extends Http4sSuite {
   test("Determine the media-type based on the files extension") {
     def check(f: File, tpe: Option[MediaType]): IO[Boolean] =
-      StaticFile.fromFile[IO](f, testBlocker).value.map { r =>
+      StaticFile.fromFile[IO](f).value.map { r =>
         r.isDefined &&
         r.flatMap(_.headers.get[`Content-Type`]) == tpe.map(t => `Content-Type`(t)) &&
         // Other headers must be present
@@ -49,7 +49,7 @@ class StaticFileSuite extends Http4sSuite {
   test("load from resource") {
     def check(resource: String, status: Status): IO[Unit] = {
       val res1 = StaticFile
-        .fromResource[IO](resource, testBlocker)
+        .fromResource[IO](resource)
         .value
 
       Nested(res1)
@@ -82,7 +82,7 @@ class StaticFileSuite extends Http4sSuite {
 
     def check(resource: String, status: Status): IO[Unit] = {
       val res1 = StaticFile
-        .fromResource[IO](resource, testBlocker, classloader = Some(loader))
+        .fromResource[IO](resource, classloader = Some(loader))
         .value
 
       Nested(res1).map(_.status).value.map(_.getOrElse(NotFound)).assertEquals(status)
@@ -105,7 +105,7 @@ class StaticFileSuite extends Http4sSuite {
   test("handle an empty file") {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
-    StaticFile.fromFile[IO](emptyFile, testBlocker).value.map(_.isDefined).assert
+    StaticFile.fromFile[IO](emptyFile).value.map(_.isDefined).assert
   }
 
   test("Don't send unmodified files") {
@@ -114,7 +114,7 @@ class StaticFileSuite extends Http4sSuite {
     val request =
       Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
     val response = StaticFile
-      .fromFile[IO](emptyFile, testBlocker, Some(request))
+      .fromFile[IO](emptyFile, Some(request))
       .value
     Nested(response).map(_.status).value.assertEquals(Some(NotModified))
   }
@@ -127,7 +127,7 @@ class StaticFileSuite extends Http4sSuite {
         `If-None-Match`(
           EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
     val response = StaticFile
-      .fromFile[IO](emptyFile, testBlocker, Some(request))
+      .fromFile[IO](emptyFile, Some(request))
       .value
     Nested(response).map(_.status).value.assertEquals(Some(NotModified))
   }
@@ -142,7 +142,7 @@ class StaticFileSuite extends Http4sSuite {
           EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
 
     val response = StaticFile
-      .fromFile[IO](emptyFile, testBlocker, Some(request))
+      .fromFile[IO](emptyFile, Some(request))
       .value
     Nested(response).map(_.status).value.assertEquals(Some(NotModified))
   }
@@ -155,7 +155,7 @@ class StaticFileSuite extends Http4sSuite {
         .putHeaders(`If-Modified-Since`(HttpDate.MaxValue), `If-None-Match`(EntityTag(s"12345")))
 
     val response = StaticFile
-      .fromFile[IO](emptyFile, testBlocker, Some(request))
+      .fromFile[IO](emptyFile, Some(request))
       .value
     Nested(response).map(_.status).value.assertEquals(Some(Ok))
   }
@@ -172,7 +172,7 @@ class StaticFileSuite extends Http4sSuite {
               s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
 
     val response = StaticFile
-      .fromFile[IO](emptyFile, testBlocker, Some(request))
+      .fromFile[IO](emptyFile, Some(request))
       .value
     Nested(response).map(_.status).value.assertEquals(Some(Ok))
   }
@@ -181,14 +181,7 @@ class StaticFileSuite extends Http4sSuite {
     def check(path: String): IO[Unit] =
       IO(new File(path)).flatMap { f =>
         StaticFile
-          .fromFile[IO](
-            f,
-            0,
-            1,
-            StaticFile.DefaultBufferSize,
-            testBlocker,
-            None,
-            StaticFile.calcETag[IO])
+          .fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None, StaticFile.calcETag[IO])
           .value
           .flatMap { r =>
             // Length is only 1 byte
@@ -221,10 +214,9 @@ class StaticFileSuite extends Http4sSuite {
       StaticFile
         .fromFile[IO](
           file,
-          0,
-          fileSize.toLong - 1,
-          StaticFile.DefaultBufferSize,
-          testBlocker,
+          start = 0,
+          end = fileSize.toLong - 1,
+          buffsize = StaticFile.DefaultBufferSize,
           None,
           StaticFile.calcETag[IO])
         .value
@@ -256,7 +248,7 @@ class StaticFileSuite extends Http4sSuite {
     val url = getClass.getResource("/lorem-ipsum.txt")
     val expected = scala.io.Source.fromURL(url, "utf-8").mkString
     val s = StaticFile
-      .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"), testBlocker)
+      .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
       .value
       .map(_.fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body))
     // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
@@ -270,7 +262,7 @@ class StaticFileSuite extends Http4sSuite {
     val url = getClass.getResource("/lorem-ipsum.txt")
     val len =
       StaticFile
-        .fromURL[IO](url, testBlocker)
+        .fromURL[IO](url)
         .value
         .map(_.flatMap(_.contentLength))
     len.assertEquals(Some(24005L))
@@ -279,7 +271,7 @@ class StaticFileSuite extends Http4sSuite {
   test("return none from a file URL that is a directory") {
     // val url = getClass.getResource("/foo")
     StaticFile
-      .fromURL[IO](getClass.getResource("/foo"), testBlocker)
+      .fromURL[IO](getClass.getResource("/foo"))
       .value
       .assertEquals(None)
   }
@@ -292,7 +284,7 @@ class StaticFileSuite extends Http4sSuite {
     // Or we can be lazy and just use `/`.
     assume(new File("/").isDirectory, "/ is not a directory")
     StaticFile
-      .fromURL[IO](new URL("https://github.com//"), testBlocker)
+      .fromURL[IO](new URL("https://github.com//"))
       .value
       .map(_.fold(Status.NotFound)(_.status))
       .assertEquals(Status.Ok)
@@ -300,14 +292,14 @@ class StaticFileSuite extends Http4sSuite {
 
   test("return none from a URL that points to a resource that does not exist") {
     StaticFile
-      .fromURL[IO](new URL("https://github.com/http4s/http4s/fooz"), testBlocker)
+      .fromURL[IO](new URL("https://github.com/http4s/http4s/fooz"))
       .value
       .assertEquals(None)
   }
 
   test("raise exception when url does not exist") {
     StaticFile
-      .fromURL[IO](new URL("https://quuzgithubfoo.com/http4s/http4s/fooz"), testBlocker)
+      .fromURL[IO](new URL("https://quuzgithubfoo.com/http4s/http4s/fooz"))
       .value
       .intercept[UnknownHostException]
   }

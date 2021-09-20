@@ -16,7 +16,7 @@
 
 package org.http4s.circe
 
-import cats.effect.Sync
+import cats.effect.Concurrent
 import io.circe.Decoder
 import org.http4s.EntityDecoder
 
@@ -24,7 +24,7 @@ import org.http4s.EntityDecoder
   * without need to explicitly call `jsonOf`.
   */
 trait CirceEntityDecoder {
-  implicit def circeEntityDecoder[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+  implicit def circeEntityDecoder[F[_]: Concurrent, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
 }
 
 object CirceEntityDecoder extends CirceEntityDecoder

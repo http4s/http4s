@@ -18,7 +18,8 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect._
+import cats.effect.kernel.{Async, Outcome, Resource}
+import cats.effect.std.Dispatcher
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
@@ -48,11 +49,13 @@ private final class Http1Connection[F[_]](
     override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
-    idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]]
-)(implicit protected val F: ConcurrentEffect[F])
+    idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]],
+    override val dispatcher: Dispatcher[F]
+)(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
   import Http1Connection._
+  import Resource.ExitCase
 
   override def name: String = getClass.getName
   private val parser =
@@ -205,12 +208,12 @@ private final class Http1Connection[F[_]](
           }
 
           val idleTimeoutF = idleTimeoutStage match {
-            case Some(stage) => F.async[TimeoutException](stage.setTimeout)
+            case Some(stage) => F.async_[TimeoutException](stage.setTimeout)
             case None => F.never[TimeoutException]
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
-            val idleTimeoutS = timeoutFiber.join.attempt.map {
+            val idleTimeoutS = timeoutFiber.joinWithNever.attempt.map {
               case Right(t) => Left(t): Either[Throwable, Unit]
               case Left(t) => Left(t): Either[Throwable, Unit]
             }
@@ -235,11 +238,11 @@ private final class Http1Connection[F[_]](
                   // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
                 ).map(response =>
                   Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response))) {
-                case (_, ExitCase.Completed) => F.unit
-                case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
+                case (_, Outcome.Succeeded(_)) => F.unit
+                case (writeFiber, Outcome.Canceled() | Outcome.Errored(_)) => writeFiber.cancel
               }
 
-            F.race(response, timeoutFiber.join)
+            F.race(response, timeoutFiber.joinWithNever)
               .flatMap {
                 case Left(r) =>
                   F.pure(r)
@@ -256,13 +259,23 @@ private final class Http1Connection[F[_]](
       doesntHaveBody: Boolean,
       idleTimeoutS: F[Either[Throwable, Unit]],
       idleRead: Option[Future[ByteBuffer]]): F[Response[F]] =
-    F.async[Response[F]](cb =>
-      idleRead match {
-        case Some(read) =>
-          handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
-        case None =>
-          handleRead(channelRead(), cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
-      })
+    F.async[Response[F]] { cb =>
+      F.delay {
+        idleRead match {
+          case Some(read) =>
+            handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
+          case None =>
+            handleRead(
+              channelRead(),
+              cb,
+              closeOnFinish,
+              doesntHaveBody,
+              "Initial Read",
+              idleTimeoutS)
+        }
+        None
+      }
+    }
 
   // this method will get some data, and try to continue parsing using the implicit ec
   private def readAndParsePrelude(
@@ -370,12 +383,12 @@ private final class Http1Connection[F[_]](
           attributes -> rawBody
         } else
           attributes -> rawBody.onFinalizeCaseWeak {
-            case ExitCase.Completed =>
-              Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup(); }
-            case ExitCase.Error(_) | ExitCase.Canceled =>
-              Async.shift(executionContext) *> F.delay {
+            case ExitCase.Succeeded =>
+              F.delay { trailerCleanup(); cleanup(); }.evalOn(executionContext)
+            case ExitCase.Errored(_) | ExitCase.Canceled =>
+              F.delay {
                 trailerCleanup(); cleanup(); stageShutdown()
-              }
+              }.evalOn(executionContext)
           }
       }
       cb(

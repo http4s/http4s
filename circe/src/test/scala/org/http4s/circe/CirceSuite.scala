@@ -19,7 +19,7 @@ package circe.test // Get out of circe package so we can import custom instances
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.effect.laws.util.TestContext
+import cats.effect.testkit.TestContext
 import cats.syntax.all._
 import fs2.Stream
 import io.circe._
@@ -203,7 +203,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+            128),
           Headers("content-type" -> "application/json")
         ),
         true
@@ -223,7 +224,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
+          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+          128),
         Headers.empty
       ),
       true
@@ -235,7 +237,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+          128),
         Headers("content-type" -> "application/json")
       ),
       true
@@ -248,7 +251,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+            128),
           Headers("content-type" -> "application/json")
         ),
         true
@@ -257,7 +261,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
         stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
     } yield list).value.attempt
       .assertEquals(Left(
-        ParseException("expected json value got 'C...' (line 1, column 36)", 35, 1, 36)))
+        ParseException("expected json value got 'CirceS...' (line 1, column 36)", 35, 1, 36)))
   }
 
   test("json handle the optionality of asNumber") {

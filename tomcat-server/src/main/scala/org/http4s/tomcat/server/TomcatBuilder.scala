@@ -19,6 +19,8 @@ package tomcat
 package server
 
 import cats.effect._
+import cats.effect.std.Dispatcher
+
 import java.net.InetSocketAddress
 import java.util
 import java.util.concurrent.Executor
@@ -44,6 +46,7 @@ import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.http4s.syntax.all._
 import org.http4s.tomcat.server.TomcatBuilder._
 import org.log4s.getLogger
+
 import scala.collection.immutable
 import scala.concurrent.duration._
 
@@ -58,7 +61,7 @@ sealed class TomcatBuilder[F[_]] private (
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     classloader: Option[ClassLoader]
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: Async[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
   type Self = TomcatBuilder[F]
@@ -117,7 +120,7 @@ sealed class TomcatBuilder[F[_]] private (
       servlet: HttpServlet,
       urlMapping: String,
       name: Option[String] = None): Self =
-    copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, _, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       val wrapper = Tomcat.addServlet(ctx, servletName, servlet)
       wrapper.addMapping(urlMapping)
@@ -129,7 +132,7 @@ sealed class TomcatBuilder[F[_]] private (
       urlMapping: String,
       name: Option[String],
       dispatches: util.EnumSet[DispatcherType]): Self =
-    copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, _, _) =>
       val filterName = name.getOrElse(s"filter-$index")
 
       val filterDef = new FilterDef
@@ -152,12 +155,13 @@ sealed class TomcatBuilder[F[_]] private (
     mountHttpApp(service.orNotFound, prefix)
 
   def mountHttpApp(service: HttpApp[F], prefix: String): Self =
-    copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, builder, dispatcher) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        serviceErrorHandler = builder.serviceErrorHandler
+        serviceErrorHandler = builder.serviceErrorHandler,
+        dispatcher = dispatcher
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
@@ -188,68 +192,69 @@ sealed class TomcatBuilder[F[_]] private (
     copy(classloader = Some(classloader))
 
   override def resource: Resource[F, Server] =
-    Resource(F.delay {
-      val tomcat = new Tomcat
-      val cl = classloader.getOrElse(getClass.getClassLoader)
-      val docBase = cl.getResource("") match {
-        case null => null
-        case resource => resource.getPath
-      }
-      tomcat.addContext("", docBase)
-
-      val conn = tomcat.getConnector()
-      sslConfig.configureConnector(conn)
-
-      conn.setProperty("address", socketAddress.getHostString)
-      conn.setPort(socketAddress.getPort)
-      conn.setProperty(
-        "connection_pool_timeout",
-        (if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0).toString)
-
-      externalExecutor.foreach { ee =>
-        conn.getProtocolHandler match {
-          case p: AbstractProtocol[_] =>
-            p.setExecutor(ee)
-          case _ =>
-            logger.warn("Could not set external executor. Defaulting to internal")
+    Dispatcher[F].flatMap(dispatcher =>
+      Resource(F.blocking {
+        val tomcat = new Tomcat
+        val cl = classloader.getOrElse(getClass.getClassLoader)
+        val docBase = cl.getResource("") match {
+          case null => null
+          case resource => resource.getPath
         }
-      }
+        tomcat.addContext("", docBase)
 
-      val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
-      for ((mount, i) <- mounts.zipWithIndex)
-        mount.f(rootContext, i, this)
+        val conn = tomcat.getConnector()
+        sslConfig.configureConnector(conn)
 
-      tomcat.start()
+        conn.setProperty("address", socketAddress.getHostString)
+        conn.setPort(socketAddress.getPort)
+        conn.setProperty(
+          "connection_pool_timeout",
+          (if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0).toString)
 
-      val server = new Server {
-        lazy val address: InetSocketAddress = {
-          val host = socketAddress.getHostString
-          val port = tomcat.getConnector.getLocalPort
-          new InetSocketAddress(host, port)
+        externalExecutor.foreach { ee =>
+          conn.getProtocolHandler match {
+            case p: AbstractProtocol[_] =>
+              p.setExecutor(ee)
+            case _ =>
+              logger.warn("Could not set external executor. Defaulting to internal")
+          }
         }
 
-        lazy val isSecure: Boolean = sslConfig.isSecure
-      }
+        val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
+        for ((mount, i) <- mounts.zipWithIndex)
+          mount.f(rootContext, i, this, dispatcher)
 
-      val shutdown = F.delay {
-        tomcat.stop()
-        tomcat.destroy()
-      }
+        tomcat.start()
 
-      banner.foreach(logger.info(_))
-      val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
-        case Array(_, version) => version
-        case _ => ServerInfo.getServerInfo // well, we tried
-      }
-      logger.info(
-        s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
+        val server = new Server {
+          lazy val address: InetSocketAddress = {
+            val host = socketAddress.getHostString
+            val port = tomcat.getConnector.getLocalPort
+            new InetSocketAddress(host, port)
+          }
 
-      server -> shutdown
-    })
+          lazy val isSecure: Boolean = sslConfig.isSecure
+        }
+
+        val shutdown = F.blocking {
+          tomcat.stop()
+          tomcat.destroy()
+        }
+
+        banner.foreach(logger.info(_))
+        val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
+          case Array(_, version) => version
+          case _ => ServerInfo.getServerInfo // well, we tried
+        }
+        logger.info(
+          s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
+
+        server -> shutdown
+      }))
 }
 
 object TomcatBuilder {
-  def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
+  def apply[F[_]: Async]: TomcatBuilder[F] =
     new TomcatBuilder[F](
       socketAddress = defaults.IPv4SocketAddress,
       externalExecutor = None,
@@ -310,4 +315,4 @@ object TomcatBuilder {
   }
 }
 
-private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F]) => Unit)
+private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F], Dispatcher[F]) => Unit)

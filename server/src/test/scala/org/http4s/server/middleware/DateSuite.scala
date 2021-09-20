@@ -16,21 +16,20 @@
 
 package org.http4s.server.middleware
 
-import cats.data.OptionT
-import cats.syntax.all._
+import cats.implicits._
 import cats.effect._
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
+import org.http4s.syntax.all._
 
 class DateSuite extends Http4sSuite {
-  implicit val timer: Timer[IO] = Http4sSuite.TestTimer
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] { case _ =>
     Response[IO](Status.Ok).pure[IO]
   }
 
   // Hack for https://github.com/typelevel/cats-effect/pull/682
-  val testService = Date(service)(Sync[OptionT[IO, *]], Clock.deriveOptionT[IO])
+  val testService = Date(service)
   val testApp = Date(service.orNotFound)
 
   val req = Request[IO]()

@@ -16,7 +16,7 @@
 
 package org.http4s.circe
 
-import cats.effect.Sync
+import cats.effect.Concurrent
 import org.http4s._
 import io.circe._
 
@@ -33,7 +33,7 @@ trait JsonDecoder[F[_]] {
 object JsonDecoder {
   def apply[F[_]](implicit ev: JsonDecoder[F]): JsonDecoder[F] = ev
 
-  implicit def impl[F[_]: Sync]: JsonDecoder[F] =
+  implicit def impl[F[_]: Concurrent]: JsonDecoder[F] =
     new JsonDecoder[F] {
       def asJson(m: Message[F]): F[Json] = m.as[Json]
       def asJsonDecode[A: Decoder](m: Message[F]): F[A] = m.decodeJson

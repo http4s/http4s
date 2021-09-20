@@ -18,7 +18,6 @@ package org.http4s.blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
@@ -31,7 +30,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test(
     "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key") {
-    val sslAddress = jettySslServer().addresses.head
+    val sslAddress = secureServer().addresses.head
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -40,32 +39,33 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should make simple https requests") {
-    val sslAddress = jettySslServer().addresses.head
+    val sslAddress = secureServer().addresses.head
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
     val resp = builder(1).resource.use(_.expect[String](u))
-    resp.map(_.length > 0).assert
+    resp.map(_.length > 0).assertEquals(true)
   }
 
   test("Blaze Http1Client should reject https requests when no SSLContext is configured") {
-    val sslAddress = jettySslServer().addresses.head
+    val sslAddress = secureServer().addresses.head
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
     val resp = builder(1, sslContextOption = None).resource
       .use(_.expect[String](u))
       .attempt
-    resp.map {
-      case Left(_: ConnectionFailure) => true
-      case _ => false
-    }.assert
+    resp
+      .map {
+        case Left(_: ConnectionFailure) => true
+        case _ => false
+      }
+      .assertEquals(true)
   }
 
   test("Blaze Http1Client should obey response header timeout") {
-
-    val addresses = jettyServer().addresses
-    val address = addresses.head
+    val addresses = server().addresses
+    val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
     builder(1, responseHeaderTimeout = 100.millis).resource
@@ -77,8 +77,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should unblock waiting connections") {
-    val addresses = jettyServer().addresses
-    val address = addresses.head
+    val addresses = server().addresses
+    val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
     builder(1, responseHeaderTimeout = 20.seconds).resource
@@ -90,12 +90,12 @@ class BlazeClientSuite extends BlazeClientBase {
         } yield r
       }
       .map(_.isRight)
-      .assert
+      .assertEquals(true)
   }
 
   test("Blaze Http1Client should drain waiting connections after shutdown") {
-    val addresses = jettyServer().addresses
-    val address = addresses.head
+    val addresses = server().addresses
+    val address = addresses(0)
     val name = address.getHostName
     val port = address.getPort
 
@@ -113,23 +113,23 @@ class BlazeClientSuite extends BlazeClientBase {
           .start
 
         // Wait 100 millis to shut down
-        IO.sleep(100.millis) *> resp.flatMap(_.join)
+        IO.sleep(100.millis) *> resp.flatMap(_.joinWithNever)
       }
 
-    resp.assert
+    resp.assertEquals(true)
   }
 
   test(
     "Blaze Http1Client should stop sending data when the server sends response and closes connection") {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
         builder(1, requestTimeout = 2.seconds).resource.use { client =>
-          val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
+          val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
           val req = Request[IO](
             method = Method.POST,
             uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately").yolo
@@ -145,14 +145,14 @@ class BlazeClientSuite extends BlazeClientBase {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     // Receiving a response with and without body exercises different execution path in blaze client.
 
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
         builder(1, requestTimeout = 2.seconds).resource.use { client =>
-          val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
+          val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
           val req = Request[IO](
             method = Method.POST,
             uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately-no-body").yolo
@@ -165,7 +165,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test(
     "Blaze Http1Client should fail with request timeout if the request body takes too long to send") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
@@ -188,7 +188,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test(
     "Blaze Http1Client should fail with response header timeout if the request body takes too long to send") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
@@ -210,7 +210,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should doesn't leak connection on timeout") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
@@ -236,17 +236,12 @@ class BlazeClientSuite extends BlazeClientBase {
       .use { client =>
         client.status(Request[IO](uri = uri"http://example.invalid/"))
       }
-      .attempt
-      .map {
-        case Left(e: ConnectionFailure) =>
-          e.getMessage === "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
-        case _ => false
-      }
-      .assert
+      .interceptMessage[ConnectionFailure](
+        "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
   }
 
-  test("Keeps stats") {
-    val addresses = jettyServer().addresses
+  test("Keeps stats".flaky) {
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort

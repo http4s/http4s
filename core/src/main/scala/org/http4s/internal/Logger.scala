@@ -17,7 +17,7 @@
 package org.http4s.internal
 
 import cats.Monad
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.{Charset, Headers, MediaType, Message, Request, Response}
@@ -32,7 +32,8 @@ object Logger {
       message.headers.redactSensitive(redactHeadersWhen).headers.mkString("Headers(", ", ", ")")
     else ""
 
-  def defaultLogBody[F[_]: Sync, A <: Message[F]](message: A)(logBody: Boolean): Option[F[String]] =
+  def defaultLogBody[F[_]: Concurrent, A <: Message[F]](message: A)(
+      logBody: Boolean): Option[F[String]] =
     if (logBody) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
@@ -49,8 +50,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
-
+      log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
     val logBodyText = (_: Stream[F, Byte]) => defaultLogBody[F, A](message)(logBody)
 
     logMessageWithBodyText[F, A](message)(logHeaders, logBodyText, redactHeadersWhen)(log)
