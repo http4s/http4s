@@ -107,7 +107,7 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F]
-  ) = {
+  ): Stream[F, Nothing] = {
     val server =
       // Our interface has an issue
       Stream
@@ -153,7 +153,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F],
       createRequestVault: Boolean
-  ) = {
+  ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
