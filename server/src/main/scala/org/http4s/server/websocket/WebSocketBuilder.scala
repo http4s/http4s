@@ -36,7 +36,9 @@ import org.http4s.websocket.{
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
   */
-@deprecated("Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder", "0.23.4")
+@deprecated(
+  "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
+  "0.23.4")
 final case class WebSocketBuilder[F[_]: Applicative](
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
@@ -131,7 +133,9 @@ final case class WebSocketBuilder[F[_]: Applicative](
 }
 
 object WebSocketBuilder {
-  @deprecated("Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder", "0.23.4")
+  @deprecated(
+    "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
+    "0.23.4")
   def apply[F[_]: Applicative]: WebSocketBuilder[F] =
     new WebSocketBuilder[F](
       headers = Headers.empty,
