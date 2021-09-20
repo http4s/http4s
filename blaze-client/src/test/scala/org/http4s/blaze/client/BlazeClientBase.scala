@@ -30,7 +30,7 @@ import scala.concurrent.duration._
 trait BlazeClientBase extends Http4sSuite {
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
-  def mkClient(
+  def builder(
       maxConnectionsPerRequestKey: Int,
       maxTotalConnections: Int = 5,
       responseHeaderTimeout: Duration = 30.seconds,
@@ -48,11 +48,7 @@ trait BlazeClientBase extends Http4sSuite {
         .withChunkBufferMaxSize(chunkBufferMaxSize)
         .withScheduler(scheduler = tickWheel)
 
-    val builderWithMaybeSSLContext: BlazeClientBuilder[IO] =
-      sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(
-        builder.withSslContext)
-
-    builderWithMaybeSSLContext.resource
+    sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(builder.withSslContext)
   }
 
   private def testServlet =

@@ -18,12 +18,8 @@ package org.http4s
 package headers
 
 import java.nio.charset.StandardCharsets
-import org.typelevel.ci._
 
-object Referer {
-
-  def parse(s: String): ParseResult[Referer] =
-    ParseResult.fromParser(parser, "Invalid Referer header")(s)
+object Referer extends HeaderCompanion[Referer]("Referer") {
 
   private[http4s] val parser = Uri.Parser
     .absoluteUri(StandardCharsets.ISO_8859_1)
@@ -31,11 +27,7 @@ object Referer {
     .map(Referer(_))
 
   implicit val headerInstance: Header[Referer, Header.Single] =
-    Header.createRendered(
-      ci"Referer",
-      _.uri,
-      parse
-    )
+    createRendered(_.uri)
 
 }
 

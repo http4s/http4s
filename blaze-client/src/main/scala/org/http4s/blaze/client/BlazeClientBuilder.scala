@@ -229,18 +229,25 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(customDnsResolver = Some(customDnsResolver))
 
   def resource: Resource[F, Client[F]] =
+    resourceWithState.map(_._1)
+
+  /** Creates a blaze-client resource along with a [[BlazeClientState]]
+    * for monitoring purposes
+    */
+  def resourceWithState: Resource[F, (Client[F], BlazeClientState[F])] =
     for {
       scheduler <- scheduler
       _ <- Resource.eval(verifyAllTimeoutsAccuracy(scheduler))
       _ <- Resource.eval(verifyTimeoutRelations())
       manager <- connectionManager(scheduler)
-    } yield BlazeClient.makeClient(
-      manager = manager,
-      responseHeaderTimeout = responseHeaderTimeout,
-      requestTimeout = requestTimeout,
-      scheduler = scheduler,
-      ec = executionContext
-    )
+      client = BlazeClient.makeClient(
+        manager = manager,
+        responseHeaderTimeout = responseHeaderTimeout,
+        requestTimeout = requestTimeout,
+        scheduler = scheduler,
+        ec = executionContext
+      )
+    } yield (client, manager.state)
 
   private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): F[Unit] =
     for {
@@ -282,7 +289,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     }
 
   private def connectionManager(scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
+      F: ConcurrentEffect[F]): Resource[F, ConnectionManager.Stateful[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,

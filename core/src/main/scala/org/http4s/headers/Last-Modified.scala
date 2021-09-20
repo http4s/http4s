@@ -18,24 +18,15 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.typelevel.ci._
 
-object `Last-Modified` {
-
-  def parse(s: String): ParseResult[`Last-Modified`] =
-    ParseResult.fromParser(parser, "Invalid Last-Modified header")(s)
+object `Last-Modified` extends HeaderCompanion[`Last-Modified`]("Last-Modified") {
 
   /* `Last-Modified = HTTP-date` */
   private[http4s] val parser: Parser[`Last-Modified`] =
     HttpDate.parser.map(apply)
 
   implicit val headerInstance: Header[`Last-Modified`, Header.Single] =
-    Header.createRendered(
-      ci"Last-Modified",
-      _.date,
-      parse
-    )
-
+    createRendered(_.date)
 }
 
 /** Response header that indicates the time at which the server believes the

@@ -16,9 +16,8 @@
 
 package org.http4s
 
-import cats.Applicative
+import cats.{Applicative, Defer}
 import cats.data.Kleisli
-import cats.effect.Sync
 
 /** Functions for creating [[HttpApp]] kleislis. */
 object HttpApp {
@@ -31,7 +30,7 @@ object HttpApp {
     * @param run the function to lift
     * @return an [[HttpApp]] that wraps `run`
     */
-  def apply[F[_]: Sync](run: Request[F] => F[Response[F]]): HttpApp[F] =
+  def apply[F[_]: Defer](run: Request[F] => F[Response[F]]): HttpApp[F] =
     Http(run)
 
   /** Lifts an effectful [[Response]] into an [[HttpApp]].
@@ -62,7 +61,7 @@ object HttpApp {
     * @return An [[HttpApp]] whose input is transformed by `f` before
     * being applied to `fa`
     */
-  def local[F[_]](f: Request[F] => Request[F])(fa: HttpApp[F])(implicit F: Sync[F]): HttpApp[F] =
+  def local[F[_]](f: Request[F] => Request[F])(fa: HttpApp[F])(implicit F: Defer[F]): HttpApp[F] =
     Http.local(f)(fa)
 
   /** An app that always returns `404 Not Found`. */

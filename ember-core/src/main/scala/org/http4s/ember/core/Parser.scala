@@ -25,42 +25,40 @@ import org.http4s._
 import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
+import cats.data.EitherT
 
 private[ember] object Parser {
 
-  final case class MessageP(bytes: Array[Byte], rest: Array[Byte])
-
   object MessageP {
 
-    private[this] val doubleCrlf: Seq[Byte] = Seq(cr, lf, cr, lf)
-
-    def parseMessage[F[_]](buffer: Array[Byte], read: Read[F], maxHeaderSize: Int)(implicit
-        F: MonadThrow[F]): F[MessageP] = {
-      val endIndex = buffer.take(maxHeaderSize).indexOfSlice(doubleCrlf)
-      if (endIndex == -1 && buffer.length > maxHeaderSize) {
-        F.raiseError(MessageTooLongError(maxHeaderSize))
-      } else if (endIndex == -1) {
-        read.flatMap {
-          case Some(chunk) =>
-            val nextBuffer = combineArrays(buffer, chunk.toArray)
-            parseMessage(nextBuffer, read, maxHeaderSize)
-          case None if buffer.length > 0 => F.raiseError(EndOfStreamError())
-          case _ => F.raiseError(EmptyStreamError())
-        }
-      } else {
-        val (bytes, rest) = buffer.splitAt(endIndex + 4)
-        MessageP(bytes, rest).pure[F]
+    def recurseFind[F[_], A](currentBuffer: Array[Byte], read: Read[F], maxHeaderSize: Int)(
+        f: Array[Byte] => F[Either[Unit, A]])(idx: A => Int)(implicit
+        F: MonadThrow[F]): F[(A, Array[Byte])] =
+      f(currentBuffer).flatMap {
+        case Left(_) =>
+          if (currentBuffer.length > maxHeaderSize)
+            F.raiseError(EmberException.MessageTooLong(maxHeaderSize))
+          else {
+            read.flatMap {
+              case Some(chunk) =>
+                val nextBuffer = combineArrays(currentBuffer, chunk.toArray)
+                recurseFind(nextBuffer, read, maxHeaderSize)(f)(idx)
+              case None if currentBuffer.length > 0 =>
+                F.raiseError(EmberException.ReachedEndOfStream())
+              case _ => F.raiseError(EmberException.EmptyStream())
+            }
+          }
+        case Right(out) =>
+          (out, currentBuffer.drop(idx(out))).pure[F]
       }
-    }
-
-    final case class MessageTooLongError(maxHeaderSize: Int)
-        extends Exception(s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes")
-
-    final case class EndOfStreamError() extends Exception("Reached End Of Stream")
 
   }
 
-  final case class HeaderP(headers: Headers, chunked: Boolean, contentLength: Option[Long])
+  final case class HeaderP(
+      headers: Headers,
+      chunked: Boolean,
+      contentLength: Option[Long],
+      idx: Int)
 
   object HeaderP {
 
@@ -69,8 +67,8 @@ private[ember] object Parser {
     private[this] val transferEncodingS = "Transfer-Encoding"
     private[this] val chunkedS = "chunked"
 
-    def parseHeaders[F[_]](message: Array[Byte], initIndex: Int)(implicit
-        F: MonadThrow[F]): F[HeaderP] = {
+    def parseHeaders[F[_]](message: Array[Byte], initIndex: Int, maxHeaderSize: Int)(implicit
+        F: MonadThrow[F]): F[Either[Unit, HeaderP]] = {
       import scala.collection.mutable.ListBuffer
       var idx = initIndex
       var state = false
@@ -82,8 +80,9 @@ private[ember] object Parser {
       val headers: ListBuffer[Header.Raw] = ListBuffer()
       var name: String = null
       var start = initIndex
+      val upperBound = Math.min(message.size - 1, maxHeaderSize)
 
-      while (!complete && idx < message.size) {
+      while (!complete && idx <= upperBound) {
         if (!state) {
           val current = message(idx)
           // if current index is colon our name is complete
@@ -133,9 +132,9 @@ private[ember] object Parser {
       if (throwable != null) {
         F.raiseError(ParseHeadersError(throwable))
       } else if (!complete) {
-        F.raiseError(IncompleteHttpMessage(Headers(headers.toList)))
+        ().asLeft.pure[F]
       } else {
-        HeaderP(Headers(headers.toList), chunked, contentLength).pure[F]
+        (HeaderP(Headers(headers.toList), chunked, contentLength, idx)).asRight.pure[F]
       }
     }
 
@@ -155,7 +154,8 @@ private[ember] object Parser {
     object ReqPrelude {
 
       // Method SP URI SP HttpVersion CRLF - REST
-      def parsePrelude[F[_]](message: Array[Byte])(implicit F: MonadThrow[F]): F[ReqPrelude] = {
+      def parsePrelude[F[_]](message: Array[Byte], maxHeaderSize: Int)(implicit
+          F: MonadThrow[F]): F[Either[Unit, ReqPrelude]] = {
         var idx = 0
         var state: Byte = 0
         var complete = false
@@ -164,9 +164,10 @@ private[ember] object Parser {
         var method: Method = null
         var uri: Uri = null
         var httpVersion: HttpVersion = null
+        val upperBound = Math.min(message.size - 1, maxHeaderSize)
 
         var start = 0
-        while (!complete && idx < message.size) {
+        while (!complete && idx <= upperBound) {
           val value = message(idx)
           (state: @switch) match {
             case 0 =>
@@ -218,16 +219,9 @@ private[ember] object Parser {
               Option(httpVersion)
             ))
         else if (method == null || uri == null || httpVersion == null)
-          F.raiseError(
-            ParsePreludeError(
-              "Failed to parse HTTP request prelude",
-              Option(throwable),
-              Option(method),
-              Option(uri),
-              Option(httpVersion)
-            ))
+          ().asLeft.pure[F]
         else
-          ReqPrelude(method, uri, httpVersion, idx).pure[F]
+          (ReqPrelude(method, uri, httpVersion, idx)).asRight.pure[F]
       }
 
       final case class ParsePreludeError(
@@ -247,9 +241,13 @@ private[ember] object Parser {
         read: Read[F]
     )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] =
       for {
-        message <- MessageP.parseMessage(buffer, read, maxHeaderSize)
-        prelude <- ReqPrelude.parsePrelude(message.bytes)
-        headerP <- HeaderP.parseHeaders(message.bytes, prelude.nextIndex)
+        t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
+          EitherT(ReqPrelude.parsePrelude[F](ibuffer, maxHeaderSize))
+            .flatMap(prelude =>
+              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize)).tupleLeft(
+                prelude))
+            .value) { case (_, headerP) => headerP.idx }
+        ((prelude, headerP), finalBuffer) = t
 
         baseReq = org.http4s.Request[F](
           method = prelude.method,
@@ -266,11 +264,11 @@ private[ember] object Parser {
                   baseReq
                     .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
                     .withBodyStream(ChunkedEncoding
-                      .decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
+                      .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
                   rest.get)
             }
           } else {
-            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
+            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), finalBuffer, read).map {
               case (bodyStream, drain) =>
                 (baseReq.withBodyStream(bodyStream), drain)
             }
@@ -285,9 +283,13 @@ private[ember] object Parser {
         read: Read[F]
     ): F[(Response[F], Drain[F])] =
       for {
-        message <- MessageP.parseMessage(buffer, read, maxHeaderSize)
-        prelude <- RespPrelude.parsePrelude(message.bytes)
-        headerP <- HeaderP.parseHeaders(message.bytes, prelude.nextIndex)
+        t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
+          EitherT(RespPrelude.parsePrelude[F](ibuffer, maxHeaderSize))
+            .flatMap(prelude =>
+              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize)).tupleLeft(
+                prelude))
+            .value) { case (_, headerP) => headerP.idx }
+        ((prelude, headerP), finalBuffer) = t
 
         baseResp = org.http4s.Response[F](
           httpVersion = prelude.version,
@@ -302,11 +304,11 @@ private[ember] object Parser {
                 baseResp
                   .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
                   .withBodyStream(ChunkedEncoding
-                    .decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)) ->
+                    .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)) ->
                   rest.get
             }
           } else {
-            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
+            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), finalBuffer, read).map {
               case (bodyStream, drain) =>
                 baseResp.withBodyStream(bodyStream) -> drain
             }
@@ -319,7 +321,8 @@ private[ember] object Parser {
 
       // HTTP/1.1 200 OK
       // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
-      def parsePrelude[F[_]](buffer: Array[Byte])(implicit F: MonadThrow[F]): F[RespPrelude] = {
+      def parsePrelude[F[_]](buffer: Array[Byte], maxHeaderSize: Int)(implicit
+          F: MonadThrow[F]): F[Either[Unit, RespPrelude]] = {
         var complete = false
         var idx = 0
         var throwable: Throwable = null
@@ -330,8 +333,9 @@ private[ember] object Parser {
         var status: Status = null
         var start = 0
         var state = 0 // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
+        val upperBound = Math.min(buffer.size - 1, maxHeaderSize)
 
-        while (!complete && idx < buffer.size) {
+        while (!complete && idx <= upperBound) {
           val value = buffer(idx)
           (state: @switch) match {
             case 0 =>
@@ -378,9 +382,9 @@ private[ember] object Parser {
         if (throwable != null)
           F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
         else if (httpVersion == null || status == null)
-          F.raiseError(RespPreludeError("Failed to parse HTTP response prelude", None))
+          ().asLeft.pure[F]
         else
-          RespPrelude(httpVersion, status, idx).pure[F]
+          RespPrelude(httpVersion, status, idx).asRight.pure[F]
       }
 
       case class RespPreludeError(message: String, cause: Option[Throwable])
@@ -402,30 +406,13 @@ private[ember] object Parser {
             .pure[F]
         } else {
           val unread = contentLength - buffer.length
-          Ref.of[F, Either[Long, Array[Byte]]](Left(unread)).map { state =>
-            val bodyStream = Stream.eval(state.get).flatMap {
-              case Right(_) =>
-                Stream.raiseError(BodyAlreadyConsumedError())
-              case Left(remaining) =>
-                readStream(read).chunks
-                  .evalMapAccumulate(remaining) { case (r, chunk) =>
-                    if (chunk.size >= r) {
-                      val (rest, after) = chunk.splitAt(r.toInt)
-                      state.set(Right(after.toArray)).as((0L, rest))
-                    } else {
-                      val r2 = r - chunk.size
-                      state.set(Left(r2)).as((r2, chunk))
-                    }
-                  }
-                  .takeThrough(_._1 > 0)
-                  .flatMap(t => Stream.chunk(t._2))
-            }
-
+          Ref.of[F, Option[Array[Byte]]](None).map { state =>
+            val body = decode(unread, buffer, state, read)
             // If the remaining bytes for the body have not yet been read, close the connection.
             // followup: Check if there are bytes immediately available without blocking
-            val drain: Drain[F] = state.get.map(_.toOption)
+            val drain: Drain[F] = state.get
 
-            (Stream.chunk(Chunk.bytes(buffer)) ++ bodyStream, drain)
+            (body, drain)
           }
         }
       } else {
@@ -435,12 +422,33 @@ private[ember] object Parser {
     final case class BodyAlreadyConsumedError()
         extends Exception("Body Has Been Consumed Completely Already")
 
-    private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
-      Stream.eval(read).flatMap {
-        case Some(bytes) =>
-          Stream.chunk(bytes) ++ readStream(read)
-        case None => Stream.empty
+    def decode[F[_]: Concurrent](
+        unread: Long,
+        buffer: Array[Byte],
+        nextBuffer: Ref[F, Option[Array[Byte]]],
+        read: Read[F]): Stream[F, Byte] = {
+      def go(remaining: Long): Pull[F, Byte, Unit] =
+        Pull.eval(read).flatMap {
+          case Some(chunk) =>
+            if (chunk.size >= remaining) {
+              val (rest, after) = chunk.splitAt(remaining.toInt)
+              Pull.eval(nextBuffer.set(Some(after.toArray))) >> Pull.output(rest) >> Pull.done
+            } else {
+              Pull.output(chunk) >> go(remaining - chunk.size)
+            }
+          case None => Pull.raiseError(EmberException.ReachedEndOfStream())
+        }
+
+      // TODO: This doesn't forbid concurrent reads of the body stream, only sequential reads.
+      val pull = Pull.eval(nextBuffer.get).flatMap {
+        case Some(_) =>
+          Pull.raiseError(BodyAlreadyConsumedError())
+        case None =>
+          Pull.output(Chunk.bytes(buffer)) >> go(unread)
       }
+
+      pull.stream
+    }
   }
 
   private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {

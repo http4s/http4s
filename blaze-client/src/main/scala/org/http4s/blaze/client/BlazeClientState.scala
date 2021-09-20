@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.core
+package org.http4s.blaze.client
 
-private[ember] final case class EmptyStreamError() extends Exception("Cannot Parse Empty Stream")
+import org.http4s.client.RequestKey
+import scala.collection.immutable
+
+trait BlazeClientState[F[_]] {
+  def isClosed: F[Boolean]
+  def allocated: F[immutable.Map[RequestKey, Int]]
+  def idleQueueDepth: F[immutable.Map[RequestKey, Int]]
+  def waitQueueDepth: F[Int]
+}

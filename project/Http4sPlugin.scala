@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.6"
-  val scala_212 = "2.12.14"
+  val scala_212 = "2.12.15"
   val scala_3 = "3.0.1"
 
   override lazy val globalSettings = Seq(
@@ -83,6 +83,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
     dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
 
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
@@ -290,11 +291,11 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.1"
+    val blaze = "0.15.2"
     val boopickle = "1.4.0"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
-    val catsEffect = "2.5.3"
+    val catsEffect = "2.5.4"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
     val cryptobits = "1.3"
@@ -311,10 +312,10 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.5"
     val log4cats = "1.3.1"
     val log4s = "1.10.0"
-    val munit = "0.7.27"
+    val munit = "0.7.29"
     val munitCatsEffect = "1.0.5"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.66.Final"
+    val netty = "4.1.68.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.9.2"
@@ -325,10 +326,10 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "1.0.2"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.1"
-    val scodecBits = "1.1.27"
+    val scodecBits = "1.1.28"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.52"
+    val tomcat = "9.0.53"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.13"

@@ -8,6 +8,182 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.4 (2021-09-02)
+
+This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.28.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5130](https://github.com/http4s/http4s/pull/5130): Fix the parsing of empty `Origin` headers to be a parse failure instead of `Origin.Null`.
+
+## Dependency updates
+
+* scodec-bits-1.1.28
+
+# v0.21.28 (2021-09-02)
+
+This is a bugfix to yesterday's patch.  It is not a security issue, but a correctness issue.
+
+This release is binary compatible with 0.21.x.
+
+## http4s-server
+
+### Breaking changes
+
+* [#5144](https://github.com/http4s/http4s/pull/5144): In the `CORS` middleware, respond to preflight `OPTIONS` requests with a 200 status.  It was previously passing through to the wrapped `Http`, most of which won't respond to `OPTIONS`.  The breaking change is that the constraint is promoted from `Functor` to `Applicative`.  The `Functor` version is left for binary compatibility with a runtime warning.
+
+# v0.22.3 (unreleased)
+
+This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in 0.21.26 and 0.21.27.
+
+Binary compatible with the 0.22.2 series, with the exception of static forwarders in `HttpApp.apply`, `HttpApp.local`.  Unless you are calling `HttpApp` from a language other than Scala, you are not affected.
+
+## http4s-core
+
+### Binary breaking changes
+
+* [#5071](https://github.com/http4s/http4s/pull/5071): Weakens constraints on `HttpApp.apply` and `HttpApp.local` from `Sync` to `Defer`.  This change is technically binary breaking, but will only affect static methods called via interop from a language other than Scala.
+
+### Semantic changes
+
+* [#5073](https://github.com/http4s/http4s/pull/5073): `withEntity` now replaces any existing headers with the same name with the headers from the `EntityEncoder`.  In v0.21, known single headers were replaced and recurring headers were appended.  Beginning in 0.22.0, everything was appended, which commonly resulted in duplicate `Content-Type` headers.  There is no longer a global registry of headers to infer singleton vs. recurring semantics, but in practice, `EntityEncoder` headers are single, so this is more correct and more similar to the pre-0.22 behavior.
+
+### Bugfixes
+
+* [#5070](https://github.com/http4s/http4s/pull/5070): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+* [#5105](https://github.com/http4s/http4s/pull/5105): Parse `UTF-8` charset tag on `Content-Disposition` filenames case-insensitively. This was a regression from 0.21.
+
+### Enhancements
+
+* [#5042](https://github.com/http4s/http4s/pull/5042): Add a modeled header for `Access-Control-Request-Method`.
+* [#5076](https://github.com/http4s/http4s/pull/5076): Create `Uri.Host` from an ip4s `IpAddress`
+
+### Documentation
+
+* [#5061](https://github.com/http4s/http4s/pull/5061): Document that the `Allow` header MUST return the allowed methods.
+
+### Dependency updates
+
+* blaze-0.15.2
+
+## http4s-client
+
+### Enhancements
+
+* [#5023](https://github.com/http4s/http4s/pull/5023): Parameterize the signature algorithm in the OAuth 1 middleware.  HMAC-SHA256 and HMAC-SHA512 are now supported in addition to HMAC-SHA1.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5056](https://github.com/http4s/http4s/pull/5056): In `GZip` middleware, don't add a `Content-Encoding` header if the response type doesn't support an entity.
+
+### Enhancements
+
+* [#5112](https://github.com/http4s/http4s/pull/5112): Make `CORS` middleware configurable via `toHttpRoutes` and `toHttpApp` constructors.
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#5126](https://github.com/http4s/http4s/pull/5126): Upgrades to a Blaze version that uses a monotonic timer in the `TickWheelExecutor`.  This will improve scheduling correctness in the presence of an erratic clock.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#5075](https://github.com/http4s/http4s/pull/5075): Render the blaze version correctly in the default startup banner
+
+## http4s-ember-core
+
+### Bugfixes
+
+* [#5043](https://github.com/http4s/http4s/pull/5043): Fix several bugs where a body stream silenty ends if the peer closes its end of the socket without finishing writing. This now raises an error.
+
+## http4s-ember-client
+
+### Bugfixes
+
+* [#5041](https://github.com/http4s/http4s/pull/5041): Don't keep alive HTTP/1.0 connections without a `Connection: keep-alive` header.
+
+## http4s-ember-server
+
+### Deprecations
+
+* [#5040](https://github.com/http4s/http4s/pull/5040): `maxConcurrency` is renamed to `maxConnections`.  The former is now deprecated.
+
+## http4s-dsl
+
+### Enhancements
+
+* [#5063](https://github.com/http4s/http4s/pull/5063): Added `->>` infix extractor for a resource-oriented view of routing. Use this to define resource paths only once, and generate proper `405` responses with a correct `Allow` header when the method is not handled.
+
+## Dependency updates
+
+* blaze-0.15.2
+* netty-4.1.67
+
+# v0.21.27 (2021-08-31)
+
+This is a security release.  It is binary compatible with the 0.21.x series.
+
+## http4s-server
+
+### Security patches
+
+* [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6):
+* Deprecates `apply` method that takes a `CORSConfig`, and `httpRoutes` anad `httpApp` that take no config.  The default configuration disables most actual CORS protection, and has several deficiences even when properly configured.  See the GHSA for a full discussion.  tl;dr: start from `CORS.policy`.
+* The deprecated implementation now ignores the `allowCredentials` setting when `anyOrigin` is true, and logs a warning.  If you insist on using the deprecated version, old behavior can be restored by setting `anyOrigin` to false and `allowOrigins` to `Function.const(true)`.
+* No longer renders an `Access-Control-Allow-Credentials: false` headerFor safety, the `allowCredentials` setting is now Please see the GHSA for a full discussion.
+* The replacement implementation, created from the new `CORS.policy`, additionally fixes the following defects:
+  * No longer returns a `403 Forbidden` response when CORS checks fail.  The enforcement point of CORS is the user agent.  Any failing checks just suppress CORS headers in the http4s response.
+  * Add  `Access-Control-Request-Headers` to the `Vary` header on preflight responses when it can affect the response. This is important for caching.
+  * Validate the  `Access-Control-Request-Headers`, and return no CORS headers if any of the headers are disallowed.
+   * Remote `Vary: Access-Control-Request-Method` and `Access-Control-Max-Age` headers from non-preflight responses.  These are only relevant in preflight checks.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#5125](https://github.com/http4s/http4s/pull/5125): Upgrade to a blaze that uses monotonic time in the `TickWheelExecutor`. This is unrelated to the GHSA, but guards against a theoretical scheduling problem if the system clock is erratic.
+
+## Dependency updates
+
+* blaze-0.14.18
+
+# v0.21.26 (2021-08-12)
+
+The 0.21 series is no longer actively maintained by the team, but we'll continue to entertain binary compatible patches.  All users are still encouraged to upgrade to 0.22 (for Cats-Effect 2) or 0.23 (the latest stable series, on Cats-Effect 3).
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#5064](https://github.com/http4s/http4s/pull/5064): Add a conservative retry policy for dead connections.  Connections can be terminated on the server side while idling in our pool, which does not manifest until we attempt to read the response.  This is now raised as a `java.nio.channels.ClosedChannelException`.   A `retryPolicy` configuration has been added to the `EmberClientBuilder`.  The default policy handles the error and resubmits the request if:
+   * The request method is idempotent OR has an `Idempotency-Key` header
+   * Less than 2 attempts have been made
+   * Ember detects that the connection was closed without reading any bytes
+
+# v0.22.2 (2021-08-06)
+
+## http4s-core
+
+### Enhancements
+
+* [#5011](https://github.com/http4s/http4s/pull/5011): Add constant  for status code `418 I'm a teapot`. #save418 🫖
+* [#5013](https://github.com/http4s/http4s/pull/5013): Create `RequestPrelude` and `ResponsePrelude` views of `Request` and `Response`, respectively.  These projections omit the body and vault attributes, which permit an `Order` and `Hash` (and therefore `Eq`) instance that `Request` and `Response` do not.  These can be useful in logging, metrics, and caching.
+
+### Deprecations
+
+* [#5015](https://github.com/http4s/http4s/pull/5015): Deprecate the old `Uri.uri`, `MediaType.mediaType`, and `QValue.q` literals.  Intepolators for each are available via `org.http4s.implicits._`
+
+## Dependency updates
+
+* cats-effect-2.5.3
+* tomcat-9.0.52
+
 # v0.22.1 (2021-07-30)
 
 ## http4s-core
@@ -19,6 +195,10 @@ it.
 ### Enhancements
 
 * [#4956](https://github.com/http4s/http4s/pull/4956): Add `QueryParamCodec`s for more `java.time` types.
+
+## Documentation
+
+* [#5012](https://github.com/http4s/http4s/pull/5012): Document `MatrixVar` support;
 
 ## http4s-client
 

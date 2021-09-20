@@ -25,6 +25,7 @@ import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
 import java.io.File
 import org.http4s.headers._
+import org.http4s.syntax.{KleisliSyntax, KleisliSyntaxBinCompat0, KleisliSyntaxBinCompat1}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
@@ -91,7 +92,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
       case None => w.headers
     }
-    change(body = entity.body, headers = headers.transform(_ ++ hs.headers))
+    change(body = entity.body, headers = headers ++ hs)
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
@@ -285,10 +286,10 @@ final class Request[F[_]] private (
       attributes = attributes
     )
 
-  def withMethod(method: Method): Self =
+  def withMethod(method: Method): Request[F] =
     copy(method = method)
 
-  def withUri(uri: Uri): Self =
+  def withUri(uri: Uri): Request[F] =
     copy(uri = uri, attributes = attributes.delete(Request.Keys.PathInfoCaret))
 
   override protected def change(
@@ -296,7 +297,7 @@ final class Request[F[_]] private (
       body: EntityBody[F],
       headers: Headers,
       attributes: Vault
-  ): Self =
+  ): Request[F] =
     copy(
       httpVersion = httpVersion,
       body = body,
@@ -311,9 +312,9 @@ final class Request[F[_]] private (
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
   @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "0.22.0-M1")
-  def withPathInfo(pi: String): Self =
+  def withPathInfo(pi: String): Request[F] =
     withPathInfo(Uri.Path.unsafeFromString(pi))
-  def withPathInfo(pi: Uri.Path): Self =
+  def withPathInfo(pi: Uri.Path): Request[F] =
     // Don't use withUri, which clears the caret
     copy(uri = uri.withPath(scriptName.concat(pi)))
 
@@ -383,7 +384,7 @@ final class Request[F[_]] private (
     headers.get[Cookie].fold(List.empty[RequestCookie])(_.values.toList)
 
   /** Add a Cookie header for the provided [[org.http4s.headers.Cookie]] */
-  def addCookie(cookie: RequestCookie): Self =
+  def addCookie(cookie: RequestCookie): Request[F] =
     putHeaders {
       headers
         .get[Cookie]
@@ -393,7 +394,7 @@ final class Request[F[_]] private (
     }
 
   /** Add a Cookie header with the provided values */
-  def addCookie(name: String, content: String): Self =
+  def addCookie(name: String, content: String): Request[F] =
     addCookie(RequestCookie(name, content))
 
   def authType: Option[AuthScheme] =
@@ -579,7 +580,7 @@ final class Response[F[_]] private (
       attributes = attributes
     )
 
-  def withStatus(status: Status): Self =
+  def withStatus(status: Status): Response[F] =
     copy(status = status)
 
   override protected def change(
@@ -587,7 +588,7 @@ final class Response[F[_]] private (
       body: EntityBody[F],
       headers: Headers,
       attributes: Vault
-  ): Self =
+  ): Response[F] =
     copy(
       httpVersion = httpVersion,
       body = body,
@@ -596,21 +597,21 @@ final class Response[F[_]] private (
     )
 
   /** Add a Set-Cookie header for the provided [[ResponseCookie]] */
-  def addCookie(cookie: ResponseCookie): Self =
+  def addCookie(cookie: ResponseCookie): Response[F] =
     transformHeaders(_.add(`Set-Cookie`(cookie)))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
-  def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Self =
+  def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
     addCookie(ResponseCookie(name, content, expires))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
     * cookie from the client
     */
-  def removeCookie(cookie: ResponseCookie): Self =
+  def removeCookie(cookie: ResponseCookie): Response[F] =
     addCookie(cookie.clearCookie)
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
-  def removeCookie(name: String): Self =
+  def removeCookie(name: String): Response[F] =
     addCookie(ResponseCookie(name, "").clearCookie)
 
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
@@ -639,7 +640,7 @@ final class Response[F[_]] private (
 
   def canEqual(that: Any): Boolean =
     that match {
-      case _: Response[F] => true
+      case _: Response[_] => true
       case _ => false
     }
 
@@ -663,7 +664,7 @@ final class Response[F[_]] private (
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
 }
 
-object Response {
+object Response extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliSyntaxBinCompat1 {
 
   /** Representation of the HTTP response to send back to the client
     *
