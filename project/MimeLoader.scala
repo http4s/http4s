@@ -9,6 +9,7 @@ import java.io.PrintWriter
 import org.http4s.Uri
 import org.http4s.circe._
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.syntax.all._
 import sbt._
 import sbt.Keys.scalaSource
 import scala.concurrent.ExecutionContext.global
@@ -47,7 +48,7 @@ object MimeLoaderPlugin extends AutoPlugin {
   */
 object MimeLoader {
   implicit val MimeDescrDecoder: Decoder[MimeDescr] = deriveDecoder[MimeDescr]
-  val url = Uri.uri("https://cdn.rawgit.com/jshttp/mime-db/master/db.json")
+  val url = uri"https://cdn.rawgit.com/jshttp/mime-db/master/db.json"
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500

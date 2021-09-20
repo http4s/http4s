@@ -72,13 +72,13 @@ class TomcatServerSuite extends Http4sSuite {
   def get(server: Server, path: String): IO[String] =
     IO.blocking(
       Source
-        .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+        .fromURL(new URL(s"http://${server.address}$path"))
         .getLines()
         .mkString)
 
   def post(server: Server, path: String, body: String): IO[String] =
     IO.blocking {
-      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      val url = new URL(s"http://${server.address}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)
       conn.setRequestMethod("POST")

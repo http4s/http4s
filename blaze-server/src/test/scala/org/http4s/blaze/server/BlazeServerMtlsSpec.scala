@@ -122,7 +122,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
 
   def get(server: Server, path: String, clientAuth: Boolean = true): String =
     ErrorReporting.silenceOutputStreams {
-      val url = new URL(s"https://localhost:${server.address.getPort}$path")
+      val url = new URL(s"https://${server.address}$path")
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]
       conn.setRequestMethod("GET")
 

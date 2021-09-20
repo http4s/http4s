@@ -27,14 +27,12 @@ import cats.effect.std.Dispatcher
 import cats.instances.order._
 import cats.syntax.all._
 import com.comcast.ip4s
-import com.comcast.ip4s.Arbitraries._
 import fs2.{Pure, Stream}
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
 import org.http4s.headers._
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.syntax.literals._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
@@ -48,7 +46,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-private[http4s] trait ArbitraryInstances {
+private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
   import ArbitraryInstances._
 
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -204,7 +202,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
 
   implicit val http4sTestingArbitraryForNioCharset: Arbitrary[NioCharset] =
-    Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
+    Arbitrary(oneOf(Charset.availableCharsets))
 
   implicit val http4sTestingCogenForNioCharset: Cogen[NioCharset] =
     Cogen[String].contramap(_.name)
@@ -522,16 +520,16 @@ private[http4s] trait ArbitraryInstances {
       : Arbitrary[headers.`Access-Control-Allow-Headers`] =
     Arbitrary {
       for {
-        values <- nonEmptyListOf(genToken.map(CIString(_)))
-      } yield headers.`Access-Control-Allow-Headers`(NonEmptyList.of(values.head, values.tail: _*))
+        values <- listOf(genToken.map(CIString(_)))
+      } yield headers.`Access-Control-Allow-Headers`(values)
     }
 
   implicit val http4sTestingArbitraryForAccessControlExposeHeaders
       : Arbitrary[headers.`Access-Control-Expose-Headers`] =
     Arbitrary {
       for {
-        values <- nonEmptyListOf(genToken.map(CIString(_)))
-      } yield headers.`Access-Control-Expose-Headers`(NonEmptyList.of(values.head, values.tail: _*))
+        values <- listOf(genToken.map(CIString(_)))
+      } yield headers.`Access-Control-Expose-Headers`(values)
     }
 
   implicit val http4sTestingArbitraryForRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
@@ -646,13 +644,13 @@ private[http4s] trait ArbitraryInstances {
     oneOf(g, const(ev.empty))
 
   implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] =
-    Arbitrary(ip4s.Arbitraries.ipv4Generator.map(Uri.Ipv4Address.apply))
+    Arbitrary(ipv4Generator.map(Uri.Ipv4Address.apply))
 
   implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
     Cogen[Array[Byte]].contramap(_.address.toBytes)
 
   implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] =
-    Arbitrary(ip4s.Arbitraries.ipv6Generator.map(Uri.Ipv6Address.apply))
+    Arbitrary(ipv6Generator.map(Uri.Ipv6Address.apply))
 
   implicit val http4sTestingCogenForIpv6Address: Cogen[Uri.Ipv6Address] =
     Cogen[Array[Byte]].contramap(_.address.toBytes)

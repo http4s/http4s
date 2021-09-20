@@ -57,7 +57,7 @@ import scala.concurrent.duration._
   * @param channelOptions custom socket options
   * @param customDnsResolver customDnsResolver to use other than the system default
   */
-sealed abstract class BlazeClientBuilder[F[_]] private (
+final class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
     val idleTimeout: Duration,
     val requestTimeout: Duration,
@@ -131,7 +131,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       asynchronousChannelGroup = asynchronousChannelGroup,
       channelOptions = channelOptions,
       customDnsResolver = customDnsResolver
-    ) {}
+    )
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
     copy(responseHeaderTimeout = responseHeaderTimeout)
@@ -353,7 +353,7 @@ object BlazeClientBuilder {
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty),
       customDnsResolver = None
-    ) {}
+    )
 
   def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
     requestKey match {
