@@ -22,12 +22,12 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 
-import java.io.File
 import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
 import org.typelevel.ci._
 import scala.annotation.nowarn
+import fs2.io.file.Path
 
 class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
@@ -89,11 +89,12 @@ class MultipartSuite extends Http4sSuite {
       }
 
       test(s"Multipart form data $name should encoded and decoded with binary data") {
-        val file = new File(getClass.getResource("/ball.png").toURI)
+        val path =
+          Path.fromNioPath(java.nio.file.Paths.get(getClass.getResource("/ball.png").toURI))
 
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
         val field2 = Part
-          .fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
+          .fileData[IO]("image", path, `Content-Type`(MediaType.image.png))
 
         val multipart = Multipart[IO](Vector(field1, field2))
 
