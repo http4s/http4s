@@ -26,7 +26,7 @@ import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.server.websocket.WebSocketBuilder2
 
 import org.java_websocket.client.WebSocketClient
 import java.net.URI
@@ -39,7 +39,7 @@ import java.nio.charset.StandardCharsets
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
-  def service[F[_]](wsBuilder: WebSocketBuilder[F])(implicit F: Async[F]): HttpApp[F] = {
+  def service[F[_]](wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
