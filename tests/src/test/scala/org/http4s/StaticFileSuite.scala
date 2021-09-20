@@ -44,7 +44,7 @@ class StaticFileSuite extends Http4sSuite {
       "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.png),
       "/test.fiddlefaddle" -> None)
     tests.traverse { case (p, om) =>
-      check(Path.fromNioPath(java.nio.file.Path.of(getClass.getResource(p).toURI)), om)
+      check(Path(getClass.getResource(p).getPath), om)
     }
   }
   test("load from resource") {
