@@ -78,7 +78,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
   test("json encoder should have json content type") {
-    val maybeHeaderT: Option[`Content-Type`] = jsonEncoder[IO].headers.get[`Content-Type`]
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoder.headers.get[`Content-Type`]
     assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
@@ -101,12 +101,12 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   }
 
   test("jsonEncoderOf should have json content type") {
-    val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[IO, Foo].headers.get[`Content-Type`]
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[Foo].headers.get[`Content-Type`]
     assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("jsonEncoderOf should write compact JSON") {
-    writeToString(foo)(jsonEncoderOf[IO, Foo]).assertEquals("""{"bar":42}""")
+    writeToString(foo)(jsonEncoderOf[Foo]).assertEquals("""{"bar":42}""")
   }
 
   test("jsonEncoderOf should write JSON according to custom encoders") {

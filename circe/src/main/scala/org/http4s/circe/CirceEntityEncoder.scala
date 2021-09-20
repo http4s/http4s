@@ -23,8 +23,8 @@ import org.http4s.EntityEncoder
   * without need to explicitly call `jsonEncoderOf`.
   */
 trait CirceEntityEncoder {
-  implicit def circeEntityEncoder[F[_], A: Encoder]: EntityEncoder[F, A] =
-    jsonEncoderOf[F, A]
+  implicit def circeEntityEncoder[A: Encoder]: EntityEncoder.Pure[A] =
+    jsonEncoderOf[A]
 }
 
 object CirceEntityEncoder extends CirceEntityEncoder
