@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.{Functor, MonadError, MonadThrow, Semigroup}
+import cats.{ApplicativeThrow, Functor, MonadError, MonadThrow, Semigroup}
 import cats.data.{NonEmptyList, OptionT}
 import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
@@ -130,7 +130,7 @@ object StaticFile {
         .map(isFile =>
           if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
-  def calculateETag[F[_]: Files: Functor](implicit dummy: DummyImplicit): Path => F[String] =
+  def calculateETag[F[_]: Files: ApplicativeThrow]: Path => F[String] =
     f =>
       Files[F]
         .getBasicFileAttributes(f)
@@ -138,6 +138,8 @@ object StaticFile {
           if (attr.isRegularFile)
             s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}"
           else "")
+        // A bit of a hack, old code relied on Java File which silently returns 0s when there is an I/O exception...
+        .handleError(_ => s"${0.toHexString}-${0.toHexString}")
 
   @deprecated("Use fromPath", "0.23.4")
   def fromFile[F[_]: Files: MonadThrow](
@@ -186,8 +188,10 @@ object StaticFile {
       buffsize: Int,
       req: Option[Request[F]],
       etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
-    OptionT.liftF(Files[F].getBasicFileAttributes(f)).flatMap { attr =>
-      fromPath(f, 0, attr.size, buffsize, req, etagCalculator)
+    // A bit of a hack, old code relied on Java File which silently returns 0L if there is an I/O exception
+    OptionT.liftF(Files[F].getBasicFileAttributes(f).map(_.size).handleError(_ => 0L)).flatMap {
+      size =>
+        fromPath(f, 0, size, buffsize, req, etagCalculator)
     }
 
   @deprecated("Use fromPath", "0.23.4")
