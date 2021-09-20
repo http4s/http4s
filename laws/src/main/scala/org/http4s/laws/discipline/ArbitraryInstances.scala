@@ -35,7 +35,6 @@ import java.time._
 import java.util.Locale
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
-import org.http4s.laws.discipline.ArbitraryInstances.genAlphaToken
 import org.http4s.syntax.literals._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
