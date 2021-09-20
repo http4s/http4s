@@ -52,6 +52,10 @@ http.createServer(async (req, res) => {
         res.statusCode = 500;
         res.end();
         break;
+      case '/request-splitting':
+        res.statusCode = req.headers['Evil'] ? 500 : 200;
+        res.end();
+        break;
       default:
         res.statusCode = 404;
         res.end();
