@@ -136,7 +136,8 @@ trait CirceInstances extends JawnInstances {
     defaultPrinter)
 
   def jsonEncoderWithPrinter(printer: Printer): EntityEncoder.Pure[Json] =
-    EntityEncoder[fs2.Pure, Chunk[Byte]]
+    EntityEncoder
+      .Pure[Chunk[Byte]]
       .contramap[Json](CirceInstances.fromJsonToChunk(printer))
       .withContentType(`Content-Type`(MediaType.application.json))
 

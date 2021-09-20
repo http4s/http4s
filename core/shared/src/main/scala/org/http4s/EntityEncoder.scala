@@ -64,6 +64,9 @@ trait EntityEncoder[+F[_], A] { self =>
 
 object EntityEncoder extends EntityEncoderCompanionPlatform {
   type Pure[A] = EntityEncoder[fs2.Pure, A]
+  object Pure {
+    def apply[A](implicit ev: EntityEncoder.Pure[A]): EntityEncoder.Pure[A] = ev
+  }
 
   private[http4s] val DefaultChunkSize = 4096
 

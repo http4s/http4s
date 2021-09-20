@@ -29,8 +29,7 @@ import scala.xml.{Elem, InputSource, SAXParseException, XML}
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
 
-  implicit def xmlEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
+  implicit def xmlEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder.Pure[Elem] =
     EntityEncoder.stringEncoder
       .contramap[Elem] { node =>
         val sw = new StringWriter
