@@ -142,6 +142,11 @@ addCommandAlias(
   "ciChrome",
   "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Chrome; project rootBrowser")
 
+addCommandAlias(
+  "testEverything", // Runs the entire +test suite on JVM, Node.JS, Firefox, and Chrome
+  "; project rootJVM; +test; project rootNodeJS; set Global / useJSEnv := JSEnv.NodeJS; +test; project rootBrowser; set Global / useJSEnv := JSEnv.Firefox; +test; set Global / useJSEnv := JSEnv.Chrome; +test; project /; set Global / useJSEnv := JSEnv.NodeJS"
+)
+
 enablePlugins(SonatypeCiReleasePlugin)
 
 versionIntroduced.withRank(KeyRanks.Invisible) := Map(
