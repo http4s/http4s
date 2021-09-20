@@ -76,8 +76,8 @@ class ScalaXmlSuite extends Http4sSuite {
 
   test("encode to UTF-8") {
     val hello = <hello name="Günther"/>
-    assertIO(
-      xmlEncoder[IO](Charset.`UTF-8`)
+    assertEquals(
+      xmlEncoder(Charset.`UTF-8`)
         .toEntity(hello)
         .body
         .through(fs2.text.utf8.decode)
@@ -91,10 +91,10 @@ class ScalaXmlSuite extends Http4sSuite {
   test("encode to UTF-16") {
     val hello = <hello name="Günther"/>
     assertIO(
-      xmlEncoder[IO](Charset.`UTF-16`)
+      xmlEncoder(Charset.`UTF-16`)
         .toEntity(hello)
         .body
-        .through(internal.decode(Charset.`UTF-16`))
+        .through(internal.decode[IO](Charset.`UTF-16`))
         .compile
         .string,
       """<?xml version='1.0' encoding='UTF-16'?>
@@ -105,10 +105,10 @@ class ScalaXmlSuite extends Http4sSuite {
   test("encode to ISO-8859-1") {
     val hello = <hello name="Günther"/>
     assertIO(
-      xmlEncoder[IO](Charset.`ISO-8859-1`)
+      xmlEncoder(Charset.`ISO-8859-1`)
         .toEntity(hello)
         .body
-        .through(internal.decode(Charset.`ISO-8859-1`))
+        .through(internal.decode[IO](Charset.`ISO-8859-1`))
         .compile
         .string,
       """<?xml version='1.0' encoding='ISO-8859-1'?>
@@ -118,7 +118,7 @@ class ScalaXmlSuite extends Http4sSuite {
 
   property("encoder sets charset of Content-Type") {
     forAll { (cs: Charset) =>
-      assertEquals(xmlEncoder[IO](cs).headers.get[`Content-Type`].flatMap(_.charset), Some(cs))
+      assertEquals(xmlEncoder(cs).headers.get[`Content-Type`].flatMap(_.charset), Some(cs))
     }
   }
 
