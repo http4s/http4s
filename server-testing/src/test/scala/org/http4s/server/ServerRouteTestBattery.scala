@@ -18,12 +18,14 @@ package org.http4s.server
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
+import cats.syntax.all._
 import org.http4s.HttpApp
 import org.http4s.Method
 import org.http4s.Response
 import org.http4s.Status
 import org.http4s.client.ClientRouteTestBattery
 import org.http4s.client.testroutes.GetRoutes
+import org.typelevel.ci._
 
 abstract class ServerRouteTestBattery(name: String) extends ClientRouteTestBattery(name) {
 
@@ -38,7 +40,13 @@ object ServerRouteTestBattery {
 
   val App: HttpApp[IO] = HttpApp[IO] { request =>
     val get = Some(request).filter(_.method == Method.GET).flatMap { r =>
-      GetRoutes.getPaths.get(r.uri.path.toString)
+      r.uri.path.toString match {
+        case p if p.startsWith("/request-splitting") =>
+          if (r.headers.get(ci"Evil").isDefined) IO(Response[IO](Status.InternalServerError)).some
+          else IO(Response[IO](Status.Ok)).some
+        case p =>
+          GetRoutes.getPaths.get(r.uri.path.toString)
+      }
     }
 
     val post = Some(request).filter(_.method == Method.POST).map { r =>
