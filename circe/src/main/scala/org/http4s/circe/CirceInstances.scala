@@ -130,10 +130,7 @@ trait CirceInstances extends JawnInstances {
         )
     }
 
-  // mima didn't like jsonEncoder being changed to a val
-  implicit def jsonEncoder: EntityEncoder.Pure[Json] = jsonEncoderBinCompat
-  private val jsonEncoderBinCompat: EntityEncoder.Pure[Json] = jsonEncoderWithPrinter(
-    defaultPrinter)
+  implicit def jsonEncoder: EntityEncoder.Pure[Json] = jsonEncoderWithPrinter(defaultPrinter)
 
   def jsonEncoderWithPrinter(printer: Printer): EntityEncoder.Pure[Json] =
     EntityEncoder
