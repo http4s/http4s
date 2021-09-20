@@ -339,6 +339,11 @@ lazy val testing = libraryProject("testing", CrossType.Full, List(JVMPlatform, J
       scalacheckEffectMunit.value
     ).map(_ % Test)
   )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      scalaJavaTimeTzdb.value,
+    ).map(_ % Test)
+  )
   .dependsOn(laws)
 
 // Defined outside core/src/test so it can depend on published testing
