@@ -17,7 +17,7 @@
 package org.http4s
 package websocket
 
-import cats. { ~> }
+import cats.{~>}
 import cats.Functor
 import cats.syntax.all._
 

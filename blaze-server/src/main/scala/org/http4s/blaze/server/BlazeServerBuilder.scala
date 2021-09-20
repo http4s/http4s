@@ -289,7 +289,11 @@ class BlazeServerBuilder[F[_]] private (
           () => Vault.empty
       }
 
-    def http1Stage(executionContext: ExecutionContext, secure: Boolean, engine: Option[SSLEngine], webSocketKey: Key[WebSocketContext[F]]) =
+    def http1Stage(
+        executionContext: ExecutionContext,
+        secure: Boolean,
+        engine: Option[SSLEngine],
+        webSocketKey: Key[WebSocketContext[F]]) =
       Http1ServerStage(
         httpApp(WebSocketBuilder(webSocketKey)),
         requestAttributes(secure = secure, engine),
@@ -305,7 +309,10 @@ class BlazeServerBuilder[F[_]] private (
         dispatcher
       )
 
-    def http2Stage(executionContext: ExecutionContext, engine: SSLEngine, webSocketKey: Key[WebSocketContext[F]]): ALPNServerSelector =
+    def http2Stage(
+        executionContext: ExecutionContext,
+        engine: SSLEngine,
+        webSocketKey: Key[WebSocketContext[F]]): ALPNServerSelector =
       ProtocolSelector(
         engine,
         httpApp(WebSocketBuilder(webSocketKey)),

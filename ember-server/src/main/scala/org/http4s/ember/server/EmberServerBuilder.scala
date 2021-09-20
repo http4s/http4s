@@ -58,7 +58,7 @@ final class EmberServerBuilder[F[_]: Async] private (
   private def copy(
       host: Option[Host] = self.host,
       port: Port = self.port,
-      httpApp:  WebSocketBuilder[F] => HttpApp[F] = self.httpApp,
+      httpApp: WebSocketBuilder[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
@@ -158,7 +158,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             logger,
-            wsKey,
+            wsKey
           )
           .compile
           .drain

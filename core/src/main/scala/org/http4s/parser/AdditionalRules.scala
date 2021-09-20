@@ -28,4 +28,11 @@ private[http4s] object AdditionalRules {
       case _: NumberFormatException => None
     }
   }
+
+  val Long: P[Long] = Rfc7230.token.mapFilter { s =>
+    try Some(s.toLong)
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
 }

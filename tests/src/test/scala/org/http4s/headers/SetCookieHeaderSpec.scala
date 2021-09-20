@@ -56,6 +56,20 @@ class SetCookieHeaderSpec extends Http4sSuite {
     assertEquals(c.httpOnly, true)
   }
 
+  test("Set-Cookie parser should parse a set cookie without spaces") {
+    val cookiestr =
+      "myname=\"foo\";Domain=example.com;Max-Age=1;Path=value;SameSite=Strict;Secure;HttpOnly"
+    val c = parse(cookiestr).cookie
+    assertEquals(c.name, "myname")
+    assertEquals(c.domain, Some("example.com"))
+    assertEquals(c.content, """"foo"""")
+    assertEquals(c.maxAge, Some(1L))
+    assertEquals(c.path, Some("value"))
+    assertEquals(c.sameSite, Some(SameSite.Strict))
+    assertEquals(c.secure, true)
+    assertEquals(c.httpOnly, true)
+  }
+
   test("Set-Cookie parser should parse with a domain with a leading dot") {
     val cookiestr = "myname=\"foo\"; Domain=.example.com"
     val c = parse(cookiestr).cookie

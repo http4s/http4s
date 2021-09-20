@@ -63,7 +63,7 @@ object Origin {
     val bracketedIpv6 = char('[') *> Uri.Parser.ipv6Address <* char(']')
     val host = List(bracketedIpv6, Uri.Parser.ipv4Address, stringHost).reduceLeft(_ orElse _)
     val port = char(':') *> digit.rep.string.map(_.toInt)
-    val nullHost = (string("null") *> `end`).orElse(`end`).as(Origin.Null)
+    val nullHost = (string("null") *> `end`).as(Origin.Null)
 
     val singleHost = ((scheme <* string("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
       Origin.Host(sch, host, port)

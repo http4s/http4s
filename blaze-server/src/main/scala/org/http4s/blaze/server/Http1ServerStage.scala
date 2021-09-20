@@ -34,13 +34,12 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
+import org.http4s.websocket.WebSocketContext
 import org.typelevel.ci._
 import org.typelevel.vault._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
-import scala.concurrent.Await
-import org.http4s.websocket.WebSocketContext
 
 private[http4s] object Http1ServerStage {
   def apply[F[_]](
@@ -68,9 +67,8 @@ private[http4s] object Http1ServerStage {
       idleTimeout,
       scheduler,
       dispatcher) with WebSocketSupport[F] {
-        val webSocketKey = wsKey
-      }
-
+      val webSocketKey = wsKey
+    }
 
 }
 
@@ -318,10 +316,12 @@ private[blaze] class Http1ServerStage[F[_]](
   }
 
   private def cancel(): Unit =
-    cancelToken.foreach { token =>
-      Await.result(token(), Duration.Inf)
-      ()
-    }
+    cancelToken.foreach(_().onComplete {
+      case Success(_) =>
+        ()
+      case Failure(t) =>
+        logger.warn(t)(s"Error canceling request. No request details are available.")
+    })
 
   final protected def badMessage(
       debugMessage: String,

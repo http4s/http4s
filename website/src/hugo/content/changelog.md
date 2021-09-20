@@ -8,9 +8,84 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.3 (unreleased)
+# v0.23.3 (2021-09-02)
+
+This is binary compatible with v0.23.3.  It includes the fixes in v0.22.2.
+
+## http4s-ember-server
+
+### Bugfixes
+
+* [#5138](https://github.com/http4s/http4s/pull/5138): Correctly populate the `SecureSession` response attribute.
+
+# v0.22.4 (2021-09-02)
+
+This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.28.
+
+## http4s-server
+
+### Bugfixes
+
+* [#5130](https://github.com/http4s/http4s/pull/5130): Fix the parsing of empty `Origin` headers to be a parse failure instead of `Origin.Null`.
+
+## Dependency updates
+
+* scodec-bits-1.1.28
+
+# v0.21.28 (2021-09-02)
+
+This is a bugfix to yesterday's patch.  It is not a security issue, but a correctness issue.
+
+This release is binary compatible with 0.21.x.
+
+## http4s-server
+
+### Breaking changes
+
+* [#5144](https://github.com/http4s/http4s/pull/5144): In the `CORS` middleware, respond to preflight `OPTIONS` requests with a 200 status.  It was previously passing through to the wrapped `Http`, most of which won't respond to `OPTIONS`.  The breaking change is that the constraint is promoted from `Functor` to `Applicative`.  The `Functor` version is left for binary compatibility with a runtime warning.
+
+# v0.23.2 (2021-09-01)
+
+This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in v0.22.3.
+
+This release is binary compatible with the 0.23 series.
 
 ## http4s-core
+
+### Enhancements
+
+* [#5085](https://github.com/http4s/http4s/pull/5085): Make `EntityEncoder`s for `File`, `Path`, and `InputStream` implicit.  Since 0.23, they no longer require an explicit `Blocker` parameter, using Cats-Effect 3's runtime instead.
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#5118](https://github.com/http4s/http4s/pull/5118): Don't block the `TickWheelExecutor` on cancellation.  In-flight responses are canceled when a connection shuts down.  If the response cancellation hangs, it blocks the `TickWheelScheduler` thread.  When this thread blocks, subsequent scheduled events are not processed, and memory leaks with each newly scheduled event.
+
+### Enhancements
+
+* [#4782](https://github.com/http4s/http4s/pull/4782): Use `Async[F].executionContext` as a default `ExecutionContext` in `BlazeServerBuilder`.
+
+## http4s-ember-server
+
+* [#5106](https://github.com/http4s/http4s/pull/5106): Demote noisy `WebSocket connection terminated with exception` message to trace-level logging on broken pipes.  This relies on exception message parsing and may not work well in all locales.
+
+## Dependency updates
+
+* cats-effect-3.2.5
+* fs2-3.1.1
+
+# v0.22.3 (2021-09-01)
+
+This release includes a security patch to  [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6), along with all changes in 0.21.26 and 0.21.27.
+
+Binary compatible with 0.22.2 series, with the exception of static forwarders in `HttpApp.apply`, `HttpApp.local`.  Unless you are calling `HttpApp` from a language other than Scala, you are not affected.
+
+## http4s-core
+
+### Binary breaking changes
+
+* [#5071](https://github.com/http4s/http4s/pull/5071): Weakens constraints on `HttpApp.apply` and `HttpApp.local` from `Sync` to `Defer`.  This change is technically binary breaking, but will only affect static methods called via interop from a language other than Scala.
 
 ### Semantic changes
 
@@ -18,7 +93,8 @@ it.
 
 ### Bugfixes
 
-* [#5076](https://github.com/http4s/http4s/pull/5076): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+* [#5070](https://github.com/http4s/http4s/pull/5070): Fix `Accept-Language` parser on the wildcard (`*`) tag with a quality value
+* [#5105](https://github.com/http4s/http4s/pull/5105): Parse `UTF-8` charset tag on `Content-Disposition` filenames case-insensitively. This was a regression from 0.21.
 
 ### Enhancements
 
@@ -28,6 +104,10 @@ it.
 ### Documentation
 
 * [#5061](https://github.com/http4s/http4s/pull/5061): Document that the `Allow` header MUST return the allowed methods.
+
+### Dependency updates
+
+* blaze-0.15.2
 
 ## http4s-client
 
@@ -40,6 +120,16 @@ it.
 ### Bugfixes
 
 * [#5056](https://github.com/http4s/http4s/pull/5056): In `GZip` middleware, don't add a `Content-Encoding` header if the response type doesn't support an entity.
+
+### Enhancements
+
+* [#5112](https://github.com/http4s/http4s/pull/5112): Make `CORS` middleware configurable via `toHttpRoutes` and `toHttpApp` constructors.
+
+## http4s-blaze-core
+
+### Bugfixes
+
+* [#5126](https://github.com/http4s/http4s/pull/5126): Upgrades to a Blaze version that uses a monotonic timer in the `TickWheelExecutor`.  This will improve scheduling correctness in the presence of an erratic clock.
 
 ## http4s-blaze-server
 
@@ -73,7 +163,36 @@ it.
 
 ## Dependency updates
 
+* blaze-0.15.2
 * netty-4.1.67
+
+# v0.21.27 (2021-08-31)
+
+This is a security release.  It is binary compatible with the 0.21.x series.
+
+## http4s-server
+
+### Security patches
+
+* [GHSA-52cf-226f-rhr6](https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6):
+* Deprecates `apply` method that takes a `CORSConfig`, and `httpRoutes` anad `httpApp` that take no config.  The default configuration disables most actual CORS protection, and has several deficiences even when properly configured.  See the GHSA for a full discussion.  tl;dr: start from `CORS.policy`.
+* The deprecated implementation now ignores the `allowCredentials` setting when `anyOrigin` is true, and logs a warning.  If you insist on using the deprecated version, old behavior can be restored by setting `anyOrigin` to false and `allowOrigins` to `Function.const(true)`.
+* No longer renders an `Access-Control-Allow-Credentials: false` headerFor safety, the `allowCredentials` setting is now Please see the GHSA for a full discussion.
+* The replacement implementation, created from the new `CORS.policy`, additionally fixes the following defects:
+  * No longer returns a `403 Forbidden` response when CORS checks fail.  The enforcement point of CORS is the user agent.  Any failing checks just suppress CORS headers in the http4s response.
+  * Add  `Access-Control-Request-Headers` to the `Vary` header on preflight responses when it can affect the response. This is important for caching.
+  * Validate the  `Access-Control-Request-Headers`, and return no CORS headers if any of the headers are disallowed.
+   * Remote `Vary: Access-Control-Request-Method` and `Access-Control-Max-Age` headers from non-preflight responses.  These are only relevant in preflight checks.
+
+## http4s-blaze-server
+
+### Bugfixes
+
+* [#5125](https://github.com/http4s/http4s/pull/5125): Upgrade to a blaze that uses monotonic time in the `TickWheelExecutor`. This is unrelated to the GHSA, but guards against a theoretical scheduling problem if the system clock is erratic.
+
+## Dependency updates
+
+* blaze-0.14.18
 
 # v0.21.26 (2021-08-12)
 

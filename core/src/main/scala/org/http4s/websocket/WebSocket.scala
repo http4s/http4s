@@ -36,7 +36,7 @@ private[http4s] final case class WebSocketSeparatePipe[F[_]](
     WebSocketSeparatePipe(
       send.translate(fk),
       sg => receive(sg.translate(gk)).translate(fk),
-      fk(onClose),
+      fk(onClose)
     )
 
 }

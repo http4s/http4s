@@ -17,7 +17,7 @@
 package org.http4s
 package server.websocket
 
-import cats.{ Applicative, ~> }
+import cats.{Applicative, ~>}
 import cats.syntax.all._
 import fs2.{Pipe, Stream}
 import org.http4s.websocket.{
@@ -145,7 +145,8 @@ final case class WebSocketBuilder[F[_]: Applicative](
 
 object WebSocketBuilder {
 
-  private[http4s] def apply[F[_]: Applicative](webSocketKey: Key[WebSocketContext[F]]): WebSocketBuilder[F] =
+  private[http4s] def apply[F[_]: Applicative](
+      webSocketKey: Key[WebSocketContext[F]]): WebSocketBuilder[F] =
     new WebSocketBuilder[F](
       headers = Headers.empty,
       onNonWebSocketRequest =
