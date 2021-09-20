@@ -31,7 +31,6 @@ import cats.effect.SyncIO
 import cats.syntax.all._
 import java.nio.charset.StandardCharsets
 import java.time.Clock
-import javax.crypto
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Referer, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.internal.{decodeHexString, encodeHexString}
@@ -255,7 +254,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
 object CSRF {
   def apply[F[_]: Sync, G[_]: Applicative](
-      key: crypto.SecretKey,
+      key: javax.crypto.SecretKey,
       headerCheck: Request[G] => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
@@ -274,7 +273,7 @@ object CSRF {
     )
 
   def withDefaultOriginCheck[F[_]: Sync, G[_]: Applicative](
-      key: crypto.SecretKey,
+      key: javax.crypto.SecretKey,
       host: String,
       scheme: Scheme,
       port: Option[Int]
@@ -285,7 +284,7 @@ object CSRF {
     )
 
   def withDefaultOriginCheckFormAware[F[_]: Sync, G[_]: Sync](fieldName: String, nt: G ~> F)(
-      key: crypto.SecretKey,
+      key: javax.crypto.SecretKey,
       host: String,
       scheme: Scheme,
       port: Option[Int]
@@ -343,7 +342,7 @@ object CSRF {
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
     def withCreateIfNotFound(createIfNotFound: Boolean): CSRFBuilder[F, G] =
       copy(createIfNotFound = createIfNotFound)
-    def withKey(key: crypto.SecretKey): CSRFBuilder[F, G] =
+    def withKey(key: javax.crypto.SecretKey): CSRFBuilder[F, G] =
       copy(key = Hmac[SyncIO].importJavaKey(key).unsafeRunSync())
     def withHeaderCheck(headerCheck: Request[G] => Boolean): CSRFBuilder[F, G] =
       copy(headerCheck = headerCheck)
@@ -513,7 +512,7 @@ object CSRF {
   }
 
   /** Generate a signing Key for the CSRF token */
-  def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[crypto.SecretKey] =
+  def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
     Hmac[F].generateKey(SigningAlgorithm).map(_.toJava)
 
   /** Build a new HMACSHA1 Key for our CSRF Middleware
@@ -526,6 +525,6 @@ object CSRF {
     * Use for loading a key from a config file, after having generated
     * one safely
     */
-  def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[crypto.SecretKey] =
+  def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
     Hmac[F].importKey(ByteVector.view(array), SigningAlgorithm).map(_.toJava)
 }
