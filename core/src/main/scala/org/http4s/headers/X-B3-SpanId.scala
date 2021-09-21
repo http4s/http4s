@@ -30,4 +30,6 @@ final case class `X-B3-SpanId`(id: Long) extends Header.Parsed {
 
   override def renderValue(writer: Writer): writer.type =
     xB3RenderValueImpl(writer, id)
+
+  override def isNameValid: Boolean = true
 }

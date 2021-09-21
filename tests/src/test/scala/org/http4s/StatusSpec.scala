@@ -18,6 +18,7 @@ package org.http4s
 
 import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline.OrderTests
+import java.nio.charset.StandardCharsets
 import org.http4s.Status._
 import org.scalacheck.Gen
 import org.scalacheck.Prop.{forAll, propBoolean}
@@ -112,6 +113,20 @@ class StatusSpec extends Http4sSuite {
 
   test("Finding a status by code and reason should succeed for a standard code and reason") {
     assertEquals(getStatus(NotFound.code, "Not Found").reason, "Not Found")
+  }
+
+  test("all known status have a reason") {
+    Status.registered.foreach { status =>
+      assert(status.renderString.drop(4).nonEmpty, status.renderString)
+    }
+  }
+
+  test("rendering sanitizes statuses") {
+    forAll { (s: Status) =>
+      s.renderString
+        .getBytes(StandardCharsets.ISO_8859_1)
+        .forall(b => b == ' ' || b == '\t' || (b >= 0x21 && b <= 0x7e) || ((b & 0xff) > 0x80))
+    }
   }
 
   private def getStatus(code: Int) =

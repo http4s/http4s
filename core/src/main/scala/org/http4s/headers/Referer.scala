@@ -28,4 +28,6 @@ object Referer extends HeaderKey.Internal[Referer] with HeaderKey.Singleton {
 final case class Referer(uri: Uri) extends Header.Parsed {
   override def key: `Referer`.type = `Referer`
   override def renderValue(writer: Writer): writer.type = uri.render(writer)
+
+  override def isNameValid: Boolean = true
 }

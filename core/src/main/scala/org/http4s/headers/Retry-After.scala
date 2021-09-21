@@ -56,4 +56,6 @@ sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long]) extends 
   val key = `Retry-After`
   override val value = Renderer.renderString(retry)
   override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  override def isNameValid: Boolean = true
 }

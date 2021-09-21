@@ -29,4 +29,6 @@ final case class `Cache-Control`(values: NonEmptyList[CacheDirective])
     extends Header.RecurringRenderable {
   override def key: `Cache-Control`.type = `Cache-Control`
   type Value = CacheDirective
+
+  override def isNameValid: Boolean = true
 }

@@ -55,4 +55,6 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange])
   def satisfiedBy(charset: Charset): Boolean = qValue(charset) > QValue.Zero
 
   def map(f: CharsetRange => CharsetRange): `Accept-Charset` = `Accept-Charset`(values.map(f))
+
+  override def isNameValid: Boolean = true
 }

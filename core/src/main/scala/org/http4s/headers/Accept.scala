@@ -44,4 +44,6 @@ final case class Accept(values: NonEmptyList[MediaRangeAndQValue])
     extends Header.RecurringRenderable {
   def key: Accept.type = Accept
   type Value = MediaRangeAndQValue
+
+  override def isNameValid: Boolean = true
 }

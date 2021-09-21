@@ -43,4 +43,6 @@ final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length:
       case None => writer << '*'
     }
   }
+
+  override def isNameValid: Boolean = true
 }

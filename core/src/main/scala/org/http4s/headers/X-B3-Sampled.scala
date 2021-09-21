@@ -32,4 +32,6 @@ final case class `X-B3-Sampled`(sampled: Boolean) extends Header.Parsed {
     val b: String = if (sampled) "1" else "0"
     writer.append(b)
   }
+
+  override def isNameValid: Boolean = true
 }

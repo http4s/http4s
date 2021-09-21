@@ -52,4 +52,6 @@ final case class `If-None-Match`(tags: Option[NonEmptyList[ETag.EntityTag]]) ext
       case Some(tags) => tags.mkString_("", ",", "")
     }
   override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  override def isNameValid: Boolean = true
 }

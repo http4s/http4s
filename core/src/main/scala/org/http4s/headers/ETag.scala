@@ -43,4 +43,6 @@ final case class ETag(tag: ETag.EntityTag) extends Header.Parsed {
   def key: ETag.type = ETag
   override def value: String = tag.toString()
   override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  override def isNameValid: Boolean = true
 }

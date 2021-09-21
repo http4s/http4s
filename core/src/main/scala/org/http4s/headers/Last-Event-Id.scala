@@ -26,6 +26,8 @@ final case class `Last-Event-Id`(id: EventId) extends Header.Parsed {
   override def key: http4s.headers.`Last-Event-Id`.type = `Last-Event-Id`
   override def renderValue(writer: Writer): writer.type =
     writer.append(id.value)
+
+  override def isNameValid: Boolean = true
 }
 
 object `Last-Event-Id` extends HeaderKey.Internal[`Last-Event-Id`] with HeaderKey.Singleton {

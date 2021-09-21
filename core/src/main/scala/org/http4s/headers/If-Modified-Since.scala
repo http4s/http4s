@@ -39,4 +39,6 @@ final case class `If-Modified-Since`(date: HttpDate) extends Header.Parsed {
   override def key: `If-Modified-Since`.type = `If-Modified-Since`
   override def value: String = Renderer.renderString(date)
   override def renderValue(writer: Writer): writer.type = writer.append(value)
+
+  override def isNameValid: Boolean = true
 }

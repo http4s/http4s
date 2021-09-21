@@ -56,4 +56,6 @@ final case class `Content-Type` private (mediaType: MediaType, charset: Option[C
 
   def isCharsetDefined: Boolean = charset.isDefined
   def noCharsetDefined: Boolean = charset.isEmpty
+
+  override def isNameValid: Boolean = true
 }

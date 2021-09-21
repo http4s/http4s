@@ -65,4 +65,6 @@ final case class `X-B3-Flags`(flags: Set[`X-B3-Flags`.Flag]) extends Header.Pars
 
   override def renderValue(writer: Writer): writer.type =
     writer.append(flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
+
+  override def isNameValid: Boolean = true
 }

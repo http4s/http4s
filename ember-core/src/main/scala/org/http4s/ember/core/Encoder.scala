@@ -19,7 +19,8 @@ package org.http4s.ember.core
 import cats.effect._
 import fs2._
 import org.http4s._
-import org.http4s.headers.`Content-Length`
+import org.http4s.headers.{Host, `Content-Length`}
+import org.http4s.internal.parboiled2.CharPredicate
 import java.nio.charset.StandardCharsets
 import scala.annotation.nowarn
 
@@ -51,10 +52,12 @@ private[ember] object Encoder {
         if (h.is(`Content-Length`)) appliedContentLength = true
         else ()
 
-        stringBuilder
-          .append(h.renderString)
-          .append(CRLF)
-        ()
+        if (h.isNameValid) {
+          stringBuilder
+            .append(h.renderString)
+            .append(CRLF)
+          ()
+        }
       }
       if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
         stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
@@ -77,57 +80,72 @@ private[ember] object Encoder {
   private val NoPayloadMethods: Set[Method] =
     Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
 
-  @nowarn("cat=unused")
   def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
-    var chunked = req.isChunked
-    val initSection = {
-      var appliedContentLength = false
-      val stringBuilder = new StringBuilder()
+    val uriOriginFormString = req.uri.toOriginForm.renderString
+    val hostFromUriString = Host.from(req.headers) match {
+      case Some(_) => None
+      case None => req.uri.authority.map(_.renderString)
+    }
 
-      // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
-      stringBuilder
-        .append(req.method.renderString)
-        .append(SPACE)
-        .append(req.uri.toOriginForm.renderString)
-        .append(SPACE)
-        .append(req.httpVersion.renderString)
-        .append(CRLF)
+    if (uriOriginFormString.exists(ForbiddenUriCharacters))
+      Stream.raiseError(new IllegalArgumentException(s"Invalid URI: ${uriOriginFormString}"))
+    else if (hostFromUriString.fold(false)(_.exists(ForbiddenUriCharacters))) {
+      Stream.raiseError(
+        new IllegalArgumentException(s"Invalid host in URI: ${hostFromUriString.getOrElse("")}"))
+    } else {
+      var chunked = req.isChunked
+      val initSection = {
+        var appliedContentLength = false
+        val stringBuilder = new StringBuilder()
 
-      // Host From Uri Becomes Header if not already present in headers
-      if (org.http4s.headers.Host.from(req.headers).isEmpty)
-        req.uri.authority.foreach { auth =>
+        // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
+        stringBuilder
+          .append(req.method.renderString)
+          .append(SPACE)
+          .append(uriOriginFormString)
+          .append(SPACE)
+          .append(req.httpVersion.renderString)
+          .append(CRLF)
+
+        // Host From Uri Becomes Header if not already present in headers
+        hostFromUriString.foreach { auth =>
           stringBuilder
             .append("Host: ")
-            .append(auth.renderString)
+            .append(auth)
             .append(CRLF)
         }
 
-      // Apply each header followed by a CRLF
-      req.headers.foreach { h =>
-        if (h.is(`Content-Length`)) appliedContentLength = true
-        else ()
+        // Apply each header followed by a CRLF
+        req.headers.foreach { h =>
+          if (h.is(`Content-Length`)) appliedContentLength = true
+          else ()
 
-        stringBuilder
-          .append(h.renderString)
-          .append(CRLF)
-        ()
+          if (h.isNameValid) {
+            stringBuilder
+              .append(h.renderString)
+              .append(CRLF)
+            ()
+          }
+        }
+
+        if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
+          stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
+          chunked = true
+          ()
+        }
+
+        // Final CRLF terminates headers and signals body to follow.
+        stringBuilder.append(CRLF)
+        stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
       }
-
-      if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
-        stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
-        chunked = true
-        ()
-      }
-
-      // Final CRLF terminates headers and signals body to follow.
-      stringBuilder.append(CRLF)
-      stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
+      if (chunked)
+        Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F])
+      else
+        (Stream.chunk(Chunk.array(initSection)) ++ req.body)
+          .chunkMin(writeBufferSize)
+          .flatMap(Stream.chunk)
     }
-    if (chunked)
-      Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F])
-    else
-      (Stream.chunk(Chunk.array(initSection)) ++ req.body)
-        .chunkMin(writeBufferSize)
-        .flatMap(Stream.chunk)
   }
+
+  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, ' ', '\r', '\n')
 }

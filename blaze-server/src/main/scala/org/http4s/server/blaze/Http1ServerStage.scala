@@ -224,7 +224,7 @@ private[blaze] class Http1ServerStage[F[_]](
       resp: Response[F],
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     val rr = new StringWriter(512)
-    rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
+    rr << req.httpVersion << ' ' << resp.status << "\r\n"
 
     Http1Stage.encodeHeaders(resp.headers.toList, rr, isServer = true)
 

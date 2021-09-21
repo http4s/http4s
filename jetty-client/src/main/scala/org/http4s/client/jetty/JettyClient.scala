@@ -39,12 +39,14 @@ object JettyClient {
         Client[F] { req =>
           Resource.suspend(F.asyncF[Resource[F, Response[F]]] { cb =>
             F.bracket(StreamRequestContentProvider()) { dcp =>
-              val jReq = toJettyRequest(client, req, dcp)
-              for {
+              (for {
+                jReq <- F.catchNonFatal(toJettyRequest(client, req, dcp))
                 rl <- ResponseListener(cb)
                 _ <- F.delay(jReq.send(rl))
                 _ <- dcp.write(req)
-              } yield ()
+              } yield ()).recover { case e =>
+                cb(Left(e))
+              }
             } { dcp =>
               F.delay(dcp.close())
             }
@@ -88,7 +90,8 @@ object JettyClient {
         }
       )
 
-    for (h <- request.headers.toList) jReq.header(h.name.toString, h.value)
+    for (h <- request.headers.toList if h.isNameValid)
+      jReq.header(h.name.toString, h.value)
     jReq.content(dcp)
   }
 }

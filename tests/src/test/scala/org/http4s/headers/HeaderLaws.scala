@@ -23,6 +23,8 @@ import org.typelevel.discipline.Laws
 import org.http4s.laws.discipline.ArbitraryInstances._
 
 trait HeaderLaws extends munit.DisciplineSuite with Laws {
+  import HeaderLaws._
+
   def headerLaws(key: HeaderKey)(implicit
       arbHeader: Arbitrary[key.HeaderT]
   ): RuleSet =
@@ -42,6 +44,14 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
       },
       """matchHeader does not match other names""" -> forAll { (header: Header) =>
         key.name != header.name ==> assert(key.matchHeader(header).isEmpty)
+      },
+      """sanitizes prohibited header characters""" -> forAll { (a: key.HeaderT) =>
+        val s = a.renderString
+        assert(!s.exists(ProhibitedFieldValueChars), s)
       }
     )
+}
+
+object HeaderLaws {
+  private val ProhibitedFieldValueChars = Set(0x0.toChar, '\r', '\n')
 }

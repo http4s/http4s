@@ -32,6 +32,7 @@ import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
+import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.util.{StringWriter, Writer}
 
 import scala.annotation.tailrec
@@ -411,16 +412,22 @@ private final class Http1Connection[F[_]](
     else if (minor == 1 && req.uri.host.isEmpty) // this is unlikely if not impossible
       if (Host.from(req.headers).isDefined) {
         val host = Host.from(req.headers).get
-        val newAuth = req.uri.authority match {
-          case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
-          case None => Authority(host = RegName(host.host), port = host.port)
+        if (host.host.exists(ForbiddenUriCharacters)) {
+          Left(new IllegalArgumentException(s"Invalid Host: $host"))
+        } else {
+          val newAuth = req.uri.authority match {
+            case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
+            case None => Authority(host = RegName(host.host), port = host.port)
+          }
+          validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
         }
-        validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
       } else if (`Content-Length`.from(req.headers).nonEmpty) // translate to HTTP/1.0
         validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
       else
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
     else if (req.uri.path == "") Right(req.withUri(req.uri.copy(path = "/")))
+    else if (req.uri.path.exists(ForbiddenUriCharacters))
+      Left(new IllegalArgumentException(s"Invalid URI path: ${req.uri.path}"))
     else Right(req) // All appears to be well
   }
 
@@ -463,4 +470,6 @@ private object Http1Connection {
       writer
     } else writer
   }
+
+  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, ' ', '\r', '\n')
 }

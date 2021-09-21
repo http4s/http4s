@@ -28,4 +28,6 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
 final case class Link(values: NonEmptyList[LinkValue]) extends Header.RecurringRenderable {
   override def key: Link.type = Link
   type Value = LinkValue
+
+  override def isNameValid: Boolean = true
 }

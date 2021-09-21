@@ -36,4 +36,6 @@ final case class Allow(methods: Set[Method]) extends Header.Parsed {
   override def key: Allow.type = Allow
   override def renderValue(writer: Writer): writer.type =
     writer.addSet[Method](methods, sep = ", ")
+
+  override def isNameValid: Boolean = true
 }

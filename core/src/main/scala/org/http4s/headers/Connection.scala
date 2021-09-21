@@ -37,4 +37,6 @@ final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends
   def hasKeepAlive: Boolean = values.contains_("keep-alive".ci)
   override def renderValue(writer: Writer): writer.type =
     writer.addStringNel(values.map(_.toString), ", ")
+
+  override def isNameValid: Boolean = true
 }

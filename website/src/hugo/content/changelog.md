@@ -8,6 +8,19 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.29 (2021-09-21)
+
+This release contains important security patches for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the 0.21.x series.
+
+## Various modules
+
+* [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3): Patches a vulnerability when unencoded user inputs are rendered in the model.  Malicious characters in these inputs can be used in [splitting attacks](https://owasp.org/www-community/attacks/HTTP_Response_Splitting).
+  * Header values.  `\r`, `\n`, and `\u0000` values are now replaced with spaces.
+  * Header names.  Headers with invalid names are now dropped.
+  * Status reason phrases.  Invalid phrases are now omitted.
+  * URI authority registered names.  Requests with invalid reg-names now raise an exception.
+  * URI paths.  Requests with invalid URI paths now raise an exception.
+
 # v0.21.28
 
 This is a bugfix to yesterday's patch.  It is not a security issue, but a correctness issue.
