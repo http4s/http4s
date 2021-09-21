@@ -83,7 +83,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   ))
 
 addCommandAlias("ciJVM", "; project rootJVM")
-addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
+addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootJS")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
