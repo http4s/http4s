@@ -2,19 +2,9 @@ import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.ScaladocApiMapping
-import org.openqa.selenium.WebDriver
-import org.openqa.selenium.remote.server.DriverFactory
-import org.openqa.selenium.remote.server.DriverProvider
-import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
-import org.openqa.selenium.firefox.FirefoxOptions
-import org.openqa.selenium.firefox.FirefoxProfile
-import org.scalajs.jsenv.selenium.SeleniumJSEnv
 import sbtcrossproject.{CrossProject, CrossType, Platform}
 import java.util.concurrent.TimeUnit
 import scala.xml.transform.{RewriteRule, RuleTransformer}
-
-import JSEnv._
 
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
@@ -31,9 +21,7 @@ ThisBuild / githubWorkflowBuildPreamble ++=
       name = Some("Setup NodeJS v16"),
       params = Map("node-version" -> "16"),
       cond = Some("matrix.ci == 'ciNodeJS'")),
-    WorkflowStep.Run(
-      List("./scripts/scaffold_server.js &", "./scripts/static_server.py &"),
-      name = Some("Start scaffold server and static file server"))
+    WorkflowStep.Run(List("./scripts/scaffold_server.js &"), name = Some("Start scaffold server"))
   )
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
@@ -80,45 +68,6 @@ ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   }
 }
 
-lazy val useJSEnv =
-  settingKey[JSEnv]("Use Node.js or a headless browser for running Scala.js tests")
-Global / useJSEnv := NodeJS
-
-ThisBuild / Test / jsEnv := {
-  val old = (Test / jsEnv).value
-
-  val config = SeleniumJSEnv
-    .Config()
-    .withMaterializeInServer("target/selenium", "http://localhost:8889/target/selenium/")
-
-  useJSEnv.value match {
-    case NodeJS => old
-    case Firefox =>
-      val profile = new FirefoxProfile()
-      profile.setPreference("devtools.serviceWorkers.testing.enabled", true)
-      val options = new FirefoxOptions()
-      options.setProfile(profile)
-      options.addArguments("-headless")
-      new SeleniumJSEnv(options, config)
-    case Chrome =>
-      val options = new ChromeOptions()
-      options.setHeadless(true)
-      options.addArguments("--allow-file-access-from-files")
-      val factory = new DriverFactory {
-        val defaultFactory = SeleniumJSEnv.Config().driverFactory
-        def newInstance(capabilities: org.openqa.selenium.Capabilities): WebDriver = {
-          val driver = defaultFactory.newInstance(capabilities).asInstanceOf[ChromeDriver]
-          driver.manage().timeouts().pageLoadTimeout(1, TimeUnit.HOURS)
-          driver.manage().timeouts().setScriptTimeout(1, TimeUnit.HOURS)
-          driver
-        }
-        def registerDriverProvider(provider: DriverProvider): Unit =
-          defaultFactory.registerDriverProvider(provider)
-      }
-      new SeleniumJSEnv(options, config.withDriverFactory(factory))
-  }
-}
-
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
     "scalafix",
@@ -135,12 +84,6 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 addCommandAlias("ciJVM", "; project rootJVM")
 addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
-addCommandAlias(
-  "ciFirefox",
-  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Firefox; project rootDom")
-addCommandAlias(
-  "ciChrome",
-  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Chrome; project rootBrowser")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -165,10 +108,6 @@ lazy val crossModules: List[CrossProject] = List(
   blazeServer,
   blazeClient,
   asyncHttpClient,
-  domCore,
-  domFetchClient,
-  domServiceWorker,
-  domServiceWorkerTests,
   jettyServer,
   jettyClient,
   nodeServerless,
@@ -218,43 +157,6 @@ lazy val rootJS = project
   .enablePlugins(NoPublishPlugin)
   .aggregate(jsModules: _*)
 
-lazy val rootNodeJS = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(
-    jsModules.filterNot(
-      Set[ProjectReference](
-        domCore.js,
-        domFetchClient.js,
-        domServiceWorker.js,
-        domServiceWorkerTests.js)): _*)
-
-lazy val rootBrowser = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(
-    core.js,
-    laws.js,
-    testing.js,
-    tests.js,
-    client.js,
-    theDsl.js,
-    boopickle.js,
-    jawn.js,
-    circe.js,
-    domCore.js,
-    domFetchClient.js,
-    domServiceWorker.js,
-    domServiceWorkerTests.js
-  )
-
-lazy val rootDom = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(
-    domCore.js,
-    domFetchClient.js,
-    domServiceWorker.js,
-    domServiceWorkerTests.js
-  )
-
 lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatform))
   .enablePlugins(
     BuildInfoPlugin,
@@ -298,7 +200,7 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
   .jsSettings(
     libraryDependencies ++= Seq(
       scalaJavaLocalesEnUS.value,
-      scalaJavaTime.value,
+      scalaJavaTime.value
     ),
     scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") }
   )
@@ -341,7 +243,7 @@ lazy val testing = libraryProject("testing", CrossType.Full, List(JVMPlatform, J
   )
   .jsSettings(
     libraryDependencies ++= Seq(
-      scalaJavaTimeTzdb.value,
+      scalaJavaTimeTzdb.value
     ).map(_ % Test)
   )
   .dependsOn(laws)
@@ -449,10 +351,14 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp")
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.runApp")
     ),
     Test / parallelExecution := false
   )
@@ -476,7 +382,8 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
     startYear := Some(2019),
     libraryDependencies += keypool.value,
     mimaBinaryIssueFilters := Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.this")
     )
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
@@ -527,51 +434,10 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
-lazy val domCore = libraryProject("dom-core", CrossType.Pure, List(JSPlatform))
-  .settings(
-    description := "Base library for dom http4s client and apps",
-    startYear := Some(2021),
-    libraryDependencies ++= Seq(
-      scalaJsDom.value.cross(CrossVersion.for3Use2_13),
-      munit.value % Test
-    )
-  )
-  .dependsOn(core, testing % "test->test")
-
-lazy val domFetchClient = libraryProject("dom-fetch-client", CrossType.Pure, List(JSPlatform))
-  .settings(
-    description := "browser fetch implementation for http4s clients",
-    startYear := Some(2021)
-  )
-  .dependsOn(domCore, testing % "test->test", client % "compile;test->test")
-
-lazy val domServiceWorker = libraryProject("dom-service-worker", CrossType.Pure, List(JSPlatform))
-  .settings(
-    description := "browser service worker implementation for http4s apps",
-    startYear := Some(2021),
-    libraryDependencies += catsEffect.value
-  )
-  .dependsOn(domCore)
-
-// These
-lazy val domServiceWorkerTests =
-  libraryProject("dom-service-worker-tests", CrossType.Pure, List(JSPlatform))
-    .enablePlugins(BuildInfoPlugin, NoPublishPlugin)
-    .settings(
-      scalaJSUseMainModuleInitializer := true,
-      (Test / test) := (Test / test).dependsOn(Compile / fastOptJS).value,
-      buildInfoKeys := Seq[BuildInfoKey](scalaVersion),
-      buildInfoPackage := "org.http4s.dom"
-    )
-    .dependsOn(
-      domServiceWorker,
-      testing % "test->test",
-      serverTesting % "compile->test",
-      domFetchClient % Test)
-
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
-    description := "jetty implementation for http4s clients", startYear := Some(2018),
+    description := "jetty implementation for http4s clients",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
