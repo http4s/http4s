@@ -19,11 +19,7 @@ package org.http4s.server
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import org.http4s.HttpApp
-import org.http4s.Method
-import org.http4s.Response
-import org.http4s.Status
 import org.http4s.client.ClientRouteTestBattery
-import org.http4s.client.testroutes.GetRoutes
 
 abstract class ServerRouteTestBattery(name: String) extends ClientRouteTestBattery(name) {
 
@@ -36,16 +32,6 @@ abstract class ServerRouteTestBattery(name: String) extends ClientRouteTestBatte
 
 object ServerRouteTestBattery {
 
-  val App: HttpApp[IO] = HttpApp[IO] { request =>
-    val get = Some(request).filter(_.method == Method.GET).flatMap { r =>
-      GetRoutes.getPaths.get(r.uri.path.toString)
-    }
-
-    val post = Some(request).filter(_.method == Method.POST).map { r =>
-      IO(Response(body = r.body))
-    }
-
-    get.orElse(post).getOrElse(IO(Response[IO](status = Status.NotFound)))
-  }
+  val App: HttpApp[IO] = ClientRouteTestBattery.App
 
 }

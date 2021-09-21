@@ -14,15 +14,12 @@ ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
 ThisBuild / githubWorkflowUseSbtThinClient := false
-ThisBuild / githubWorkflowBuildPreamble ++=
-  Seq(
-    WorkflowStep.Use(
-      UseRef.Public("actions", "setup-node", "v2.4.0"),
-      name = Some("Setup NodeJS v16"),
-      params = Map("node-version" -> "16"),
-      cond = Some("matrix.ci == 'ciNodeJS'")),
-    WorkflowStep.Run(List("./scripts/scaffold_server.js &"), name = Some("Start scaffold server"))
-  )
+ThisBuild / githubWorkflowBuildPreamble +=
+  WorkflowStep.Use(
+    UseRef.Public("actions", "setup-node", "v2.4.0"),
+    name = Some("Setup NodeJS v16"),
+    params = Map("node-version" -> "16"),
+    cond = Some("matrix.ci == 'ciNodeJS'"))
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
@@ -308,6 +305,7 @@ lazy val client = libraryProject("client", CrossType.Full, List(JVMPlatform, JSP
     libraryDependencies += munit.value % Test
   )
   .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
+  .jsConfigure(_.dependsOn(nodeServerless.js % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
@@ -451,13 +449,12 @@ lazy val nodeServerless = libraryProject("node-serverless", CrossType.Pure, List
     description := "Node.js serverless wrapper for http4s apps",
     startYear := Some(2021),
     libraryDependencies ++= Seq(
-      fs2Io.value,
-      munit.value % Test
+      fs2Io.value
     ),
     scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
     Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
-  .dependsOn(core, testing % "test->test", serverTesting % "test->test", emberClient % Test)
+  .dependsOn(core)
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(

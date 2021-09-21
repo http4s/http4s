@@ -65,9 +65,6 @@ jobs:
         with:
           node-version: 16
 
-      - name: Start scaffold server
-        run: ./scripts/scaffold_server.js &
-
       - name: Check that workflows are up to date
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 

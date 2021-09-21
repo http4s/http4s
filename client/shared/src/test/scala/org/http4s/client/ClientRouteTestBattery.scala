@@ -19,30 +19,24 @@ package client
 
 import cats.effect._
 import cats.syntax.all._
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.SocketAddress
 import fs2._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.Part
-import org.http4s.server.Server
 
 import java.util.Arrays
 import java.util.Locale
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
+abstract class ClientRouteTestBattery(name: String)
+    extends Http4sSuite
+    with Http4sClientDsl[IO]
+    with ClientRouteTestBatteryPlatform {
   val timeout = 20.seconds
 
   def clientResource: Resource[IO, Client[IO]]
-
-  def serverResource: Resource[IO, Server] = Resource.pure(new Server {
-    override def address: SocketAddress[Host] =
-      SocketAddress.fromStringHostname(s"localhost:8888").get
-    override def isSecure: Boolean = false
-  })
 
   def url(path: String): IO[Uri] =
     server().map(s => Uri.fromString(s"http://${s.address.toString}$path").yolo)
@@ -133,5 +127,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       _ <- IO(expectedHeaders.diff(headers)).assertEquals(Nil)
       _ <- IO(rec.httpVersion).assertEquals(expected.httpVersion)
     } yield true
+  }
+}
+
+object ClientRouteTestBattery {
+  val App: HttpApp[IO] = HttpApp[IO] { request =>
+    val get = Some(request).filter(_.method == Method.GET).flatMap { r =>
+      GetRoutes.getPaths.get(r.uri.path.toString)
+    }
+
+    val post = Some(request).filter(_.method == Method.POST).map { r =>
+      IO(Response(body = r.body))
+    }
+
+    get.orElse(post).getOrElse(IO(Response[IO](status = Status.NotFound)))
   }
 }
