@@ -339,6 +339,11 @@ lazy val testing = libraryProject("testing", CrossType.Full, List(JVMPlatform, J
       scalacheckEffectMunit.value
     ).map(_ % Test)
   )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      scalaJavaTimeTzdb.value,
+    ).map(_ % Test)
+  )
   .dependsOn(laws)
 
 // Defined outside core/src/test so it can depend on published testing
@@ -443,12 +448,6 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
       log4catsSlf4j.value,
       javaWebSocket % Test
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp")
-    ),
     Test / parallelExecution := false
   )
   .jsSettings(
@@ -470,9 +469,6 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
     libraryDependencies += keypool.value,
-    mimaBinaryIssueFilters := Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
-    )
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
   .jsSettings(
@@ -503,7 +499,6 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq()
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 

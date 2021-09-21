@@ -10,5 +10,6 @@ pkgs.mkShell {
     pkgs.nodejs-16_x
     pkgs.${java}
     pkgs.sbt
+    pkgs.yarn
   ];
 }

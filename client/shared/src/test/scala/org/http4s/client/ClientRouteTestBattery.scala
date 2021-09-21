@@ -19,15 +19,16 @@ package client
 
 import cats.effect._
 import cats.syntax.all._
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.{Host, SocketAddress}
 import fs2._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.Part
 import org.http4s.server.Server
+import org.typelevel.ci._
 
 import java.util.Arrays
 import java.util.Locale
@@ -115,6 +116,56 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
         resp <- client.run(req)
       } yield resp).use(resp => expected.flatMap(checkResponse(resp, _))).assert
     }
+  }
+
+  test("Mitigates request splitting attack in URI path") {
+    for {
+      uri <- url("/").map(
+        _.withPath(Uri.Path(Vector(Uri.Path.Segment.encoded(
+          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")))))
+      req = Request[IO](uri = uri)
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in URI RegName") {
+    for {
+      srv <- server()
+      address = srv.address
+      hostname = address.host.toString
+      port = address.port.value
+      req = Request[IO](
+        uri = Uri(
+          authority = Uri
+            .Authority(None, Uri.RegName(s"${hostname}\r\nEvil:true\r\n"), port = port.some)
+            .some,
+          path = path"/request-splitting"))
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field name") {
+
+    for {
+      srv <- server()
+      uri <- url("/request-splitting")
+      req = Request[IO](uri = uri)
+        .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field value") {
+    for {
+      uri <- url("/request-splitting")
+      req = Request[IO](uri = uri)
+        .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
   }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {

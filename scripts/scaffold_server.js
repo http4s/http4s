@@ -53,8 +53,14 @@ http.createServer(async (req, res) => {
         res.end();
         break;
       default:
-        res.statusCode = 404;
+        if (req.url.startsWith('/request-splitting')) {
+          res.statusCode = req.headers['Evil'] ? 500 : 200;
+        }
+        else {
+          res.statusCode = 404;
+        }
         res.end();
+        break;
     }
   } else if (req.method === 'POST') {
     req.on('data', (chunk) => {
