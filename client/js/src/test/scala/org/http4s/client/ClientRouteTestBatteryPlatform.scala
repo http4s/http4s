@@ -36,7 +36,7 @@ trait ClientRouteTestBatteryPlatform {
       .make {
         IO(http.createServer(ServerlessApp.unsafeExportApp(ClientRouteTestBattery.App)))
       } { server =>
-        IO.async_[Unit](cb => server.close(() => cb(Right(()))))
+        IO.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
       }
       .evalMap { server =>
         IO.async_[Server] { cb =>
@@ -51,6 +51,7 @@ trait ClientRouteTestBatteryPlatform {
               override def isSecure: Boolean = false
             }))
           }
+          ()
         }
       }
 
