@@ -40,19 +40,19 @@ class DefaultHeadSuite extends Http4sSuite {
   val app = DefaultHead(httpRoutes).orNotFound
 
   test("honor HEAD routes") {
-    val req = Request[IO](Method.HEAD, uri = uri"/special")
+    val req = Request(Method.HEAD, uri = uri"/special")
     app(req)
       .map(_.headers.get(ci"X-Handled-By").map(_.head.value))
       .assertEquals(Some("HEAD"))
   }
 
   test("return truncated body of corresponding GET on fallthrough") {
-    val req = Request[IO](Method.HEAD, uri = uri"/hello")
+    val req = Request(Method.HEAD, uri = uri"/hello")
     app(req).flatMap(_.as[String]).assertEquals("")
   }
 
   test("retain all headers of corresponding GET on fallthrough") {
-    val get = Request[IO](Method.GET, uri = uri"/hello")
+    val get = Request(Method.GET, uri = uri"/hello")
     val head = get.withMethod(Method.HEAD)
     val getHeaders = app(get).map(_.headers)
     val headHeaders = app(head).map(_.headers)
@@ -68,14 +68,14 @@ class DefaultHeadSuite extends Http4sSuite {
         Ok(body)
       }
       app = DefaultHead(route).orNotFound
-      resp <- app(Request[IO](Method.HEAD))
+      resp <- app(Request(Method.HEAD))
       _ <- resp.body.compile.drain
       leaked <- open.get
     } yield leaked).assertEquals(false)
   }
 
   test("be created via the httpRoutes constructor") {
-    val req = Request[IO](Method.HEAD, uri = uri"/hello")
+    val req = Request(Method.HEAD, uri = uri"/hello")
     DefaultHead.httpRoutes(httpRoutes).orNotFound(req).flatMap(_.as[String]).assertEquals("")
   }
 }

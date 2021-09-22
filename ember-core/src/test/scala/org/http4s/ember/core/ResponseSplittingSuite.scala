@@ -37,7 +37,7 @@ class ResponseSplittingSuite extends Http4sSuite {
     val app = HttpApp[IO] { req =>
       Response(Status.NoContent.withReason(req.params("reason"))).pure[IO]
     }
-    val req = Request[IO](uri = uri"/?reason=%0D%0AEvil:true%0D%0A")
+    val req = Request(uri = uri"/?reason=%0D%0AEvil:true%0D%0A")
     attack(app, req).map { resp =>
       assertEquals(resp.headers.headers.find(_.name === ci"Evil"), None)
     }
@@ -47,7 +47,7 @@ class ResponseSplittingSuite extends Http4sSuite {
     val app = HttpApp[IO] { req =>
       Response(Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]
     }
-    val req = Request[IO](uri = uri"/?fieldName=Fine:%0D%0AEvil:true%0D%0A")
+    val req = Request(uri = uri"/?fieldName=Fine:%0D%0AEvil:true%0D%0A")
     attack(app, req).map { resp =>
       assertEquals(resp.headers.headers.find(_.name === ci"Evil"), None)
     }
@@ -59,7 +59,7 @@ class ResponseSplittingSuite extends Http4sSuite {
         .putHeaders("X-Oops" -> req.params("fieldValue"))
         .pure[IO]
     }
-    val req = Request[IO](uri = uri"/?fieldValue=%0D%0AEvil:true%0D%0A")
+    val req = Request(uri = uri"/?fieldValue=%0D%0AEvil:true%0D%0A")
     attack(app, req).map { resp =>
       assertEquals(resp.headers.headers.find(_.name === ci"Evil"), None)
     }

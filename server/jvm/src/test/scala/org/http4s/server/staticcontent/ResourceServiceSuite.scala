@@ -44,17 +44,17 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val app = TranslateUri("/foo")(routes).orNotFound
 
     {
-      val req = Request[IO](uri = uri"/foo/testresource.txt")
+      val req = Request(uri = uri"/foo/testresource.txt")
       Stream.eval(app(req)).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
         app(req).map(_.status).assertEquals(Status.Ok)
     } *> {
-      val req = Request[IO](uri = uri"/testresource.txt")
+      val req = Request(uri = uri"/testresource.txt")
       app(req).map(_.status).assertEquals(Status.NotFound)
     }
   }
 
   test("Serve available content") {
-    val req = Request[IO](uri = Uri.fromString("/testresource.txt").yolo)
+    val req = Request(uri = Uri.fromString("/testresource.txt").yolo)
     val rb = routes.orNotFound(req)
 
     Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
@@ -62,7 +62,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Decodes path segments") {
-    val req = Request[IO](uri = uri"/space+truckin%27.txt")
+    val req = Request(uri = uri"/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
@@ -71,7 +71,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val s0 = builder.withPathPrefix("/path-prefix").toRoutes
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
@@ -82,7 +82,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val file = basePath.resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     val s0 = builder.withBasePath("/testDir").toRoutes
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
@@ -93,7 +93,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -104,7 +104,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     val s0 = builder.toRoutes
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
@@ -116,7 +116,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     val s0 = builder
       .withPathPrefix("/test")
       .toRoutes
@@ -129,14 +129,14 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val file = absPath.toFile
 
     val uri = Uri.unsafeFromString("///" + absPath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     val s0 = builder.toRoutes
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test("Try to serve pre-gzipped content if asked to") {
-    val req = Request[IO](
+    val req = Request(
       uri = Uri.fromString("/testresource.txt").yolo,
       headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
@@ -151,7 +151,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
-    val req = Request[IO](
+    val req = Request(
       uri = Uri.fromString("/testresource2.txt").yolo,
       headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
@@ -167,18 +167,18 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Generate non on missing content") {
-    val req = Request[IO](uri = Uri.fromString("/testresource.txtt").yolo)
+    val req = Request(uri = Uri.fromString("/testresource.txtt").yolo)
     routes.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
   test("Not send unmodified files") {
-    val req = Request[IO](uri = uri"/testresource.txt")
+    val req = Request(uri = uri"/testresource.txt")
       .putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
 
     runReq(req).map(_._2.status).assertEquals(Status.NotModified)
   }
 
   test("doesn't crash on /") {
-    routes.orNotFound(Request[IO](uri = uri"/")).map(_.status).assertEquals(Status.NotFound)
+    routes.orNotFound(Request(uri = uri"/")).map(_.status).assertEquals(Status.NotFound)
   }
 }

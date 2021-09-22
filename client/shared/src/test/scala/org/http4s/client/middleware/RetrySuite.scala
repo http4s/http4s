@@ -61,7 +61,7 @@ class RetrySuite extends Http4sSuite {
       }
     }
     val retryClient = Retry[IO](policy)(client)
-    val req = Request[IO](method, uri"http://localhost/" / status.code.toString).withEntity(body)
+    val req = Request(method, uri"http://localhost/" / status.code.toString).withEntity(body)
     retryClient
       .run(req)
       .use { _ =>
@@ -97,7 +97,7 @@ class RetrySuite extends Http4sSuite {
     val statusGen = Gen.oneOf(RetryPolicy.RetriableStatuses)
     PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
       IO.pure(
-        RetryPolicy.isErrorOrRetriableStatus(Response[IO](status).asRight)
+        RetryPolicy.isErrorOrRetriableStatus(Response(status).asRight)
       ).assertEquals(true)
     }
   }
@@ -106,7 +106,7 @@ class RetrySuite extends Http4sSuite {
     val statusGen = Gen.oneOf(Status.registered)
     PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
       IO.pure(
-        RetryPolicy.isErrorOrStatus(Response[IO](status).asRight, Set(status))
+        RetryPolicy.isErrorOrStatus(Response(status).asRight, Set(status))
       ).assertEquals(true)
     }
   }
@@ -116,7 +116,7 @@ class RetrySuite extends Http4sSuite {
     val statusGen = Gen.oneOf(Status.registered)
     PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
       IO.pure(
-        RetryPolicy.isErrorOrStatus(Response[IO](status).asRight, Set.empty[Status])
+        RetryPolicy.isErrorOrStatus(Response(status).asRight, Set.empty[Status])
       ).assertEquals(false)
     }
   }
@@ -130,7 +130,7 @@ class RetrySuite extends Http4sSuite {
           case false => ref.update(_ => true) *> IO.pure("")
           case true => IO.pure("OK")
         })
-        val req = Request[IO](method, uri"http://localhost/status-from-body")
+        val req = Request(method, uri"http://localhost/status-from-body")
           .withHeaders(headers)
           .withEntity(body)
         val policy = RetryPolicy[IO](
@@ -176,10 +176,10 @@ class RetrySuite extends Http4sSuite {
               else None),
             RetryPolicy.defaultRetriable[IO]))(Client[IO](_ =>
           Resource.make(semaphore.tryAcquire.flatMap {
-            case true => Response[IO](Status.InternalServerError).pure[IO]
+            case true => Response(Status.InternalServerError).pure[IO]
             case false => IO.raiseError(new IllegalStateException("Exhausted all connections"))
           })(_ => semaphore.release)))
-        client.status(Request[IO]())
+        client.status(Request())
       }
       .assertEquals(Status.InternalServerError)
   }

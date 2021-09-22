@@ -33,7 +33,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a 2xx response") {
     case (registry, routes) =>
-      val req = Request[IO](uri = uri"/ok")
+      val req = Request(uri = uri"/ok")
 
       val resp = routes.run(req)
       resp.flatMap { r =>
@@ -51,7 +51,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a 4xx response") {
     case (registry, routes) =>
-      val req = Request[IO](uri = uri"/bad-request")
+      val req = Request(uri = uri"/bad-request")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -69,7 +69,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a 5xx response") {
     case (registry, routes) =>
-      val req = Request[IO](uri = uri"/internal-server-error")
+      val req = Request(uri = uri"/internal-server-error")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -87,7 +87,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a GET request") {
     case (registry, routes) =>
-      val req = Request[IO](method = GET, uri = uri"/ok")
+      val req = Request(method = GET, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -105,7 +105,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a POST request") {
     case (registry, routes) =>
-      val req = Request[IO](method = POST, uri = uri"/ok")
+      val req = Request(method = POST, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -123,7 +123,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a PUT request") {
     case (registry, routes) =>
-      val req = Request[IO](method = PUT, uri = uri"/ok")
+      val req = Request(method = PUT, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -141,7 +141,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register a DELETE request") {
     case (registry, routes) =>
-      val req = Request[IO](method = DELETE, uri = uri"/ok")
+      val req = Request(method = DELETE, uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -159,7 +159,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register an error") {
     case (registry, routes) =>
-      val req = Request[IO](method = GET, uri = uri"/error")
+      val req = Request(method = GET, uri = uri"/error")
 
       routes.run(req).attempt.map { r =>
         assert(r.isLeft)
@@ -174,7 +174,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   meteredRoutes().test(
     "A http routes with a prometheus metrics middleware should register an abnormal termination") {
     case (registry, routes) =>
-      val req = Request[IO](method = GET, uri = uri"/abnormal-termination")
+      val req = Request(method = GET, uri = uri"/abnormal-termination")
 
       routes.run(req).flatMap { r =>
         r.body.attempt.compile.lastOrError.map { b =>
@@ -198,7 +198,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
   val classifierFunc = (_: Request[IO]) => Some("classifier")
   meteredRoutes(classifierFunc).test("use the provided request classifier") {
     case (registry, routes) =>
-      val req = Request[IO](uri = uri"/ok")
+      val req = Request(uri = uri"/ok")
 
       routes.run(req).flatMap { r =>
         r.as[String].map { b =>
@@ -215,7 +215,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
 
   // This tests can't be easily done in munit-cats-effect as it wants to test after the Resource is freed
   meteredRoutes().test("unregister collectors".ignore) { case (cr, routes) =>
-    val req = Request[IO](uri = uri"/ok")
+    val req = Request(uri = uri"/ok")
 
     routes.run(req).as(cr).map { registry =>
       assertEquals(count(registry, "2xx_responses", "server"), 0.0)

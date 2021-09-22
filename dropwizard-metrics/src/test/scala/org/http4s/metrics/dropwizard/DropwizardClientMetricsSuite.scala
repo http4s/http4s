@@ -131,7 +131,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](POST, uri"/ok")).attempt.map { resp =>
+    meteredClient.expect[String](Request(POST, uri"/ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.post-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -156,7 +156,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](PUT, uri"/ok")).attempt.map { resp =>
+    meteredClient.expect[String](Request(PUT, uri"/ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.put-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -181,7 +181,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test7")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](DELETE, uri"/ok")).attempt.map { resp =>
+    meteredClient.expect[String](Request(DELETE, uri"/ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.delete-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -263,7 +263,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
   val clientRunResource = meteredClient
-    .run(Request[IO](uri = Uri.unsafeFromString("/ok")))
+    .run(Request(uri = Uri.unsafeFromString("/ok")))
 
   ResourceFixture(clientRunResource).test(
     "A http client with a dropwizard metrics middleware should only record total time and decr active requests after client.run releases") {

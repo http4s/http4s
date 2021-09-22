@@ -38,12 +38,12 @@ class ScalaXmlSuite extends Http4sSuite {
 
   val server: Request[IO] => IO[Response[IO]] = { req =>
     req.decode { (elem: Elem) =>
-      IO.pure(Response[IO](Ok).withEntity(elem.label))
+      IO.pure(Response(Ok).withEntity(elem.label))
     }
   }
 
   test("xml should parse the XML") {
-    server(Request[IO](body = strBody("<html><h1>h1</h1></html>")))
+    server(Request(body = strBody("<html><h1>h1</h1></html>")))
       .flatMap(r => getBody(r.body))
       .assertEquals("html")
   }
@@ -61,7 +61,7 @@ class ScalaXmlSuite extends Http4sSuite {
 
   test("return 400 on parse error") {
     val body = strBody("This is not XML.")
-    val tresp = server(Request[IO](body = body))
+    val tresp = server(Request(body = body))
     tresp.map(_.status).assertEquals(Status.BadRequest)
   }
 

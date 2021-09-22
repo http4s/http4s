@@ -28,8 +28,8 @@ trait EntityDecoderSuitePlatform { self: EntityDecoderSuite =>
       .make(IO(File.createTempFile("foo", "bar")))(f => IO(f.delete()).void)
       .use { tmpFile =>
         val response = mockServe(Request()) { req =>
-          req.decodeWith(EntityDecoder.textFile(tmpFile), strict = false) { _ =>
-            Response[IO](Ok).withEntity("Hello").pure[IO]
+          req.decodeWith(EntityDecoder.textFile[IO](tmpFile), strict = false) { _ =>
+            Response(Ok).withEntity("Hello").pure[IO]
           }
         }
         response.flatMap { response =>
@@ -45,8 +45,8 @@ trait EntityDecoderSuitePlatform { self: EntityDecoderSuite =>
       .make(IO(File.createTempFile("foo", "bar")))(f => IO(f.delete()).void)
       .use { tmpFile =>
         val response = mockServe(Request()) { case req =>
-          req.decodeWith(EntityDecoder.binFile(tmpFile), strict = false) { _ =>
-            Response[IO](Ok).withEntity("Hello").pure[IO]
+          req.decodeWith(EntityDecoder.binFile[IO](tmpFile), strict = false) { _ =>
+            Response(Ok).withEntity("Hello").pure[IO]
           }
         }
 

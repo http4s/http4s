@@ -39,8 +39,8 @@ class TimeoutSuite extends Http4sSuite {
 
   val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
 
-  val fastReq = Request[IO](GET, uri"/fast")
-  val neverReq = Request[IO](GET, uri"/never")
+  val fastReq = Request(GET, uri"/fast")
+  val neverReq = Request(GET, uri"/never")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
     IO.race(IO.sleep(3.seconds), resp.map(_.status)).assertEquals(Right(status))
@@ -55,7 +55,7 @@ class TimeoutSuite extends Http4sSuite {
   }
 
   test("return the provided response if the result takes too long") {
-    val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
+    val customTimeout = Response(Status.GatewayTimeout) // some people return 504 here.
     val altTimeoutService =
       TimeoutMiddleware(1.nanosecond, OptionT.pure[IO](customTimeout))(routes)
     checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
@@ -67,7 +67,7 @@ class TimeoutSuite extends Http4sSuite {
       IO.never.guarantee(IO(canceled.set(true)))
     }
     val app = TimeoutMiddleware(1.millis)(routes).orNotFound
-    checkStatus(app(Request[IO]()), Status.ServiceUnavailable) *>
+    checkStatus(app(Request()), Status.ServiceUnavailable) *>
       // Give the losing response enough time to finish
       IO.sleep(100.milliseconds) *> IO(canceled.get)
   }

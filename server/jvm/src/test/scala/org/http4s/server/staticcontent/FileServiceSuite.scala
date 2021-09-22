@@ -38,17 +38,17 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val app = TranslateUri("/foo")(routes).orNotFound
 
     {
-      val req = Request[IO](uri = uri"/foo/testresource.txt")
+      val req = Request(uri = uri"/foo/testresource.txt")
       Stream.eval(app(req)).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
         app(req).map(_.status).assertEquals(Status.Ok)
     } *> {
-      val req = Request[IO](uri = uri"/testresource.txt")
+      val req = Request(uri = uri"/testresource.txt")
       app(req).map(_.status).assertEquals(Status.NotFound)
     }
   }
 
   test("Return a 200 Ok file") {
-    val req = Request[IO](uri = uri"/testresource.txt")
+    val req = Request(uri = uri"/testresource.txt")
     Stream
       .eval(routes.orNotFound.run(req))
       .flatMap(_.body.chunks)
@@ -59,12 +59,12 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Return a 404 for a resource under an existing file") {
-    val req = Request[IO](uri = uri"/testresource.txt/test")
+    val req = Request(uri = uri"/testresource.txt/test")
     routes.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
   test("Decodes path segments") {
-    val req = Request[IO](uri = uri"/space+truckin%27.txt")
+    val req = Request(uri = uri"/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
@@ -77,7 +77,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       ))
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
@@ -88,7 +88,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val file = systemPath.resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     val s0 = fileService(
       FileService.Config[IO](
         systemPath = systemPath.toString
@@ -102,7 +102,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -113,7 +113,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     val s0 = fileService(
       FileService.Config[IO](
         systemPath = Paths.get(defaultSystemPath).resolve("test").toString
@@ -128,7 +128,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/prefix" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     val s0 = fileService(
       FileService.Config[IO](
         systemPath = defaultSystemPath,
@@ -143,7 +143,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val file = absPath.toFile
 
     val uri = Uri.unsafeFromString("///" + absPath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -155,7 +155,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val bytes = Chunk.array(Files.readAllBytes(path))
 
     val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assert *>
       IO(Files.isSymbolicLink(Paths.get(defaultSystemPath).resolve("symlink"))).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.Ok) *>
@@ -170,7 +170,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   test("Return index.html if request points to ''") {
     val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
     val s0 = fileService(FileService.Config[IO](systemPath = path))
-    val req = Request[IO](uri = uri"")
+    val req = Request(uri = uri"")
     s0.orNotFound(req)
       .flatMap { res =>
         res.as[String].map {
@@ -183,7 +183,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   test("Return index.html if request points to '/'") {
     val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
     val s0 = fileService(FileService.Config[IO](systemPath = path))
-    val req = Request[IO](uri = uri"/")
+    val req = Request(uri = uri"/")
     val rb = s0.orNotFound(req)
 
     rb.flatMap { res =>
@@ -192,7 +192,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Return index.html if request points to a directory") {
-    val req = Request[IO](uri = uri"/testDir/")
+    val req = Request(uri = uri"/testDir/")
     val rb = runReq(req)
 
     rb.flatMap { case (_, re) =>
@@ -202,13 +202,13 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Not find missing file") {
-    val req = Request[IO](uri = uri"/missing.txt")
+    val req = Request(uri = uri"/missing.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
   test("Return a 206 PartialContent file") {
     val range = headers.Range(4)
-    val req = Request[IO](uri = uri"/testresource.txt").withHeaders(range)
+    val req = Request(uri = uri"/testresource.txt").withHeaders(range)
     Stream
       .eval(routes.orNotFound(req))
       .flatMap(_.body.chunks)
@@ -220,7 +220,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("Return a 206 PartialContent file") {
     val range = headers.Range(-4)
-    val req = Request[IO](uri = uri"/testresource.txt").withHeaders(range)
+    val req = Request(uri = uri"/testresource.txt").withHeaders(range)
     Stream
       .eval(routes.orNotFound(req))
       .flatMap(_.body.chunks)
@@ -232,7 +232,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("Return a 206 PartialContent file") {
     val range = headers.Range(2, 4)
-    val req = Request[IO](uri = uri"/testresource.txt").withHeaders(range)
+    val req = Request(uri = uri"/testresource.txt").withHeaders(range)
     Stream
       .eval(routes.orNotFound(req))
       .flatMap(_.body.chunks)
@@ -252,7 +252,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       headers.Range(-200)
     )
     val size = new File(getClass.getResource("/testresource.txt").toURI).length
-    val reqs = ranges.map(r => Request[IO](uri = uri"/testresource.txt").withHeaders(r))
+    val reqs = ranges.map(r => Request(uri = uri"/testresource.txt").withHeaders(r))
     reqs.toList.traverse { req =>
       routes.orNotFound(req).map(_.status).assertEquals(Status.RangeNotSatisfiable) *>
         routes
@@ -263,17 +263,17 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("doesn't crash on /") {
-    routes.orNotFound(Request[IO](uri = uri"/")).map(_.status).assertEquals(Status.NotFound)
+    routes.orNotFound(Request(uri = uri"/")).map(_.status).assertEquals(Status.NotFound)
   }
 
   test("handle a relative system path") {
     val s = fileService(FileService.Config[IO]("."))
     IO(Paths.get(".").resolve("build.sbt").toFile.exists()).assert *>
-      s.orNotFound(Request[IO](uri = uri"/build.sbt")).map(_.status).assertEquals(Status.Ok)
+      s.orNotFound(Request(uri = uri"/build.sbt")).map(_.status).assertEquals(Status.Ok)
   }
 
   test("404 if system path is not found") {
     val s = fileService(FileService.Config[IO]("./does-not-exist"))
-    s.orNotFound(Request[IO](uri = uri"/build.sbt")).map(_.status).assertEquals(Status.NotFound)
+    s.orNotFound(Request(uri = uri"/build.sbt")).map(_.status).assertEquals(Status.NotFound)
   }
 }

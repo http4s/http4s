@@ -272,7 +272,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
     val body = req
       .decode { (json: Json) =>
-        Response[IO](Ok)
+        Response(Ok)
           .withEntity(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
           .pure[IO]
       }
@@ -282,7 +282,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
 
   test("jsonOf should decode JSON from a Circe decoder") {
     val result = jsonOf[IO, Foo]
-      .decode(Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))), strict = true)
+      .decode(Request().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))), strict = true)
     result.value.assertEquals(Right(Foo(42)))
   }
 
@@ -293,7 +293,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     List("ärgerlich", """"ärgerlich"""").traverse { wort =>
       val json = Json.obj("wort" -> Json.fromString(wort))
       val result =
-        jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
+        jsonOf[IO, Umlaut].decode(Request().withEntity(json), strict = true)
       result.value.assertEquals(Right(Umlaut(wort)))
     }
   }
@@ -301,14 +301,14 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("jsonOf should fail with custom message from a decoder") {
     val result = CirceInstancesWithCustomErrors
       .jsonOf[IO, Bar]
-      .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
+      .decode(Request().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
     result.value.assertEquals(Left(InvalidMessageBodyFailure(
       "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor")))
   }
 
   test("accumulatingJsonOf should decode JSON from a Circe decoder") {
     val result = accumulatingJsonOf[IO, Foo]
-      .decode(Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))), strict = true)
+      .decode(Request().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))), strict = true)
     result.value.assertEquals(Right(Foo(42)))
   }
 
@@ -316,7 +316,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     "accumulatingJsonOf should return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages") {
     val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
     val result = accumulatingJsonOf[IO, Bar]
-      .decode(Request[IO]().withEntity(json), strict = true)
+      .decode(Request().withEntity(json), strict = true)
     result.value.map {
       case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => true
       case _ => false
@@ -326,7 +326,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("accumulatingJsonOf should fail with custom message from a decoder") {
     val result = CirceInstancesWithCustomErrors
       .accumulatingJsonOf[IO, Bar]
-      .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
+      .decode(Request().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
     result.value.assertEquals(Left(InvalidMessageBodyFailure(
       "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor")))
   }

@@ -64,22 +64,22 @@ class ContextRouterSuite extends Http4sSuite {
 
   test("translate mount prefixes") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/numbers/1")))
+      .orNotFound(ContextRequest((), Request(GET, uri"/numbers/1")))
       .flatMap(_.as[String])
       .assertEquals("one") *>
       service
-        .orNotFound(ContextRequest((), Request[IO](GET, uri"/numb/1")))
+        .orNotFound(ContextRequest((), Request(GET, uri"/numb/1")))
         .flatMap(_.as[String])
         .assertEquals("two") *>
       service
-        .orNotFound(ContextRequest((), Request[IO](GET, uri"/numbe?block")))
+        .orNotFound(ContextRequest((), Request(GET, uri"/numbe?block")))
         .map(_.status)
         .assertEquals(NotFound)
   }
 
   test("require the correct prefix") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/letters/1")))
+      .orNotFound(ContextRequest((), Request(GET, uri"/letters/1")))
       .flatMap { resp =>
         resp.as[String].map { b =>
           b =!= "bee" && b =!= "one" && resp.status === NotFound
@@ -90,42 +90,42 @@ class ContextRouterSuite extends Http4sSuite {
 
   test("support root mappings") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/about")))
+      .orNotFound(ContextRequest((), Request(GET, uri"/about")))
       .flatMap(_.as[String])
       .assertEquals("about")
   }
 
   test("match longer prefixes first") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/shadow/shadowed")))
+      .orNotFound(ContextRequest((), Request(GET, uri"/shadow/shadowed")))
       .flatMap(_.as[String])
       .assertEquals("visible")
   }
 
   test("404 on unknown prefixes") {
     service
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/symbols/~")))
+      .orNotFound(ContextRequest((), Request(GET, uri"/symbols/~")))
       .map(_.status)
       .assertEquals(NotFound)
   }
 
   test("Allow passing through of routes with identical prefixes") {
     ContextRouter[IO, Unit]("" -> letters, "" -> numbers)
-      .orNotFound(ContextRequest((), Request[IO](GET, uri"/1")))
+      .orNotFound(ContextRequest((), Request(GET, uri"/1")))
       .flatMap(_.as[String])
       .assertEquals("one")
   }
 
   test("Serve custom NotFound responses") {
     ContextRouter[IO, Unit]("/foo" -> notFound)
-      .orNotFound(ContextRequest((), Request[IO](uri = uri"/foo/bar")))
+      .orNotFound(ContextRequest((), Request(uri = uri"/foo/bar")))
       .flatMap(_.as[String])
       .assertEquals("Custom NotFound")
   }
 
   test("Return the fallthrough response if no route is found") {
     val router = ContextRouter[IO, Unit]("/foo" -> notFound)
-    router(ContextRequest((), Request[IO](uri = uri"/bar"))).value
+    router(ContextRequest((), Request(uri = uri"/bar"))).value
       .map(_ == Option.empty[Response[IO]])
       .assert
   }

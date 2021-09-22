@@ -31,7 +31,7 @@ class HeaderEchoSuite extends Http4sSuite {
 
   def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
     val requestMatchingSingleHeaderKey =
-      Request[G](
+      Request(
         uri = uri"/request",
         headers = Headers("someheaderkey" -> "someheadervalue")
       )
@@ -53,7 +53,7 @@ class HeaderEchoSuite extends Http4sSuite {
 
   test("echo multiple headers") {
     val requestMatchingMultipleHeaderKeys =
-      Request[IO](
+      Request(
         uri = uri"/request",
         headers =
           Headers("someheaderkey" -> "someheadervalue", "anotherheaderkey" -> "anotherheadervalue"))
@@ -75,9 +75,7 @@ class HeaderEchoSuite extends Http4sSuite {
 
   test("echo only the default headers where none match the key") {
     val requestMatchingNotPresentHeaderKey =
-      Request[IO](
-        uri = uri"/request",
-        headers = Headers("someunmatchedheader" -> "someunmatchedvalue"))
+      Request(uri = uri"/request", headers = Headers("someunmatchedheader" -> "someunmatchedvalue"))
 
     val testee = HeaderEcho(_ == ci"someheaderkey")(testService)
     testee

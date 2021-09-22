@@ -30,15 +30,15 @@ import scala.concurrent.duration._
 
 class CORSSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
-    case req if req.pathInfo === path"/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
+    case req if req.pathInfo === path"/foo" => Response(Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo === path"/vary" =>
-      Response[IO](Ok).putHeaders(Header.Raw(ci"Vary", "X-Old-Vary")).pure[IO]
+      Response(Ok).putHeaders(Header.Raw(ci"Vary", "X-Old-Vary")).pure[IO]
   }
   val app = routes.orNotFound
 
   val exampleOrigin = Origin.Host(Uri.Scheme.https, Uri.RegName("example.com"), None)
 
-  def nonCorsReq = Request[IO](uri = uri"/foo")
+  def nonCorsReq = Request(uri = uri"/foo")
   def nonPreflightReq = nonCorsReq.putHeaders(exampleOrigin: Origin)
   def preflightReq = nonPreflightReq
     .withMethod(Method.OPTIONS)
@@ -691,8 +691,8 @@ class CORSSuite extends Http4sSuite {
 @deprecated("This suite tests a deprecated feature", "0.21.27")
 class CORSDeprecatedSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
-    case req if req.pathInfo === path"/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
-    case req if req.pathInfo === path"/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
+    case req if req.pathInfo === path"/foo" => Response(Ok).withEntity("foo").pure[IO]
+    case req if req.pathInfo === path"/bar" => Response(Unauthorized).withEntity("bar").pure[IO]
   }
 
   val cors1 = CORS(routes)
@@ -713,7 +713,7 @@ class CORSDeprecatedSuite extends Http4sSuite {
     hs.get(name).fold(false)(_.exists(_.value === expected))
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = Uri.Path.unsafeFromString(path)), method = method)
+    Request(uri = Uri(path = Uri.Path.unsafeFromString(path)), method = method)
       .withHeaders("Origin" -> "http://allowed.com", "Access-Control-Request-Method" -> "GET")
 
   test("Be omitted when unrequested") {
@@ -806,7 +806,7 @@ class CORSDeprecatedSuite extends Http4sSuite {
   test("Not replace vary header if already set") {
     val req = buildRequest("/")
     val service = CORS(HttpRoutes.of[IO] { case GET -> Root =>
-      Response[IO](Ok)
+      Response(Ok)
         .putHeaders("Vary" -> "Origin,Accept")
         .withEntity("foo")
         .pure[IO]

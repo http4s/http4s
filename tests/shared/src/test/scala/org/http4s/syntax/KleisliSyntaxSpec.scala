@@ -25,20 +25,20 @@ class KleisliSyntaxTests {
   // translate syntax should work on HttpRoutes
   val routes: HttpRoutes[Kleisli[IO, Int, *]] = HttpRoutes
     .of[IO] { case _ =>
-      IO(Response[IO](Status.Ok))
+      IO(Response(Status.Ok))
     }
     .translate[Kleisli[IO, Int, *]](Kleisli.liftK)(Kleisli.applyK(42))
 
   // translate syntax should work on HttpApp
   val app: HttpApp[Kleisli[IO, Int, *]] = HttpApp[IO] { case _ =>
-    IO(Response[IO](Status.Ok))
+    IO(Response(Status.Ok))
   }
     .translate[Kleisli[IO, Int, *]](Kleisli.liftK)(Kleisli.applyK(42))
 
   // translate syntax should work on AuthedRoutes
   val authedRoutes: AuthedRoutes[String, Kleisli[IO, Int, *]] = AuthedRoutes
     .of[String, IO] { case _ =>
-      IO(Response[IO](Status.Ok))
+      IO(Response(Status.Ok))
     }
     .translate[Kleisli[IO, Int, *]](Kleisli.liftK)(Kleisli.applyK(42))
 }

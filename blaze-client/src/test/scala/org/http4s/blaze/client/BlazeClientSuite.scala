@@ -130,7 +130,7 @@ class BlazeClientSuite extends BlazeClientBase {
       .flatMap { reqClosed =>
         builder(1, requestTimeout = 2.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
-          val req = Request[IO](
+          val req = Request(
             method = Method.POST,
             uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately").yolo
           ).withBodyStream(body)
@@ -153,7 +153,7 @@ class BlazeClientSuite extends BlazeClientBase {
       .flatMap { reqClosed =>
         builder(1, requestTimeout = 2.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
-          val req = Request[IO](
+          val req = Request(
             method = Method.POST,
             uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately-no-body").yolo
           ).withBodyStream(body)
@@ -172,7 +172,7 @@ class BlazeClientSuite extends BlazeClientBase {
     builder(1, requestTimeout = 500.millis, responseHeaderTimeout = Duration.Inf).resource
       .use { client =>
         val body = Stream(0.toByte).repeat
-        val req = Request[IO](
+        val req = Request(
           method = Method.POST,
           uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
         ).withBodyStream(body)
@@ -195,7 +195,7 @@ class BlazeClientSuite extends BlazeClientBase {
     builder(1, requestTimeout = Duration.Inf, responseHeaderTimeout = 500.millis).resource
       .use { client =>
         val body = Stream(0.toByte).repeat
-        val req = Request[IO](
+        val req = Request(
           method = Method.POST,
           uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
         ).withBodyStream(body)
@@ -218,7 +218,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
     builder(1).resource
       .use { client =>
-        val req = Request[IO](uri = uri)
+        val req = Request(uri = uri)
         client
           .run(req)
           .use { _ =>
@@ -234,7 +234,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test("Blaze Http1Client should raise a ConnectionFailure when a host can't be resolved") {
     builder(1).resource
       .use { client =>
-        client.status(Request[IO](uri = uri"http://example.invalid/"))
+        client.status(Request(uri = uri"http://example.invalid/"))
       }
       .interceptMessage[ConnectionFailure](
         "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
@@ -254,7 +254,7 @@ class BlazeClientSuite extends BlazeClientBase {
         done <- Deferred[IO, Unit]
         body = Stream.eval(reading.complete(())) *> (Stream.empty: EntityBody[IO]) <* Stream.eval(
           done.get)
-        req = Request[IO](Method.POST, uri = uri).withEntity(body)
+        req = Request(Method.POST, uri = uri).withEntity(body)
         _ <- client.status(req).start
         _ <- reading.get
         _ <- state.allocated.map(_.get(RequestKey.fromRequest(req))).assertEquals(Some(1))

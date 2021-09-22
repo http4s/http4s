@@ -112,7 +112,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       (for {
         client <- Resource.eval(client())
         uri <- Resource.eval(url(path))
-        req = Request[IO](uri = uri)
+        req = Request(uri = uri)
         resp <- client.run(req)
       } yield resp).use(resp => expected.flatMap(checkResponse(resp, _))).assert
     }
@@ -123,7 +123,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       uri <- url("/").map(
         _.withPath(Uri.Path(Vector(Uri.Path.Segment.encoded(
           "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")))))
-      req = Request[IO](uri = uri)
+      req = Request(uri = uri)
       c <- client()
       status <- c.status(req).handleError(_ => Status.Ok)
     } yield assertEquals(status, Status.Ok)
@@ -135,7 +135,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       address = srv.address
       hostname = address.host.toString
       port = address.port.value
-      req = Request[IO](
+      req = Request(
         uri = Uri(
           authority = Uri
             .Authority(None, Uri.RegName(s"${hostname}\r\nEvil:true\r\n"), port = port.some)
@@ -149,7 +149,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   test("Mitigates request splitting attack in field name") {
     for {
       uri <- url("/request-splitting")
-      req = Request[IO](uri = uri)
+      req = Request(uri = uri)
         .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
       c <- client()
       status <- c.status(req).handleError(_ => Status.Ok)
@@ -159,7 +159,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   test("Mitigates request splitting attack in field value") {
     for {
       uri <- url("/request-splitting")
-      req = Request[IO](uri = uri)
+      req = Request(uri = uri)
         .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
       c <- client()
       status <- c.status(req).handleError(_ => Status.Ok)

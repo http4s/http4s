@@ -40,7 +40,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
           OptionT.liftF(
             IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))))
       )
-      response <- routes.run(Request[IO]()).getOrElseF(IO(fail("Got None for response")))
+      response <- routes.run(Request()).getOrElseF(IO(fail("Got None for response")))
       acquireCount <- acquireRef.get
       responseBody <- response.as[String]
       releaseCount <- releaseRef.get
@@ -64,7 +64,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
             _ + 1L)
         }
       routes = middleware(Kleisli(Function.const(OptionT.liftF(IO.raiseError(error)))))
-      response <- routes.run(Request[IO]()).value.attempt
+      response <- routes.run(Request()).value.attempt
       acquireCount <- acquireRef.get
       releaseCount <- releaseRef.get
     } yield {
@@ -85,7 +85,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
             .update(_ + 1L)
         }
       routes = middleware(Kleisli(Function.const(OptionT.none)))
-      response <- routes.run(Request[IO]()).value
+      response <- routes.run(Request()).value
       acquireCount <- acquireRef.get
       releaseCount <- releaseRef.get
     } yield {
@@ -115,11 +115,11 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       acquireCount0 <- acquireRef.get
       releaseCount0 <- releaseRef.get
       // T1
-      response1 <- routes.run(Request[IO]())
+      response1 <- routes.run(Request())
       acquireCount1 <- acquireRef.get
       releaseCount1 <- releaseRef.get
       // T2
-      response2 <- routes.run(Request[IO]())
+      response2 <- routes.run(Request())
       acquireCount2 <- acquireRef.get
       releaseCount2 <- releaseRef.get
       // T3
@@ -174,7 +174,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
               IO(Response(status = Status.Ok).withBodyStream(Stream.raiseError[IO](error)))))
         )
       ).orNotFound
-      response <- routes.run(Request[IO]())
+      response <- routes.run(Request())
       acquireCount <- acquireRef.get
       responseBody <- response.as[String].attempt
       releaseCount <- releaseRef.get
@@ -194,7 +194,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       }
     val routes: HttpRoutes[IO] = middleware(Kleisli(Function.const(OptionT.none)))
     for {
-      response <- routes.run(Request[IO]()).value.attempt
+      response <- routes.run(Request()).value.attempt
     } yield assertEquals(response, Left(error))
   }
 
@@ -216,7 +216,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
           OptionT.liftF(
             IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))))
       ).orNotFound
-      response <- routes.run(Request[IO]())
+      response <- routes.run(Request())
       acquireCount <- acquireRef.get
       responseBody <- response.as[String].attempt
       releaseCount <- releaseRef.get

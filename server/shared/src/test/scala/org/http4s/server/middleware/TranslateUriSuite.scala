@@ -37,28 +37,28 @@ class TranslateUriSuite extends Http4sSuite {
   val trans2 = TranslateUri("http4s")(routes).orNotFound
 
   test("match a matching request") {
-    val req = Request[IO](uri = uri"/http4s/foo")
+    val req = Request(uri = uri"/http4s/foo")
     trans1(req).map(_.status).assertEquals(Ok) *>
       trans2(req).map(_.status).assertEquals(Ok) *>
       routes.orNotFound(req).map(_.status).assertEquals(NotFound)
   }
 
   test("not match a request missing the prefix") {
-    val req = Request[IO](uri = uri"/foo")
+    val req = Request(uri = uri"/foo")
     trans1(req).map(_.status).assertEquals(NotFound) *>
       trans2(req).map(_.status).assertEquals(NotFound) *>
       routes.orNotFound(req).map(_.status).assertEquals(Ok)
   }
 
   test("not match a request with a different prefix") {
-    val req = Request[IO](uri = uri"/http5s/foo")
+    val req = Request(uri = uri"/http5s/foo")
     trans1(req).map(_.status).assertEquals(NotFound) *>
       trans2(req).map(_.status).assertEquals(NotFound) *>
       routes.orNotFound(req).map(_.status).assertEquals(NotFound)
   }
 
   test("split the Uri into scriptName and pathInfo") {
-    val req = Request[IO](uri = uri"/http4s/checkattr")
+    val req = Request(uri = uri"/http4s/checkattr")
     trans1(req)
       .map(_.status === Ok) *>
       trans1(req)
@@ -70,7 +70,7 @@ class TranslateUriSuite extends Http4sSuite {
     val emptyPrefix = TranslateUri("")(routes)
     val slashPrefix = TranslateUri("/")(routes)
 
-    val req = Request[IO](uri = uri"/foo")
+    val req = Request(uri = uri"/foo")
     emptyPrefix.orNotFound(req).map(_.status).assertEquals(Ok) *>
       slashPrefix.orNotFound(req).map(_.status).assertEquals(Ok)
   }

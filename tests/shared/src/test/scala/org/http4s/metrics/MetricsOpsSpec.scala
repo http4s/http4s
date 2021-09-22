@@ -38,7 +38,7 @@ class MetricsOpsSpec extends Http4sSuite {
   {
     test("classifierFMethodWithOptionallyExcludedPath should properly exclude UUIDs") {
       Prop.forAll { (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
-        val request: Request[IO] = Request[IO](
+        val request: Request[IO] = Request(
           method = method,
           uri = Uri.unsafeFromString(s"/users/$uuid/comments")
         )
@@ -75,7 +75,7 @@ class MetricsOpsSpec extends Http4sSuite {
     }
     test("classifierFMethodWithOptionallyExcludedPath should return '$method' if the path is '/'") {
       Prop.forAll { (method: Method) =>
-        val request: Request[IO] = Request[IO](
+        val request: Request[IO] = Request(
           method = method,
           uri = uri"""/"""
         )

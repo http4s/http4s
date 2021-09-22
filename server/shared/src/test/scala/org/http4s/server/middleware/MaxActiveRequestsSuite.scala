@@ -23,7 +23,7 @@ import org.http4s._
 import org.http4s.syntax.all._
 
 class MaxActiveRequestsSuite extends Http4sSuite {
-  val req = Request[IO]()
+  val req = Request()
 
   def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) =
     Kleisli { (req: Request[IO]) =>

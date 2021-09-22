@@ -29,7 +29,7 @@ class JsonDebugErrorHandlerSpec extends Http4sSuite {
         Kleisli { (_: Request[IO]) =>
           IO.raiseError[Response[IO]](new Throwable("Boo!"))
         }
-      val req: Request[IO] = Request[IO](Method.GET)
+      val req: Request[IO] = Request(Method.GET)
 
       JsonDebugErrorHandler(service)
         .run(req)
@@ -44,7 +44,7 @@ class JsonDebugErrorHandlerSpec extends Http4sSuite {
         Kleisli { (_: Request[IO]) =>
           IO.raiseError[Response[IO]](MalformedMessageBodyFailure("Boo!"))
         }
-      val req: Request[IO] = Request[IO](Method.GET)
+      val req: Request[IO] = Request(Method.GET)
 
       JsonDebugErrorHandler(service)
         .run(req)

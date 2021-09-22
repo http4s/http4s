@@ -112,7 +112,7 @@ class StaticFileSuite extends Http4sSuite {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
     val request =
-      Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
+      Request().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
     val response = StaticFile
       .fromFile[IO](emptyFile, Some(request))
       .value
@@ -123,7 +123,7 @@ class StaticFileSuite extends Http4sSuite {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
     val request =
-      Request[IO]().putHeaders(
+      Request().putHeaders(
         `If-None-Match`(
           EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
     val response = StaticFile
@@ -136,7 +136,7 @@ class StaticFileSuite extends Http4sSuite {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
     val request =
-      Request[IO]().putHeaders(
+      Request().putHeaders(
         `If-Modified-Since`(HttpDate.MaxValue),
         `If-None-Match`(
           EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
@@ -151,7 +151,7 @@ class StaticFileSuite extends Http4sSuite {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
     val request =
-      Request[IO]()
+      Request()
         .putHeaders(`If-Modified-Since`(HttpDate.MaxValue), `If-None-Match`(EntityTag(s"12345")))
 
     val response = StaticFile
@@ -164,7 +164,7 @@ class StaticFileSuite extends Http4sSuite {
     val emptyFile = File.createTempFile("empty", ".tmp")
 
     val request =
-      Request[IO]()
+      Request()
         .putHeaders(
           `If-Modified-Since`(HttpDate.MinValue),
           `If-None-Match`(

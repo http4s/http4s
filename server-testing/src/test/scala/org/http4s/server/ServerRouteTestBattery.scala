@@ -53,7 +53,7 @@ object ServerRouteTestBattery {
       IO(Response(body = r.body))
     }
 
-    get.orElse(post).getOrElse(IO(Response[IO](status = Status.NotFound)))
+    get.orElse(post).getOrElse(IO(Response(status = Status.NotFound)))
   }
 
 }

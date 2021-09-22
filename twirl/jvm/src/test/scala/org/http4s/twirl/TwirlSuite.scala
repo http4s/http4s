@@ -45,7 +45,7 @@ class TwirlSuite extends Http4sSuite {
 
   test("HTML encoder should render the body") {
     PropF.forAllF { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withEntity(html.test())
+      val resp = Response(Ok).withEntity(html.test())
       EntityDecoder
         .text[IO]
         .decode(resp, strict = false)
@@ -65,7 +65,7 @@ class TwirlSuite extends Http4sSuite {
 
   test("JS encoder should render the body") {
     PropF.forAllF { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withEntity(js.test())
+      val resp = Response(Ok).withEntity(js.test())
       EntityDecoder.text[IO].decode(resp, strict = false).value.assertEquals(Right(""""test js""""))
     }
   }
@@ -79,7 +79,7 @@ class TwirlSuite extends Http4sSuite {
 
   test("Text encoder should render the body") {
     PropF.forAllF { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withEntity(txt.test())
+      val resp = Response(Ok).withEntity(txt.test())
       EntityDecoder.text[IO].decode(resp, strict = false).value.assertEquals(Right("""test text"""))
     }
   }
@@ -93,7 +93,7 @@ class TwirlSuite extends Http4sSuite {
 
   test("XML encoder should render the body") {
     PropF.forAllF { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withEntity(_root_.xml.test())
+      val resp = Response(Ok).withEntity(_root_.xml.test())
       EntityDecoder
         .text[IO]
         .decode(resp, strict = false)

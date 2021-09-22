@@ -117,7 +117,7 @@ class OAuthSuite extends Http4sSuite {
     val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
     val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
 
-    val req = Request[IO](method = Method.POST, uri = uri).withEntity(body)
+    val req = Request(method = Method.POST, uri = uri).withEntity(body)
 
     oauth1.getUserParams(req).map { case (_, v) =>
       assert(
@@ -174,7 +174,7 @@ class OAuthSuite extends Http4sSuite {
 
     oauth1
       .signRequest(
-        req = Request[IO](Method.GET, uri),
+        req = Request(Method.GET, uri),
         oauth1.ProtocolParameter.Consumer("quack's-consumer-key", "i-heart-my-pond"),
         Some(oauth1.ProtocolParameter.Token("quack's-token", "ducks-are-the-best")),
         realm = None,

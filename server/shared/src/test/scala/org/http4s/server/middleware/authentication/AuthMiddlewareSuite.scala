@@ -44,7 +44,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
     val service = middleWare(authedRoutes)
 
     service
-      .orNotFound(Request[IO]())
+      .orNotFound(Request())
       .flatMap { res =>
         res.as[String].map {
           _ === "Unauthorized" && res.status === Forbidden
@@ -72,7 +72,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
     val service = middleWare(authedRoutes)
 
     service
-      .orNotFound(Request[IO]())
+      .orNotFound(Request())
       .flatMap { res =>
         res.as[String].map {
           _ === "42" && res.status === Ok
@@ -100,11 +100,11 @@ class AuthMiddlewareSuite extends Http4sSuite {
     val service = middleWare(authedRoutes)
 
     service
-      .orNotFound(Request[IO](method = Method.POST))
+      .orNotFound(Request(method = Method.POST))
       .map(_.status)
       .assertEquals(Ok) *>
       service
-        .orNotFound(Request[IO](method = Method.GET))
+        .orNotFound(Request(method = Method.GET))
         .map(_.status)
         .assertEquals(NotFound)
   }
@@ -124,7 +124,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val service = middleware(authedRoutes)
 
-    service.orNotFound(Request[IO](method = Method.POST)).map(_.status).assertEquals(Ok)
+    service.orNotFound(Request(method = Method.POST)).map(_.status).assertEquals(Ok)
   }
 
   test("return 404 for an unmatched but authenticated route") {
@@ -142,7 +142,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val service = middleware(authedRoutes)
 
-    service.orNotFound(Request[IO](method = Method.GET)).map(_.status).assertEquals(NotFound)
+    service.orNotFound(Request(method = Method.GET)).map(_.status).assertEquals(NotFound)
   }
 
   test("return 401 for a matched, but unauthenticated route") {
@@ -158,7 +158,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val service = middleware(authedRoutes)
 
-    service.orNotFound(Request[IO](method = Method.POST)).map(_.status).assertEquals(Unauthorized)
+    service.orNotFound(Request(method = Method.POST)).map(_.status).assertEquals(Unauthorized)
   }
 
   test("return 401 for an unmatched, unauthenticated route") {
@@ -174,7 +174,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val service = middleware(authedRoutes)
 
-    service.orNotFound(Request[IO](method = Method.GET)).map(_.status).assertEquals(Unauthorized)
+    service.orNotFound(Request(method = Method.GET)).map(_.status).assertEquals(Unauthorized)
   }
 
   test("compose authedRoutesand not fall through") {
@@ -197,8 +197,8 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val service = middleware(authedRoutes1 <+> authedRoutes2)
 
-    service.orNotFound(Request[IO](method = Method.GET)).map(_.status).assertEquals(Ok) *>
-      service.orNotFound(Request[IO](method = Method.POST)).map(_.status).assertEquals(Ok)
+    service.orNotFound(Request(method = Method.GET)).map(_.status).assertEquals(Ok) *>
+      service.orNotFound(Request(method = Method.POST)).map(_.status).assertEquals(Ok)
   }
 
   test("consume the entire request for an unauthenticated route for service composition") {
@@ -210,18 +210,18 @@ class AuthMiddlewareSuite extends Http4sSuite {
         Ok()
       }
 
-    val regularRoutes: HttpRoutes[IO] = HttpRoutes.pure(Response[IO](Ok))
+    val regularRoutes: HttpRoutes[IO] = HttpRoutes.pure(Response(Ok))
 
     val middleware = AuthMiddleware(authUser)
 
     val service = middleware(authedRoutes)
 
     (service <+> regularRoutes)
-      .orNotFound(Request[IO](method = Method.POST))
+      .orNotFound(Request(method = Method.POST))
       .map(_.status)
       .assertEquals(Unauthorized) *>
       (service <+> regularRoutes)
-        .orNotFound(Request[IO](method = Method.GET))
+        .orNotFound(Request(method = Method.GET))
         .map(_.status)
         .assertEquals(Unauthorized)
   }
@@ -245,17 +245,17 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     //Unauthenticated
     (service <+> regularRoutes)
-      .orNotFound(Request[IO](method = Method.POST))
+      .orNotFound(Request(method = Method.POST))
       .map(_.status)
       .assertEquals(NotFound) *>
       //Matched normally
       (service <+> regularRoutes)
-        .orNotFound(Request[IO](method = Method.GET))
+        .orNotFound(Request(method = Method.GET))
         .map(_.status)
         .assertEquals(Ok) *>
       //Unmatched
       (service <+> regularRoutes)
-        .orNotFound(Request[IO](method = Method.PUT))
+        .orNotFound(Request(method = Method.PUT))
         .map(_.status)
         .assertEquals(NotFound)
   }

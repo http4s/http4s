@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import cats.effect.IO
 import org.http4s.syntax.header._
 import org.http4s.laws.discipline.ArbitraryInstances._
 
@@ -47,7 +46,7 @@ class RefererSuite extends HeaderLaws {
 
   test("should be extractable") {
     val referer = Referer(getUri("http://localhost:8080"))
-    val request = Request[IO](headers = Headers(referer))
+    val request = Request(headers = Headers(referer))
 
     val extracted = request.headers.get[Referer]
     assertEquals(extracted, Some(referer))

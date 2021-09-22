@@ -108,7 +108,7 @@ Content-Type: application/pdf
         val header = Headers(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
-        val request = Request[IO](
+        val request = Request(
           method = Method.POST,
           uri = url,
           body = Stream.emit(body).covary[IO].through(text.utf8.encode),
@@ -138,7 +138,7 @@ I am a big moose
         val header = Headers(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
-        val request = Request[IO](
+        val request = Request(
           method = Method.POST,
           uri = url,
           body = Stream.emit(body).through(text.utf8.encode),
