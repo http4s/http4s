@@ -30,8 +30,6 @@ import fs2.io.net._
 import org.http4s._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
-import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
-import org.http4s.headers._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.timeoutMaybe
 import org.http4s.headers.Connection
@@ -51,8 +49,6 @@ import java.nio.ByteBuffer
 import org.typelevel.log4cats.Logger
 
 import java.io.IOException
-import java.nio.ByteBuffer
-import scala.concurrent.duration.Duration
 
 object WebSocketHelpers {
 
