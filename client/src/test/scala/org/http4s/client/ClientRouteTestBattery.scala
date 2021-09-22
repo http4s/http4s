@@ -46,9 +46,9 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
           case "/request-splitting" =>
             val status =
               if (exchange.getRequestHeaders.containsKey("Evil"))
-                200
+                Status.InternalServerError.code
               else
-                500
+                Status.Ok.code
             IO.blocking {
               exchange.sendResponseHeaders(status, -1L)
               exchange.close()
