@@ -50,7 +50,7 @@ object JsonDebugErrorHandler {
               s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                 .getOrElse("<unknown>")}""")
             val firstResp = mf.toHttpResponse(req.httpVersion)
-            Response(
+            Response[G](
               status = firstResp.status,
               httpVersion = firstResp.httpVersion,
               headers = firstResp.headers.redactSensitive(redactWhen)
@@ -60,7 +60,7 @@ object JsonDebugErrorHandler {
               s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                 .getOrElse("<unknown>")}"""
             )
-            Response(
+            Response[G](
               Status.InternalServerError,
               req.httpVersion,
               Headers(

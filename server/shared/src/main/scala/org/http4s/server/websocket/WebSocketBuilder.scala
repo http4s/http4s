@@ -134,9 +134,9 @@ object WebSocketBuilder {
     new WebSocketBuilder[F](
       headers = Headers.empty,
       onNonWebSocketRequest =
-        Response(Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
+        Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
       onHandshakeFailure =
-        Response(Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
+        Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
       filterPingPongs = true
     )
