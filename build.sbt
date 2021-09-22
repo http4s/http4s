@@ -274,6 +274,7 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
       catsCore.value,
       catsEffectStd.value,
       catsParse.value.exclude("org.typelevel", "cats-core_2.13"),
+      crypto.value,
       fs2Core.value,
       ip4sCore.value,
       literally.value,

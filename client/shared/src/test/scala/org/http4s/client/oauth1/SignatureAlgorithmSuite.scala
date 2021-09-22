@@ -16,6 +16,7 @@
 
 package org.http4s.client.oauth1
 
+import cats.effect.IO
 import org.http4s.Http4sSuite
 import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
@@ -42,18 +43,18 @@ class SignatureAlgorithmSuite extends Http4sSuite {
   }
 
   test("HmacSha1 should generate valid signature") {
-    assertEquals(HmacSha1.generate(InputString, SecretKey), "jxlA9wGy7ywMXFH6gmOrGD8fVGo=")
+    assertIO(HmacSha1.generate[IO](InputString, SecretKey), "jxlA9wGy7ywMXFH6gmOrGD8fVGo=")
   }
 
   test("HmacSha256 should generate valid signature") {
-    assertEquals(
-      HmacSha256.generate(InputString, SecretKey),
+    assertIO(
+      HmacSha256.generate[IO](InputString, SecretKey),
       "J2LpHzGwjVR8x0ZbbNC2ehI3UwfBp4xu9SUNAVhXrrM=")
   }
 
   test("HmacSha512 should generate valid signature") {
-    assertEquals(
-      HmacSha512.generate(InputString, SecretKey),
+    assertIO(
+      HmacSha512.generate[IO](InputString, SecretKey),
       "aa5p3aIHcy5525TKAn/y3tG+lwcSBtawNO4d6ScVAJf2/bsQ9uJxVzMQhA1I68rRuk0Jie/V39yUlTAoR1+1Sw==")
   }
 
