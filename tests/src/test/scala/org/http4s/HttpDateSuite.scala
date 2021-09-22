@@ -17,17 +17,23 @@
 package org.http4s
 
 import cats.effect.IO
-import java.time.{Month, ZoneOffset, ZonedDateTime}
-import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
+import cats.kernel.laws.discipline.BoundedEnumerableTests
+import cats.kernel.laws.discipline.HashTests
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.laws.discipline.ArbitraryInstances._
-import org.scalacheck.Gen._
-import org.scalacheck.Prop._
+
+import java.time.Month
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+
 class HttpDateSuite extends Http4sSuite {
   import HttpVersion._
 
   checkAll("HttpVersion", OrderTests[HttpVersion].order)
 
   checkAll("HttpVersion", HashTests[HttpVersion].hash)
+
+  checkAll("HttpVersion", BoundedEnumerableTests[HttpVersion].boundedEnumerable)
 
   test("current should be within a second of Instant.now".flaky) {
     for {
