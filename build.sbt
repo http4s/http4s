@@ -115,6 +115,7 @@ lazy val core = libraryProject("core")
       catsCore,
       catsEffectStd,
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
+      crypto,
       fs2Core,
       fs2Io,
       ip4sCore,
@@ -188,6 +189,11 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF.this"), // private[middleware]
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF#CSRFBuilder.this"), // private[middleware]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.middleware.authentication.DigestUtil.computeResponse"), // private[authentication]
+    )
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
@@ -219,6 +225,11 @@ lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[Problem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.makeSHASig"), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.*.generateHMAC"), // private[oauth1]
+    )
   )
   .dependsOn(
     core,
