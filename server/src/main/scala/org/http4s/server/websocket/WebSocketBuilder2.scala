@@ -37,7 +37,7 @@ import org.typelevel.vault.Key
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
   */
-final case class WebSocketBuilder2[F[_]: Applicative](
+sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
@@ -45,10 +45,42 @@ final case class WebSocketBuilder2[F[_]: Applicative](
     filterPingPongs: Boolean,
     webSocketKey: Key[WebSocketContext[F]]
 ) {
+  import WebSocketBuilder2.impl
+
+  private def copy(
+    headers: Headers = this.headers,
+    onNonWebSocketRequest: F[Response[F]] = this.onNonWebSocketRequest,
+    onHandshakeFailure: F[Response[F]] = this.onHandshakeFailure,
+    onClose: F[Unit] = this.onClose,
+    filterPingPongs: Boolean = this.filterPingPongs,
+    webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey
+  ): WebSocketBuilder2[F] = WebSocketBuilder2.impl[F](
+    headers,
+    onNonWebSocketRequest,
+    onHandshakeFailure,
+    onClose,
+    filterPingPongs,
+    webSocketKey
+  )
+
+  def withHeaders(headers: Headers): WebSocketBuilder2[F] =
+    copy(headers = headers)
+
+  def withOnNonWebSocketRequest(onNonWebSocketRequest: F[Response[F]]): WebSocketBuilder2[F] =
+    copy(onNonWebSocketRequest = onNonWebSocketRequest)
+
+  def withOnHandshakeFailure(onHandshakeFailure: F[Response[F]]): WebSocketBuilder2[F] =
+    copy(onHandshakeFailure = onHandshakeFailure)
+
+  def withOnClose(onHandshakeFailure: F[Unit]): WebSocketBuilder2[F] =
+    copy(onClose = onClose)
+
+  def withFilterPingPongs(filterPingPongs: Boolean): WebSocketBuilder2[F] =
+    copy(filterPingPongs = filterPingPongs)
 
   /** Transform the parameterized effect from F to G. */
   def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
-    WebSocketBuilder2[G](
+    impl[G](
       headers,
       fk(onNonWebSocketRequest).map(_.mapK(fk)),
       fk(onHandshakeFailure).map(_.mapK(fk)),
@@ -144,18 +176,29 @@ final case class WebSocketBuilder2[F[_]: Applicative](
 }
 
 object WebSocketBuilder2 {
-
-  private[http4s] def apply[F[_]: Applicative](
-      webSocketKey: Key[WebSocketContext[F]]): WebSocketBuilder2[F] =
-    new WebSocketBuilder2[F](
+  private[http4s] def apply[F[_]: Applicative](webSocketKey: Key[WebSocketContext[F]]): WebSocketBuilder2[F] =
+    impl(
       headers = Headers.empty,
-      onNonWebSocketRequest =
-        Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
-      onHandshakeFailure =
-        Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
+      onNonWebSocketRequest = Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
+      onHandshakeFailure = Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
       filterPingPongs = true,
-      webSocketKey = webSocketKey
-    )
+      webSocketKey = webSocketKey)
 
+  private def impl[F[_]: Applicative](
+    headers: Headers,
+    onNonWebSocketRequest: F[Response[F]],
+    onHandshakeFailure: F[Response[F]],
+    onClose: F[Unit],
+    filterPingPongs: Boolean,
+    webSocketKey: Key[WebSocketContext[F]]
+  ): WebSocketBuilder2[F] =
+    new WebSocketBuilder2[F](
+      headers = headers,
+      onNonWebSocketRequest = onNonWebSocketRequest,
+      onHandshakeFailure = onHandshakeFailure,
+      onClose = onClose,
+      filterPingPongs = filterPingPongs,
+      webSocketKey = webSocketKey
+    ) {}
 }

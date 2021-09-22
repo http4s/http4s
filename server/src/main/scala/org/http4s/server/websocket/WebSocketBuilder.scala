@@ -42,14 +42,12 @@ final case class WebSocketBuilder[F[_]: Applicative](
 ) {
 
   private lazy val delegate: WebSocketBuilder2[F] =
-    WebSocketBuilder2(
-      headers,
-      onNonWebSocketRequest,
-      onHandshakeFailure,
-      onClose,
-      filterPingPongs,
-      websocketKey[F]
-    )
+    WebSocketBuilder2(websocketKey[F])
+      .withHeaders(headers)
+      .withOnNonWebSocketRequest(onNonWebSocketRequest)
+      .withOnHandshakeFailure(onHandshakeFailure)
+      .withOnClose(onClose)
+      .withFilterPingPongs(filterPingPongs)
 
   /** @param sendReceive The send-receive stream represents transforming of incoming messages to outgoing for a single websocket
     *                    Once the stream have terminated, the server will initiate a close of the websocket connection.
