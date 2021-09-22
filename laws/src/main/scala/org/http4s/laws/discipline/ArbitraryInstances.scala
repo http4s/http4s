@@ -44,6 +44,7 @@ import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
 
 import java.util.concurrent.TimeUnit
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
@@ -156,11 +157,15 @@ private[http4s] trait ArbitraryInstances {
   val genStandardStatus =
     oneOf(Status.registered)
 
+  @deprecated(
+    "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
+    "0.22.6")
   val genCustomStatus = for {
     code <- genValidStatusCode
     reason <- genCustomStatusReason
   } yield Status.fromInt(code).yolo.withReason(reason)
 
+  @nowarn("cat=deprecation")
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
     frequency(
       4 -> genStandardStatus,
