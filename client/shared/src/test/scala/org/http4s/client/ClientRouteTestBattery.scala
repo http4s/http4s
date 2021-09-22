@@ -144,7 +144,6 @@ abstract class ClientRouteTestBattery(name: String)
   test("Mitigates request splitting attack in field name") {
 
     for {
-      srv <- server()
       uri <- url("/request-splitting")
       req = Request[IO](uri = uri)
         .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
@@ -191,7 +190,7 @@ object ClientRouteTestBattery {
           if (r.headers.get(ci"Evil").isDefined) IO(Response[IO](Status.InternalServerError)).some
           else IO(Response[IO](Status.Ok)).some
         case p =>
-          GetRoutes.getPaths.get(r.uri.path.toString)
+          GetRoutes.getPaths.get(p)
       }
     }
 
