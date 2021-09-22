@@ -55,7 +55,7 @@ class TimeoutSuite extends Http4sSuite {
   }
 
   test("return the provided response if the result takes too long") {
-    val customTimeout = Response(Status.GatewayTimeout) // some people return 504 here.
+    val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
     val altTimeoutService =
       TimeoutMiddleware(1.nanosecond, OptionT.pure[IO](customTimeout))(routes)
     checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
