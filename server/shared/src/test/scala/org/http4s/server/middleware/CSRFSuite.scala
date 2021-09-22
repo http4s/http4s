@@ -39,7 +39,7 @@ class CSRFSuite extends Http4sSuite {
   private val testClock: Clock = new Clock { self =>
     private lazy val clockTick = new AtomicLong(Instant.now().toEpochMilli)
 
-    def withZone(zone: ZoneId): Clock = this
+    override def withZone(zone: ZoneId): Clock = this
 
     def getZone: ZoneId = ZoneId.systemDefault()
 
