@@ -18,22 +18,26 @@ package org.http4s
 package server
 package middleware
 
+import org.http4s.crypto.Hmac
+import org.http4s.crypto.HmacAlgorithm
+import org.http4s.crypto.SecretKey
+import org.http4s.crypto.SecureEq
+import org.http4s.crypto.unsafe.SecureRandom
 import cats.~>
 import cats.Applicative
 import cats.data.{EitherT, Kleisli}
 import cats.effect.Sync
+import cats.effect.SyncIO
 import cats.syntax.all._
 import java.nio.charset.StandardCharsets
-import java.security.{MessageDigest, SecureRandom}
 import java.time.Clock
-import javax.crypto.spec.SecretKeySpec
-import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Referer, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
 import org.typelevel.ci._
 import scala.util.control.NoStackTrace
+import scodec.bits.ByteVector
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
@@ -73,7 +77,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     clock: Clock,
     onFailure: Response[G],
     createIfNotFound: Boolean,
-    key: SecretKey,
+    key: SecretKey[HmacAlgorithm],
     headerCheck: Request[G] => Boolean,
     csrfCheck: CSRF[F, G] => CSRF.CSRFCheck[F, G]
 )(implicit F: Sync[F]) { self =>
@@ -86,13 +90,11 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * if constructed with a bad key.
     */
   def signToken[M[_]](rawToken: String)(implicit F: Sync[M]): M[CSRFToken] =
-    F.delay {
-      val joined = rawToken + "-" + clock.millis()
-      val mac = Mac.getInstance(CSRF.SigningAlgo)
-      mac.init(key)
-      val out = mac.doFinal(joined.getBytes(StandardCharsets.UTF_8))
-      lift(joined + "-" + encodeHexString(out))
-    }
+    for {
+      joined <- F.delay(rawToken + "-" + clock.millis())
+      data <- F.fromEither(ByteVector.encodeUtf8(joined))
+      out <- Hmac[M].digest(key, data)
+    } yield lift(joined + "-" + encodeHexString(out.toArray))
 
   /** Generate a new token */
   def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
@@ -155,12 +157,12 @@ final class CSRF[F[_], G[_]] private[middleware] (
   def extractRaw(rawToken: String): Either[CSRFCheckFailed, String] =
     rawToken.split("-") match {
       case Array(raw, nonce, signed) =>
-        val mac = Mac.getInstance(CSRF.SigningAlgo)
-        mac.init(key)
-        val out = mac.doFinal((raw + "-" + nonce).getBytes(StandardCharsets.UTF_8))
+        val out = Hmac[SyncIO]
+          .digest(key, ByteVector.view((raw + "-" + nonce).getBytes(StandardCharsets.UTF_8)))
+          .unsafeRunSync()
         decodeHexString(signed) match {
           case Some(decoded) =>
-            if (MessageDigest.isEqual(out, decoded))
+            if (SecureEq[ByteVector].eqv(out, ByteVector.view(decoded)))
               Right(raw)
             else
               Left(CSRFCheckFailed)
@@ -252,7 +254,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
 object CSRF {
   def apply[F[_]: Sync, G[_]: Applicative](
-      key: SecretKey,
+      key: javax.crypto.SecretKey,
       headerCheck: Request[G] => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
@@ -265,13 +267,13 @@ object CSRF {
       clock = Clock.systemUTC(),
       onFailure = Response[G](Status.Forbidden),
       createIfNotFound = true,
-      key = key,
+      key = Hmac[SyncIO].importJavaKey(key).unsafeRunSync(),
       headerCheck = headerCheck,
       csrfCheck = checkCSRFDefault
     )
 
   def withDefaultOriginCheck[F[_]: Sync, G[_]: Applicative](
-      key: SecretKey,
+      key: javax.crypto.SecretKey,
       host: String,
       scheme: Scheme,
       port: Option[Int]
@@ -282,7 +284,7 @@ object CSRF {
     )
 
   def withDefaultOriginCheckFormAware[F[_]: Sync, G[_]: Sync](fieldName: String, nt: G ~> F)(
-      key: SecretKey,
+      key: javax.crypto.SecretKey,
       host: String,
       scheme: Scheme,
       port: Option[Int]
@@ -309,7 +311,7 @@ object CSRF {
       clock: Clock,
       onFailure: Response[G],
       createIfNotFound: Boolean,
-      key: SecretKey,
+      key: SecretKey[HmacAlgorithm],
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
   )(implicit F: Sync[F], G: Applicative[G]) {
@@ -319,7 +321,7 @@ object CSRF {
         clock: Clock = clock,
         onFailure: Response[G] = onFailure,
         createIfNotFound: Boolean = createIfNotFound,
-        key: SecretKey = key,
+        key: SecretKey[HmacAlgorithm] = key,
         headerCheck: Request[G] => Boolean = headerCheck,
         csrfCheck: CSRF[F, G] => CSRFCheck[F, G] = csrfCheck
     ): CSRFBuilder[F, G] =
@@ -340,7 +342,8 @@ object CSRF {
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
     def withCreateIfNotFound(createIfNotFound: Boolean): CSRFBuilder[F, G] =
       copy(createIfNotFound = createIfNotFound)
-    def withKey(key: SecretKey): CSRFBuilder[F, G] = copy(key = key)
+    def withKey(key: javax.crypto.SecretKey): CSRFBuilder[F, G] =
+      copy(key = Hmac[SyncIO].importJavaKey(key).unsafeRunSync())
     def withHeaderCheck(headerCheck: Request[G] => Boolean): CSRFBuilder[F, G] =
       copy(headerCheck = headerCheck)
     def withCSRFCheck(csrfCheck: CSRF[F, G] => CSRFCheck[F, G]): CSRFBuilder[F, G] =
@@ -456,6 +459,7 @@ object CSRF {
 
   ///
 
+  private val SigningAlgorithm = HmacAlgorithm.SHA1
   val SigningAlgo: String = "HmacSHA1"
   @deprecated("Unused. Will be removed", "0.20.10")
   val SHA1ByteLen: Int = 20
@@ -495,7 +499,10 @@ object CSRF {
 
   /** A Constant-time string equality */
   def isEqual(s1: String, s2: String): Boolean =
-    MessageDigest.isEqual(s1.getBytes(StandardCharsets.UTF_8), s2.getBytes(StandardCharsets.UTF_8))
+    SecureEq[ByteVector].eqv(
+      SyncIO.fromEither(ByteVector.encodeUtf8(s1)).unsafeRunSync(),
+      SyncIO.fromEither(ByteVector.encodeUtf8(s2)).unsafeRunSync()
+    )
 
   /** Generate an unsigned CSRF token from a `SecureRandom` */
   private[middleware] def genTokenString: String = {
@@ -505,8 +512,8 @@ object CSRF {
   }
 
   /** Generate a signing Key for the CSRF token */
-  def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[SecretKey] =
-    F.delay(KeyGenerator.getInstance(SigningAlgo).generateKey())
+  def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
+    Hmac[F].generateKey(SigningAlgorithm).map(_.toJava)
 
   /** Build a new HMACSHA1 Key for our CSRF Middleware
     * from key bytes. This operation is unsafe, in that
@@ -518,6 +525,6 @@ object CSRF {
     * Use for loading a key from a config file, after having generated
     * one safely
     */
-  def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[SecretKey] =
-    F.delay(new SecretKeySpec(array, SigningAlgo))
+  def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
+    Hmac[F].importKey(ByteVector.view(array), SigningAlgorithm).map(_.toJava)
 }

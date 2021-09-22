@@ -30,6 +30,6 @@ class v0_22 extends SemanticRule("v0_22") {
       "org.http4s.client.okhttp" -> "org.http4s.okhttp.client",
       "org.http4s.client.asynchttpclient" -> "org.http4s.asynchttpclient",
       "org.http4s.client.blaze" -> "org.http4s.blaze.client",
-      "org.http4s.server.blaze" -> "org.http4s.blaze.server",
+      "org.http4s.server.blaze" -> "org.http4s.blaze.server"
     )
 }
