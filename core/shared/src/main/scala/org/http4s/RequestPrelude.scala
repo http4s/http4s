@@ -91,7 +91,7 @@ object RequestPrelude {
       uri
     )
 
-  def fromRequest[F[_]](value: Request[F]): RequestPrelude =
+  def fromRequest(value: AnyRequest): RequestPrelude =
     RequestPreludeImpl(
       value.headers,
       value.httpVersion,

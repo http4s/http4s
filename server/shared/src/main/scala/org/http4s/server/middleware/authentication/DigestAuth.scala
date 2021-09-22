@@ -89,7 +89,7 @@ object DigestAuth {
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
-      req: Request[F])(implicit F: Async[F]): F[AuthReply[A]] =
+      req: AnyRequest)(implicit F: Async[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
@@ -114,7 +114,7 @@ object DigestAuth {
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
-      req: Request[F],
+      req: AnyRequest,
       paramsNel: NonEmptyList[(String, String)])(implicit F: Async[F]): F[AuthReply[A]] = {
     val params = paramsNel.toList.toMap
     if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet))

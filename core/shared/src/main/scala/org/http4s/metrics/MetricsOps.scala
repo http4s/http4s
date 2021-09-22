@@ -17,7 +17,7 @@
 package org.http4s.metrics
 
 import cats.Foldable
-import org.http4s.{Method, Request, Status}
+import org.http4s.{AnyRequest, Method, Status}
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */
@@ -97,13 +97,13 @@ object MetricsOps {
     * @param exclude For a given String, namely a path value, determine whether the value gets excluded.
     * @param excludedValue Indicates the String value to be supplied for an excluded path's field.
     * @param pathSeparator Value to use for separating the metrics fields' values
-    * @return Request[F] => Option[String]
+    * @return AnyRequest => Option[String]
     */
   def classifierFMethodWithOptionallyExcludedPath(
       exclude: String => Boolean,
       excludedValue: String = "*",
       pathSeparator: String = "_"
-  ): Request[F] => Option[String] = { (request: Request[F]) =>
+  ): AnyRequest => Option[String] = { (request: AnyRequest) =>
     val initial: String = request.method.name
 
     val pathList: List[String] =

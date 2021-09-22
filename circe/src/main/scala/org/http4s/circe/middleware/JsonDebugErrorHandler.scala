@@ -49,7 +49,7 @@ object JsonDebugErrorHandler {
             messageFailureLogger.debug(mf)(
               s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                 .getOrElse("<unknown>")}""")
-            val firstResp = mf.toHttpResponse[G](req.httpVersion)
+            val firstResp = mf.toHttpResponse(req.httpVersion)
             Response(
               status = firstResp.status,
               httpVersion = firstResp.httpVersion,
@@ -71,8 +71,8 @@ object JsonDebugErrorHandler {
         }
     }
 
-  private final case class JsonErrorHandlerResponse[F[_]](
-      req: Request[F],
+  private final case class JsonErrorHandlerResponse(
+      req: AnyRequest,
       caught: Throwable
   )
   private object JsonErrorHandlerResponse {

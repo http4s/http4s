@@ -50,8 +50,8 @@ class CSRFSuite extends Http4sSuite {
   private val cookieName = "csrf-token"
   private val headerName = ci"X-Csrf-Token"
 
-  private val defaultOriginCheck: Request[IO] => Boolean =
-    CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None)
+  private val defaultOriginCheck: AnyRequest => Boolean =
+    CSRF.defaultOriginCheck(_, "localhost", Uri.Scheme.http, None)
 
   private val dummyRoutes: HttpApp[IO] = HttpRoutes
     .of[IO] {

@@ -28,7 +28,7 @@ class ClientHelpersSuite extends Http4sSuite {
 
   test("Request Preprocessing should add a date header if not present") {
     ClientHelpers
-      .preprocessRequest(Request[IO](), None)
+      .preprocessRequest[IO](Request(), None)
       .map { req =>
         req.headers.get[Date].isDefined
       }
@@ -37,8 +37,8 @@ class ClientHelpersSuite extends Http4sSuite {
 
   test("Request Preprocessing should not add a date header if already present") {
     ClientHelpers
-      .preprocessRequest(
-        Request[IO](
+      .preprocessRequest[IO](
+        Request(
           headers = Headers(Date(HttpDate.Epoch))
         ),
         None)
@@ -51,7 +51,7 @@ class ClientHelpersSuite extends Http4sSuite {
   }
   test("Request Preprocessing should add a connection keep-alive header if not present") {
     ClientHelpers
-      .preprocessRequest(Request[IO](), None)
+      .preprocessRequest[IO](Request(), None)
       .map { req =>
         req.headers.get[Connection].map { case c: Connection =>
           c.hasKeepAlive
@@ -62,8 +62,8 @@ class ClientHelpersSuite extends Http4sSuite {
 
   test("Request Preprocessing should not add a connection header if already present") {
     ClientHelpers
-      .preprocessRequest(
-        Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
+      .preprocessRequest[IO](
+        Request(headers = Headers(Connection(NonEmptyList.of(ci"close")))),
         None
       )
       .map { req =>
@@ -76,7 +76,7 @@ class ClientHelpersSuite extends Http4sSuite {
 
   test("Request Preprocessing should add default user-agent") {
     ClientHelpers
-      .preprocessRequest(Request[IO](), EmberClientBuilder.default[IO].userAgent)
+      .preprocessRequest[IO](Request(), EmberClientBuilder.default[IO].userAgent)
       .map { req =>
         req.headers.get[`User-Agent`].isDefined
       }
@@ -86,8 +86,8 @@ class ClientHelpersSuite extends Http4sSuite {
   test("Request Preprocessing should not change a present user-agent") {
     val name = "foo"
     ClientHelpers
-      .preprocessRequest(
-        Request[IO](
+      .preprocessRequest[IO](
+        Request(
           headers = Headers(`User-Agent`(ProductId(name, None)))
         ),
         EmberClientBuilder.default[IO].userAgent)
@@ -106,8 +106,8 @@ class ClientHelpersSuite extends Http4sSuite {
 
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](),
-          Response[IO](),
+          Request(),
+          Response(),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse
@@ -124,8 +124,8 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
       _ <- ClientHelpers.postProcessResponse[IO](
-        Request[IO](),
-        Response[IO](),
+        Request(),
+        Response(),
         IO.pure(Some(Array[Byte](1, 2, 3))),
         nextBytes,
         reuse
@@ -140,8 +140,8 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
-          Response[IO](),
+          Request(headers = Headers(Connection(NonEmptyList.of(ci"close")))),
+          Response(),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse
@@ -158,8 +158,8 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](),
-          Response[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
+          Request(),
+          Response(headers = Headers(Connection(NonEmptyList.of(ci"close")))),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse
@@ -176,8 +176,8 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](),
-          Response[IO](),
+          Request(),
+          Response(),
           IO.pure(None),
           nextBytes,
           reuse

@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
 object FileService {
   private[this] val logger = getLogger
 
-  type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
+  type PathCollector[F[_]] = (File, Config[F], AnyRequest) => OptionT[F, Response[F]]
 
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
@@ -108,7 +108,7 @@ object FileService {
     }
   }
 
-  private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(implicit
+  private def filesOnly[F[_]](file: File, config: Config[F], req: AnyRequest)(implicit
       F: Async[F]): OptionT[F, Response[F]] =
     OptionT(F.defer {
       if (file.isDirectory)
@@ -133,7 +133,7 @@ object FileService {
     })
 
   // Attempt to find a Range header and collect only the subrange of content requested
-  private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(implicit
+  private def getPartialContentFile[F[_]](file: File, config: Config[F], req: AnyRequest)(implicit
       F: Async[F]): F[Option[Response[F]]] = {
     def nope: F[Option[Response[F]]] = F.delay(file.length()).map { size =>
       Some(

@@ -54,15 +54,14 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
-    org.http4s.internal.Logger
-      .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
+    org.http4s.internal.Logger.logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
 
   def colored[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       requestColor: String = RequestLogger.defaultRequestColor,
-      responseColor: Response[F] => String = ResponseLogger.defaultResponseColor[F] _,
+      responseColor: Response[F] => String = ResponseLogger.defaultResponseColor(_),
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     ResponseLogger.colored(logHeaders, logBody, redactHeadersWhen, responseColor, logAction)(

@@ -79,7 +79,7 @@ object ResponsePrelude {
       status
     )
 
-  def fromResponse[F[_]](value: Response[F]): ResponsePrelude =
+  def fromResponse(value: AnyResponse): ResponsePrelude =
     ResponsePreludeImpl(
       value.headers,
       value.httpVersion,

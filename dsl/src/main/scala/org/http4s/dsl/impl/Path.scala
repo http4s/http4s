@@ -36,7 +36,7 @@ import org.http4s.Uri.Path._
 import org.http4s.headers.Allow
 
 object :? {
-  def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
+  def unapply(req: AnyRequest): Some[(req.type, Map[String, collection.Seq[String]])] =
     Some((req, req.multiParams))
 }
 
@@ -94,7 +94,7 @@ object -> {
     *     case Method.GET -> Root / "test.json" => ...
     * }}}
     */
-  def unapply[F[_]](req: Request[F]): Some[(Method, Path)] =
+  def unapply(req: AnyRequest): Some[(Method, Path)] =
     Some((req.method, req.pathInfo))
 }
 

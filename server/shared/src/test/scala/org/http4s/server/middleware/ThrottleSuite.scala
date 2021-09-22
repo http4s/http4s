@@ -131,8 +131,8 @@ class ThrottleSuite extends Http4sSuite {
       override def takeToken: IO[TokenAvailability] = TokenAvailable.pure[IO]
     }
 
-    val testee = Throttle(limitNotReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
-    val req = Request[IO](uri = uri"/")
+    val testee = Throttle.app(limitNotReachedBucket)(alwaysOkApp)
+    val req = Request(uri = uri"/")
 
     testee(req).map(_.status === Status.Ok).assert
   }
@@ -142,8 +142,8 @@ class ThrottleSuite extends Http4sSuite {
       override def takeToken: IO[TokenAvailability] = TokenUnavailable(None).pure[IO]
     }
 
-    val testee = Throttle(limitReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
-    val req = Request[IO](uri = uri"/")
+    val testee = Throttle.app(limitReachedBucket)(alwaysOkApp)
+    val req = Request(uri = uri"/")
 
     testee(req).map(_.status === Status.TooManyRequests).assert
   }

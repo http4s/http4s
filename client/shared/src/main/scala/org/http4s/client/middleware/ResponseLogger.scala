@@ -54,7 +54,7 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { response =>
-      InternalLogger.logMessageWithBodyText[F, Response[F]](response)(
+      InternalLogger.logMessageWithBodyText(response)(
         logHeaders,
         logBody,
         redactHeadersWhen
@@ -101,7 +101,7 @@ object ResponseLogger {
       }
     }
 
-  def defaultResponseColor[F[_]](response: Response[F]): String =
+  def defaultResponseColor(response: AnyResponse): String =
     response.status.responseClass match {
       case Status.Informational | Status.Successful | Status.Redirection => Console.GREEN
       case Status.ClientError => Console.YELLOW
@@ -119,10 +119,10 @@ object ResponseLogger {
       val prelude = s"${response.httpVersion} ${response.status}"
 
       val headers: String =
-        InternalLogger.defaultLogHeaders[F, Response[F]](response)(logHeaders, redactHeadersWhen)
+        InternalLogger.defaultLogHeaders(response)(logHeaders, redactHeadersWhen)
 
       val bodyText: F[String] =
-        InternalLogger.defaultLogBody[F, Response[F]](response)(logBody) match {
+        InternalLogger.defaultLogBody(response)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
           case None => Sync[F].pure("")
         }

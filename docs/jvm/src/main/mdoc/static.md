@@ -66,7 +66,7 @@ import java.io.File
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
-    StaticFile.fromFile(new File("relative/path/to/index.html"), Some(request))
+    StaticFile.fromFile[IO](new File("relative/path/to/index.html"), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
 ```
@@ -85,7 +85,7 @@ only files matching a list of extensions are served. Append to the `List` as nee
 
 ```scala mdoc:nest
 def static(file: String, request: Request[IO]) =
-  StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
+  StaticFile.fromResource[IO]("/" + file, Some(request)).getOrElseF(NotFound())
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>

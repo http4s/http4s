@@ -17,7 +17,7 @@
 package org.http4s.server.middleware
 
 import cats._
-import org.http4s.{Http, Response, Status}
+import org.http4s.{Http, HttpApp, Response, Status}
 import cats.data.Kleisli
 import cats.effect.kernel.Temporal
 import scala.concurrent.duration.FiniteDuration
@@ -103,10 +103,10 @@ object Throttle {
       F: Temporal[F]): F[Http[F, G]] = {
     val refillFrequency = per / amount.toLong
     val createBucket = TokenBucket.local(amount, refillFrequency)
-    createBucket.map(bucket => apply(bucket, defaultResponse[G] _)(http))
+    createBucket.map(bucket => apply[F, G](bucket, defaultResponse _)(http))
   }
 
-  def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] = {
+  def defaultResponse(retryAfter: Option[FiniteDuration]): Response.Pure = {
     val _ = retryAfter
     Response(Status.TooManyRequests)
   }
@@ -120,7 +120,7 @@ object Throttle {
     */
   def apply[F[_], G[_]](
       bucket: TokenBucket[F],
-      throttleResponse: Option[FiniteDuration] => Response[G] = defaultResponse[G] _)(
+      throttleResponse: Option[FiniteDuration] => Response[G] = defaultResponse _)(
       http: Http[F, G])(implicit F: Monad[F]): Http[F, G] =
     Kleisli { req =>
       bucket.takeToken.flatMap {
@@ -128,4 +128,10 @@ object Throttle {
         case TokenUnavailable(retryAfter) => throttleResponse(retryAfter).pure[F]
       }
     }
+
+  def app[F[_]](
+      bucket: TokenBucket[F],
+      throttleResponse: Option[FiniteDuration] => Response[F] = defaultResponse _)(
+      http: HttpApp[F])(implicit F: Monad[F]): HttpApp[F] = apply(bucket, throttleResponse)(http)
+
 }

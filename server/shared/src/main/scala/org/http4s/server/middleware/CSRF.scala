@@ -69,7 +69,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     onFailure: Response[G],
     createIfNotFound: Boolean,
     private[middleware] val key: CSRF.SecretKey,
-    headerCheck: Request[G] => Boolean,
+    headerCheck: AnyRequest => Boolean,
     csrfCheck: CSRF[F, G] => CSRF.CSRFCheck[F, G]
 )(implicit F: Async[F])
     extends CSRFPlatform[F, G] { self =>
@@ -107,7 +107,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * then try to generate a new token signature, or fail with a validation error
     * @return newly refreshed token
     */
-  def refreshedToken[M[_]](r: Request[G])(implicit
+  def refreshedToken[M[_]](r: AnyRequest)(implicit
       F: Async[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
     CSRF.cookieFromHeaders(r, cookieSettings.cookieName) match {
       case Some(c) =>
@@ -121,7 +121,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * If not present, generate a new token
     * @return newly refreshed token
     */
-  def refreshOrCreate[M[_]](r: Request[G])(implicit
+  def refreshOrCreate[M[_]](r: AnyRequest)(implicit
       F: Async[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
     CSRF.cookieFromHeaders(r, cookieSettings.cookieName) match {
       case Some(c) =>
@@ -133,7 +133,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
   /** To be only used on safe methods: if the method is safe (i.e doesn't modify data)
     * and a token is present, validate and regenerate it for BREACH to be impractical
     */
-  private[middleware] def validate(r: Request[G], response: F[Response[G]])(implicit
+  private[middleware] def validate(r: AnyRequest, response: F[Response[G]])(implicit
       F: Async[F]): F[Response[G]] =
     CSRF.cookieFromHeaders(r, cookieSettings.cookieName) match {
       case Some(c) =>
@@ -156,7 +156,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * Exposed to users in case of manual plumbing of csrf token
     * (i.e websocket or query param)
     */
-  def checkCSRFToken(r: Request[G], respAction: F[Response[G]], rawToken: String)(implicit
+  def checkCSRFToken(r: AnyRequest, respAction: F[Response[G]], rawToken: String)(implicit
       F: Async[F]): F[Response[G]] =
     if (!headerCheck(r))
       F.pure(onFailure)
@@ -186,7 +186,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * avoiding the generation of a new secure random Id, to guard
     * against [BREACH](http://breachattack.com/)
     */
-  def validate(predicate: Request[G] => Boolean = _.method.isSafe)
+  def validate(predicate: AnyRequest => Boolean = _.method.isSafe)
       : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
     Kleisli { (r: Request[G]) =>
       if (predicate(r)) validate(r, http(r)) else checkCSRF(r, http(r))
@@ -195,7 +195,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
   def onfailureF: F[Response[G]] = F.pure(onFailure)
 
-  def getHeaderToken(r: Request[G]): Option[String] =
+  def getHeaderToken(r: AnyRequest): Option[String] =
     r.headers.get(headerName).map(_.head.value)
 
   def embedInResponseCookie(r: Response[G], token: CSRFToken): Response[G] =
@@ -212,7 +212,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 object CSRF extends CSRFSingletonPlatform {
   def apply[F[_]: Async, G[_]: Applicative](
       key: SecretKey,
-      headerCheck: Request[G] => Boolean
+      headerCheck: AnyRequest => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
       headerName = ci"X-Csrf-Token",
@@ -250,13 +250,13 @@ object CSRF extends CSRFSingletonPlatform {
       .withCSRFCheck(checkCSRFinHeaderAndForm(fieldName, nt))
 
   def withGeneratedKey[F[_]: Async, G[_]: Applicative](
-      headerCheck: Request[G] => Boolean
+      headerCheck: AnyRequest => Boolean
   ): F[CSRFBuilder[F, G]] =
     generateSigningKey().map(k => apply(k, headerCheck))
 
   def withKeyBytes[F[_]: Async, G[_]: Applicative](
       keyBytes: Array[Byte],
-      headerCheck: Request[G] => Boolean
+      headerCheck: AnyRequest => Boolean
   ): F[CSRFBuilder[F, G]] =
     buildSigningKey(keyBytes).map(k => apply(k, headerCheck))
 
@@ -269,7 +269,7 @@ object CSRF extends CSRFSingletonPlatform {
       onFailure: Response[G],
       createIfNotFound: Boolean,
       key: SecretKey,
-      headerCheck: Request[G] => Boolean,
+      headerCheck: AnyRequest => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
   )(implicit F: Async[F], G: Applicative[G]) {
     private def copy(
@@ -279,7 +279,7 @@ object CSRF extends CSRFSingletonPlatform {
         onFailure: Response[G] = onFailure,
         createIfNotFound: Boolean = createIfNotFound,
         key: SecretKey = key,
-        headerCheck: Request[G] => Boolean = headerCheck,
+        headerCheck: AnyRequest => Boolean = headerCheck,
         csrfCheck: CSRF[F, G] => CSRFCheck[F, G] = csrfCheck
     ): CSRFBuilder[F, G] =
       new CSRFBuilder[F, G](
@@ -300,7 +300,7 @@ object CSRF extends CSRFSingletonPlatform {
     def withCreateIfNotFound(createIfNotFound: Boolean): CSRFBuilder[F, G] =
       copy(createIfNotFound = createIfNotFound)
     def withKey(key: SecretKey): CSRFBuilder[F, G] = copy(key = key)
-    def withHeaderCheck(headerCheck: Request[G] => Boolean): CSRFBuilder[F, G] =
+    def withHeaderCheck(headerCheck: AnyRequest => Boolean): CSRFBuilder[F, G] =
       copy(headerCheck = headerCheck)
     def withCSRFCheck(csrfCheck: CSRF[F, G] => CSRFCheck[F, G]): CSRFBuilder[F, G] =
       copy(csrfCheck = csrfCheck)
@@ -391,11 +391,7 @@ object CSRF extends CSRFSingletonPlatform {
     * @tparam F
     * @return
     */
-  def defaultOriginCheck[F[_]](
-      r: Request[F],
-      host: String,
-      sc: Scheme,
-      port: Option[Int]): Boolean =
+  def defaultOriginCheck(r: AnyRequest, host: String, sc: Scheme, port: Option[Int]): Boolean =
     r.headers
       .get(ci"Origin")
       .flatMap(o =>
@@ -410,7 +406,7 @@ object CSRF extends CSRFSingletonPlatform {
       .exists(u =>
         u.uri.host.exists(_.value == host) && u.uri.scheme.contains(sc) && u.uri.port == port)
 
-  def proxyOriginCheck[F[_]](r: Request[F], host: Host, xff: `X-Forwarded-For`): Boolean =
+  def proxyOriginCheck(r: AnyRequest, host: Host, xff: `X-Forwarded-For`): Boolean =
     r.headers.get[Host].contains(host) || r.headers.get[`X-Forwarded-For`].contains(xff)
 
   ///
@@ -428,15 +424,15 @@ object CSRF extends CSRFSingletonPlatform {
     */
   private[middleware] val InitialSeedArraySize: Int = 20
 
-  private[CSRF] def cookieFromHeadersF[F[_], G[_]](request: Request[G], cookieName: String)(implicit
-      F: Sync[F]): F[RequestCookie] =
-    cookieFromHeaders[G](request, cookieName) match {
+  private[CSRF] def cookieFromHeadersF[F[_], G[_]](request: AnyRequest, cookieName: String)(implicit
+      F: ApplicativeThrow[F]): F[RequestCookie] =
+    cookieFromHeaders(request, cookieName) match {
       case Some(e) => F.pure(e)
       case None => F.raiseError(CSRFCheckFailed)
     }
 
-  private[middleware] def cookieFromHeaders[F[_]](
-      request: Request[F],
+  private[middleware] def cookieFromHeaders(
+      request: AnyRequest,
       cookieName: String): Option[RequestCookie] =
     request.headers
       .get[HCookie]

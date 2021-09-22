@@ -56,7 +56,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
 
   private val testApp = Router("/" -> HttpRoutes.of[IO] {
     case r @ GET -> Root / "resources" / "id" =>
-      Ok(responseText[IO](msg = "resource's details", r))
+      Ok(responseText(msg = "resource's details", r))
     case r @ PUT -> Root / "resources" / "id" =>
       Ok(responseText(msg = "resource updated", r), varyHeader -> customHeader)
     case r @ DELETE -> Root / "resources" / "id" =>
@@ -71,7 +71,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
       .map(om => s"[$om ~> $reqMethod] => $msg")
       .getOrElse(s"[$reqMethod] => $msg")
 
-  private def responseText[F[_]](msg: String, req: Request[F]): String = {
+  private def responseText(msg: String, req: AnyRequest): String = {
     val overriddenMethod = req.attributes.lookup(HttpMethodOverrider.overriddenMethodAttrKey)
     mkResponseText(msg, req.method, overriddenMethod)
   }

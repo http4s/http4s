@@ -25,7 +25,7 @@ final case class RequestKey(scheme: Scheme, authority: Authority) {
 }
 
 object RequestKey {
-  def fromRequest[F[_]](request: Request[F]): RequestKey = {
+  def fromRequest(request: AnyRequest): RequestKey = {
     val uri = request.uri
     RequestKey(uri.scheme.getOrElse(Scheme.http), uri.authority.getOrElse(Authority()))
   }

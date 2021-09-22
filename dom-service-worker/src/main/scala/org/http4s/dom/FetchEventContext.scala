@@ -36,7 +36,7 @@ final class FetchEventContext[F[_]] private (
 object FetchEventContext {
   private[dom] val IOKey = Key.newKey[SyncIO, FetchEventContext[IO]].unsafeRunSync()
 
-  def apply(request: Request[IO]): IO[FetchEventContext[IO]] =
+  def apply(request: AnyRequest): IO[FetchEventContext[IO]] =
     IO.fromEither(request.attributes.lookup(IOKey).toRight(new NoSuchElementException))
 
   private[dom] def apply[F[_]](event: FetchEvent, supervisor: Supervisor[F])(implicit

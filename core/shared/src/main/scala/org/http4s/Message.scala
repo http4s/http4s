@@ -434,7 +434,7 @@ final class Request[+F[_]] private (
       f: A => F1[Response[F1]])(implicit F: Monad[F1]): F1[Response[F1]] =
     decoder
       .decode(this, strict = strict)
-      .fold(_.toHttpResponse[F1](httpVersion).pure[F1], f)
+      .fold[F1[Response[F1]]](_.toHttpResponse(httpVersion).pure[F1], f)
       .flatten
 
   /** Helper method for decoding [[Request]]s
@@ -477,6 +477,10 @@ final class Request[+F[_]] private (
 }
 
 object Request {
+
+  /** A [[Request]] that doesn't have a body requiring effectful evaluation.
+    *  A [[Request.Pure]] is always an instance of [[Request[F]]], regardless of `F`.
+    */
   type Pure = Request[fs2.Pure]
 
   implicit final class InvariantOps[F[_]](private val self: Request[F]) extends AnyVal {
@@ -645,6 +649,10 @@ final class Response[+F[_]] private (
 }
 
 object Response extends KleisliSyntax {
+
+  /** A [[Response]] that doesn't have a body requiring effectful evaluation.
+    *  A [[Response.Pure]] is always an instance of [[Response[F]]], regardless of `F`.
+    */
   type Pure = Response[fs2.Pure]
 
   @nowarn("cat=unused")

@@ -51,8 +51,8 @@ That didn't do all that much. Lets build out our CSRF Middleware by creating a `
 ```scala mdoc:silent
 val cookieName = "csrf-token"
 val key  = CSRF.generateSigningKey[IO].unsafeRunSync()
-val defaultOriginCheck: Request[IO] => Boolean =
-  CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None)
+val defaultOriginCheck: AnyRequest => Boolean =
+  CSRF.defaultOriginCheck(_, "localhost", Uri.Scheme.http, None)
 val csrfBuilder = CSRF[IO,IO](key, defaultOriginCheck)
 ```
 
