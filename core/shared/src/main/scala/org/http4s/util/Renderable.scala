@@ -143,7 +143,7 @@ object Writer {
 }
 
 /** Efficiently accumulate [[Renderable]] representations */
-trait Writer {
+trait Writer { self =>
   def append(s: String): this.type
   def append(ci: CIString): this.type = append(ci.toString)
   def append(char: Char): this.type = append(char.toString)
@@ -242,12 +242,30 @@ trait Writer {
   final def <<(int: Int): this.type = append(int)
   final def <<(long: Long): this.type = append(long)
   final def <<[T: Renderer](r: T): this.type = append(r)
+
+  def sanitize(f: Writer => Writer): this.type = {
+    val w = new Writer {
+      def append(s: String): this.type = {
+        s.foreach(append(_))
+        this
+      }
+      override def append(c: Char): this.type = {
+        if (c == 0x0.toChar || c == '\r' || c == '\n')
+          self.append(' ')
+        else
+          self.append(c)
+        this
+      }
+    }
+    f(w)
+    this
+  }
 }
 
 /** [[Writer]] that will result in a `String`
   * @param size initial buffer size of the underlying `StringBuilder`
   */
-class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
+class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer { self =>
   private val sb = new java.lang.StringBuilder(size)
 
   def append(s: String): this.type = { sb.append(s); this }
@@ -256,6 +274,31 @@ class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
   override def append(double: Double): this.type = { sb.append(double); this }
   override def append(int: Int): this.type = { sb.append(int); this }
   override def append(long: Long): this.type = { sb.append(long); this }
+
+  override def sanitize(f: Writer => Writer): this.type = {
+    val w = new Writer {
+      def append(s: String): this.type = {
+        val start = sb.length
+        self.append(s)
+        for (i <- start until sb.length) {
+          val c = sb.charAt(i)
+          if (c == 0x0.toChar || c == '\r' || c == '\n') {
+            sb.setCharAt(i, ' ')
+          }
+        }
+        this
+      }
+      override def append(c: Char): this.type = {
+        if (c == 0x0.toChar || c == '\r' || c == '\n')
+          self.append(' ')
+        else
+          self.append(c)
+        this
+      }
+    }
+    f(w)
+    this
+  }
 
   def result: String = sb.toString
 }
@@ -270,6 +313,11 @@ private[http4s] class HeaderLengthCountingWriter extends Writer {
   def append(s: String): this.type = {
     // Assumption: 1 byte per character. Only US-ASCII is supported.
     length = length + s.length
+    this
+  }
+
+  override def sanitize(f: Writer => Writer): this.type = {
+    f(this)
     this
   }
 }

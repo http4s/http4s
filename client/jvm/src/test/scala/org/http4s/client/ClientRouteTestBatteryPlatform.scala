@@ -44,13 +44,26 @@ trait ClientRouteTestBatteryPlatform extends Http4sClientDsl[IO] {
           (exchange.getRequestMethod match {
             case "GET" =>
               val path = exchange.getRequestURI.getPath
-              GetRoutes.getPaths.get(path) match {
-                case Some(r) =>
-                  r.flatMap(renderResponse(exchange, _))
-                case None =>
+              path match {
+                case "/request-splitting" =>
+                  val status =
+                    if (exchange.getRequestHeaders.containsKey("Evil"))
+                      Status.InternalServerError.code
+                    else
+                      Status.Ok.code
                   IO.blocking {
-                    exchange.sendResponseHeaders(404, -1L)
+                    exchange.sendResponseHeaders(status, -1L)
                     exchange.close()
+                  }
+                case _ =>
+                  GetRoutes.getPaths.get(path) match {
+                    case Some(r) =>
+                      r.flatMap(renderResponse(exchange, _))
+                    case None =>
+                      IO.blocking {
+                        exchange.sendResponseHeaders(404, -1L)
+                        exchange.close()
+                      }
                   }
               }
             case "POST" =>

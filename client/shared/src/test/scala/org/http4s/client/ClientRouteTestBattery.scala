@@ -23,8 +23,10 @@ import fs2._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.Part
+import org.typelevel.ci._
 
 import java.util.Arrays
 import java.util.Locale
@@ -111,6 +113,56 @@ abstract class ClientRouteTestBattery(name: String)
     }
   }
 
+  test("Mitigates request splitting attack in URI path") {
+    for {
+      uri <- url("/").map(
+        _.withPath(Uri.Path(Vector(Uri.Path.Segment.encoded(
+          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")))))
+      req = Request[IO](uri = uri)
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in URI RegName") {
+    for {
+      srv <- server()
+      address = srv.address
+      hostname = address.host.toString
+      port = address.port.value
+      req = Request[IO](
+        uri = Uri(
+          authority = Uri
+            .Authority(None, Uri.RegName(s"${hostname}\r\nEvil:true\r\n"), port = port.some)
+            .some,
+          path = path"/request-splitting"))
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field name") {
+
+    for {
+      srv <- server()
+      uri <- url("/request-splitting")
+      req = Request[IO](uri = uri)
+        .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field value") {
+    for {
+      uri <- url("/request-splitting")
+      req = Request[IO](uri = uri)
+        .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
+      c <- client()
+      status <- c.status(req).handleError(_ => Status.Ok)
+    } yield assertEquals(status, Status.Ok)
+  }
+
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
     // This isn't a generically safe normalization for all header, but
     // it's close enough for our purposes
@@ -132,8 +184,15 @@ abstract class ClientRouteTestBattery(name: String)
 
 object ClientRouteTestBattery {
   val App: HttpApp[IO] = HttpApp[IO] { request =>
+    println(request)
     val get = Some(request).filter(_.method == Method.GET).flatMap { r =>
-      GetRoutes.getPaths.get(r.uri.path.toString)
+      r.uri.path.toString match {
+        case p if p.startsWith("/request-splitting") =>
+          if (r.headers.get(ci"Evil").isDefined) IO(Response[IO](Status.InternalServerError)).some
+          else IO(Response[IO](Status.Ok)).some
+        case p =>
+          GetRoutes.getPaths.get(r.uri.path.toString)
+      }
     }
 
     val post = Some(request).filter(_.method == Method.POST).map { r =>
