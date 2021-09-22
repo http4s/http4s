@@ -431,7 +431,7 @@ sealed class CORSPolicy(
           maxAgeHeader.foreach(buff.+=)
       }
       varyHeader(Method.OPTIONS)(
-        Response[G](Status.Ok, headers = Headers(buff.result().map(Header.ToRaw.rawToRaw)))).pure[F]
+        Response(Status.Ok, headers = Headers(buff.result().map(Header.ToRaw.rawToRaw)))).pure[F]
     }
 
     def nonCors(req: Request[G]) =

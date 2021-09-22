@@ -162,12 +162,12 @@ private[blaze] class Http1ServerStage[F[_]](
           runRequest(buff)
         catch {
           case t: BadMessage =>
-            badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
+            badMessage("Error parsing status or headers in requestLoop()", t, Request())
           case t: Throwable =>
             internalServerError(
               "error in requestLoop()",
               t,
-              Request[F](),
+              Request(),
               () => Future.successful(emptyBuffer))
         }
     }
@@ -213,7 +213,7 @@ private[blaze] class Http1ServerStage[F[_]](
           }
         })
       case Left((e, protocol)) =>
-        badMessage(e.details, new BadMessage(e.sanitized), Request[F]().withHttpVersion(protocol))
+        badMessage(e.details, new BadMessage(e.sanitized), Request().withHttpVersion(protocol))
     }
   }
 
@@ -338,7 +338,7 @@ private[blaze] class Http1ServerStage[F[_]](
       t: ParserException,
       req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
-    val resp = Response[F](Status.BadRequest)
+    val resp = Response(Status.BadRequest)
       .withHeaders(Connection(ci"close"), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
@@ -350,7 +350,7 @@ private[blaze] class Http1ServerStage[F[_]](
       req: Request[F],
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
-    val resp = Response[F](Status.InternalServerError)
+    val resp = Response(Status.InternalServerError)
       .withHeaders(Connection(ci"close"), `Content-Length`.zero)
     renderResponse(
       req,

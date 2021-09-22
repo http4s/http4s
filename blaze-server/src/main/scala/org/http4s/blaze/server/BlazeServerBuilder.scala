@@ -441,7 +441,7 @@ object BlazeServerBuilder {
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =
-    Kleisli(_ => Response[F](Status.NotFound).pure[F])
+    Kleisli(_ => Response(Status.NotFound).pure[F])
 
   private def defaultThreadSelectorFactory: ThreadFactory =
     threadFactory(name = n => s"blaze-selector-${n}", daemon = false)

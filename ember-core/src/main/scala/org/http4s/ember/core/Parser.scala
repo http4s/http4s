@@ -248,7 +248,7 @@ private[ember] object Parser {
             .value) { case (_, headerP) => headerP.idx }
         ((prelude, headerP), finalBuffer) = t
 
-        baseReq = org.http4s.Request[F](
+        baseReq = org.http4s.Request(
           method = prelude.method,
           uri = prelude.uri,
           httpVersion = prelude.version,
@@ -290,7 +290,7 @@ private[ember] object Parser {
             .value) { case (_, headerP) => headerP.idx }
         ((prelude, headerP), finalBuffer) = t
 
-        baseResp = org.http4s.Response[F](
+        baseResp = org.http4s.Response(
           httpVersion = prelude.version,
           status = prelude.status,
           headers = headerP.headers

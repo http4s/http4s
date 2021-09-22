@@ -58,7 +58,7 @@ object PrometheusExportService {
         TextFormat.write004(writer, collectorRegistry.metricFamilySamples)
         writer.toString
       }
-      .map(Response[F](Status.Ok).withEntity(_))
+      .map(Response(Status.Ok).withEntity(_))
 
   def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] =
     HttpRoutes.of[F] {

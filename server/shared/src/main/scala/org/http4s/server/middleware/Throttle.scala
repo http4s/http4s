@@ -108,7 +108,7 @@ object Throttle {
 
   def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] = {
     val _ = retryAfter
-    Response[F](Status.TooManyRequests)
+    Response(Status.TooManyRequests)
   }
 
   /** Limits the supplied service using a provided [[TokenBucket]]

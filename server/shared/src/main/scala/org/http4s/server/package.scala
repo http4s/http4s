@@ -102,7 +102,7 @@ package object server {
       Kleisli { (r: Request[F]) =>
         val resp = authUser(r).value.flatMap {
           case Some(authReq) =>
-            service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
+            service(AuthedRequest(authReq, r)).getOrElse(Response(Status.NotFound))
           case None => onAuthFailure(r)
         }
         OptionT.liftF(resp)
@@ -110,7 +110,7 @@ package object server {
     }
 
     def defaultAuthFailure[F[_]](implicit F: Applicative[F]): Request[F] => F[Response[F]] =
-      _ => F.pure(Response[F](Status.Unauthorized))
+      _ => F.pure(Response(Status.Unauthorized))
 
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],

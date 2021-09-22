@@ -137,7 +137,7 @@ object FileService {
       F: Async[F]): F[Option[Response[F]]] = {
     def nope: F[Option[Response[F]]] = F.delay(file.length()).map { size =>
       Some(
-        Response[F](
+        Response(
           status = Status.RangeNotSatisfiable,
           headers = Headers
             .apply(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))

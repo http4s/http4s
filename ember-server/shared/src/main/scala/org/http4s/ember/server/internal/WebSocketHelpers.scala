@@ -77,7 +77,7 @@ object WebSocketHelpers extends WebSocketHelpersPlatform {
           }
           .handleErrorWith(errorHandler)
       case Left(error) =>
-        Response[F](error.status).withEntity(error.message).pure[F]
+        Response(error.status).withEntity(error.message).pure[F]
     }
 
     val handler = for {

@@ -45,7 +45,7 @@ class GitHubService[F[_]: Concurrent](client: Client[F]) extends Http4sClientDsl
       .withQueryParam("scopes", "public_repo")
       .withQueryParam("state", "test_api")
 
-    client.stream(Request[F](uri = uri)).flatMap(_.body)
+    client.stream(Request(uri = uri)).flatMap(_.body)
   }
 
   def accessToken(code: String, state: String): F[String] = {
@@ -58,12 +58,12 @@ class GitHubService[F[_]: Concurrent](client: Client[F]) extends Http4sClientDsl
       .withQueryParam("state", state)
 
     client
-      .expect[AccessTokenResponse](Request[F](uri = uri))(jsonOf[F, AccessTokenResponse])
+      .expect[AccessTokenResponse](Request(uri = uri))(jsonOf[F, AccessTokenResponse])
       .map(_.access_token)
   }
 
   def userData(accessToken: String): F[String] = {
-    val request = Request[F](uri = uri"https://api.github.com/user")
+    val request = Request(uri = uri"https://api.github.com/user")
       .putHeaders("Authorization" -> s"token $accessToken")
 
     client.expect[String](request)

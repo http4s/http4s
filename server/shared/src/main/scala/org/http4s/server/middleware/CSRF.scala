@@ -18,8 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.~>
-import cats.Applicative
+import cats._
 import cats.data.{EitherT, Kleisli}
 import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
@@ -223,7 +222,7 @@ object CSRF extends CSRFSingletonPlatform {
         httpOnly = true,
         path = Some("/")),
       clock = Clock.systemUTC(),
-      onFailure = Response[G](Status.Forbidden),
+      onFailure = Response(Status.Forbidden),
       createIfNotFound = true,
       key = key,
       headerCheck = headerCheck,

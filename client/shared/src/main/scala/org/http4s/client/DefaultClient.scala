@@ -116,14 +116,14 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A] =
-    expectOr(Request[F](Method.GET, uri))(onError)
+    expectOr(Request(Method.GET, uri))(onError)
 
   /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(uri)(defaultOnError(Request[F](uri = uri)))
+    expectOr(uri)(defaultOnError(Request(uri = uri)))
 
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A] =
@@ -134,7 +134,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     * underlying HTTP connection is closed at the completion of the decoding.
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(s)(defaultOnError(Request[F](uri = Uri.unsafeFromString(s))))
+    expectOr(s)(defaultOnError(Request(uri = Uri.unsafeFromString(s))))
 
   def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[Option[A]] = {
@@ -190,7 +190,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
 
   /** Submits a GET request to the URI and returns the response status */
   override def statusFromUri(uri: Uri): F[Status] =
-    status(Request[F](uri = uri))
+    status(Request(uri = uri))
 
   /** Submits a GET request to the URI and returns the response status */
   override def statusFromString(s: String): F[Status] =
@@ -217,7 +217,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     * @return The result of applying f to the response to req
     */
   def get[A](uri: Uri)(f: Response[F] => F[A]): F[A] =
-    run(Request[F](Method.GET, uri)).use(f)
+    run(Request(Method.GET, uri)).use(f)
 
   /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the

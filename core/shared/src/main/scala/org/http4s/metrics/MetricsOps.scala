@@ -99,7 +99,7 @@ object MetricsOps {
     * @param pathSeparator Value to use for separating the metrics fields' values
     * @return Request[F] => Option[String]
     */
-  def classifierFMethodWithOptionallyExcludedPath[F[_]](
+  def classifierFMethodWithOptionallyExcludedPath(
       exclude: String => Boolean,
       excludedValue: String = "*",
       pathSeparator: String = "_"

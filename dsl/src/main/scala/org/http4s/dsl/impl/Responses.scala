@@ -208,7 +208,7 @@ object Responses {
           headers = Headers(`Content-Length`.zero) ++ Headers(header :: _headers.toList)))
 
     override def apply()(implicit F: Applicative[F]): F[Response[G]] =
-      F.pure(Response[G](ResetContent, headers = Headers(List(`Content-Length`.zero))))
+      F.pure(Response(ResetContent, headers = Headers(List(`Content-Length`.zero))))
   }
   // TODO helpers for Content-Range and multipart/byteranges
   final class PartialContentOps[F[_], G[_]](val status: PartialContent.type, val liftG: G ~> F)

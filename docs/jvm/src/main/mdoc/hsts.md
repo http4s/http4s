@@ -41,7 +41,7 @@ val service = HttpRoutes.of[IO] {
     Ok("ok")
 }
 
-val request = Request[IO](Method.GET, uri"/")
+val request = Request(Method.GET, uri"/")
 
 // Do not call 'unsafeRunSync' in your code
 val response = service.orNotFound(request).unsafeRunSync()

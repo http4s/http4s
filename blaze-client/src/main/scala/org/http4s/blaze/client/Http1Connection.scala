@@ -393,7 +393,7 @@ private final class Http1Connection[F[_]](
       }
       cb(
         Right(
-          Response[F](
+          Response(
             status = status,
             httpVersion = httpVersion,
             headers = headers,

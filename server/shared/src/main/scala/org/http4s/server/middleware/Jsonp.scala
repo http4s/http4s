@@ -57,7 +57,7 @@ object Jsonp {
             .apply(req)
         case Some(invalidCallback) =>
           logger.warn(s"Jsonp requested with invalid callback function name $invalidCallback")
-          Response[G](Status.BadRequest).withEntity(s"Not a valid callback name.").pure[F]
+          Response(Status.BadRequest).withEntity(s"Not a valid callback name.").pure[F]
         case None => http(req)
       }
     }

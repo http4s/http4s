@@ -74,7 +74,7 @@ need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
 ```scala mdoc
-val getRoot = Request[IO](Method.GET, uri"/")
+val getRoot = Request(Method.GET, uri"/")
 
 val io = service.orNotFound.run(getRoot)
 ```

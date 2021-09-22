@@ -31,7 +31,7 @@ package object dom {
 
   private[dom] def fromResponse[F[_]](response: DomResponse)(implicit F: Async[F]): F[Response[F]] =
     F.fromEither(Status.fromInt(response.status)).map { status =>
-      Response[F](
+      Response(
         status = status,
         headers = fromDomHeaders(response.headers),
         body = fromReadableStream(response.body)

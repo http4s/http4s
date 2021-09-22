@@ -107,7 +107,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
             Resource[F, Response[F]](
               F.pure(
                 (
-                  Response[F](
+                  Response(
                     status = s,
                     headers = getHeaders(response),
                     httpVersion = protocol,
