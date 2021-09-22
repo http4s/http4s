@@ -45,7 +45,7 @@ object ServerRouteTestBattery {
           if (r.headers.get(ci"Evil").isDefined) IO(Response[IO](Status.InternalServerError)).some
           else IO(Response[IO](Status.Ok)).some
         case p =>
-          GetRoutes.getPaths.get(r.uri.path.toString)
+          GetRoutes.getPaths.get(p)
       }
     }
 
