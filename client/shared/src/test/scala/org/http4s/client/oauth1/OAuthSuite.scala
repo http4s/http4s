@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.http4s.client.oauth1
+package org.http4s
+package client.oauth1
 
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -25,9 +26,6 @@ import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
 import org.http4s.headers.Authorization
 import org.typelevel.ci._
-
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets.UTF_8
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
@@ -186,7 +184,7 @@ class OAuthSuite extends Http4sSuite {
         verifier = None
       )
       .map { req =>
-        val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8.name)
+        val expectedSigEncoded = Uri.encode(expectedSignature, toSkip = Uri.Unreserved)
 
         assertEquals(
           req.headers.get[Authorization],

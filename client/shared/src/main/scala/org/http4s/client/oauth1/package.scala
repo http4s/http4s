@@ -41,29 +41,8 @@ import cats.effect.Async
   *
   * This feature is not considered stable.
   */
-package object oauth1 extends OAuth1Platform {
+package object oauth1 {
   private val OutOfBand = "oob"
-
-  /** Sign the request with an OAuth Authorization header
-    *
-    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
-    *            will be entirely buffered due to signing requirements.
-    */
-  @deprecated(
-    "Preserved for binary compatibility - use the other `signRequest` function which passes a signature method",
-    "0.22.3")
-  def signRequest[F[_]](
-      req: Request[F],
-      consumer: Consumer,
-      callback: Option[Uri],
-      verifier: Option[String],
-      token: Option[Token])(implicit F: Async[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
-    getUserParams(req).flatMap { case (req, params) =>
-      genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, HmacSha1)
-        .map { auth =>
-          req.putHeaders(auth)
-        }
-    }
 
   def signRequest[F[_]](
       req: Request[F],
@@ -145,8 +124,8 @@ package object oauth1 extends OAuth1Platform {
         method,
         uri,
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
-      val algorithm = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
-      makeSHASig[F](baseStr, consumer.secret, token.map(_.secret), algorithm).map { sig =>
+      val alg = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
+      makeSHASig[F](baseStr, consumer.secret, token.map(_.secret), alg).map { sig =>
         val creds = Credentials.AuthParams(
           ci"OAuth",
           NonEmptyList(
@@ -196,6 +175,16 @@ package object oauth1 extends OAuth1Platform {
 
       Authorization(creds)
     }
+  }
+
+  private[oauth1] def makeSHASig[F[_]: Async](
+      baseString: String,
+      consumerSecret: String,
+      tokenSecret: Option[String],
+      algorithm: SignatureAlgorithm): F[String] = {
+
+    val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
+    algorithm.generate(baseString, key)
   }
 
   // Needs to have all params already encoded
