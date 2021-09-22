@@ -35,7 +35,7 @@ class UriSuite extends Http4sSuite {
     uri"dubious".toOriginForm == uri"/dubious"
   }
 
-  test("Use lazy query model parsing in uri parsing") {
+  test("Preserve nonstandard query formatting") {
     val ori = "http://domain.com/path?param1=asd;fgh"
     val res = org.http4s.Uri.unsafeFromString(ori).renderString
     assert(ori == res, s"urls don't match:\n$ori\n$res")

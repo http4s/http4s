@@ -17,14 +17,15 @@
 package org.http4s
 package parser
 
-import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
 import scala.collection.immutable.BitSet
 import scala.collection.mutable.Builder
 import scala.io.Codec
 
+import org.http4s.Query.Component
+
 /** Split an encoded query string into unencoded key value pairs
-  * It always assumes any input is a  valid query, including "".
+  * It always assumes any input is a valid query, including "".
   * If "" should be interpreted as no query that __MUST__ be
   * checked beforehand.
   */
@@ -43,9 +44,9 @@ private[http4s] class QueryParser(
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input
     */
-  def decodeVector(input: CharBuffer, flush: Boolean): ParseResult[Vector[Query.KeyValue]] = {
-    val acc: Builder[Query.KeyValue, Vector[Query.KeyValue]] = Vector.newBuilder
-    decodeBuffer(input, (k, v) => acc += ((k, v)), flush) match {
+  def decodeVector(input: CharBuffer, flush: Boolean): ParseResult[Vector[Component]] = {
+    val acc: Builder[Component, Vector[Component]] = Vector.newBuilder
+    decodeBuffer(input, kv => acc += kv, flush) match {
       case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
       case None => ParseResult.success(acc.result())
     }
@@ -54,34 +55,34 @@ private[http4s] class QueryParser(
   // Some[String] represents an error message, None = success
   private def decodeBuffer(
       input: CharBuffer,
-      acc: (String, Option[String]) => Builder[Query.KeyValue, Vector[Query.KeyValue]],
+      acc: Component => Builder[Component, Vector[Component]],
       flush: Boolean): Option[String] = {
     val valAcc = new StringBuilder(InitialBufferCapactiy)
 
     var error: String = null
     var key: String = null
     var state: State = KEY
+    var sep: Char = '&'
 
     def appendValue(): Unit = {
       if (state == KEY) {
         val s = valAcc.result()
-        val k = decodeParam(s)
         valAcc.clear()
-        acc(k, None)
+        acc(new Component.KeyOnlyEncoded(s, sep, codec))
       } else {
-        val k = decodeParam(key)
+        val k = key
         key = null
         val s = valAcc.result()
         valAcc.clear()
-        val v = Some(decodeParam(s))
-        acc(k, v)
+        acc(new Component.KeyValueEncoded(k, s, codec, sep))
       }
       ()
     }
 
-    def endPair(): Unit = {
+    def endPair(_sep: Char): Unit = {
       if (!flush) input.mark()
       appendValue()
+      sep = _sep
       state = KEY
     }
 
@@ -91,9 +92,9 @@ private[http4s] class QueryParser(
     while (error == null && input.hasRemaining) {
       val c = input.get()
       c match {
-        case '&' => endPair()
+        case '&' => endPair('&')
 
-        case ';' if colonSeparators => endPair()
+        case ';' if colonSeparators => endPair(';')
 
         case '=' =>
           if (state == VALUE) valAcc.append('=')
@@ -115,13 +116,6 @@ private[http4s] class QueryParser(
       None
     }
   }
-
-  private def decodeParam(str: String): String =
-    try Uri.decode(str, codec.charSet, plusIsSpace = true)
-    catch {
-      case _: IllegalArgumentException => ""
-      case _: UnsupportedEncodingException => ""
-    }
 }
 
 private[http4s] object QueryParser {
@@ -133,7 +127,7 @@ private[http4s] object QueryParser {
 
   def parseQueryStringVector(
       queryString: String,
-      codec: Codec = Codec.UTF8): ParseResult[Vector[Query.KeyValue]] =
+      codec: Codec = Codec.UTF8): ParseResult[Vector[Component]] =
     if (queryString.isEmpty) Right(Vector.empty)
     else new QueryParser(codec, true).decodeVector(CharBuffer.wrap(queryString), true)
 

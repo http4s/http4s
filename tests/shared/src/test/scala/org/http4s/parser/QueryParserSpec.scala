@@ -18,8 +18,8 @@ package org.http4s
 package parser
 
 import java.nio.CharBuffer
-import org.http4s.internal.CollectionCompat
 import scala.io.Codec
+import org.http4s.internal.CollectionCompat
 
 class QueryParserSpec extends Http4sSuite {
   def parseQueryString(str: String): ParseResult[Query] =
@@ -55,7 +55,7 @@ class QueryParserSpec extends Http4sSuite {
   }
 
   test("The QueryParser should Handle '=' in a query string") {
-    assertEquals(parseQueryString("a=b=c"), Right(Query("a" -> Some("b=c"))))
+    assertEquals(parseQueryString("a=b=c").map(_.normalize), Right(Query("a" -> Some("b=c"))))
   }
 
 //    test("The QueryParser should Gracefully handle invalid URL encoding") {
@@ -68,7 +68,7 @@ class QueryParserSpec extends Http4sSuite {
 
   test("The QueryParser should Allow PHP-style [] in keys") {
     assertEquals(
-      parseQueryString("a[]=b&a[]=c"),
+      parseQueryString("a[]=b&a[]=c").map(_.normalize),
       Right(Query("a[]" -> Some("b"), "a[]" -> Some("c"))))
   }
 
