@@ -45,7 +45,7 @@ trait ClientRouteTestBatteryPlatform extends Http4sClientDsl[IO] {
             case "GET" =>
               val path = exchange.getRequestURI.getPath
               path match {
-                case "/request-splitting" =>
+                case _ if path.startsWith("/request-splitting") =>
                   val status =
                     if (exchange.getRequestHeaders.containsKey("Evil"))
                       Status.InternalServerError.code
