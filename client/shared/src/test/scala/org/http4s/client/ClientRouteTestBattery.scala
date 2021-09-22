@@ -142,7 +142,6 @@ abstract class ClientRouteTestBattery(name: String)
   }
 
   test("Mitigates request splitting attack in field name") {
-
     for {
       uri <- url("/request-splitting")
       req = Request[IO](uri = uri)
