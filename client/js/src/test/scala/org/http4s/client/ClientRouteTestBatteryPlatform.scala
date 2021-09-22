@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,29 @@
  * limitations under the License.
  */
 
-package org.http4s
-package node.serverless
+package org.http4s.client
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.effect.unsafe.implicits.global
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import org.http4s.client.Client
-import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.node.serverless.ServerlessApp
 import org.http4s.server.Server
-import org.http4s.server.ServerRouteTestBattery
 
 import scala.scalajs.js
 
-class ServerlessAppSuite extends ServerRouteTestBattery("ServerlessApp") {
-
-  override def clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
+trait ClientRouteTestBatteryPlatform {
 
   val http = js.Dynamic.global.require("http")
 
-  def serverResource(app: HttpApp[IO]): Resource[IO, Server] =
+  def serverResource: Resource[IO, Server] =
     Resource
       .make {
-        IO(http.createServer(ServerlessApp.unsafeExportApp(app)))
+        IO(http.createServer(ServerlessApp.unsafeExportApp(ClientRouteTestBattery.App)))
       } { server =>
-        IO.async_[Unit](cb => server.close(() => cb(Right(()))))
+        IO.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
       }
       .evalMap { server =>
         IO.async_[Server] { cb =>
@@ -55,6 +51,7 @@ class ServerlessAppSuite extends ServerRouteTestBattery("ServerlessApp") {
               override def isSecure: Boolean = false
             }))
           }
+          ()
         }
       }
 
