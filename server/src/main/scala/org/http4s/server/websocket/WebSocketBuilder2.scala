@@ -72,7 +72,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withOnHandshakeFailure(onHandshakeFailure: F[Response[F]]): WebSocketBuilder2[F] =
     copy(onHandshakeFailure = onHandshakeFailure)
 
-  def withOnClose(onHandshakeFailure: F[Unit]): WebSocketBuilder2[F] =
+  def withOnClose(onClose: F[Unit]): WebSocketBuilder2[F] =
     copy(onClose = onClose)
 
   def withFilterPingPongs(filterPingPongs: Boolean): WebSocketBuilder2[F] =
