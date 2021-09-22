@@ -147,9 +147,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   }
 
   test("Mitigates request splitting attack in field name") {
-
     for {
-      srv <- server()
       uri <- url("/request-splitting")
       req = Request[IO](uri = uri)
         .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
