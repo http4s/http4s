@@ -21,14 +21,14 @@ import fs2.{RaiseThrowable, Stream}
 import fs2.text.utf8
 import org.http4s.headers._
 
-trait Media[F[_]] {
+trait Media[+F[_]] {
   def body: EntityBody[F]
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
-  final def bodyText(implicit
-      RT: RaiseThrowable[F],
-      defaultCharset: Charset = DefaultCharset): Stream[F, String] =
+  final def bodyText[F1[x] >: F[x]](implicit
+      RT: RaiseThrowable[F1],
+      defaultCharset: Charset = DefaultCharset): Stream[F1, String] =
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
@@ -45,31 +45,24 @@ trait Media[F[_]] {
 
   final def charset: Option[Charset] =
     contentType.flatMap(_.charset)
-
-  // Decoding methods
-
-  /** Decode the [[Media]] to the specified type
-    *
-    * @param decoder [[EntityDecoder]] used to decode the [[Media]]
-    * @tparam T type of the result
-    * @return the effect which will generate the `DecodeResult[T]`
-    */
-  final def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
-    decoder.decode(this, strict = false)
-
-  /** Decode the [[Media]] to the specified type
-    *
-    * If no valid [[Status]] has been described, allow Ok
-    *
-    * @param decoder [[EntityDecoder]] used to decode the [[Media]]
-    * @tparam A type of the result
-    * @return the effect which will generate the A
-    */
-  final def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
-    F.rethrow(attemptAs.value)
 }
 
 object Media {
+  implicit class InvariantOps[F[_]](private val self: Media[F]) extends AnyVal {
+    // Decoding methods
+
+    /** Decode the [[Media]] to the specified type
+      *
+      * @param decoder [[EntityDecoder]] used to decode the [[Media]]
+      * @tparam T type of the result
+      * @return the effect which will generate the `DecodeResult[T]`
+      */
+    final def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+      decoder.decode(self, strict = false)
+    def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
+      F.rethrow(attemptAs[A].value)
+  }
+
   def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
     new Media[F] {
       def body = b

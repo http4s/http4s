@@ -79,4 +79,6 @@ package object http4s extends http4splatform {
 
   /** A stream of server-sent events */
   type EventStream[F[_]] = Stream[F, ServerSentEvent]
+
+  type AnyF[A] = Any
 }

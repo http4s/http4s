@@ -216,7 +216,7 @@ object StaticFile {
 
     List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified)).combineAll
       .filter(identity)
-      .map(_ => Response[F](NotModified))
+      .map(_ => Response(NotModified))
   }
 
   private def etagMatch[F[_]](req: Option[Request[F]], etagCalc: ETag) =
