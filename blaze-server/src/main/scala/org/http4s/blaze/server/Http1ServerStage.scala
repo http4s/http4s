@@ -34,6 +34,7 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
+import org.http4s.websocket.WebSocketContext
 import org.typelevel.ci._
 import org.typelevel.vault._
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -45,7 +46,7 @@ private[http4s] object Http1ServerStage {
       routes: HttpApp[F],
       attributes: () => Vault,
       executionContext: ExecutionContext,
-      enableWebSockets: Boolean,
+      wsKey: Key[WebSocketContext[F]],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       chunkBufferMaxSize: Int,
@@ -54,32 +55,21 @@ private[http4s] object Http1ServerStage {
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
       dispatcher: Dispatcher[F])(implicit F: Async[F]): Http1ServerStage[F] =
-    if (enableWebSockets)
-      new Http1ServerStage(
-        routes,
-        attributes,
-        executionContext,
-        maxRequestLineLen,
-        maxHeadersLen,
-        chunkBufferMaxSize,
-        serviceErrorHandler,
-        responseHeaderTimeout,
-        idleTimeout,
-        scheduler,
-        dispatcher) with WebSocketSupport[F]
-    else
-      new Http1ServerStage(
-        routes,
-        attributes,
-        executionContext,
-        maxRequestLineLen,
-        maxHeadersLen,
-        chunkBufferMaxSize,
-        serviceErrorHandler,
-        responseHeaderTimeout,
-        idleTimeout,
-        scheduler,
-        dispatcher)
+    new Http1ServerStage(
+      routes,
+      attributes,
+      executionContext,
+      maxRequestLineLen,
+      maxHeadersLen,
+      chunkBufferMaxSize,
+      serviceErrorHandler,
+      responseHeaderTimeout,
+      idleTimeout,
+      scheduler,
+      dispatcher) with WebSocketSupport[F] {
+      val webSocketKey = wsKey
+    }
+
 }
 
 private[blaze] class Http1ServerStage[F[_]](

@@ -26,6 +26,9 @@ package object websocket {
     val WebSocket: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
   }
 
+  @deprecated(
+    "Performs an unsafe cast. Should be passed in from the backend builder that knows what F is.",
+    "0.23.4")
   def websocketKey[F[_]]: Key[WebSocketContext[F]] =
     Keys.WebSocket.asInstanceOf[Key[WebSocketContext[F]]]
 }
