@@ -32,7 +32,7 @@ import org.http4s.websocket.WebSocketFrame
   */
 @deprecated(
   "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
-  "0.23.4")
+  "0.23.5")
 final case class WebSocketBuilder[F[_]: Applicative](
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
@@ -103,7 +103,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
 object WebSocketBuilder {
   @deprecated(
     "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
-    "0.23.4")
+    "0.23.5")
   def apply[F[_]: Applicative]: WebSocketBuilder[F] =
     new WebSocketBuilder[F](
       headers = Headers.empty,
