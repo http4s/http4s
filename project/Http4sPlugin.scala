@@ -10,6 +10,7 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import sbt.Keys._
 import sbt._
+import sbtghactions.GenerativeKeys._
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -232,6 +233,7 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
+        javas = List("adoptium@8"),
         steps = List(
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,

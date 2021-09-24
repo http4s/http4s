@@ -37,7 +37,8 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
         cond = Some(s"matrix.scala == '$scala_213'")
       )
     ),
-    scalas = crossScalaVersions.value.toList
+    scalas = crossScalaVersions.value.toList,
+    javas = List("adoptium@8"),
   ))
 
 
