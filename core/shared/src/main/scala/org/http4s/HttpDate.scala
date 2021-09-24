@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.Functor
+import cats.{Hash, Order}
 import cats.effect.Clock
 import cats.syntax.all._
 import cats.parse.{Parser, Rfc5234}
@@ -53,6 +54,14 @@ class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[H
 object HttpDate {
   private val MinEpochSecond = -2208988800L
   private val MaxEpochSecond = 253402300799L
+  implicit val catsOrderForHttp4sHttpDate: Order[HttpDate] with Hash[HttpDate] =
+    new Order[HttpDate] with Hash[HttpDate] {
+      override def compare(x: HttpDate, y: HttpDate): Int =
+        x.epochSecond.compareTo(y.epochSecond)
+
+      override def hash(x: HttpDate): Int =
+        x.hashCode
+    }
 
   /** The earliest value reprsentable as an HTTP-date, `Mon, 01 Jan 1900 00:00:00 GMT`.
     *
@@ -292,4 +301,6 @@ object HttpDate {
     imfFixdate.orElse(obsDate)
   }
 
+  implicit val stdLibOrderingInstance: Ordering[HttpDate] =
+    catsOrderForHttp4sHttpDate.toOrdering
 }

@@ -34,6 +34,8 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
 
 import scala.concurrent.duration._
+import org.typelevel.vault.Key
+import _root_.org.http4s.websocket.WebSocketContext
 
 private[server] object ServerHelpers extends ServerHelpersPlatform {
 
@@ -57,7 +59,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      logger: Logger[F]
+      logger: Logger[F],
+      webSocketKey: Key[WebSocketContext[F]]
   )(implicit F: Async[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -83,7 +86,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 requestHeaderReceiveTimeout,
                 httpApp,
                 errorHandler,
-                onWriteFailure
+                onWriteFailure,
+                webSocketKey
               ))
 
         handler.handleErrorWith { t =>
@@ -183,7 +187,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[org.http4s.Response[F]],
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      webSocketKey: Key[WebSocketContext[F]]
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
@@ -221,7 +226,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             case Right((req, resp, drain)) =>
               // TODO: Should we pay this cost for every HTTP request?
               // Intercept the response for various upgrade paths
-              resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
+              resp.attributes.lookup(webSocketKey) match {
                 case Some(ctx) =>
                   drain.flatMap {
                     case Some(buffer) =>
