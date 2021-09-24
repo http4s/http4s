@@ -220,9 +220,6 @@ private[client] object ClientHelpers {
     def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
       result match {
         case Right(_) => false
-        // case Left(EmberException.EmptyStream()) => true // Next version can be accessed by users
-        case Left(org.http4s.ember.core.EmptyStreamError()) =>
-          true // Note this is private in http4s in 0.21
         case Left(_: ClosedChannelException) => true
         case _ => false
       }
