@@ -18,6 +18,7 @@ package org.http4s.ember.server
 
 import cats.syntax.all._
 import cats.effect._
+import fs2.io.file._
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import fs2.io.net.unixsocket.{JnrUnixSockets, UnixSocketAddress}
@@ -29,8 +30,9 @@ class EmberUnixSocketSuite extends Http4sSuite {
   test("Should be able to connect to a server created") {
     def app = HttpApp.liftF(Response[IO](Status.Ok).withEntity("Hello Unix Sockets!").pure[IO])
     val test = for {
-      id <- Resource.eval(IO(java.util.UUID.randomUUID().toString()))
-      localSocket = UnixSocketAddress("/tmp/" ++ id ++ ".sock")
+      path <- Files[IO].tempFile(None, "", "sock", None)
+      _ <- Resource.eval(Files[IO].deleteIfExists(path))
+      localSocket = UnixSocketAddress(path.toString)
       _ <- EmberServerBuilder
         .default[IO]
         .withUnixSocketConfig(JnrUnixSockets.forAsync[IO], localSocket)
@@ -44,7 +46,6 @@ class EmberUnixSocketSuite extends Http4sSuite {
       _ <- Resource.eval(IO.sleep(4.seconds))
       resp <- client.run(Request[IO](Method.GET))
       body <- Resource.eval(resp.bodyText.compile.string)
-
     } yield {
       assertEquals(resp.status, Status.Ok)
       assertEquals(body, "Hello Unix Sockets!")
