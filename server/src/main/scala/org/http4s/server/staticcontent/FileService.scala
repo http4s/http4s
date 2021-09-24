@@ -21,16 +21,14 @@ package staticcontent
 import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.kernel.Async
 import cats.syntax.all._
-import fs2.io
+import fs2.io.file.{Files, NoSuchFileException, Path}
 import java.io.File
-import java.nio.file.{Files, LinkOption, Path, Paths}
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import org.typelevel.ci._
 import scala.util.control.NoStackTrace
-import scala.util.{Failure, Success, Try}
 
 object FileService {
   private[this] val logger = getLogger
@@ -60,60 +58,64 @@ object FileService {
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
       val pathCollector: PathCollector[F] = (f, c, r) =>
-        filesOnly(io.file.Path.fromNioPath(f.toPath()), c, r)
+        filesOnly(Path.fromNioPath(f.toPath()), c, r)
       Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
   }
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  // TODO needs toRealPath in fs2.io to complete the port
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
-    Try(Paths.get(config.systemPath).toRealPath()) match {
-      case Success(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli { request =>
-          def resolvedPath: OptionT[F, Path] = {
-            val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
-            if (request.pathInfo.isEmpty) OptionT.some(rootPath)
-            else
-              OptionT
-                .liftF(F.catchNonFatal {
-                  segments.foldLeft(rootPath) {
-                    case (_, "" | "." | "..") => throw BadTraversal
-                    case (path, segment) =>
-                      path.resolve(segment)
+    Kleisli
+      .liftF[OptionT[F, *], Any, HttpRoutes[F]] {
+        OptionT.liftF[F, HttpRoutes[F]] {
+          Files[F].realPath(Path(config.systemPath)).attempt.map {
+            case Right(rootPath) =>
+              TranslateUri(config.pathPrefix)(Kleisli { request =>
+                def resolvedPath: OptionT[F, Path] = {
+                  val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+                  if (request.pathInfo.isEmpty) OptionT.some(rootPath)
+                  else
+                    OptionT
+                      .liftF(F.catchNonFatal {
+                        segments.foldLeft(rootPath) {
+                          case (_, "" | "." | "..") => throw BadTraversal
+                          case (path, segment) =>
+                            path.resolve(segment)
+                        }
+                      })
+                }
+                resolvedPath
+                  .flatMapF(path =>
+                    F.ifM(Files[F].exists(path, false))(
+                      path.absolute.normalize.some.pure,
+                      none[Path].pure))
+                  .collect { case path if path.startsWith(rootPath) => path.toNioPath.toFile }
+                  .flatMap(f => config.pathCollector(f, config, request))
+                  .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+                  .recoverWith { case BadTraversal =>
+                    OptionT.some(Response(Status.BadRequest))
                   }
-                })
+              })
+
+            case Left(_: NoSuchFileException) =>
+              logger.error(
+                s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none.")
+              Kleisli(_ => OptionT.none)
+
+            case Left(e) =>
+              logger.error(e)(
+                s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500.")
+              Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
           }
-          resolvedPath
-            .flatMapF(path =>
-              F.delay(
-                if (Files.exists(path, LinkOption.NOFOLLOW_LINKS))
-                  Some(path.toRealPath(LinkOption.NOFOLLOW_LINKS))
-                else None))
-            .collect { case path if path.startsWith(rootPath) => path.toFile }
-            .flatMap(f => config.pathCollector(f, config, request))
-            .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-            .recoverWith { case BadTraversal =>
-              OptionT.some(Response(Status.BadRequest))
-            }
-        })
-
-      case Failure(_: io.file.NoSuchFileException) =>
-        logger.error(
-          s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none.")
-        Kleisli(_ => OptionT.none)
-
-      case Failure(e) =>
-        logger.error(e)(
-          s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500.")
-        Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
-    }
+        }
+      }
+      .flatten
   }
 
-  private def filesOnly[F[_]](path: io.file.Path, config: Config[F], req: Request[F])(implicit
+  private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
       F: Async[F]): OptionT[F, Response[F]] =
-    OptionT(io.file.Files[F].getBasicFileAttributes(path).flatMap { attr =>
+    OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
       if (attr.isDirectory)
         StaticFile
           .fromPath(path / "index.html", Some(req))
@@ -136,9 +138,9 @@ object FileService {
     })
 
   // Attempt to find a Range header and collect only the subrange of content requested
-  private def getPartialContentFile[F[_]](file: io.file.Path, config: Config[F], req: Request[F])(
-      implicit F: Async[F]): F[Option[Response[F]]] =
-    io.file.Files[F].getBasicFileAttributes(file).flatMap { attr =>
+  private def getPartialContentFile[F[_]](file: Path, config: Config[F], req: Request[F])(implicit
+      F: Async[F]): F[Option[Response[F]]] =
+    Files[F].getBasicFileAttributes(file).flatMap { attr =>
       def nope: F[Option[Response[F]]] =
         Some(
           Response[F](
