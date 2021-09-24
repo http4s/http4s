@@ -16,14 +16,6 @@ import cats.Monad
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.typelevel.ci._
 import scala.util.control.NonFatal
-import java.net.URL
-import java.security.{
-  AccessControlContext,
-  CodeSource,
-  Permissions,
-  PrivilegedAction,
-  ProtectionDomain
-}
 
 object ErrorReporting {
 
@@ -35,28 +27,12 @@ object ErrorReporting {
       val originalOut = System.out
       val originalErr = System.err
 
-      // Create blank permissions
-      val perm = new Permissions
-
-      // CodeSource domain for which these permissions apply (all files)
-      val certs: Array[java.security.cert.Certificate] = null
-      val code: CodeSource = new CodeSource(new URL("file:/*"), certs)
-
-      val domain = new ProtectionDomain(code, perm)
-      val domains = new Array[ProtectionDomain](1)
-      domains(0) = domain
-      val context = new AccessControlContext(domains)
-
       // Redirect output to dummy stream
       val fakeOutStream = new PrintStream(NullOutStream)
       val fakeErrStream = new PrintStream(NullOutStream)
       System.setOut(fakeOutStream)
       System.setErr(fakeErrStream)
-      try java.security.AccessController.doPrivileged(
-        new PrivilegedAction[R]() {
-          override def run: R = thunk
-        },
-        context)
+      try thunk
       finally {
         // Set back the original streams
         System.setOut(originalOut)
