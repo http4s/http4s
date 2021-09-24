@@ -44,27 +44,30 @@ First you'll need to checkout a local copy of the code base:
 git clone git@github.com:http4s/http4s.git
 ```
 
-To build http4s, you should have [SBT] and [Hugo] installed.  Run `sbt ci`.
-This runs:
+To build http4s, you should have [SBT] and [Hugo] installed.
+To test http4s you will also need [Node.js] v16 and [yarn].
+Run `sbt ci`. This runs:
 
 * `test`: compiles all code and runs the unit tests
 * `makeSite`: compiles the tutorial, generates the scaladoc, and
   builds the static site.
-* `mimaReportBinaryIssues`: checks for binary compatibility changes,
+* `mimaReportBinaryIssues`: checks for binary incompatible changes,
   which are relevant past patch release .0.
 
-[SBT]: http://www.scala-sbt.org/0.13/tutorial/Setup.html
+[SBT]: https://www.scala-sbt.org/1.x/docs/Setup.html
 [Hugo]: https://gohugo.io/getting-started/installing/
+[Node.js]: https://nodejs.org
+[yarn]: https://yarnpkg.com/getting-started/install
 
 ## Coding standard
 
 ### Formatting
 
-The Travis CI build verifies that code is formatted correctly
+The Github Actions CI workflow verifies that code is formatted correctly
 according to the [Scalafmt] config and will fail if a diff is found.
 
-You can run `validate` to test the formatting before opening a PR.  If
-your PR fails due to formatting, run `;test:scalafmt`.
+You can run `scalafmtCheckAll` to test the formatting before opening a PR.  If
+your PR fails due to formatting, run `scalafmtAll`.
 
 [Scalafmt]: http://scalameta.org/scalafmt/
 
@@ -226,7 +229,7 @@ documentation as part of the build.
 #### Editing the versioned site
 
 All pages have an edit link at the top right for direct editing of the
-markdown via GitHub.  Be aware that the Travis build will fail if invalid
+markdown via GitHub.  Be aware that the Github Actions build will fail if invalid
 code is added.
 
 ### Running the common or versioned site locally
@@ -279,7 +282,7 @@ for Hugo server to picks up your changes.
 ## Submit a pull request
 
 Before you open a pull request, you should make sure that `sbt ci` runs
-successfully. Travis CI will run this as well, but it may save you some
+successfully. Github Actions will run this as well, but it may save you some
 time to be alerted to style or [mdoc] problems earlier.
 
 If your pull request addresses an existing issue, please tag that
