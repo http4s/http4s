@@ -32,6 +32,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
+import org.http4s.websocket.WebSocketContext
 import org.http4s.{headers => H}
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -87,7 +88,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       httpApp,
       () => Vault.empty,
       munitExecutionContext,
-      enableWebSockets = true,
+      wsKey = Key.newKey[SyncIO, WebSocketContext[IO]].unsafeRunSync(),
       maxReqLine,
       maxHeaders,
       10 * 1024,

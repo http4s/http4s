@@ -30,6 +30,7 @@ import org.http4s.server.ServiceErrorHandler
 import org.typelevel.vault._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
+import org.http4s.websocket.WebSocketContext
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private[http4s] object ProtocolSelector {
@@ -45,7 +46,8 @@ private[http4s] object ProtocolSelector {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
-      dispatcher: Dispatcher[F])(implicit F: Async[F]): ALPNServerSelector = {
+      dispatcher: Dispatcher[F],
+      webSocketKey: Key[WebSocketContext[F]])(implicit F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(
@@ -79,7 +81,7 @@ private[http4s] object ProtocolSelector {
         httpApp,
         requestAttributes,
         executionContext,
-        enableWebSockets = false,
+        wsKey = webSocketKey,
         maxRequestLineLen,
         maxHeadersLen,
         chunkBufferMaxSize,

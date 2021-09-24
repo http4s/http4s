@@ -392,7 +392,7 @@ lazy val blazeCore = libraryProject("blaze-core")
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
-    startYear := Some(2014)
+    startYear := Some(2014),
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
