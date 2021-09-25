@@ -30,14 +30,18 @@ import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
 
 /** A type class that describes how to efficiently render a type
-  * @tparam T the type which will be rendered
+  * @tparam T
+  *   the type which will be rendered
   */
 trait Renderer[T] {
 
   /** Renders the object to the writer
-    * @param writer [[Writer]] to render to
-    * @param t object to render
-    * @return the same [[Writer]] provided
+    * @param writer
+    *   [[Writer]] to render to
+    * @param t
+    *   object to render
+    * @return
+    *   the same [[Writer]] provided
     */
   def render(writer: Writer, t: T): writer.type
 }
@@ -263,7 +267,8 @@ trait Writer { self =>
 }
 
 /** [[Writer]] that will result in a `String`
-  * @param size initial buffer size of the underlying `StringBuilder`
+  * @param size
+  *   initial buffer size of the underlying `StringBuilder`
   */
 class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer { self =>
   private val sb = new java.lang.StringBuilder(size)

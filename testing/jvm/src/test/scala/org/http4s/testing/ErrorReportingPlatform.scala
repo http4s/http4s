@@ -28,8 +28,8 @@ import java.security.{
 
 trait ErrorReportingPlatform {
 
-  /** Silences System.out and System.err streams for the duration of thunk.
-    * Restores the original streams before exiting.
+  /** Silences System.out and System.err streams for the duration of thunk. Restores the original
+    * streams before exiting.
     */
   def silenceOutputStreams[R](thunk: => R): R =
     synchronized {

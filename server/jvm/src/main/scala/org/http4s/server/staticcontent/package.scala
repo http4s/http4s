@@ -17,13 +17,13 @@
 package org.http4s
 package server
 
-import cats.effect.kernel.{Async}
+import cats.effect.kernel.Async
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
   *
-  * Note that these tools are relatively primitive and a dedicated server should be used
-  * for serious static content serving.
+  * Note that these tools are relatively primitive and a dedicated server should be used for serious
+  * static content serving.
   */
 package object staticcontent {
 
