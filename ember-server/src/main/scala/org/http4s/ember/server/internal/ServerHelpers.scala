@@ -133,10 +133,11 @@ private[server] object ServerHelpers {
         parse.timeoutTo(
           duration,
           Concurrent[F].defer(
-            ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(s"Timed Out on EmberServer Header Receive Timeout: $duration"))
+            ApplicativeThrow[F].raiseError(
+              new java.util.concurrent.TimeoutException(
+                s"Timed Out on EmberServer Header Receive Timeout: $duration"))
           )
-        )
-      )
+        ))
 
     for {
       tmp <- parseWithHeaderTimeout
