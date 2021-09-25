@@ -122,8 +122,9 @@ private[client] object ClientHelpers {
           finiteDuration.fold(parse)(duration =>
             parse.timeoutTo(
               duration,
+              Concurrent[F].defer(
               ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
-                s"Timed Out on EmberClient Header Receive Timeout: $duration"))))
+                s"Timed Out on EmberClient Header Receive Timeout: $duration")))))
         }
 
     for {
