@@ -251,7 +251,7 @@ object StaticFile {
                   val r = Response(
                     headers = hs,
                     body = body,
-                    attributes = Vault.empty.insert(staticFileKey, f)
+                    attributes = Vault.empty.insert(staticPathKey, f)
                   )
 
                   logger.trace(s"Static file generated response: $r")
@@ -311,6 +311,9 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey =
-    Key.newKey[SyncIO, Path].unsafeRunSync()
+  private[http4s] val staticPathKey = Key.newKey[SyncIO, Path].unsafeRunSync()
+
+  @deprecated("Use staticPathKey", since = "0.23.5")
+  private[http4s] val staticFileKey: Key[File] =
+    staticPathKey.imap(_.toNioPath.toFile)(f => Path.fromNioPath(f.toPath))
 }
