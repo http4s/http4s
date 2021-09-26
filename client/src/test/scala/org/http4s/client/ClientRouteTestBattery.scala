@@ -28,7 +28,9 @@ import java.util.Locale
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.multipart.{Multipart, Part}
+import org.typelevel.ci._
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
@@ -40,13 +42,26 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     (exchange.getRequestMethod match {
       case "GET" =>
         val path = exchange.getRequestURI.getPath
-        GetRoutes.getPaths.get(path) match {
-          case Some(r) =>
-            r.flatMap(renderResponse(exchange, _))
-          case None =>
+        path match {
+          case "/request-splitting" =>
+            val status =
+              if (exchange.getRequestHeaders.containsKey("Evil"))
+                Status.InternalServerError.code
+              else
+                Status.Ok.code
             IO.blocking {
-              exchange.sendResponseHeaders(404, -1L)
+              exchange.sendResponseHeaders(status, -1L)
               exchange.close()
+            }
+          case _ =>
+            GetRoutes.getPaths.get(path) match {
+              case Some(r) =>
+                r.flatMap(renderResponse(exchange, _))
+              case None =>
+                IO.blocking {
+                  exchange.sendResponseHeaders(404, -1L)
+                  exchange.close()
+                }
             }
         }
       case "POST" =>
@@ -123,6 +138,48 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
         .use(resp => expected.flatMap(checkResponse(resp, _)))
         .assert
     }
+  }
+
+  test("Mitigates request splitting attack in URI path") {
+    val address = server().addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val req = Request[IO](
+      uri = Uri(
+        authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
+        path = Uri.Path.Root / Uri.Path.Segment.encoded(
+          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")
+      ))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in URI RegName") {
+    val address = server().addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val req = Request[IO](uri = Uri(
+      authority =
+        Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
+      path = path"/request-splitting"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field name") {
+    val address = server().addresses.head
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field value") {
+    val address = server().addresses.head
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {

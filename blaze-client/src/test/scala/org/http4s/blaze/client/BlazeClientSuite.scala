@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.http4s.blaze
+package org.http4s
+package blaze
 package client
 
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
+import fs2.io.net.Network
+import java.net.SocketException
 import java.util.concurrent.TimeoutException
-import org.http4s._
 import org.http4s.client.{ConnectionFailure, RequestKey}
 import org.http4s.syntax.all._
 import scala.concurrent.duration._
@@ -238,6 +240,26 @@ class BlazeClientSuite extends BlazeClientBase {
       }
       .interceptMessage[ConnectionFailure](
         "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
+  }
+
+  test("Blaze HTTP/1 client should raise a ResponseException when it receives an unexpected EOF") {
+    Network[IO]
+      .serverResource(address = None, port = None, options = Nil)
+      .map { case (addr, sockets) =>
+        val uri = Uri.fromString(s"http://[${addr.host}]:${addr.port}/eof").yolo
+        val req = Request[IO](uri = uri)
+        (req, sockets)
+      }
+      .use { case (req, sockets) =>
+        Stream
+          .eval(builder(1).resource.use { client =>
+            interceptMessageIO[SocketException](
+              s"HTTP connection closed: ${RequestKey.fromRequest(req)}")(client.expect[String](req))
+          })
+          .concurrently(sockets.evalMap(s => s.endOfInput *> s.endOfOutput))
+          .compile
+          .drain
+      }
   }
 
   test("Keeps stats".flaky) {

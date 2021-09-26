@@ -33,6 +33,7 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.client.RequestKey
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
+import org.http4s.internal.CharPredicate
 import org.http4s.util.{StringWriter, Writer}
 import org.typelevel.vault._
 import scala.annotation.tailrec
@@ -432,6 +433,8 @@ private final class Http1Connection[F[_]](
       else
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
     else if (req.uri.path == Uri.Path.empty) Right(req.withUri(req.uri.copy(path = Uri.Path.Root)))
+    else if (req.uri.path.renderString.exists(ForbiddenUriCharacters))
+      Left(new IllegalArgumentException(s"Invalid URI path: ${req.uri.path}"))
     else Right(req) // All appears to be well
   }
 
@@ -473,4 +476,6 @@ private object Http1Connection {
       writer
     } else writer
   }
+
+  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, ' ', '\r', '\n')
 }
