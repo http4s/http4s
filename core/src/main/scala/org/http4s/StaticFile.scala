@@ -122,7 +122,7 @@ object StaticFile {
     })
   }
 
-  @deprecated("Use calculateETag", "0.23.4")
+  @deprecated("Use calculateETag", "0.23.5")
   def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
       Files[F]
@@ -141,7 +141,7 @@ object StaticFile {
         // A bit of a hack, old code relied on Java File which silently returns 0s when there is an I/O exception...
         .handleError(_ => s"${0.toHexString}-${0.toHexString}")
 
-  @deprecated("Use fromPath", "0.23.4")
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
@@ -152,7 +152,7 @@ object StaticFile {
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, calculateETag[F])
 
-  @deprecated("Use fromPath", "0.23.4")
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]],
@@ -169,7 +169,7 @@ object StaticFile {
       etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, etagCalculator)
 
-  @deprecated("Use fromPath", "0.23.4")
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       buffsize: Int,
@@ -194,7 +194,7 @@ object StaticFile {
         fromPath(f, 0, size, buffsize, req, etagCalculator)
     }
 
-  @deprecated("Use fromPath", "0.23.4")
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files](
       f: File,
       start: Long,

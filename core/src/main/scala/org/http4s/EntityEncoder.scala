@@ -156,12 +156,12 @@ object EntityEncoder {
     }
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.4")
+  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
   implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
     pathEncoder.contramap(f => fs2.io.file.Path.fromNioPath(f.toPath()))
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.4")
+  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
   implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
     pathEncoder.contramap(p => fs2.io.file.Path.fromNioPath(p))
 

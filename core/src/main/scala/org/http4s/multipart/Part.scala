@@ -43,7 +43,7 @@ object Part {
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
       Stream.emit(value).through(utf8.encode))
 
-  @deprecated("Use overload with fs2.io.file.Path", "0.23.4")
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
     fileData(name, Path.fromNioPath(file.toPath), headers: _*)
 
