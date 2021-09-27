@@ -136,7 +136,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   @deprecated(
     "Do not use - always returns cats.effect.unsafe.IORuntime.global.compute." +
       "There is no direct replacement - directly use Async[F].executionContext or your custom execution context",
-    "0.23.4")
+    "0.23.5")
   def executionContext: ExecutionContext = cats.effect.unsafe.IORuntime.global.compute
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
@@ -363,7 +363,7 @@ object BlazeClientBuilder {
   @deprecated(
     "Most users should use the default execution context provided. " +
       "If you have a specific reason to use a custom one, use `.withExecutionContext`",
-    "0.23.4")
+    "0.23.5")
   def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     BlazeClientBuilder[F].withExecutionContext(executionContext)
 
