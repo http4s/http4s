@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.30 (2021-09-27)
+
+This is a bugfix release. Routine maintenance has stopped on 0.21.x, but we'll continue to entertain PRs from the community.  It is binary compatible wit hthe 0.21.x series.
+
+## ember-client
+
+### Bugfix
+
+* [#5247](https://github.com/http4s/http4s/pull/5247): Match on `ClosedChannelException` when detecting connections that terminated inside the pool.
+
 # v0.21.29 (2021-09-21)
 
 This release contains important security patches for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the 0.21.x series.
