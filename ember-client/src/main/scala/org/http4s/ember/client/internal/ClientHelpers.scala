@@ -217,7 +217,7 @@ private[client] object ClientHelpers {
     def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
       result match {
         case Right(_) => false
-        case Left(EmberException.EmptyStream()) => true
+        case Left(_: ClosedChannelException) => true
         case _ => false
       }
   }
