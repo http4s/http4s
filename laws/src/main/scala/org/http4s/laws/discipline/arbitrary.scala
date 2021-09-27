@@ -48,8 +48,14 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-private[http4s] trait ArbitraryInstances {
-  import ArbitraryInstances._
+object arbitrary extends ArbitraryInstancesBinCompat0
+
+@deprecated(
+  "Use `arbitrary` instead. They were redundant, and that one is consistent with Cats.",
+  "0.22.6")
+object ArbitraryInstances extends ArbitraryInstancesBinCompat0
+
+private[discipline] trait ArbitraryInstances { self: ArbitraryInstancesBinCompat0 =>
 
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -941,9 +947,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[String].contramap(_.encoded)
 }
 
-object ArbitraryInstances extends ArbitraryInstances {
-  // http4s-0.21: add extra values here to prevent binary incompatibility.
-
+private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstances {
   val genAlphaToken: Gen[String] =
     nonEmptyListOf(alphaChar).map(_.mkString)
 

@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline._
 
 final class RequestPreludeSuite extends Http4sSuite {
