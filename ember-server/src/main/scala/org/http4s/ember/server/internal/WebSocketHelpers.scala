@@ -24,6 +24,8 @@ import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.io.net._
 import org.http4s.syntax.all._
 import org.http4s._
+import org.http4s.crypto.Hash
+import org.http4s.crypto.HashAlgorithm
 import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
 import org.http4s.headers._
 import org.http4s.ember.core.Read
@@ -34,8 +36,6 @@ import org.typelevel.ci._
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration.Duration
-import java.security.MessageDigest
-import java.nio.charset.StandardCharsets
 import java.nio.ByteBuffer
 import org.typelevel.log4cats.Logger
 import fs2.concurrent.SignallingRef
@@ -241,15 +241,12 @@ object WebSocketHelpers {
     (connection, upgrade, version, key).mapN { case (_, _, _, key) => key }
   }
 
-  private def serverHandshake[F[_]](value: String)(implicit F: MonadThrow[F]): F[ByteVector] =
-    F.catchNonFatal {
-      val crypt = MessageDigest.getInstance("SHA-1")
-      crypt.reset()
-      crypt.update(value.getBytes(StandardCharsets.US_ASCII))
-      crypt.update(Rfc6455.handshakeMagicBytes)
-      val bytes = crypt.digest()
-      ByteVector(bytes)
-    }
+  private[this] val magic = ByteVector.view(Rfc6455.handshakeMagicBytes)
+
+  private def serverHandshake[F[_]](value: String)(implicit F: MonadThrow[F]): F[ByteVector] = for {
+    value <- ByteVector.encodeAscii(value).liftTo[F]
+    digest <- Hash[F].digest(HashAlgorithm.SHA1, value ++ magic)
+  } yield digest
 
   private def readStream[F[_]](read: Read[F]): Stream[F, Byte] =
     Stream.eval(read).flatMap {

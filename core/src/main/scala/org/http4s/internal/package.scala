@@ -308,4 +308,15 @@ package object internal {
       tail: Eval[Int]*
   ): Int =
     reduceComparisons_(NonEmptyChain(Eval.now(head), tail: _*))
+
+  private[http4s] def appendSanitized(sb: StringBuilder, s: String): Unit = {
+    val start = sb.length
+    sb.append(s)
+    for (i <- start until sb.length) {
+      val c = sb.charAt(i)
+      if (c == 0x0.toChar || c == '\r' || c == '\n') {
+        sb.setCharAt(i, ' ')
+      }
+    }
+  }
 }

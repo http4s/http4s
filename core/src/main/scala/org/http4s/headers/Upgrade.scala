@@ -22,13 +22,10 @@ import cats.parse.Parser
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
 import org.typelevel.ci._
 
-object Upgrade {
+object Upgrade extends HeaderCompanion[Upgrade]("Upgrade") {
 
   def apply(head: Protocol, tail: Protocol*): Upgrade =
     apply(NonEmptyList(head, tail.toList))
-
-  def parse(s: String): ParseResult[Upgrade] =
-    ParseResult.fromParser(parser, "Invalid Upgrade header")(s)
 
   private[http4s] val parser = {
     import Parser.char
@@ -41,11 +38,7 @@ object Upgrade {
   }
 
   implicit val headerInstance: Header[Upgrade, Header.Single] =
-    Header.createRendered(
-      ci"Upgrade",
-      _.values.map(_.toString),
-      parse
-    )
+    createRendered(_.values.map(_.toString))
 }
 
 final case class Upgrade(values: NonEmptyList[Protocol])

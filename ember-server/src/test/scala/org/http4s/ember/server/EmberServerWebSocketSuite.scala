@@ -26,7 +26,7 @@ import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.server.websocket.WebSocketBuilder2
 
 import org.java_websocket.client.WebSocketClient
 import java.net.URI
@@ -39,7 +39,7 @@ import java.nio.charset.StandardCharsets
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
-  def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
+  def service[F[_]](wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -52,10 +52,10 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
             case WebSocketFrame.Text(text, _) => Stream(WebSocketFrame.Text(text))
             case _ => Stream(WebSocketFrame.Text("unknown"))
           }
-          WebSocketBuilder[F].build(sendReceive)
+          wsBuilder.build(sendReceive)
         case GET -> Root / "ws-close" =>
           val send = Stream(WebSocketFrame.Text("foo"))
-          WebSocketBuilder[F].build(send, _.void)
+          wsBuilder.build(send, _.void)
       }
       .orNotFound
   }
@@ -63,7 +63,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
-      .withHttpApp(service[IO])
+      .withHttpWebSocketApp(service[IO])
       .build
 
   def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))

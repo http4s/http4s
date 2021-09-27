@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.6"
-  val scala_212 = "2.12.14"
+  val scala_212 = "2.12.15"
   val scala_3 = "3.0.1"
 
   override lazy val globalSettings = Seq(
@@ -124,13 +124,6 @@ object Http4sPlugin extends AutoPlugin {
       },
 
     nowarnCompatAnnotationProvider := None,
-
-    mimaPreviousArtifacts := {
-      mimaPreviousArtifacts.value.filterNot(
-        // cursed release
-        _.revision == "0.21.10"
-      )
-    },
 
     doctestTestFramework := DoctestTestFramework.Munit,
   )
@@ -292,19 +285,20 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.4.0"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
-    val catsEffect = "3.2.8"
+    val catsEffect = "3.2.9"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
+    val crypto = "0.1.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.3"
-    val fs2 = "3.1.2"
+    val fs2 = "3.1.3"
     val ip4s = "3.0.3"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
     val jawnFs2 = "2.1.0"
     val jetty = "9.4.43.v20210629"
-    val keypool = "0.4.6"
+    val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.5"
     val log4cats = "2.1.1"
@@ -312,7 +306,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.5"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.67.Final"
+    val netty = "4.1.68.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.1"
     val playJson = "2.9.2"
@@ -326,10 +320,10 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.28"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.52"
+    val tomcat = "9.0.53"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "3.0.4"
+    val vault = "3.1.0"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
@@ -351,6 +345,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % V.circe
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % V.circe
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % V.circe
+  lazy val crypto                           = "org.http4s"             %% "http4s-crypto"             % V.crypto
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % V.cryptobits
   lazy val disciplineCore                   = "org.typelevel"          %% "discipline-core"           % V.disciplineCore
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % V.dropwizardMetrics

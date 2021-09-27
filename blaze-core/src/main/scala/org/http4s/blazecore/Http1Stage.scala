@@ -293,9 +293,11 @@ object Http1Stage {
       Future.successful(buffer)
     } else CachedEmptyBufferThunk
 
-  /** Encodes the headers into the Writer. Does not encode `Transfer-Encoding` or
-    * `Content-Length` headers, which are left for the body encoder. Adds
-    * `Date` header if one is missing and this is a server response.
+  /** Encodes the headers into the Writer. Does not encode
+    * `Transfer-Encoding` or `Content-Length` headers, which are left
+    * for the body encoder. Does not encode headers with invalid
+    * names. Adds `Date` header if one is missing and this is a server
+    * response.
     *
     * Note: this method is very niche but useful for both server and client.
     */
@@ -303,7 +305,7 @@ object Http1Stage {
     var dateEncoded = false
     val dateName = Header[Date].name
     headers.foreach { h =>
-      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
+      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name && h.isNameValid) {
         if (isServer && h.name == dateName) dateEncoded = true
         rr << h << "\r\n"
       }
