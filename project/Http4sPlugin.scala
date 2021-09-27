@@ -10,6 +10,7 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import sbt.Keys._
 import sbt._
+import sbtghactions.GenerativeKeys._
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -232,6 +233,7 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
+        javas = List("adoptium@8"),
         steps = List(
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
@@ -303,14 +305,14 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.3"
     val fs2 = "2.5.9"
-    val ip4s = "2.0.3"
+    val ip4s = "2.0.4"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
     val jawnFs2 = "1.1.3"
     val jetty = "9.4.43.v20210629"
     val keypool = "0.3.5"
     val literally = "1.0.2"
-    val logback = "1.2.5"
+    val logback = "1.2.6"
     val log4cats = "1.3.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"

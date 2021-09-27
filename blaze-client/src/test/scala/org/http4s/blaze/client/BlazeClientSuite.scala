@@ -269,7 +269,7 @@ class BlazeClientSuite extends BlazeClientBase {
     }
   }
 
-  test("Keeps stats") {
+  test("Keeps stats".flaky) {
     val addresses = jettyServer().addresses
     val address = addresses.head
     val name = address.getHostName

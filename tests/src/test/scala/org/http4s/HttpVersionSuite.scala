@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
 
