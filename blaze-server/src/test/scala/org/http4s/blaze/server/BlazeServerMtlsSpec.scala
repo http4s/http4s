@@ -26,7 +26,6 @@ import org.http4s.dsl.io._
 import org.http4s.server.{Server, ServerRequestKeys}
 import org.http4s.testing.ErrorReporting
 import org.http4s.{Http4sSuite, HttpApp}
-import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try
@@ -44,7 +43,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
   }
 
   def builder: BlazeServerBuilder[IO] =
-    BlazeServerBuilder[IO](global)
+    BlazeServerBuilder[IO]
       .withResponseHeaderTimeout(1.second)
 
   val service: HttpApp[IO] = HttpApp {
