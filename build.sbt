@@ -332,9 +332,13 @@ lazy val blazeServer = libraryProject("blaze-server")
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
     mimaBinaryIssueFilters := Seq(
-      // private constructor
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.server.BlazeServerBuilder.this")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"), // private
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$DefaultContext$"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext$"), // private
     )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
