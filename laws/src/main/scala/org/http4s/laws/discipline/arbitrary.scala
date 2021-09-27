@@ -55,7 +55,7 @@ object arbitrary extends ArbitraryInstancesBinCompat0
   "0.22.6")
 object ArbitraryInstances extends ArbitraryInstancesBinCompat0
 
-private[discipline] trait ArbitraryInstances { self: ArbitraryInstancesBinCompat0 =>
+private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat0 =>
 
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
