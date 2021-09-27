@@ -157,6 +157,9 @@ lazy val laws = libraryProject("laws")
       munitCatsEffect
     ),
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this") // private
+    )
   )
   .dependsOn(core)
 
