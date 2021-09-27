@@ -430,7 +430,7 @@ object BlazeServerBuilder {
   @deprecated(
     "Most users should use the default execution context provided. " +
       "If you have a specific reason to use a custom one, use `.withExecutionContext`",
-    "0.23.4")
+    "0.23.5")
   def apply[F[_]](executionContext: ExecutionContext)(implicit F: Async[F]): BlazeServerBuilder[F] =
     apply[F].withExecutionContext(executionContext)
 

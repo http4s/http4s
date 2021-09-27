@@ -25,7 +25,6 @@ import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
-import scala.concurrent.ExecutionContext.global
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
   val bottle: URL = getClass.getResource("/beerbottle.png")
@@ -50,7 +49,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
   }
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeClientBuilder[IO](global).resource
+    BlazeClientBuilder[IO].resource
       .use(go)
       .flatMap(s => IO.println(s))
       .as(ExitCode.Success)

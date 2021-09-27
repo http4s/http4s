@@ -21,7 +21,6 @@ import com.example.http4s.ExampleService
 import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.{Router, Server}
-import scala.concurrent.ExecutionContext.global
 
 object BlazeExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -36,7 +35,7 @@ object BlazeExampleApp {
 
   def resource[F[_]: Async]: Resource[F, Server] = {
     val app = httpApp[F]
-    BlazeServerBuilder[F](global)
+    BlazeServerBuilder[F]
       .bindHttp(8080)
       .withHttpApp(app)
       .resource

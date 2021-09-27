@@ -22,7 +22,6 @@ import org.http4s.HttpApp
 import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
-import scala.concurrent.ExecutionContext.global
 
 object Server extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -40,9 +39,9 @@ object HttpServer {
 
   def stream[F[_]: Async]: Stream[F, ExitCode] =
     for {
-      client <- BlazeClientBuilder[F](global).stream
+      client <- BlazeClientBuilder[F].stream
       ctx <- Stream(new Module[F](client))
-      exitCode <- BlazeServerBuilder[F](global)
+      exitCode <- BlazeServerBuilder[F]
         .bindHttp(8080)
         .withHttpApp(httpApp(ctx))
         .serve
