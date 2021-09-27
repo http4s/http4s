@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary
+import fs2.io.file.Files
 
 class EntityEncoderSpec extends Http4sSuite {
   {
@@ -75,14 +76,18 @@ class EntityEncoderSpec extends Http4sSuite {
     }
 
     test("EntityEncoder should render files") {
-      val tmpFile = File.createTempFile("http4s-test-", ".txt")
-      val w = new FileWriter(tmpFile)
-      try w.write("render files test")
-      finally w.close()
-      writeToString(tmpFile)(EntityEncoder.fileEncoder)
-        .guarantee(IO.delay(tmpFile.delete()).void)
+      Files[IO]
+        .tempFile(None, "http4s-test-", ".txt", None)
+        .use { tmpFile =>
+          val setup = fs2.Stream
+            .emit("render files test")
+            .through(fs2.text.utf8.encode)
+            .through(Files[IO].writeAll(tmpFile))
+            .compile
+            .drain
+          setup *> writeToString(tmpFile)(EntityEncoder.pathEncoder[IO])
+        }
         .assertEquals("render files test")
-
     }
 
     test("EntityEncoder should render input streams") {

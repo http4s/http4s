@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
-import fs2.io.file.{Files, Path => Fs2Path}
+import fs2.io.file.Files
 import fs2.io.readInputStream
 import java.io._
 import java.nio.CharBuffer
@@ -156,13 +156,19 @@ object EntityEncoder {
     }
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
   implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
-    filePathEncoder[F].contramap(_.toPath)
+    pathEncoder.contramap(f => fs2.io.file.Path.fromNioPath(f.toPath()))
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
   implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
-    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(Files[F].readAll(Fs2Path.fromNioPath(p)))
+    pathEncoder.contramap(p => fs2.io.file.Path.fromNioPath(p))
+
+  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  implicit def pathEncoder[F[_]: Files]: EntityEncoder[F, fs2.io.file.Path] =
+    encodeBy[F, fs2.io.file.Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
+      Entity(Files[F].readAll(p))
     }
 
   implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =

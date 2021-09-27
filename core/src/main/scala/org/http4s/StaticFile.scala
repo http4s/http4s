@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.{Functor, MonadError, MonadThrow, Semigroup}
+import cats.{ApplicativeThrow, Functor, MonadError, MonadThrow, Semigroup}
 import cats.data.{NonEmptyList, OptionT}
 import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
@@ -39,7 +39,7 @@ object StaticFile {
   def fromString[F[_]: Files: MonadThrow](
       url: String,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromFile(new File(url), req)
+    fromPath(Path(url), req)
 
   def fromResource[F[_]: Sync](
       name: String,
@@ -122,6 +122,7 @@ object StaticFile {
     })
   }
 
+  @deprecated("Use calculateETag", "0.23.5")
   def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
       Files[F]
@@ -129,24 +130,72 @@ object StaticFile {
         .map(isFile =>
           if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
+  def calculateETag[F[_]: Files: ApplicativeThrow]: Path => F[String] =
+    f =>
+      Files[F]
+        .getBasicFileAttributes(f)
+        .map(attr =>
+          if (attr.isRegularFile)
+            s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}"
+          else "")
+
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromFile(f, DefaultBufferSize, req, calcETag[F])
+    fromPath(Path.fromNioPath(f.toPath()), DefaultBufferSize, req, calculateETag[F])
 
+  def fromPath[F[_]: Files: MonadThrow](
+      f: Path,
+      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+    fromPath(f, DefaultBufferSize, req, calculateETag[F])
+
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
-    fromFile(f, DefaultBufferSize, req, etagCalculator)
+    fromPath(
+      Path.fromNioPath(f.toPath()),
+      DefaultBufferSize,
+      req,
+      etagCalculator.compose(_.toNioPath.toFile()))
 
+  def fromPath[F[_]: Files: MonadThrow](
+      f: Path,
+      req: Option[Request[F]],
+      etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
+    fromPath(f, DefaultBufferSize, req, etagCalculator)
+
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       buffsize: Int,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
-    fromFile(f, 0, f.length(), buffsize, req, etagCalculator)
+    fromPath(
+      Path.fromNioPath(f.toPath()),
+      0,
+      f.length(),
+      buffsize,
+      req,
+      etagCalculator.compose(_.toNioPath.toFile()))
 
+  def fromPath[F[_]: Files: MonadThrow](
+      f: Path,
+      buffsize: Int,
+      req: Option[Request[F]],
+      etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
+    OptionT
+      .liftF(Files[F].getBasicFileAttributes(f).map(_.size))
+      .flatMap { size =>
+        fromPath(f, 0, size, buffsize, req, etagCalculator)
+      }
+      .recoverWith { case _: fs2.io.file.NoSuchFileException =>
+        OptionT.none
+      }
+
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files](
       f: File,
       start: Long,
@@ -157,45 +206,67 @@ object StaticFile {
   )(implicit
       F: MonadError[F, Throwable]
   ): OptionT[F, Response[F]] =
+    fromPath(
+      Path.fromNioPath(f.toPath()),
+      start,
+      end,
+      buffsize,
+      req,
+      etagCalculator.compose(_.toNioPath.toFile()))
+
+  def fromPath[F[_]: Files](
+      f: Path,
+      start: Long,
+      end: Long,
+      buffsize: Int,
+      req: Option[Request[F]],
+      etagCalculator: Path => F[String]
+  )(implicit
+      F: MonadError[F, Throwable]
+  ): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
-      res <- Files[F].isRegularFile(Path.fromNioPath(f.toPath)).flatMap[Option[Response[F]]] {
-        isFile =>
-          if (isFile) {
-            if (start >= 0 && end >= start && buffsize > 0) {
-              val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
+      res <- Files[F].isRegularFile(f).flatMap[Option[Response[F]]] { isFile =>
+        if (isFile) {
+          if (start >= 0 && end >= start && buffsize > 0) {
+            Files[F]
+              .getBasicFileAttributes(f)
+              .flatMap { attr =>
+                val lastModified =
+                  HttpDate.fromEpochSecond(attr.lastModifiedTime.toSeconds).toOption
 
-              F.pure(notModified(req, etagCalc, lastModified).orElse {
-                val (body, contentLength) =
-                  if (f.length() < end) (Stream.empty.covary[F], 0L)
-                  else (fileToBody[F](f, start, end), end - start)
+                F.pure(notModified(req, etagCalc, lastModified).orElse {
+                  val (body, contentLength) =
+                    if (attr.size < end) (Stream.empty.covary[F], 0L)
+                    else (fileToBody[F](f, start, end), end - start)
 
-                val contentType = nameToContentType(f.getName)
-                val hs =
-                  Headers(
-                    lastModified.map(`Last-Modified`(_)),
-                    `Content-Length`.fromLong(contentLength).toOption,
-                    contentType,
-                    etagCalc
+                  val contentType = nameToContentType(f.fileName.toString)
+                  val hs =
+                    Headers(
+                      lastModified.map(`Last-Modified`(_)),
+                      `Content-Length`.fromLong(contentLength).toOption,
+                      contentType,
+                      etagCalc
+                    )
+
+                  val r = Response(
+                    headers = hs,
+                    body = body,
+                    attributes = Vault.empty.insert(staticPathKey, f)
                   )
 
-                val r = Response(
-                  headers = hs,
-                  body = body,
-                  attributes = Vault.empty.insert(staticFileKey, f)
-                )
-
-                logger.trace(s"Static file generated response: $r")
-                r.some
-              })
-            } else {
-              F.raiseError[Option[Response[F]]](new IllegalArgumentException(
-                s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
-            }
-
+                  logger.trace(s"Static file generated response: $r")
+                  r.some
+                })
+              }
           } else {
-            F.pure(none[Response[F]])
+            F.raiseError[Option[Response[F]]](new IllegalArgumentException(
+              s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
           }
+
+        } else {
+          F.pure(none[Response[F]])
+        }
 
       }
     } yield res)
@@ -232,8 +303,8 @@ object StaticFile {
         s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm")
     } yield notModified
 
-  private def fileToBody[F[_]: Files](f: File, start: Long, end: Long): EntityBody[F] =
-    Files[F].readRange(Path.fromNioPath(f.toPath), DefaultBufferSize, start, end)
+  private def fileToBody[F[_]: Files](f: Path, start: Long, end: Long): EntityBody[F] =
+    Files[F].readRange(f, DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =
     name.lastIndexOf('.') match {
@@ -241,6 +312,9 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey =
-    Key.newKey[SyncIO, File].unsafeRunSync()
+  private[http4s] val staticPathKey = Key.newKey[SyncIO, Path].unsafeRunSync()
+
+  @deprecated("Use staticPathKey", since = "0.23.5")
+  private[http4s] val staticFileKey: Key[File] =
+    staticPathKey.imap(_.toNioPath.toFile)(f => Path.fromNioPath(f.toPath))
 }

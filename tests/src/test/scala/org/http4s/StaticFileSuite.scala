@@ -18,32 +18,33 @@ package org.http4s
 
 import cats.effect.IO
 import cats.syntax.all._
-import java.io.File
 import java.net.URL
-import java.nio.file.Files
 
 import org.http4s.Status._
 import org.http4s.headers._
 import cats.data.Nested
 import java.net.UnknownHostException
+import fs2.io.file.Path
+import fs2.io.file.Files
+import fs2.Chunk
 
 class StaticFileSuite extends Http4sSuite {
   test("Determine the media-type based on the files extension") {
-    def check(f: File, tpe: Option[MediaType]): IO[Boolean] =
-      StaticFile.fromFile[IO](f).value.map { r =>
+    def check(p: Path, tpe: Option[MediaType]): IO[Boolean] =
+      (StaticFile.fromPath[IO](p).value, Files[IO].getBasicFileAttributes(p)).mapN { (r, attr) =>
         r.isDefined &&
         r.flatMap(_.headers.get[`Content-Type`]) == tpe.map(t => `Content-Type`(t)) &&
         // Other headers must be present
         r.flatMap(_.headers.get[`Last-Modified`]).isDefined &&
         r.flatMap(_.headers.get[`Content-Length`]).isDefined &&
-        r.flatMap(_.headers.get[`Content-Length`].map(_.length)) === Some(f.length())
+        r.flatMap(_.headers.get[`Content-Length`].map(_.length)) === Some(attr.size)
       }
 
     val tests = List(
       "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.png),
       "/test.fiddlefaddle" -> None)
     tests.traverse { case (p, om) =>
-      check(new File(getClass.getResource(p).toURI), om)
+      check(Path(getClass.getResource(p).getPath), om)
     }
   }
   test("load from resource") {
@@ -103,94 +104,117 @@ class StaticFileSuite extends Http4sSuite {
   }
 
   test("handle an empty file") {
-    val emptyFile = File.createTempFile("empty", ".tmp")
+    val emptyFile = Files[IO].createTempFile(None, "empty", ".tmp", None)
 
-    StaticFile.fromFile[IO](emptyFile).value.map(_.isDefined).assert
+    emptyFile.flatMap(StaticFile.fromPath[IO](_).value).map(_.isDefined).assert
   }
 
   test("Don't send unmodified files") {
-    val emptyFile = File.createTempFile("empty", ".tmp")
+    val emptyFile = Files[IO].createTempFile(None, "empty", ".tmp", None)
 
     val request =
       Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
-    val response = StaticFile
-      .fromFile[IO](emptyFile, Some(request))
-      .value
+    val response = emptyFile.flatMap(
+      StaticFile
+        .fromPath[IO](_, Some(request))
+        .value)
     Nested(response).map(_.status).value.assertEquals(Some(NotModified))
   }
 
   test("Don't send unmodified files by ETag") {
-    val emptyFile = File.createTempFile("empty", ".tmp")
-
-    val request =
-      Request[IO]().putHeaders(
-        `If-None-Match`(
-          EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
-    val response = StaticFile
-      .fromFile[IO](emptyFile, Some(request))
-      .value
-    Nested(response).map(_.status).value.assertEquals(Some(NotModified))
+    Files[IO].createTempFile(None, "empty", ".tmp", None).flatMap { emptyFile =>
+      Files[IO]
+        .getBasicFileAttributes(emptyFile)
+        .flatMap { attr =>
+          val request =
+            Request[IO]().putHeaders(`If-None-Match`(
+              EntityTag(s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}")))
+          val response = StaticFile
+            .fromPath[IO](emptyFile, Some(request))
+            .value
+          Nested(response).map(_.status).value
+        }
+        .assertEquals(Some(NotModified))
+    }
   }
 
   test("Don't send unmodified files when both ETag and last modified date match") {
-    val emptyFile = File.createTempFile("empty", ".tmp")
+    Files[IO]
+      .createTempFile(None, "empty", ".tmp", None)
+      .flatMap { emptyFile =>
+        Files[IO]
+          .getBasicFileAttributes(emptyFile)
+          .flatMap { attr =>
+            val request =
+              Request[IO]().putHeaders(
+                `If-Modified-Since`(HttpDate.MaxValue),
+                `If-None-Match`(EntityTag(
+                  s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}")))
 
-    val request =
-      Request[IO]().putHeaders(
-        `If-Modified-Since`(HttpDate.MaxValue),
-        `If-None-Match`(
-          EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
+            val response = StaticFile
+              .fromPath[IO](emptyFile, Some(request))
+              .value
 
-    val response = StaticFile
-      .fromFile[IO](emptyFile, Some(request))
-      .value
-    Nested(response).map(_.status).value.assertEquals(Some(NotModified))
+            Nested(response).map(_.status).value
+          }
+      }
+      .assertEquals(Some(NotModified))
   }
 
   test("Send file when last modified date matches but etag does not match") {
-    val emptyFile = File.createTempFile("empty", ".tmp")
+    val emptyFile = Files[IO].createTempFile(None, "empty", ".tmp", None)
 
     val request =
       Request[IO]()
         .putHeaders(`If-Modified-Since`(HttpDate.MaxValue), `If-None-Match`(EntityTag(s"12345")))
 
-    val response = StaticFile
-      .fromFile[IO](emptyFile, Some(request))
-      .value
+    val response = emptyFile.flatMap(
+      StaticFile
+        .fromPath[IO](_, Some(request))
+        .value)
     Nested(response).map(_.status).value.assertEquals(Some(Ok))
   }
 
   test("Send file when etag matches, but last modified does not match") {
-    val emptyFile = File.createTempFile("empty", ".tmp")
+    Files[IO]
+      .createTempFile(None, "empty", ".tmp", None)
+      .flatMap { emptyFile =>
+        Files[IO].getBasicFileAttributes(emptyFile).flatMap { attr =>
+          val request =
+            Request[IO]()
+              .putHeaders(
+                `If-Modified-Since`(HttpDate.MinValue),
+                `If-None-Match`(EntityTag(
+                  s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}")))
 
-    val request =
-      Request[IO]()
-        .putHeaders(
-          `If-Modified-Since`(HttpDate.MinValue),
-          `If-None-Match`(
-            EntityTag(
-              s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
+          val response = StaticFile
+            .fromPath[IO](emptyFile, Some(request))
+            .value
+          Nested(response).map(_.status).value
 
-    val response = StaticFile
-      .fromFile[IO](emptyFile, Some(request))
-      .value
-    Nested(response).map(_.status).value.assertEquals(Some(Ok))
+        }
+      }
+      .assertEquals(Some(Ok))
   }
 
   test("Send partial file") {
     def check(path: String): IO[Unit] =
-      IO(new File(path)).flatMap { f =>
-        StaticFile
-          .fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None, StaticFile.calcETag[IO])
-          .value
-          .flatMap { r =>
-            // Length is only 1 byte
-            assertEquals(r.flatMap(_.headers.get[`Content-Length`].map(_.length)), Some(1L))
-            // get the Body to check the actual size
-            r.map(_.body.compile.toVector.map(_.length)).traverse(_.assertEquals(1))
-          }
-          .void
-      }
+      StaticFile
+        .fromPath[IO](
+          Path(path),
+          0,
+          1,
+          StaticFile.DefaultBufferSize,
+          None,
+          StaticFile.calculateETag[IO])
+        .value
+        .flatMap { r =>
+          // Length is only 1 byte
+          assertEquals(r.flatMap(_.headers.get[`Content-Length`].map(_.length)), Some(1L))
+          // get the Body to check the actual size
+          r.map(_.body.compile.toVector.map(_.length)).traverse(_.assertEquals(1))
+        }
+        .void
 
     val tests = List(
       "./testing/src/test/resources/logback-test.xml",
@@ -200,48 +224,51 @@ class StaticFileSuite extends Http4sSuite {
   }
 
   test("Send file larger than BufferSize") {
-    val emptyFile = File.createTempFile("some", ".tmp")
-    emptyFile.deleteOnExit()
+    Files[IO].tempFile(None, "some", ".tmp", None).use { emptyFile =>
+      val fileSize = StaticFile.DefaultBufferSize * 2 + 10
 
-    val fileSize = StaticFile.DefaultBufferSize * 2 + 10
+      val gibberish = (for {
+        i <- 0 until fileSize
+      } yield i.toByte).toArray
+      val write = fs2.Stream
+        .chunk(Chunk.array(gibberish))
+        .through(Files[IO].writeAll(emptyFile))
+        .compile
+        .drain
 
-    val gibberish = (for {
-      i <- 0 until fileSize
-    } yield i.toByte).toArray
-    Files.write(emptyFile.toPath, gibberish)
+      def check(path: Path): IO[Unit] =
+        StaticFile
+          .fromPath[IO](
+            path,
+            start = 0,
+            end = fileSize.toLong - 1,
+            buffsize = StaticFile.DefaultBufferSize,
+            None,
+            StaticFile.calculateETag[IO])
+          .value
+          .flatMap { r =>
+            // Length of the body must match
+            assertEquals(
+              r.flatMap(_.headers.get[`Content-Length`].map(_.length)),
+              Some(fileSize.toLong - 1L))
+            // get the Body to check the actual size
+            r.map(_.body.compile.toVector)
+              .map { body =>
+                body.map(_.length).assertEquals(fileSize - 1) *>
+                  // Verify the context
+                  body
+                    .map(bytes =>
+                      java.util.Arrays
+                        .equals(
+                          bytes.toArray,
+                          java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1)))
+                    .assert
+              }
+              .getOrElse(IO.raiseError(new RuntimeException("test error")))
+          }
 
-    def check(file: File): IO[Unit] =
-      StaticFile
-        .fromFile[IO](
-          file,
-          start = 0,
-          end = fileSize.toLong - 1,
-          buffsize = StaticFile.DefaultBufferSize,
-          None,
-          StaticFile.calcETag[IO])
-        .value
-        .flatMap { r =>
-          // Length of the body must match
-          assertEquals(
-            r.flatMap(_.headers.get[`Content-Length`].map(_.length)),
-            Some(fileSize.toLong - 1L))
-          // get the Body to check the actual size
-          r.map(_.body.compile.toVector)
-            .map { body =>
-              body.map(_.length).assertEquals(fileSize - 1) *>
-                // Verify the context
-                body
-                  .map(bytes =>
-                    java.util.Arrays
-                      .equals(
-                        bytes.toArray,
-                        java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1)))
-                  .assert
-            }
-            .getOrElse(IO.raiseError(new RuntimeException("test error")))
-        }
-
-    check(emptyFile)
+      write *> check(emptyFile)
+    }
   }
 
   test("Read from a URL") {
@@ -282,11 +309,15 @@ class StaticFileSuite extends Http4sSuite {
     // we need an HTTP server that responds to a wildcard path.
     //
     // Or we can be lazy and just use `/`.
-    assume(new File("/").isDirectory, "/ is not a directory")
-    StaticFile
-      .fromURL[IO](new URL("https://github.com//"))
-      .value
-      .map(_.fold(Status.NotFound)(_.status))
+    Files[IO]
+      .getBasicFileAttributes(Path("/"))
+      .flatMap { attr =>
+        assume(attr.isDirectory, "/ is not a directory")
+        StaticFile
+          .fromURL[IO](new URL("https://github.com//"))
+          .value
+          .map(_.fold(Status.NotFound)(_.status))
+      }
       .assertEquals(Status.Ok)
   }
 
