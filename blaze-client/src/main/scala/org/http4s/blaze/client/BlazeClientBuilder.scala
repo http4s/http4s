@@ -133,6 +133,12 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       customDnsResolver = customDnsResolver
     ) {}
 
+  @deprecated(
+    "Do not use - always returns cats.effect.unsafe.IORuntime.global.compute." +
+      "There is no direct replacement - directly use Async[F].executionContext or your custom execution context",
+    "0.23.4")
+  def executionContext: ExecutionContext = cats.effect.unsafe.IORuntime.global.compute
+
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
     copy(responseHeaderTimeout = responseHeaderTimeout)
 
