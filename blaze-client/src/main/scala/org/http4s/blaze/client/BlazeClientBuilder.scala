@@ -26,7 +26,7 @@ import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.blazecore.{BlazeBackendBuilder, ExecutionContextConfig, tickWheelResource}
 import org.http4s.client.{Client, ConnectionBuilder, RequestKey, defaults}
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.{BackendBuilder, SSLContextOption}
@@ -51,7 +51,7 @@ import scala.concurrent.duration._
   * @param chunkBufferMaxSize Size of the buffer that is used when Content-Length header is not specified.
   * @param parserMode lenient or strict parsing mode. The lenient mode will accept illegal chars but replaces them with � (0xFFFD)
   * @param bufferSize internal buffer size of the blaze client
-  * @param executionContext custom executionContext to run async computations.
+  * @param executionContextConfig optional custom executionContext to run async computations.
   * @param scheduler execution scheduler
   * @param asynchronousChannelGroup custom AsynchronousChannelGroup to use other than the system default
   * @param channelOptions custom socket options
@@ -74,7 +74,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val chunkBufferMaxSize: Int,
     val parserMode: ParserMode,
     val bufferSize: Int,
-    val executionContext: ExecutionContext,
+    executionContextConfig: ExecutionContextConfig,
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions,
@@ -103,7 +103,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       chunkBufferMaxSize: Int = chunkBufferMaxSize,
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
-      executionContext: ExecutionContext = executionContext,
+      executionContextConfig: ExecutionContextConfig = executionContextConfig,
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions,
@@ -126,12 +126,18 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
       bufferSize = bufferSize,
-      executionContext = executionContext,
+      executionContextConfig = executionContextConfig,
       scheduler = scheduler,
       asynchronousChannelGroup = asynchronousChannelGroup,
       channelOptions = channelOptions,
       customDnsResolver = customDnsResolver
     ) {}
+
+  @deprecated(
+    "Do not use - always returns cats.effect.unsafe.IORuntime.global.compute." +
+      "There is no direct replacement - directly use Async[F].executionContext or your custom execution context",
+    "0.23.5")
+  def executionContext: ExecutionContext = cats.effect.unsafe.IORuntime.global.compute
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
     copy(responseHeaderTimeout = responseHeaderTimeout)
@@ -208,7 +214,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(bufferSize = bufferSize)
 
   def withExecutionContext(executionContext: ExecutionContext): BlazeClientBuilder[F] =
-    copy(executionContext = executionContext)
+    copy(executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext))
 
   def withScheduler(scheduler: TickWheelExecutor): BlazeClientBuilder[F] =
     copy(scheduler = scheduler.pure[Resource[F, *]])
@@ -242,6 +248,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       _ <- Resource.eval(verifyAllTimeoutsAccuracy(scheduler))
       _ <- Resource.eval(verifyTimeoutRelations())
       manager <- connectionManager(scheduler, dispatcher)
+      executionContext <- Resource.eval(executionContextConfig.getExecutionContext)
       client = BlazeClient.makeClient(
         manager = manager,
         responseHeaderTimeout = responseHeaderTimeout,
@@ -249,6 +256,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         scheduler = scheduler,
         ec = executionContext
       )
+
     } yield (client, manager.state)
 
   private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): F[Unit] =
@@ -296,7 +304,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       sslContextOption = sslContext,
       bufferSize = bufferSize,
       asynchronousChannelGroup = asynchronousChannelGroup,
-      executionContext = executionContext,
+      executionContextConfig = executionContextConfig,
       scheduler = scheduler,
       checkEndpointIdentification = checkEndpointIdentification,
       maxResponseLineSize = maxResponseLineSize,
@@ -312,25 +320,22 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
     ).makeClient
     Resource.make(
-      ConnectionManager.pool(
-        builder = http1,
-        maxTotal = maxTotalConnections,
-        maxWaitQueueLimit = maxWaitQueueLimit,
-        maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
-        responseHeaderTimeout = responseHeaderTimeout,
-        requestTimeout = requestTimeout,
-        executionContext = executionContext
-      ))(_.shutdown)
+      executionContextConfig.getExecutionContext.flatMap(executionContext =>
+        ConnectionManager.pool(
+          builder = http1,
+          maxTotal = maxTotalConnections,
+          maxWaitQueueLimit = maxWaitQueueLimit,
+          maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
+          responseHeaderTimeout = responseHeaderTimeout,
+          requestTimeout = requestTimeout,
+          executionContext = executionContext
+        )))(_.shutdown)
   }
 }
 
 object BlazeClientBuilder {
 
-  /** Creates a BlazeClientBuilder
-    *
-    * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
-    */
-  def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
+  def apply[F[_]: Async]: BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
@@ -348,12 +353,19 @@ object BlazeClientBuilder {
       chunkBufferMaxSize = 1024 * 1024,
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
-      executionContext = executionContext,
+      executionContextConfig = ExecutionContextConfig.DefaultContext,
       scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty),
       customDnsResolver = None
     ) {}
+
+  @deprecated(
+    "Most users should use the default execution context provided. " +
+      "If you have a specific reason to use a custom one, use `.withExecutionContext`",
+    "0.23.5")
+  def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
+    BlazeClientBuilder[F].withExecutionContext(executionContext)
 
   def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
     requestKey match {
