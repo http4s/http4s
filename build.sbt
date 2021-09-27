@@ -290,16 +290,19 @@ lazy val emberServer = libraryProject("ember-server")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       log4catsSlf4j, 
-      javaWebSocket % Test
+      javaWebSocket % Test,
+      jnrUnixSocket % Test, // Necessary for jdk < 16
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.EmberServerBuilder.this")
+      ProblemFilters.exclude[Problem]("org.http4s.ember.server.EmberServerBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.runConnection"),
     ),
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
 
