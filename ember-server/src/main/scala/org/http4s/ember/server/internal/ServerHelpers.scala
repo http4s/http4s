@@ -39,6 +39,8 @@ import scala.concurrent.duration._
 import scodec.bits.ByteVector
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
+import org.typelevel.vault.Key
+import _root_.org.http4s.websocket.WebSocketContext
 
 private[server] object ServerHelpers {
 
@@ -62,7 +64,8 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      logger: Logger[F]
+      logger: Logger[F],
+      webSocketKey: Key[WebSocketContext[F]]
   )(implicit F: Async[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -85,7 +88,8 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      true
+      true,
+      webSocketKey
     )
   }
 
@@ -106,7 +110,8 @@ private[server] object ServerHelpers {
       maxHeaderSize: Int,
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
-      logger: Logger[F]
+      logger: Logger[F],
+      webSocketKey: Key[WebSocketContext[F]]
   ): Stream[F, Nothing] = {
     val server =
       // Our interface has an issue
@@ -134,7 +139,8 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      false
+      false,
+      webSocketKey
     )
   }
 
@@ -152,7 +158,8 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      createRequestVault: Boolean
+      createRequestVault: Boolean,
+      webSocketKey: Key[WebSocketContext[F]]
   ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
@@ -171,7 +178,8 @@ private[server] object ServerHelpers {
                 httpApp,
                 errorHandler,
                 onWriteFailure,
-                createRequestVault
+                createRequestVault,
+                webSocketKey
               ))
 
         handler.handleErrorWith { t =>
@@ -274,7 +282,8 @@ private[server] object ServerHelpers {
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[org.http4s.Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      createRequestVault: Boolean
+      createRequestVault: Boolean,
+      webSocketKey: Key[WebSocketContext[F]]
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
@@ -314,7 +323,7 @@ private[server] object ServerHelpers {
             case Right((req, resp, drain)) =>
               // TODO: Should we pay this cost for every HTTP request?
               // Intercept the response for various upgrade paths
-              resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F]) match {
+              resp.attributes.lookup(webSocketKey) match {
                 case Some(ctx) =>
                   drain.flatMap {
                     case Some(buffer) =>

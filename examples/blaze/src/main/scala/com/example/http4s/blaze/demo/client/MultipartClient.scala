@@ -28,7 +28,6 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
 import org.http4s.client.Client
 import org.http4s.multipart.{Multipart, Part}
-import scala.concurrent.ExecutionContext.global
 
 object MultipartClient extends MultipartHttpClient
 
@@ -49,7 +48,7 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
       .map(body => POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers))
 
   private val resources: Resource[IO, Client[IO]] =
-    BlazeClientBuilder[IO](global).resource
+    BlazeClientBuilder[IO].resource
 
   private val example =
     for {

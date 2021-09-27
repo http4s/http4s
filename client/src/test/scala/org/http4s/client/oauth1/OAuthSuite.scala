@@ -75,8 +75,8 @@ class OAuthSuite extends Http4sSuite {
   }
 
   test("OAuth support should generate a correct HMAC-SHA1 signature") {
-    assertEquals(
-      oauth1.makeSHASig(specBaseString, consumer.secret, Some(token.secret), HmacSha1),
+    assertIO(
+      oauth1.makeSHASig[IO](specBaseString, consumer.secret, Some(token.secret), HmacSha1),
       "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
   }
 

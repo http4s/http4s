@@ -19,7 +19,7 @@ package blaze
 package server
 
 import cats.data.Kleisli
-import cats.syntax.eq._
+import cats.syntax.all._
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.effect.std.Dispatcher
@@ -32,6 +32,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
+import org.http4s.websocket.WebSocketContext
 import org.http4s.{headers => H}
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -87,7 +88,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       httpApp,
       () => Vault.empty,
       munitExecutionContext,
-      enableWebSockets = true,
+      wsKey = Key.newKey[SyncIO, WebSocketContext[IO]].unsafeRunSync(),
       maxReqLine,
       maxHeaders,
       10 * 1024,
@@ -535,35 +536,79 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
   }
 
-  fixture.test("Http1ServerStage: don't deadlock TickWheelExecutor with uncancelable request") {
-    tw =>
-      val reqUncancelable = List("GET /uncancelable HTTP/1.0\r\n\r\n")
-      val reqCancelable = List("GET /cancelable HTTP/1.0\r\n\r\n")
+  fixture.test("Prevent response splitting attacks on status reason phrase") { tw =>
+    val rawReq = "GET /?reason=%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
+    val head = runRequest(
+      tw,
+      List(rawReq),
+      HttpApp { req =>
+        Response[IO](Status.NoContent.withReason(req.params("reason"))).pure[IO]
+      })
+    head.result.map { buff =>
+      val (_, headers, _) = ResponseParser.parseBuffer(buff)
+      assertEquals(headers.find(_.name === ci"Evil"), None)
+    }
+  }
 
-      (for {
-        uncancelableStarted <- Deferred[IO, Unit]
-        uncancelableCanceled <- Deferred[IO, Unit]
-        cancelableStarted <- Deferred[IO, Unit]
-        cancelableCanceled <- Deferred[IO, Unit]
-        app = HttpApp[IO] {
-          case req if req.pathInfo === path"/uncancelable" =>
-            uncancelableStarted.complete(()) *>
-              IO.uncancelable { poll =>
-                poll(uncancelableCanceled.complete(())) *>
-                  cancelableCanceled.get
-              }.as(Response[IO]())
-          case _ =>
-            cancelableStarted.complete(()) *> IO.never.guarantee(
-              cancelableCanceled.complete(()).void)
-        }
-        head <- IO(runRequest(tw, reqUncancelable, app))
-        _ <- uncancelableStarted.get
-        _ <- uncancelableCanceled.get
-        _ <- IO(head.sendInboundCommand(Disconnected))
-        head2 <- IO(runRequest(tw, reqCancelable, app))
-        _ <- cancelableStarted.get
-        _ <- IO(head2.sendInboundCommand(Disconnected))
-        _ <- cancelableCanceled.get
-      } yield ()).assert
+  fixture.test("Prevent response splitting attacks on field name") { tw =>
+    val rawReq = "GET /?fieldName=Fine:%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
+    val head = runRequest(
+      tw,
+      List(rawReq),
+      HttpApp { req =>
+        Response[IO](Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]
+      })
+    head.result.map { buff =>
+      val (_, headers, _) = ResponseParser.parseBuffer(buff)
+      assertEquals(headers.find(_.name === ci"Evil"), None)
+    }
+  }
+
+  fixture.test("Prevent response splitting attacks on field value") { tw =>
+    val rawReq = "GET /?fieldValue=%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
+    val head = runRequest(
+      tw,
+      List(rawReq),
+      HttpApp { req =>
+        Response[IO](Status.NoContent)
+          .putHeaders("X-Oops" -> req.params("fieldValue"))
+          .pure[IO]
+      })
+    head.result.map { buff =>
+      val (_, headers, _) = ResponseParser.parseBuffer(buff)
+      assertEquals(headers.find(_.name === ci"Evil"), None)
+    }
+
+    fixture.test("Http1ServerStage: don't deadlock TickWheelExecutor with uncancelable request") {
+      tw =>
+        val reqUncancelable = List("GET /uncancelable HTTP/1.0\r\n\r\n")
+        val reqCancelable = List("GET /cancelable HTTP/1.0\r\n\r\n")
+
+        (for {
+          uncancelableStarted <- Deferred[IO, Unit]
+          uncancelableCanceled <- Deferred[IO, Unit]
+          cancelableStarted <- Deferred[IO, Unit]
+          cancelableCanceled <- Deferred[IO, Unit]
+          app = HttpApp[IO] {
+            case req if req.pathInfo === path"/uncancelable" =>
+              uncancelableStarted.complete(()) *>
+                IO.uncancelable { poll =>
+                  poll(uncancelableCanceled.complete(())) *>
+                    cancelableCanceled.get
+                }.as(Response[IO]())
+            case _ =>
+              cancelableStarted.complete(()) *> IO.never.guarantee(
+                cancelableCanceled.complete(()).void)
+          }
+          head <- IO(runRequest(tw, reqUncancelable, app))
+          _ <- uncancelableStarted.get
+          _ <- uncancelableCanceled.get
+          _ <- IO(head.sendInboundCommand(Disconnected))
+          head2 <- IO(runRequest(tw, reqCancelable, app))
+          _ <- cancelableStarted.get
+          _ <- IO(head2.sendInboundCommand(Disconnected))
+          _ <- cancelableCanceled.get
+        } yield ()).assert
+    }
   }
 }

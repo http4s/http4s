@@ -288,10 +288,11 @@ object Http4sPlugin extends AutoPlugin {
     val catsEffect = "3.2.9"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
+    val crypto = "0.1.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.3"
-    val fs2 = "3.1.2"
+    val fs2 = "3.1.3"
     val ip4s = "3.0.3"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
@@ -323,7 +324,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.53"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "3.0.4"
+    val vault = "3.1.0"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
@@ -345,6 +346,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % V.circe
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % V.circe
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % V.circe
+  lazy val crypto                           = "org.http4s"             %% "http4s-crypto"             % V.crypto
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % V.cryptobits
   lazy val disciplineCore                   = "org.typelevel"          %% "discipline-core"           % V.disciplineCore
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % V.dropwizardMetrics

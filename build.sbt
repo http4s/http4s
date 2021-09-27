@@ -115,6 +115,7 @@ lazy val core = libraryProject("core")
       catsCore,
       catsEffectStd,
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
+      crypto,
       fs2Core,
       fs2Io,
       ip4sCore,
@@ -188,6 +189,11 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF.this"), // private[middleware]
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF#CSRFBuilder.this"), // private[middleware]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.middleware.authentication.DigestUtil.computeResponse"), // private[authentication]
+    )
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
@@ -219,6 +225,11 @@ lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[Problem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.makeSHASig"), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.*.generateHMAC"), // private[oauth1]
+    )
   )
   .dependsOn(
     core,
@@ -251,23 +262,24 @@ lazy val emberCore = libraryProject("ember-core")
       log4catsTesting % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude.parsePrelude"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.copy"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.this"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.parseHeaders"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.apply"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.parseMessage"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.parseHeaders"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.apply"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.unapply")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.parseMessage"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.unapply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request#ReqPrelude.parsePrelude"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -286,7 +298,7 @@ lazy val emberServer = libraryProject("ember-server")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder.this"),
+      ProblemFilters.exclude[Problem]("org.http4s.ember.server.EmberServerBuilder.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.runConnection"),
     ),
@@ -323,8 +335,13 @@ lazy val blazeServer = libraryProject("blaze-server")
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
     mimaBinaryIssueFilters := Seq(
-      // private constructor 
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.server.BlazeServerBuilder.this")
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"), // private
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$DefaultContext$"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext$"), // private
     )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
@@ -333,7 +350,11 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(),
+    mimaBinaryIssueFilters ++= Seq(
+      // private constructor
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this")
+    ),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 

@@ -25,7 +25,6 @@ import org.http4s.implicits._
 import org.http4s.metrics.dropwizard._
 import org.http4s.server.{HttpMiddleware, Router, Server}
 import org.http4s.server.middleware.Metrics
-import scala.concurrent.ExecutionContext.global
 
 class BlazeMetricsExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -44,7 +43,7 @@ object BlazeMetricsExampleApp {
 
   def resource[F[_]: Async]: Resource[F, Server] = {
     val app = httpApp[F]
-    BlazeServerBuilder[F](global)
+    BlazeServerBuilder[F]
       .bindHttp(8080)
       .withHttpApp(app)
       .resource

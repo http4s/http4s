@@ -32,11 +32,14 @@ import scala.concurrent.duration._
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
+import org.typelevel.vault.Key
+import org.http4s.websocket.WebSocketContext
+import org.http4s.server.websocket.WebSocketBuilder2
 
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
     val port: Port,
-    private val httpApp: HttpApp[F],
+    private val httpApp: WebSocketBuilder2[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
     private val sgOpt: Option[SocketGroup[F]],
     private val errorHandler: Throwable => F[Response[F]],
@@ -58,7 +61,7 @@ final class EmberServerBuilder[F[_]: Async] private (
   private def copy(
       host: Option[Host] = self.host,
       port: Port = self.port,
-      httpApp: HttpApp[F] = self.httpApp,
+      httpApp: WebSocketBuilder2[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
@@ -98,7 +101,8 @@ final class EmberServerBuilder[F[_]: Async] private (
   def withoutHost = withHostOption(None)
 
   def withPort(port: Port) = copy(port = port)
-  def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = httpApp)
+  def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = _ => httpApp)
+  def withHttpWebSocketApp(f: WebSocketBuilder2[F] => HttpApp[F]) = copy(httpApp = f)
 
   def withSocketGroup(sg: SocketGroup[F]) =
     copy(sgOpt = sg.pure[Option])
@@ -150,6 +154,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, InetSocketAddress]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
+      wsKey <- Resource.eval(Key.newKey[F, WebSocketContext[F]])
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -158,7 +163,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               port,
               additionalSocketOptions,
               sg,
-              httpApp,
+              httpApp(WebSocketBuilder2(wsKey)),
               tlsInfoOpt,
               ready,
               shutdown,
@@ -169,7 +174,8 @@ final class EmberServerBuilder[F[_]: Async] private (
               maxHeaderSize,
               requestHeaderReceiveTimeout,
               idleTimeout,
-              logger
+              logger,
+              wsKey
             )
             .compile
             .drain
@@ -180,7 +186,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
-            httpApp,
+            httpApp(WebSocketBuilder2(wsKey)),
             tlsInfoOpt,
             ready,
             shutdown,
@@ -191,7 +197,8 @@ final class EmberServerBuilder[F[_]: Async] private (
             maxHeaderSize,
             requestHeaderReceiveTimeout,
             idleTimeout,
-            logger
+            logger,
+            wsKey
           )
           .compile
           .drain
@@ -211,7 +218,7 @@ object EmberServerBuilder {
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
-      httpApp = Defaults.httpApp[F],
+      httpApp = _ => Defaults.httpApp[F],
       tlsInfoOpt = None,
       sgOpt = None,
       errorHandler = Defaults.errorHandler[F],

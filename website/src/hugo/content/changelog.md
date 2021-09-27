@@ -8,6 +8,78 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.4 (2021-09-21)
+
+This release includes security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with v0.22.4, and forward-merges 0.22.5.
+
+## http4s-client
+
+### Enhancements
+
+* [#5190](https://github.com/http4s/http4s/pull/5190): Add an `effect` constructor for calculating effectual classifiers. Note that it is a mistake to consume the request body unless it is cached external to this call.
+
+## Dependency updates
+
+* cats-effect-3.2.8
+* fs2-3.1.2
+* keypool-0.4.7
+
+# v0.22.5 (2021-09-21)
+
+This release includes security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with v0.22.4, and forward-merges 0.21.29.
+
+## http4s-core
+
+### Bug fixes
+
+* [#5166](https://github.com/http4s/http4s/pull/5166): Fix deduction of cipher lengths, and detect length of more ciphers
+* [#5196](https://github.com/http4s/http4s/pull/5196): Parse `Set-Cookie` headers with no space between the semi-colon delimeter and the next attribute.  Such cookies are invalid to emit per spec, but must be parsed per spec.
+
+### Enhancements
+
+* [#5168](https://github.com/http4s/http4s/pull/5168): Add `Ordering` instance for Oauth1 `ProtocolParameter`.
+* [#5176](https://github.com/http4s/http4s/pull/5176): Add model for the `X-Forwarded-Proto` header.
+* [#5195](https://github.com/http4s/http4s/pull/5195): Restore the `EntityDecoder[F, ByteVector]`.
+* [#5171](https://github.com/http4s/http4s/pull/5171): Add model for the `Access-Control-Max-Age` header.
+* [#5202](https://github.com/http4s/http4s/pull/5202): Use concrete types for overridden `Request` and `Response` methods. This should be transparent.
+* [#5175](https://github.com/http4s/http4s/pull/5175): Introduce a `HeaderCompanion` helper to reduce boilerplate when defining modeled headers.
+
+## http4s-blaze-client
+
+* [#5158](https://github.com/http4s/http4s/pull/5158): Add a `resourceWithState` method to the `BlazeClientBuilder` for monitoring the connection pool.
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#5216](https://github.com/http4s/http4s/pull/5216): Improve performance of requet and response parsers
+
+## http4s-ember-server
+
+### Bug fixes
+
+* [#5130](https://github.com/http4s/http4s/pull/5130): Populate `SecureSession` request attribute in ember-server.
+
+## Dependency updates
+
+* cats-effect-2.5.4
+* netty-4.1.68
+* scalafix-0.9.31
+* tomcat-9.0.53
+
+# v0.21.29 (2021-09-21)
+
+This release includes security patches for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the 0.21.x series.
+
+## Various modules
+
+* [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3): Patches a vulnerability when unencoded user inputs are rendered in the model.  Malicious characters in these inputs can be used in [splitting attacks](https://owasp.org/www-community/attacks/HTTP_Response_Splitting).
+  * Header values.  `\r`, `\n`, and `\u0000` values are now replaced with spaces.
+  * Header names.  Headers with invalid names are now dropped.
+  * Status reason phrases.  Invalid phrases are now omitted.
+  * URI authority registered names.  Requests with invalid reg-names now raise an exception.
+  * URI paths.  Requests with invalid URI paths now raise an exception.
+
 # v0.23.3 (2021-09-02)
 
 This is binary compatible with v0.23.3.  It includes the fixes in v0.22.2.
