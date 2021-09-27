@@ -360,30 +360,12 @@ object BlazeClientBuilder {
       customDnsResolver = None
     ) {}
 
+  @deprecated(
+    "Most users should use the default execution context provided. " +
+      "If you have a specific reason to use a custom one, use `.withExecutionContext`",
+    "0.23.4")
   def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
-    new BlazeClientBuilder[F](
-      responseHeaderTimeout = Duration.Inf,
-      idleTimeout = 1.minute,
-      requestTimeout = defaults.RequestTimeout,
-      connectTimeout = defaults.ConnectTimeout,
-      userAgent = Some(`User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version)))),
-      maxTotalConnections = 10,
-      maxWaitQueueLimit = 256,
-      maxConnectionsPerRequestKey = Function.const(256),
-      sslContext = SSLContextOption.TryDefaultSSLContext,
-      checkEndpointIdentification = true,
-      maxResponseLineSize = 4096,
-      maxHeaderLength = 40960,
-      maxChunkSize = Int.MaxValue,
-      chunkBufferMaxSize = 1024 * 1024,
-      parserMode = ParserMode.Strict,
-      bufferSize = 8192,
-      executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext),
-      scheduler = tickWheelResource,
-      asynchronousChannelGroup = None,
-      channelOptions = ChannelOptions(Vector.empty),
-      customDnsResolver = None
-    ) {}
+    BlazeClientBuilder[F].withExecutionContext(executionContext)
 
   def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
     requestKey match {
