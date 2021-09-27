@@ -138,8 +138,6 @@ object StaticFile {
           if (attr.isRegularFile)
             s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}"
           else "")
-        // A bit of a hack, old code relied on Java File which silently returns 0s when there is an I/O exception...
-        .handleError(_ => s"${0.toHexString}-${0.toHexString}")
 
   @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
@@ -188,11 +186,14 @@ object StaticFile {
       buffsize: Int,
       req: Option[Request[F]],
       etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
-    // A bit of a hack, old code relied on Java File which silently returns 0L if there is an I/O exception
-    OptionT.liftF(Files[F].getBasicFileAttributes(f).map(_.size).handleError(_ => 0L)).flatMap {
-      size =>
+    OptionT
+      .liftF(Files[F].getBasicFileAttributes(f).map(_.size))
+      .flatMap { size =>
         fromPath(f, 0, size, buffsize, req, etagCalculator)
-    }
+      }
+      .recoverWith { case _: fs2.io.file.NoSuchFileException =>
+        OptionT.none
+      }
 
   @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files](
