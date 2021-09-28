@@ -46,7 +46,7 @@ class VirtualHostSuite extends Http4sSuite {
 
   test("exact should return a 400 BadRequest when no header is present on a NON HTTP/1.0 request") {
     val req1 = Request[IO](GET, uri"/numbers/1", httpVersion = HttpVersion.`HTTP/1.1`)
-    val req2 = Request[IO](GET, uri"/numbers/1", httpVersion = HttpVersion.`HTTP/2.0`)
+    val req2 = Request[IO](GET, uri"/numbers/1", httpVersion = HttpVersion.`HTTP/2`)
 
     vhostExact(req1).map(_.status).assertEquals(BadRequest) *>
       vhostExact(req2).map(_.status).assertEquals(BadRequest)
