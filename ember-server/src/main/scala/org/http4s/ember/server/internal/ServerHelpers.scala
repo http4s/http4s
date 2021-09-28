@@ -226,14 +226,16 @@ private[server] object ServerHelpers {
       errorHandler: Throwable => F[Response[F]],
       socket: Socket[F],
       createRequestVault: Boolean
-  )(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
+  )(implicit F: Temporal[F], D: Defer[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
     val parseWithHeaderTimeout = timeoutToMaybe(
       parse,
       requestHeaderReceiveTimeout,
-      F.raiseError[(Request[F], F[Option[Array[Byte]]])](new java.util.concurrent.TimeoutException(
-        s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout"))
+      D.defer(
+        F.raiseError[(Request[F], F[Option[Array[Byte]]])](
+          new java.util.concurrent.TimeoutException(
+            s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout")))
     )
 
     for {

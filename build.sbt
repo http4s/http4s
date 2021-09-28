@@ -37,7 +37,8 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
         cond = Some(s"matrix.scala == '$scala_213'")
       )
     ),
-    scalas = crossScalaVersions.value.toList
+    scalas = crossScalaVersions.value.toList,
+    javas = List("adoptium@8"),
   ))
 
 
@@ -157,6 +158,9 @@ lazy val laws = libraryProject("laws")
       munitCatsEffect
     ),
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this") // private
+    )
   )
   .dependsOn(core)
 
