@@ -2,6 +2,7 @@ package org.http4s.sbt
 
 import java.io.File
 import java.net.URL
+import sbt._
 import sbt.Keys._
 import sbtunidoc.BaseUnidocPlugin.autoImport._
 import sbt.librarymanagement._
@@ -64,7 +65,7 @@ object ScaladocApiMapping {
     // Be a _little_ more specific, since vault is an overloaded term,
     // e.g. hashicorp vault.
     if(file.toString.matches(""".+io.chrisdavenport.+/vault[^/]+\.jar$""")) {
-      Some(file -> javadocIOAPIUrl(Some(scalaBinaryVersion), Http4sPlugin.vault))
+      Some(file -> javadocIOAPIUrl(Some(scalaBinaryVersion), "org.typelevel" %% "vault" % Http4sPlugin.V.vault))
     } else {
       None
     }
@@ -77,8 +78,8 @@ object ScaladocApiMapping {
     }
 
   private def fs2CoreMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] = {
-    val fs2Core: ModuleID =
-      Http4sPlugin.fs2Core
+    val fs2Core: ModuleID = 
+      "co.fs2" %% "fs2-core" % Http4sPlugin.V.fs2
     if(file.toString.matches(""".+/fs2-core_[^/]+\.jar$""")) {
       Some(file -> new URL(s"https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_${scalaBinaryVersion}/${fs2Core.revision}/${fs2Core.name}_${scalaBinaryVersion}-${fs2Core.revision}-javadoc.jar/!/"))
     } else {
