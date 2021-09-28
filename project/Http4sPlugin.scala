@@ -80,49 +80,7 @@ object Http4sPlugin extends AutoPlugin {
     // Breaking change deferred to 1.0
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
 
-    headerSources / excludeFilter := HiddenFileFilter ||
-      new FileFilter {
-        def accept(file: File) = {
-          attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
-        }
-
-        val attributedSources = Set(
-          "src/main/scala/org/http4s/CacheDirective.scala",
-          "src/main/scala/org/http4s/Challenge.scala",
-          "src/main/scala/org/http4s/Charset.scala",
-          "src/main/scala/org/http4s/ContentCoding.scala",
-          "src/main/scala/org/http4s/Credentials.scala",
-          "src/main/scala/org/http4s/Header.scala",
-          "src/main/scala/org/http4s/LanguageTag.scala",
-          "src/main/scala/org/http4s/MediaType.scala",
-          "src/main/scala/org/http4s/RangeUnit.scala",
-          "src/main/scala/org/http4s/ResponseCookie.scala",
-          "src/main/scala/org/http4s/TransferCoding.scala",
-          "src/main/scala/org/http4s/Uri.scala",
-          "src/main/scala/org/http4s/dsl/impl/Path.scala",
-          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
-          "src/main/scala/org/http4s/internal/CharPredicate.scala",
-          "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
-          "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
-          "src/main/scala/org/http4s/parser/AcceptHeader.scala",
-          "src/main/scala/org/http4s/parser/AcceptLanguageHeader.scala",
-          "src/main/scala/org/http4s/parser/AdditionalRules.scala",
-          "src/main/scala/org/http4s/parser/AuthorizationHeader.scala",
-          "src/main/scala/org/http4s/parser/CacheControlHeader.scala",
-          "src/main/scala/org/http4s/parser/ContentTypeHeader.scala",
-          "src/main/scala/org/http4s/parser/CookieHeader.scala",
-          "src/main/scala/org/http4s/parser/HttpHeaderParser.scala",
-          "src/main/scala/org/http4s/parser/Rfc2616BasicRules.scala",
-          "src/main/scala/org/http4s/parser/SimpleHeaders.scala",
-          "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
-          "src/main/scala/org/http4s/play/Parser.scala",
-          "src/main/scala/org/http4s/util/UrlCoding.scala",
-          "src/test/scala/org/http4s/Http4sSpec.scala",
-          "src/test/scala/org/http4s/UriSpec.scala",
-          "src/test/scala/org/http4s/dsl/PathSpec.scala",
-          "src/test/scala/org/http4s/testing/ErrorReporting.scala",
-        )
-      },
+    headerSources / excludeFilter := HiddenFileFilter,
 
     nowarnCompatAnnotationProvider := None,
 
