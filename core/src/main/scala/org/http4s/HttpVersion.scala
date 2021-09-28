@@ -30,6 +30,10 @@ import org.http4s.util._
   * version to which the sender is conformant (able to understand for
   * future communication).
   *
+  * @param major The major version, `0` to `9` inclusive
+  *
+  * @param minor The minor version, `0` to `9` inclusive
+  *
   * @see
   * [[https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#protocol.version
   * HTTP Semantics, Protocol Versioning]]
@@ -37,7 +41,23 @@ import org.http4s.util._
 final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
     extends Renderable
     with Ordered[HttpVersion] {
+
+  /** Renders as an HTTP/1.1 string
+    *
+    * {{{
+    * >>> HttpVersion.`HTTP/1.1`.renderString
+    * HTTP/1.1
+    * }}}
+    */
   override def render(writer: Writer): writer.type = writer << "HTTP/" << major << '.' << minor
+
+  /** Orders by major version ascending, then minor version ascending.
+    *
+    * {{{
+    * >>> List(HttpVersion.`HTTP/1.0`, HttpVersion.`HTTP/1.1`, HttpVersion.`HTTP/0.9`).sorted
+    * List(HTTP/0.9, HTTP/1.0, HTTP/1.1)
+    * }}}
+    */
   override def compare(that: HttpVersion): Int =
     (this.major, this.minor).compare((that.major, that.minor))
 
@@ -120,6 +140,13 @@ object HttpVersion {
   private[this] val right_1_0 = Right(`HTTP/1.0`)
   private[this] val right_1_1 = Right(`HTTP/1.1`)
 
+  /** Returns an HTTP version from its HTTP/1 string representation.
+    *
+    * {{{
+    * >>> HttpVersion.fromString("HTTP/1.1")
+    * Right(HTTP/1.1)
+    * }}}
+    */
   def fromString(s: String): ParseResult[HttpVersion] =
     s match {
       case "HTTP/1.1" => right_1_1
@@ -138,6 +165,19 @@ object HttpVersion {
     }
   }
 
+  /** Returns an HTTP version from a major and minor version.
+    *
+    * {{{
+    * >>> HttpVersion.fromVersion(1, 1)
+    * Right(HTTP/1.1)
+    *
+    * >>> HttpVersion.fromVersion(1, 10)
+    * Left(org.http4s.ParseFailure: Invalid HTTP version: major must be <= 9: 10)
+    * }}}
+    *
+    * @param major The major version, `0` to `9` inclusive
+    * @param minor The minor version, `0` to `9` inclusive
+    */
   def fromVersion(major: Int, minor: Int): ParseResult[HttpVersion] =
     if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $major")
     else if (major > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $major")
