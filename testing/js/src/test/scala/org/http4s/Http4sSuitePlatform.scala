@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2016 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  */
 
 package org.http4s
-package websocket
 
-final class ReservedOpcodeException(opcode: Int)
-    extends ProtocolException(s"Opcode $opcode is reserved for future use as per RFC 6455")
+import cats.effect.unsafe.IORuntime
 
-final class UnknownOpcodeException(opcode: Int)
-    extends ProtocolException(
-      s"RFC 6455 protocol violation, unknown websocket frame opcode: $opcode")
+trait Http4sSuitePlatform
+
+trait Http4sSuiteCompanionPlatform {
+  val TestIORuntime: IORuntime = IORuntime.global
+}

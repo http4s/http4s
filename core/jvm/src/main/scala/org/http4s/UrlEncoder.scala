@@ -15,11 +15,12 @@
  */
 
 package org.http4s
-package websocket
 
-final class ReservedOpcodeException(opcode: Int)
-    extends ProtocolException(s"Opcode $opcode is reserved for future use as per RFC 6455")
+import java.net.URLEncoder
+import java.nio.charset
 
-final class UnknownOpcodeException(opcode: Int)
-    extends ProtocolException(
-      s"RFC 6455 protocol violation, unknown websocket frame opcode: $opcode")
+private[http4s] object UrlEncoder {
+  private[this] val utf8 = charset.Charset.forName("UTF-8")
+
+  def encode(url: String): String = URLEncoder.encode(url, utf8)
+}

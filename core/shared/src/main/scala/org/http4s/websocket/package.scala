@@ -16,7 +16,6 @@
 
 package org.http4s
 
-import java.net.ProtocolException
 import scala.annotation.switch
 import scodec.bits.ByteVector
 
