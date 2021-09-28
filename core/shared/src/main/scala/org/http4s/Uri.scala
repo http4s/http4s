@@ -318,8 +318,8 @@ object Uri extends UriPlatform {
 
     override def hashCode(): Int = {
       var hash = segments.hashCode()
-      hash += 31 * java.lang.Boolean.hashCode(absolute)
-      hash += 31 * java.lang.Boolean.hashCode(endsWithSlash)
+      hash += 31 * absolute.hashCode()
+      hash += 31 * endsWithSlash.hashCode()
       hash
     }
 

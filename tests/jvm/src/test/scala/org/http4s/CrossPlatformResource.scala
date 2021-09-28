@@ -15,11 +15,10 @@
  */
 
 package org.http4s
-package websocket
 
-final class ReservedOpcodeException(opcode: Int)
-    extends ProtocolException(s"Opcode $opcode is reserved for future use as per RFC 6455")
+import fs2.io.file.Path
 
-final class UnknownOpcodeException(opcode: Int)
-    extends ProtocolException(
-      s"RFC 6455 protocol violation, unknown websocket frame opcode: $opcode")
+object CrossPlatformResource {
+  def apply(resource: String): Path =
+    Path.fromNioPath(java.nio.file.Paths.get(getClass.getResource(resource).toURI))
+}

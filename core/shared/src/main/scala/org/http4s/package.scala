@@ -21,7 +21,7 @@ import com.comcast.ip4s
 import fs2.Stream
 import org.typelevel.ci.CIString
 
-package object http4s {
+package object http4s extends Http4sPlatform {
 
   type AuthScheme = CIString
 
