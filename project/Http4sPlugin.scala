@@ -59,7 +59,7 @@ object Http4sPlugin extends AutoPlugin {
            |"http4s.api" = "$major.$minor"
            |"http4s.current" = "${version.value}"
            |"http4s.doc" = "${docExampleVersion(version.value)}"
-           |circe = "${circeJawn.revision}"
+           |circe = "${circeJawn.value.revision}"
            |cryptobits = "${cryptobits.revision}"
            |
            |[releases]
@@ -249,6 +249,7 @@ object Http4sPlugin extends AutoPlugin {
     val catsEffect = "3.2.9"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
+    val circe15 = "0.15.0-M1"
     val crypto = "0.2-17-ea12f24"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
@@ -293,7 +294,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  =             "org.asynchttpclient"    %   "async-http-client"         % V.asyncHttpClient
   lazy val blazeCore                        =             "org.http4s"             %%  "blaze-core"                % V.blaze
   lazy val blazeHttp                        =             "org.http4s"             %%  "blaze-http"                % V.blaze
-  lazy val boopickle                        =             "io.suzaku"              %%  "boopickle"                 % V.boopickle
+  lazy val boopickle                        = Def.setting("io.suzaku"              %%% "boopickle"                 % V.boopickle)
   lazy val caseInsensitive                  = Def.setting("org.typelevel"          %%  "case-insensitive"          % V.caseInsensitive)
   lazy val caseInsensitiveTesting           = Def.setting("org.typelevel"          %%% "case-insensitive-testing"  % V.caseInsensitive)
   lazy val catsCore                         = Def.setting("org.typelevel"          %%% "cats-core"                 % V.cats)
@@ -303,12 +304,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffectTestkit                = Def.setting("org.typelevel"          %%% "cats-effect-testkit"       % V.catsEffect)
   lazy val catsLaws                         = Def.setting("org.typelevel"          %%% "cats-laws"                 % V.cats)
   lazy val catsParse                        = Def.setting("org.typelevel"          %%% "cats-parse"                % V.catsParse)
-  lazy val circeCore                        =             "io.circe"               %%  "circe-core"                % V.circe
+  lazy val circeCore                        = Def.setting("io.circe"               %%% "circe-core"                % V.circe)
   lazy val circeGeneric                     =             "io.circe"               %%  "circe-generic"             % V.circe
-  lazy val circeJawn                        =             "io.circe"               %%  "circe-jawn"                % V.circe
+  lazy val circeJawn                        = Def.setting("io.circe"               %%% "circe-jawn"                % V.circe)
+  lazy val circeJawn15                      = Def.setting("io.circe"               %%% "circe-jawn"                % V.circe15)
   lazy val circeLiteral                     =             "io.circe"               %%  "circe-literal"             % V.circe
   lazy val circeParser                      =             "io.circe"               %%  "circe-parser"              % V.circe
-  lazy val circeTesting                     =             "io.circe"               %%  "circe-testing"             % V.circe
+  lazy val circeTesting                     = Def.setting("io.circe"               %%% "circe-testing"             % V.circe)
   lazy val crypto                           = Def.setting("org.http4s"             %%% "http4s-crypto"             % V.crypto)
   lazy val cryptobits                       =             "org.reactormonk"        %%  "cryptobits"                % V.cryptobits
   lazy val disciplineCore                   = Def.setting("org.typelevel"          %%% "discipline-core"           % V.disciplineCore)
@@ -320,9 +322,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val ip4sCore                         = Def.setting("com.comcast"            %%% "ip4s-core"                 % V.ip4s)
   lazy val ip4sTestKit                      = Def.setting("com.comcast"            %%% "ip4s-test-kit"             % V.ip4s)
   lazy val javaxServletApi                  =             "javax.servlet"          %   "javax.servlet-api"         % V.servlet
-  lazy val jawnFs2                          =             "org.typelevel"          %%  "jawn-fs2"                  % V.jawnFs2
+  lazy val jawnFs2                          = Def.setting("org.typelevel"          %%% "jawn-fs2"                  % V.jawnFs2)
   lazy val javaWebSocket                    =             "org.java-websocket"     %   "Java-WebSocket"            % V.javaWebSocket
-  lazy val jawnParser                       =             "org.typelevel"          %%  "jawn-parser"               % V.jawn
+  lazy val jawnParser                       = Def.setting("org.typelevel"          %%% "jawn-parser"               % V.jawn)
   lazy val jawnPlay                         =             "org.typelevel"          %%  "jawn-play"                 % V.jawn
   lazy val jettyClient                      =             "org.eclipse.jetty"      %   "jetty-client"              % V.jetty
   lazy val jettyHttp                        =             "org.eclipse.jetty"      %   "jetty-http"                % V.jetty
@@ -336,7 +338,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val literally                        = Def.setting("org.typelevel"          %%% "literally"                 % V.literally)
   lazy val log4catsCore                     =             "org.typelevel"          %%  "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    =             "org.typelevel"          %%  "log4cats-slf4j"            % V.log4cats
-  lazy val log4catsTesting                  =             "org.typelevel"          %%  "log4cats-testing"          % V.log4cats
+  lazy val log4catsTesting                  = Def.setting("org.typelevel"          %%% "log4cats-testing"          % V.log4cats)
   lazy val log4s                            = Def.setting("org.log4s"              %%% "log4s"                     % V.log4s)
   lazy val logbackClassic                   =             "ch.qos.logback"         %   "logback-classic"           % V.logback
   lazy val munit                            = Def.setting("org.scalameta"          %%% "munit"                     % V.munit)
