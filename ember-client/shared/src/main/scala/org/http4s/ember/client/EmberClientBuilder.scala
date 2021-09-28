@@ -35,6 +35,8 @@ import org.http4s.headers.{`User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.client.middleware.Retry
+import org.http4s.{Request, Response}
+import fs2.io.net.unixsocket._
 
 final class EmberClientBuilder[F[_]: Async] private (
     private val tlsContextOpt: Option[TLSContext[F]],
@@ -50,7 +52,8 @@ final class EmberClientBuilder[F[_]: Async] private (
     val additionalSocketOptions: List[SocketOption],
     val userAgent: Option[`User-Agent`],
     val checkEndpointIdentification: Boolean,
-    val retryPolicy: RetryPolicy[F]
+    val retryPolicy: RetryPolicy[F],
+    private val unixSockets: Option[UnixSockets[F]]
 ) { self =>
 
   private def copy(
@@ -67,7 +70,8 @@ final class EmberClientBuilder[F[_]: Async] private (
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent,
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
-      retryPolicy: RetryPolicy[F] = self.retryPolicy
+      retryPolicy: RetryPolicy[F] = self.retryPolicy,
+      unixSockets: Option[UnixSockets[F]] = self.unixSockets
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -83,7 +87,8 @@ final class EmberClientBuilder[F[_]: Async] private (
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent,
       checkEndpointIdentification = checkEndpointIdentification,
-      retryPolicy = retryPolicy
+      retryPolicy = retryPolicy,
+      unixSockets = unixSockets
     )
 
   def withTLSContext(tlsContext: TLSContext[F]) =
@@ -120,6 +125,9 @@ final class EmberClientBuilder[F[_]: Async] private (
   def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
     copy(retryPolicy = retryPolicy)
 
+  def withUnixSockets(unixSockets: UnixSockets[F]) =
+    copy(unixSockets = Some(unixSockets))
+
   def build: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
@@ -150,7 +158,7 @@ final class EmberClientBuilder[F[_]: Async] private (
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
     } yield {
-      val client = Client[F] { request =>
+      def webClient(request: Request[F]): Resource[F, Response[F]] =
         for {
           managed <- ClientHelpers.getValidManaged(pool, request)
           _ <- Resource.eval(
@@ -184,6 +192,36 @@ final class EmberClientBuilder[F[_]: Async] private (
             }
           }
         } yield responseResource._1
+
+      def unixSocketClient(
+          request: Request[F],
+          address: UnixSocketAddress): Resource[F, Response[F]] =
+        Resource
+          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.getOrElse(UnixSockets.forAsync[F])))
+          .flatMap(unixSockets =>
+            Resource
+              .make(EmberConnection(
+                ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)))(ec =>
+                ec.shutdown))
+          .flatMap(connection =>
+            Resource.eval(
+              ClientHelpers
+                .request[F](
+                  request,
+                  connection,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleConnectionTime,
+                  timeout,
+                  userAgent
+                )
+                .map(_._1)))
+      val client = Client[F] { request =>
+        request.attributes
+          .lookup(Request.Keys.UnixSocketAddress)
+          .fold(webClient(request)) { (address: UnixSocketAddress) =>
+            unixSocketClient(request, address)
+          }
       }
       val stackClient = Retry(retryPolicy)(client)
       new EmberClient[F](stackClient, pool)
@@ -207,7 +245,8 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent,
       checkEndpointIdentification = true,
-      retryPolicy = Defaults.retryPolicy
+      retryPolicy = Defaults.retryPolicy,
+      unixSockets = None
     )
 
   private object Defaults {

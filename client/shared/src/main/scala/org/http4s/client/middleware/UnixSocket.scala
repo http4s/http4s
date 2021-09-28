@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.client.middleware
 
-trait EntityEncoderSpecPlatform
+import org.http4s.client.Client
+import org.http4s.Request
+import cats.effect.kernel.MonadCancelThrow
+
+/** Middleware to direct all requests to the provided `UnixSocketAddress` */
+object UnixSocket {
+  def apply[F[_]: MonadCancelThrow](address: fs2.io.net.unixsocket.UnixSocketAddress)(
+      client: Client[F]): Client[F] =
+    Client(req => client.run(req.withAttribute(Request.Keys.UnixSocketAddress, address)))
+}

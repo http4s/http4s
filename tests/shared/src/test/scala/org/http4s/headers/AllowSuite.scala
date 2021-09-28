@@ -17,7 +17,7 @@
 package org.http4s.headers
 
 import org.http4s.Method
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 class AllowSuite extends HeaderLaws {
   checkAll("Allow", headerLaws[Allow])

@@ -31,7 +31,7 @@ import scala.concurrent.duration._
 import scala.io.Source
 import org.http4s.multipart.Multipart
 import org.http4s.server.Server
-import scala.concurrent.ExecutionContext, ExecutionContext.global
+import scala.concurrent.ExecutionContext
 import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
@@ -66,7 +66,7 @@ class BlazeServerSuite extends Http4sSuite {
   override def afterAll(): Unit = ioRuntime.shutdown()
 
   def builder =
-    BlazeServerBuilder[IO](global)
+    BlazeServerBuilder[IO]
       .withResponseHeaderTimeout(1.second)
 
   val service: HttpApp[IO] = HttpApp {

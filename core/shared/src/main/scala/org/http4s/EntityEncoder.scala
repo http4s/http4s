@@ -21,6 +21,8 @@ import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
+import fs2.io.file.Files
+import fs2.io.readInputStream
 import java.io._
 import java.nio.CharBuffer
 import org.http4s.headers._
@@ -150,6 +152,17 @@ object EntityEncoder extends EntityEncoderCompanionPlatform {
   implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
       Entity(body, None)
+    }
+
+  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  implicit def pathEncoder[F[_]: Files]: EntityEncoder[F, fs2.io.file.Path] =
+    encodeBy[F, fs2.io.file.Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
+      Entity(Files[F].readAll(p))
+    }
+
+  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
+    entityBodyEncoder[F].contramap { (in: F[IS]) =>
+      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }
 
   // TODO parameterize chunk size

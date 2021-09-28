@@ -24,8 +24,7 @@ import cats.effect.{Concurrent, IO}
 import cats.effect.std.Queue
 import fs2._
 import org.http4s._
-// import _root_.org.typelevel.log4cats.testing.TestingLogger
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 // FIXME Restore after #3935 is worked out
 class TraversalSpec extends Http4sSuite {

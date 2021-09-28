@@ -62,7 +62,7 @@ object ClientExample extends IOApp {
     } yield ()
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeClientBuilder[IO](scala.concurrent.ExecutionContext.global).resource
+    BlazeClientBuilder[IO].resource
       .use(getSite)
       .as(ExitCode.Success)
 }

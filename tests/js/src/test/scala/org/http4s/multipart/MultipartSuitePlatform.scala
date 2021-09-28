@@ -16,8 +16,4 @@
 
 package org.http4s.multipart
 
-import scala.annotation.nowarn
-
-trait MultipartSuitePlatform {
-  def multipartSpecPlatform(@nowarn("msg=never used") name: String) = ()
-}
+trait MultipartSuitePlatform

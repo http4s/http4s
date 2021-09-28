@@ -167,6 +167,9 @@ object QValue extends QValuePlatform {
     override def minBound: QValue = QValue.Zero
     override def maxBound: QValue = QValue.One
   }
+
+  implicit val stdLibOrderingInstance: Ordering[QValue] =
+    catsInstancesForHttp4sQValue.toOrdering
 }
 
 trait HasQValue {

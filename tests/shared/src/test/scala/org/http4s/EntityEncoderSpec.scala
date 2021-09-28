@@ -24,11 +24,13 @@ import fs2._
 import cats.laws.discipline.arbitrary._
 
 import java.io._
+import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary
+import fs2.io.file.Files
 
-class EntityEncoderSpec extends Http4sSuite with EntityEncoderSpecPlatform {
+class EntityEncoderSpec extends Http4sSuite {
   {
     test("EntityEncoder should render streams") {
       val helloWorld: Stream[IO, String] = Stream("hello", "world")
@@ -71,6 +73,27 @@ class EntityEncoderSpec extends Http4sSuite with EntityEncoderSpecPlatform {
       assert(
         EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`] == Some(
           `Transfer-Encoding`(TransferCoding.chunked)))
+    }
+
+    test("EntityEncoder should render files") {
+      Files[IO]
+        .tempFile(None, "http4s-test-", ".txt", None)
+        .use { tmpFile =>
+          val setup = fs2.Stream
+            .emit("render files test")
+            .through(fs2.text.utf8.encode)
+            .through(Files[IO].writeAll(tmpFile))
+            .compile
+            .drain
+          setup *> writeToString(tmpFile)(EntityEncoder.pathEncoder[IO])
+        }
+        .assertEquals("render files test")
+    }
+
+    test("EntityEncoder should render input streams") {
+      val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
+      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder)
+        .assertEquals("input stream")
     }
 
     test("EntityEncoder should render readers") {

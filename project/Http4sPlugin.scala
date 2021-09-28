@@ -10,6 +10,7 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import sbt.Keys._
 import sbt._
+import sbtghactions.GenerativeKeys._
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
@@ -178,6 +179,7 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
+        javas = List("adoptium@8"),
         steps = List(
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
@@ -251,15 +253,16 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
     val dropwizardMetrics = "4.2.3"
-    val fs2 = "3.1.2"
+    val fs2 = "3.1.3"
     val ip4s = "3.0.3"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
     val jawnFs2 = "2.1.0"
     val jetty = "9.4.43.v20210629"
+    val jnrUnixSocket = "0.38.11"
     val keypool = "0.4.7"
     val literally = "1.0.2"
-    val logback = "1.2.5"
+    val logback = "1.2.6"
     val log4cats = "2.1.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
@@ -330,6 +333,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServer = "org.eclipse.jetty" % "jetty-server" % V.jetty
   lazy val jettyServlet = "org.eclipse.jetty" % "jetty-servlet" % V.jetty
   lazy val jettyUtil = "org.eclipse.jetty" % "jetty-util" % V.jetty
+  lazy val jnrUnixSocket = "com.github.jnr" % "jnr-unixsocket" % V.jnrUnixSocket
   lazy val keypool = Def.setting("org.typelevel" %%% "keypool" % V.keypool)
   lazy val literally = Def.setting("org.typelevel" %%% "literally" % V.literally)
   lazy val log4catsCore = Def.setting("org.typelevel" %%% "log4cats-core" % V.log4cats)

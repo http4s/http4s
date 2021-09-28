@@ -17,34 +17,19 @@
 package org.http4s
 package multipart
 
-import fs2.io.file.Files
-import fs2.io.file.Flags
-import fs2.io.file.Path
-import fs2.io.readInputStream
-import java.io.{File, InputStream}
 import cats.effect.Sync
-import java.net.URL
+import fs2.io.file.Files
+import fs2.io.file.Path
+import java.io.{File, InputStream}
 
 private[multipart] trait PartCompanionPlatform { self: Part.type =>
-
-  def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
-    fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
-
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
-    fileData(
-      name,
-      file.getName,
-      Files[F].readAll(Path.fromNioPath(file.toPath), ChunkSize, Flags.Read),
-      headers: _*)
+    fileData(name, Path.fromNioPath(file.toPath), headers: _*)
 
-  // The InputStream is passed by name, and we open it in the by-name
-  // argument in callers, so we can avoid lifting into an effect.  Exposing
-  // this API publicly would invite unsafe use, and the `EntityBody` version
-  // should be safe.
-  private[multipart] def fileData[F[_]](
+  protected def fileData[F[_]: Sync](
       name: String,
       filename: String,
       in: => InputStream,
-      headers: Header.ToRaw*)(implicit F: Sync[F]): Part[F] =
-    fileData(name, filename, readInputStream(F.delay(in), ChunkSize), headers: _*)
+      headers: Header.ToRaw*): Part[F]
 }

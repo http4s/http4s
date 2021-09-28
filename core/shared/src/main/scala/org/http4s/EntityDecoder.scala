@@ -20,6 +20,7 @@ import cats.{Applicative, Functor, Monad, SemigroupK}
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2._
+import fs2.io.file.{Files, Path}
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartDecoder
 import scala.annotation.implicitNotFound
@@ -228,6 +229,18 @@ object EntityDecoder extends EntityDecoderCompanionPlatform {
 
   implicit def charArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
+
+  def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+      val pipe = Files[F].writeAll(path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+    }
+
+  def textFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
+      val pipe = Files[F].writeAll(path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+    }
 
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder

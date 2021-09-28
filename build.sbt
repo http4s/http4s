@@ -76,7 +76,8 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
         cond = Some(s"matrix.scala == '$scala_213'")
       )
     ),
-    scalas = crossScalaVersions.value.toList
+    scalas = crossScalaVersions.value.toList,
+    javas = List("adoptium@8"),
   ))
 
 addCommandAlias("ciJVM", "; project rootJVM")
@@ -174,7 +175,7 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
       catsEffectStd.value,
       catsParse.value.exclude("org.typelevel", "cats-core_2.13"),
       crypto.value,
-      fs2Core.value,
+      fs2Io.value,
       ip4sCore.value,
       literally.value,
       log4s.value,
@@ -191,9 +192,6 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
         )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect")
-  )
-  .jvmSettings(
-    libraryDependencies += fs2Io.value
   )
   .jsSettings(
     libraryDependencies ++= Seq(
@@ -220,7 +218,7 @@ lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatf
     ),
     unusedCompileDependenciesFilter -= moduleFilter(
       organization = "org.typelevel",
-      name = "scalacheck-effect-munit")
+      name = "scalacheck-effect-munit"),
   )
   .dependsOn(core)
 
@@ -347,7 +345,8 @@ lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPl
   .jvmSettings(
     libraryDependencies ++= Seq(
       log4catsSlf4j.value,
-      javaWebSocket % Test
+      javaWebSocket % Test,
+      jnrUnixSocket % Test, // Necessary for jdk < 16
     ),
     Test / parallelExecution := false
   )

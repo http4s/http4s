@@ -16,31 +16,20 @@
 
 package org.http4s
 
-import cats.effect.Sync
-import cats.syntax.all._
-import fs2.io.file
 import fs2.io.file.Files
-import fs2.io.readInputStream
 import java.io.File
-import java.io.InputStream
 import java.nio.file.Path
-import org.http4s.headers._
 
 private[http4s] trait EntityEncoderCompanionPlatform { self: EntityEncoder.type =>
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
   implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
-    filePathEncoder[F].contramap(_.toPath)
+    pathEncoder.contramap(f => fs2.io.file.Path.fromNioPath(f.toPath()))
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
   implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
-    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(Files[F].readAll(file.Path.fromNioPath(p), 4096, file.Flags.Read)) //2 KB :P
-    }
-
-  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
-    entityBodyEncoder[F].contramap { (in: F[IS]) =>
-      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
-    }
+    pathEncoder.contramap(p => fs2.io.file.Path.fromNioPath(p))
 
 }

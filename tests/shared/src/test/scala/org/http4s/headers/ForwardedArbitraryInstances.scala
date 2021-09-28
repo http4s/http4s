@@ -20,13 +20,11 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import com.comcast.ip4s
 import org.http4s.internal.bug
-import org.http4s.laws.discipline.ArbitraryInstances
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.{ParseResult, Uri}
 import org.scalacheck.{Arbitrary, Gen}
 
-private[http4s] trait ForwardedArbitraryInstances
-    extends ArbitraryInstances
-    with ForwardedAuxiliaryGenerators {
+private[http4s] trait ForwardedArbitraryInstances extends ForwardedAuxiliaryGenerators {
   import Forwarded._
 
   // TODO: copied from `ArbitraryInstances` since the original is private.

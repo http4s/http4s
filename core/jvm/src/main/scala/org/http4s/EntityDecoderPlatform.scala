@@ -18,8 +18,7 @@ package org.http4s
 
 import cats.effect.Concurrent
 import cats.effect.kernel.Resource
-import fs2.io.file.Files
-import fs2.io.file.Path
+import fs2.io.file.{Files, Path}
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartDecoder
 
@@ -27,18 +26,17 @@ import java.io.File
 
 private[http4s] trait EntityDecoderCompanionPlatform {
 
-  // File operations
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
   def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = Files[F].writeAll(Path.fromNioPath(file.toPath))
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
-    }
+    binFile(Path.fromNioPath(file.toPath())).map(_ => file)
 
+  def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path]
+
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
   def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
-    EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = Files[F].writeAll(Path.fromNioPath(file.toPath))
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
-    }
+    textFile(Path.fromNioPath(file.toPath())).map(_ => file)
+
+  def textFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path]
 
   /** Multipart decoder that streams all parts past a threshold
     * (anything above `maxSizeBeforeWrite`) into a temporary file.

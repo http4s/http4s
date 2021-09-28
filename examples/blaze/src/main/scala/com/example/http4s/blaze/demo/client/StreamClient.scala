@@ -23,8 +23,6 @@ import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.{Request, Uri}
 import org.typelevel.jawn.Facade
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 object StreamClient extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     new HttpClient[IO].run.as(ExitCode.Success)
@@ -35,7 +33,7 @@ class HttpClient[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
     new io.circe.jawn.CirceSupportParser(None, false).facade
 
   def run: F[Unit] =
-    BlazeClientBuilder[F](global).stream
+    BlazeClientBuilder[F].stream
       .flatMap { client =>
         val request =
           Request[F](uri = Uri.unsafeFromString("http://localhost:8080/v1/dirs?depth=3"))

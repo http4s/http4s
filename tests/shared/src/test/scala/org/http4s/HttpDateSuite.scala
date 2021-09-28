@@ -20,7 +20,7 @@ import cats.effect.IO
 import cats.kernel.laws.discipline.BoundedEnumerableTests
 import cats.kernel.laws.discipline.HashTests
 import cats.kernel.laws.discipline.OrderTests
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 import java.time.Month
 import java.time.ZoneOffset

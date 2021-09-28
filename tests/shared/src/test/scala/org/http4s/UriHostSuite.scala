@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.kernel.laws.discipline._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 final class UriHostSuite extends Http4sSuite {
   checkAll("Order[Uri.Host]", OrderTests[Uri.Host].order)

@@ -16,7 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
 import fs2.io.net.tls.TLSParameters
@@ -28,10 +27,10 @@ import com.comcast.ip4s.IDN
 private[internal] trait ClientHelpersPlatform {
 
   private[internal] def mkTLSParameters(
-      address: SocketAddress[Host],
+      optionNames: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean): TLSParameters =
     TLSParameters(
-      servername = extractHostname(address.host).some
+      servername = optionNames.map(address => extractHostname(address.host))
     ) // TODO how to enable endpoint validation?
 
   @tailrec
