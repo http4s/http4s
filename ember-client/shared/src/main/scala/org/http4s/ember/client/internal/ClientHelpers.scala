@@ -34,13 +34,12 @@ import _root_.fs2.io.net.SocketGroup
 import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
 
-import javax.net.ssl.SNIHostName
 import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
-import com.comcast.ip4s.{Host, Hostname, IDN, IpAddress, Port, SocketAddress}
-import java.nio.channels.ClosedChannelException
+import com.comcast.ip4s.{Host, Port, SocketAddress}
+import fs2.io.ClosedChannelException
 
-private[client] object ClientHelpers {
+private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: Sync](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
@@ -112,24 +111,13 @@ private[client] object ClientHelpers {
           } { tlsContext =>
             tlsContext
               .clientBuilder(iSocket)
-              .withParameters(TLSParameters(
-                serverNames = optionNames.flatMap(address =>
-                  extractHostname(address.host).map(List(_))),
-                endpointIdentificationAlgorithm =
-                  if (enableEndpointValidation) Some("HTTPS") else None
-              ))
+              .withParameters(mkTLSParameters(optionNames, enableEndpointValidation))
               .build
               .widen[Socket[F]]
           }
         } else iSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
-
-  private def extractHostname(from: Host): Option[SNIHostName] = from match {
-    case hostname: Hostname => new SNIHostName(hostname.normalized.toString).some
-    case address: IpAddress => new SNIHostName(address.toString).some
-    case idn: IDN => extractHostname(idn.hostname)
-  }
 
   def request[F[_]: Async](
       request: Request[F],
@@ -234,7 +222,7 @@ private[client] object ClientHelpers {
               getValidManaged(pool, request)
           } else
             Resource.eval(Sync[F].raiseError(
-              new java.net.SocketException("Fresh connection from pool was not open")))
+              new fs2.io.net.SocketException("Fresh connection from pool was not open")))
         )
     }
 

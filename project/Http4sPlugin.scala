@@ -334,9 +334,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServlet                     =             "org.eclipse.jetty"      %   "jetty-servlet"             % V.jetty
   lazy val jettyUtil                        =             "org.eclipse.jetty"      %   "jetty-util"                % V.jetty
   lazy val jnrUnixSocket                    =             "com.github.jnr"         %   "jnr-unixsocket"            % V.jnrUnixSocket
-  lazy val keypool                          =             "org.typelevel"          %%  "keypool"                   % V.keypool
+  lazy val keypool                          = Def.setting("org.typelevel"          %%% "keypool"                   % V.keypool)
   lazy val literally                        = Def.setting("org.typelevel"          %%% "literally"                 % V.literally)
   lazy val log4catsCore                     =             "org.typelevel"          %%  "log4cats-core"             % V.log4cats
+  lazy val log4catsNoop                     = Def.setting("org.typelevel"          %%% "log4cats-noop"             % V.log4cats)
   lazy val log4catsSlf4j                    =             "org.typelevel"          %%  "log4cats-slf4j"            % V.log4cats
   lazy val log4catsTesting                  = Def.setting("org.typelevel"          %%% "log4cats-testing"          % V.log4cats)
   lazy val log4s                            = Def.setting("org.log4s"              %%% "log4s"                     % V.log4s)
