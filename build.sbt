@@ -640,7 +640,7 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar
-      ),
+      ) ++ jsModules,
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
