@@ -37,6 +37,7 @@ import org.typelevel.vault.Vault
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
 import org.http4s.headers.Connection
+import java.nio.channels.InterruptedByTimeoutException
 
 private[server] object ServerHelpers {
 
@@ -189,7 +190,11 @@ private[server] object ServerHelpers {
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
-    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    val read: Read[F] = socket
+      .read(receiveBufferSize, durationToFinite(idleTimeout))
+      .adaptError {
+        case _: InterruptedByTimeoutException => EmberException.ReadTimeout()
+      }
     Stream
       .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
         case (buffer, reuse) =>
@@ -252,6 +257,8 @@ private[server] object ServerHelpers {
             case Left(err) =>
               err match {
                 case EmberException.EmptyStream() =>
+                  Applicative[F].pure(None)
+                case EmberException.ReadTimeout() =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)
