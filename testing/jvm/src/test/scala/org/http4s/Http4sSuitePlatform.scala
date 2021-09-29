@@ -30,6 +30,9 @@ trait Http4sSuitePlatform { this: Http4sSuite =>
 
   def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
     ResourceSuiteLocalFixture(name, resource))
+
+  // allow flaky tests on ci
+  override def munitFlakyOK = sys.env.get("CI").isDefined
 }
 
 trait Http4sSuiteCompanionPlatform {
