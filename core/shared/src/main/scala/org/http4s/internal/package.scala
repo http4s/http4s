@@ -126,13 +126,15 @@ package object internal {
       F: Async[F]): F[A] =
     fcs.flatMap { cs =>
       F.async_ { cb =>
-        cs.handle[Unit] { (result, err) =>
-          err match {
-            case null => cb(Right(result))
-            case _: CancellationException => ()
-            case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-            case ex => cb(Left(ex))
-          }
+        cs.handle[Unit] {
+          { (result: A, err: Throwable) =>
+            err match {
+              case null => cb(Right(result))
+              case _: CancellationException => ()
+              case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
+              case ex => cb(Left(ex))
+            }
+          }: java.util.function.BiFunction[A, Throwable, Unit]
         }
         ()
       }
