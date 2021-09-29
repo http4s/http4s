@@ -633,14 +633,16 @@ lazy val docs = http4sProject("docs")
     autoAPIMappings := true,
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
-        bench,
-        examples,
-        examplesBlaze,
-        examplesDocker,
-        examplesJetty,
-        examplesTomcat,
-        examplesWar
-      ) ++ jsModules,
+        (List[ProjectReference](
+          bench,
+          examples,
+          examplesBlaze,
+          examplesDocker,
+          examplesJetty,
+          examplesTomcat,
+          examplesWar,
+        ) ++ jsModules): _*
+      ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
