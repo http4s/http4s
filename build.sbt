@@ -14,16 +14,17 @@ ThisBuild / publishFullName   := "Ross A. Baker"
 
 ThisBuild / githubWorkflowBuild := Seq(
       // todo remove once salafmt properly supports scala3
-      WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
-      WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
-      WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
-      WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"), name = Some("Check headers")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
       // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
       // WorkflowStep.Sbt(
         // List("unusedCompileDependenciesTest"),
         // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
-      WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-      WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "fastOptJS", "test:fastOptJS"), name = Some("FastOptJS"), cond = Some("matrix.ci != 'ciJVM'")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "test"), name = Some("Run tests")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "doc"), name = Some("Build docs"), cond = Some("matrix.ci == 'ciJVM'"))
     )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
@@ -41,6 +42,17 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     javas = List("adoptium@8"),
   ))
 
+val ciVariants = List("ciJVM", "ciNodeJS")
+ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
+
+ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
+  (ThisBuild / githubWorkflowJavaVersions).value.tail.map { java =>
+    MatrixExclude(Map("ci" -> "ciNodeJS", "java" -> java))
+  }
+}
+
+addCommandAlias("ciJVM", "; project rootJVM")
+addCommandAlias("ciNodeJS", "; project rootJS")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -113,6 +125,14 @@ lazy val root = project.in(file("."))
     startYear := Some(2013),
   )
   .aggregate(modules: _*)
+
+lazy val rootJVM = project
+  .enablePlugins(NoPublishPlugin)
+  .aggregate(jvmModules: _*)
+
+lazy val rootJS = project
+  .enablePlugins(NoPublishPlugin)
+  .aggregate(jsModules: _*)
 
 lazy val core = libraryCrossProject("core")
   .enablePlugins(
