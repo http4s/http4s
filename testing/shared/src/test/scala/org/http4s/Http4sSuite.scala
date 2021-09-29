@@ -45,9 +45,6 @@ trait Http4sSuite
   def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]) =
     registerSuiteFixture(UnsafeResourceSuiteLocalDeferredFixture(name, resource))
 
-  // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.get("CI").isDefined
-
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
