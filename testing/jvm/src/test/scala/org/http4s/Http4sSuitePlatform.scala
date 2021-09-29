@@ -23,6 +23,10 @@ import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactor
 import scala.concurrent.ExecutionContext
 
 trait Http4sSuitePlatform { this: Http4sSuite =>
+  // The default munit EC causes an IllegalArgumentException in
+  // BatchExecutor on Scala 2.12.
+  override val munitExecutionContext =
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
 
   def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
     ResourceSuiteLocalFixture(name, resource))
