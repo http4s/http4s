@@ -192,8 +192,8 @@ private[server] object ServerHelpers {
     val _ = logger
     val read: Read[F] = socket
       .read(receiveBufferSize, durationToFinite(idleTimeout))
-      .adaptError {
-        case _: InterruptedByTimeoutException => EmberException.ReadTimeout()
+      .adaptError { case _: InterruptedByTimeoutException =>
+        EmberException.ReadTimeout()
       }
     Stream
       .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
