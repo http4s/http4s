@@ -136,8 +136,7 @@ private[server] object ServerHelpers {
           duration,
           Concurrent[F].defer(
             ApplicativeThrow[F].raiseError(
-              new TimeoutException(
-                s"Timed out while waiting for request headers: $duration"))
+              new TimeoutException(s"Timed out while waiting for request headers: $duration"))
           )
         ))
 
