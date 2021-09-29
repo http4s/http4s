@@ -40,7 +40,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
-  implicit val ec: ExecutionContext = munitExecutionContext
+  implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext
   val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
     IO.delay(twe.shutdown())
   })
