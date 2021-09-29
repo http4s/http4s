@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.effect.{IO, Resource}
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
@@ -26,6 +27,9 @@ trait Http4sSuitePlatform { this: Http4sSuite =>
   // BatchExecutor on Scala 2.12.
   override val munitExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
+
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
+    ResourceSuiteLocalFixture(name, resource))
 }
 
 trait Http4sSuiteCompanionPlatform {

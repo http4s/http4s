@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.effect.{IO, Resource}
+import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8
@@ -30,6 +31,8 @@ trait Http4sSuite
     with munit.ScalaCheckEffectSuite
     with Http4sSuitePlatform {
 
+  implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
+
   private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
 
   override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
@@ -39,8 +42,8 @@ trait Http4sSuite
     fixture
   }
 
-  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    UnsafeResourceSuiteLocalDeferredFixture(name, resource))
+  def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]) =
+    registerSuiteFixture(UnsafeResourceSuiteLocalDeferredFixture(name, resource))
 
   // allow flaky tests on ci
   override def munitFlakyOK = sys.env.get("CI").isDefined
