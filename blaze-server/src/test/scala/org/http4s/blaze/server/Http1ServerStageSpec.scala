@@ -38,7 +38,6 @@ import org.typelevel.ci._
 import org.typelevel.vault._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.util.Try
 
 class Http1ServerStageSpec extends Http4sSuite {
   implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext
@@ -57,10 +56,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       shutdown = dispatcherAndShutdown._2
       d = dispatcherAndShutdown._1
     }
-    override def afterAll(): Unit = {
-      Try(shutdown.unsafeRunSync())
-      ()
-    }
+    override def afterAll(): Unit =
+      shutdown.unsafeRunSync()
   }
   override def munitFixtures = List(dispatcher)
 
