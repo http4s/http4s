@@ -52,7 +52,4 @@ object EmberException {
     override def getMessage: String = s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes"
   }
 
-  final case class ReadTimeout() extends EmberException {
-    override def getMessage: String = "Timed out while waiting on socket"
-  }
 }
