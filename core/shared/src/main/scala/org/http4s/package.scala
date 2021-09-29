@@ -92,7 +92,6 @@ package object http4s extends Http4sPlatform {
       throw new UnsupportedOperationException
   }
 
-  @nowarn
   private[http4s] implicit class Fs2IoPathOps(p: fs2.io.file.Path) {
     def toNioPath: java.nio.file.Path = throw new UnsupportedOperationException
   }
@@ -103,7 +102,6 @@ package object http4s extends Http4sPlatform {
       throw new UnsupportedOperationException
   }
 
-  @nowarn
   private[http4s] implicit class Ip4sIpv4AddressOps(ip: ip4s.Ipv4Address) {
     def toInetAddress: java.net.Inet4Address = throw new UnsupportedOperationException
   }
@@ -114,12 +112,10 @@ package object http4s extends Http4sPlatform {
       throw new UnsupportedOperationException
   }
 
-  @nowarn
   private[http4s] implicit class Ip4sIpv6AddressOps(ip: ip4s.Ipv6Address) {
     def toInetAddress: java.net.Inet6Address = throw new UnsupportedOperationException
   }
 
-  @nowarn
   private[http4s] implicit class Ip4sIpAddressOps(ip: ip4s.IpAddress) {
     def toInetAddress: java.net.InetAddress = throw new UnsupportedOperationException
   }
