@@ -63,8 +63,6 @@ class BlazeServerSuite extends Http4sSuite {
     )
   }
 
-  override def afterAll(): Unit = ioRuntime.shutdown()
-
   def builder =
     BlazeServerBuilder[IO]
       .withResponseHeaderTimeout(1.second)
