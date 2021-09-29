@@ -18,9 +18,11 @@ package org.http4s.node.serverless
 
 import fs2.io.Writable
 
+import scala.annotation.nowarn
 import scala.scalajs.js
 
 @js.native
+@nowarn
 trait ServerResponse extends js.Object with Writable {
   def writeHead(
       statusCode: Int,

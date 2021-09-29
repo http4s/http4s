@@ -24,8 +24,11 @@ import scala.annotation.tailrec
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.IDN
 
+import scala.annotation.nowarn
+
 private[internal] trait ClientHelpersPlatform {
 
+  @nowarn("cat=unused")
   private[internal] def mkTLSParameters(
       address: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean): TLSParameters =

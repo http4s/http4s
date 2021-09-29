@@ -19,9 +19,7 @@ package client
 
 import cats.effect._
 import cats.syntax.all._
-import com.sun.net.httpserver._
 import fs2._
-import fs2.io._
 import java.util.Arrays
 import java.util.Locale
 import org.http4s.client.dsl.Http4sClientDsl
@@ -43,7 +41,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
         InternalServerError()
       else
         Ok()
-    case req @ (Method.GET -> path) =>
+    case _ @(Method.GET -> path) =>
       GetRoutes.getPaths.get(path.toString).getOrElse(NotFound())
     case req @ (Method.POST -> _) =>
       Ok(req.body)
@@ -192,21 +190,4 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     } yield true
   }
 
-  private def renderResponse(exchange: HttpExchange, resp: Response[IO]): IO[Unit] =
-    IO(resp.headers.foreach { h =>
-      if (h.name =!= headers.`Content-Length`.name)
-        exchange.getResponseHeaders.add(h.name.toString, h.value)
-    }) *>
-      IO.blocking {
-        // com.sun.net.httpserver warns on nocontent with a content lengt that is not -1
-        val contentLength =
-          if (resp.status.code == NoContent.code) -1L
-          else resp.contentLength.getOrElse(0L)
-        exchange.sendResponseHeaders(resp.status.code, contentLength)
-      } *>
-      resp.body
-        .through(writeOutputStream[IO](IO.pure(exchange.getResponseBody), closeAfterUse = false))
-        .compile
-        .drain
-        .guarantee(IO(exchange.close()))
 }
