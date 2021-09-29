@@ -61,7 +61,7 @@ lazy val jvmModules: List[ProjectReference] = List(
   dropwizardMetrics,
   emberCore.jvm,
   emberServer,
-  emberClient,
+  emberClient.jvm,
   blazeCore,
   blazeServer,
   blazeClient,
@@ -96,6 +96,7 @@ lazy val jsModules: List[ProjectReference] = List(
   tests.js,
   client.js,
   emberCore.js,
+  emberClient.js,
   nodeServerless,
   theDsl.js,
   jawn.js,
@@ -340,21 +341,31 @@ lazy val emberServer = libraryProject("ember-server")
     ),
     Test / parallelExecution := false,
   )
-  .dependsOn(emberCore.jvm % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
+  .dependsOn(emberCore.jvm % "compile;test->test", server % "compile;test->test", emberClient.jvm % "test->compile")
 
-lazy val emberClient = libraryProject("ember-client")
+lazy val emberClient = libraryCrossProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      keypool,
+      keypool.value,
       log4catsSlf4j,
     ),
     mimaBinaryIssueFilters := Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
     )
   )
-  .dependsOn(emberCore.jvm % "compile;test->test", client.jvm % "compile;test->test")
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      log4catsSlf4j,
+    ),
+  )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      log4catsNoop.value,
+    ),
+  )
+  .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -698,7 +709,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
   )
-  .dependsOn(emberServer, emberClient)
+  .dependsOn(emberServer, emberClient.jvm)
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))

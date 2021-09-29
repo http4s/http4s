@@ -25,7 +25,6 @@ import org.http4s.ProductId
 import org.http4s.client._
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
@@ -229,7 +228,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     }
 }
 
-object EmberClientBuilder {
+object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
 
   def default[F[_]: Async] =
     new EmberClientBuilder[F](
@@ -238,7 +237,7 @@ object EmberClientBuilder {
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
       idleTimeInPool = Defaults.idleTimeInPool,
-      logger = Slf4jLogger.getLogger[F],
+      logger = defaultLogger[F],
       chunkSize = Defaults.chunkSize,
       maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
       idleConnectionTime = Defaults.idleConnectionTime,
