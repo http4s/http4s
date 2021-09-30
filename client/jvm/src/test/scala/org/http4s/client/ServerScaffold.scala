@@ -31,6 +31,8 @@ import org.http4s
 import scala.collection.JavaConverters._
 import cats.effect.std.Dispatcher
 
+import scala.annotation.nowarn
+
 object ServerScaffold {
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
       F: Async[F]): Resource[F, ServerScaffold] =
@@ -44,7 +46,7 @@ object ServerScaffold {
               vs.asScala.toList.map { v =>
                 (k -> v): http4s.Header.ToRaw
               }
-            })
+            }): @nowarn("cat=deprecation")
           body = fs2.io.readInputStream(exchange.getRequestBody().pure[F], 8192)
           request = http4s.Request(method, uri, headers = headers, body = body)
           response <- routes.run(request).value

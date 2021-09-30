@@ -19,10 +19,7 @@ package client
 
 import cats.effect._
 import cats.syntax.all._
-import com.sun.net.httpserver._
 import fs2._
-import fs2.io._
-import java.io.PrintWriter
 import java.util.Arrays
 import java.util.Locale
 import org.http4s.client.dsl.Http4sClientDsl
@@ -38,42 +35,17 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
 
   def clientResource: Resource[IO, Client[IO]]
 
-  val testHandler: HttpHandler = exchange =>
-    (exchange.getRequestMethod match {
-      case "GET" =>
-        val path = exchange.getRequestURI.getPath
-        path match {
-          case "/request-splitting" =>
-            val status =
-              if (exchange.getRequestHeaders.containsKey("Evil"))
-                Status.InternalServerError.code
-              else
-                Status.Ok.code
-            IO.blocking {
-              exchange.sendResponseHeaders(status, -1L)
-              exchange.close()
-            }
-          case _ =>
-            GetRoutes.getPaths.get(path) match {
-              case Some(r) =>
-                r.flatMap(renderResponse(exchange, _))
-              case None =>
-                IO.blocking {
-                  exchange.sendResponseHeaders(404, -1L)
-                  exchange.close()
-                }
-            }
-        }
-      case "POST" =>
-        IO.blocking {
-          exchange.sendResponseHeaders(200, 0L)
-          val s = scala.io.Source.fromInputStream(exchange.getRequestBody).mkString
-          val out = new PrintWriter(exchange.getResponseBody())
-          out.print(s)
-          out.flush()
-          exchange.close()
-        }
-    }).start.unsafeRunAndForget()
+  val testHandler = HttpRoutes.of[IO] {
+    case req @ (Method.GET -> Root / "request-splitting") =>
+      if (req.headers.get(ci"Evil").isDefined)
+        InternalServerError()
+      else
+        Ok()
+    case _ @(Method.GET -> path) =>
+      GetRoutes.getPaths.get(path.toString).getOrElse(NotFound())
+    case req @ (Method.POST -> _) =>
+      Ok(req.body)
+  }
 
   val server = resourceSuiteFixture("server", ServerScaffold[IO](1, false, testHandler))
   val client = resourceSuiteFixture("client", clientResource)
@@ -200,21 +172,4 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     } yield true
   }
 
-  private def renderResponse(exchange: HttpExchange, resp: Response[IO]): IO[Unit] =
-    IO(resp.headers.foreach { h =>
-      if (h.name =!= headers.`Content-Length`.name)
-        exchange.getResponseHeaders.add(h.name.toString, h.value)
-    }) *>
-      IO.blocking {
-        // com.sun.net.httpserver warns on nocontent with a content lengt that is not -1
-        val contentLength =
-          if (resp.status.code == NoContent.code) -1L
-          else resp.contentLength.getOrElse(0L)
-        exchange.sendResponseHeaders(resp.status.code, contentLength)
-      } *>
-      resp.body
-        .through(writeOutputStream[IO](IO.pure(exchange.getResponseBody), closeAfterUse = false))
-        .compile
-        .drain
-        .guarantee(IO(exchange.close()))
 }

@@ -27,8 +27,8 @@ class EmberClientSuite extends ClientRouteTestBattery("EmberClient") with Http4s
 
   override def clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
 
-  override def munitTests =
+  override def munitTests() =
     // TODO https://github.com/http4s/http4s/issues/5256
-    super.munitTests.filterNot(_.name.endsWith("Execute GET /no-content") && Platform.isJvm)
+    super.munitTests().filterNot(_.name.endsWith("Execute GET /no-content") && Platform.isJvm)
 
 }

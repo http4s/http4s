@@ -16,7 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IDN
