@@ -19,10 +19,8 @@ package client
 package middleware
 
 import cats.effect._
-import fs2.io.readInputStream
 import org.http4s.syntax.all._
 import org.http4s.dsl.io._
-import scala.io.Source
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
@@ -36,12 +34,9 @@ class LoggerSuite extends Http4sSuite {
       NotFound()
   }
 
-  def testResource = getClass.getResourceAsStream("/testresource.txt")
+  def body: EntityBody[IO] = fs2.Stream.emits("This is a test resource.".getBytes()).covary
 
-  def body: EntityBody[IO] =
-    readInputStream[IO](IO.pure(testResource), 4096)
-
-  val expectedBody: String = Source.fromInputStream(testResource).mkString
+  val expectedBody: String = "This is a test resource."
 
   val responseLoggerClient =
     ResponseLogger(true, true)(Client.fromHttpApp(testApp))

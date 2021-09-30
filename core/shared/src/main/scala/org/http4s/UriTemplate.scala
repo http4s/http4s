@@ -116,7 +116,9 @@ object UriTemplate {
   def isUnreserved(s: String): Boolean = s.forall(unreserved.contains)
 
   def isUnreservedOrEncoded(s: String): Boolean =
-    UrlEncoder.encode(s).forall(c => unreserved.contains(c) || c == '%')
+    Uri
+      .encode(s, spaceIsPlus = true, toSkip = unreserved)
+      .forall(c => unreserved.contains(c) || c == '%')
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()

@@ -16,13 +16,64 @@
 
 package org.http4s.client
 
-import cats.effect.{Resource, Sync}
+import cats.syntax.all._
+import cats.effect.syntax.all._
+import cats.effect.{Async, Resource, Sync}
 import com.sun.net.httpserver._
 import java.net.InetSocketAddress
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
+import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.IpAddress
+import org.http4s.HttpRoutes
+import org.http4s.Method
+import org.http4s
+import scala.collection.JavaConverters._
+import cats.effect.std.Dispatcher
 
 object ServerScaffold {
+  def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
+      F: Async[F]): Resource[F, ServerScaffold] =
+    Dispatcher[F].flatMap { dispatcher =>
+      val handler: HttpHandler = { exchange =>
+        val run = for {
+          method <- Method.fromString(exchange.getRequestMethod()).liftTo[F]
+          uri <- http4s.Uri.fromString(exchange.getRequestURI().toString()).liftTo[F]
+          headers = http4s.Headers(
+            exchange.getRequestHeaders().asScala.toList.flatMap { case (k, vs) =>
+              vs.asScala.toList.map { v =>
+                (k -> v): http4s.Header.ToRaw
+              }
+            })
+          body = fs2.io.readInputStream(exchange.getRequestBody().pure[F], 8192)
+          request = http4s.Request(method, uri, headers = headers, body = body)
+          response <- routes.run(request).value
+          _ <- response.fold(F.unit) { res =>
+            F.delay {
+              res.headers.foreach { h =>
+                if (h.name =!= http4s.headers.`Content-Length`.name)
+                  exchange.getResponseHeaders.add(h.name.toString, h.value)
+              }
+            } *> F.blocking {
+              // com.sun.net.httpserver warns on nocontent with a content lengt that is not -1
+              val contentLength =
+                if (res.status.code == http4s.Status.NoContent.code) -1L
+                else res.contentLength.getOrElse(0L)
+              exchange.sendResponseHeaders(res.status.code, contentLength)
+            } *>
+              res.body
+                .through(fs2.io
+                  .writeOutputStream[F](exchange.getResponseBody.pure[F]))
+                .compile
+                .drain
+          }
+        } yield ()
+        dispatcher.unsafeRunAndForget(run.guarantee(F.blocking(exchange.close())))
+      }
+
+      apply(num, secure, handler)
+    }
+
   def apply[F[_]](num: Int, secure: Boolean, testHandler: HttpHandler)(implicit
       F: Sync[F]): Resource[F, ServerScaffold] =
     Resource.make(F.delay {
@@ -33,7 +84,7 @@ object ServerScaffold {
 
 class ServerScaffold private (num: Int, secure: Boolean) {
   private var servers = Vector.empty[HttpServer]
-  var addresses = Vector.empty[InetSocketAddress]
+  var addresses = Vector.empty[SocketAddress[IpAddress]]
 
   def startServers(testHandler: HttpHandler): this.type = {
     val res = (0 until num).map { _ =>
@@ -69,7 +120,7 @@ class ServerScaffold private (num: Int, secure: Boolean) {
     }.toVector
 
     servers = res.map(_._2)
-    addresses = res.map(_._1)
+    addresses = res.map(_._1).map(SocketAddress.fromInetSocketAddress)
 
     this
   }

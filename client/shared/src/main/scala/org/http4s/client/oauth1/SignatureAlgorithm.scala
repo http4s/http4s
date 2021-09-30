@@ -16,7 +16,6 @@
 
 package org.http4s.client.oauth1
 
-import org.http4s.crypto.Crypto
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.Hmac
 import cats.MonadThrow
@@ -99,10 +98,8 @@ trait SignatureAlgorithm {
   */
 object HmacSha1 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA1`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] = {
-    implicit val hmac: Hmac[F] = Crypto[F].hmac
+  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
     generateHMAC(input, HmacAlgorithm.SHA1, secretKey)
-  }
 }
 
 /** An implementation of the `HMAC-SHA256` oauth signature method.
@@ -111,10 +108,8 @@ object HmacSha1 extends SignatureAlgorithm {
   */
 object HmacSha256 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA256`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] = {
-    implicit val hmac: Hmac[F] = Crypto[F].hmac
+  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
     generateHMAC(input, HmacAlgorithm.SHA256, secretKey)
-  }
 }
 
 /** An implementation of the `HMAC-SHA512` oauth signature method.
@@ -124,8 +119,6 @@ object HmacSha256 extends SignatureAlgorithm {
   */
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] = {
-    implicit val hmac: Hmac[F] = Crypto[F].hmac
+  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
     generateHMAC(input, HmacAlgorithm.SHA512, secretKey)
-  }
 }

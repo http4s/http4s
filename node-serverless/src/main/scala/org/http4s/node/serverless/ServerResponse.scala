@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2021 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.node.serverless
 
-import scala.scalajs.js.URIUtils
+import fs2.io.Writable
 
-private[http4s] object UrlEncoder {
-  def encode(url: String): String = URIUtils.encodeURI(url)
+import scala.scalajs.js
+
+@js.native
+trait ServerResponse extends js.Object with Writable {
+  def writeHead(
+      statusCode: Int,
+      statusMessage: String,
+      headers: js.Dictionary[String]): ServerResponse = js.native
 }

@@ -57,7 +57,7 @@ lazy val jvmModules: List[ProjectReference] = List(
   tests.jvm,
   server,
   prometheusMetrics,
-  client,
+  client.jvm,
   dropwizardMetrics,
   emberCore.jvm,
   emberServer,
@@ -94,7 +94,9 @@ lazy val jsModules: List[ProjectReference] = List(
   laws.js,
   testing.js,
   tests.js,
+  client.js,
   emberCore.js,
+  nodeServerless,
   theDsl.js,
   jawn.js,
   boopickle.js,
@@ -251,10 +253,10 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     theDsl.jvm % "test->compile",
     testing.jvm % "test->test",
     server % "test->compile",
-    client % "test->compile"
+    client.jvm % "test->compile"
   )
 
-lazy val client = libraryProject("client")
+lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
@@ -265,10 +267,11 @@ lazy val client = libraryProject("client")
     )
   )
   .dependsOn(
-    core.jvm,
-    testing.jvm % "test->test",
-    server % "test->compile",
-    theDsl.jvm % "test->compile")
+    core,
+    testing % "test->test",
+    theDsl % "test->compile")
+  .jvmConfigure(_.dependsOn(server % Test))
+  .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
@@ -282,7 +285,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     core.jvm % "compile->compile",
     testing.jvm % "test->test",
     theDsl.jvm % "test->compile",
-    client % "test->compile",
+    client.jvm % "test->compile",
     server % "test->compile"
   )
 
@@ -351,7 +354,7 @@ lazy val emberClient = libraryProject("ember-client")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
     )
   )
-  .dependsOn(emberCore.jvm % "compile;test->test", client % "compile;test->test")
+  .dependsOn(emberCore.jvm % "compile;test->test", client.jvm % "compile;test->test")
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -389,7 +392,7 @@ lazy val blazeClient = libraryProject("blaze-client")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this")
     ),
   )
-  .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
@@ -404,7 +407,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     ),
     Test / parallelExecution := false
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -415,7 +418,16 @@ lazy val jettyClient = libraryProject("jetty-client")
       jettyUtil,
     ),
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
+
+lazy val nodeServerless = libraryProject("node-serverless")
+  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
+  .settings(
+    description := "Node.js serverless wrapper for http4s apps",
+    startYear := Some(2021),
+    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
+  )
+  .dependsOn(core.js)
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
@@ -426,7 +438,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
       okio,
     ),
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -629,7 +641,7 @@ lazy val docs = http4sProject("docs")
       )
     }
   )
-  .dependsOn(client, core.jvm, theDsl.jvm, blazeServer, blazeClient, circe.jvm, dropwizardMetrics, prometheusMetrics)
+  .dependsOn(client.jvm, core.jvm, theDsl.jvm, blazeServer, blazeClient, circe.jvm, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)

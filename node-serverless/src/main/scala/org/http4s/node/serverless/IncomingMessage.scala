@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2021 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.node.serverless
 
-import java.net.URLEncoder
-import java.nio.charset
+import fs2.io.Readable
 
-private[http4s] object UrlEncoder {
-  private[this] val utf8 = charset.Charset.forName("UTF-8")
+import scala.scalajs.js
 
-  def encode(url: String): String = URLEncoder.encode(url, utf8)
+@js.native
+trait IncomingMessage extends js.Object with Readable {
+  def method: String = js.native
+  def url: String = js.native
+  def headers: js.Dictionary[String] = js.native
 }
