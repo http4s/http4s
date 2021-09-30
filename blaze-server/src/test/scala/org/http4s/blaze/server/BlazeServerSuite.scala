@@ -36,7 +36,7 @@ import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
 
-  override implicit val ioRuntime: IORuntime = {
+  override implicit lazy val munitIoRuntime: IORuntime = {
     val TestScheduler: ScheduledExecutorService = {
       val s =
         new ScheduledThreadPoolExecutor(
@@ -63,7 +63,7 @@ class BlazeServerSuite extends Http4sSuite {
     )
   }
 
-  override def afterAll(): Unit = ioRuntime.shutdown()
+  override def afterAll(): Unit = munitIoRuntime.shutdown()
 
   def builder =
     BlazeServerBuilder[IO]
