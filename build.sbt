@@ -10,7 +10,7 @@ ThisBuild / crossScalaVersions := Seq(scala_212, scala_213)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
 ThisBuild / baseVersion := "0.21"
 ThisBuild / publishGithubUser := "rossabaker"
-ThisBuild / publishFullName   := "Ross A. Baker"
+ThisBuild / publishFullName := "Ross A. Baker"
 
 enablePlugins(SonatypeCiReleasePlugin)
 
@@ -58,23 +58,24 @@ lazy val modules: List[ProjectReference] = List(
   scalafixInput,
   scalafixOutput,
   scalafixRules,
-  scalafixTests,
+  scalafixTests
 )
 
-lazy val root = project.in(file("."))
+lazy val root = project
+  .in(file("."))
   .enablePlugins(NoPublishPlugin)
   .settings(
     // Root project
     name := "http4s",
     description := "A minimal, Scala-idiomatic library for HTTP",
-    startYear := Some(2013),
+    startYear := Some(2013)
   )
   .aggregate(modules: _*)
 
 lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
-    MimeLoaderPlugin,
+    MimeLoaderPlugin
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -96,13 +97,14 @@ lazy val core = libraryProject("core")
       scodecBits,
       slf4jApi, // residual dependency from macros
       vault,
+      caseInsensitive % Optional
     ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
     mimaBinaryIssueFilters ++= Seq(
       // These were private[this], surfaced by 2.13.4's exhaustiveness checker
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
-    ),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$")
+    )
   )
 
 lazy val laws = libraryProject("laws")
@@ -113,8 +115,8 @@ lazy val laws = libraryProject("laws")
       catsEffectLaws,
       catsLaws,
       disciplineCore,
-      scalacheck,
-    ),
+      scalacheck
+    )
   )
   .dependsOn(core)
 
@@ -130,12 +132,20 @@ lazy val testing = libraryProject("testing")
       munitCatsEffect,
       munitDiscipline,
       scalacheckEffect,
-      scalacheckEffectMunit,
+      scalacheckEffectMunit
     ),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
+    unusedCompileDependenciesFilter -= moduleFilter(
+      organization = "org.typelevel",
+      name = "discipline-munit"),
+    unusedCompileDependenciesFilter -= moduleFilter(
+      organization = "org.typelevel",
+      name = "munit-cats-effect-2"),
+    unusedCompileDependenciesFilter -= moduleFilter(
+      organization = "org.typelevel",
+      name = "scalacheck-effect"),
+    unusedCompileDependenciesFilter -= moduleFilter(
+      organization = "org.typelevel",
+      name = "scalacheck-effect-munit")
   )
   .dependsOn(laws)
 
@@ -145,19 +155,20 @@ lazy val tests = libraryProject("tests")
   .settings(
     description := "Tests for core project",
     startYear := Some(2013),
+    libraryDependencies += caseInsensitive
   )
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",
-    startYear := Some(2014),
+    startYear := Some(2014)
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
-    buildInfoPackage := "org.http4s.server.test",
+    buildInfoPackage := "org.http4s.server.test"
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
@@ -168,8 +179,8 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusCommon,
-      prometheusHotspot,
-    ),
+      prometheusHotspot
+    )
   )
   .dependsOn(
     core % "compile->compile",
@@ -184,14 +195,10 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      jettyServlet % Test,
+      jettyServlet % Test
     )
   )
-  .dependsOn(
-    core,
-    testing % "test->test",
-    server % "test->compile",
-    theDsl % "test->compile")
+  .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
@@ -199,7 +206,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     startYear := Some(2018),
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
-      dropwizardMetricsJson,
+      dropwizardMetricsJson
     ))
   .dependsOn(
     core % "compile->compile",
@@ -215,18 +222,26 @@ lazy val emberCore = libraryProject("ember-core")
     startYear := Some(2019),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
-      log4catsTesting % Test,
+      log4catsTesting % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[Problem]("org.http4s.ember.core.Parser*"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Shared.chunk2ByteVector"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Util.readWithTimeout"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.ChunkedEncoding.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.ChunkedEncoding.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Encoder.reqToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Encoder.reqToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Encoder.respToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Encoder.respToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Shared.chunk2ByteVector"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Util.readWithTimeout")
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -236,34 +251,59 @@ lazy val emberServer = libraryProject("ember-server")
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      log4catsSlf4j,
+      log4catsSlf4j
     ),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.EmberServerBuilder.this"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.runApp"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$10"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$13"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$5"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$6"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$7"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$8"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$9"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$9"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$13"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$7"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.EmberServerBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.runApp"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.runApp"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$10"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$13"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$5"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$6"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$7"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$8"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$9"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$9"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$11"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$13"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.server$default$7")
     )
   )
-  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
+  .dependsOn(
+    emberCore % "compile;test->test",
+    server % "compile;test->test",
+    emberClient % "test->compile")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(
@@ -271,19 +311,29 @@ lazy val emberClient = libraryProject("ember-client")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       keypool,
-      log4catsSlf4j,
+      log4catsSlf4j
     ),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.requestKeyToSocketWithKey"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.requestToSocketWithKey"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.requestKeyToSocketWithKey"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.requestToSocketWithKey"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.postProcessResponse"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#Response.parser")
     )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
@@ -293,7 +343,7 @@ lazy val blazeCore = libraryProject("blaze-core")
     description := "Base library for binding blaze to http4s clients and servers",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      blazeHttp,
+      blazeHttp
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -304,7 +354,8 @@ lazy val blazeServer = libraryProject("blaze-server")
     startYear := Some(2014),
     mimaBinaryIssueFilters ++= Seq(
       // privat constructor with new parameter
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.blaze.BlazeServerBuilder.this")
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.server.blaze.BlazeServerBuilder.this")
     )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
@@ -314,25 +365,41 @@ lazy val blazeClient = libraryProject("blaze-client")
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.canEqual"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productArity"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productElement"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productElementName"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productElementNames"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productIterator"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.productPrefix"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.reset"),
-      ProblemFilters.exclude[FinalMethodProblem]("org.http4s.client.blaze.Http1Connection#Idle.toString"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.blaze.Http1Connection$Running$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.canEqual"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.productArity"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.productElement"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.productElementName"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.productElementNames"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.productIterator"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.productPrefix"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection.reset"),
+      ProblemFilters.exclude[FinalMethodProblem](
+        "org.http4s.client.blaze.Http1Connection#Idle.toString"),
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.client.blaze.Http1Connection$Running$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.client.blaze.Http1Connection$Idle$"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Support.this"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.this"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeClient.makeClient"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.blaze.ReadBufferStage"),
-    ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Support.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.BlazeConnection.runRequest"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.client.blaze.BlazeConnection.runRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.BlazeClient.makeClient"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.blaze.Http1Connection.runRequest"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.blaze.ReadBufferStage")
+    )
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
@@ -345,7 +412,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
       fs2ReactiveStreams,
       nettyBuffer,
       nettyCodecHttp,
-      reactiveStreams,
+      reactiveStreams
     ),
     Test / parallelExecution := false
   )
@@ -358,8 +425,8 @@ lazy val jettyClient = libraryProject("jetty-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
-      jettyUtil,
-    ),
+      jettyUtil
+    )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
@@ -369,8 +436,8 @@ lazy val okHttpClient = libraryProject("okhttp-client")
     startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp,
-      okio,
-    ),
+      okio
+    )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
@@ -383,7 +450,7 @@ lazy val servlet = libraryProject("servlet")
       jettyServer % Test,
       jettyServlet % Test,
       Http4sPlugin.asyncHttpClient % Test
-    ),
+    )
   )
   .dependsOn(server % "compile;test->test")
 
@@ -395,7 +462,7 @@ lazy val jetty = libraryProject("jetty")
       jettyHttp2Server,
       jettyServer,
       jettyServlet,
-      jettyUtil,
+      jettyUtil
     )
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
@@ -407,7 +474,7 @@ lazy val tomcat = libraryProject("tomcat")
     libraryDependencies ++= Seq(
       tomcatCatalina,
       tomcatCoyote,
-      tomcatUtilScan,
+      tomcatUtilScan
     )
   )
   .dependsOn(servlet % "compile;test->test")
@@ -416,7 +483,7 @@ lazy val tomcat = libraryProject("tomcat")
 lazy val theDsl = libraryProject("dsl")
   .settings(
     description := "Simple DSL for writing http4s services",
-    startYear := Some(2013),
+    startYear := Some(2013)
   )
   .dependsOn(core, testing % "test->test")
 
@@ -426,7 +493,7 @@ lazy val jawn = libraryProject("jawn")
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       jawnFs2,
-      jawnParser,
+      jawnParser
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -436,7 +503,7 @@ lazy val argonaut = libraryProject("argonaut")
     description := "Provides Argonaut codecs for http4s",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      Http4sPlugin.argonaut,
+      Http4sPlugin.argonaut
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -446,7 +513,7 @@ lazy val boopickle = libraryProject("boopickle")
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle,
+      Http4sPlugin.boopickle
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -458,7 +525,7 @@ lazy val circe = libraryProject("circe")
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
-      circeTesting % Test,
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -469,8 +536,8 @@ lazy val json4s = libraryProject("json4s")
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       jawnJson4s,
-      json4sCore,
-    ),
+      json4sCore
+    )
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -479,7 +546,7 @@ lazy val json4sNative = libraryProject("json4s-native")
     description := "Provides json4s-native codecs for http4s",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      Http4sPlugin.json4sNative,
+      Http4sPlugin.json4sNative
     )
   )
   .dependsOn(json4s % "compile;test->test")
@@ -489,7 +556,7 @@ lazy val json4sJackson = libraryProject("json4s-jackson")
     description := "Provides json4s-jackson codecs for http4s",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      Http4sPlugin.json4sJackson,
+      Http4sPlugin.json4sJackson
     )
   )
   .dependsOn(json4s % "compile;test->test")
@@ -500,8 +567,8 @@ lazy val playJson = libraryProject("play-json")
     startYear := Some(2018),
     libraryDependencies ++= Seq(
       jawnPlay,
-      Http4sPlugin.playJson,
-    ),
+      Http4sPlugin.playJson
+    )
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -510,8 +577,8 @@ lazy val scalaXml = libraryProject("scala-xml")
     description := "Provides scala-xml codecs for http4s",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      Http4sPlugin.scalaXml,
-    ),
+      Http4sPlugin.scalaXml
+    )
   )
   .dependsOn(core, testing % "test->test")
 
@@ -529,7 +596,7 @@ lazy val scalatags = http4sProject("scalatags")
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      scalatagsApi,
+      scalatagsApi
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -542,7 +609,7 @@ lazy val bench = http4sProject("bench")
     startYear := Some(2015),
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {}
   )
   .dependsOn(core, circe)
 
@@ -605,11 +672,20 @@ lazy val docs = http4sProject("docs")
     },
     apiMappings ++= {
       ScaladocApiMapping.mappings(
-        (ScalaUnidoc / unidoc / unidocAllClasspaths).value, scalaBinaryVersion.value
+        (ScalaUnidoc / unidoc / unidocAllClasspaths).value,
+        scalaBinaryVersion.value
       )
     }
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
+  .dependsOn(
+    client,
+    core,
+    theDsl,
+    blazeServer,
+    blazeClient,
+    circe,
+    dropwizardMetrics,
+    prometheusMetrics)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
@@ -624,7 +700,7 @@ lazy val website = http4sProject("website")
     makeSite := makeSite.dependsOn(http4sBuildData).value,
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    ghpagesCleanSite / excludeFilter  :=
+    ghpagesCleanSite / excludeFilter :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
         def accept(f: File) =
@@ -642,7 +718,7 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime
     ),
-    TwirlKeys.templateImports := Nil,
+    TwirlKeys.templateImports := Nil
   )
   .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
@@ -654,8 +730,8 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     startYear := Some(2013),
     fork := true,
     libraryDependencies ++= Seq(
-      circeGeneric,
-    ),
+      circeGeneric
+    )
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -664,7 +740,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
   .settings(
     description := "Examples of http4s server and clients on blaze",
     startYear := Some(2020),
-    fork := true,
+    fork := true
   )
   .dependsOn(emberServer, emberClient)
 
@@ -677,7 +753,7 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / packageName := "http4s/blaze-server",
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
-    dockerExposedPorts := List(8080),
+    dockerExposedPorts := List(8080)
   )
   .dependsOn(blazeServer, theDsl)
 
@@ -687,7 +763,7 @@ lazy val examplesJetty = exampleProject("examples-jetty")
     description := "Example of http4s server on Jetty",
     startYear := Some(2014),
     fork := true,
-    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
+    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample")
   )
   .dependsOn(jetty)
 
@@ -697,7 +773,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
     description := "Example of http4s server on Tomcat",
     startYear := Some(2014),
     fork := true,
-    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
+    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)
 
@@ -709,7 +785,7 @@ lazy val examplesWar = exampleProject("examples-war")
     startYear := Some(2014),
     fork := true,
     libraryDependencies += javaxServletApi % Provided,
-    Jetty / containerLibs := List(jettyRunner),
+    Jetty / containerLibs := List(jettyRunner)
   )
   .dependsOn(servlet)
 
@@ -726,7 +802,7 @@ lazy val scalafixSettings: Seq[Setting[_]] = Seq(
       "Sergey Torgashov",
       "satorg@gmail.com",
       url("https://github.com/satorg")
-    ),
+    )
   ),
   addCompilerPlugin(scalafixSemanticdb),
   scalacOptions += "-Yrangepos",
@@ -739,7 +815,7 @@ lazy val scalafixRules = project
   .settings(scalafixSettings)
   .settings(
     moduleName := "http4s-scalafix",
-    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafix,
+    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafix
   )
   .enablePlugins(AutomateHeaderPlugin)
 
@@ -752,13 +828,13 @@ lazy val scalafixInput = project
       "http4s-blaze-server",
       "http4s-client",
       "http4s-core",
-      "http4s-dsl",
+      "http4s-dsl"
     ).map("org.http4s" %% _ % "0.21.22"),
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
     scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) },
-    headerSources / excludeFilter := { _ => true },
+    headerSources / excludeFilter := { _ => true }
   )
   // Syntax matters as much as semantics here.
   .enablePlugins(NoPublishPlugin)
@@ -770,7 +846,7 @@ lazy val scalafixOutput = project
   .settings(
     compile / skip := true,
     Compile / doc / sources := Nil,
-    headerSources / excludeFilter := { _ => true },
+    headerSources / excludeFilter := { _ => true }
   )
   // Auto-formatting prevents the tests from passing
   .enablePlugins(NoPublishPlugin)
@@ -782,7 +858,8 @@ lazy val scalafixTests = project
   .settings(scalafixSettings)
   .settings(
     publish / skip := true,
-    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafix % Test cross CrossVersion.full,
+    libraryDependencies += ("ch.epfl.scala" % "scalafix-testkit" % V.scalafix % Test).cross(
+      CrossVersion.full),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -790,7 +867,7 @@ lazy val scalafixTests = project
     scalafixTestkitInputSourceDirectories :=
       (scalafixInput / Compile / sourceDirectories).value,
     scalafixTestkitInputClasspath :=
-      (scalafixInput / Compile / fullClasspath).value,
+      (scalafixInput / Compile / fullClasspath).value
   )
   .dependsOn(scalafixRules)
   .enablePlugins(NoPublishPlugin)
@@ -830,7 +907,7 @@ lazy val commonSettings = Seq(
     specs2MatcherExtra,
     specs2Scalacheck
   ).map(_ % Test),
-  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
+  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api"))
 )
 
 def initCommands(additionalImports: String*) =

@@ -18,6 +18,7 @@ package org.http4s.util
 
 import cats.{Monoid, Order, Show}
 import org.http4s.internal.{hashLower => ciHash}
+import org.typelevel.ci.CIString
 
 /** A String wrapper such that two strings `x` and `y` are equal if
   * `x.value.equalsIgnoreCase(y.value)`
@@ -65,6 +66,8 @@ object CaseInsensitiveString extends CaseInsensitiveStringInstances {
 
   def apply(cs: CharSequence): CaseInsensitiveString =
     new CaseInsensitiveString(cs.toString)
+
+  implicit def fromCIString(ciString: CIString): CaseInsensitiveString = apply(ciString.toString)
 }
 
 private[http4s] sealed trait CaseInsensitiveStringInstances {
