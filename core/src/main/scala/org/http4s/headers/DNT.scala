@@ -33,9 +33,9 @@ object DNT {
    */
   private[http4s] val parser: Parser[DNT] = {
     val nullParser = string("null").as(NoPreference)
-    val falseParser = char('0').as(AllowTracking)
-    val trueParser = char('1').as(DisallowTracking)
-    (falseParser | trueParser | nullParser)
+    val allowTrackingParser = char('0').as(AllowTracking)
+    val disallowTrackingParser = char('1').as(DisallowTracking)
+    (allowTrackingParser | disallowTrackingParser | nullParser)
   }
 
   def parse(s: String): ParseResult[DNT] =

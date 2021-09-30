@@ -27,11 +27,11 @@ class DNTSuite extends HeaderLaws {
     assertEquals(DNT.parser.parseAll("null"), DNT.NoPreference.asRight)
   }
 
-  test("parsing 1 into AllowTracking") {
-    assertEquals(DNT.parser.parseAll("1"), DNT.AllowTracking.asRight)
+  test("parsing 1 into DisallowTracking") {
+    assertEquals(DNT.parser.parseAll("1"), DNT.DisallowTracking.asRight)
   }
 
-  test("parsing 0 into DisallowTracking") {
-    assertEquals(DNT.parser.parseAll("0"), DNT.DisallowTracking.asRight)
+  test("parsing 0 into AllowTracking") {
+    assertEquals(DNT.parser.parseAll("0"), DNT.AllowTracking.asRight)
   }
 }
