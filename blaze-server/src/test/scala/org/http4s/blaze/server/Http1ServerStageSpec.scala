@@ -36,6 +36,7 @@ import org.http4s.websocket.WebSocketContext
 import org.http4s.{headers => H}
 import org.typelevel.ci._
 import org.typelevel.vault._
+import scala.annotation.nowarn
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -538,6 +539,7 @@ class Http1ServerStageSpec extends Http4sSuite {
 
   fixture.test("Prevent response splitting attacks on status reason phrase") { tw =>
     val rawReq = "GET /?reason=%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
+    @nowarn("cat=deprecation")
     val head = runRequest(
       tw,
       List(rawReq),

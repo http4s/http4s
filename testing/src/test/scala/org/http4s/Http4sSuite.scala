@@ -29,13 +29,6 @@ import scala.concurrent.ExecutionContext
 /** Common stack for http4s' munit based tests
   */
 trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
-  // The default munit EC causes an IllegalArgumentException in
-  // BatchExecutor on Scala 2.12.
-  override val munitExecutionContext =
-    ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
-
-  override implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
-
   private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
 
   override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
