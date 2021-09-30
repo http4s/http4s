@@ -22,8 +22,8 @@ import org.scalacheck.Arbitrary
 import cats.syntax.either._
 
 class DNTSuite extends HeaderLaws {
-  implicit val dntGen = Gen.option(Gen.oneOf(true, false)).map(DNT(_))
-  implicit val arbDnt = Arbitrary[DNT](dntGen)
+  val dntGen = Gen.option(Gen.oneOf(true, false)).map(DNT(_))
+  implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
   checkAll("DNT", headerLaws[DNT])
 
   test("parsing null into None") {
