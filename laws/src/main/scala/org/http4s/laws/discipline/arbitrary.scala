@@ -1027,4 +1027,6 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       unsanitized
     )
   }
+  val dntGen = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
+  implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
 }
