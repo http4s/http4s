@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import cats.syntax.either._
 
 class DNTSuite extends HeaderLaws {
