@@ -17,7 +17,8 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
-import org.http4s.laws.discipline.ArbitraryInstances._
+import cats.syntax.all._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
 
@@ -30,17 +31,9 @@ class HttpVersionSuite extends Http4sSuite {
 
   checkAll("HttpVersion", BoundedEnumerableTests[HttpVersion].boundedEnumerable)
 
-  test("sort by descending major version") {
+  test("sorts by (major, minor)") {
     forAll { (x: HttpVersion, y: HttpVersion) =>
-      x.major > y.major ==> (x > y)
-    }
-  }
-
-  test("sort by descending minor version if major versions equal") {
-    forAll(choose(0, 9), choose(0, 9), choose(0, 9)) { (major, xMinor, yMinor) =>
-      val x = HttpVersion.fromVersion(major, xMinor).yolo
-      val y = HttpVersion.fromVersion(major, yMinor).yolo
-      (xMinor > yMinor) ==> (x > y)
+      assertEquals(x.compare(y), (x.major, x.minor).compare((y.major, y.minor)))
     }
   }
 

@@ -122,8 +122,10 @@ private[client] object ClientHelpers {
           finiteDuration.fold(parse)(duration =>
             parse.timeoutTo(
               duration,
-              ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
-                s"Timed Out on EmberClient Header Receive Timeout: $duration"))))
+              Concurrent[F].defer(
+                ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
+                  s"Timed Out on EmberClient Header Receive Timeout: $duration")))
+            ))
         }
 
     for {
@@ -215,7 +217,7 @@ private[client] object ClientHelpers {
     def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
       result match {
         case Right(_) => false
-        case Left(EmberException.EmptyStream()) => true
+        case Left(_: ClosedChannelException) => true
         case _ => false
       }
   }

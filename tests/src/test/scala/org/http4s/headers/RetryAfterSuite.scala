@@ -19,7 +19,7 @@ package headers
 
 import java.time.{ZoneId, ZonedDateTime}
 import org.http4s.syntax.header._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import scala.concurrent.duration._
 
 class RetryAfterSuite extends HeaderLaws {
