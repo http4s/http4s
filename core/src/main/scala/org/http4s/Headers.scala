@@ -155,7 +155,6 @@ object Headers {
   def of(headers: Header*): Headers =
     Headers(headers.toList)
 
-  @deprecated("Use Headers.of", "0.20.0")
   def apply(headers: Header*): Headers =
     of(headers: _*)
 
