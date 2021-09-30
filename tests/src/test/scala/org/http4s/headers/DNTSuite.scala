@@ -17,24 +17,21 @@
 package org.http4s
 package headers
 
-import org.scalacheck.Gen
-import org.scalacheck.Arbitrary
+import org.http4s.laws.discipline.ArbitraryInstances._
 import cats.syntax.either._
 
 class DNTSuite extends HeaderLaws {
-  val dntGen = Gen.option(Gen.oneOf(true, false)).map(DNT(_))
-  implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
   checkAll("DNT", headerLaws[DNT])
 
-  test("parsing null into None") {
-    assertEquals(DNT.parser.parseAll("null"), DNT(None).asRight)
+  test("parsing null into NoPreference") {
+    assertEquals(DNT.parser.parseAll("null"), DNT.NoPreference.asRight)
   }
 
-  test("parsing 1 into Some(true)") {
-    assertEquals(DNT.parser.parseAll("1"), DNT(Some(true)).asRight)
+  test("parsing 1 into AllowTracking") {
+    assertEquals(DNT.parser.parseAll("1"), DNT.AllowTracking.asRight)
   }
 
-  test("parsing 0 into Some(false)") {
-    assertEquals(DNT.parser.parseAll("0"), DNT(Some(false)).asRight)
+  test("parsing 0 into DisallowTracking") {
+    assertEquals(DNT.parser.parseAll("0"), DNT.DisallowTracking.asRight)
   }
 }

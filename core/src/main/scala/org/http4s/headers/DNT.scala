@@ -21,37 +21,30 @@ import cats.parse.Parser
 import cats.parse.Parser.{char, string}
 import org.typelevel.ci._
 
-object DNT {
+sealed abstract class DNT(val value: String) extends Product with Serializable
 
-//Parses '0', '1', or null into Option[Boolean]
-  private val rawParser: Parser[Option[Boolean]] = {
-    val nullParser = string("null").as(None)
-    val falseParser = char('0').as(Some(false))
-    val trueParser = char('1').as(Some(true))
+object DNT {
+  case object AllowTracking extends DNT("0")
+  case object DisallowTracking extends DNT("1")
+  case object NoPreference extends DNT("null")
+
+  /*
+   * `DNT = 0 | 1 | null`
+   */
+  private[http4s] val parser: Parser[DNT] = {
+    val nullParser = string("null").as(NoPreference)
+    val falseParser = char('0').as(DisallowTracking)
+    val trueParser = char('1').as(AllowTracking)
     (falseParser | trueParser | nullParser)
   }
 
   def parse(s: String): ParseResult[DNT] =
     ParseResult.fromParser(parser, "Invalid DNT header")(s)
 
-  /*
-   * `DNT = 0 | 1 | null`
-   */
-  private[http4s] val parser: Parser[DNT] =
-    rawParser.map(DNT.apply)
-
   implicit val headerInstance: Header[DNT, Header.Single] =
     Header.create(
       ci"DNT",
-      _.renderString,
+      _.value,
       parse
     )
-}
-
-final case class DNT(value: Option[Boolean]) {
-  private def renderString = value match {
-    case Some(false) => "0"
-    case Some(true) => "1"
-    case None => "null"
-  }
 }
