@@ -12,6 +12,8 @@ ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
+ThisBuild / githubWorkflowBuildPreamble +=
+  WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v2.4.0"), name = Some("Setup NodeJS v16"), params = Map("node-version" -> "16"), cond = Some("matrix.ci == 'ciNodeJS'"))
 ThisBuild / githubWorkflowBuild := Seq(
       // todo remove once salafmt properly supports scala3
       WorkflowStep.Sbt(List("${{ matrix.ci }}", "scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
