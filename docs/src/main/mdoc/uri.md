@@ -1,8 +1,6 @@
----
-menu: main
-weight: 350
-title: URI handling
----
+
+# URI Handling
+
 
 ## Literals
 

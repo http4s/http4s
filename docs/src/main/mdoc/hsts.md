@@ -1,8 +1,8 @@
----
-menu: main
-title: HSTS
-weight: 126
----
+{%
+laika.title: HSTS
+%}
+
+# HTTP Strict Transport Security
 
 Http4s provides a [Middleware] giving support for *HTTP Strict Transport Security (HSTS)*.
 The middleware is called `HSTS` and simply adds a header to enable a HSTS security policy.

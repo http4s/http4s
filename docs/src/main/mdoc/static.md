@@ -1,8 +1,6 @@
----
-menu: main
-weight: 140
-title: Static Files
----
+
+# Static Files
+
 
 Http4s can serve static files, subject to a configuration policy. There are three
 locations that Http4s can serve static content from: the filesystem, resources
@@ -55,7 +53,7 @@ a file version. So the next time the browser requests that information, it sends
 the ETag along, and gets a 304 Not Modified back, so you don't have to send the
 data over the wire again.
 
-## Inline in a route
+## Inline in a Route
 
 For custom behaviour, `StaticFile.fromFile` can also be used directly in a route, to respond with a file:
 
@@ -71,7 +69,7 @@ val routes = HttpRoutes.of[IO] {
 }
 ```
 
-## Serving from jars
+## Serving from JARs
 
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:

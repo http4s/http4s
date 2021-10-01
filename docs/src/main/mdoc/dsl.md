@@ -1,14 +1,12 @@
----
-menu: main
-weight: 110
-title: The http4s DSL
----
+
+# The http4s DSL
 
 Recall from earlier that an `HttpRoutes[F]` is just a type alias for
 `Kleisli[OptionT[F, *], Request[F], Response[F]]`.  This provides a minimal
 foundation for declaring services and executing them on blaze or a
 servlet container.  While this foundation is composable, it is not
 highly productive.  Most service authors will seek a higher level DSL.
+
 
 ## Add the http4s-dsl to your build
 
@@ -31,7 +29,7 @@ All we need is a REPL to follow along at home:
 $ sbt console
 ```
 
-## The simplest service
+## The Simplest Service
 
 We'll need the following imports to get started:
 
@@ -96,13 +94,15 @@ val response = io.unsafeRunSync()
 
 Cool.
 
-## Generating responses
+
+## Generating Responses
 
 We'll circle back to more sophisticated pattern matching of requests,
 but it will be a tedious affair until we learn a more succinct way of
 generating `F[Response]`s.
 
-### Status codes
+
+### Status Codes
 
 http4s-dsl provides a shortcut to create an `F[Response]` by
 applying a status code:
@@ -187,9 +187,9 @@ to empty. http4s can do that with `removeCookie`:
 Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync().headers
 ```
 
-### Responding with a body
+### Responding with a Body
 
-#### Simple bodies
+#### Simple Bodies
 
 Most status codes take an argument as a body.  In http4s, `Request[F]`
 and `Response[F]` bodies are represented as a
@@ -217,7 +217,7 @@ http4s prevents such nonsense at compile time:
 NoContent("does not compile")
 ```
 
-#### Asynchronous responses
+#### Asynchronous Responses
 
 While http4s prefers `F[_]: Async`, you may be working with libraries that
 use standard library `Future`s.  Some relevant imports:
@@ -260,7 +260,7 @@ http4s waits for the `Future` or `F` to complete before wrapping it
 in its HTTP envelope, and thus has what it needs to calculate a
 `Content-Length`.
 
-#### Streaming bodies
+#### Streaming Bodies
 
 Streaming bodies are supported by returning a `fs2.Stream`.
 Like `IO`, the stream may be of any type that has an
@@ -296,7 +296,7 @@ transfer encoding:
 Ok(drip)
 ```
 
-## Matching and extracting requests
+## Matching and Extracting Requests
 
 A `Request` is a regular `case class` - you can destructure it to extract its
 values. By extension, you can also `match/case` it with different possible
@@ -318,7 +318,7 @@ HttpRoutes.of[IO] {
 
 Methods such as `GET` are typically found in `org.http4s.Method`, but are imported automatically as part of the DSL. 
 
-### Path info
+### Path Info
 
 Path matching is done on the request's `pathInfo`.  Path info is the
 request's URI's path after the following:
@@ -331,7 +331,7 @@ Matching on `request.pathInfo` instead of `request.uri.path` allows
 multiple services to be composed without rewriting all the path
 matchers.
 
-### Matching paths
+### Matching Paths
 
 A request to the root of the service is matched with the `Root`
 extractor.  `Root` consumes the leading slash of the path info.  The
@@ -376,7 +376,8 @@ HttpRoutes.of[IO] {
 }
 ```
 
-### Handling path parameters
+### Handling Path Parameters
+
 Path params can be extracted and converted to a specific type but are
 `String`s by default. There are numeric extractors provided in the form
 of `IntVar` and `LongVar`, as well as `UUIDVar` extractor for `java.util.UUID`.
@@ -421,7 +422,7 @@ val req = GET(uri"/weather/temperature/2016-11-05")
 dailyWeatherService.orNotFound(req).unsafeRunSync()
 ```
 
-### Handling matrix path parameters
+### Handling Matrix Path Parameters
 
 [Matrix path parameters](https://www.w3.org/DesignIssues/MatrixURIs.html) can be extracted using `MatrixVar`.
 
@@ -456,7 +457,8 @@ val greetingWithIdService = HttpRoutes.of[IO] {
 greetingWithIdService.orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting")).unsafeRunSync()
 ```
 
-### Handling query parameters
+### Handling Query Parameters
+
 A query parameter needs to have a `QueryParamDecoderMatcher` provided to
 extract it. In order for the `QueryParamDecoderMatcher` to work there needs to
 be an implicit `QueryParamDecoder[T]` in scope. `QueryParamDecoder`s for simple
@@ -497,7 +499,7 @@ implicit val isoInstantCodec: QueryParamCodec[Instant] =
 object IsoInstantParamMatcher extends QueryParamDecoderMatcher[Instant]("timestamp")
 ```
 
-#### Optional query parameters
+#### Optional Query Parameters
 
 To accept an optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
 
@@ -525,11 +527,11 @@ val routes2 = HttpRoutes.of[IO] {
 }
 ```
 
-#### Missing required query parameters
+#### Missing Required Query Parameters
 
 A request with a missing required query parameter will fall through to the following `case` statements and may eventually return a 404. To provide contextual error handling, optional query parameters or fallback routes can be used.
 
-#### Invalid query parameter handling
+#### Invalid Query Parameter Handling
 
 To validate query parsing you can use `ValidatingQueryParamDecoderMatcher` which returns a `ParseFailure` if the parameter cannot be decoded. Be careful not to return the raw invalid value in a `BadRequest` because it could be used for [Cross Site Scripting](https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)) attacks.
 
@@ -548,7 +550,7 @@ val routes = HttpRoutes.of[IO] {
 }
 ```
 
-#### Optional Invalid query parameter handling
+#### Optional Invalid Query Parameter Handling
 
 Consider `OptionalValidatingQueryParamDecoderMatcher[A]` given the power that
   `Option[cats.data.ValidatedNel[org.http4s.ParseFailure, A]]` provides.

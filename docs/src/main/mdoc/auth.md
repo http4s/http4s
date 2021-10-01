@@ -1,8 +1,5 @@
----
-menu: main
-weight: 120
-title: Authentication
----
+
+# Authentication
 
 ## Built in
 

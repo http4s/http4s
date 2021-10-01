@@ -1,8 +1,5 @@
----
-menu: main
-title: GZip Compression
-weight: 124
----
+
+# GZip Compression
 
 Http4s provides [Middleware], named `GZip`, for allowing for the compression of the `Response`
 body using GZip.

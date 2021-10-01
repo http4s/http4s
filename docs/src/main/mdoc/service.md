@@ -1,8 +1,5 @@
----
-menu: main
-weight: 100
-title: Service
----
+
+# Service
 
 This tutorial will walk you through creating your first http4s service
 and calling it with http4s' client.
@@ -10,7 +7,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.13.4" // Also supports 2.12.x
+scalaVersion := "2.13.6" // Also supports 2.12.x and 3.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
@@ -35,7 +32,7 @@ from the top, you should be able to follow along in a REPL.
 $ sbt console
 ```
 
-## Your first service
+## Your First Service
 
 An `HttpRoutes[F]` is a simple alias for
 `Kleisli[OptionT[F, *], Request, Response]`.  If that's meaningful to you,
@@ -47,7 +44,7 @@ prefer you can read these introductions first:
 * [cats-effect: The IO Monad for Scala]
 * [Cats Kleisli Datatype]
 
-### Defining your service
+### Defining Your Service
 
 Wherever you are in your studies, let's create our first
 `HttpRoutes`.  Start by pasting these imports into your SBT console:
@@ -75,7 +72,8 @@ val helloWorldService = HttpRoutes.of[IO] {
 }
 ```
 
-### Returning content in the response
+### Returning Content in the Response
+
 In order to return content of type `T` in the response an `EntityEncoder[T]`
 must be used. We can define the `EntityEncoder[T]` implictly so that it
 doesn't need to be explicitly included when serving the response.
@@ -105,7 +103,7 @@ val tweetService = HttpRoutes.of[IO] {
 }
 ```
 
-### Running your service
+### Running Your Service
 
 http4s supports multiple server backends.  In this example, we'll use
 [blaze], the native backend supported by http4s.
@@ -150,7 +148,7 @@ Use curl, or your favorite HTTP client, to see your service in action:
 $ curl http://localhost:8080/hello/Pete
 ```
 
-## Cleaning up
+## Cleaning Up
 
 We can shut down the server by canceling its fiber.
 
@@ -158,7 +156,7 @@ We can shut down the server by canceling its fiber.
 fiber.cancel.unsafeRunSync()
 ```
 
-### Running your service as an `App`
+### Running Your Service as an `App`
 
 Every `ServerBuilder[F]` has a `.serve` method that returns a
 `Stream[F, ExitCode]`.  This stream runs forever without emitting

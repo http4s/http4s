@@ -585,7 +585,8 @@ lazy val docs = http4sProject("docs")
     HugoPlugin,
     NoPublishPlugin,
     ScalaUnidocPlugin,
-    MdocPlugin
+    MdocPlugin,
+    LaikaPlugin
   )
   .settings(docsProjectSettings)
   .settings(
@@ -617,6 +618,25 @@ lazy val docs = http4sProject("docs")
       if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
     },
+    laikaExtensions := Seq(
+      laika.markdown.github.GitHubFlavor,
+      laika.parse.code.SyntaxHighlighting
+    ),
+    laikaTheme := {
+      import laika.ast.LengthUnit._
+      laika.helium.Helium.defaults
+        .site.markupEditLinks(
+          text = "Edit this page",
+          baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc")
+        .site.layout(
+          contentWidth = px(860),
+          navigationWidth = px(275),
+          defaultBlockSpacing = px(10),
+          defaultLineHeight = 1.5,
+          anchorPlacement = laika.helium.config.AnchorPlacement.Right
+        )
+    }.build,
+    Laika / sourceDirectories := Seq(mdocOut.value),
     siteMappings := {
       val docsPrefix = extractDocsPrefix(version.value)
       for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)

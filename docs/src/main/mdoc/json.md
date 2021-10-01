@@ -1,8 +1,6 @@
----
-menu: main
-weight: 310
-title: JSON handling
----
+
+# JSON Handling
+
 
 ## Add the JSON support module(s)
 
@@ -35,7 +33,7 @@ import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
-## Sending raw JSON
+## Sending Raw JSON
 
 Let's create a function to produce a simple JSON greeting with circe. First, the imports:
 
@@ -156,7 +154,7 @@ Thus there's no more need in calling `asJson` on result.
 However, it may introduce ambiguity errors when we also build
 some json by hand within the same scope. 
 
-## Receiving raw JSON
+## Receiving Raw JSON
 
 Just as we needed an `EntityEncoder[JSON]` to send JSON from a server
 or client, we need an `EntityDecoder[JSON]` to receive it.
@@ -210,7 +208,7 @@ import org.http4s.circe.CirceEntityCodec._
 
 ## Putting it all together
 
-### A Hello world service
+### A Hello World Service
 
 Our hello world service will parse a `User` from a request and offer a
 proper greeting.
@@ -252,7 +250,7 @@ implicit val runtime: cats.effect.unsafe.IORuntime = cats.effect.unsafe.IORuntim
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
-## A Hello world client
+## A Hello World Client
 
 Now let's make a client for the service above:
 

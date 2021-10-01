@@ -1,10 +1,5 @@
----
-menu: main
-weight: 350
-title: Testing
----
 
-## Introduction
+# Testing
 
 This document implements a simple `org.http4s.HttpRoutes` and then
 walk through the results of applying inputs, i.e. `org.http4s.Request`, to the service, i.e. `org.http4s.HttpService`.
@@ -118,7 +113,7 @@ val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
 check[String](response, Status.NotFound, Some("Not found"))
 ```
 
-### Using client
+## Using client
 
 Having HttpApp you can build a client for testing purposes. Following the example above we could define our HttpApp like this:
 
@@ -143,7 +138,7 @@ assert(resp.unsafeRunSync() == expectedJson)
 
 ## Conclusion
 
-The above documentation demonstrated how to define an HttpService[F], pass `Request`'s, and then 
+The above documentation demonstrated how to define an `HttpService[F]`, pass `Request`'s, and then 
 test the expected `Response`.
 
 To add unit tests in your chosen Scala Testing Framework, please follow the above examples.

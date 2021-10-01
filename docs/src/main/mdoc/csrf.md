@@ -1,8 +1,5 @@
----
-menu: main
-title: CSRF
-weight: 123
----
+
+# CSRF
 
 Http4s provides [Middleware], named `CSRF`, to prevent Cross-site request forgery attacks. This middleware
 is modeled after the [double submit cookie pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie).
