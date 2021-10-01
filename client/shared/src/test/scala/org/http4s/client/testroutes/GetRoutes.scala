@@ -41,7 +41,7 @@ object GetRoutes {
       DelayedPath ->
         F.sleep(1.second) *>
         Response[IO](Ok).withEntity("delayed path").pure[IO],
-      // NoContentPath -> Response[IO](NoContent).pure[IO], // TODO disabled pending issue with ember-client
+      NoContentPath -> Response[IO](NoContent).pure[IO],
       NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
       EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
       InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
