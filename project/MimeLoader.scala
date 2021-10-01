@@ -9,7 +9,6 @@ import java.io.PrintWriter
 import org.http4s.implicits._
 import org.http4s.circe._
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.syntax.all._
 import sbt._
 import sbt.Keys.scalaSource
 import scala.concurrent.ExecutionContext.global
