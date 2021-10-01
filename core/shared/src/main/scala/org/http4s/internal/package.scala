@@ -173,6 +173,7 @@ package object internal {
     h
   }
 
+  @deprecated("Use fs2.text.decodeWithCharset", "0.23.5")
   def decode[F[_]: RaiseThrowable](charset: Charset): Pipe[F, Byte, String] = { in =>
     val decoder = charset.nioCharset.newDecoder
     val byteBufferSize = 16

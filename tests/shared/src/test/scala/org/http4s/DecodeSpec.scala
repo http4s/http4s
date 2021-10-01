@@ -18,8 +18,7 @@ package org.http4s
 
 import cats.syntax.all._
 import fs2._
-import fs2.text.utf8
-import org.http4s.internal.decode
+import fs2.text.{decodeWithCharset, utf8}
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop.{forAll, propBoolean}
 
@@ -47,7 +46,8 @@ class DecodeSpec extends Http4sSuite {
           }
           .flatMap(Stream.chunk[Pure, Byte])
         val utf8Decoded = utf8.decode(source).toList.combineAll
-        val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+        val decoded =
+          source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
         decoded == Right(utf8Decoded)
       }
     }
@@ -68,7 +68,7 @@ class DecodeSpec extends Http4sSuite {
         val expected = new String(source.toVector.toArray, cs.nioCharset)
         !expected.contains("\ufffd") ==> {
           // \ufffd means we generated a String unrepresentable by the charset
-          val decoded = source.through(decode[Fallible](cs)).compile.string
+          val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
           decoded == Right(expected)
         }
       }
@@ -81,7 +81,7 @@ class DecodeSpec extends Http4sSuite {
       val expected = new String(source.toVector.toArray, cs.nioCharset)
       !expected.contains("\ufffd") ==> {
         // \ufffd means we generated a String unrepresentable by the charset
-        val decoded = source.through(decode[Fallible](cs)).compile.string
+        val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
         decoded == Right(expected)
       }
     }
@@ -89,14 +89,14 @@ class DecodeSpec extends Http4sSuite {
 
   test("decode should drop Byte Order Mark") {
     val source = Stream(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
-    val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+    val decoded = source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
     decoded == Right("")
   }
 
   test("decode should handle malformed input") {
     // Not a valid first byte in UTF-8
     val source = Stream(0x80.toByte)
-    val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+    val decoded = source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
     assert(decoded match {
       case Left(_: MalformedInputException) => true
       case _ => false
@@ -106,7 +106,7 @@ class DecodeSpec extends Http4sSuite {
   test("decode should handle incomplete input") {
     // Only the first byte of a two-byte UTF-8 sequence
     val source = Stream(0xc2.toByte)
-    val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
+    val decoded = source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
     assert(decoded match {
       case Left(_: MalformedInputException) => true
       case _ => false
@@ -118,7 +118,7 @@ class DecodeSpec extends Http4sSuite {
       // https://stackoverflow.com/a/22902806
       val source = Stream(0x80.toByte, 0x81.toByte)
       val decoded =
-        source.through(decode[Fallible](Charset(JCharset.forName("IBM1098")))).compile.string
+        source.through(decodeWithCharset[Fallible](JCharset.forName("IBM1098"))).compile.string
       assert(decoded match {
         case Left(_: UnmappableCharacterException) => true
         case _ => false
@@ -130,7 +130,7 @@ class DecodeSpec extends Http4sSuite {
       // Found by scalachek
       val source = Stream(-36.toByte)
       val decoded =
-        source.through(decode[Fallible](Charset(JCharset.forName("x-ISCII91")))).compile.string
+        source.through(decodeWithCharset[Fallible](JCharset.forName("x-ISCII91"))).compile.string
       assert(decoded == Right("ी"))
     }
 
@@ -139,7 +139,7 @@ class DecodeSpec extends Http4sSuite {
       // Found by scalachek
       val source = Stream(-1.toByte)
       val decoded =
-        source.through(decode[Fallible](Charset(JCharset.forName("x-IBM943")))).compile.string
+        source.through(decodeWithCharset[Fallible](JCharset.forName("x-IBM943"))).compile.string
       assert(decoded match {
         case Left(_: MalformedInputException) => true
         case _ => false
@@ -158,7 +158,7 @@ class DecodeSpec extends Http4sSuite {
 
       val referenceResult = Try(referenceDecoder.decode(ByteBuffer.wrap(bs)).toString).toEither
       val source = Stream.emits(bs)
-      val decoded = source.through(decode[Fallible](cs)).compile.foldMonoid
+      val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.foldMonoid
       // Ignoring the actual exception type
       assertEquals(decoded.toOption, referenceResult.toOption)
     }
