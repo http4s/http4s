@@ -38,6 +38,7 @@ import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
 import com.comcast.ip4s.{Host, Port, SocketAddress}
 import fs2.io.ClosedChannelException
+import java.io.IOException
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: Sync](
@@ -237,12 +238,15 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
         req: Request[F],
         result: Either[Throwable, Response[F]]): Boolean =
       (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
-        isEmptyStreamError(result)
+        isRetryableError(result)
 
-    def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+    def isRetryableError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
       result match {
         case Right(_) => false
         case Left(_: ClosedChannelException) => true
+        case Left(ex: IOException) =>
+          val msg = ex.getMessage()
+          msg == "Connection reset by peer" || msg == "Broken pipe"
         case _ => false
       }
   }
