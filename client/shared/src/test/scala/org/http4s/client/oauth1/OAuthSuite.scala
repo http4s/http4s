@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s
-package client.oauth1
+package org.http4s.client.oauth1
 
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -76,14 +75,6 @@ class OAuthSuite extends Http4sSuite {
     assertIO(
       oauth1.makeSHASig[IO](specBaseString, consumer.secret, Some(token.secret), HmacSha1),
       "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
-  }
-
-  test("OAuth support should generate a Authorization header") {
-    val auth =
-      oauth1
-        .genAuthHeader[IO](Method.GET, uri, userParams, consumer, None, None, Some(token), HmacSha1)
-    val creds = auth.map(_.credentials)
-    assertIO(creds.map(_.authScheme), ci"OAuth")
   }
 
   test("OAuth support should generate a Authorization header with config") {
