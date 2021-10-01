@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package org
+package org.http4s
 
-trait http4splatform {
+trait Http4sPlatform {
   type ProtocolException = java.net.ProtocolException
 }

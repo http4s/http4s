@@ -16,7 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IDN
@@ -30,16 +29,16 @@ import scala.annotation.tailrec
 private[internal] trait ClientHelpersPlatform {
 
   private[internal] def mkTLSParameters(
-      address: SocketAddress[Host],
+      address: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean): TLSParameters =
     TLSParameters(
-      serverNames = extractHostname(address.host).map(List(_)),
+      serverNames = address.map(a => List(extractHostname(a.host))),
       endpointIdentificationAlgorithm = if (enableEndpointValidation) Some("HTTPS") else None)
 
   @tailrec
-  private def extractHostname(from: Host): Option[SNIHostName] = from match {
-    case hostname: Hostname => new SNIHostName(hostname.normalized.toString).some
-    case address: IpAddress => new SNIHostName(address.toString).some
+  private def extractHostname(from: Host): SNIHostName = from match {
+    case hostname: Hostname => new SNIHostName(hostname.normalized.toString)
+    case address: IpAddress => new SNIHostName(address.toString)
     case idn: IDN => extractHostname(idn.hostname)
   }
 }

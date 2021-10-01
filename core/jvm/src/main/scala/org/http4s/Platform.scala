@@ -16,4 +16,7 @@
 
 package org.http4s
 
-private[http4s] trait RequestPlatform[F[_]]
+private[http4s] object Platform {
+  final val isJvm = true
+  final val isJs = false
+}

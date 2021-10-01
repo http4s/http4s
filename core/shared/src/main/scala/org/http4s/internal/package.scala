@@ -16,12 +16,17 @@
 
 package org.http4s
 
-import java.util.concurrent.{CompletableFuture, CompletionStage}
+import java.util.concurrent.{
+  CancellationException,
+  CompletableFuture,
+  CompletionException,
+  CompletionStage
+}
 
 import cats._
 import cats.data._
 import cats.effect.std.Dispatcher
-import cats.effect.Sync
+import cats.effect.{Async, Sync}
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
@@ -114,6 +119,26 @@ package object internal {
       case HexDecodeException => None
     }
   }
+
+  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
+      fcs: F[CF[A]])(implicit
+      // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
+      F: Async[F]): F[A] =
+    fcs.flatMap { cs =>
+      F.async_ { cb =>
+        cs.handle[Unit] {
+          { (result: A, err: Throwable) =>
+            err match {
+              case null => cb(Right(result))
+              case _: CancellationException => ()
+              case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
+              case ex => cb(Left(ex))
+            }
+          }: java.util.function.BiFunction[A, Throwable, Unit]
+        }
+        ()
+      }
+    }
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A],

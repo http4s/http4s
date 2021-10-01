@@ -21,7 +21,7 @@ import cats.implicits.catsSyntaxOptionId
 import fs2.Stream
 import fs2.text.utf8
 import org.http4s.headers._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.effect._
 
 import java.util.concurrent.TimeUnit

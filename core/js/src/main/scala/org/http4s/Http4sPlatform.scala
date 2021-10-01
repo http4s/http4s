@@ -16,4 +16,4 @@
 
 package org.http4s
 
-trait EntityEncoderSpecPlatform
+trait Http4sPlatform

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.http4s.multipart
+package org.http4s
 
-import scala.annotation.nowarn
-
-trait MultipartSuitePlatform {
-  def multipartSpecPlatform(@nowarn("msg=never used") name: String) = ()
+private[http4s] object Platform {
+  final val isJvm = false
+  final val isJs = true
 }

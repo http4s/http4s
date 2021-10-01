@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.syntax.all._
-// import org.http4s.laws.discipline.ArbitraryInstances._
+// import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
 
 class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {

@@ -14,6 +14,24 @@
  * limitations under the License.
  */
 
-package org.http4s.multipart
+package org.http4s
+package headers
 
-trait MultipartParserSuitePlatform
+import org.http4s.laws.discipline.arbitrary._
+import cats.syntax.either._
+
+class DNTSuite extends HeaderLaws {
+  checkAll("DNT", headerLaws[DNT])
+
+  test("parsing null into NoPreference") {
+    assertEquals(DNT.parser.parseAll("null"), DNT.NoPreference.asRight)
+  }
+
+  test("parsing 1 into DisallowTracking") {
+    assertEquals(DNT.parser.parseAll("1"), DNT.DisallowTracking.asRight)
+  }
+
+  test("parsing 0 into AllowTracking") {
+    assertEquals(DNT.parser.parseAll("0"), DNT.AllowTracking.asRight)
+  }
+}

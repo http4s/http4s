@@ -21,6 +21,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.effect.std.Queue
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
 import org.http4s.blaze.util.TickWheelExecutor
@@ -36,6 +37,8 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   var closed = false
 
   @volatile var closeCauses = Vector[Option[Throwable]]()
+
+  private[this] val disconnectSent = new AtomicBoolean(false)
 
   def getBytes(): Array[Byte] = acc.toArray
 
@@ -61,7 +64,8 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   override def doClosePipeline(cause: Option[Throwable]): Unit = {
     closeCauses :+= cause
     cause.foreach(logger.error(_)(s"$name received unhandled error command"))
-    sendInboundCommand(Disconnected)
+    if (disconnectSent.compareAndSet(false, true))
+      sendInboundCommand(Disconnected)
   }
 }
 

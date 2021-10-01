@@ -17,8 +17,8 @@
 package org.http4s
 
 import cats.kernel.laws.discipline._
-import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForRegName
-import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingCogenForRegName
+import org.http4s.laws.discipline.arbitrary.http4sTestingArbitraryForRegName
+import org.http4s.laws.discipline.arbitrary.http4sTestingCogenForRegName
 
 final class RegNameSuite extends Http4sSuite {
   checkAll("Order[Uri.RegName]", OrderTests[Uri.RegName].order)

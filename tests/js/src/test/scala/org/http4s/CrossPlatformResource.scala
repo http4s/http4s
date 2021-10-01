@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
-package org.http4s.multipart
+package org.http4s
 
-private[http4s] trait MultipartParserPlatform
+import fs2.io.file.Path
+
+object CrossPlatformResource {
+  def apply(resource: String): Path =
+    Path("tests/shared/src/test/resources") / resource
+}

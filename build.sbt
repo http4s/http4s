@@ -184,6 +184,17 @@ lazy val core = libraryCrossProject("core")
       scalaJavaTime.value,
     )
   )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      slf4jApi, // residual dependency from macros
+    )
+  )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      scalaJavaLocalesEnUS.value,
+      scalaJavaTime.value,
+    )
+  )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
   .settings(
@@ -201,6 +212,9 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
       munitCatsEffect.value,
     ),
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this") // private
+    )
   )
   .dependsOn(core)
 

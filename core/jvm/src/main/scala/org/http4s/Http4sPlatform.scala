@@ -16,4 +16,6 @@
 
 package org.http4s
 
-trait Ipv6AddressSuitePlatform
+trait Http4sPlatform {
+  type ProtocolException = java.net.ProtocolException
+}

@@ -18,4 +18,4 @@ package org.http4s
 
 import java.io.IOException
 
-class ProtocolException(message: String) extends IOException(message)
+class ProtocolException private[http4s] (message: String) extends IOException(message)

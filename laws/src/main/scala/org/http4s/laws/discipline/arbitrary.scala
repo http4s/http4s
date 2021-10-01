@@ -27,6 +27,7 @@ import cats.effect.std.Dispatcher
 import cats.instances.order._
 import cats.syntax.all._
 import com.comcast.ip4s
+import com.comcast.ip4s.Arbitraries._
 import fs2.{Pure, Stream}
 
 import java.nio.charset.{Charset => NioCharset}
@@ -42,12 +43,19 @@ import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
 
 import java.util.concurrent.TimeUnit
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
-  import ArbitraryInstances._
+object arbitrary extends ArbitraryInstancesBinCompat0
+
+@deprecated(
+  "Use `arbitrary` instead. They were redundant, and that one is consistent with Cats.",
+  "0.22.6")
+object ArbitraryInstances extends ArbitraryInstancesBinCompat0
+
+private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat0 =>
 
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -154,11 +162,15 @@ private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
   val genStandardStatus =
     oneOf(Status.registered)
 
+  @deprecated(
+    "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
+    "0.22.6")
   val genCustomStatus = for {
     code <- genValidStatusCode
     reason <- genCustomStatusReason
   } yield Status.fromInt(code).yolo.withReason(reason)
 
+  @nowarn("cat=deprecation")
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
     frequency(
       4 -> genStandardStatus,
@@ -644,13 +656,13 @@ private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
     oneOf(g, const(ev.empty))
 
   implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] =
-    Arbitrary(ipv4Generator.map(Uri.Ipv4Address.apply))
+    Arbitrary(ip4s.Arbitraries.ipv4Generator.map(Uri.Ipv4Address.apply))
 
   implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
     Cogen[Array[Byte]].contramap(_.address.toBytes)
 
   implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] =
-    Arbitrary(ipv6Generator.map(Uri.Ipv6Address.apply))
+    Arbitrary(ip4s.Arbitraries.ipv6Generator.map(Uri.Ipv6Address.apply))
 
   implicit val http4sTestingCogenForIpv6Address: Cogen[Uri.Ipv6Address] =
     Cogen[Array[Byte]].contramap(_.address.toBytes)
@@ -952,9 +964,7 @@ private[http4s] trait ArbitraryInstances extends Ip4sArbitraryInstances {
     Cogen[String].contramap(_.encoded)
 }
 
-object ArbitraryInstances extends ArbitraryInstances {
-  // http4s-0.21: add extra values here to prevent binary incompatibility.
-
+private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstances {
   val genAlphaToken: Gen[String] =
     nonEmptyListOf(alphaChar).map(_.mkString)
 
@@ -1029,4 +1039,6 @@ object ArbitraryInstances extends ArbitraryInstances {
       unsanitized
     )
   }
+  val dntGen = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
+  implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
 }

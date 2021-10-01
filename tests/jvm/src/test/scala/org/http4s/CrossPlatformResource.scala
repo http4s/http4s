@@ -16,4 +16,9 @@
 
 package org.http4s
 
-private[http4s] trait EntityEncoderCompanionPlatform
+import fs2.io.file.Path
+
+object CrossPlatformResource {
+  def apply(resource: String): Path =
+    Path.fromNioPath(java.nio.file.Paths.get(getClass.getResource(resource).toURI))
+}

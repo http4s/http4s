@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.syntax.show._
 import cats.kernel.laws.discipline.EqTests
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.syntax.all._
 
