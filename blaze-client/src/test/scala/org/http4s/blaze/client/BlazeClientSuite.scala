@@ -32,7 +32,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test(
     "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key") {
-    val sslAddress = secureServer().addresses.head
+    val sslAddress = secureServer().addresses.head.toInetSocketAddress
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -41,7 +41,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should make simple https requests") {
-    val sslAddress = secureServer().addresses.head
+    val sslAddress = secureServer().addresses.head.toInetSocketAddress
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -50,7 +50,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should reject https requests when no SSLContext is configured") {
-    val sslAddress = secureServer().addresses.head
+    val sslAddress = secureServer().addresses.head.toInetSocketAddress
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -67,7 +67,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should obey response header timeout") {
     val addresses = server().addresses
-    val address = addresses(0)
+    val address = addresses(0).toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, responseHeaderTimeout = 100.millis).resource
@@ -80,7 +80,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should unblock waiting connections") {
     val addresses = server().addresses
-    val address = addresses(0)
+    val address = addresses(0).toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, responseHeaderTimeout = 20.seconds).resource
@@ -97,7 +97,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should drain waiting connections after shutdown") {
     val addresses = server().addresses
-    val address = addresses(0)
+    val address = addresses(0).toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
 
@@ -125,7 +125,7 @@ class BlazeClientSuite extends BlazeClientBase {
     "Blaze Http1Client should stop sending data when the server sends response and closes connection") {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     Deferred[IO, Unit]
@@ -148,7 +148,7 @@ class BlazeClientSuite extends BlazeClientBase {
     // Receiving a response with and without body exercises different execution path in blaze client.
 
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     Deferred[IO, Unit]
@@ -168,7 +168,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test(
     "Blaze Http1Client should fail with request timeout if the request body takes too long to send") {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, requestTimeout = 500.millis, responseHeaderTimeout = Duration.Inf).resource
@@ -191,7 +191,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test(
     "Blaze Http1Client should fail with response header timeout if the request body takes too long to send") {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, requestTimeout = Duration.Inf, responseHeaderTimeout = 500.millis).resource
@@ -213,7 +213,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should doesn't leak connection on timeout") {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     val uri = Uri.fromString(s"http://$name:$port/simple").yolo
@@ -264,7 +264,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Keeps stats".flaky) {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     val uri = Uri.fromString(s"http://$name:$port/simple").yolo

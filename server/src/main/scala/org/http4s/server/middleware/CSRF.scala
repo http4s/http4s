@@ -19,6 +19,7 @@ package server
 package middleware
 
 import org.http4s.crypto.Hmac
+import org.http4s.crypto.HmacKeyGen
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.SecretKey
 import org.http4s.crypto.SecureEq
@@ -512,7 +513,7 @@ object CSRF {
 
   /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
-    Hmac[F].generateKey(SigningAlgorithm).map(_.toJava)
+    HmacKeyGen[F].generateKey(SigningAlgorithm).map(_.toJava)
 
   /** Build a new HMACSHA1 Key for our CSRF Middleware
     * from key bytes. This operation is unsafe, in that
