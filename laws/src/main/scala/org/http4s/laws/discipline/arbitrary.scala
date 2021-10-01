@@ -1032,7 +1032,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
     for {
-      values <- nonEmptyListOf(http4sGenMediaType)
-    } yield headers.`Accept-Post`(NonEmptyList.of(values.head, values.tail: _*))
+      values <- listOf(http4sGenMediaType)
+    } yield headers.`Accept-Post`(values)
   }
 }

@@ -17,21 +17,19 @@
 package org.http4s
 package headers
 
-import cats.data.NonEmptyList
-import cats.parse.Parser
-import org.http4s.internal.parsing.Rfc7230.headerRep1
+import cats.parse.Parser0
+import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 //Accept-Post response header.
 //See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Post
 object `Accept-Post` {
-  def apply(head: MediaType, tail: MediaType*): `Accept-Post` = apply(
-    NonEmptyList(head, tail.toList))
+  def apply(values: MediaType*): `Accept-Post` = apply(values.toList)
 
   def parse(s: String): ParseResult[`Accept-Post`] =
     ParseResult.fromParser(parser, "Invalid Accept-Post header")(s)
 
-  private[http4s] val parser: Parser[`Accept-Post`] =
-    headerRep1(MediaType.parser).map(xs => `Accept-Post`(xs.head, xs.tail: _*))
+  private[http4s] val parser: Parser0[`Accept-Post`] =
+    Rfc7230.headerRep(MediaType.parser).map(`Accept-Post`(_))
 
   implicit val headerInstance: Header[`Accept-Post`, Header.Recurring] =
     Header.createRendered(
@@ -40,8 +38,8 @@ object `Accept-Post` {
       parse
     )
 
-  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Post`] =
-    (a, b) => `Accept-Post`(a.values.concatNel(b.values))
+  implicit val headerSemigroupInstance: cats.Monoid[`Accept-Post`] =
+    cats.Monoid.instance(`Accept-Post`(Nil), (one, two) => `Accept-Post`(one.values ++ two.values))
 }
 
-final case class `Accept-Post`(values: NonEmptyList[MediaType])
+final case class `Accept-Post`(values: List[MediaType])

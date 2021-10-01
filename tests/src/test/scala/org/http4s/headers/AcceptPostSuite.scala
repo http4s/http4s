@@ -24,7 +24,6 @@ class AcceptPostSuite extends HeaderLaws {
 
   test("parse should fail on invalid formats") {
     assert(`Accept-Post`.parse("applic/*/").isLeft)
-    assert(`Accept-Post`.parse("").isLeft)
   }
   test("parse should succeed on wildcard formats") {
     assert(`Accept-Post`.parse("application/*").isRight)
