@@ -4,7 +4,7 @@ dataDir = "../../target/hugo-data"
 languageCode = "en-us"
 title = "http4s"
 theme = "http4s.org"
-themesDir = "../../../../website/src/hugo/themes"
+themesDir = "../../../website/src/hugo/themes"
 
 [[menu.main]]
     name = "Scaladoc"
