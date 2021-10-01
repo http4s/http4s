@@ -1,12 +1,12 @@
 package org.http4s.build
 
-import cats.effect.{ContextShift, ExitCode, IO, IOApp, Timer}
+import cats.effect.{ExitCode, IO, IOApp}
 import fs2.Stream
 import io.circe._
 import io.circe.generic.semiauto._
 import java.io.File
 import java.io.PrintWriter
-import org.http4s.Uri
+import org.http4s.implicits._
 import org.http4s.circe._
 import org.http4s.ember.client.EmberClientBuilder
 import sbt._
@@ -27,14 +27,12 @@ object MimeLoaderPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     generateMimeDb := {
-      implicit val cs: ContextShift[IO] = IO.contextShift(global)
-      implicit val timer: Timer[IO] = IO.timer(global)
       MimeLoader.toFile(
         new File((Compile / scalaSource).value / "org" / "http4s", "MimeDB.scala"),
         "org.http4s",
         "MimeDB",
         "MediaType")
-        .unsafeRunSync()
+        .unsafeRunSync()(cats.effect.unsafe.implicits.global)
     }
   )
 }
@@ -47,11 +45,11 @@ object MimeLoaderPlugin extends AutoPlugin {
   */
 object MimeLoader {
   implicit val MimeDescrDecoder: Decoder[MimeDescr] = deriveDecoder[MimeDescr]
-  val url = Uri.uri("https://cdn.rawgit.com/jshttp/mime-db/master/db.json")
+  val url = uri"https://cdn.rawgit.com/jshttp/mime-db/master/db.json"
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500
-  def readMimeDB(implicit t: Timer[IO], cs: ContextShift[IO]): Stream[IO, List[Mime]] =
+  def readMimeDB: Stream[IO, List[Mime]] =
     for {
       client <- Stream.resource(EmberClientBuilder.default[IO].build)
       _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
@@ -165,8 +163,7 @@ object MimeLoader {
   /**
     * This method will dowload the MimeDB and produce a file with generated code for http4s
     */
-  def toFile(f: File, topLevelPackge: String, objectName: String, mediaTypeClassName: String)(
-      implicit t: Timer[IO], cs: ContextShift[IO]): IO[Unit] =
+  def toFile(f: File, topLevelPackge: String, objectName: String, mediaTypeClassName: String): IO[Unit] =
     (for {
       m <- readMimeDB
       t <- Stream.emit(m.groupBy(_.mainType).toList.sortBy(_._1).map {
