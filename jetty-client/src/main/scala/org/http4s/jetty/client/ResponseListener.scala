@@ -24,7 +24,7 @@ import cats.syntax.all._
 import fs2._
 import fs2.Stream._
 import java.nio.ByteBuffer
-import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
+import org.eclipse.jetty.client.api.{Response => JettyResponse, Result}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.internal.CollectionCompat.CollectionConverters._

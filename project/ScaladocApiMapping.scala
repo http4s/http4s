@@ -8,43 +8,39 @@ import sbt.librarymanagement._
 import sbt._
 import Http4sPlugin.V
 
-/** Provides API File -> URL mappings for dependencies which don't expose an
-  * `apiURL` in their POM or if they do, they are doing so incorrectly and
-  * SBT/Scaladoc can't reconstruct the mapping automatically.
+/** Provides API File -> URL mappings for dependencies which don't expose an `apiURL` in their POM
+  * or if they do, they are doing so incorrectly and SBT/Scaladoc can't reconstruct the mapping
+  * automatically.
   *
-  * If the project for which we are providing a mapping provides a specific
-  * Scaladoc link, we prefer that one. Otherwise we use [[https://javadoc.io]]
-  * to fill in the gaps.
+  * If the project for which we are providing a mapping provides a specific Scaladoc link, we prefer
+  * that one. Otherwise we use [[https://javadoc.io]] to fill in the gaps.
   *
-  * There is a bit of fuzzy logic in here. Scaladoc requires a File -> URL
-  * mapping for the linking to work. SBT does not seem to expose a ModuleId ->
-  * File mapping in any API, which is what would be ideal to solve this
-  * problem. What we do have is the classpath constructed by the Unidoc
-  * plugin. Because we are lacking a full ModuleID construct here, we use some
-  * regular expressions on the `File` in the classpath as a heuristic to match
-  * the given `File` to a dependency module.
+  * There is a bit of fuzzy logic in here. Scaladoc requires a File -> URL mapping for the linking
+  * to work. SBT does not seem to expose a ModuleId -> File mapping in any API, which is what would
+  * be ideal to solve this problem. What we do have is the classpath constructed by the Unidoc
+  * plugin. Because we are lacking a full ModuleID construct here, we use some regular expressions
+  * on the `File` in the classpath as a heuristic to match the given `File` to a dependency module.
   */
 object ScaladocApiMapping {
 
   /** Construct mappings for dependencies for which SBT/Scaladoc can not do so automatically.
     *
-    * @param classpaths In practice this will need to be the ScalaUnidoc
-    *        classpath, which is the aggregation of all classpaths.
-    * @param scalaBinaryVersion The current scala binary version,
-    *        e.g. `scalaBinaryVersion.value`.
+    * @param classpaths
+    *   In practice this will need to be the ScalaUnidoc classpath, which is the aggregation of all
+    *   classpaths.
+    * @param scalaBinaryVersion
+    *   The current scala binary version, e.g. `scalaBinaryVersion.value`.
     */
-  def mappings(classpaths: Seq[Classpath], scalaBinaryVersion: String): Map[File, URL] = {
-    classpaths.flatten.foldLeft(Map.empty[File, URL]){
-      case (acc, value) =>
-        val file: File = value.data
-        playJsonMapping(scalaBinaryVersion)(file).toMap ++
+  def mappings(classpaths: Seq[Classpath], scalaBinaryVersion: String): Map[File, URL] =
+    classpaths.flatten.foldLeft(Map.empty[File, URL]) { case (acc, value) =>
+      val file: File = value.data
+      playJsonMapping(scalaBinaryVersion)(file).toMap ++
         vaultMapping(scalaBinaryVersion)(file).toMap ++
         catsEffectMapping(scalaBinaryVersion)(file).toMap ++
         fs2CoreMapping(scalaBinaryVersion)(file).toMap ++
         jettyMapping(file).toMap ++
         acc
     }
-  }
 
   private def maybeScalaBinaryVersionToSuffix(value: Option[String]): String =
     value.fold("")(value => s"_${value}")
@@ -52,7 +48,8 @@ object ScaladocApiMapping {
   private def javadocIOAPIUrl(scalaBinaryVersion: Option[String], moduleId: ModuleID): URL = {
     val suffix: String =
       maybeScalaBinaryVersionToSuffix(scalaBinaryVersion)
-    new URL(s"https://javadoc.io/doc/${moduleId.organization}/${moduleId.name}${suffix}/${moduleId.revision}/")
+    new URL(
+      s"https://javadoc.io/doc/${moduleId.organization}/${moduleId.name}${suffix}/${moduleId.revision}/")
   }
 
   private def playJsonMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] =
@@ -75,7 +72,7 @@ object ScaladocApiMapping {
     }
 
   private def catsEffectMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] =
-    if(file.toString.matches(""".+/cats-effect_[^/]+\.jar$""")) {
+    if (file.toString.matches(""".+/cats-effect_[^/]+\.jar$""")) {
       Some(file -> new URL("https://typelevel.org/cats-effect/api/"))
     } else {
       None
@@ -94,8 +91,10 @@ object ScaladocApiMapping {
   private def jettyMapping(file: File): Option[(File, URL)] = {
     val jettyMajorVersion: String =
       Http4sPlugin.V.jetty.takeWhile(_ != '.')
-    if(file.toString.matches(""".+/jetty[^/]+\.jar$""")) {
-      Some(file -> new URL(s"https://www.eclipse.org/jetty/javadoc/jetty-${jettyMajorVersion}/index.html"))
+    if (file.toString.matches(""".+/jetty[^/]+\.jar$""")) {
+      Some(
+        file -> new URL(
+          s"https://www.eclipse.org/jetty/javadoc/jetty-${jettyMajorVersion}/index.html"))
     } else {
       None
     }

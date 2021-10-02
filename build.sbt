@@ -369,7 +369,7 @@ lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPl
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
-    libraryDependencies += keypool.value,
+    libraryDependencies += keypool.value
   )
   .jvmSettings(libraryDependencies += log4catsSlf4j.value)
   .jsSettings(
@@ -392,14 +392,14 @@ lazy val blazeCore = libraryProject("blaze-core")
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
-    startYear := Some(2014),
+    startYear := Some(2014)
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
-    startYear := Some(2014),
+    startYear := Some(2014)
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
