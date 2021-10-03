@@ -252,7 +252,7 @@ object Http4sPlugin extends AutoPlugin {
     val crypto = "0.2.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
-    val dropwizardMetrics = "4.2.3"
+    val dropwizardMetrics = "4.2.4"
     val fs2 = "3.1.3"
     val ip4s = "3.0.3"
     val javaWebSocket = "1.5.2"
@@ -270,7 +270,7 @@ object Http4sPlugin extends AutoPlugin {
     val munitDiscipline = "1.0.9"
     val netty = "4.1.68.Final"
     val okio = "2.10.0"
-    val okhttp = "4.9.1"
+    val okhttp = "4.9.2"
     val playJson = "2.9.2"
     val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
@@ -284,7 +284,7 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.29"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.53"
+    val tomcat = "9.0.54"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.1.0"
@@ -294,10 +294,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val blazeCore                        =             "org.http4s"             %%  "blaze-core"                % V.blaze
   lazy val blazeHttp                        =             "org.http4s"             %%  "blaze-http"                % V.blaze
   lazy val boopickle                        = Def.setting("io.suzaku"              %%% "boopickle"                 % V.boopickle)
-  lazy val caseInsensitive                  = Def.setting("org.typelevel"          %%  "case-insensitive"          % V.caseInsensitive)
+  lazy val caseInsensitive                  = Def.setting("org.typelevel"          %%% "case-insensitive"          % V.caseInsensitive)
   lazy val caseInsensitiveTesting           = Def.setting("org.typelevel"          %%% "case-insensitive-testing"  % V.caseInsensitive)
   lazy val catsCore                         = Def.setting("org.typelevel"          %%% "cats-core"                 % V.cats)
-  lazy val catsEffect                       = Def.setting("org.typelevel"          %%%  "cats-effect"              % V.catsEffect)
+  lazy val catsEffect                       = Def.setting("org.typelevel"          %%% "cats-effect"               % V.catsEffect)
   lazy val catsEffectStd                    = Def.setting("org.typelevel"          %%% "cats-effect-std"           % V.catsEffect)
   lazy val catsEffectLaws                   = Def.setting("org.typelevel"          %%% "cats-effect-laws"          % V.catsEffect)
   lazy val catsEffectTestkit                = Def.setting("org.typelevel"          %%% "cats-effect-testkit"       % V.catsEffect)
