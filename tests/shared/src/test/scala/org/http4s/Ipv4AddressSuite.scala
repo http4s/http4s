@@ -23,7 +23,6 @@ import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.util.Renderer.renderString
 import org.scalacheck.Prop._
-import scala.annotation.nowarn
 
 class Ipv4AddressSuite extends Http4sSuite {
   checkAll("Order[Ipv4Address]", OrderTests[Ipv4Address].order)
@@ -33,14 +32,6 @@ class Ipv4AddressSuite extends Http4sSuite {
   test("render should render all 4 octets") {
     assert(renderString(Ipv4Address(ipv4"192.168.0.1")) == "192.168.0.1")
   }
-
-  if (Platform.isJvm)
-    test("fromInet4Address should round trip with toInet4Address") {
-      forAll { (ipv4: Ipv4Address) =>
-        assert(Ipv4Address.fromInet4Address(ipv4.toInet4Address) == ipv4): @nowarn(
-          "cat=deprecation")
-      }
-    }
 
   test("fromByteArray should round trip with toByteArray") {
     forAll { (ipv4: Ipv4Address) =>
