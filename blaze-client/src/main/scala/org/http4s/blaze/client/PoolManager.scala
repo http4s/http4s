@@ -56,6 +56,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private var isClosed = false
   private var curTotal = 0
+  private var totalAllocations: Long = 0
   private val allocated = mutable.Map.empty[RequestKey, Int]
   private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[A]]
   private var waitQueue = mutable.Queue.empty[Waiting]
@@ -77,6 +78,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def incrConnection(key: RequestKey): F[Unit] =
     F.delay {
       curTotal += 1
+      totalAllocations += 1
       allocated.update(key, allocated.getOrElse(key, 0) + 1)
     }
 
@@ -381,6 +383,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   def state: BlazeClientState[F] =
     new BlazeClientState[F] {
       def isClosed = F.delay(self.isClosed)
+      def totalAllocations = F.delay(self.totalAllocations)
       def allocated = F.delay(self.allocated.toMap)
       def idleQueueDepth = F.delay(CollectionCompat.mapValues(self.idleQueues.toMap)(_.size))
       def waitQueueDepth = F.delay(self.waitQueue.size)
