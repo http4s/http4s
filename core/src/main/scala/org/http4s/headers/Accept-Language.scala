@@ -18,11 +18,39 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser
+import org.typelevel.ci._
 
-object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[`Accept-Language`] =
-    HttpHeaderParser.ACCEPT_LANGUAGE(s)
+object `Accept-Language` {
+  def apply(head: LanguageTag, tail: LanguageTag*): `Accept-Language` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`Accept-Language`] =
+    ParseResult.fromParser(parser, "Invalid Accept-Language header")(s)
+
+  private[http4s] val parser: Parser[`Accept-Language`] = {
+    import cats.parse.Parser.{char => ch, _}
+    import cats.parse.Rfc5234._
+    import org.http4s.internal.parsing.Rfc7230.headerRep1
+
+    val languageTag =
+      ((alpha.rep | charIn('*')).string ~ (ch(
+        '-') *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map { case ((main, sub), q) =>
+        LanguageTag(main, q, sub)
+      }
+
+    headerRep1(languageTag).map(tags => `Accept-Language`(tags.head, tags.tail: _*))
+  }
+
+  implicit val headerInstance: Header[`Accept-Language`, Header.Recurring] =
+    Header.createRendered(
+      ci"Accept-Language",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Language`] =
+    (a, b) => `Accept-Language`(a.values.concatNel(b.values))
 }
 
 /** Request header used to indicate which natural language would be preferred for the response
@@ -30,10 +58,7 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
   *
   * [[https://tools.ietf.org/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]
   */
-final case class `Accept-Language`(values: NonEmptyList[LanguageTag])
-    extends Header.RecurringRenderable {
-  def key: `Accept-Language`.type = `Accept-Language`
-  type Value = LanguageTag
+final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) {
 
   @deprecated("Has confusing semantics in the presence of splat. Do not use.", "0.16.1")
   def preferred: LanguageTag = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)

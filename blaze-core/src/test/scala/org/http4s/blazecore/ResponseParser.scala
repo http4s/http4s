@@ -22,6 +22,8 @@ import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.http.parser.Http1ClientParser
+import org.typelevel.ci.CIString
+
 import scala.collection.mutable.ListBuffer
 
 class ResponseParser extends Http1ClientParser {
@@ -34,14 +36,14 @@ class ResponseParser extends Http1ClientParser {
   var minorversion = -1
 
   /** Will not mutate the ByteBuffers in the Seq */
-  def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header], String) = {
+  def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header.Raw], String) = {
     val b =
       ByteBuffer.wrap(buffs.map(b => Chunk.byteBuffer(b).toArray).toArray.flatten)
     parseResponseBuffer(b)
   }
 
   /* Will mutate the ByteBuffer */
-  def parseResponseBuffer(buffer: ByteBuffer): (Status, Set[Header], String) = {
+  def parseResponseBuffer(buffer: ByteBuffer): (Status, Set[Header.Raw], String) = {
     parseResponseLine(buffer)
     parseHeaders(buffer)
 
@@ -56,9 +58,14 @@ class ResponseParser extends Http1ClientParser {
       new String(Chunk.concatBytes(bytes).toArray, StandardCharsets.ISO_8859_1)
     }
 
-    val headers = this.headers.result().map { case (k, v) => Header(k, v): Header }.toSet
+    val headers: Set[Header.Raw] = this.headers
+      .result()
+      .toSet
+      .map { (kv: (String, String)) =>
+        Header.Raw(CIString(kv._1), kv._2)
+      }
 
-    val status = Status.fromIntAndReason(this.code, reason).valueOr(throw _)
+    val status = Status.fromInt(this.code).valueOr(throw _)
 
     (status, headers, bp)
   }
@@ -82,10 +89,10 @@ class ResponseParser extends Http1ClientParser {
 }
 
 object ResponseParser {
-  def apply(buff: Seq[ByteBuffer]): (Status, Set[Header], String) =
+  def apply(buff: Seq[ByteBuffer]): (Status, Set[Header.Raw], String) =
     new ResponseParser().parseResponse(buff)
-  def apply(buff: ByteBuffer): (Status, Set[Header], String) = parseBuffer(buff)
+  def apply(buff: ByteBuffer): (Status, Set[Header.Raw], String) = parseBuffer(buff)
 
-  def parseBuffer(buff: ByteBuffer): (Status, Set[Header], String) =
+  def parseBuffer(buff: ByteBuffer): (Status, Set[Header.Raw], String) =
     new ResponseParser().parseResponseBuffer(buff)
 }

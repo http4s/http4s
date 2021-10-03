@@ -17,28 +17,29 @@
 package org.http4s.metrics.dropwizard
 
 import cats.syntax.all._
-import cats.effect.IO
+import cats.effect.{Clock, IO}
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
+
 import java.io.IOException
 import java.util.concurrent.TimeoutException
-
 import org.http4s.{EntityDecoder, Http4sSuite, HttpApp, Request, Status, Uri}
 import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
 import org.http4s.metrics.dropwizard.util._
 import org.http4s.syntax.all._
+
 import java.util.Arrays
 
 class DropwizardClientMetricsSuite extends Http4sSuite {
   val client = Client.fromHttpApp[IO](HttpApp[IO](stub))
 
   test("A http client with a dropwizard metrics middleware should register a 2xx response") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String]("ok").attempt.map { resp =>
+    meteredClient.expect[String]("/ok").attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.2xx-responses")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -54,13 +55,13 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register a 4xx response") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test2")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String]("bad-request").attempt.map { resp =>
+    meteredClient.expect[String]("/bad-request").attempt.map { resp =>
       assert(resp match {
-        case Left(UnexpectedStatus(Status(400))) => true
+        case Left(UnexpectedStatus(Status(400), _, _)) => true
         case _ => false
       })
       assertEquals(count(registry, Timer("client.default.4xx-responses")), 1L)
@@ -77,13 +78,13 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register a 5xx response") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test3")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String]("internal-server-error").attempt.map { resp =>
+    meteredClient.expect[String]("/internal-server-error").attempt.map { resp =>
       assert(resp match {
-        case Left(UnexpectedStatus(Status(500))) => true
+        case Left(UnexpectedStatus(Status(500), _, _)) => true
         case _ => false
       })
 
@@ -101,11 +102,11 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register a GET request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test4")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String]("ok").attempt.map { resp =>
+    meteredClient.expect[String]("/ok").attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.get-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -126,11 +127,11 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register a POST request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](POST, uri"ok")).attempt.map { resp =>
+    meteredClient.expect[String](Request[IO](POST, uri"/ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.post-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -151,11 +152,11 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register a PUT request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](PUT, uri"ok")).attempt.map { resp =>
+    meteredClient.expect[String](Request[IO](PUT, uri"/ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.put-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -176,11 +177,11 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register a DELETE request") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test7")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](DELETE, uri"ok")).attempt.map { resp =>
+    meteredClient.expect[String](Request[IO](DELETE, uri"/ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.delete-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -201,11 +202,11 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register an error") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test8")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String]("error").attempt.map { resp =>
+    meteredClient.expect[String]("/error").attempt.map { resp =>
       assert(resp match {
         case Left(_: IOException) => true
         case _ => false
@@ -218,11 +219,11 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   test("A http client with a dropwizard metrics middleware should register a timeout") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test9")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String]("timeout").attempt.map { resp =>
+    meteredClient.expect[String]("/timeout").attempt.map { resp =>
       assert(resp match {
         case Left(_: TimeoutException) => true
         case _ => false
@@ -236,13 +237,13 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
 
   test(
     "A http client with a dropwizard metrics middleware should use the provided request classifier") {
-    implicit val clock = FakeClock[IO]
+    implicit val clock: Clock[IO] = FakeClock[IO]
     val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test10")
     val meteredClient =
       Metrics(Dropwizard[IO](registry, "client"), requestMethodClassifier)(client)
 
-    meteredClient.expect[String]("ok").attempt.map { resp =>
+    meteredClient.expect[String]("/ok").attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.get.2xx-responses")), 1L)
       assertEquals(count(registry, Counter("client.get.active-requests")), 0L)
@@ -257,12 +258,12 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     }
   }
 
-  implicit val clock = FakeClock[IO]
+  implicit val clock: Clock[IO] = FakeClock[IO]
   val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test11")
   val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
   val clientRunResource = meteredClient
-    .run(Request[IO](uri = Uri.unsafeFromString("ok")))
+    .run(Request[IO](uri = Uri.unsafeFromString("/ok")))
 
   ResourceFixture(clientRunResource).test(
     "A http client with a dropwizard metrics middleware should only record total time and decr active requests after client.run releases") {

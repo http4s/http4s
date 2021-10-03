@@ -32,10 +32,13 @@ import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
 
 class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
-  val config =
-    ResourceService.Config[IO]("", blocker = testBlocker)
+  // val config =
+  //   ResourceService.Config[IO]("", blocker = testBlocker)
+  // val defaultBase = getClass.getResource("/").getPath.toString
+  // val routes = resourceService(config)
+  val builder = resourceServiceBuilder[IO]("", testBlocker)
+  def routes: HttpRoutes[IO] = builder.toRoutes
   val defaultBase = getClass.getResource("/").getPath.toString
-  val routes = resourceService(config)
 
   test("Respect UriTranslation") {
     val app = TranslateUri("/foo")(routes).orNotFound
@@ -65,12 +68,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("Respect the path prefix") {
     val relativePath = "testresource.txt"
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "",
-        blocker = testBlocker,
-        pathPrefix = "/path-prefix"
-      ))
+    val s0 = builder.withPathPrefix("/path-prefix").toRoutes
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
     val req = Request[IO](uri = uri)
@@ -85,11 +83,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "/testDir",
-        blocker = testBlocker
-      ))
+    val s0 = builder.withBasePath("/testDir").toRoutes
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -111,11 +105,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "",
-        blocker = testBlocker
-      ))
+    val s0 = builder.toRoutes
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
@@ -127,12 +117,9 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "",
-        blocker = testBlocker,
-        pathPrefix = "/test"
-      ))
+    val s0 = builder
+      .withPathPrefix("/test")
+      .toRoutes
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
@@ -143,11 +130,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("///" + absPath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "/testDir",
-        blocker = testBlocker
-      ))
+    val s0 = builder.toRoutes
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -155,30 +138,30 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Try to serve pre-gzipped content if asked to") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource.txt").yolo,
-      headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
-    val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
+    val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
     Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResourceGzipped) *>
       rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get(`Content-Type`).map(_.mediaType))
+      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
         .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get(`Content-Encoding`).map(_.contentCoding))
+      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
         .assertEquals(ContentCoding.gzip.some)
   }
 
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource2.txt").yolo,
-      headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
     )
-    val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
+    val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
     Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
       rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get(`Content-Type`).map(_.mediaType))
+      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
         .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get(`Content-Encoding`).map(_.contentCoding))
+      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
         .map(_ =!= ContentCoding.gzip.some)
         .assert
   }

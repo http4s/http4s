@@ -56,24 +56,16 @@ class QValueSuite extends Http4sSuite {
   }
 
   test("literal syntax should reject invalid values") {
-    assertNoDiff(
+    assert(
       compileErrors {
         """qValue"2.0" // doesn't compile: out of range"""
-      },
-      """error: invalid QValue
-        |qValue"2.0" // doesn't compile: out of range
-        |^
-        |""".stripMargin
+      }.nonEmpty
     )
 
-    assertNoDiff(
+    assert(
       compileErrors {
         """qValue"invalid" // doesn't compile, not parsable as a double"""
-      },
-      """error: invalid QValue
-        |qValue"invalid" // doesn't compile, not parsable as a double
-        |^
-        |""".stripMargin
+      }.nonEmpty
     )
   }
 }

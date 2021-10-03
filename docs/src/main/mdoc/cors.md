@@ -4,9 +4,18 @@ title: CORS
 weight: 122
 ---
 
-Http4s provides [Middleware], named `CORS`, for adding the appropriate headers
-to responses to allow Cross Origin Resource Sharing.
+For security reasons, modern web browsers enforce a [same origin policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy),
+restricting the ability of sites from a given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) 
+to access resources at a different origin. Http4s provides [Middleware], named `CORS`, for adding the appropriate headers
+to responses to allow limited exceptions to this via [cross origin resource sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).
 
+## ⚠️ Warning ⚠️
+This guide assumes you are already familiar with CORS and its attendant security risks. 
+By enabling CORS you are bypassing an important protection against malicious third-party 
+websites - before doing so for any potentially sensitive resource, make sure you understand 
+what you are doing and why.
+
+## Usage
 Examples in this document have the following dependencies.
 
 ```scala
@@ -45,7 +54,7 @@ import org.http4s.server.middleware._
 ```
 
 ```scala mdoc
-val corsService = CORS(service)
+val corsService = CORS.policy.withAllowOriginAll(service)
 
 corsService.orNotFound(request).unsafeRunSync()
 ```
@@ -54,8 +63,7 @@ So far, there was no change. That's because an `Origin` header is required
 in the requests and it must include a scheme. This, of course, is the responsibility of the caller.
 
 ```scala mdoc
-val originHeader = Header("Origin", "https://somewhere.com")
-val corsRequest = request.putHeaders(originHeader)
+val corsRequest = request.putHeaders("Origin" -> "https://somewhere.com")
 
 corsService.orNotFound(corsRequest).unsafeRunSync()
 ```
@@ -65,7 +73,7 @@ that? And, as described in [Middleware], services and middleware can be
 composed such that only some of your endpoints are CORS enabled.
 
 ## Configuration
-The example above showed the default configuration for CORS, which adds the
+The example above showed one basic configuration for CORS, which adds the
 headers to any successful response, regardless of origin or HTTP method. There
 are configuration options to modify that.
 
@@ -73,9 +81,9 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```scala mdoc
-val googleGet = Request[IO](Method.GET, uri"/", headers = Headers.of(Header("Origin", "https://google.com")))
-val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers.of(Header("Origin", "https://yahoo.com")))
-val duckPost = Request[IO](Method.POST, uri"/", headers = Headers.of(Header("Origin", "https://duckduckgo.com")))
+val googleGet = Request[IO](Method.GET, uri"/", headers = Headers("Origin" -> "https://google.com"))
+val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers("Origin" -> "https://yahoo.com"))
+val duckPost = Request[IO](Method.POST, uri"/", headers = Headers("Origin" -> "https://duckduckgo.com"))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`
@@ -86,14 +94,12 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc
-val methodConfig = CORSConfig(
-  anyOrigin = true,
-  anyMethod = false,
-  allowedMethods = Some(Set("GET", "POST")),
-  allowCredentials = true,
-  maxAge = 1.day.toSeconds)
-
-val corsMethodSvc = CORS(service, methodConfig)
+val corsMethodSvc = CORS.policy
+  .withAllowOriginAll
+  .withAllowMethodsIn(Set(Method.GET, Method.POST))
+  .withAllowCredentials(false)
+  .withMaxAge(1.day)
+  .apply(service)
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
 corsMethodSvc.orNotFound(yahooPut).unsafeRunSync()
@@ -102,16 +108,20 @@ corsMethodSvc.orNotFound(duckPost).unsafeRunSync()
 
 As you can see, the CORS headers were only added to the `GET` and `POST` requests.
 Next, we'll create a configuration that limits the origins to "yahoo.com" and
-"duckduckgo.com". allowedOrigins can use any expression that resolves into a boolean.
+"duckduckgo.com". `withAllowOriginHost` accepts an `Origin.Host => Boolean`.
+If you're simply enumerating allowed hosts, a `Set` is convenient:
 
 ```scala mdoc
-val originConfig = CORSConfig(
-  anyOrigin = false,
-  allowedOrigins = Set("https://yahoo.com", "https://duckduckgo.com"),
-  allowCredentials = false,
-  maxAge = 1.day.toSeconds)
+import org.http4s.headers.Origin
 
-val corsOriginSvc = CORS(service, originConfig)
+val corsOriginSvc = CORS.policy
+  .withAllowOriginHost(Set(
+    Origin.Host(Uri.Scheme.https, Uri.RegName("yahoo.com"), None),
+    Origin.Host(Uri.Scheme.https, Uri.RegName("duckduckgo.com"), None)
+  ))
+  .withAllowCredentials(false)
+  .withMaxAge(1.day)
+  .apply(service)
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
 corsOriginSvc.orNotFound(yahooPut).unsafeRunSync()
@@ -119,7 +129,7 @@ corsOriginSvc.orNotFound(duckPost).unsafeRunSync()
 ```
 
 Again, the results are as expected. You can, of course, create a configuration that
-combines limits on both HTTP method and origin.
+combines limits on HTTP method, origin, and headers.
 
 As described in [Middleware], services and middleware can be composed such
 that only some of your endpoints are CORS enabled.

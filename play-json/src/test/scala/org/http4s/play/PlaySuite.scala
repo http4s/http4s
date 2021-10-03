@@ -27,7 +27,7 @@ import org.http4s.syntax.all._
 
 // Originally based on CirceSpec
 class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
-  implicit val testContext = TestContext()
+  implicit val testContext: TestContext = TestContext()
 
   testJsonDecoder(jsonDecoder)
 
@@ -38,9 +38,8 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
   val json: JsValue = Json.obj("test" -> JsString("PlaySupport"))
 
   test("json encoder should have json content type") {
-    assertEquals(
-      jsonEncoder.headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val ct: Option[`Content-Type`] = jsonEncoder[IO].headers.get[`Content-Type`]
+    assertEquals(ct, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("json encoder should write JSON") {
@@ -48,9 +47,8 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
   }
 
   test("jsonEncoderOf should have json content type") {
-    assertEquals(
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[IO, Foo].headers.get[`Content-Type`]
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("jsonEncoderOf should write compact JSON") {

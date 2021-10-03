@@ -20,15 +20,12 @@ import java.nio.charset.StandardCharsets
 
 import cats.instances.string._
 import cats.syntax.option._
-import org.http4s.laws.discipline.ArbitraryInstances
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.{ParseFailure, Uri}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Prop._
 
-class ForwardedSuite
-    extends munit.ScalaCheckSuite
-    with ArbitraryInstances
-    with ForwardedAuxiliaryGenerators {
+class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenerators {
 
   import Forwarded.Node
   import Node.{Name, Obfuscated}
@@ -168,9 +165,9 @@ class ForwardedSuite
           (host.host, uriAuth.host) match {
             case (Uri.RegName(actual), Uri.RegName(expected)) =>
               assertEquals(
-                actual.value,
+                actual.toString,
                 // TODO: `Uri.decode` should not be necessary here. Remove when #1651 (or #2012) get fixed.
-                Uri.decode(expected.value, StandardCharsets.ISO_8859_1)
+                Uri.decode(expected.toString, StandardCharsets.ISO_8859_1)
               )
             case _ => assertEquals(host.host, uriAuth.host)
           }

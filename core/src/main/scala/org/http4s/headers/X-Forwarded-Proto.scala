@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-package org.http4s
-package headers
+package org.http4s.headers
 
-object `X-Forwarded-Proto` extends HeaderKey.Default
+import org.http4s._
+import org.typelevel.ci._
+import cats.parse.Parser
+
+final case class `X-Forwarded-Proto`(scheme: Uri.Scheme) extends AnyVal
+
+object `X-Forwarded-Proto` {
+  private[http4s] val parser: Parser[`X-Forwarded-Proto`] = Uri.Parser.scheme.map(apply)
+
+  def parse(s: String): ParseResult[`X-Forwarded-Proto`] =
+    ParseResult.fromParser(parser, "Invalid X-Forwarded-Proto header")(s)
+
+  implicit val headerInstance: Header[`X-Forwarded-Proto`, Header.Single] =
+    Header.createRendered(
+      ci"X-Forwarded-Proto",
+      _.scheme,
+      parse
+    )
+}

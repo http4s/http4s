@@ -18,17 +18,18 @@ package org.http4s.dsl
 
 import org.http4s.Method
 import org.http4s.dsl.impl._
+import org.http4s.Uri
 
 trait RequestDsl extends Methods with Auth {
   import Http4sDsl._
 
-  type Path = impl.Path
-  type Root = impl.Root.type
-  type / = impl./
+  type Path = Uri.Path
+  type Root = Uri.Path.Root.type
+  type / = impl./.type
   type MethodConcat = impl.MethodConcat
 
-  val Path: impl.Path.type
-  val Root: impl.Root.type
+  val Path: Uri.Path.type
+  val Root: Uri.Path.Root.type
   val / : impl./.type
   val :? : impl.:?.type
   val ~ : impl.~.type
@@ -55,4 +56,8 @@ trait RequestDsl extends Methods with Auth {
 
   implicit def http4sMethodConcatSyntax(methods: MethodConcat): MethodConcatOps =
     new MethodConcatOps(methods)
+}
+
+trait RequestDslBinCompat extends RequestDsl {
+  val ->> : impl.->>.type = impl.->>
 }

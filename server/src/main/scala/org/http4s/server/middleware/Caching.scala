@@ -21,8 +21,8 @@ import cats.syntax.all._
 import cats.effect.{MonadThrow => _, _}
 import cats.data._
 import org.http4s._
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.{Date => HDate, _}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 /** Caching contains middlewares to support caching functionality.
@@ -49,11 +49,11 @@ object Caching {
   def `no-store-response`[G[_]]: PartiallyAppliedNoStoreCache[G] =
     new PartiallyAppliedNoStoreCache[G] {
       def apply[F[_]](resp: Response[F])(implicit M: Monad[G], C: Clock[G]): G[Response[F]] =
-        HttpDate.current[G].map(now => resp.putHeaders(HDate(now) :: noStoreStaticHeaders: _*))
+        HttpDate.current[G].map(now => resp.putHeaders(HDate(now)).putHeaders(noStoreStaticHeaders))
     }
 
   // These never change, so don't recreate them each time.
-  private val noStoreStaticHeaders = List(
+  private val noStoreStaticHeaders: List[Header.ToRaw] = List(
     `Cache-Control`(
       NonEmptyList.of[CacheDirective](
         CacheDirective.`no-store`,
@@ -61,7 +61,7 @@ object Caching {
         CacheDirective.`max-age`(0.seconds)
       )
     ),
-    Header("Pragma", "no-cache"),
+    "Pragma" -> "no-cache",
     Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
   )
 
@@ -113,7 +113,7 @@ object Caching {
   def privateCache[G[_]: MonadThrow: Clock, F[_]](
       lifetime: Duration,
       http: Http[G, F],
-      fieldNames: List[CaseInsensitiveString] = Nil): Http[G, F] =
+      fieldNames: List[CIString] = Nil): Http[G, F] =
     cache(
       lifetime,
       Either.right(CacheDirective.`private`(fieldNames)),
@@ -128,7 +128,7 @@ object Caching {
     */
   def privateCacheResponse[G[_]](
       lifetime: Duration,
-      fieldNames: List[CaseInsensitiveString] = Nil
+      fieldNames: List[CIString] = Nil
   ): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
 
@@ -185,18 +185,15 @@ object Caching {
             HttpDate
               .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
               .liftTo[G]
-        } yield {
-          val headers = List(
-            `Cache-Control`(
-              NonEmptyList.of(
-                isPublic.fold[CacheDirective](identity, identity),
-                CacheDirective.`max-age`(actualLifetime)
-              )),
-            HDate(now),
-            Expires(expires)
-          )
-          resp.putHeaders(headers: _*)
-        }
+        } yield resp.putHeaders(
+          `Cache-Control`(
+            NonEmptyList.of(
+              isPublic.fold[CacheDirective](identity, identity),
+              CacheDirective.`max-age`(actualLifetime)
+            )),
+          HDate(now),
+          Expires(expires)
+        )
 
     }
   }

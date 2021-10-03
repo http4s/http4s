@@ -17,15 +17,18 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import java.nio.charset.StandardCharsets
 
-object Referer extends HeaderKey.Internal[Referer] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[Referer] =
-    HttpHeaderParser.REFERER(s)
+object Referer extends HeaderCompanion[Referer]("Referer") {
+
+  private[http4s] val parser = Uri.Parser
+    .absoluteUri(StandardCharsets.ISO_8859_1)
+    .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
+    .map(Referer(_))
+
+  implicit val headerInstance: Header[Referer, Header.Single] =
+    createRendered(_.uri)
+
 }
 
-final case class Referer(uri: Uri) extends Header.Parsed {
-  override def key: `Referer`.type = `Referer`
-  override def renderValue(writer: Writer): writer.type = uri.render(writer)
-}
+final case class Referer(uri: Uri)

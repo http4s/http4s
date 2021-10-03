@@ -18,10 +18,11 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Content-Type`
-import org.http4s.MediaType
+import org.http4s.syntax.header._
 
-class ContentTypeHeaderSuite extends Http4sSuite with HeaderParserHelper[`Content-Type`] {
-  def hparse(value: String): ParseResult[`Content-Type`] = HttpHeaderParser.CONTENT_TYPE(value)
+class ContentTypeHeaderSuite extends Http4sSuite {
+  def parse(value: String): ParseResult[`Content-Type`] =
+    `Content-Type`.parse(value)
 
   def simple = `Content-Type`(MediaType.text.html)
   def charset = `Content-Type`(MediaType.text.html, Charset.`UTF-8`)
@@ -45,11 +46,11 @@ class ContentTypeHeaderSuite extends Http4sSuite with HeaderParserHelper[`Conten
     }
 
     test("ContentType Header should Parse correctly") {
-      assertEquals(parse(simple.value), simple)
-      assertEquals(parse(charset.value), charset)
-      assertEquals(parse(extensions.value), extensions)
-      assertEquals(parse(extensionsandset.value), extensionsandset)
-      assertEquals(parse(multipart.value), multipart)
+      assertEquals(parse(simple.value), Right(simple))
+      assertEquals(parse(charset.value), Right(charset))
+      assertEquals(parse(extensions.value), Right(extensions))
+      assertEquals(parse(extensionsandset.value), Right(extensionsandset))
+      assertEquals(parse(multipart.value), Right(multipart))
     }
   }
 }

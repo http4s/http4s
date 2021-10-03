@@ -17,12 +17,16 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.{Renderer, Writer}
+import cats.parse.Parser
 
-object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`Last-Modified`] =
-    HttpHeaderParser.LAST_MODIFIED(s)
+object `Last-Modified` extends HeaderCompanion[`Last-Modified`]("Last-Modified") {
+
+  /* `Last-Modified = HTTP-date` */
+  private[http4s] val parser: Parser[`Last-Modified`] =
+    HttpDate.parser.map(apply)
+
+  implicit val headerInstance: Header[`Last-Modified`, Header.Single] =
+    createRendered(_.date)
 }
 
 /** Response header that indicates the time at which the server believes the
@@ -30,8 +34,4 @@ object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKe
   *
   * [[https://tools.ietf.org/html/rfc7232#section-2.3 RFC-7232]]
   */
-final case class `Last-Modified`(date: HttpDate) extends Header.Parsed {
-  override def key: `Last-Modified`.type = `Last-Modified`
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class `Last-Modified`(date: HttpDate)

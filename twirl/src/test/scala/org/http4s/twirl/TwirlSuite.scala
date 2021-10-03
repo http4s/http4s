@@ -39,7 +39,7 @@ class TwirlSuite extends Http4sSuite {
   test("HTML encoder should return Content-Type text/html with proper charset") {
     Prop.forAll { implicit cs: Charset =>
       val headers = EntityEncoder[IO, Html].headers
-      headers.get(`Content-Type`).contains(`Content-Type`(MediaType.text.html, Some(cs)))
+      headers.get[`Content-Type`].contains(`Content-Type`(MediaType.text.html, Some(cs)))
     }
   }
 
@@ -58,7 +58,7 @@ class TwirlSuite extends Http4sSuite {
     Prop.forAll { implicit cs: Charset =>
       val headers = EntityEncoder[IO, JavaScript].headers
       headers
-        .get(`Content-Type`)
+        .get[`Content-Type`]
         .contains(`Content-Type`(MediaType.application.javascript, Some(cs)))
     }
   }
@@ -73,7 +73,7 @@ class TwirlSuite extends Http4sSuite {
   test("Text encoder should return Content-Type text/plain with proper charset") {
     Prop.forAll { implicit cs: Charset =>
       val headers = EntityEncoder[IO, Txt].headers
-      headers.get(`Content-Type`).contains(`Content-Type`(MediaType.text.plain, Some(cs)))
+      headers.get[`Content-Type`].contains(`Content-Type`(MediaType.text.plain, Some(cs)))
     }
   }
 
@@ -87,7 +87,7 @@ class TwirlSuite extends Http4sSuite {
   test("XML encoder should return Content-Type application/xml with proper charset") {
     Prop.forAll { implicit cs: Charset =>
       val headers = EntityEncoder[IO, Xml].headers
-      headers.get(`Content-Type`).contains(`Content-Type`(MediaType.application.xml, Some(cs)))
+      headers.get[`Content-Type`].contains(`Content-Type`(MediaType.application.xml, Some(cs)))
     }
   }
 

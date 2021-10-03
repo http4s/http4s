@@ -26,6 +26,7 @@ import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.headers._
+import org.typelevel.ci._
 
 class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   private val loopCounter = new AtomicInteger(0)
@@ -43,11 +44,12 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       case req @ _ -> Root / "ok" =>
         Ok(
           req.body,
-          Header("X-Original-Method", req.method.toString),
-          Header(
-            "X-Original-Content-Length",
-            req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
-          Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
+          "X-Original-Method" -> req.method.toString,
+          "X-Original-Content-Length" -> req.headers
+            .get[`Content-Length`]
+            .fold(0L)(_.length)
+            .toString,
+          "X-Original-Authorization" -> req.headers.get[Authorization].fold("")(_.value)
         )
 
       case _ -> Root / "different-authority" =>
@@ -67,99 +69,19 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       body: String
   )
 
-  // test("FollowRedirect should ggfollow the proper strategy") {
-  //   def doIt(
-  //       method: Method,
-  //       status: Status,
-  //       body: String,
-  //       pure: Boolean,
-  //       response: Either[Throwable, RedirectResponse]
-  //   ) = {
-  //     val u = uri"http://localhost" / status.code.toString
-  //     val req: Request[IO] = method match {
-  //       case _: Method.PermitsBody if body.nonEmpty =>
-  //         val bodyBytes = body.getBytes.toList
-  //         Request[IO](
-  //           method,
-  //           u,
-  //           body =
-  //             if (pure) Stream.emits(bodyBytes)
-  //             else Stream.emits(bodyBytes))
-  //       case _ =>
-  //         Request(method, u)
-  //     }
-  //     client
-  //       .run(req)
-  //       .use {
-  //         case Ok(resp) =>
-  //           val method = resp.headers.get("X-Original-Method".ci).fold("")(_.value)
-  //           val body = resp.as[String]
-  //           body.map(RedirectResponse(method, _))
-  //         case resp =>
-  //           IO.raiseError(UnexpectedStatus(resp.status))
-  //       }
-  //       .attempt
-  //       .map {
-  //         case Right(r) => r == response
-  //         case _ => false
-  //       }
-  //       .assert
-  //   }
-  //
-  //   "method" | "status" | "body" | "pure" | "response" |>
-  //     GET ! MovedPermanently ! "" ! true ! Right(RedirectResponse("GET", "")) |
-  //     HEAD ! MovedPermanently ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
-  //     POST ! MovedPermanently ! "foo" ! true ! Right(RedirectResponse("GET", "")) |
-  //     POST ! MovedPermanently ! "foo" ! false ! Right(RedirectResponse("GET", "")) |
-  //     PUT ! MovedPermanently ! "" ! true ! Right(RedirectResponse("PUT", "")) |
-  //     PUT ! MovedPermanently ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
-  //     PUT ! MovedPermanently ! "foo" ! false ! Left(UnexpectedStatus(MovedPermanently)) |
-  //     GET ! Found ! "" ! true ! Right(RedirectResponse("GET", "")) |
-  //     HEAD ! Found ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
-  //     POST ! Found ! "foo" ! true ! Right(RedirectResponse("GET", "")) |
-  //     POST ! Found ! "foo" ! false ! Right(RedirectResponse("GET", "")) |
-  //     PUT ! Found ! "" ! true ! Right(RedirectResponse("PUT", "")) |
-  //     PUT ! Found ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
-  //     PUT ! Found ! "foo" ! false ! Left(UnexpectedStatus(Found)) |
-  //     GET ! SeeOther ! "" ! true ! Right(RedirectResponse("GET", "")) |
-  //     HEAD ! SeeOther ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
-  //     POST ! SeeOther ! "foo" ! true ! Right(RedirectResponse("GET", "")) |
-  //     POST ! SeeOther ! "foo" ! false ! Right(RedirectResponse("GET", "")) |
-  //     PUT ! SeeOther ! "" ! true ! Right(RedirectResponse("GET", "")) |
-  //     PUT ! SeeOther ! "foo" ! true ! Right(RedirectResponse("GET", "")) |
-  //     PUT ! SeeOther ! "foo" ! false ! Right(RedirectResponse("GET", "")) |
-  //     GET ! TemporaryRedirect ! "" ! true ! Right(RedirectResponse("GET", "")) |
-  //     HEAD ! TemporaryRedirect ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
-  //     POST ! TemporaryRedirect ! "foo" ! true ! Right(RedirectResponse("POST", "foo")) |
-  //     POST ! TemporaryRedirect ! "foo" ! false ! Left(UnexpectedStatus(TemporaryRedirect)) |
-  //     PUT ! TemporaryRedirect ! "" ! true ! Right(RedirectResponse("PUT", "")) |
-  //     PUT ! TemporaryRedirect ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
-  //     PUT ! TemporaryRedirect ! "foo" ! false ! Left(UnexpectedStatus(TemporaryRedirect)) |
-  //     GET ! PermanentRedirect ! "" ! true ! Right(RedirectResponse("GET", "")) |
-  //     HEAD ! PermanentRedirect ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
-  //     POST ! PermanentRedirect ! "foo" ! true ! Right(RedirectResponse("POST", "foo")) |
-  //     POST ! PermanentRedirect ! "foo" ! false ! Left(UnexpectedStatus(PermanentRedirect)) |
-  //     PUT ! PermanentRedirect ! "" ! true ! Right(RedirectResponse("PUT", "")) |
-  //     PUT ! PermanentRedirect ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
-  //     PUT ! PermanentRedirect ! "foo" ! false ! Left(UnexpectedStatus(PermanentRedirect)) | {
-  //       (method, status, body, pure, response) =>
-  //         doIt(method, status, body, pure, response)
-  //     }
-  // } //.pendingUntilFixed
-
-  test("FollowRedirect should ggStrip payload headers when switching to GET") {
+  test("FollowRedirect should strip payload headers when switching to GET") {
     // We could test others, and other scenarios, but this was a pain.
     val req = Request[IO](PUT, uri"http://localhost/303").withEntity("foo")
     client
       .run(req)
-      .use { resp =>
-        resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[IO]
+      .use { case resp =>
+        resp.headers.get(ci"X-Original-Content-Length").map(_.head.value).pure[IO]
       }
       .map(_.get)
       .assertEquals("0")
   }
 
-  test("FollowRedirect should ggNot redirect more than 'maxRedirects' iterations") {
+  test("FollowRedirect should Not redirect more than 'maxRedirects' iterations") {
     val statefulApp = HttpRoutes
       .of[IO] { case GET -> Root / "loop" =>
         val body = loopCounter.incrementAndGet.toString
@@ -176,7 +98,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       .assertEquals(4)
   }
 
-  test("FollowRedirect should ggDispose of original response when redirecting") {
+  test("FollowRedirect should Dispose of original response when redirecting") {
     var disposed = 0
     def disposingService(req: Request[IO]) =
       Resource.make(app.run(req))(_ => IO { disposed = disposed + 1 }.void)
@@ -185,7 +107,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     client.expect[String](uri"http://localhost/301").map(_ => disposed).assertEquals(2)
   }
 
-  test("FollowRedirect should ggNot hang when redirecting") {
+  test("FollowRedirect should Not hang when redirecting") {
     Semaphore[IO](2)
       .flatMap { semaphore =>
         def f(req: Request[IO]) =
@@ -200,31 +122,33 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test(
-    "FollowRedirect should ggNot send sensitive headers when redirecting to a different authority") {
+    "FollowRedirect should Not send sensitive headers when redirecting to a different authority") {
     val req = PUT(
       "Don't expose mah secrets!",
       uri"http://localhost/different-authority",
-      Header("Authorization", "Bearer s3cr3t"))
-    req
-      .flatMap(client.run(_).use { resp =>
-        resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
-      })
+      "Authorization" -> "Bearer s3cr3t")
+    client
+      .run(req)
+      .use { case resp =>
+        resp.headers.get(ci"X-Original-Authorization").map(_.head.value).pure[IO]
+      }
       .assertEquals(Some(""))
   }
 
-  test("FollowRedirect should ggSend sensitive headers when redirecting to same authority") {
+  test("FollowRedirect should Send sensitive headers when redirecting to same authority") {
     val req = PUT(
       "You already know mah secrets!",
       uri"http://localhost/307",
-      Header("Authorization", "Bearer s3cr3t"))
-    req
-      .flatMap(client.run(_).use { case resp =>
-        resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
-      })
+      "Authorization" -> "Bearer s3cr3t")
+    client
+      .run(req)
+      .use { case resp =>
+        resp.headers.get(ci"X-Original-Authorization").map(_.head.value).pure[IO]
+      }
       .assertEquals(Some("Bearer s3cr3t"))
   }
 
-  test("FollowRedirect should ggRecord the intermediate URIs") {
+  test("FollowRedirect should Record the intermediate URIs") {
     client
       .run(Request[IO](uri = uri"http://localhost/loop/0"))
       .use { resp =>
@@ -238,7 +162,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
         ))
   }
 
-  test("FollowRedirect should ggNot add any URIs when there are no redirects") {
+  test("FollowRedirect should Not add any URIs when there are no redirects") {
     client
       .run(Request[IO](uri = uri"http://localhost/loop/100"))
       .use { case resp =>

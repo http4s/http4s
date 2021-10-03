@@ -21,8 +21,7 @@ import java.util.Locale
 import cats.Hash
 import cats.syntax.all._
 import cats.kernel.laws.discipline._
-import org.http4s.laws.discipline.ArbitraryInstances._
-import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen
 import org.scalacheck.Prop.{forAll, forAllNoShrink, propBoolean}
 
@@ -40,10 +39,8 @@ class MethodSuite extends Http4sSuite {
   }
 
   test("only tokens are valid methods") {
-    forAll { (s: String) =>
-      // TODO: this check looks meaningless: `fromString` mostly relies on `Rfc2616BasicRules.token`
-      //       and the result is compared to `isToken` which calls to `Rfc2616BasicRules.token` as well.
-      fromString(s).isRight == Rfc2616BasicRules.isToken(s)
+    forAll(genNonToken) { nonToken =>
+      fromString(nonToken).isLeft
     }
   }
 

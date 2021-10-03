@@ -29,9 +29,8 @@ import org.http4s.{
   Uri,
   jawn
 }
-import org.typelevel.jawn.support.play.Parser.facade
+import org.http4s.play.Parser.facade
 import play.api.libs.json._
-import scala.annotation.nowarn
 
 trait PlayInstances {
   def jsonOf[F[_]: Sync, A](implicit decoder: Reads[A]): EntityDecoder[F, A] =
@@ -48,8 +47,7 @@ trait PlayInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JsValue] =
     jawn.jawnDecoder[F, JsValue]
 
-  @nowarn("cat=unused")
-  def jsonEncoderOf[F[_]: EntityEncoder[*[_], String], A: Writes]: EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_], A: Writes]: EntityEncoder[F, A] =
     jsonEncoder[F].contramap[A](Json.toJson(_))
 
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, JsValue] =

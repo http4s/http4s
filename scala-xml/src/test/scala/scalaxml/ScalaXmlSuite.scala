@@ -25,6 +25,7 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Status.Ok
 import org.scalacheck.Prop._
+import org.typelevel.ci._
 import scala.xml.Elem
 import fs2.Chunk
 import java.nio.charset.StandardCharsets
@@ -117,13 +118,13 @@ class ScalaXmlSuite extends Http4sSuite {
 
   property("encoder sets charset of Content-Type") {
     forAll { (cs: Charset) =>
-      assertEquals(xmlEncoder[IO](cs).headers.get(`Content-Type`).flatMap(_.charset), Some(cs))
+      assertEquals(xmlEncoder[IO](cs).headers.get[`Content-Type`].flatMap(_.charset), Some(cs))
     }
   }
 
   def encodingTest(bytes: Chunk[Byte], contentType: String, name: String) = {
     val body = Stream.chunk(bytes)
-    val msg = Request[IO](Method.POST, headers = Headers.of(Header("Content-Type", contentType)))
+    val msg = Request[IO](Method.POST, headers = Headers(Header.Raw(ci"Content-Type", contentType)))
       .withBodyStream(body)
     msg.as[Elem].map(_ \\ "hello" \@ "name").assertEquals(name)
   }

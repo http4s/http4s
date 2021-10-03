@@ -17,11 +17,12 @@
 package org.http4s.headers
 
 import org.http4s.ParseFailure
+import org.http4s.syntax.header._
 import scala.concurrent.duration._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 class StrictTransportSecuritySuite extends HeaderLaws {
-  checkAll("StrictTransportSecurity", headerLaws(`Strict-Transport-Security`))
+  checkAll("StrictTransportSecurity", headerLaws[`Strict-Transport-Security`])
 
   test("fromLong should support positive max age in seconds") {
     assertEquals(

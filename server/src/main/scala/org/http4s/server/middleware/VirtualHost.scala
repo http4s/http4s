@@ -77,7 +77,7 @@ object VirtualHost {
       W: EntityEncoder[G, String]): Http[F, G] =
     Kleisli { req =>
       req.headers
-        .get(Host)
+        .get[Host]
         .fold(F.pure(Response[G](BadRequest).withEntity("Host header required."))) { h =>
           // Fill in the host port if possible
           val host: Host = h.port match {

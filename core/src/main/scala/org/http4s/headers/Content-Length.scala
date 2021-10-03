@@ -17,8 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import org.http4s.parser.AdditionalRules
+import org.typelevel.ci._
 
 /** Constructs a `Content-Length` header.
   *
@@ -27,25 +27,33 @@ import org.http4s.util.Writer
   *
   * @param length the length
   */
-sealed abstract case class `Content-Length`(length: Long) extends Header.Parsed {
-  override def key: `Content-Length`.type = `Content-Length`
-  override def renderValue(writer: Writer): writer.type = writer.append(length)
+final case class `Content-Length`(length: Long) {
   def modify(f: Long => Long): Option[`Content-Length`] =
     `Content-Length`.fromLong(f(length)).toOption
 }
 
-object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton {
-  private class ContentLengthImpl(length: Long) extends `Content-Length`(length)
-
-  val zero: `Content-Length` = new ContentLengthImpl(0)
+object `Content-Length` {
+  val zero: `Content-Length` = apply(0)
 
   def fromLong(length: Long): ParseResult[`Content-Length`] =
-    if (length >= 0L) ParseResult.success(new ContentLengthImpl(length))
+    if (length >= 0L) ParseResult.success(apply(length))
     else ParseResult.fail("Invalid Content-Length", length.toString)
 
   def unsafeFromLong(length: Long): `Content-Length` =
     fromLong(length).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Content-Length`] =
-    HttpHeaderParser.CONTENT_LENGTH(s)
+    ParseResult.fromParser(parser, "Invalid Content-Length header")(s)
+
+  private[http4s] val parser = AdditionalRules.NonNegativeLong.map(fromLong).mapFilter(_.toOption)
+
+  val name: CIString = ci"Content-Length"
+
+  implicit val headerInstance: Header[`Content-Length`, Header.Single] =
+    Header.createRendered(
+      name,
+      _.length,
+      parse
+    )
+
 }

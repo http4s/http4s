@@ -20,9 +20,10 @@ import cats.data.Kleisli
 import cats.effect.{Clock, ExitCase, Sync}
 import cats.syntax.all._
 import java.util.concurrent.TimeUnit
+
 import org.http4s._
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.TerminationType.{Abnormal, Error}
+import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
 
 /** Server middleware to record metrics for the http4s server.
   *
@@ -86,7 +87,7 @@ object Metrics {
                   // that an error occurred before the routes could generate a
                   // response.
                   ops.recordHeadersTime(context.method, totalTime, context.classifier) *>
-                    ops.recordAbnormalTermination(totalTime, Error, context.classifier) *>
+                    ops.recordAbnormalTermination(totalTime, Error(e), context.classifier) *>
                     errorResponseHandler(e).traverse_(status =>
                       ops.recordTotalTime(context.method, status, totalTime, context.classifier))
                 }(status =>
@@ -95,10 +96,10 @@ object Metrics {
                   // the response body. In this case recordHeadersTime would
                   // have been invoked in the normal manner so we do not need
                   // to invoke it here.
-                  ops.recordAbnormalTermination(totalTime, Abnormal, context.classifier) *>
+                  ops.recordAbnormalTermination(totalTime, Abnormal(e), context.classifier) *>
                     ops.recordTotalTime(context.method, status, totalTime, context.classifier))
               case ExitCase.Canceled =>
-                ops.recordAbnormalTermination(totalTime, Abnormal, context.classifier)
+                ops.recordAbnormalTermination(totalTime, Canceled, context.classifier)
             }))
     }(F)(
       Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>

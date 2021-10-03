@@ -18,13 +18,14 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
+import cats.syntax.all._
 
-class CookieHeaderSuite extends munit.FunSuite with HeaderParserHelper[headers.Cookie] {
-  def hparse(value: String): ParseResult[headers.Cookie] = HttpHeaderParser.COOKIE(value)
+class CookieHeaderSuite extends munit.FunSuite {
+  def parse(value: String) = headers.Cookie.parse(value).valueOr(throw _)
 
   val cookiestr = "key1=value1; key2=\"value2\""
   val cookiestrSemicolon: String = cookiestr + ";"
-  val cookies = List(RequestCookie("key1", "value1"), RequestCookie("key2", "value2"))
+  val cookies = List(RequestCookie("key1", "value1"), RequestCookie("key2", """"value2""""))
 
   test("Cookie parser should parse a cookie") {
     assertEquals(parse(cookiestr).values.toList, cookies)
@@ -34,10 +35,9 @@ class CookieHeaderSuite extends munit.FunSuite with HeaderParserHelper[headers.C
   }
   test("Cookie parser should tolerate spaces") {
     assertEquals(
-      hparse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);").map(_.values),
-      Right(
-        NonEmptyList.one(
-          RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")))
+      parse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);").values,
+      NonEmptyList.one(
+        RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)"))
     )
   }
 }

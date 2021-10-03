@@ -17,10 +17,10 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.{HashTests, OrderTests}
+import com.comcast.ip4s._
 import org.http4s.Uri.Ipv4Address
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.syntax.all._
 import org.http4s.util.Renderer.renderString
 import org.scalacheck.Prop._
 
@@ -30,7 +30,7 @@ class Ipv4AddressSuite extends Http4sSuite {
   checkAll("HttpCodec[Ipv4Address]", HttpCodecTests[Ipv4Address].httpCodec)
 
   test("render should render all 4 octets") {
-    assert(renderString(ipv4"192.168.0.1") == "192.168.0.1")
+    assert(renderString(Ipv4Address(ipv4"192.168.0.1")) == "192.168.0.1")
   }
 
   test("fromInet4Address should round trip with toInet4Address") {
@@ -47,8 +47,7 @@ class Ipv4AddressSuite extends Http4sSuite {
 
   test("compare should be consistent with unsigned int") {
     forAll { (xs: List[Ipv4Address]) =>
-      def tupled(a: Ipv4Address) = (a.a, a.b, a.c, a.d)
-      assert(xs.sorted.map(tupled) == xs.map(tupled).sorted)
+      assert(xs.sorted.map(_.address) == xs.map(_.address).sorted)
     }
   }
 
@@ -57,19 +56,4 @@ class Ipv4AddressSuite extends Http4sSuite {
       assert(math.signum(a.compareTo(b)) == math.signum(a.compare(b)))
     }
   }
-
-  test("ipv4 interpolator should be consistent with fromString") {
-    assert(Right(ipv4"127.0.0.1") == Ipv4Address.fromString("127.0.0.1"))
-    assert(Right(ipv4"192.168.0.1") == Ipv4Address.fromString("192.168.0.1"))
-  }
-
-  test("ipv4 interpolator should reject invalid values") {
-    assertNoDiff(
-      compileErrors("""ipv4"256.0.0.0""""),
-      """error: invalid Ipv4Address
-        |ipv4"256.0.0.0"
-        |^
-        |""".stripMargin)
-  }
-
 }

@@ -17,11 +17,10 @@
 package org.http4s.headers
 
 import java.nio.charset.StandardCharsets
-
 import cats.Eval
 import cats.syntax.flatMap._
 import org.http4s.Uri
-import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderer, Writer}
 
 /** Renderers for the [[Forwarded]] header models.
@@ -33,8 +32,8 @@ private[http4s] trait ForwardedRenderers {
     new Renderer[Node.Name] {
       override def render(writer: Writer, nodeName: Node.Name): writer.type =
         nodeName match {
-          case Node.Name.Ipv4(ipv4addr) => writer << ipv4addr
-          case Node.Name.Ipv6(ipv6addr) => writer << '[' << ipv6addr << ']'
+          case Node.Name.Ipv4(ipv4addr) => writer << ipv4addr.toUriString
+          case Node.Name.Ipv6(ipv6addr) => writer << ipv6addr.toUriString
           case Node.Name.Unknown => writer << "unknown"
           case Node.Obfuscated(str) => writer << str
         }
@@ -63,7 +62,7 @@ private[http4s] trait ForwardedRenderers {
       host.host match {
         case Uri.RegName(name) =>
           // TODO: A workaround for #1651, remove when the former issue gets fixed.
-          writer << Uri.encode(name.value, StandardCharsets.ISO_8859_1, toSkip = RegNameChars)
+          writer << Uri.encode(name.toString, StandardCharsets.ISO_8859_1, toSkip = RegNameChars)
         case other =>
           writer << other
       }
@@ -80,7 +79,7 @@ private[http4s] trait ForwardedRenderers {
           writer << name << '='
 
           val rendered = Renderer.renderString(value)
-          if (Rfc2616BasicRules.isToken(rendered))
+          if (Rfc7230.token.parseAll(rendered).isRight)
             writer << rendered
           else
             writer <<# rendered // quote non-token values

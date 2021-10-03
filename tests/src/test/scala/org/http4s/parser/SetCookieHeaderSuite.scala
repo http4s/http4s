@@ -17,29 +17,30 @@
 package org.http4s
 package parser
 
+import cats.syntax.all._
 import org.http4s.headers.`Set-Cookie`
 
-class SetCookieHeaderSuite extends munit.FunSuite with HeaderParserHelper[`Set-Cookie`] {
-  def hparse(value: String): ParseResult[`Set-Cookie`] = HttpHeaderParser.SET_COOKIE(value)
+class SetCookieHeaderSuite extends munit.FunSuite {
+  def parse(value: String) = `Set-Cookie`.parse(value).valueOr(throw _)
 
   test("Set-Cookie parser should parse a set cookie") {
     val cookiestr =
-      "myname=\"foo\"; Domain=example.com; Max-Age=1; Path=value; SameSite=Strict; Secure;HttpOnly"
+      "myname=\"foo\"; Domain=example.com; Max-Age=1; Path=value; SameSite=Strict; Secure; HttpOnly"
     val c = parse(cookiestr).cookie
     assertEquals(c.name, "myname")
     assertEquals(c.domain, Some("example.com"))
-    assertEquals(c.content, "foo")
+    assertEquals(c.content, """"foo"""")
     assertEquals(c.maxAge, Some(1L))
     assertEquals(c.path, Some("value"))
-    assertEquals(c.sameSite, SameSite.Strict)
+    assertEquals(c.sameSite, Some(SameSite.Strict))
     assertEquals(c.secure, true)
     assertEquals(c.httpOnly, true)
   }
 
-  test("Set-Cookie parser should defaultder>n to SameSite=Lax") {
+  test("Set-Cookie parser should default to None") {
     val cookiestr = "myname=\"foo\"; Domain=value; Max-Age=1; Path=value"
     val c = parse(cookiestr).cookie
-    assertEquals(c.sameSite, SameSite.Lax)
+    assertEquals(c.sameSite, None)
   }
 
   test("Set-Cookie parser should parse a set cookie with lowercase attributes") {
@@ -48,18 +49,12 @@ class SetCookieHeaderSuite extends munit.FunSuite with HeaderParserHelper[`Set-C
     val c = parse(cookiestr).cookie
     assertEquals(c.name, "myname")
     assertEquals(c.domain, Some("example.com"))
-    assertEquals(c.content, "foo")
+    assertEquals(c.content, """"foo"""")
     assertEquals(c.maxAge, Some(1L))
     assertEquals(c.path, Some("value"))
-    assertEquals(c.sameSite, SameSite.Strict)
+    assertEquals(c.sameSite, Some(SameSite.Strict))
     assertEquals(c.secure, true)
     assertEquals(c.httpOnly, true)
-  }
-
-  test("Set-Cookie parser should parse with a domain with a leading dot") {
-    val cookiestr = "myname=\"foo\"; Domain=.example.com"
-    val c = parse(cookiestr).cookie
-    assertEquals(c.domain, Some(".example.com"))
   }
 
   test("Set-Cookie parser should parse with a domain with a leading dot") {
@@ -80,7 +75,7 @@ class SetCookieHeaderSuite extends munit.FunSuite with HeaderParserHelper[`Set-C
     assertEquals(c.extension, Some("http4s=fun; rfc6265=not-fun"))
   }
 
-  test("Set-Cookie parser should parse with an two extensions around a common attribute") {
+  test("Set-Cookie parser should parse with two extensions around a common attribute") {
     val cookiestr = "myname=\"foo\"; http4s=fun; Domain=example.com; rfc6265=not-fun"
     val c = parse(cookiestr).cookie
     assertEquals(c.domain, Some("example.com"))

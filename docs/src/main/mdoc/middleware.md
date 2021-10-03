@@ -36,7 +36,7 @@ Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
 ```scala mdoc
-def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
+def myMiddle(service: HttpRoutes[IO], header: Header.ToRaw): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
@@ -74,7 +74,7 @@ service.orNotFound(badRequest).unsafeRunSync()
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
 
 ```scala mdoc
-val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
+val wrappedService = myMiddle(service, "SomeKey" -> "SomeValue");
 
 wrappedService.orNotFound(goodRequest).unsafeRunSync()
 wrappedService.orNotFound(badRequest).unsafeRunSync()
@@ -87,17 +87,17 @@ it as an `object` and use the `apply` method.
 
 ```scala mdoc
 object MyMiddle {
-  def addHeader(resp: Response[IO], header: Header) =
+  def addHeader(resp: Response[IO], header: Header.ToRaw) =
     resp match {
       case Status.Successful(resp) => resp.putHeaders(header)
       case resp => resp
     }
 
-  def apply(service: HttpRoutes[IO], header: Header) =
+  def apply(service: HttpRoutes[IO], header: Header.ToRaw) =
     service.map(addHeader(_, header))
 }
 
-val newService = MyMiddle(service, Header("SomeKey", "SomeValue"))
+val newService = MyMiddle(service, "SomeKey" -> "SomeValue")
 
 newService.orNotFound(goodRequest).unsafeRunSync()
 newService.orNotFound(badRequest).unsafeRunSync()
@@ -125,7 +125,7 @@ val apiService = HttpRoutes.of[IO] {
     Ok()
 }
 
-val aggregateService = apiService <+> MyMiddle(service, Header("SomeKey", "SomeValue"))
+val aggregateService = apiService <+> MyMiddle(service, "SomeKey" -> "SomeValue")
 
 val apiRequest = Request[IO](Method.GET, uri"/api")
 
@@ -230,11 +230,11 @@ as to why this header is useful.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.RequestId
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci._
 
 val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
   case req =>
-    val reqId = req.headers.get(CaseInsensitiveString("X-Request-ID")).fold("null")(_.value)
+    val reqId = req.headers.get(ci"X-Request-ID").fold("null")(_.head.value)
     // use request id to correlate logs with the request
     IO(println(s"request received, cid=$reqId")) *> Ok()
 })

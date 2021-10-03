@@ -16,15 +16,14 @@
 
 package org.http4s
 
-import java.nio.charset.StandardCharsets
-
+import cats.parse.Parser0
 import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
+import java.nio.charset.StandardCharsets
 import org.http4s.Query._
-import org.http4s.internal.CollectionCompat
-
-import org.http4s.internal.parboiled2.{CharPredicate, Parser}
-import org.http4s.parser.{QueryParser, RequestUriParser}
+import org.http4s.internal.{CollectionCompat, UriCoding}
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, Writer}
 
 import scala.collection.immutable
@@ -34,7 +33,8 @@ import scala.collection.mutable.ListBuffer
 /** Collection representation of a query string
   *
   * It is a indexed sequence of key and maybe a value pairs which maps
-  * precisely to a query string, modulo the identity of separators.
+  * precisely to a query string, modulo
+  * [[https://datatracker.ietf.org/doc/html/rfc3986#section-2.1 percent-encoding]].
   *
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
@@ -51,7 +51,6 @@ final class Query private (value: Either[Vector[KeyValue], String])
     _pairs
   }
 
-  //restore binary compability
   private def this(vec: Vector[KeyValue]) = this(Left(vec))
 
   def apply(idx: Int): KeyValue = pairs(idx)
@@ -108,7 +107,11 @@ final class Query private (value: Either[Vector[KeyValue], String])
       var first = true
 
       def encode(s: String) =
-        Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
+        UriCoding.encode(
+          s,
+          spaceIsPlus = false,
+          charset = StandardCharsets.UTF_8,
+          toSkip = UriCoding.QueryNoEncode)
 
       pairs.foreach {
         case (n, None) =>
@@ -177,14 +180,6 @@ object Query {
   /** Represents a query string with no keys or values: `?` */
   val blank = new Query(Vector("" -> None))
 
-  /*
-   * "The characters slash ("/") and question mark ("?") may represent data
-   * within the query component... it is sometimes better for usability to
-   * avoid percent-encoding those characters."
-   *   -- http://tools.ietf.org/html/rfc3986#section-3.4
-   */
-  private val NoEncode: CharPredicate = Uri.Unreserved ++ "?/"
-
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)
 
@@ -202,10 +197,17 @@ object Query {
     *
     * If parsing fails, the empty [[Query]] is returned
     */
+  def unsafeFromString(query: String): Query =
+    if (query.isEmpty) new Query(Vector("" -> None))
+    else
+      QueryParser.parseQueryString(query) match {
+        case Right(query) => query
+        case Left(_) => Query.empty
+      }
+
+  @deprecated(message = "Use unsafeFromString instead", since = "0.22.0-M6")
   def fromString(query: String): Query =
-    new RequestUriParser(query, StandardCharsets.UTF_8).Query
-      .run()(Parser.DeliveryScheme.Either)
-      .fold(_ => Query.blank, _ => new Query(Right(query)))
+    unsafeFromString(query)
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
@@ -221,6 +223,19 @@ object Query {
         case Right(query) => query
         case Left(_) => Vector.empty
       }
+
+  /* query       = *( pchar / "/" / "?" )
+   *
+   * These are illegal, but common in the wild.  We will be
+   * "conservative in our sending behavior and liberal in our
+   * receiving behavior", and encode them.
+   */
+  private[http4s] lazy val parser: Parser0[Query] = {
+    import cats.parse.Parser.charIn
+    import Rfc3986.pchar
+
+    pchar.orElse(charIn("/?[]")).rep0.string.map(pchars => new Query(Right(pchars)))
+  }
 
   implicit val catsInstancesForHttp4sQuery: Hash[Query] with Order[Query] with Show[Query] =
     new Hash[Query] with Order[Query] with Show[Query] {

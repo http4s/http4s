@@ -16,12 +16,10 @@
 
 package org.http4s
 
-import cats.kernel.BoundedEnumerable
 import cats.{Hash, Order, Show}
-import org.http4s.internal.parboiled2.{Parser => PbParser}
-import org.http4s.parser.{AdditionalRules, Http4sParser}
+import cats.kernel.BoundedEnumerable
+import cats.parse.Parser0
 import org.http4s.util.Writer
-import scala.reflect.macros.whitebox
 
 /** A Quality Value.  Represented as thousandths for an exact representation rounded to three
   * decimal places.
@@ -76,7 +74,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 
 }
 
-object QValue {
+object QValue extends QValuePlatform {
   lazy val One: QValue = new QValue(1000)
   lazy val Zero: QValue = new QValue(0)
 
@@ -96,67 +94,39 @@ object QValue {
   def fromString(s: String): ParseResult[QValue] =
     try fromDouble(s.toDouble)
     catch {
-      case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
+      case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"$s is not a number")
     }
 
   def unsafeFromString(s: String): QValue =
     fromString(s).fold(throw _, identity)
 
-  def parse(s: String): ParseResult[QValue] =
-    new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {
-      def main = QualityValue
-    }.parse
+  private[http4s] val parser: Parser0[QValue] = {
+    import cats.parse.Parser.{char => ch, _}
+    import cats.parse.Rfc5234._
+    import org.http4s.internal.parsing.Rfc7230.ows
 
-  private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
-    def QualityValue =
-      rule { // QValue is already taken
-        ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
-      }
+    val qValue = string(ch('0') *> (ch('.') *> digit.rep).rep0)
+      .mapFilter(
+        QValue
+          .fromString(_)
+          .toOption
+      )
+      .orElse(
+        ch('1') *> (ch('.') *> ch('0').rep0.void).?.as(One)
+      )
+
+    ((ch(';') *> ows *> ignoreCaseChar('q') *> ch('=')) *> qValue).backtrack
+      .orElse(pure(QValue.One))
   }
+
+  def parse(s: String): ParseResult[QValue] =
+    ParseResult.fromParser(parser, "Invalid Q-Value")(s)
 
   /** Exists to support compile-time verified literals. Do not call directly. */
+  @deprecated(
+    """QValue literal is deprecated.  Import `org.http4s.implicits._` and use the qValue"" string context""",
+    "0.22.2")
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
-
-  @deprecated("This location of the implementation complicates Dotty support", "0.21.16")
-  class Macros(val c: whitebox.Context) {
-    import c.universe._
-
-    def qValueLiteral(d: c.Expr[Double]): Tree =
-      d.tree match {
-        case Literal(Constant(d: Double)) =>
-          QValue
-            .fromDouble(d)
-            .fold(
-              e => c.abort(c.enclosingPosition, e.details),
-              qValue => q"_root_.org.http4s.QValue.☠(${qValue.thousandths})"
-            )
-        case _ =>
-          c.abort(c.enclosingPosition, s"literal Double value required")
-      }
-  }
-
-  /** Supports a literal syntax for validated QValues.
-    *
-    * Example:
-    * {{{
-    * q(0.5).success == QValue.fromDouble(0.5)
-    * q(1.1) // does not compile: out of range
-    * val d = 0.5
-    * q(d) // does not compile: not a literal
-    * }}}
-    */
-  @deprecated("""use qValue"" string interpolation instead""", "0.20")
-  def q(d: Double): QValue = macro Macros.qValueLiteral
-
-  @deprecated("Use catsInstancesForHttp4sQValue", "0.21.20")
-  val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
-  @deprecated("Use catsInstancesForHttp4sQValue", "0.21.20")
-  val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]
-  @deprecated("Use catsInstancesForHttp4sQValue", "0.21.20")
-  val http4sHttpCodecForQValue: HttpCodec[QValue] = new HttpCodec[QValue] {
-    def parse(s: String): ParseResult[QValue] = QValue.parse(s)
-    def render(writer: Writer, q: QValue): writer.type = q.render(writer)
-  }
 
   implicit val catsInstancesForHttp4sQValue: Order[QValue]
     with Show[QValue]
@@ -197,6 +167,9 @@ object QValue {
     override def minBound: QValue = QValue.Zero
     override def maxBound: QValue = QValue.One
   }
+
+  implicit val stdLibOrderingInstance: Ordering[QValue] =
+    catsInstancesForHttp4sQValue.toOrdering
 }
 
 trait HasQValue {

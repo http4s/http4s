@@ -19,8 +19,9 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse._
+import org.http4s.internal.parsing.Rfc7230
+import org.typelevel.ci._
 
 /** {{{
   *  The "If-None-Match" header field makes the request method conditional
@@ -32,24 +33,33 @@ import org.http4s.util.Writer
   *
   * From [[https://tools.ietf.org/html/rfc7232#section-3.2 RFC-7232]]
   */
-object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKey.Singleton {
+object `If-None-Match` {
 
   /** Match any existing entity */
-  val `*` = `If-None-Match`(None)
+  val `*` : `If-None-Match` = `If-None-Match`(None)
 
-  def apply(first: ETag.EntityTag, rest: ETag.EntityTag*): `If-None-Match` =
+  def apply(first: EntityTag, rest: EntityTag*): `If-None-Match` =
     `If-None-Match`(Some(NonEmptyList.of(first, rest: _*)))
 
-  override def parse(s: String): ParseResult[`If-None-Match`] =
-    HttpHeaderParser.IF_NONE_MATCH(s)
+  def parse(s: String): ParseResult[`If-None-Match`] =
+    ParseResult.fromParser(parser, "Invalid If-None-Match header")(s)
+
+  private[http4s] val parser = Parser
+    .string("*")
+    .as(`*`)
+    .orElse(Rfc7230.headerRep1(EntityTag.parser).map { tags =>
+      `If-None-Match`(Some(tags))
+    })
+
+  implicit val headerInstance: Header[`If-None-Match`, Header.Single] =
+    Header.create(
+      ci"If-None-Match",
+      _.tags match {
+        case None => "*"
+        case Some(tags) => tags.mkString_("", ",", "")
+      },
+      parse
+    )
 }
 
-final case class `If-None-Match`(tags: Option[NonEmptyList[ETag.EntityTag]]) extends Header.Parsed {
-  override def key: `If-None-Match`.type = `If-None-Match`
-  override def value: String =
-    tags match {
-      case None => "*"
-      case Some(tags) => tags.mkString_("", ",", "")
-    }
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class `If-None-Match`(tags: Option[NonEmptyList[EntityTag]])

@@ -20,11 +20,6 @@ package parser
 import org.http4s.headers.`WWW-Authenticate`
 
 class WwwAuthenticateHeaderSuite extends Http4sSuite with HeaderParserHelper[`WWW-Authenticate`] {
-  def hparse(value: String): ParseResult[`WWW-Authenticate`] =
-    HttpHeaderParser.WWW_AUTHENTICATE(value)
-
-  override def parse(value: String) =
-    hparse(value).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")
@@ -38,18 +33,18 @@ class WwwAuthenticateHeaderSuite extends Http4sSuite with HeaderParserHelper[`WW
   }
 
   test("WWW-Authenticate Header parser should Parse a basic authentication") {
-    assertEquals(parse(str), `WWW-Authenticate`(c))
+    assertEquals(parseOnly(str), `WWW-Authenticate`(c))
   }
 
   test("WWW-Authenticate Header parser should Parse a basic authentication with params") {
-    assertEquals(parse(wparams.renderString), `WWW-Authenticate`(wparams))
+    assertEquals(parseOnly(wparams.renderString), `WWW-Authenticate`(wparams))
   }
 
   test("WWW-Authenticate Header parser should Parse multiple concatenated authentications") {
     val twotypes = "Newauth realm=\"apps\", Basic realm=\"simple\""
     val twoparsed = Challenge("Newauth", "apps") :: Challenge("Basic", "simple") :: Nil
 
-    assertEquals(parse(twotypes).values.toList, twoparsed)
+    assertEquals(parseOnly(twotypes).values.toList, twoparsed)
   }
 
   test(
@@ -59,7 +54,7 @@ class WwwAuthenticateHeaderSuite extends Http4sSuite with HeaderParserHelper[`WW
     val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::
       Challenge("Basic", "simple") :: Nil
 
-    assertEquals(parse(twowparams).values.toList, twp)
+    assertEquals(parseOnly(twowparams).values.toList, twp)
   }
 
 }

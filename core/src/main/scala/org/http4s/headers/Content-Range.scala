@@ -17,30 +17,67 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse.{Numbers, Parser => P}
+import org.http4s.headers.Range.SubRange
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci._
 
-object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKey.Singleton {
+object `Content-Range` {
   def apply(range: Range.SubRange, length: Option[Long] = None): `Content-Range` =
     `Content-Range`(RangeUnit.Bytes, range, length)
 
   def apply(start: Long, end: Long): `Content-Range` = apply(Range.SubRange(start, Some(end)), None)
 
-  def apply(start: Long): `Content-Range` = apply(Range.SubRange(start, None), None)
+  def apply(start: Long): `Content-Range` =
+    apply(Range.SubRange(start, None), None)
 
-  override def parse(s: String): ParseResult[`Content-Range`] =
-    HttpHeaderParser.CONTENT_RANGE(s)
+  def parse(s: String): ParseResult[`Content-Range`] =
+    ParseResult.fromParser(parser, "Invalid Content-Range header")(s)
+
+  val parser: P[`Content-Range`] = {
+
+    val nonNegativeLong = Numbers.digits
+      .mapFilter { ds =>
+        try Some(ds.toLong)
+        catch { case _: NumberFormatException => None }
+      }
+
+    // byte-range = first-byte-pos "-" last-byte-pos
+    val byteRange = ((nonNegativeLong <* P.char('-')) ~ nonNegativeLong)
+      .map { case (first, last) => SubRange(first, last) }
+
+    // byte-range-resp = byte-range "/" ( complete-length / "*" )
+    val byteRangeResp =
+      (byteRange <* P.char('/')) ~ nonNegativeLong.map(Some(_)).orElse(P.char('*').as(None))
+
+    // byte-content-range = bytes-unit SP ( byte-range-resp / unsatisfied-range )
+    // `unsatisfied-range` is not represented
+    val byteContentRange =
+      ((Rfc7230.token.map(RangeUnit(_)) <* P.char(' ')) ~ byteRangeResp)
+        .map { case (unit, (range, length)) => `Content-Range`(unit, range, length) }
+
+    // Content-Range = byte-content-range / other-content-range
+    // other types of ranges are not supported, `other-content-range` is ignored
+    byteContentRange
+  }
+
+  implicit val headerInstance: Header[`Content-Range`, Header.Single] =
+    Header.createRendered(
+      ci"Content-Range",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.unit << ' ' << h.range << '/'
+            h.length match {
+              case Some(l) => writer << l
+              case None => writer << '*'
+            }
+          }
+        },
+      parse
+    )
+
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])
-    extends Header.Parsed {
-  override def key: `Content-Range`.type = `Content-Range`
-
-  override def renderValue(writer: Writer): writer.type = {
-    writer << unit << ' ' << range << '/'
-    length match {
-      case Some(l) => writer << l
-      case None => writer << '*'
-    }
-  }
-}

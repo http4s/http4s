@@ -17,17 +17,36 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse.Parser
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.util.{Renderable, Writer}
+import scala.util.Try
 
-object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
+object Host extends HeaderCompanion[Host]("Host") {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
 
-  override def parse(s: String): ParseResult[Host] =
-    HttpHeaderParser.HOST(s)
+  private[http4s] val parser = {
+    val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
+      Try(s.toInt).toOption
+    }
+
+    (Uri.Parser.host ~ port.?).map { case (host, port) =>
+      Host(host.value, port)
+    }
+  }
+  implicit val headerInstance: Header[Host, Header.Single] =
+    createRendered { h =>
+      new Renderable {
+        def render(writer: Writer): writer.type = {
+          writer.append(h.host)
+          if (h.port.isDefined) writer << ':' << h.port.get
+          writer
+        }
+      }
+    }
 }
 
-/** A Request header, that provides the host and port informatio
+/** A Request header, that provides the host and port information
   * {{{
   *   The "Host" header field in a request provides the host and port
   *   information from the target URI, enabling the origin server to
@@ -39,11 +58,4 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   *
   * [[https://tools.ietf.org/html/rfc7230#section-5.4 RFC-7230 Section 5.4]]
   */
-final case class Host(host: String, port: Option[Int] = None) extends Header.Parsed {
-  def key: Host.type = Host
-  def renderValue(writer: Writer): writer.type = {
-    writer.append(host)
-    if (port.isDefined) writer << ':' << port.get
-    writer
-  }
-}
+final case class Host(host: String, port: Option[Int] = None)

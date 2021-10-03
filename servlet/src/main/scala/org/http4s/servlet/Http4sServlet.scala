@@ -18,17 +18,17 @@ package org.http4s.servlet
 
 import cats.effect._
 import cats.syntax.all._
-import io.chrisdavenport.vault._
-import java.net.InetSocketAddress
+import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import org.http4s._
-import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
+import org.typelevel.ci._
+import org.typelevel.vault._
 
 abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
     F: Effect[F])
@@ -67,11 +67,9 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       servletResponse: HttpServletResponse,
       bodyWriter: BodyWriter[F]
   ): F[Unit] =
-    // Note: the servlet API gives us no undeprecated method to both set
-    // a body and a status reason.  We sacrifice the status reason.
     F.delay {
       servletResponse.setStatus(response.status.code)
-      for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
+      for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
         servletResponse.addHeader(header.name.toString, header.value)
     }.attempt
       .flatMap {
@@ -99,12 +97,16 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       headers = toHeaders(req),
       body = servletIo.reader(req),
       attributes = Vault.empty
-        .insert(Request.Keys.PathInfoCaret, req.getContextPath.length + req.getServletPath.length)
+        .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri))
         .insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
-            local = InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
-            remote = InetSocketAddress.createUnresolved(req.getRemoteAddr, req.getRemotePort),
+            local = SocketAddress(
+              IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
+              Port.fromInt(req.getLocalPort).get),
+            remote = SocketAddress(
+              IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
+              Port.fromInt(req.getRemotePort).get),
             secure = req.isSecure
           )
         )
@@ -124,11 +126,23 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
         )
     )
 
+  private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
+    val pathInfo =
+      Uri.Path
+        .unsafeFromString(req.getContextPath)
+        .concat(Uri.Path.unsafeFromString(req.getServletPath))
+    uri.path
+      .findSplit(pathInfo)
+      .getOrElse(-1)
+  }
+
   protected def toHeaders(req: HttpServletRequest): Headers = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header(name, value)
+    } yield name -> value
     Headers(headers.toList)
   }
+  private final def stripBracketsFromAddr(addr: String): String =
+    addr.stripPrefix("[").stripSuffix("]")
 }

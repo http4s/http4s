@@ -23,21 +23,21 @@ import org.http4s.syntax.all._
 
 class HttpRoutesSuite extends Http4sSuite {
   val routes1 = HttpRoutes.of[IO] {
-    case req if req.pathInfo == "/match" =>
+    case req if req.pathInfo == path"/match" =>
       Response[IO](Status.Ok).withEntity("match").pure[IO]
 
-    case req if req.pathInfo == "/conflict" =>
+    case req if req.pathInfo == path"/conflict" =>
       Response[IO](Status.Ok).withEntity("routes1conflict").pure[IO]
 
-    case req if req.pathInfo == "/notfound" =>
+    case req if req.pathInfo == path"/notfound" =>
       Response[IO](Status.NotFound).withEntity("notfound").pure[IO]
   }
 
   val routes2 = HttpRoutes.of[IO] {
-    case req if req.pathInfo == "/routes2" =>
+    case req if req.pathInfo == path"/routes2" =>
       Response[IO](Status.Ok).withEntity("routes2").pure[IO]
 
-    case req if req.pathInfo == "/conflict" =>
+    case req if req.pathInfo == path"/conflict" =>
       Response[IO](Status.Ok).withEntity("routes2conflict").pure[IO]
   }
 

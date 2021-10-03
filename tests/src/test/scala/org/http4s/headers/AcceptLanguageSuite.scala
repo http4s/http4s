@@ -18,12 +18,14 @@ package org.http4s
 package headers
 
 import org.http4s.syntax.all._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop._
 
 class AcceptLanguageSuite extends HeaderLaws {
   val english = LanguageTag("en")
   val spanish = LanguageTag("es")
+
+  checkAll("AcceptLanguage", headerLaws[`Accept-Language`])
 
   test("is satisfied by a language tag if the q value is > 0") {
     forAll { (h: `Accept-Language`, cc: LanguageTag) =>
@@ -33,7 +35,7 @@ class AcceptLanguageSuite extends HeaderLaws {
 
   test("is not satisfied by a language tag if the q value is 0") {
     forAll { (h: `Accept-Language`, cc: LanguageTag) =>
-      !(`Accept-Language`(h.values.map(_.copy(q = QValue.Zero))).satisfiedBy(cc))
+      !`Accept-Language`(h.values.map(_.copy(q = QValue.Zero))).satisfiedBy(cc)
     }
   }
 

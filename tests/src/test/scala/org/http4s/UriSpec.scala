@@ -12,13 +12,15 @@ package org.http4s
 
 import cats.kernel.laws.discipline._
 import cats.syntax.all._
+import com.comcast.ip4s._
 import java.nio.file.Paths
-import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.internal.CharPredicate
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Uri._
 import org.http4s.syntax.all._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
+import org.typelevel.ci._
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSuite {
@@ -102,9 +104,7 @@ class UriSpec extends Http4sSuite {
           Left(
             ParseFailure(
               "Invalid URI",
-              """Invalid input ' ', expected Pchar, '/', '?', '#' or 'EOI' (line 1, column 21):
-http://example.org/a file
-                    ^""".replace("\r", "")
+              "Error(20,NonEmptyList(EndOfString(20,25)))"
             ))
         )
       }
@@ -208,7 +208,7 @@ http://example.org/a file
 
     test("Uri toString should withPath without slash adds a / on render") {
       val uri = getUri("http://localhost/foo/bar/baz")
-      assertEquals(uri.withPath("bar").toString, "http://localhost/bar")
+      assertEquals(uri.withPath(path"bar").toString, "http://localhost/bar")
     }
 
     test("Uri toString should render a IPv6 address, should be wrapped in brackets") {
@@ -223,10 +223,11 @@ http://example.org/a file
         assertEquals(
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = Ipv6Address.unsafeFromString(s))),
-            "/foo",
+            Some(Authority(host = Uri.Ipv6Address.unsafeFromString(s))),
+            Uri.Path.unsafeFromString("/foo"),
             Query.fromPairs("bar" -> "baz")).toString,
-          s"http://[$s]/foo?bar=baz")
+          s"http://[$s]/foo?bar=baz"
+        )
       }
     }
 
@@ -234,23 +235,24 @@ http://example.org/a file
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = RegName("www.foo.com".ci))),
-          "/foo",
+          Some(Authority(host = RegName(ci"www.foo.com"))),
+          Uri.Path.unsafeFromString("/foo"),
           Query.fromPairs("bar" -> "baz")).toString,
-        "http://www.foo.com/foo?bar=baz")
+        "http://www.foo.com/foo?bar=baz"
+      )
     }
 
     test("Uri toString should render URL with port") {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = RegName("www.foo.com".ci), port = Some(80)))).toString,
+          Some(Authority(host = RegName(ci"www.foo.com"), port = Some(80)))).toString,
         "http://www.foo.com:80")
     }
 
     test("Uri toString should render URL without port") {
       assertEquals(
-        Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci)))).toString,
+        Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com")))).toString,
         "http://www.foo.com")
     }
 
@@ -258,9 +260,10 @@ http://example.org/a file
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
-          "/c",
-          Query.fromPairs("GB" -> "object", "Class" -> "one")).toString,
+          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(80))),
+          Uri.Path.unsafeFromString("/c"),
+          Query.fromPairs("GB" -> "object", "Class" -> "one")
+        ).toString,
         "http://192.168.1.1:80/c?GB=object&Class=one"
       )
     }
@@ -269,13 +272,13 @@ http://example.org/a file
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv4"192.168.1.1", port = Some(8080)))).toString,
+          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(8080)))).toString,
         "http://192.168.1.1:8080")
     }
 
     test("Uri toString should render IPv4 URL without port") {
       assertEquals(
-        Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1"))).toString,
+        Uri(Some(Scheme.http), Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1")))).toString,
         "http://192.168.1.1")
     }
 
@@ -283,9 +286,10 @@ http://example.org/a file
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv6"2001:db8::7")),
-          "/c",
-          Query.fromPairs("GB" -> "object", "Class" -> "one")).toString,
+          Some(Authority(host = Uri.Ipv6Address(ipv6"2001:db8::7"))),
+          Uri.Path.unsafeFromString("/c"),
+          Query.fromPairs("GB" -> "object", "Class" -> "one")
+        ).toString,
         "http://[2001:db8::7]/c?GB=object&Class=one"
       )
     }
@@ -296,7 +300,7 @@ http://example.org/a file
           Some(Scheme.http),
           Some(
             Authority(
-              host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344",
+              host = Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"),
               port = Some(8080)))).toString,
         "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080"
       )
@@ -306,8 +310,11 @@ http://example.org/a file
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString,
-        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
+          Some(
+            Authority(host =
+              Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344")))).toString,
+        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]"
+      )
     }
 
     test("Uri toString should not append a '/' unless it's in the path") {
@@ -316,7 +323,9 @@ http://example.org/a file
 
     test("Uri toString should render email address") {
       assertEquals(
-        Uri(Some(scheme"mailto"), path = "John.Doe@example.com").toString,
+        Uri(
+          Some(scheme"mailto"),
+          path = Uri.Path.unsafeFromString("John.Doe@example.com")).toString,
         "mailto:John.Doe@example.com")
     }
 
@@ -329,9 +338,10 @@ http://example.org/a file
               Some(UserInfo("username", Some("password"))),
               RegName("some.example.com"),
               None)),
-          "/",
+          Uri.Path.unsafeFromString("/"),
           Query.empty,
-          None).toString,
+          None
+        ).toString,
         "http://username:password@some.example.com/"
       )
     }
@@ -345,8 +355,8 @@ http://example.org/a file
               Some(UserInfo("username", Some("password"))),
               RegName("some.example.com"),
               None)),
-          "/some/path",
-          Query.fromString("param1=5&param-without-value"),
+          Uri.Path.unsafeFromString("/some/path"),
+          Query.unsafeFromString("param1=5&param-without-value"),
           None
         ).toString,
         "http://username:password@some.example.com/some/path?param1=5&param-without-value"
@@ -354,72 +364,101 @@ http://example.org/a file
     }
 
     test("Uri toString should render relative URI with empty query string") {
-      assertEquals(Uri(path = "/", query = Query.fromString(""), fragment = None).toString, "/?")
+      assertEquals(
+        Uri(
+          path = Uri.Path.unsafeFromString("/"),
+          query = Query.unsafeFromString(""),
+          fragment = None).toString,
+        "/?")
     }
 
     test("Uri toString should render relative URI with empty query string and fragment") {
       assertEquals(
-        Uri(path = "/", query = Query.fromString(""), fragment = Some("")).toString,
+        Uri(
+          path = Uri.Path.unsafeFromString("/"),
+          query = Query.unsafeFromString(""),
+          fragment = Some("")).toString,
         "/?#")
     }
 
     test("Uri toString should render relative URI with empty fragment") {
-      assertEquals(Uri(path = "/", query = Query.empty, fragment = Some("")).toString, "/#")
+      assertEquals(
+        Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString,
+        "/#")
+    }
+
+    test("Uri toString should render relative URI with empty fragment") {
+      assertEquals(
+        Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString,
+        "/#")
     }
 
     test("Uri toString should render absolute path with fragment") {
       assertEquals(
-        Uri(path = "/foo/bar", fragment = Some("an-anchor")).toString,
+        Uri(path = Uri.Path.unsafeFromString("/foo/bar"), fragment = Some("an-anchor")).toString,
         "/foo/bar#an-anchor")
     }
 
     test("Uri toString should render absolute path with parameters") {
       assertEquals(
-        Uri(path = "/foo/bar", query = Query.fromString("foo=bar&ding=dong")).toString,
+        Uri(
+          path = Uri.Path.unsafeFromString("/foo/bar"),
+          query = Query.unsafeFromString("foo=bar&ding=dong")).toString,
         "/foo/bar?foo=bar&ding=dong")
     }
 
     test("Uri toString should render absolute path with parameters and fragment") {
       assertEquals(
         Uri(
-          path = "/foo/bar",
-          query = Query.fromString("foo=bar&ding=dong"),
+          path = Uri.Path.unsafeFromString("/foo/bar"),
+          query = Query.unsafeFromString("foo=bar&ding=dong"),
           fragment = Some("an_anchor")).toString,
-        "/foo/bar?foo=bar&ding=dong#an_anchor")
+        "/foo/bar?foo=bar&ding=dong#an_anchor"
+      )
+    }
+
+    test("Uri toString should render absolute path with parameters and fragment") {
+      assertEquals(
+        Uri(
+          path = Uri.Path.unsafeFromString("/foo/bar"),
+          query = Query.unsafeFromString("foo=bar&ding=dong"),
+          fragment = Some("an_anchor")).toString,
+        "/foo/bar?foo=bar&ding=dong#an_anchor"
+      )
     }
 
     test("Uri toString should render absolute path without parameters") {
-      assertEquals(Uri(path = "/foo/bar").toString, "/foo/bar")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("/foo/bar")).toString, "/foo/bar")
     }
 
     test("Uri toString should render absolute root path without parameters") {
-      assertEquals(Uri(path = "/").toString, "/")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("/")).toString, "/")
     }
 
     test("Uri toString should render absolute path containing colon") {
-      assertEquals(Uri(path = "/foo:bar").toString, "/foo:bar")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("/foo:bar")).toString, "/foo:bar")
     }
 
     test(
       "Uri toString should prefix relative path containing colon in the only segment with a ./") {
-      assertEquals(Uri(path = "foo:bar").toString, "./foo:bar")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("foo:bar")).toString, "./foo:bar")
     }
 
     test("Uri toString should prefix relative path containing colon in first segment with a ./") {
-      assertEquals(Uri(path = "foo:bar/baz").toString, "./foo:bar/baz")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("foo:bar/baz")).toString, "./foo:bar/baz")
     }
 
     test("Uri toString should not prefix relative path containing colon in later segment") {
-      assertEquals(Uri(path = "foo/bar:baz").toString, "foo/bar:baz")
+      assertEquals(Uri(path = Uri.Path.unsafeFromString("foo/bar:baz")).toString, "foo/bar:baz")
     }
 
     test("Uri toString should render a query string with a single param") {
-      assertEquals(Uri(query = Query.fromString("param1=test")).toString, "?param1=test")
+      assertEquals(Uri(query = Query.unsafeFromString("param1=test")).toString, "?param1=test")
     }
 
     test("Uri toString should render a query string with multiple value in a param") {
       assertEquals(
-        Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString,
+        Uri(query = Query.unsafeFromString("param1=3&param2=2&param2=foo")).toString,
         "?param1=3&param2=2&param2=foo")
     }
 
@@ -430,17 +469,7 @@ http://example.org/a file
        * - http://en.wikipedia.org/wiki/Uniform_Resource_Identifier
        *
        * URI.fromString fails for:
-       * - "http://en.wikipedia.org/wiki/URI#Examples_of_URI_references",
-       * - "file:///C:/Users/Benutzer/Desktop/Uniform%20Resource%20Identifier.html",
-       * - "file:///etc/fstab",
-       * - "relative/path/to/resource.txt",
        * - "//example.org/scheme-relative/URI/with/absolute/path/to/resource.txt",
-       * - "../../../resource.txt",
-       * - "./resource.txt#frag01",
-       * - "resource.txt",
-       * - "#frag01",
-       * - ""
-       *
        */
       val examples = Seq(
         "http://de.wikipedia.org/wiki/Uniform_Resource_Identifier",
@@ -458,7 +487,16 @@ http://example.org/a file
         "git://github.com/rails/rails.git",
         "crid://broadcaster.com/movies/BestActionMovieEver",
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
-        "/relative/URI/with/absolute/path/to/resource.txt"
+        "/relative/URI/with/absolute/path/to/resource.txt",
+        "http://en.wikipedia.org/wiki/URI#Examples_of_URI_references",
+        "file:///C:/Users/Benutzer/Desktop/Uniform%20Resource%20Identifier.html",
+        "file:///etc/fstab",
+        "relative/path/to/resource.txt",
+        "../../../resource.txt",
+        "./resource.txt#frag01",
+        "resource.txt",
+        "#frag01",
+        ""
       )
       examples.foreach { e =>
         assertEquals(Uri.fromString(e).map(_.toString), Right(e))
@@ -466,14 +504,11 @@ http://example.org/a file
     }
 
     test("Uri toString should handle brackets in query string") {
-      // These are illegal, but common in the wild.  We will be "conservative
-      // in our sending behavior and liberal in our receiving behavior", and
-      // encode them.
       assertEquals(
         Uri
           .fromString("http://localhost:8080/index?filter[state]=public")
           .map(_.toString),
-        Right("http://localhost:8080/index?filter%5Bstate%5D=public"))
+        Right("http://localhost:8080/index?filter[state]=public"))
     }
 
     test("Uri toString should round trip with toString".fail) {
@@ -486,29 +521,34 @@ http://example.org/a file
 
   {
     test("Uri parameters should parse empty query string") {
-      assertEquals(Uri(query = Query.fromString("")).multiParams, Map("" -> Nil))
+      assertEquals(Uri(query = Query.unsafeFromString("")).multiParams, Map("" -> Nil))
     }
     test("Uri parameters should parse parameter without key but with empty value") {
-      assertEquals(Uri(query = Query.fromString("=")).multiParams, Map("" -> List("")))
+      assertEquals(Uri(query = Query.unsafeFromString("=")).multiParams, Map("" -> List("")))
     }
     test("Uri parameters should parse parameter without key but with value") {
-      assertEquals(Uri(query = Query.fromString("=value")).multiParams, Map("" -> List("value")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("=value")).multiParams,
+        Map("" -> List("value")))
     }
     test("Uri parameters should parse single parameter with empty value") {
-      assertEquals(Uri(query = Query.fromString("param1=")).multiParams, Map("param1" -> List("")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=")).multiParams,
+        Map("param1" -> List("")))
     }
     test("Uri parameters should parse single parameter with value") {
       assertEquals(
-        Uri(query = Query.fromString("param1=value")).multiParams,
+        Uri(query = Query.unsafeFromString("param1=value")).multiParams,
         Map("param1" -> List("value")))
     }
     test("Uri parameters should parse single parameter without value") {
-      assertEquals(Uri(query = Query.fromString("param1")).multiParams, Map("param1" -> Nil))
+      assertEquals(Uri(query = Query.unsafeFromString("param1")).multiParams, Map("param1" -> Nil))
     }
     test("Uri parameters should parse many parameter with value") {
       assertEquals(
         Uri(query =
-          Query.fromString("param1=value&param2=value1&param2=value2&param3=value")).multiParams,
+          Query.unsafeFromString(
+            "param1=value&param2=value1&param2=value2&param3=value")).multiParams,
         Map(
           "param1" -> List("value"),
           "param2" -> List("value1", "value2"),
@@ -517,7 +557,7 @@ http://example.org/a file
     }
     test("Uri parameters should parse many parameter without value") {
       assertEquals(
-        Uri(query = Query.fromString("param1&param2&param3")).multiParams,
+        Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
         (Map("param1" -> Nil, "param2" -> Nil, "param3" -> Nil)))
     }
   }
@@ -528,16 +568,19 @@ http://example.org/a file
       assertEquals(i, Map("param" -> "value"))
     }
     test("Uri.params.+ should add parameter") {
-      val i = Uri(query = Query.fromString("param1")).params + (("param2", ""))
+      val i = Uri(query = Query.unsafeFromString("param1")).params + (("param2", ""))
       assertEquals(i, Map("param1" -> "", "param2" -> ""))
     }
     test("Uri.params.+ should replace an existing parameter") {
       val i =
-        Uri(query = Query.fromString("param=value")).params + (("param", Seq("value1", "value2")))
+        Uri(query = Query.unsafeFromString("param=value")).params + (
+          (
+            "param",
+            Seq("value1", "value2")))
       assertEquals(i, Map("param" -> Seq("value1", "value2")))
     }
     test("Uri.params.+ should replace an existing parameter with empty value") {
-      val i = Uri(query = Query.fromString("param=value")).params + (("param", Seq()))
+      val i = Uri(query = Query.unsafeFromString("param=value")).params + (("param", Seq()))
       assertEquals(i, Map("param" -> Seq()))
     }
   }
@@ -548,11 +591,11 @@ http://example.org/a file
       assert(i == Map())
     }
     test("Uri.params.- should not reduce a map if parameter does not match") {
-      val i = Uri(query = Query.fromString("param1")).params - "param2"
+      val i = Uri(query = Query.unsafeFromString("param1")).params - "param2"
       assertEquals(i, Map("param1" -> ""))
     }
     test("Uri.params.- should reduce a map if matching parameter found") {
-      val i = Uri(query = Query.fromString("param")).params - "param"
+      val i = Uri(query = Query.unsafeFromString("param")).params - "param"
       assert(i == Map())
     }
   }
@@ -564,21 +607,21 @@ http://example.org/a file
       }
     }
     test("Uri.params.iterate should work on empty list") {
-      (Uri(query = Query.fromString("")).params.toSeq).foreach { case (k, v) =>
+      (Uri(query = Query.unsafeFromString("")).params.toSeq).foreach { case (k, v) =>
         assertEquals(k, "")
         assertEquals(v, "")
       }
     }
     test("Uri.params.iterate should work with empty keys") {
-      val u = Uri(query = Query.fromString("=value1&=value2&=&"))
+      val u = Uri(query = Query.unsafeFromString("=value1&=value2&=&"))
       val i = u.params.iterator
       assertEquals(i.next(), "" -> "value1")
       intercept[NoSuchElementException](i.next())
     }
     test("Uri.params.iterate should work on non-empty query string") {
       val u = Uri(
-        query =
-          Query.fromString("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+        query = Query.unsafeFromString(
+          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
       val i = u.params.iterator
       assertEquals(i.next(), "param1" -> "value1")
       assertEquals(i.next(), "param2" -> "value4")
@@ -589,48 +632,49 @@ http://example.org/a file
   {
     test("Uri.multiParams should find first value of parameter with many values") {
       val u = Uri(
-        query =
-          Query.fromString("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+        query = Query.unsafeFromString(
+          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
       assert(
         u.multiParams ==
           Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5")))
     }
     test("Uri.multiParams should find parameter with empty key and a value") {
-      val u = Uri(query = Query.fromString("param1=&=value-of-empty-key&param2=value"))
+      val u = Uri(query = Query.unsafeFromString("param1=&=value-of-empty-key&param2=value"))
       assert(
         u.multiParams ==
           Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value")))
     }
     test("Uri.multiParams should find first value of parameter with empty key") {
       assert(
-        Uri(query = Query.fromString("=value1&=value2")).multiParams ==
+        Uri(query = Query.unsafeFromString("=value1&=value2")).multiParams ==
           (Map("" -> Seq("value1", "value2"))))
       assert(
-        Uri(query = Query.fromString("&=value1&=value2")).multiParams ==
+        Uri(query = Query.unsafeFromString("&=value1&=value2")).multiParams ==
           (Map("" -> Seq("value1", "value2"))))
       assert(
-        Uri(query = Query.fromString("&&&=value1&&&=value2&=&")).multiParams ==
+        Uri(query = Query.unsafeFromString("&&&=value1&&&=value2&=&")).multiParams ==
           (Map("" -> Seq("value1", "value2", ""))))
     }
     test("Uri.multiParams should find parameter with empty key and without value") {
-      assert(Uri(query = Query.fromString("&")).multiParams == (Map("" -> Seq())))
-      assert(Uri(query = Query.fromString("&&")).multiParams == (Map("" -> Seq())))
-      assert(Uri(query = Query.fromString("&&&")).multiParams == (Map("" -> Seq())))
+      assert(Uri(query = Query.unsafeFromString("&")).multiParams == (Map("" -> Seq())))
+      assert(Uri(query = Query.unsafeFromString("&&")).multiParams == (Map("" -> Seq())))
+      assert(Uri(query = Query.unsafeFromString("&&&")).multiParams == (Map("" -> Seq())))
     }
     test("Uri.multiParams should find parameter with an empty value") {
-      assert(Uri(query = Query.fromString("param1=")).multiParams == (Map("param1" -> Seq(""))))
       assert(
-        Uri(query = Query.fromString("param1=&param2=")).multiParams ==
+        Uri(query = Query.unsafeFromString("param1=")).multiParams == (Map("param1" -> Seq(""))))
+      assert(
+        Uri(query = Query.unsafeFromString("param1=&param2=")).multiParams ==
           (Map("param1" -> Seq(""), "param2" -> Seq(""))))
     }
     test("Uri.multiParams should find parameter with single value") {
       assert(
-        Uri(query = Query.fromString("param1=value1&param2=value2")).multiParams ==
+        Uri(query = Query.unsafeFromString("param1=value1&param2=value2")).multiParams ==
           (Map("param1" -> Seq("value1"), "param2" -> Seq("value2"))))
     }
     test("Uri.multiParams should find parameter without value") {
       assert(
-        Uri(query = Query.fromString("param1&param2&param3")).multiParams ==
+        Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams ==
           (Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq())))
     }
   }
@@ -638,42 +682,48 @@ http://example.org/a file
   {
     test("Uri.params.get should find first value of parameter with many values") {
       val u = Uri(
-        query =
-          Query.fromString("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+        query = Query.unsafeFromString(
+          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
       assertEquals(u.params.get("param1"), Some("value1"))
       assertEquals(u.params.get("param2"), Some("value4"))
     }
     test("Uri.params.get should find parameter with empty key and a value") {
-      val u = Uri(query = Query.fromString("param1=&=valueWithEmptyKey&param2=value2"))
+      val u = Uri(query = Query.unsafeFromString("param1=&=valueWithEmptyKey&param2=value2"))
       assertEquals(u.params.get(""), Some("valueWithEmptyKey"))
     }
     test("Uri.params.get should find first value of parameter with empty key") {
-      assertEquals(Uri(query = Query.fromString("=value1&=value2")).params.get(""), Some("value1"))
-      assertEquals(Uri(query = Query.fromString("&=value1&=value2")).params.get(""), Some("value1"))
-      assertEquals(Uri(query = Query.fromString("&&&=value1")).params.get(""), Some("value1"))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("=value1&=value2")).params.get(""),
+        Some("value1"))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("&=value1&=value2")).params.get(""),
+        Some("value1"))
+      assertEquals(Uri(query = Query.unsafeFromString("&&&=value1")).params.get(""), Some("value1"))
     }
     test("Uri.params.get should find parameter with empty key and without value") {
-      assertEquals(Uri(query = Query.fromString("&")).params.get(""), Some(""))
-      assertEquals(Uri(query = Query.fromString("&&")).params.get(""), Some(""))
-      assertEquals(Uri(query = Query.fromString("&&&")).params.get(""), Some(""))
+      assertEquals(Uri(query = Query.unsafeFromString("&")).params.get(""), Some(""))
+      assertEquals(Uri(query = Query.unsafeFromString("&&")).params.get(""), Some(""))
+      assertEquals(Uri(query = Query.unsafeFromString("&&&")).params.get(""), Some(""))
     }
     test("Uri.params.get should find parameter with an empty value") {
-      val u = Uri(query = Query.fromString("param1=&param2=value2"))
+      val u = Uri(query = Query.unsafeFromString("param1=&param2=value2"))
       assertEquals(u.params.get("param1"), Some(""))
     }
     test("Uri.params.get should find parameter with single value") {
-      val u = Uri(query = Query.fromString("param1=value1&param2=value2"))
+      val u = Uri(query = Query.unsafeFromString("param1=value1&param2=value2"))
       assertEquals(u.params.get("param1"), Some("value1"))
       assertEquals(u.params.get("param2"), Some("value2"))
     }
     test("Uri.params.get should find parameter without value") {
-      val u = Uri(query = Query.fromString("param1&param2&param3"))
+      val u = Uri(query = Query.unsafeFromString("param1&param2&param3"))
       assertEquals(u.params.get("param1"), Some(""))
       assertEquals(u.params.get("param2"), Some(""))
       assertEquals(u.params.get("param3"), Some(""))
     }
     test("Uri.params.get should not find an unknown parameter") {
-      assertEquals(Uri(query = Query.fromString("param1&param2&param3")).params.get("param4"), None)
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1&param2&param3")).params.get("param4"),
+        None)
     }
     test("Uri.params.get should not find anything if query string is empty") {
       assertEquals(Uri(query = Query.empty).params.get("param1"), None)
@@ -682,207 +732,225 @@ http://example.org/a file
 
   {
     test("Uri parameter convenience methods should add a parameter if no query is available") {
-      val u = Uri(query = Query.empty).+?("param1", "value")
-      assertEquals(u, Uri(query = Query.fromString("param1=value")))
+      val u = Uri(query = Query.empty) +? ("param1" -> "value")
+      assertEquals(u, Uri(query = Query.unsafeFromString("param1=value")))
     }
     test("Uri parameter convenience methods should add a parameter") {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2", "value")
-      assertEquals(u, Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")))
+      val u =
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2")) +? ("param2" -> "value")
+      assertEquals(
+        u,
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=value")))
     }
     test("Uri parameter convenience methods should add a parameter with boolean value") {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2", true)
-      assertEquals(u, Uri(query = Query.fromString("param1=value1&param1=value2&param2=true")))
+      val u =
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2")) +? ("param2" -> true)
+      assertEquals(
+        u,
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=true")))
     }
     test("Uri parameter convenience methods should add a parameter without a value") {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2")
-      assertEquals(u, Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
+      val u = Uri(query = Query.unsafeFromString("param1=value1&param1=value2")) +? "param2"
+      assertEquals(u, Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")))
     }
     test("Uri parameter convenience methods should add a parameter with many values") {
-      val u = Uri().+?("param1", Seq("value1", "value2"))
-      assertEquals(u, Uri(query = Query.fromString("param1=value1&param1=value2")))
+      val u = Uri() ++? ("param1" -> Seq("value1", "value2"))
+      assertEquals(u, Uri(query = Query.unsafeFromString("param1=value1&param1=value2")))
     }
     test("Uri parameter convenience methods should add a parameter with many long values") {
-      val u = Uri().+?("param1", Seq(1L, -1L))
-      assertEquals(u, Uri(query = Query.fromString(s"param1=1&param1=-1")))
+      val u = Uri() ++? ("param1" -> Seq(1L, -1L))
+      assertEquals(u, Uri(query = Query.unsafeFromString(s"param1=1&param1=-1")))
     }
     test(
       "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder") {
-      val u = Uri().+?("test", Ttl(2))
-      assertEquals(u, Uri(query = Query.fromString(s"test=2")))
+      val u = Uri() +? ("test" -> Ttl(2))
+      assertEquals(u, Uri(query = Query.unsafeFromString(s"test=2")))
     }
     test(
       "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder and an implicit key") {
       val u = Uri().+*?(Ttl(2))
-      assertEquals(u, Uri(query = Query.fromString(s"ttl=2")))
+      assertEquals(u, Uri(query = Query.unsafeFromString(s"ttl=2")))
     }
     test("Uri parameter convenience methods should add a QueryParam instance") {
       val u = Uri().withQueryParam[Ttl]
-      assertEquals(u, Uri(query = Query.fromString(s"ttl")))
+      assertEquals(u, Uri(query = Query.unsafeFromString(s"ttl")))
     }
     test("Uri parameter convenience methods should add an optional query parameter (Just)") {
-      val u = Uri().+??("param1", Some(2))
-      assertEquals(u, Uri(query = Query.fromString(s"param1=2")))
+      val u = Uri() +?? ("param1" -> Some(2))
+      assertEquals(u, Uri(query = Query.unsafeFromString(s"param1=2")))
     }
     test("Uri parameter convenience methods should add an optional query parameter (Empty)") {
-      val u = Uri().+??("param1", None: Option[Int])
+      val u = Uri() +?? ("param1" -> Option.empty[Int])
       assertEquals(u, Uri(query = Query.empty))
     }
     test("Uri parameter convenience methods should add multiple query parameters at once") {
       val params = Map("param1" -> 1, "param2" -> 2)
       val u = Uri().withQueryParams(params)
-      assertEquals(u, Uri(query = Query.fromString("param1=1&param2=2")))
+      assertEquals(u, Uri(query = Query.unsafeFromString("param1=1&param2=2")))
     }
     test(
       "Uri parameter convenience methods should add multiple values for same query parameter name") {
       val params = Map("param1" -> List(1), "param2" -> List(2, 3))
       val u = Uri().withMultiValueQueryParams(params)
-      assertEquals(u, Uri(query = Query.fromString("param1=1&param2=2&param2=3")))
+      assertEquals(u, Uri(query = Query.unsafeFromString("param1=1&param2=2&param2=3")))
     }
     test("Uri parameter convenience methods should replace an existing parameter") {
       val params = Map("param2" -> 3, "param3" -> 4)
-      val u = Uri(query = Query.fromString("param1=1&param2=2")).withQueryParams(params)
-      assertEquals(u, Uri(query = Query.fromString("param1=1&param2=3&param3=4")))
+      val u = Uri(query = Query.unsafeFromString("param1=1&param2=2")).withQueryParams(params)
+      assertEquals(u, Uri(query = Query.unsafeFromString("param1=1&param2=3&param3=4")))
     }
     test("Uri parameter convenience methods should replace an existing multi-valued parameter") {
-      val u = Uri(query = Query.fromString("param1=1&param1=2"))
+      val u = Uri(query = Query.unsafeFromString("param1=1&param1=2"))
         .withQueryParams(Map("param1" -> 3))
         .withMultiValueQueryParams(Map("param2" -> List(4, 5)))
-      assertEquals(u, Uri(query = Query.fromString("param1=3&param2=4&param2=5")))
+      assertEquals(u, Uri(query = Query.unsafeFromString("param1=3&param2=4&param2=5")))
     }
     test("Uri parameter convenience methods should contains not a parameter") {
       assertEquals(Uri(query = Query.empty) ? "param1", false)
     }
     test("Uri parameter convenience methods should contains an empty parameter") {
-      assertEquals(Uri(query = Query.fromString("")) ? "", true)
-      assertEquals(Uri(query = Query.fromString("")) ? "param", false)
-      assertEquals(Uri(query = Query.fromString("&&=value&&")) ? "", true)
-      assertEquals(Uri(query = Query.fromString("&&=value&&")) ? "param", false)
+      assertEquals(Uri(query = Query.unsafeFromString("")) ? "", true)
+      assertEquals(Uri(query = Query.unsafeFromString("")) ? "param", false)
+      assertEquals(Uri(query = Query.unsafeFromString("&&=value&&")) ? "", true)
+      assertEquals(Uri(query = Query.unsafeFromString("&&=value&&")) ? "param", false)
     }
     test("Uri parameter convenience methods should contains a parameter") {
-      assertEquals(Uri(query = Query.fromString("param1=value&param1=value")) ? "param1", true)
-      assertEquals(Uri(query = Query.fromString("param1=value&param2=value")) ? "param2", true)
-      assertEquals(Uri(query = Query.fromString("param1=value&param2=value")) ? "param3", false)
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=value&param1=value")) ? "param1",
+        true)
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=value&param2=value")) ? "param2",
+        true)
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=value&param2=value")) ? "param3",
+        false)
     }
     test("Uri parameter convenience methods should contains a parameter with many values") {
 
       assertEquals(
-        Uri(query = Query.fromString("param1=value1&param1=value2&param1=value3")) ? "param1",
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param1=value3")) ? "param1",
         true)
     }
     test("Uri parameter convenience methods should contains a parameter without a value") {
-      assertEquals(Uri(query = Query.fromString("param1")) ? "param1", true)
+      assertEquals(Uri(query = Query.unsafeFromString("param1")) ? "param1", true)
     }
     test("Uri parameter convenience methods should contains with many parameters") {
 
       assertEquals(
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param1",
+        Uri(query =
+          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "param1",
         true)
 
       assertEquals(
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param2",
+        Uri(query =
+          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "param2",
         true)
       assertEquals(
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "",
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "",
         true)
       assertEquals(
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param3",
+        Uri(query =
+          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "param3",
         false)
     }
     test("Uri parameter convenience methods should remove a parameter if present") {
-      val u = Uri(query = Query.fromString("param1=value&param2=value")) -? "param1"
-      assertEquals(u, Uri(query = Query.fromString("param2=value")))
+      val u = Uri(query = Query.unsafeFromString("param1=value&param2=value")) -? "param1"
+      assertEquals(u, Uri(query = Query.unsafeFromString("param2=value")))
     }
     test(
       "Uri parameter convenience methods should remove an empty parameter from an empty query string") {
-      val u = Uri(query = Query.fromString("")) -? ""
+      val u = Uri(query = Query.unsafeFromString("")) -? ""
       assertEquals(u, Uri(query = Query.empty))
     }
     test("Uri parameter convenience methods should remove nothing if parameter is not present") {
-      val u = Uri(query = Query.fromString("param1=value&param2=value"))
+      val u = Uri(query = Query.unsafeFromString("param1=value&param2=value"))
       assertEquals(u -? "param3", u)
     }
     test("Uri parameter convenience methods should remove the last parameter") {
-      val u = Uri(query = Query.fromString("param1=value")) -? "param1"
+      val u = Uri(query = Query.unsafeFromString("param1=value")) -? "param1"
       assertEquals(u, Uri())
     }
     test("Uri parameter convenience methods should replace a parameter") {
-      val u = Uri(query = Query.fromString("param1=value&param2=value")).+?("param1", "newValue")
+      val u =
+        Uri(query = Query.unsafeFromString("param1=value&param2=value")) +? ("param1" -> "newValue")
       assertEquals(
         u.multiParams,
-        Uri(query = Query.fromString("param1=newValue&param2=value")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=newValue&param2=value")).multiParams)
     }
     test("Uri parameter convenience methods should replace a parameter without a value") {
       val u =
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")) +? "param2"
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=value")) +? "param2"
       assertEquals(
         u.multiParams,
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams)
     }
     test("Uri parameter convenience methods should replace the same parameter") {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2"))
-        .+?("param1", Seq("value1", "value2"))
+      val u = Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")) ++?
+        ("param1" -> Seq("value1", "value2"))
       assertEquals(
         u.multiParams,
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams)
     }
     test("Uri parameter convenience methods should replace the same parameter without a value") {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")).+?("param2")
+      val u = Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")) +? "param2"
       assertEquals(
         u.multiParams,
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams)
     }
     test("Uri parameter convenience methods should replace a parameter set") {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param1", "value")
-      assertEquals(u.multiParams, Uri(query = Query.fromString("param1=value")).multiParams)
+      val u =
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2")) +? ("param1" -> "value")
+      assertEquals(u.multiParams, Uri(query = Query.unsafeFromString("param1=value")).multiParams)
     }
     test("Uri parameter convenience methods should set a parameter with a value") {
       val ps = Map("param" -> List("value"))
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param=value")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=value")))
     }
     test("Uri parameter convenience methods should set a parameter with a boolean values") {
       val ps = Map("param" -> List(true, false))
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param=true&param=false")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=true&param=false")))
     }
     test("Uri parameter convenience methods should set a parameter with a double values") {
       val ps = Map("param" -> List(1.2, 2.1))
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param=1.2&param=2.1")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
     }
     test("Uri parameter convenience methods should set a parameter with a float values") {
       val ps = Map("param" -> List(1.2f, 2.1f))
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param=1.2&param=2.1")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
     }
     test("Uri parameter convenience methods should set a parameter with a integer values") {
       val ps = Map("param" -> List(1, 2, 3))
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param=1&param=2&param=3")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1&param=2&param=3")))
     }
     test("Uri parameter convenience methods should set a parameter with a long values") {
       val ps = Map("param" -> List(Long.MaxValue, 0L, Long.MinValue))
       assertEquals(
         Uri() =? ps,
         Uri(
-          query = Query.fromString("param=9223372036854775807&param=0&param=-9223372036854775808")))
+          query =
+            Query.unsafeFromString("param=9223372036854775807&param=0&param=-9223372036854775808")))
     }
     test("Uri parameter convenience methods should set a parameter with a short values") {
       val ps = Map("param" -> List(Short.MaxValue, Short.MinValue))
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param=32767&param=-32768")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=32767&param=-32768")))
     }
     test("Uri parameter convenience methods should set a parameter with a string values") {
       val ps = Map("param" -> List("some", "none"))
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param=some&param=none")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=some&param=none")))
     }
     test("Uri parameter convenience methods should set a parameter without a value") {
       val ps: Map[String, List[String]] = Map("param" -> Nil)
-      assertEquals(Uri() =? ps, Uri(query = Query.fromString("param")))
+      assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param")))
     }
     test("Uri parameter convenience methods should set many parameters") {
       val ps = Map("param1" -> Nil, "param2" -> List("value1", "value2"), "param3" -> List("value"))
       assertEquals(
         Uri() =? ps,
-        Uri(query = Query.fromString("param1&param2=value1&param2=value2&param3=value")))
+        Uri(query = Query.unsafeFromString("param1&param2=value1&param2=value2&param3=value")))
     }
     test("Uri parameter convenience methods should set the same parameters again") {
       val ps = Map("param" -> List("value"))
-      val u = Uri(query = Query.fromString("param=value"))
+      val u = Uri(query = Query.unsafeFromString("param=value"))
       assertEquals(u =? ps, u =? ps)
     }
     test("Uri parameter convenience methods should discard the blank value in withQueryParam") {
@@ -897,17 +965,17 @@ http://example.org/a file
 
   {
     test("Uri.withFragment convenience method should set a Fragment") {
-      val u = Uri(path = "/")
+      val u = Uri(path = Uri.Path.Root)
       val updated = u.withFragment("nonsense")
       assertEquals(updated.renderString, "/#nonsense")
     }
     test("Uri.withFragment convenience method should set a new Fragment") {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("adjakda"))
       val updated = u.withFragment("nonsense")
       assertEquals(updated.renderString, "/#nonsense")
     }
     test("Uri.withFragment convenience method should set no Fragment on a null String") {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("adjakda"))
       val evilString: String = null
       val updated = u.withFragment(evilString)
       assertEquals(updated.renderString, "/")
@@ -915,18 +983,18 @@ http://example.org/a file
   }
 
   test("Uri.withoutFragment convenience method should unset a Fragment") {
-    val u = Uri(path = "/", fragment = Some("nonsense"))
+    val u = Uri(path = Uri.Path.Root, fragment = Some("nonsense"))
     val updated = u.withoutFragment
     assertEquals(updated.renderString, "/")
   }
 
   {
     test("Uri.renderString should Encode special chars in the query") {
-      val u = Uri(path = "/").withQueryParam("foo", " !$&'()*+,;=:/?@~")
+      val u = Uri(path = Uri.Path.Root).withQueryParam("foo", " !$&'()*+,;=:/?@~")
       assertEquals(u.renderString, "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~")
     }
     test("Uri.renderString should Encode special chars in the fragment") {
-      val u = Uri(path = "/", fragment = Some(" !$&'()*+,;=:/?@~"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some(" !$&'()*+,;=:/?@~"))
       assertEquals(u.renderString, "/#%20!$&'()*+,;=:/?@~")
     }
   }
@@ -935,14 +1003,14 @@ http://example.org/a file
     val base = getUri("http://a/b/c/d;p?q")
 
     test("Uri relative resolution should correctly remove ./.. sequences") {
-      implicit class checkDotSequences(path: String) {
-        def removingDotsShould_==(expected: String) =
+      implicit class checkDotSequences(path: Uri.Path) {
+        def removingDotsShould_==(expected: Uri.Path) =
           assertEquals(removeDotSegments(path), expected)
       }
 
       // from RFC 3986 sec 5.2.4
-      "mid/content=5/../6".removingDotsShould_==("mid/6")
-      "/a/b/c/./../../g".removingDotsShould_==("/a/g")
+      path"mid/content=5/../6".removingDotsShould_==(path"mid/6")
+      path"/a/b/c/./../../g".removingDotsShould_==(path"/a/g")
     }
 
     implicit class check(relative: String) {
@@ -1016,7 +1084,7 @@ http://example.org/a file
     test("Uri relative resolution should correctly remove dot segments in other examples") {
       forAll(pathGen) { (input: String) =>
         val prefix = "/this/isa/prefix/"
-        val processed = Uri.removeDotSegments(input)
+        val processed = Uri.removeDotSegments(Uri.Path.unsafeFromString(input)).renderString
         val path = Paths.get(prefix, processed).normalize
         assert(path.startsWith(Paths.get(prefix)))
         assert(!processed.contains("./"))
@@ -1159,6 +1227,36 @@ http://example.org/a file
         decode(encode("%2f", toSkip = CharPredicate("%")), toSkip = CharPredicate("/")),
         "%2f")
     }
+  }
+
+  {
+    test("Uri.Path should check that we store the encoded path from parsed") {
+      val uriReference = uri"https://example.com/auth0%7Cdsfhsklh46ksx/we-have-a%2Ftest"
+      assertEquals(
+        uriReference.path.segments,
+        Vector("auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest").map(Uri.Path.Segment.encoded))
+    }
+    test("Uri.Path should check that we store the encoded ") {
+      val uriReference = uri"https://example.com/test" / "auth0|dsfhsklh46ksx" / "we-have-a/test"
+      assertEquals(
+        uriReference.path.segments,
+        Vector("test", "auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest")
+          .map(Uri.Path.Segment.encoded))
+    }
+
+    test("Uri.Path should indexOf / Split") {
+      val path1 = path"/foo/bar/baz"
+      val path2 = path"/foo"
+      val split = path1.findSplit(path2)
+      assertEquals(split, Some(1))
+      val (pre, post) = path1.splitAt(split.getOrElse(0))
+      assertEquals(pre, path2)
+      assertEquals(post, path"/bar/baz")
+      assertEquals(pre.concat(post), path1)
+    }
+
+    checkAll("Uri.Path", SemigroupTests[Uri.Path].semigroup)
+    checkAll("Uri.Path", EqTests[Uri.Path].eqv)
   }
 
   checkAll("Eq[Uri]", EqTests[Uri].eqv)

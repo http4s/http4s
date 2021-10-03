@@ -17,7 +17,8 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import org.http4s.Uri
+import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
+import org.http4s.syntax.all._
 import org.http4s.util.Renderer
 import org.scalacheck.Prop._
 
@@ -32,11 +33,11 @@ class ForwardedRenderersSuite extends munit.ScalaCheckSuite with ForwardedArbitr
 
       nodeName match {
         case Node.Name.Ipv4(ipv4) =>
-          assertEquals(Uri.Ipv4Address.fromString(rendered), Right(ipv4))
+          assertEquals(Ipv4Address.fromString(rendered), Some(ipv4))
         case Node.Name.Ipv6(ipv6) =>
           assert(rendered.startsWith("["))
           assert(rendered.endsWith("]"))
-          assertEquals(Uri.Ipv6Address.fromString(rendered.tail.init), Right(ipv6))
+          assertEquals(Ipv6Address.fromString(rendered.tail.init), Some(ipv6))
         case Node.Name.Unknown =>
           assertEquals(rendered, "unknown")
         case obfName: Node.Obfuscated =>
@@ -89,10 +90,10 @@ class ForwardedRenderersSuite extends munit.ScalaCheckSuite with ForwardedArbitr
     }
   }
   test("Forwarded") {
-    val headerInit = Forwarded.name.value + ": "
+    val headerInit = Forwarded.name.toString + ": "
 
     forAll { (fwd: Forwarded) =>
-      val rendered = Renderer.renderString(fwd)
+      val rendered = Renderer.renderString(fwd.toRaw1)
       assert(rendered.startsWith(headerInit))
 
       assertEquals(Forwarded.parse(rendered.drop(headerInit.length)), Right(fwd))

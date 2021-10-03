@@ -22,8 +22,8 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
-import _root_.io.chrisdavenport.vault._
+import org.typelevel.ci.CIString
+import org.typelevel.vault._
 
 /** Client middleware to follow redirect responses.
   *
@@ -54,8 +54,8 @@ import _root_.io.chrisdavenport.vault._
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
-      sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
-      client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
+      sensitiveHeaderFilter: CIString => Boolean = Headers.SensitiveHeaders)(client: Client[F])(
+      implicit F: Concurrent[F]): Client[F] = {
     def nextRequest(
         req: Request[F],
         uri: Uri,
@@ -70,7 +70,8 @@ object FollowRedirect {
 
       def stripSensitiveHeaders(req: Request[F]): Request[F] =
         if (req.uri.authority != nextUri.authority)
-          req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
+          req.transformHeaders(hs =>
+            Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name))))
         else
           req
 
@@ -96,7 +97,7 @@ object FollowRedirect {
     def prepareLoop(req: Request[F], redirects: Int): F[Resource[F, Response[F]]] =
       F.continual(client.run(req).allocated) {
         case Right((resp, dispose)) =>
-          (methodForRedirect(req, resp), resp.headers.get(Location)) match {
+          (methodForRedirect(req, resp), resp.headers.get[Location]) match {
             case (Some(method), Some(loc)) if redirects < maxRedirects =>
               val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
               dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>

@@ -17,13 +17,13 @@
 package org.http4s
 package server
 
-import org.http4s.websocket.WebSocketContext
-import io.chrisdavenport.vault._
 import cats.effect._
+import org.http4s.websocket.WebSocketContext
+import org.typelevel.vault.Key
 
 package object websocket {
   private[this] object Keys {
-    val WebSocket: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
+    val WebSocket: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
   }
 
   def websocketKey[F[_]]: Key[WebSocketContext[F]] =

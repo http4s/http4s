@@ -23,7 +23,6 @@ import javax.servlet.{ServletContext, ServletRegistration}
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.server.defaults
 import org.http4s.syntax.all._
-import scala.annotation.nowarn
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps =
@@ -36,14 +35,13 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
     *
     * Assumes non-blocking servlet IO is available, and thus requires at least Servlet 3.1.
     */
-  def mountService[F[_]: ConcurrentEffect: ContextShift](
+  def mountService[F[_]: ConcurrentEffect](
       name: String,
       service: HttpRoutes[F],
       mapping: String = "/*"): ServletRegistration.Dynamic =
     mountHttpApp(name, service.orNotFound, mapping)
 
-  @nowarn("cat=unused")
-  def mountHttpApp[F[_]: ConcurrentEffect: ContextShift](
+  def mountHttpApp[F[_]: ConcurrentEffect](
       name: String,
       service: HttpApp[F],
       mapping: String = "/*"): ServletRegistration.Dynamic = {

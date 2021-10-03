@@ -18,16 +18,18 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{IO, Resource}
 import cats.effect.concurrent.{Ref, Semaphore}
+import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.dsl.io._
+import org.http4s.headers.`Idempotency-Key`
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
-import org.http4s.laws.discipline.ArbitraryInstances._
-import scala.concurrent.duration._
 import org.scalacheck.effect.PropF
 import org.scalacheck.Gen
+
+import scala.concurrent.duration._
 
 class RetrySuite extends Http4sSuite {
   val app = HttpRoutes
@@ -144,8 +146,8 @@ class RetrySuite extends Http4sSuite {
     resubmit(POST)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
   }
   test("default retriable should defaultRetriable resubmits bodies on idempotent header") {
-    resubmit(POST, Headers.of(Header(RetryPolicy.IdempotentHeader.toString, "")))(
-      RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
+    resubmit(POST, Headers(`Idempotency-Key`("key")))(RetryPolicy.defaultRetriable)
+      .assertEquals(Status.Ok)
   }
   test("default retriable should defaultRetriable resubmits bodies on idempotent methods") {
     resubmit(PUT)(RetryPolicy.defaultRetriable).assertEquals(Status.Ok)

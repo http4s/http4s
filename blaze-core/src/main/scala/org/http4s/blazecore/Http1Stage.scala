@@ -30,6 +30,7 @@ import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blazecore.util._
 import org.http4s.headers._
+import org.http4s.syntax.header._
 import org.http4s.util.{Renderer, StringWriter, Writer}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -75,34 +76,14 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       closeOnFinish: Boolean): Http1Writer[F] = {
     val headers = req.headers
     getEncoder(
-      Connection.from(headers),
-      `Transfer-Encoding`.from(headers),
-      `Content-Length`.from(headers),
+      headers.get[Connection],
+      headers.get[`Transfer-Encoding`],
+      headers.get[`Content-Length`],
       req.trailerHeaders,
       rr,
       minor,
       closeOnFinish,
       Http1Stage.omitEmptyContentLength(req)
-    )
-  }
-
-  @deprecated("Preserved for binary compatibility", "0.21.16")
-  protected def getEncoder(
-      msg: Message[F],
-      rr: StringWriter,
-      minor: Int,
-      closeOnFinish: Boolean
-  ): Http1Writer[F] = {
-    val headers = msg.headers
-    getEncoder(
-      Connection.from(headers),
-      `Transfer-Encoding`.from(headers),
-      `Content-Length`.from(headers),
-      msg.trailerHeaders,
-      rr,
-      minor,
-      closeOnFinish,
-      false
     )
   }
 
@@ -168,26 +149,6 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
               new CachingChunkWriter(this, trailer, chunkBufferMaxSize, omitEmptyContentLength)
           }
     }
-
-  @deprecated("Preserved for binary compatibility", "0.21.16")
-  protected def getEncoder(
-      connectionHeader: Option[Connection],
-      bodyEncoding: Option[`Transfer-Encoding`],
-      lengthHeader: Option[`Content-Length`],
-      trailer: F[Headers],
-      rr: StringWriter,
-      minor: Int,
-      closeOnFinish: Boolean
-  ): Http1Writer[F] =
-    getEncoder(
-      connectionHeader,
-      bodyEncoding,
-      lengthHeader,
-      trailer,
-      rr,
-      minor,
-      closeOnFinish,
-      false)
 
   /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *
@@ -329,23 +290,26 @@ object Http1Stage {
       Future.successful(buffer)
     } else CachedEmptyBufferThunk
 
-  /** Encodes the headers into the Writer. Does not encode `Transfer-Encoding` or
-    * `Content-Length` headers, which are left for the body encoder. Adds
-    * `Date` header if one is missing and this is a server response.
+  /** Encodes the headers into the Writer. Does not encode
+    * `Transfer-Encoding` or `Content-Length` headers, which are left
+    * for the body encoder. Does not encode headers with invalid
+    * names. Adds `Date` header if one is missing and this is a server
+    * response.
     *
     * Note: this method is very niche but useful for both server and client.
     */
-  def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
+  def encodeHeaders(headers: Iterable[Header.Raw], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
+    val dateName = Header[Date].name
     headers.foreach { h =>
-      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
-        if (isServer && h.name == Date.name) dateEncoded = true
+      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name && h.isNameValid) {
+        if (isServer && h.name == dateName) dateEncoded = true
         rr << h << "\r\n"
       }
     }
 
     if (isServer && !dateEncoded)
-      rr << Date.name << ": " << currentDate << "\r\n"
+      rr << dateName << ": " << currentDate << "\r\n"
     ()
   }
 

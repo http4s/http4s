@@ -14,7 +14,23 @@
  * limitations under the License.
  */
 
-package org.http4s
-package headers
+package org.http4s.headers
 
-object `Access-Control-Request-Method` extends HeaderKey.Default
+import org.http4s._
+import org.typelevel.ci._
+
+final case class `Access-Control-Request-Method`(method: Method)
+
+object `Access-Control-Request-Method` {
+  def parse(s: String): ParseResult[`Access-Control-Request-Method`] =
+    ParseResult.fromParser(parser, "Invalid Access-Control-Request-Method header")(s)
+
+  private[http4s] val parser = Method.parser.map(apply)
+
+  implicit val headerInstance: Header[`Access-Control-Request-Method`, Header.Single] =
+    Header.create(
+      ci"Access-Control-Request-Method",
+      _.method.renderString,
+      parse
+    )
+}

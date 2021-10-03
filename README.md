@@ -26,7 +26,7 @@ APIs unavailable before JDK8u252. Any JDK newer than JDK8u252, including 9+ is s
 
 ## Code of Conduct
 
-http4s is proud to be a [Typelevel](https://typelevel.org/) incubator
+http4s is proud to be a [Typelevel](https://typelevel.org/)
 project.  We are committed to providing a friendly, safe and welcoming
 environment for all, and ask that the community adhere to the [Scala
 Code of Conduct](https://http4s.org/code-of-conduct/).
@@ -35,7 +35,7 @@ Code of Conduct](https://http4s.org/code-of-conduct/).
 
 This software is licensed under the Apache 2 license, quoted below.
 
-> Copyright 2013-2019 http4s [[https://http4s.org](https://http4s.org/)]
+> Copyright 2013-2021 http4s [[https://http4s.org](https://http4s.org/)]
 
 > Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 

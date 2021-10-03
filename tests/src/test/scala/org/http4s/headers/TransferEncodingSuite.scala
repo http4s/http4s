@@ -19,11 +19,12 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
+import org.http4s.syntax.header._
 import org.scalacheck.Prop.forAll
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 class TransferEncodingSuite extends HeaderLaws {
-  checkAll("TransferEncoding", headerLaws(`Transfer-Encoding`))
+  checkAll("TransferEncoding", headerLaws[`Transfer-Encoding`])
 
   test("render should include all the encodings") {
     assertEquals(

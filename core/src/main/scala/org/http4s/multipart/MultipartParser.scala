@@ -22,7 +22,7 @@ import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.{readAll, writeAll}
 import java.nio.file.{Files, Path, StandardOpenOption}
-import scala.annotation.nowarn
+import org.typelevel.ci.CIString
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -153,8 +153,7 @@ object MultipartParser {
     * incomplete match, or ignored (as such excluding the sequence
     * from the subsequent split stream).
     */
-  @nowarn("cat=unused")
-  private[http4s] def splitOnChunk[F[_]: Sync](
+  private[http4s] def splitOnChunk[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
@@ -384,7 +383,8 @@ object MultipartParser {
           .map { string =>
             val ix = string.indexOf(':')
             if (ix >= 0)
-              headers.put(Header(string.substring(0, ix), string.substring(ix + 1).trim))
+              headers.put(
+                Header.Raw(CIString(string.substring(0, ix)), string.substring(ix + 1).trim))
             else
               headers
           }
@@ -397,8 +397,7 @@ object MultipartParser {
         }
       }
 
-    tailrecParse(strim, Headers.empty).stream.compile
-      .fold(Headers.empty)(_ ++ _)
+    tailrecParse(strim, Headers.empty).stream.compile.foldMonoid
   }
 
   /** Spit our `Stream[F, Byte]` into two halves.
@@ -407,9 +406,7 @@ object MultipartParser {
     *
     * This method _always_ caps
     */
-  private def splitHalf[F[_]: Sync](
-      values: Array[Byte],
-      stream: Stream[F, Byte]): SplitStream[F] = {
+  private def splitHalf[F[_]](values: Array[Byte], stream: Stream[F, Byte]): SplitStream[F] = {
     def go(
         s: Stream[F, Byte],
         state: Int,
@@ -486,8 +483,7 @@ object MultipartParser {
     * Else, if the whole block is a partial match,
     * add it to the carry over
     */
-  @nowarn("cat=unused")
-  private[http4s] def splitPartialLimited[F[_]: Sync](
+  private[http4s] def splitPartialLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       currState: Int,
@@ -509,7 +505,7 @@ object MultipartParser {
       (currState, acc, carry ++ Stream.chunk(c), 0)
   }
 
-  private[http4s] def splitOnChunkLimited[F[_]: Sync](
+  private[http4s] def splitOnChunkLimited[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],

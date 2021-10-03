@@ -19,8 +19,7 @@ package server
 
 import cats._
 import cats.data.Kleisli
-import cats.syntax.semigroupk._
-import scala.annotation.nowarn
+import cats.syntax.all._
 
 object Router {
 
@@ -38,33 +37,26 @@ object Router {
   def define[F[_]: Monad](mappings: (String, HttpRoutes[F])*)(
       default: HttpRoutes[F]): HttpRoutes[F] =
     mappings.sortBy(_._1.length).foldLeft(default) { case (acc, (prefix, routes)) =>
-      val prefixSegments = toSegments(prefix)
-      if (prefixSegments.isEmpty) routes <+> acc
+      val prefixPath = Uri.Path.unsafeFromString(prefix)
+      if (prefixPath.isEmpty) routes <+> acc
       else
         Kleisli { req =>
           (
-            if (toSegments(req.pathInfo).startsWith(prefixSegments))
-              routes.local(translate(prefix)) <+> acc
+            if (req.pathInfo.startsWith(prefixPath))
+              routes.local(translate(prefixPath)) <+> acc
             else
               acc
           )(req)
         }
     }
 
-  @nowarn("cat=unused")
-  private[server] def translate[F[_]: Functor](prefix: String)(req: Request[F]): Request[F] = {
-    val newCaret = prefix match {
-      case "/" => 0
-      case x if x.startsWith("/") => x.length
-      case x => x.length + 1
+  private[server] def translate[F[_]](prefix: Uri.Path)(req: Request[F]): Request[F] = {
+    val newCaret = req.pathInfo.findSplit(prefix)
+    val oldCaret = req.attributes.lookup(Request.Keys.PathInfoCaret)
+    val resultCaret = oldCaret |+| newCaret
+    resultCaret match {
+      case Some(index) => req.withAttribute(Request.Keys.PathInfoCaret, index)
+      case None => req
     }
-
-    val oldCaret = req.attributes
-      .lookup(Request.Keys.PathInfoCaret)
-      .getOrElse(0)
-    req.withAttribute(Request.Keys.PathInfoCaret, oldCaret + newCaret)
   }
-
-  private[server] def toSegments(path: String): List[String] =
-    path.split("/").filterNot(_.trim.isEmpty).toList
 }

@@ -19,10 +19,11 @@ package parser
 
 import cats.data.NonEmptyList
 import org.http4s.headers.Authorization
-import org.http4s.syntax.all._
+import org.http4s.syntax.header._
+import org.typelevel.ci.CIString
 
 class AuthorizationHeaderSuite extends munit.FunSuite {
-  def hparse(value: String) = HttpHeaderParser.AUTHORIZATION(value)
+  def hparse(value: String) = Authorization.parse(value)
 
   test("Authorization header should Parse a valid OAuth2 header") {
     val token = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-._~+/".toSeq).mkString
@@ -41,7 +42,28 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
   test("Authorization header should Parse a KeyValueCredentials header") {
     val scheme = "foo"
     val params = NonEmptyList("abc" -> "123", Nil)
-    val h = Authorization(Credentials.AuthParams(scheme.ci, params))
+    val h = Authorization(Credentials.AuthParams(CIString(scheme), params))
     assertEquals(hparse(h.value), Right(h))
+  }
+
+  test("Authorization header should parse a KeyValueCredentials header unquoted") {
+    val scheme = "foo"
+    val params = NonEmptyList.of("abc" -> "123")
+    val h = Authorization(Credentials.AuthParams(CIString(scheme), params))
+    assertEquals(hparse("foo abc=123"), Right(h))
+  }
+
+  test("Authorization header should parse a KeyValueCredentials with weird spaces") {
+    val scheme = "foo"
+    assertEquals(
+      hparse("foo abc = \"123 yeah\tyeah yeah\""),
+      Right(Authorization(
+        Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
+    )
+    assertEquals(
+      //quoted-pair
+      hparse("foo abc = \"\\123\""),
+      Right(
+        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))))
   }
 }

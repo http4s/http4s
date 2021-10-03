@@ -42,11 +42,12 @@ class ScalatagsSuite extends Http4sSuite {
   test("TypedTag encoder should return Content-Type text/html with proper charset") {
     assert(testCharsets.forall { implicit cs =>
       val headers = EntityEncoder[IO, Text.TypedTag[String]].headers
-      headers.get(`Content-Type`).contains(`Content-Type`(MediaType.text.html, Some(cs)))
+      headers.get[`Content-Type`].contains(`Content-Type`(MediaType.text.html, Some(cs)))
     })
   }
 
   test("TypedTag encoder should render the body") {
+    implicit val cs: Charset = Charset.`UTF-8`
     val resp = Response[IO](Ok).withEntity(testBody())
     EntityDecoder
       .text[IO]

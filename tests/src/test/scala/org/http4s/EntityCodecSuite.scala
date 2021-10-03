@@ -19,12 +19,11 @@ package org.http4s
 import cats.Eq
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
-import cats.effect.laws.util.TestInstances._
 import fs2.Chunk
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.testing.fs2Arbitraries._
 
-class EntityCodecSuite extends Http4sSuite {
+class EntityCodecSuite extends Http4sSuite with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()
 
   implicit def eqArray[A](implicit ev: Eq[Vector[A]]): Eq[Array[A]] =
@@ -33,11 +32,11 @@ class EntityCodecSuite extends Http4sSuite {
   implicit def eqChunk[A](implicit ev: Eq[Vector[A]]): Eq[Chunk[A]] =
     Eq.by(_.toVector)
 
-  checkAll("EntityCodec[IO, String]", EntityCodecTests[IO, String].entityCodec)
-  checkAll("EntityCodec[IO, Array[Char]]", EntityCodecTests[IO, Array[Char]].entityCodec)
+  checkAllF("EntityCodec[IO, String]", EntityCodecTests[IO, String].entityCodecF)
+  checkAllF("EntityCodec[IO, Array[Char]]", EntityCodecTests[IO, Array[Char]].entityCodecF)
 
-  checkAll("EntityCodec[IO, Chunk[Byte]]", EntityCodecTests[IO, Chunk[Byte]].entityCodec)
-  checkAll("EntityCodec[IO, Array[Byte]]", EntityCodecTests[IO, Array[Byte]].entityCodec)
+  checkAllF("EntityCodec[IO, Chunk[Byte]]", EntityCodecTests[IO, Chunk[Byte]].entityCodecF)
+  checkAllF("EntityCodec[IO, Array[Byte]]", EntityCodecTests[IO, Array[Byte]].entityCodecF)
 
-  checkAll("EntityCodec[IO, Unit]", EntityCodecTests[IO, Unit].entityCodec)
+  checkAllF("EntityCodec[IO, Unit]", EntityCodecTests[IO, Unit].entityCodecF)
 }

@@ -42,7 +42,7 @@ class CookieJarSuite extends Http4sSuite {
           resp.pure[IO]
         case req @ GET -> Root / "test-cookie" =>
           req.headers
-            .get(Cookie)
+            .get[Cookie]
             .fold(
               Response[IO](Status.InternalServerError)
             )(_ => Response[IO](Status.Ok))

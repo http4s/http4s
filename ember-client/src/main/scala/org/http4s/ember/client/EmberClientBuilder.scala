@@ -16,22 +16,25 @@
 
 package org.http4s.ember.client
 
-import io.chrisdavenport.keypool._
-import io.chrisdavenport.log4cats.Logger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.keypool._
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats._
 import cats.syntax.all._
 import cats.effect._
 
 import scala.concurrent.duration._
+import org.http4s.ProductId
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{AgentProduct, `User-Agent`}
+import org.http4s.headers.{`User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.client.middleware.RetryPolicy
+import org.http4s.client.middleware.Retry
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val blockerOpt: Option[Blocker],
@@ -47,7 +50,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val timeout: Duration,
     val additionalSocketOptions: List[SocketOptionMapping[_]],
     val userAgent: Option[`User-Agent`],
-    val checkEndpointIdentification: Boolean
+    val checkEndpointIdentification: Boolean,
+    val retryPolicy: RetryPolicy[F]
 ) { self =>
 
   private def copy(
@@ -64,7 +68,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       timeout: Duration = self.timeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent,
-      checkEndpointIdentification: Boolean = self.checkEndpointIdentification
+      checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
+      retryPolicy: RetryPolicy[F] = self.retryPolicy
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       blockerOpt = blockerOpt,
@@ -80,7 +85,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       timeout = timeout,
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent,
-      checkEndpointIdentification = checkEndpointIdentification
+      checkEndpointIdentification = checkEndpointIdentification,
+      retryPolicy = retryPolicy
     )
 
   def withTLSContext(tlsContext: TLSContext) =
@@ -116,6 +122,9 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     copy(checkEndpointIdentification = checkEndpointIdentification)
 
   def withoutCheckEndpointAuthentication = copy(checkEndpointIdentification = false)
+
+  def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
+    copy(retryPolicy = retryPolicy)
 
   def build: Resource[F, Client[F]] =
     for {
@@ -186,7 +195,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           }
         } yield responseResource._1
       }
-      new EmberClient[F](client, pool)
+      val stackClient = Retry(retryPolicy)(client)
+      new EmberClient[F](stackClient, pool)
     }
 }
 
@@ -207,7 +217,8 @@ object EmberClientBuilder {
       timeout = Defaults.timeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent,
-      checkEndpointIdentification = true
+      checkEndpointIdentification = true,
+      retryPolicy = Defaults.retryPolicy
     )
 
   private object Defaults {
@@ -225,6 +236,8 @@ object EmberClientBuilder {
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
     val userAgent = Some(
-      `User-Agent`(AgentProduct("http4s-ember", Some(org.http4s.BuildInfo.version))))
+      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version))))
+
+    def retryPolicy[F[_]]: RetryPolicy[F] = ClientHelpers.RetryLogic.retryUntilFresh
   }
 }

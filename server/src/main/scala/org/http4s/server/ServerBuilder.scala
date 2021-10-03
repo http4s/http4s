@@ -23,12 +23,10 @@ import cats.effect.concurrent.Ref
 import fs2._
 import fs2.concurrent.{Signal, SignallingRef}
 import java.net.{InetAddress, InetSocketAddress}
-import javax.net.ssl.SSLContext
 import org.http4s.internal.BackendBuilder
-import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
 
-trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
+trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   type Self <: ServerBuilder[F]
 
   protected implicit def F: Concurrent[F]
@@ -52,7 +50,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
   /** Returns a Server resource.  The resource is not acquired until the
     * server is started and ready to accept requests.
     */
-  def resource: Resource[F, Server[F]]
+  def resource: Resource[F, Server]
 
   /** Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
@@ -103,22 +101,6 @@ object AsyncTimeoutSupport {
   @deprecated("Moved to org.http4s.server.defaults.AsyncTimeout", "0.20.0-M2")
   val DefaultAsyncTimeout = defaults.ResponseTimeout
 }
-
-@deprecated("No longer used", "0.21.0-RC3")
-sealed trait SSLConfig
-
-@deprecated("No longer used", "0.21.0-RC3")
-final case class KeyStoreBits(
-    keyStore: StoreInfo,
-    keyManagerPassword: String,
-    protocol: String,
-    trustStore: Option[StoreInfo],
-    clientAuth: SSLClientAuthMode)
-    extends SSLConfig
-
-@deprecated("No longer used", "0.21.0-RC3")
-final case class SSLContextBits(sslContext: SSLContext, clientAuth: SSLClientAuthMode)
-    extends SSLConfig
 
 object SSLKeyStoreSupport {
   final case class StoreInfo(path: String, password: String)

@@ -22,7 +22,7 @@ import fs2.Stream
 import java.net.URL
 import org.http4s._
 import org.http4s.Method._
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
@@ -44,10 +44,9 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
     )
 
   private def request(blocker: Blocker) =
-    for {
-      body <- image.map(multipart(_, blocker))
-      req <- POST(body, uri"http://localhost:8080/v1/multipart")
-    } yield req.withHeaders(body.headers)
+    image
+      .map(multipart(_, blocker))
+      .map(body => POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers))
 
   private val resources: Resource[IO, (Blocker, Client[IO])] =
     for {

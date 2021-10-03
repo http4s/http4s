@@ -24,7 +24,8 @@ import io.circe.generic.auto._
 import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.{Header, Request, Uri}
+import org.http4s.Request
+import org.http4s.syntax.literals._
 
 // See: https://developer.github.com/apps/building-oauth-apps/authorization-options-for-oauth-apps/#web-application-flow
 class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
@@ -37,9 +38,8 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
   case class AccessTokenResponse(access_token: String)
 
   val authorize: Stream[F, Byte] = {
-    val uri = Uri
-      .unsafeFromString("https://github.com")
-      .withPath("/login/oauth/authorize")
+    val uri = uri"https://github.com"
+      .withPath(path"/login/oauth/authorize")
       .withQueryParam("client_id", ClientId)
       .withQueryParam("redirect_uri", RedirectUri)
       .withQueryParam("scopes", "public_repo")
@@ -49,9 +49,8 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
   }
 
   def accessToken(code: String, state: String): F[String] = {
-    val uri = Uri
-      .unsafeFromString("https://github.com")
-      .withPath("/login/oauth/access_token")
+    val uri = uri"https://github.com"
+      .withPath(path"/login/oauth/access_token")
       .withQueryParam("client_id", ClientId)
       .withQueryParam("client_secret", ClientSecret)
       .withQueryParam("code", code)
@@ -64,8 +63,8 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
   }
 
   def userData(accessToken: String): F[String] = {
-    val request = Request[F](uri = Uri.unsafeFromString("https://api.github.com/user"))
-      .putHeaders(Header("Authorization", s"token $accessToken"))
+    val request = Request[F](uri = uri"https://api.github.com/user")
+      .putHeaders("Authorization" -> s"token $accessToken")
 
     client.expect[String](request)
   }

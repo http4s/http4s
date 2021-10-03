@@ -19,10 +19,9 @@ package com.example.http4s.blaze.demo.server
 import cats.effect._
 import fs2.Stream
 import org.http4s.HttpApp
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
-import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.syntax.kleisli._
 import scala.concurrent.ExecutionContext.global
 
 object Server extends IOApp {

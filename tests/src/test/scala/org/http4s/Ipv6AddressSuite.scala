@@ -17,10 +17,10 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.{HashTests, OrderTests}
+import com.comcast.ip4s._
 import org.http4s.Uri.Ipv6Address
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.syntax.all._
 import org.http4s.util.Renderer.renderString
 import org.scalacheck.Prop._
 
@@ -30,20 +30,20 @@ class Ipv6AddressSuite extends Http4sSuite {
   checkAll("HttpCodec[Ipv6Address]", HttpCodecTests[Ipv6Address].httpCodec)
 
   test("render consistently with RFC5952 should 4.1: handle leading zeroes in a 16-bit field") {
-    assert(renderString(ipv6"2001:0db8::0001") == "2001:db8::1")
+    assert(renderString(Ipv6Address(ipv6"2001:0db8::0001")) == "2001:db8::1")
   }
   test("render consistently with RFC5952 should 4.2.1: shorten as much as possible") {
-    assert(renderString(ipv6"2001:db8:0:0:0:0:2:1") == "2001:db8::2:1")
+    assert(renderString(Ipv6Address(ipv6"2001:db8:0:0:0:0:2:1")) == "2001:db8::2:1")
   }
   test("render consistently with RFC5952 should 4.2.2: handle one 16-bit 0 field") {
-    assert(renderString(ipv6"2001:db8:0:1:1:1:1:1") == "2001:db8:0:1:1:1:1:1")
+    assert(renderString(Ipv6Address(ipv6"2001:db8:0:1:1:1:1:1")) == "2001:db8:0:1:1:1:1:1")
   }
   test("""render consistently with RFC5952 should 4.2.3: chose placement of "::"""") {
-    assert(renderString(ipv6"2001:0:0:1:0:0:0:1") == "2001:0:0:1::1")
-    renderString(ipv6"2001:db8:0:0:1:0:0:1") == "2001:db8::1:0:0:1"
+    assert(renderString(Ipv6Address(ipv6"2001:0:0:1:0:0:0:1")) == "2001:0:0:1::1")
+    renderString(Ipv6Address(ipv6"2001:db8:0:0:1:0:0:1")) == "2001:db8::1:0:0:1"
   }
   test("render consistently with RFC5952 should 4.3: lowercase") {
-    assert(renderString(ipv6"::A:B:C:D:E:F") == "::a:b:c:d:e:f")
+    assert(renderString(Ipv6Address(ipv6"::A:B:C:D:E:F")) == "::a:b:c:d:e:f")
   }
 
   test("fromInet6Address should round trip with toInet6Address") {
@@ -58,10 +58,9 @@ class Ipv6AddressSuite extends Http4sSuite {
     }
   }
 
-  test("compare should be consistent with unsigned int") {
+  test("compare should be consistent with address") {
     forAll { (xs: List[Ipv6Address]) =>
-      def tupled(a: Ipv6Address) = (a.a, a.b, a.c, a.d)
-      xs.sorted.map(tupled) == xs.map(tupled).sorted
+      xs.sorted.map(_.address) == xs.map(_.address).sorted
     }
   }
 
@@ -72,18 +71,13 @@ class Ipv6AddressSuite extends Http4sSuite {
   }
 
   test("ipv6 interpolator should be consistent with fromString") {
-    assert(Right(ipv6"::1") == Ipv6Address.fromString("::1"))
-    assert(Right(ipv6"::") == Ipv6Address.fromString("::"))
-    assert(Right(ipv6"2001:db8::7") == Ipv6Address.fromString("2001:db8::7"))
+    assert(Right(Ipv6Address(ipv6"::1")) == Ipv6Address.fromString("::1"))
+    assert(Right(Ipv6Address(ipv6"::")) == Ipv6Address.fromString("::"))
+    assert(Right(Ipv6Address(ipv6"2001:db8::7")) == Ipv6Address.fromString("2001:db8::7"))
   }
 
   test("ipv6 interpolator should reject invalid values") {
-    assertNoDiff(
-      compileErrors("""ipv6"127.0.0.1""""),
-      """error: invalid Ipv6Address
-        |ipv6"127.0.0.1"
-        |^
-        |""".stripMargin)
+    assert(compileErrors("""Ipv6Address(ipv6"127.0.0.1")""").nonEmpty)
   }
 
 }

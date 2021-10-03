@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.server.middleware
+package org.http4s
+package server.middleware
 
 import cats.Functor
 import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
-import org.http4s.{CacheDirective, Header, Headers, Response}
 import org.http4s.headers.`Cache-Control`
 
 /** Simple middleware for adding a static set of headers to responses
@@ -32,9 +32,9 @@ object StaticHeaders {
       http(req).map(resp => resp.copy(headers = headers ++ resp.headers))
     }
 
-  private val noCacheHeader: Header = `Cache-Control`(NonEmptyList.of(CacheDirective.`no-cache`()))
+  private val noCacheHeader = `Cache-Control`(NonEmptyList.of(CacheDirective.`no-cache`()))
 
   def `no-cache`[F[_]: Functor, G[_], A](
       http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
-    StaticHeaders(Headers(noCacheHeader.pure[List]))(http)
+    StaticHeaders(Headers(noCacheHeader))(http)
 }

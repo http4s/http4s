@@ -22,12 +22,9 @@ import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci._
 
 class HeaderEchoSuite extends Http4sSuite {
-  object someHeaderKey extends HeaderKey.Default
-  object anotherHeaderKey extends HeaderKey.Default
-
   val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
     Ok("request response")
   }
@@ -36,21 +33,21 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingSingleHeaderKey =
       Request[G](
         uri = uri"/request",
-        headers = Headers.of(Header("someheaderkey", "someheadervalue"))
+        headers = Headers("someheaderkey" -> "someheadervalue")
       )
 
     (testee
       .apply(requestMatchingSingleHeaderKey))
       .map(_.headers)
       .map { responseHeaders =>
-        responseHeaders.exists(_.value === "someheadervalue") &&
-        responseHeaders.toList.length === 3
+        responseHeaders.headers.exists(_.value === "someheadervalue") &&
+        responseHeaders.headers.toList.length === 3
       }
   }
 
   test("echo a single header in addition to the defaults") {
     testSingleHeader(
-      HeaderEcho(_ === CaseInsensitiveString("someheaderkey"))(testService).orNotFound
+      HeaderEcho(_ === ci"someheaderkey")(testService).orNotFound
     ).assert
   }
 
@@ -58,11 +55,10 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingMultipleHeaderKeys =
       Request[IO](
         uri = uri"/request",
-        headers = Headers.of(
-          Header("someheaderkey", "someheadervalue"),
-          Header("anotherheaderkey", "anotherheadervalue")))
+        headers =
+          Headers("someheaderkey" -> "someheadervalue", "anotherheaderkey" -> "anotherheadervalue"))
     val headersToEcho =
-      List(CaseInsensitiveString("someheaderkey"), CaseInsensitiveString("anotherheaderkey"))
+      List(ci"someheaderkey", ci"anotherheaderkey")
     val testee = HeaderEcho(headersToEcho.contains(_))(testService)
 
     testee
@@ -70,9 +66,9 @@ class HeaderEchoSuite extends Http4sSuite {
       .map { r =>
         val responseHeaders = r.headers
 
-        responseHeaders.exists(_.value === "someheadervalue") &&
-        responseHeaders.exists(_.value === "anotherheadervalue") &&
-        responseHeaders.toList.length === 4
+        responseHeaders.headers.exists(_.value === "someheadervalue") &&
+        responseHeaders.headers.exists(_.value === "anotherheadervalue") &&
+        responseHeaders.headers.toList.length === 4
       }
       .assert
   }
@@ -81,16 +77,16 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingNotPresentHeaderKey =
       Request[IO](
         uri = uri"/request",
-        headers = Headers.of(Header("someunmatchedheader", "someunmatchedvalue")))
+        headers = Headers("someunmatchedheader" -> "someunmatchedvalue"))
 
-    val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)
+    val testee = HeaderEcho(_ == ci"someheaderkey")(testService)
     testee
       .orNotFound(requestMatchingNotPresentHeaderKey)
       .map { r =>
         val responseHeaders = r.headers
 
-        !responseHeaders.exists(_.value === "someunmatchedvalue") &&
-        responseHeaders.toList.length === 2
+        !responseHeaders.headers.exists(_.value === "someunmatchedvalue") &&
+        responseHeaders.headers.toList.length === 2
       }
       .assert
   }
@@ -98,13 +94,11 @@ class HeaderEchoSuite extends Http4sSuite {
   test("be created via the httpRoutes constructor") {
     testSingleHeader(
       HeaderEcho
-        .httpRoutes(_ == CaseInsensitiveString("someheaderkey"))(testService)
+        .httpRoutes(_ == ci"someheaderkey")(testService)
         .orNotFound).assert
   }
 
   test("be created via the httpApps constructor") {
-    testSingleHeader(
-      HeaderEcho.httpApp(_ == CaseInsensitiveString("someheaderkey"))(
-        testService.orNotFound)).assert
+    testSingleHeader(HeaderEcho.httpApp(_ == ci"someheaderkey")(testService.orNotFound)).assert
   }
 }

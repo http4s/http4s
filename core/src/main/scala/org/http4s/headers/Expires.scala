@@ -17,12 +17,34 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.{Renderer, Writer}
+import cats.parse.{Parser, Parser0}
+import org.typelevel.ci._
 
-object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[Expires] =
-    HttpHeaderParser.EXPIRES(s)
+object Expires {
+  def parse(s: String): ParseResult[Expires] =
+    ParseResult.fromParser(parser, "Invalid Expires header")(s)
+
+  /* `Expires = HTTP-date` */
+  private[http4s] val parser: Parser0[Expires] = {
+    import Parser.anyChar
+
+    def httpDate = HttpDate.parser
+
+    // A cache recipient MUST interpret invalid date formats, especially the
+    // value "0", as representing a time in the past (i.e., "already
+    // expired").
+    def invalid = anyChar.rep0.as(HttpDate.Epoch)
+
+    httpDate.orElse(invalid).map(apply)
+  }
+
+  implicit val headerInstance: Header[Expires, Header.Single] =
+    Header.createRendered(
+      ci"Expires",
+      _.expirationDate,
+      parse
+    )
+
 }
 
 /** A Response header that _gives the date/time after which the response is considered stale_.
@@ -36,8 +58,4 @@ object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
   * @param expirationDate the date of expiration. The RFC has a warning, that using large values
   * can cause problems due to integer or clock overflows.
   */
-final case class Expires(expirationDate: HttpDate) extends Header.Parsed {
-  val key = `Expires`
-  override val value = Renderer.renderString(expirationDate)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class Expires(expirationDate: HttpDate)

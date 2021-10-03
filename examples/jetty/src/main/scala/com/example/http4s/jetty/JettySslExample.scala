@@ -20,7 +20,7 @@ import cats.effect._
 import cats.syntax.all._
 import com.example.http4s.ssl
 import org.http4s.server.Server
-import org.http4s.server.jetty.JettyBuilder
+import org.http4s.jetty.server.JettyBuilder
 
 object JettySslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -39,7 +39,7 @@ object JettySslExampleApp {
         .withSslContext(sslCtx)
     }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
     for {
       blocker <- Blocker[F]
       b <- Resource.eval(builder[F](blocker))

@@ -72,7 +72,7 @@ object ErrorAction {
     def apply[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
         f: (Request[F], Throwable) => F[Unit]): HttpRoutes[F] =
-      ErrorAction(httpRoutes, liftFToOptionT(f))
+      ErrorAction(httpRoutes, (t, msg) => OptionT.liftF(f(t, msg)))
 
     def log[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
@@ -81,12 +81,8 @@ object ErrorAction {
     ): HttpRoutes[F] =
       ErrorAction.log(
         httpRoutes,
-        liftFToOptionT(messageFailureLogAction),
-        liftFToOptionT(serviceErrorLogAction)
+        (t, msg) => OptionT.liftF(messageFailureLogAction(t, msg)),
+        (t, msg) => OptionT.liftF(serviceErrorLogAction(t, msg))
       )
-
-    private def liftFToOptionT[F[_]: Functor, A, B, C](
-        f: Function2[A, B, F[C]]): Function2[A, B, OptionT[F, C]] =
-      (a: A, b: B) => OptionT.liftF(f(a, b))
   }
 }

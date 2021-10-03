@@ -22,11 +22,6 @@ import org.http4s.headers._
 class ProxyAuthenticateHeaderSuite
     extends munit.FunSuite
     with HeaderParserHelper[`Proxy-Authenticate`] {
-  def hparse(value: String): ParseResult[`Proxy-Authenticate`] =
-    HttpHeaderParser.PROXY_AUTHENTICATE(value)
-
-  override def parse(value: String) =
-    hparse(value).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")
@@ -40,18 +35,18 @@ class ProxyAuthenticateHeaderSuite
   }
 
   test("Proxy-Authenticate Header parser shouldParse a basic authentication") {
-    assertEquals(parse(str), (`Proxy-Authenticate`(c)))
+    assertEquals(parseOnly(str), (`Proxy-Authenticate`(c)))
   }
 
   test("Proxy-Authenticate Header parser shouldParse a basic authentication with params") {
-    assertEquals(parse(wparams.renderString), (`Proxy-Authenticate`(wparams)))
+    assertEquals(parseOnly(wparams.renderString), (`Proxy-Authenticate`(wparams)))
   }
 
   test("Proxy-Authenticate Header parser shouldParse multiple concatenated authentications") {
     val twotypes = "Newauth realm=\"apps\", Basic realm=\"simple\""
     val twoparsed = Challenge("Newauth", "apps") :: Challenge("Basic", "simple") :: Nil
 
-    assertEquals(parse(twotypes).values.toList, twoparsed)
+    assertEquals(parseOnly(twotypes).values.toList, twoparsed)
   }
 
   test(
@@ -61,6 +56,6 @@ class ProxyAuthenticateHeaderSuite
     val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::
       Challenge("Basic", "simple") :: Nil
 
-    assertEquals(parse(twowparams).values.toList, twp)
+    assertEquals(parseOnly(twowparams).values.toList, twp)
   }
 }

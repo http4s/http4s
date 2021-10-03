@@ -17,23 +17,34 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import org.http4s.internal.parsing.Rfc7230
+import org.typelevel.ci._
 
-object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
+object Allow {
   def apply(ms: Method*): Allow = Allow(ms.toSet)
 
-  override def parse(s: String): ParseResult[Allow] =
-    HttpHeaderParser.ALLOW(s)
+  def parse(s: String): ParseResult[Allow] =
+    ParseResult.fromParser(parser, "Invalid Allow header")(s)
+
+  private[http4s] val parser = Rfc7230
+    .headerRep1(Rfc7230.token.mapFilter(s => Method.fromString(s).toOption))
+    .map(_.toList)
+    .?
+    .map(_.getOrElse(Nil))
+    .map(ms => Allow(ms.toSet))
+
+  implicit val headerInstance: Header[Allow, Header.Single] =
+    Header.createRendered(
+      ci"Allow",
+      _.methods,
+      parse
+    )
 }
 
 /** A Response header that lists the methods that are supported by the target resource.
-  * Often attached to responses with status  [[https://tools.ietf.org/html/rfc7231#section-6.5.5 405 Not Allowed]].
+  * Must be attached to responses with status  [[https://tools.ietf.org/html/rfc7231#section-6.5.5 405 Not Allowed]],
+  * though in practice not all servers honor this.
   *
   * [[https://tools.ietf.org/html/rfc7231#section-7.4.1 RFC-7231 Section 7.4.1 Allow]]
   */
-final case class Allow(methods: Set[Method]) extends Header.Parsed {
-  override def key: Allow.type = Allow
-  override def renderValue(writer: Writer): writer.type =
-    writer.addSet[Method](methods, sep = ", ")
-}
+final case class Allow(methods: Set[Method])

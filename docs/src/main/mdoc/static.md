@@ -20,17 +20,16 @@ being served.
 
 ```scala mdoc
 import cats.effect._
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
-import org.http4s.syntax.kleisli._
 import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
-  val app: Resource[IO, Server[IO]] =
+  val app: Resource[IO, Server] =
     for {
       blocker <- Blocker[IO]
       server <- BlazeServerBuilder[IO](global)
@@ -111,7 +110,7 @@ For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
 
 ```scala mdoc:nest
-val routes = resourceService[IO](ResourceService.Config("/assets", blocker))
+val routes = resourceServiceBuilder[IO]("/assets", blocker).toRoutes
 ```
 
 For custom behaviour, `StaticFile.fromResource` can be used. In this example,
@@ -142,7 +141,7 @@ Then, mount the `WebjarService` like any other service:
 
 ```scala mdoc:silent
 import org.http4s.server.staticcontent.webjarService
-import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
+import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 ```
 
 ```scala mdoc
@@ -150,12 +149,7 @@ import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpRoutes[IO] = webjarService(
-  Config(
-    filter = isJsAsset,
-    blocker = blocker
-  )
-)
+val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker).withWebjarAssetFilter(isJsAsset).toRoutes
 ```
 
 ```scala mdoc:silent

@@ -6,7 +6,7 @@ title: JSON handling
 
 ## Add the JSON support module(s)
 
-http4s-core does not include JSON support, but integration with three
+http4s-core does not include JSON support, but integration with some
 popular Scala JSON libraries are supported as modules.
 
 ### Circe
@@ -27,33 +27,6 @@ libraryDependencies ++= Seq(
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ```
-
-### Argonaut
-
-Circe is a fork of argonaut, another popular JSON library in the Scala
-community.  The functionality is similar:
-
-```scala
-libraryDependencies += Seq(
-  "org.http4s" %% "http4s-argonaut" % http4sVersion,
-  // Optional for auto-derivation of JSON codecs
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "{{< version "argonaut-shapeless_6.2" >}}"
-)
-```
-
-### Json4s
-
-Json4s is less functionally pure than Circe or Argonaut, but older and
-integrated with many Scala libraries.  It comes with two backends.
-You should pick one of these dependencies:
-
-```scala
-libraryDependencies += "org.http4s" %% "http4s-json4s-native" % http4sVersion
-libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % http4sVersion
-```
-
-There is no extra codec derivation library for json4s, as it generally
-bases its codecs on runtime reflection.
 
 ## Sending raw JSON
 
@@ -104,7 +77,7 @@ import org.http4s.client.dsl.io._
 ```
 
 ```scala mdoc
-POST(json"""{"name": "Alice"}""", uri"/hello").unsafeRunSync()
+POST(json"""{"name": "Alice"}""", uri"/hello")
 ```
 
 ## Encoding case classes as JSON
@@ -161,7 +134,7 @@ and responses for our case classes:
 
 ```scala mdoc
 Ok(Hello("Alice").asJson).unsafeRunSync()
-POST(User("Bob").asJson, uri"/hello").unsafeRunSync()
+POST(User("Bob").asJson, uri"/hello")
 ```
 
 If within some route we serve json only, we can use:
@@ -187,7 +160,7 @@ response body to JSON using the [`as` syntax]:
 
 ```scala mdoc
 Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync()
-POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[Json]).unsafeRunSync()
+POST("""{"name":"Bob"}""", uri"/hello").as[Json].unsafeRunSync()
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -205,7 +178,7 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync()
 
-POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[User]).unsafeRunSync()
+POST("""{"name":"Bob"}""", uri"/hello").as[User].unsafeRunSync()
 ```
 
 If we are always decoding from JSON to a typed model, we can use
@@ -244,7 +217,7 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
-import org.http4s.server.blaze._
+import org.http4s.blaze.server._
 import org.http4s.implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -278,7 +251,7 @@ Now let's make a client for the service above:
 
 ```scala mdoc:silent
 import org.http4s.client.dsl.io._
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import cats.effect.IO
 import io.circe.generic.auto._
 import fs2.Stream
@@ -309,7 +282,5 @@ Finally, shut down our example server.
 fiber.cancel.unsafeRunSync()
 ```
 
-[argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
-[jsonExtract]: https://github.com/http4s/http4s/blob/7026c019cb552513896ed2c84426fa6719522a31/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L38
 [`as` syntax]: ../api/org/http4s/MessageOps.html#as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]

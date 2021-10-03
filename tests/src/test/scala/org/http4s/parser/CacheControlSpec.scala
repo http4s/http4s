@@ -18,12 +18,11 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Cache-Control`
-import org.http4s.CacheDirective.{`max-age`, `max-stale`, `min-fresh`, `private`, `s-maxage`, _}
-import org.http4s.syntax.string._
+import org.http4s.CacheDirective._
+import org.typelevel.ci._
 import scala.concurrent.duration._
 
 class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Control`] {
-  def hparse(value: String): ParseResult[`Cache-Control`] = HttpHeaderParser.CACHE_CONTROL(value)
 
   // Default values
   val valueless = List(
@@ -42,7 +41,7 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
     `stale-while-revalidate`(4.seconds))
 
   val strdirectives =
-    List(`private`("Foo".ci :: Nil), `private`(Nil), `no-cache`("Foo".ci :: Nil), `no-cache`())
+    List(`private`(ci"Foo" :: Nil), `private`(Nil), `no-cache`(ci"Foo" :: Nil), `no-cache`())
 
   val others = List(
     `max-stale`(None),
@@ -71,7 +70,7 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
 
     all.foreach { d =>
       val h = `Cache-Control`(d)
-      assertEquals(parse(h.value), h)
+      assertEquals(roundTrip(h), h)
     }
   }
 

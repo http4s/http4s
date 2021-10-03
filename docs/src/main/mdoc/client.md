@@ -31,7 +31,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.server.blaze._
+import org.http4s.blaze.server._
 ```
 
 Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
@@ -71,7 +71,7 @@ A good default choice is the `BlazeClientBuilder`.  The
 `BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
 ```scala mdoc
-import org.http4s.client.blaze._
+import org.http4s.blaze.client._
 import org.http4s.client._
 import scala.concurrent.ExecutionContext.global
 ```
@@ -191,9 +191,9 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 You can also build up a URI incrementally, e.g.:
 
 ```scala mdoc:nest
-val baseUri = uri"http://foo.com"
-val withPath = baseUri.withPath("/bar/baz")
-val withQuery = withPath.withQueryParam("hello", "world")
+val baseUri: Uri = uri"http://foo.com"
+val withPath: Uri = baseUri.withPath(path"/bar/baz")
+val withQuery: Uri = withPath.withQueryParam("hello", "world")
 ```
 
 ## Middleware
@@ -316,10 +316,13 @@ httpClient.expect[String](request)
 ### Post a form, decoding the JSON response to a case class
 
 ```scala mdoc:nest
+import org.http4s.circe._
+import io.circe.generic.auto._
+
 case class AuthResponse(access_token: String)
 
-// See the JSON page for details on how to define this
-implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
+implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] =
+  jsonOf[IO, AuthResponse]
 
 val postRequest = POST(
   UrlForm(

@@ -17,20 +17,37 @@
 package org.http4s
 package headers
 
-import cats.data.NonEmptyList
-import cats.syntax.eq._
-import org.http4s.parser.HttpHeaderParser
+import org.typelevel.ci._
 
-object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[`Accept-Encoding`] =
-    HttpHeaderParser.ACCEPT_ENCODING(s)
+import cats.data.NonEmptyList
+import cats.parse.Parser
+import cats.syntax.eq._
+
+object `Accept-Encoding` {
+  def apply(head: ContentCoding, tail: ContentCoding*): `Accept-Encoding` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`Accept-Encoding`] =
+    ParseResult.fromParser(parser, "Invalid Accept-Encoding header")(s)
+
+  private[http4s] val parser: Parser[`Accept-Encoding`] = {
+    import org.http4s.internal.parsing.Rfc7230.headerRep1
+
+    headerRep1(ContentCoding.parser).map(xs => apply(xs))
+  }
+
+  implicit val headerInstance: Header[`Accept-Encoding`, Header.Recurring] =
+    Header.createRendered(
+      ci"Accept-Encoding",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Encoding`] =
+    (a, b) => `Accept-Encoding`(a.values.concatNel(b.values))
 }
 
-final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])
-    extends Header.RecurringRenderable {
-  def key: `Accept-Encoding`.type = `Accept-Encoding`
-  type Value = ContentCoding
-
+final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) {
   @deprecated("Has confusing semantics in the presence of splat. Do not use.", "0.16.1")
   def preferred: ContentCoding =
     values.tail.fold(values.head)((a, b) => if (a.qValue >= b.qValue) a else b)

@@ -8,7 +8,8 @@
  * See licenses/LICENSE_fs2-http
  */
 
-package org.http4s.ember.core
+package org.http4s
+package ember.core
 
 import cats._
 import cats.syntax.all._
@@ -16,7 +17,6 @@ import cats.effect.concurrent.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
-import org.http4s.Headers
 
 import scala.util.control.NonFatal
 
@@ -39,8 +39,7 @@ private[ember] object ChunkedEncoding {
       val nextChunk = if (head.nonEmpty) Pull.pure(Some(Chunk.bytes(head))) else Pull.eval(read)
       nextChunk.flatMap {
         case None =>
-          // TODO: Check if we ended at a correct state?
-          Pull.done
+          Pull.raiseError(EmberException.ReachedEndOfStream())
         case Some(h) =>
           val bv = h.toByteVector
           expect match {
@@ -97,8 +96,6 @@ private[ember] object ChunkedEncoding {
 
   final case class Trailers(headers: Headers, rest: Array[Byte])
 
-  private val emptyTrailingHeaders = Trailers(Headers.empty, Array.emptyByteArray)
-
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(buffer: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] =
@@ -107,17 +104,15 @@ private[ember] object ChunkedEncoding {
     } else if (buffer.length < 2) {
       read.flatMap {
         case None =>
-          // TODO: end of stream?
-          emptyTrailingHeaders.pure[F]
+          MonadThrow[F].raiseError(EmberException.ReachedEndOfStream())
         case Some(chunk) =>
           parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
       }
     } else {
-      Parser.MessageP.parseMessage(buffer, read, maxHeaderSize).flatMap { message =>
-        Parser.HeaderP.parseHeaders(message.bytes, 0).map { headerP =>
-          Trailers(headerP.headers, message.rest)
-        }
-      }
+      Parser.MessageP
+        .recurseFind(buffer, read, maxHeaderSize)(buffer =>
+          Parser.HeaderP.parseHeaders(buffer, 0, maxHeaderSize))(_.idx)
+        .map { case (headerP, rest) => Trailers(headerP.headers, rest) }
     }
 
   private val lastChunk: Chunk[Byte] =

@@ -16,11 +16,11 @@
 
 package org.http4s
 
-import org.http4s.syntax.all._
 import cats.syntax.show._
 import cats.kernel.laws.discipline.EqTests
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.laws.discipline.HttpCodecTests
+import org.http4s.syntax.all._
 
 class MediaTypeSuite extends Http4sSuite {
   checkAll("Eq[MediaType]", EqTests[MediaType].eqv)
@@ -59,43 +59,11 @@ class MediaTypeSuite extends Http4sSuite {
       """text/html; foo="\""""")
   }
 
-  test("MediaType should Do a round trip through the Accept header") {
-    val raw = Header(
-      "Accept",
-      """text/csv;charset=UTF-8;columnDelimiter=" "; rowDelimiter=";"; quoteChar='; escapeChar="\\"""")
-    assert(raw.parsed.isInstanceOf[headers.Accept])
-    assertEquals(Header("Accept", raw.parsed.value).parsed, raw.parsed)
-  }
-
-  test("MediaType should parse literals") {
-    val mediaType = MediaType.mediaType("application/json")
-    val mediaTypeSC = mediaType"application/json"
-
-    assertEquals(mediaType, MediaType.application.`json`)
-    assertEquals(mediaTypeSC, MediaType.application.`json`)
-  }
-
   test("MediaType should reject invalid literals") {
-    assertNoDiff(
-      compileErrors {
-        """MediaType.mediaType("not valid")"""
-      },
-      """error:
-        |Invalid input ' ', expected !Separator or '/' (line 1, column 4):
-        |not valid
-        |   ^
-        |MediaType.mediaType("not valid")
-        |                   ^""".stripMargin
-    )
-
-    assertNoDiff(
+    assert(
       compileErrors {
         """mediaType"not valid""""
-      },
-      """|error: invalid MediaType
-              |mediaType"not valid"
-              |^
-              |""".stripMargin
+      }.nonEmpty
     )
   }
 

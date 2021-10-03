@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s.headers
+package org.http4s
+package headers
 
 import cats.effect.IO
-import org.http4s.{Headers, Request, Uri}
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.syntax.header._
+import org.http4s.laws.discipline.arbitrary._
 
 class RefererSuite extends HeaderLaws {
-  checkAll("Referer", headerLaws(`Retry-After`))
+  checkAll("Referer", headerLaws[`Retry-After`])
 
   def getUri(uri: String): Uri =
     Uri.fromString(uri).fold(_ => sys.error(s"Failure on uri: $uri"), identity)
@@ -46,9 +47,9 @@ class RefererSuite extends HeaderLaws {
 
   test("should be extractable") {
     val referer = Referer(getUri("http://localhost:8080"))
-    val request = Request[IO](headers = Headers.of(referer))
+    val request = Request[IO](headers = Headers(referer))
 
-    val extracted = request.headers.get(Referer)
+    val extracted = request.headers.get[Referer]
     assertEquals(extracted, Some(referer))
   }
 }

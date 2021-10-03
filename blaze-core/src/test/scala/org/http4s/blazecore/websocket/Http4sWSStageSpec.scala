@@ -24,9 +24,10 @@ import cats.syntax.all._
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Http4sSuite
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.websocket.{WebSocket, WebSocketFrame}
+import org.http4s.websocket.{WebSocketFrame, WebSocketSeparatePipe}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
@@ -73,7 +74,7 @@ class Http4sWSStageSpec extends Http4sSuite {
         outQ <- Queue.unbounded[IO, WebSocketFrame]
         backendInQ <- Queue.unbounded[IO, WebSocketFrame]
         closeHook = new AtomicBoolean(false)
-        ws = WebSocket[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
+        ws = WebSocketSeparatePipe[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
         head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(wsHead)

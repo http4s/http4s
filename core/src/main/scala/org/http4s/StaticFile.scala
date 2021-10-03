@@ -17,18 +17,19 @@
 package org.http4s
 
 import cats.Semigroup
-import cats.data.OptionT
+import cats.data.{NonEmptyList, OptionT}
 import cats.effect.{Blocker, ContextShift, IO, Sync}
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io._
 import fs2.io.file.readRange
-import io.chrisdavenport.vault._
 import java.io._
 import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
+import org.http4s.syntax.header._
 import org.log4s.getLogger
+import org.typelevel.vault._
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -49,8 +50,10 @@ object StaticFile {
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
+    val acceptEncodingHeader: Option[`Accept-Encoding`] =
+      req.flatMap(_.headers.get[`Accept-Encoding`])
     val tryGzipped =
-      preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
+      preferGzipped && acceptEncodingHeader.exists { acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
           ContentCoding.`x-gzip`)
       }
@@ -64,11 +67,13 @@ object StaticFile {
 
     gzUrl
       .flatMap { url =>
-        // Guess content type from the name without ".gz"
-        val contentType = nameToContentType(normalizedName)
-        val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
-
-        fromURL(url, blocker, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
+        fromURL(url, blocker, req).map {
+          _.removeHeader[`Content-Type`]
+            .putHeaders(
+              `Content-Encoding`(ContentCoding.gzip),
+              nameToContentType(normalizedName) // Guess content type from the name without ".gz"
+            )
+        }
       }
       .orElse(getResource(normalizedName)
         .flatMap(fromURL(_, blocker, req)))
@@ -85,17 +90,18 @@ object StaticFile {
       else {
         val urlConn = url.openConnection
         val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
-        val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
+        val ifModifiedSince: Option[`If-Modified-Since`] =
+          req.flatMap(_.headers.get[`If-Modified-Since`])
         val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
         if (expired) {
-          val lastModHeader: List[Header] = lastmod.map(`Last-Modified`(_)).toList
-          val contentType = nameToContentType(url.getPath).toList
           val len = urlConn.getContentLengthLong
-          val lenHeader =
+          val headers = Headers(
+            lastmod.map(`Last-Modified`(_)),
+            nameToContentType(url.getPath),
             if (len >= 0) `Content-Length`.unsafeFromLong(len)
-            else `Transfer-Encoding`(TransferCoding.chunked)
-          val headers = Headers(lenHeader :: lastModHeader ::: contentType)
+            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
+          )
 
           blocker
             .delay(urlConn.getInputStream)
@@ -172,13 +178,16 @@ object StaticFile {
               if (f.length() < end) (Stream.empty.covary[F], 0L)
               else (fileToBody[F](f, start, end, blocker), end - start)
 
-            val contentType = nameToContentType(f.getName)
-            val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
-              `Content-Length`.fromLong(contentLength).toList :::
-              contentType.toList ::: List(etagCalc)
+            val hs =
+              Headers(
+                lastModified.map(`Last-Modified`(_)),
+                `Content-Length`.fromLong(contentLength).toOption,
+                nameToContentType(f.getName),
+                etagCalc
+              )
 
             val r = Response(
-              headers = Headers(hs),
+              headers = hs,
               body = body,
               attributes = Vault.empty.insert(staticFileKey, f)
             )
@@ -207,7 +216,7 @@ object StaticFile {
   private def etagMatch[F[_]](req: Option[Request[F]], etagCalc: ETag) =
     for {
       r <- req
-      etagHeader <- r.headers.get(`If-None-Match`)
+      etagHeader <- r.headers.get[`If-None-Match`]
       etagMatch = etagHeader.tags.exists(_.exists(_ == etagCalc.tag))
       _ = logger.trace(
         s"Matches `If-None-Match`: $etagMatch Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
@@ -216,7 +225,7 @@ object StaticFile {
   private def notModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
     for {
       r <- req
-      h <- r.headers.get(`If-Modified-Since`)
+      h <- r.headers.get[`If-Modified-Since`]
       lm <- lastModified
       notModified = h.date >= lm
       _ = logger.trace(

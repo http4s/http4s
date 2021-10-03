@@ -41,6 +41,8 @@ object util {
     case GET -> Root / "abnormal-termination" =>
       Ok("200 OK").map(
         _.withBodyStream(Stream.raiseError[IO](new RuntimeException("Abnormal termination"))))
+    case GET -> Root / "never" =>
+      IO.never
     case _ =>
       NotFound("404 Not Found")
   }
@@ -50,7 +52,8 @@ object util {
       name: String,
       prefix: String,
       method: String = "get",
-      classifier: String = ""): Double =
+      classifier: String = "",
+      cause: String = ""): Double =
     name match {
       case "active_requests" =>
         registry.getSampleValue(
@@ -60,7 +63,7 @@ object util {
       case "2xx_responses" =>
         registry
           .getSampleValue(
-            s"${prefix}_request_count",
+            s"${prefix}_request_count_total",
             Array("classifier", "method", "status"),
             Array(classifier, method, "2xx"))
       case "2xx_headers_duration" =>
@@ -76,7 +79,7 @@ object util {
       case "4xx_responses" =>
         registry
           .getSampleValue(
-            s"${prefix}_request_count",
+            s"${prefix}_request_count_total",
             Array("classifier", "method", "status"),
             Array(classifier, method, "4xx"))
       case "4xx_headers_duration" =>
@@ -92,7 +95,7 @@ object util {
       case "5xx_responses" =>
         registry
           .getSampleValue(
-            s"${prefix}_request_count",
+            s"${prefix}_request_count_total",
             Array("classifier", "method", "status"),
             Array(classifier, method, "5xx"))
       case "5xx_headers_duration" =>
@@ -108,18 +111,23 @@ object util {
       case "errors" =>
         registry.getSampleValue(
           s"${prefix}_abnormal_terminations_count",
-          Array("classifier", "termination_type"),
-          Array(classifier, "error"))
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "error", cause))
       case "timeouts" =>
         registry.getSampleValue(
           s"${prefix}_abnormal_terminations_count",
-          Array("classifier", "termination_type"),
-          Array(classifier, "timeout"))
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "timeout", cause))
       case "abnormal_terminations" =>
         registry.getSampleValue(
           s"${prefix}_abnormal_terminations_count",
-          Array("classifier", "termination_type"),
-          Array(classifier, "abnormal"))
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "abnormal", cause))
+      case "cancels" =>
+        registry.getSampleValue(
+          s"${prefix}_abnormal_terminations_count",
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "cancel", cause))
     }
 
   object FakeClock {

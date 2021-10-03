@@ -18,16 +18,15 @@ package org.http4s
 
 import cats._
 import cats.data._
-import cats.syntax.all._
 import cats.laws.discipline.{arbitrary => _, _}
-
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
-
-import org.http4s.internal.CollectionCompat.CollectionConverters._
-import org.scalacheck.{Arbitrary, Cogen, Gen}
-import org.scalacheck.Arbitrary.{arbInstant => _, arbLocalDate => _, arbZonedDateTime => _, _}
+import cats.syntax.all._
+import org.scalacheck.Arbitrary.{arbYear => _, _}
 import org.scalacheck.Prop._
+import org.scalacheck.{Arbitrary, Cogen, Gen}
+
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, SignStyle}
+import java.time._
+import java.time.temporal.ChronoField.{MONTH_OF_YEAR, YEAR}
 
 class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])
@@ -39,7 +38,36 @@ class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   checkAll("String QueryParamCodec", QueryParamCodecLaws[String])
   checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
   checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
-  checkAll("ZonedDateTime QueryParamCodec", QueryParamCodecLaws[ZonedDateTime])
+  checkAll("LocalTime QueryParamCodec", QueryParamCodecLaws[LocalTime])
+  checkAll("LocalDateTime QueryParamCodec", QueryParamCodecLaws[LocalDateTime])
+  checkAll("DayOfWeek QueryParamCodec", QueryParamCodecLaws[DayOfWeek])
+  checkAll("Month QueryParamCodec", QueryParamCodecLaws[Month])
+  checkAll("MonthDay QueryParamCodec", QueryParamCodecLaws[MonthDay])
+  checkAll("Year QueryParamCodec", QueryParamCodecLaws[Year])
+  checkAll("YearMonth QueryParamCodec", QueryParamCodecLaws[YearMonth])
+  checkAll("ZoneOffset QueryParamCodec", QueryParamCodecLaws[ZoneOffset])
+  checkAll("ZoneId QueryParamCodec", QueryParamCodecLaws[ZoneId])
+  checkAll("Period QueryParamCodec", QueryParamCodecLaws[Period])
+
+  if (!sys.props.get("java.specification.version").contains("1.8")) {
+    // skipping this property due to bug in JDK8
+    // where round trip conversion fails for region-based zone id & daylight saving time
+    // see https://bugs.openjdk.java.net/browse/JDK-8183553 and https://bugs.openjdk.java.net/browse/JDK-8066982
+    checkAll("ZonedDateTime QueryParamCodec", QueryParamCodecLaws[ZonedDateTime])
+    checkAll("OffsetTime QueryParamCodec", QueryParamCodecLaws[OffsetTime])
+    checkAll("OffsetDateTime QueryParamCodec", QueryParamCodecLaws[OffsetDateTime])
+
+    test("QueryParamCodec[ZonedDateTime] handles DateTimeException") {
+      implicit val zonedDateTimeQueryParamCodec: QueryParamCodec[ZonedDateTime] =
+        QueryParamCodec.zonedDateTimeQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
+      forAll { (instant: Instant) =>
+        QueryParamDecoder[ZonedDateTime].decode(QueryParameterValue(instant.toString)) match {
+          case Validated.Invalid(NonEmptyList(ParseFailure(_, _), _)) => ()
+          case Validated.Valid(zdt) => fail(s"Parsing incorrectly succeeded with $zdt")
+        }
+      }
+    }
+  }
 
   // Law checks for instances.
   checkAll(
@@ -78,11 +106,39 @@ trait QueryParamCodecInstances {
       as.forall(a => x.encode(a) == y.encode(a))
     }
 
-  implicit val eqInstant: Eq[Instant] = Eq.fromUniversalEquals[Instant]
+  // TODO: Use scalacheck instance once this fix gets released https://github.com/typelevel/scalacheck/commit/2ae1be5c8e5ee1c14abea607d631e334a56796de
+  implicit final lazy val arbYear: Arbitrary[Year] =
+    Arbitrary(Gen.chooseNum(Year.MIN_VALUE + 1, Year.MAX_VALUE).map(Year.of))
 
-  implicit val eqLocalDate: Eq[LocalDate] = Eq.fromUniversalEquals[LocalDate]
+  implicit val eqInstant: Eq[Instant] = Eq.fromUniversalEquals
 
-  implicit val eqZonedDateTime: Eq[ZonedDateTime] = Eq.fromUniversalEquals[ZonedDateTime]
+  implicit val eqLocalDate: Eq[LocalDate] = Eq.fromUniversalEquals
+
+  implicit val eqLocalTime: Eq[LocalTime] = Eq.fromUniversalEquals
+
+  implicit val eqLocalDateTime: Eq[LocalDateTime] = Eq.fromUniversalEquals
+
+  implicit val eqDayOfWeek: Eq[DayOfWeek] = Eq.fromUniversalEquals
+
+  implicit val eqMonth: Eq[Month] = Eq.fromUniversalEquals
+
+  implicit val eqMonthDay: Eq[MonthDay] = Eq.fromUniversalEquals
+
+  implicit val eqYear: Eq[Year] = Eq.fromUniversalEquals
+
+  implicit val eqYearWeek: Eq[YearMonth] = Eq.fromUniversalEquals
+
+  implicit val eqZoneOffset: Eq[ZoneOffset] = Eq.fromUniversalEquals
+
+  implicit val eqZonedDateTime: Eq[ZonedDateTime] = Eq.fromUniversalEquals
+
+  implicit val eqOffsetTime: Eq[OffsetTime] = Eq.fromUniversalEquals
+
+  implicit val eqOffsetDateTime: Eq[OffsetDateTime] = Eq.fromUniversalEquals
+
+  implicit val eqZoneId: Eq[ZoneId] = Eq.fromUniversalEquals
+
+  implicit val eqPeriod: Eq[Period] = Eq.fromUniversalEquals
 
   implicit def ArbQueryParamDecoder[A: Arbitrary]: Arbitrary[QueryParamDecoder[A]] =
     Arbitrary(arbitrary[String => A].map(QueryParamDecoder[String].map))
@@ -97,41 +153,47 @@ trait QueryParamCodecInstances {
     QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
   implicit val localDateQueryParamCodec: QueryParamCodec[LocalDate] =
-    QueryParamCodec.localDateQueryParamCodec(DateTimeFormatter.ISO_LOCAL_DATE)
+    QueryParamCodec.localDate(DateTimeFormatter.ISO_LOCAL_DATE)
+
+  implicit val localTimeQueryParamCodec: QueryParamCodec[LocalTime] =
+    QueryParamCodec.localTime(DateTimeFormatter.ISO_LOCAL_TIME)
+
+  implicit val localDateTimeQueryParamCodec: QueryParamCodec[LocalDateTime] =
+    QueryParamCodec.localDateTime(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+  implicit val dayOfWeekQueryParamCodec: QueryParamCodec[DayOfWeek] =
+    QueryParamCodec.dayOfWeek(DateTimeFormatter.ofPattern("E"))
+
+  implicit val monthQueryParamCodec: QueryParamCodec[Month] =
+    QueryParamCodec.month(DateTimeFormatter.ofPattern("MM"))
+
+  implicit val monthDayQueryParamCodec: QueryParamCodec[MonthDay] =
+    QueryParamCodec.monthDay(DateTimeFormatter.ofPattern("--MM-dd"))
+
+  implicit val yearQueryParamCodec: QueryParamCodec[Year] = QueryParamCodec.year(
+    new DateTimeFormatterBuilder().appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD).toFormatter)
+
+  implicit val yearMonthQueryParamCodec: QueryParamCodec[YearMonth] = QueryParamCodec.yearMonth(
+    new DateTimeFormatterBuilder()
+      .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
+      .appendLiteral('-')
+      .appendValue(MONTH_OF_YEAR, 2)
+      .toFormatter)
+
+  implicit val zoneOffsetQueryParamCodec: QueryParamCodec[ZoneOffset] =
+    QueryParamCodec.zoneOffset(DateTimeFormatter.ofPattern("XXXXX"))
 
   implicit val zonedDateTimeQueryParamCodec: QueryParamCodec[ZonedDateTime] =
-    QueryParamCodec.zonedDateTimeQueryParamCodec(DateTimeFormatter.ISO_ZONED_DATE_TIME)
+    QueryParamCodec.zonedDateTime(DateTimeFormatter.ISO_ZONED_DATE_TIME)
 
-  implicit val ArbitraryInstant: Arbitrary[Instant] =
-    Arbitrary(
-      Gen
-        .choose[Long](Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
-        .map(Instant.ofEpochSecond))
+  implicit val offsetTimeQueryParamCodec: QueryParamCodec[OffsetTime] =
+    QueryParamCodec.offsetTime(DateTimeFormatter.ISO_OFFSET_TIME)
 
-  implicit val ArbitraryLocalDate: Arbitrary[LocalDate] =
-    Arbitrary(
-      Gen
-        .choose[Long](LocalDate.MIN.toEpochDay, LocalDate.MAX.toEpochDay)
-        .map(LocalDate.ofEpochDay))
+  implicit val offsetDateTimeQueryParamCodec: QueryParamCodec[OffsetDateTime] =
+    QueryParamCodec.offsetDateTime(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
-  implicit val ArbitraryZonedDateTime: Arbitrary[ZonedDateTime] = {
-    val zoneIds = {
-      val zoneIdIter = ZoneId.getAvailableZoneIds.asScala.iterator
-      // Workaround for a bug in Java 1.8:
-      //   - https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8138664
-      // See also the original issue:
-      //   - https://github.com/http4s/http4s/issues/3664
-      if (sys.props.get("java.specification.version").contains("1.8"))
-        zoneIdIter.filterNot(_ == "GMT0")
-      else
-        zoneIdIter
-    }.toSeq
+  implicit val zoneIdQueryParamCodec: QueryParamCodec[ZoneId] = QueryParamCodec.zoneId
 
-    Arbitrary(
-      for {
-        instant <- Arbitrary.arbitrary[Instant] // re-use `Gen` from `Arbitrary[Instant]` here
-        zoneId <- Gen.oneOf(zoneIds)
-      } yield ZonedDateTime.ofInstant(instant, ZoneId.of(zoneId))
-    )
-  }
+  implicit val periodQueryParamCodec: QueryParamCodec[Period] = QueryParamCodec.period
+
 }

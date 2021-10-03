@@ -20,13 +20,13 @@ package middleware
 
 import cats.effect.{Concurrent, Resource, Timer}
 import cats.syntax.all._
+import org.http4s.Status._
+import org.http4s.headers.{`Idempotency-Key`, `Retry-After`}
+import org.log4s.getLogger
+import org.typelevel.ci.CIString
+
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import org.http4s.Status._
-import org.http4s.headers.`Retry-After`
-import org.http4s.util.CaseInsensitiveString
-import org.http4s.syntax.string._
-import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
@@ -35,7 +35,7 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
@@ -45,7 +45,7 @@ object Retry {
               logger.info(
                 s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
               dispose >> F.pure(
-                nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
+                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`]))
             case None =>
               F.pure(Resource.make(F.pure(response))(_ => dispose))
           }
@@ -65,8 +65,8 @@ object Retry {
           }
       })
 
-    def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
-      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+    def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
+      val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
       val uri = request.uri.renderString
       val method = request.method
       s"method=$method uri=$uri headers=$headers"
@@ -126,8 +126,6 @@ object RetryPolicy {
     GatewayTimeout
   )
 
-  val IdempotentHeader: CaseInsensitiveString = "Idempotency-Key".ci
-
   /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)
     * and the result is either a throwable or has one of the `RetriableStatuses`.
     *
@@ -136,7 +134,7 @@ object RetryPolicy {
     * an idempotent request.
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    (req.method.isIdempotent || req.headers.exists(_.name == IdempotentHeader)) &&
+    (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
       isErrorOrRetriableStatus(result)
 
   @deprecated("Use defaultRetriable instead", "0.19.0")

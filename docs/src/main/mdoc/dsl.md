@@ -151,7 +151,7 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand:
 
 ```scala mdoc
-Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync().headers
+Ok("Ok response.", "X-Auth-Token" -> "value").unsafeRunSync().headers
 ```
 
 ### Cookies
@@ -362,7 +362,7 @@ say `"Hello, Alice and Bob!"`
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.toList.mkString(" and ")}!""")
+  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.segments.mkString(" and ")}!""")
 }
 ```
 
@@ -415,7 +415,43 @@ val dailyWeatherService = HttpRoutes.of[IO] {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(uri"/weather/temperature/2016-11-05").flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync())
+val req = GET(uri"/weather/temperature/2016-11-05")
+dailyWeatherService.orNotFound(req).unsafeRunSync()
+```
+
+### Handling matrix path parameters
+
+[Matrix path parameters](https://www.w3.org/DesignIssues/MatrixURIs.html) can be extracted using `MatrixVar`.
+
+```scala mdoc:silent
+import org.http4s.dsl.impl.MatrixVar
+```
+
+In following example, we extract the `first` and `last` matrix path parameters. 
+By default, matrix path parameters are extracted as `String`s.
+
+```scala mdoc
+object FullNameExtractor extends MatrixVar("name", List("first", "last"))
+
+val greetingService = HttpRoutes.of[IO] {
+  case GET -> Root / "hello" / FullNameExtractor(first, last) / "greeting" =>
+    Ok(s"Hello, $first $last.")
+}
+
+greetingService.orNotFound(GET(uri"/hello/name;first=john;last=doe/greeting")).unsafeRunSync()
+```
+
+Like standard path parameters, matrix path parameters can be extracted as numeric types using `IntVar` or `LongVar`.
+
+```scala mdoc
+object FullNameAndIDExtractor extends MatrixVar("name", List("first", "last", "id"))
+
+val greetingWithIdService = HttpRoutes.of[IO] {
+  case GET -> Root / "hello" / FullNameAndIDExtractor(first, last, IntVar(id)) / "greeting" =>
+    Ok(s"Hello, $first $last. Your User ID is $id.")
+}
+
+greetingWithIdService.orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting")).unsafeRunSync()
 ```
 
 ### Handling query parameters

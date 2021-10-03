@@ -21,14 +21,14 @@ import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.http4s.util.{CaseInsensitiveString => CIString}
+import org.typelevel.ci._
 import java.util.UUID
 
 class RequestIdSuite extends Http4sSuite {
-  private def testService(headerKey: CIString = CIString("X-Request-ID")) =
+  private def testService(headerKey: CIString = ci"X-Request-ID") =
     HttpRoutes.of[IO] {
       case req @ GET -> Root / "request" =>
-        Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.value)}")
+        Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.head.value)}")
       case req @ GET -> Root / "attribute" =>
         Ok(
           show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}")
@@ -37,14 +37,12 @@ class RequestIdSuite extends Http4sSuite {
   private def requestIdFromBody(resp: Response[IO]) =
     resp.as[String].map(_.stripPrefix("request-id: "))
 
-  private def requestIdFromHeaders(
-      resp: Response[IO],
-      headerKey: CIString = CIString("X-Request-ID")) =
-    resp.headers.get(headerKey).fold("None")(_.value)
+  private def requestIdFromHeaders(resp: Response[IO], headerKey: CIString = ci"X-Request-ID") =
+    resp.headers.get(headerKey).fold("None")(_.head.value)
 
   test("propagate X-Request-ID header from request to response") {
     val req =
-      Request[IO](uri = uri"/request", headers = Headers.of(Header("X-Request-ID", "123")))
+      Request[IO](uri = uri"/request", headers = Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(testService())
       .orNotFound(req)
@@ -80,12 +78,12 @@ class RequestIdSuite extends Http4sSuite {
   test("propagate custom request id header from request to response") {
     val req = Request[IO](
       uri = uri"/request",
-      headers = Headers.of(Header("X-Request-ID", "123"), Header("X-Correlation-ID", "abc")))
+      headers = Headers("X-Request-ID" -> "123", "X-Correlation-ID" -> "abc"))
     RequestId
-      .httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID")))
+      .httpRoutes(ci"X-Correlation-ID")(testService(ci"X-Correlation-ID"))
       .orNotFound(req)
       .flatMap { resp =>
-        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, CIString("X-Correlation-ID")))
+        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, ci"X-Correlation-ID"))
       }
       .map { case (reqReqId, respReqId) =>
         reqReqId === "abc" && respReqId === "abc"
@@ -95,12 +93,12 @@ class RequestIdSuite extends Http4sSuite {
 
   test("generate custom request id header when unset") {
     val req =
-      Request[IO](uri = uri"/request", headers = Headers.of(Header("X-Request-ID", "123")))
+      Request[IO](uri = uri"/request", headers = Headers("X-Request-ID" -> "123"))
     RequestId
-      .httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID")))
+      .httpRoutes(ci"X-Correlation-ID")(testService(ci"X-Correlation-ID"))
       .orNotFound(req)
       .flatMap { resp =>
-        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, CIString("X-Correlation-ID")))
+        requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, ci"X-Correlation-ID"))
       }
       .map { case (reqReqId, respReqId) =>
         reqReqId === respReqId && Either.catchNonFatal(UUID.fromString(respReqId)).isRight
@@ -125,7 +123,7 @@ class RequestIdSuite extends Http4sSuite {
 
   test("include requestId attribute with request and response") {
     val req =
-      Request[IO](uri = uri"/attribute", headers = Headers.of(Header("X-Request-ID", "123")))
+      Request[IO](uri = uri"/attribute", headers = Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(testService())
       .orNotFound(req)

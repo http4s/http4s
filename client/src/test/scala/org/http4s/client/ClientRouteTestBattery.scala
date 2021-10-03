@@ -21,11 +21,14 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.io._
+import java.util.Locale
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.multipart.{Multipart, Part}
+import org.typelevel.ci._
 import scala.concurrent.duration._
 import java.util.Arrays
 
@@ -37,10 +40,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   def testServlet =
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-        GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(r) =>
-            renderResponse(srv, r.unsafeRunSync()).unsafeRunSync() // We are outside the IO world
-          case None => srv.sendError(404)
+        req.getPathInfo match {
+          case "/request-splitting" =>
+            Option(req.getHeader("Evil")) match {
+              case None => srv.setStatus(200)
+              case Some(_) => srv.sendError(500)
+            }
+          case _ =>
+            GetRoutes.getPaths.get(req.getRequestURI) match {
+              case Some(r) =>
+                renderResponse(srv, r.unsafeRunSync())
+                  .unsafeRunSync() // We are outside the IO world
+              case None => srv.sendError(404)
+            }
         }
 
       override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
@@ -90,7 +102,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     body.assertEquals("This is normal.")
   }
 
-  test(s"$name POST a chunked body") {
+  test(s"$name POST a chunked body".flaky) {
     val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val req = POST(Stream("This is chunked.").covary[IO], uri)
@@ -102,7 +114,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
-    val req = POST(multipart, uri).map(_.withHeaders(multipart.headers))
+    val req = POST(multipart, uri).withHeaders(multipart.headers)
     val body = client().expect[String](req)
     body.map(_.contains("This is text.")).assert
   }
@@ -120,14 +132,62 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     }
   }
 
+  test("Mitigates request splitting attack in URI path") {
+    val address = jetty().addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val req = Request[IO](
+      uri = Uri(
+        authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
+        path = Uri.Path.Root / Uri.Path.Segment.encoded(
+          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")
+      ))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in URI RegName") {
+    val address = jetty().addresses.head
+    val name = address.getHostName
+    val port = address.getPort
+    val req = Request[IO](uri = Uri(
+      authority =
+        Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
+      path = path"/request-splitting"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field name") {
+    val address = jetty().addresses.head
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
+  test("Mitigates request splitting attack in field value") {
+    val address = jetty().addresses.head
+    val req = Request[IO](
+      uri =
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+      .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
+    client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
+  }
+
   private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
-    val hs = rec.headers.toList
+    // This isn't a generically safe normalization for all header, but
+    // it's close enough for our purposes
+    def normalizeHeaderValue(h: Header.Raw) =
+      Header.Raw(h.name, h.value.replace("; ", ";").toLowerCase(Locale.ROOT))
+
     for {
       _ <- IO(rec.status).assertEquals(expected.status)
       body <- rec.body.compile.to(Array)
       expBody <- expected.body.compile.to(Array)
       _ <- IO(body).map(Arrays.equals(_, expBody)).assert
-      _ <- IO(expected.headers.forall(h => hs.exists(_ == h))).assert
+      headers = rec.headers.headers.map(normalizeHeaderValue)
+      expectedHeaders = expected.headers.headers.map(normalizeHeaderValue)
+      _ <- IO(expectedHeaders.diff(headers)).assertEquals(Nil)
       _ <- IO(rec.httpVersion).assertEquals(expected.httpVersion)
     } yield true
   }

@@ -22,10 +22,14 @@ import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s._
+import org.http4s.blaze.client.BlazeClientBase
+
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 import scala.util.Random
 
 class BlazeClient213Suite extends BlazeClientBase {
+  override def munitTimeout: Duration = new FiniteDuration(50, TimeUnit.SECONDS)
 
   test("reset request timeout".flaky) {
     val addresses = jettyServer().addresses
@@ -36,7 +40,7 @@ class BlazeClient213Suite extends BlazeClientBase {
     Ref[IO]
       .of(0L)
       .flatMap { _ =>
-        mkClient(1, requestTimeout = 2.second).use { client =>
+        builder(1, requestTimeout = 2.second).resource.use { client =>
           val submit =
             client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
           submit *> munitTimer.sleep(3.seconds) *> submit
@@ -53,7 +57,7 @@ class BlazeClient213Suite extends BlazeClientBase {
       Uri.fromString(s"http://$name:$port/simple").yolo
     }
 
-    mkClient(3).use { client =>
+    builder(3).resource.use { client =>
       (1 to Runtime.getRuntime.availableProcessors * 5).toList
         .parTraverse { _ =>
           val h = hosts(Random.nextInt(hosts.length))
@@ -65,7 +69,7 @@ class BlazeClient213Suite extends BlazeClientBase {
 
   test("behave and not deadlock on failures with parTraverse") {
     val addresses = jettyServer().addresses
-    mkClient(3).use { client =>
+    builder(3).resource.use { client =>
       val failedHosts = addresses.map { address =>
         val name = address.getHostName
         val port = address.getPort
@@ -100,9 +104,9 @@ class BlazeClient213Suite extends BlazeClientBase {
     }.assert
   }
 
-  test("Blaze Http1Client should behave and not deadlock on failures with parSequence") {
+  test("Blaze Http1Client should behave and not deadlock on failures with parSequence".flaky) {
     val addresses = jettyServer().addresses
-    mkClient(3).use { client =>
+    builder(3).resource.use { client =>
       val failedHosts = addresses.map { address =>
         val name = address.getHostName
         val port = address.getPort
@@ -138,7 +142,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   test("call a second host after reusing connections on a first") {
     val addresses = jettyServer().addresses
     // https://github.com/http4s/http4s/pull/2546
-    mkClient(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5)
+    builder(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5).resource
       .use { client =>
         val uris = addresses.take(2).map { address =>
           val name = address.getHostName

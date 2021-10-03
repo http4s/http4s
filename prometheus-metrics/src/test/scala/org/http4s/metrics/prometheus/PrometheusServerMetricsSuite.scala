@@ -164,7 +164,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
       routes.run(req).attempt.map { r =>
         assert(r.isLeft)
 
-        assertEquals(count(registry, "errors", "server"), 1.0)
+        assertEquals(count(registry, "errors", "server", cause = "java.io.IOException"), 1.0)
         assertEquals(count(registry, "active_requests", "server"), 0.0)
         assertEquals(count(registry, "5xx_headers_duration", "server"), 0.05)
         assertEquals(count(registry, "5xx_total_duration", "server"), 0.05)
@@ -181,7 +181,13 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
           assertEquals(r.status, Status.Ok)
           assert(b.isLeft)
 
-          assertEquals(count(registry, "abnormal_terminations", "server"), 1.0)
+          assertEquals(
+            count(
+              registry,
+              "abnormal_terminations",
+              "server",
+              cause = "java.lang.RuntimeException"),
+            1.0)
           assertEquals(count(registry, "active_requests", "server"), 0.0)
           assertEquals(count(registry, "2xx_headers_duration", "server"), 0.05)
           assertEquals(count(registry, "2xx_total_duration", "server"), 0.1)

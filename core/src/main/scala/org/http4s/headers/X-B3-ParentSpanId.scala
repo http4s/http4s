@@ -17,19 +17,36 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.Applicative
+import cats.parse.{Parser0, Rfc5234}
+import org.http4s.parser.ZipkinHeader
+import org.http4s.util.{Renderable, Writer}
+import org.http4s.Header
+import org.typelevel.ci._
 
-object `X-B3-ParentSpanId`
-    extends HeaderKey.Internal[`X-B3-ParentSpanId`]
-    with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[`X-B3-ParentSpanId`] =
-    HttpHeaderParser.X_B3_PARENTSPANID(s)
+object `X-B3-ParentSpanId` {
+
+  def parse(s: String): ParseResult[`X-B3-ParentSpanId`] =
+    ParseResult.fromParser(parser, "Invalid X-B3-ParentSpanId header")(s)
+
+  private[http4s] val parser: Parser0[`X-B3-ParentSpanId`] =
+    Applicative[Parser0]
+      .replicateA(16, Rfc5234.hexdig)
+      .string
+      .map(ZipkinHeader.idStringToLong)
+      .map(`X-B3-ParentSpanId`(_))
+
+  implicit val headerInstance: Header[`X-B3-ParentSpanId`, Header.Single] =
+    Header.createRendered(
+      ci"X-B3-ParentSpanId",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            xB3RenderValueImpl(writer, h.id)
+        },
+      parse
+    )
+
 }
 
-final case class `X-B3-ParentSpanId`(id: Long) extends Header.Parsed {
-  override def key: `X-B3-ParentSpanId`.type = `X-B3-ParentSpanId`
-
-  override def renderValue(writer: Writer): writer.type =
-    xB3RenderValueImpl(writer, id)
-}
+final case class `X-B3-ParentSpanId`(id: Long)

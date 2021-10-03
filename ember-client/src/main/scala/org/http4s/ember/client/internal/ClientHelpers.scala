@@ -24,26 +24,29 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.effect.concurrent._
 import cats.syntax.all._
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import org.http4s._
-import org.http4s.implicits._
 import org.http4s.client.RequestKey
+import org.http4s.client.middleware._
+import org.http4s.ember.core.EmberException
+import org.typelevel.ci._
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
-import _root_.io.chrisdavenport.keypool._
+import org.typelevel.keypool._
 import javax.net.ssl.SNIHostName
-import org.http4s.headers.{Connection, Date, `User-Agent`}
-import _root_.org.http4s.ember.core.Util.durationToFinite
+import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
+import _root_.org.http4s.ember.core.Util._
+import java.nio.channels.ClosedChannelException
+import java.io.IOException
 
 private[client] object ClientHelpers {
 
-  def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
+  def requestToSocketWithKey[F[_]: Concurrent: ContextShift](
       request: Request[F],
       tlsContextOpt: Option[TLSContext],
-      enableEndpointValiation: Boolean,
+      enableEndpointValidation: Boolean,
       sg: SocketGroup,
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] = {
@@ -51,17 +54,16 @@ private[client] object ClientHelpers {
     requestKeyToSocketWithKey[F](
       requestKey,
       tlsContextOpt,
-      enableEndpointValiation,
+      enableEndpointValidation,
       sg,
       additionalSocketOptions
     )
   }
 
-  @nowarn("cat=unused")
-  def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
+  def requestKeyToSocketWithKey[F[_]: Concurrent: ContextShift](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext],
-      enableEndpointValiation: Boolean,
+      enableEndpointValidation: Boolean,
       sg: SocketGroup,
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] =
@@ -81,7 +83,7 @@ private[client] object ClientHelpers {
                 TLSParameters(
                   serverNames = Some(List(new SNIHostName(address.getHostName))),
                   endpointIdentificationAlgorithm =
-                    if (enableEndpointValiation) Some("HTTPS") else None)
+                    if (enableEndpointValidation) Some("HTTPS") else None)
               )
               .widen[Socket[F]]
           }
@@ -89,8 +91,7 @@ private[client] object ClientHelpers {
       }
     } yield RequestKeySocket(socket, requestKey)
 
-  @nowarn("cat=unused")
-  def request[F[_]: Concurrent: ContextShift: Timer](
+  def request[F[_]: Concurrent: Timer](
       request: Request[F],
       connection: EmberConnection[F],
       chunkSize: Int,
@@ -122,28 +123,37 @@ private[client] object ClientHelpers {
           finiteDuration.fold(parse)(duration =>
             parse.timeoutTo(
               duration,
-              ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
-                s"Timed Out on EmberClient Header Receive Timeout: $duration"))))
+              Concurrent[F].defer(
+                ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
+                  s"Timed Out on EmberClient Header Receive Timeout: $duration")))
+            ))
         }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
       res <- writeRead(processedReq)
     } yield res
+  }.adaptError { case e: EmberException.EmptyStream =>
+    new ClosedChannelException() {
+      initCause(e)
+
+      override def getMessage(): String =
+        "Remote Disconnect: Received zero bytes after sending request"
+    }
   }
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
       req: Request[F],
       userAgent: Option[`User-Agent`]): F[Request[F]] = {
     val connection = req.headers
-      .get(Connection)
-      .fold(Connection(NonEmptyList.of("keep-alive".ci)))(identity)
-    val userAgentHeader: Option[`User-Agent`] = req.headers.get(`User-Agent`).orElse(userAgent)
+      .get[Connection]
+      .fold(Connection(NonEmptyList.of(ci"keep-alive")))(identity)
+    val userAgentHeader: Option[`User-Agent`] = req.headers.get[`User-Agent`].orElse(userAgent)
     for {
-      date <- req.headers.get(Date).fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
+      date <- req.headers.get[Date].fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
     } yield req
       .putHeaders(date, connection)
-      .putHeaders(userAgentHeader.toSeq: _*)
+      .putHeaders(userAgentHeader)
   }
 
   private[ember] def postProcessResponse[F[_]](
@@ -154,8 +164,8 @@ private[client] object ClientHelpers {
       canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
-        val requestClose = req.headers.get(Connection).exists(_.hasClose)
-        val responseClose = resp.headers.get(Connection).exists(_.hasClose)
+        val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
+        val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
         else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
@@ -191,4 +201,28 @@ private[client] object ClientHelpers {
               new java.net.SocketException("Fresh connection from pool was not open")))
         )
     }
+
+  private[ember] object RetryLogic {
+    private val retryNow = 0.seconds.some
+    def retryUntilFresh[F[_]]: RetryPolicy[F] = { (req, result, retries) =>
+      if (emberDeadFromPoolPolicy(req, result) && retries <= 2) retryNow
+      else None
+    }
+
+    def emberDeadFromPoolPolicy[F[_]](
+        req: Request[F],
+        result: Either[Throwable, Response[F]]): Boolean =
+      (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
+        isRetryableError(result)
+
+    def isRetryableError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+      result match {
+        case Right(_) => false
+        case Left(_: ClosedChannelException) => true
+        case Left(ex: IOException) =>
+          val msg = ex.getMessage()
+          msg == "Connection reset by peer" || msg == "Broken pipe"
+        case _ => false
+      }
+  }
 }

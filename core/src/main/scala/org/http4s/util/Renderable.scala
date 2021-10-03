@@ -17,12 +17,17 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
+
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.http4s.Header
+import org.typelevel.ci.CIString
+
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
+import org.http4s.internal.CharPredicate
 
 /** A type class that describes how to efficiently render a type
   * @tparam T the type which will be rendered
@@ -38,6 +43,8 @@ trait Renderer[T] {
 }
 
 object Renderer {
+  @inline def apply[A](implicit ev: Renderer[A]): Renderer[A] = ev
+
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
@@ -49,6 +56,11 @@ object Renderer {
 
     override def render(writer: Writer, t: Instant): writer.type =
       writer << dateFormat.format(t)
+  }
+
+  implicit val stringRenderer: Renderer[String] = new Renderer[String] {
+    override def render(writer: Writer, string: String): writer.type =
+      writer << string
   }
 
   // Render a finite duration in seconds
@@ -72,6 +84,34 @@ object Renderer {
           case Left(a) => ra.render(writer, a)
           case Right(b) => rb.render(writer, b)
         }
+    }
+
+  implicit val ciStringRenderer: Renderer[CIString] = new Renderer[CIString] {
+    override def render(writer: Writer, ciString: CIString): writer.type =
+      writer << ciString
+  }
+
+  implicit def nelRenderer[T: Renderer]: Renderer[NonEmptyList[T]] =
+    new Renderer[NonEmptyList[T]] {
+      override def render(writer: Writer, values: NonEmptyList[T]): writer.type =
+        writer.addNel(values)
+    }
+
+  implicit def listRenderer[T: Renderer]: Renderer[List[T]] =
+    new Renderer[List[T]] {
+      override def render(writer: Writer, values: List[T]): writer.type =
+        writer.addList(values)
+    }
+
+  implicit def setRenderer[T: Renderer]: Renderer[Set[T]] =
+    new Renderer[Set[T]] {
+      override def render(writer: Writer, values: Set[T]): writer.type =
+        writer.addSet(values)
+    }
+
+  implicit def headerSelectRenderer[A](implicit select: Header.Select[A]): Renderer[A] =
+    new Renderer[A] {
+      override def render(writer: Writer, t: A): writer.type = writer << select.toRaw1(t)
     }
 }
 
@@ -103,9 +143,9 @@ object Writer {
 }
 
 /** Efficiently accumulate [[Renderable]] representations */
-trait Writer {
+trait Writer { self =>
   def append(s: String): this.type
-  def append(ci: CaseInsensitiveString): this.type = append(ci.toString)
+  def append(ci: CIString): this.type = append(ci.toString)
   def append(char: Char): this.type = append(char.toString)
   def append(float: Float): this.type = append(float.toString)
   def append(double: Double): this.type = append(double.toString)
@@ -132,6 +172,17 @@ trait Writer {
     go(0)
     this << '"'
   }
+  //Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
+  def eligibleOnly(s: String, keep: CharPredicate, placeholder: Char): this.type = {
+    @tailrec def rec(ix: Int = 0): this.type =
+      if (ix < s.length) {
+        val c = s.charAt(ix)
+        if (keep(c)) this << c
+        else this << placeholder
+        rec(ix + 1)
+      } else this
+    rec()
+  }
 
   def addStrings(
       s: collection.Seq[String],
@@ -146,9 +197,21 @@ trait Writer {
     append(end)
   }
 
-  def addStringNel(
-      s: NonEmptyList[String],
-      sep: String = "",
+  def addList[T: Renderer](
+      s: List[T],
+      sep: String = ", ",
+      start: String = "",
+      end: String = ""): this.type =
+    NonEmptyList.fromList(s) match {
+      case Some(s) => addNel(s, sep, start, end)
+      case None =>
+        append(start)
+        append(end)
+    }
+
+  def addNel[T: Renderer](
+      s: NonEmptyList[T],
+      sep: String = ", ",
       start: String = "",
       end: String = ""): this.type = {
     append(start)
@@ -159,7 +222,7 @@ trait Writer {
 
   def addSet[T: Renderer](
       s: collection.Set[T],
-      sep: String = "",
+      sep: String = ", ",
       start: String = "",
       end: String = ""): this.type = {
     append(start)
@@ -172,19 +235,37 @@ trait Writer {
 
   final def <<(s: String): this.type = append(s)
   final def <<#(s: String): this.type = quote(s)
-  final def <<(s: CaseInsensitiveString): this.type = append(s)
+  final def <<(s: CIString): this.type = append(s)
   final def <<(char: Char): this.type = append(char)
   final def <<(float: Float): this.type = append(float)
   final def <<(double: Double): this.type = append(double)
   final def <<(int: Int): this.type = append(int)
   final def <<(long: Long): this.type = append(long)
   final def <<[T: Renderer](r: T): this.type = append(r)
+
+  def sanitize(f: Writer => Writer): this.type = {
+    val w = new Writer {
+      def append(s: String): this.type = {
+        s.foreach(append(_))
+        this
+      }
+      override def append(c: Char): this.type = {
+        if (c == 0x0.toChar || c == '\r' || c == '\n')
+          self.append(' ')
+        else
+          self.append(c)
+        this
+      }
+    }
+    f(w)
+    this
+  }
 }
 
 /** [[Writer]] that will result in a `String`
   * @param size initial buffer size of the underlying `StringBuilder`
   */
-class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
+class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer { self =>
   private val sb = new java.lang.StringBuilder(size)
 
   def append(s: String): this.type = { sb.append(s); this }
@@ -193,6 +274,31 @@ class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
   override def append(double: Double): this.type = { sb.append(double); this }
   override def append(int: Int): this.type = { sb.append(int); this }
   override def append(long: Long): this.type = { sb.append(long); this }
+
+  override def sanitize(f: Writer => Writer): this.type = {
+    val w = new Writer {
+      def append(s: String): this.type = {
+        val start = sb.length
+        self.append(s)
+        for (i <- start until sb.length) {
+          val c = sb.charAt(i)
+          if (c == 0x0.toChar || c == '\r' || c == '\n') {
+            sb.setCharAt(i, ' ')
+          }
+        }
+        this
+      }
+      override def append(c: Char): this.type = {
+        if (c == 0x0.toChar || c == '\r' || c == '\n')
+          self.append(' ')
+        else
+          self.append(c)
+        this
+      }
+    }
+    f(w)
+    this
+  }
 
   def result: String = sb.toString
 }
@@ -207,6 +313,11 @@ private[http4s] class HeaderLengthCountingWriter extends Writer {
   def append(s: String): this.type = {
     // Assumption: 1 byte per character. Only US-ASCII is supported.
     length = length + s.length
+    this
+  }
+
+  override def sanitize(f: Writer => Writer): this.type = {
+    f(this)
     this
   }
 }

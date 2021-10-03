@@ -17,30 +17,35 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
-import cats.Show
+import cats.parse.Parser
+import org.http4s
+import org.http4s.EntityTag.{Strong, Weakness, parser => entityTagParser}
+import org.typelevel.ci._
 
-object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
-  final case class EntityTag(tag: String, weak: Boolean = false) {
-    override def toString() =
-      if (weak) "W/\"" + tag + '"'
-      else "\"" + tag + '"'
-  }
+object ETag {
 
-  object EntityTag {
-    implicit val http4sShowForEntityTag: Show[EntityTag] =
-      Show.fromToString
-  }
+  type EntityTag = http4s.EntityTag
+  val EntityTag: http4s.EntityTag.type = http4s.EntityTag
 
-  def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
+  def apply(tag: String, weakness: Weakness = Strong): ETag =
+    ETag(http4s.EntityTag(tag, weakness))
 
-  override def parse(s: String): ParseResult[ETag] =
-    HttpHeaderParser.ETAG(s)
+  def parse(s: String): ParseResult[ETag] =
+    ParseResult.fromParser(parser, "Invalid ETag header")(s)
+
+  /* `ETag = entity-tag`
+   *
+   * @see [[https://tools.ietf.org/html/rfc7232#section-2.3]]
+   */
+  private[http4s] val parser: Parser[ETag] =
+    entityTagParser.map(ETag.apply)
+
+  implicit val headerInstance: Header[ETag, Header.Single] =
+    Header.create(
+      ci"ETag",
+      _.tag.toString,
+      parse
+    )
 }
 
-final case class ETag(tag: ETag.EntityTag) extends Header.Parsed {
-  def key: ETag.type = ETag
-  override def value: String = tag.toString()
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
-}
+final case class ETag(tag: EntityTag)

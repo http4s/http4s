@@ -17,4 +17,41 @@
 package org.http4s
 package headers
 
-object `Sec-WebSocket-Accept` extends HeaderKey.Default
+import org.typelevel.ci._
+import java.util.Base64
+import cats.parse.Parser
+import cats.parse.Parser.charIn
+import cats.parse.Rfc5234.{alpha, digit}
+import scodec.bits.ByteVector
+
+import scala.util.Try
+
+final class `Sec-WebSocket-Accept`(hashBytes: ByteVector) {
+  lazy val hashString: String = Base64.getEncoder().encodeToString(hashBytes.toArray)
+}
+
+object `Sec-WebSocket-Accept` {
+
+  def parse(s: String): ParseResult[`Sec-WebSocket-Accept`] =
+    ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
+
+  private[this] val tchar: Parser[Char] = charIn("=").orElse(digit).orElse(alpha)
+
+  private[this] val token: Parser[String] = tchar.rep.string
+
+  private[http4s] val parser = token.mapFilter { t =>
+    Try(unsafeFromString(t)).toOption
+  }
+
+  private def unsafeFromString(hash: String): `Sec-WebSocket-Accept` = {
+    val bytes = Base64.getDecoder().decode(hash)
+    new `Sec-WebSocket-Accept`(ByteVector(bytes))
+  }
+
+  implicit val headerInstance: Header[`Sec-WebSocket-Accept`, Header.Single] =
+    Header.create(
+      ci"Sec-WebSocket-Accept",
+      _.hashString,
+      parse
+    )
+}

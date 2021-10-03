@@ -17,4 +17,31 @@
 package org.http4s
 package headers
 
-object `Content-Location` extends HeaderKey.Default
+import java.nio.charset.StandardCharsets
+import org.typelevel.ci._
+
+object `Content-Location` {
+  def parse(s: String): ParseResult[`Content-Location`] =
+    ParseResult.fromParser(parser, "Invalid Content-Location header")(s)
+
+  private[http4s] val parser = Uri.Parser
+    .absoluteUri(StandardCharsets.ISO_8859_1)
+    .orElse(Uri.Parser.relativeRef(StandardCharsets.ISO_8859_1))
+    .map(`Content-Location`(_))
+
+  implicit val headerInstance: Header[`Content-Location`, Header.Single] =
+    Header.create(
+      ci"Content-Location",
+      _.uri.toString,
+      parse
+    )
+}
+
+/** {{{
+  *   The "Content-Location" header field references a URI that can be used
+  *   as an identifier for a specific resource corresponding to the
+  *   representation in this message's payload
+  * }}}
+  * [[https://tools.ietf.org/html/rfc7231#section-3.1.4.2 RFC-7231 Section 3.1.4.2]]
+  */
+final case class `Content-Location`(uri: Uri)

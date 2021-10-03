@@ -16,18 +16,29 @@
 
 package org.http4s.parser
 
-import org.http4s.{Header, ParseResult}
+import org.http4s.ParseResult
+import org.http4s.Header
+import org.http4s.syntax.header._
 
-trait HeaderParserHelper[H <: Header] {
-  def hparse(value: String): ParseResult[H]
+trait HeaderParserHelper[H] {
+
+  protected def roundTrip[T <: Header.Type](h: H)(implicit header: Header[H, T]): H =
+    parse(h.value)
 
   // Also checks to make sure whitespace doesn't effect the outcome
-  protected def parse(value: String): H = {
-    val a =
-      hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
+  protected def parse[T <: Header.Type](value: String)(implicit i: Header[H, T]): H = {
+    val a = parseOnly(value)
     val b =
       hparse(value.replace(" ", "")).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
     assert(a == b, "Whitespace resulted in different headers")
     a
   }
+
+  protected def parseOnly[T <: Header.Type](value: String)(implicit i: Header[H, T]): H =
+    hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
+
+  private def hparse[T <: Header.Type](value: String)(implicit
+      header: Header[H, T]): ParseResult[H] =
+    header.parse(value)
+
 }

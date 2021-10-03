@@ -20,7 +20,6 @@ import cats.data.OptionT
 import cats.syntax.all._
 import cats.effect._
 import org.http4s._
-import org.http4s.syntax.kleisli._
 import org.http4s.headers.{Date => HDate}
 
 class DateSuite extends Http4sSuite {
@@ -40,7 +39,7 @@ class DateSuite extends Http4sSuite {
     (for {
       out <- testService(req).value
       now <- HttpDate.current[IO]
-    } yield out.flatMap(_.headers.get(HDate)).exists { (date: HDate) =>
+    } yield out.flatMap(_.headers.get[HDate]).exists { case (date: HDate) =>
       val diff = now.epochSecond - date.date.epochSecond
       diff <= 2L
     }).assertEquals(true)
@@ -50,7 +49,7 @@ class DateSuite extends Http4sSuite {
     (for {
       out <- testApp(req)
       now <- HttpDate.current[IO]
-    } yield out.headers.get(HDate).exists { date =>
+    } yield out.headers.get[HDate].exists { date =>
       val diff = now.epochSecond - date.date.epochSecond
       diff <= 2L
     }).assertEquals(true)
@@ -69,7 +68,7 @@ class DateSuite extends Http4sSuite {
     (for {
       out <- test(req)
       nowD <- HttpDate.current[IO]
-    } yield out.headers.get(HDate).exists { date =>
+    } yield out.headers.get[HDate].exists { date =>
       val now = nowD.epochSecond
       val diff = now - date.date.epochSecond
       now == diff
@@ -81,7 +80,7 @@ class DateSuite extends Http4sSuite {
 
     val r = for {
       response <- httpRoute(req).value
-    } yield response.flatMap(_.headers.get(HDate)).isDefined
+    } yield response.flatMap(_.headers.get[HDate]).isDefined
     assertIOBoolean(r)
   }
 
@@ -90,7 +89,7 @@ class DateSuite extends Http4sSuite {
 
     val r = for {
       response <- httpApp(req)
-    } yield response.headers.get(HDate).isDefined
+    } yield response.headers.get[HDate].isDefined
     assertIOBoolean(r)
   }
 }

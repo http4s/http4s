@@ -21,7 +21,7 @@ import java.net.URL
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.client.Client
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
@@ -36,8 +36,8 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     // n.b. This service does not appear to gracefully handle chunked requests.
     val url = Uri(
       scheme = Some(Scheme.http),
-      authority = Some(Authority(host = RegName("ptsv2.com"))),
-      path = "/t/http4s/post")
+      authority = Some(Authority(host = RegName("ptscom"))),
+      path = Uri.Path.unsafeFromString("/t/http4s/post"))
 
     val multipart = Multipart[IO](
       Vector(
@@ -45,8 +45,8 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
         Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png))
       ))
 
-    val request: IO[Request[IO]] =
-      Method.POST(multipart, url).map(_.withHeaders(multipart.headers))
+    val request: Request[IO] =
+      Method.POST(multipart, url).withHeaders(multipart.headers)
 
     client.expect[String](request)
   }

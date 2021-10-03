@@ -22,13 +22,13 @@ import cats.syntax.either._
 import org.http4s.headers.Forwarded
 import org.http4s.internal.bug
 import org.http4s.syntax.literals._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci._
 
 class ForwardedHeaderSpec extends Http4sSuite {
   import Forwarded.Element
   import ForwardedHeaderSpec._
 
-  def parse(input: String) = HttpHeaderParser.FORWARDED(input)
+  def parse(input: String) = Forwarded.parse(input)
 
   test("FORWARDED should parse single simple elements") {
     val values = List(
@@ -121,7 +121,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
     values.foreach { headerStr =>
       parse(headerStr) match {
         case Right(_) => fail("Expected parser failure")
-        case Left(e) => assertNoDiff(e.sanitized, "Invalid header")
+        case Left(e) => assertNoDiff(e.sanitized, "Invalid Forwarded header")
       }
     }
 
@@ -137,7 +137,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
     values.foreach { headerStr =>
       parse(headerStr) match {
         case Right(_) => fail("Expected parser failure")
-        case Left(e) => assertNoDiff(e.sanitized, "Invalid header")
+        case Left(e) => assertNoDiff(e.sanitized, "Invalid Forwarded header")
       }
     }
   }
@@ -150,15 +150,15 @@ object ForwardedHeaderSpec {
   private val ObfuscatedRe = """^(_[\p{Alnum}\.\_\-]+)$""".r
 
   private object UnCIString {
-    def unapply(cistr: CaseInsensitiveString): Option[String] = Some(cistr.value)
+    def unapply(cistr: CIString): Option[String] = Some(cistr.toString)
   }
 
   implicit def convertUriToNode(uri: Uri): Node =
     Node(
       uri.host match {
-        case Some(ipv4: Uri.Ipv4Address) => Node.Name.Ipv4(ipv4)
-        case Some(ipv6: Uri.Ipv6Address) => Node.Name.Ipv6(ipv6)
-        case Some(Uri.RegName(UnCIString("unknown"))) => Node.Name.Unknown
+        case Some(ipv4: Uri.Ipv4Address) => Node.Name.Ipv4(ipv4.address)
+        case Some(ipv6: Uri.Ipv6Address) => Node.Name.Ipv6(ipv6.address)
+        case Some(Uri.RegName(ci"unknown")) => Node.Name.Unknown
         case Some(Uri.RegName(UnCIString(ObfuscatedRe(obfuscatedName)))) =>
           Node.Obfuscated(obfuscatedName)
         case Some(other) => throw bug(s"not allowed as host for node: $other")

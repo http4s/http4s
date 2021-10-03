@@ -18,30 +18,49 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import java.net.InetAddress
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.Writer
+import cats.parse._
+import com.comcast.ip4s.IpAddress
+import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
+import org.http4s.util.{Renderable, Writer}
+import org.http4s.Header
+import org.typelevel.ci._
 
-object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[`X-Forwarded-For`] =
-    HttpHeaderParser.X_FORWARDED_FOR(s)
+object `X-Forwarded-For` {
+
+  def apply(head: Option[IpAddress], tail: Option[IpAddress]*): `X-Forwarded-For` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[`X-Forwarded-For`] =
+    ParseResult.fromParser(parser, "Invalid X-Forwarded-For header")(s)
+
+  private[http4s] val parser: Parser[`X-Forwarded-For`] =
+    Rfc7230
+      .headerRep1(
+        (Rfc3986.ipv4Address.backtrack | Rfc3986.ipv6Address)
+          .map(s => Some(s)) | (Parser.string("unknown").as(None)))
+      .map(`X-Forwarded-For`.apply)
+
+  implicit val headerInstance: Header[`X-Forwarded-For`, Header.Single] =
+    Header.createRendered(
+      ci"X-Forwarded-For",
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            h.values.head.fold(writer.append("unknown"))(i => writer.append(i.toString))
+            h.values.tail.foreach(h.append(writer, _))
+            writer
+          }
+        },
+      parse
+    )
+
 }
 
-final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]])
-    extends Header.Recurring {
-  override def key: `X-Forwarded-For`.type = `X-Forwarded-For`
-  type Value = Option[InetAddress]
-  override lazy val value = super.value
-  override def renderValue(writer: Writer): writer.type = {
-    values.head.fold(writer.append("unknown"))(i => writer.append(i.getHostAddress))
-    values.tail.foreach(append(writer, _))
-    writer
-  }
-
+final case class `X-Forwarded-For`(values: NonEmptyList[Option[IpAddress]]) {
   @inline
-  private def append(w: Writer, add: Option[InetAddress]): w.type = {
+  private def append(w: Writer, add: Option[IpAddress]): w.type = {
     w.append(", ")
-    if (add.isDefined) w.append(add.get.getHostAddress)
+    if (add.isDefined) w.append(add.get.toString)
     else w.append("unknown")
   }
 }

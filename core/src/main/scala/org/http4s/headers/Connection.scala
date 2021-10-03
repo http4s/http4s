@@ -19,22 +19,35 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.syntax.all._
-import org.http4s.util.{CaseInsensitiveString, Writer}
+import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import org.typelevel.ci._
 
 // values should be case insensitive
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
-object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Connection] =
-    HttpHeaderParser.CONNECTION(s)
+object Connection {
+  def apply(head: CIString, tail: CIString*): `Connection` =
+    apply(NonEmptyList(head, tail.toList))
+
+  def parse(s: String): ParseResult[Connection] =
+    ParseResult.fromParser(parser, "Invalid Connection header")(s)
+
+  private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
+    Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
+  }
+
+  implicit val headerInstance: Header[Connection, Header.Recurring] =
+    Header.createRendered(
+      ci"Connection",
+      _.values,
+      parse
+    )
+
+  implicit val headerSemigroupInstance: cats.Semigroup[Connection] =
+    (a, b) => Connection(a.values.concatNel(b.values))
 }
 
-final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends Header.Recurring {
-  override def key: Connection.type = Connection
-  type Value = CaseInsensitiveString
-  def hasClose: Boolean = values.contains_("close".ci)
-  def hasKeepAlive: Boolean = values.contains_("keep-alive".ci)
-  override def renderValue(writer: Writer): writer.type =
-    writer.addStringNel(values.map(_.toString), ", ")
+final case class Connection(values: NonEmptyList[CIString]) {
+  def hasClose: Boolean = values.contains_(ci"close")
+  def hasKeepAlive: Boolean = values.contains_(ci"keep-alive")
+  def hasUpgrade: Boolean = values.contains_(ci"upgrade")
 }

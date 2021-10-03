@@ -21,27 +21,33 @@ import org.http4s.headers.`Accept-Language`
 import org.http4s.syntax.all._
 
 class AcceptLanguageSuite extends Http4sSuite with HeaderParserHelper[`Accept-Language`] {
-  def hparse(value: String): ParseResult[`Accept-Language`] =
-    HttpHeaderParser.ACCEPT_LANGUAGE(value)
 
   val en = `Accept-Language`(LanguageTag("en"))
   val fr = `Accept-Language`(LanguageTag("fr"))
   val enq5 = `Accept-Language`(LanguageTag("en").withQValue(qValue"0.5"))
   val en_cool = `Accept-Language`(LanguageTag("en", "cool"))
+  val en_mult = `Accept-Language`(LanguageTag("en", "a", "b"))
 
   val all = `Accept-Language`(LanguageTag.`*`)
   val ninguno = `Accept-Language`(LanguageTag.`*`.withQValue(QValue.Zero))
 
-  {
-    test("Accept-Language should Give correct value") {
-      assertEquals(en.value, "en")
-      assertEquals(enq5.value, "en;q=0.5")
-    }
-
-    test("Accept-Language should Parse properly") {
-      assertEquals(parse(en.value), en)
-      assertEquals(parse(enq5.value), enq5)
-      assertEquals(parse(en_cool.value), en_cool)
-    }
+  test("Accept-Language should Give correct value") {
+    assertEquals(en.value, "en")
+    assertEquals(enq5.value, "en;q=0.5")
+    assertEquals(enq5.value, "en;q=0.5")
+    assertEquals(en_cool.value, "en-cool")
+    assertEquals(en_mult.value, "en-a-b")
+    assertEquals(all.value, "*")
+    assertEquals(ninguno.value, "*;q=0")
   }
+
+  test("Accept-Language should Parse properly") {
+    assertEquals(parse(en.value), en)
+    assertEquals(parse(enq5.value), enq5)
+    assertEquals(parse(en_cool.value), en_cool)
+    assertEquals(parse(en_mult.value), en_mult)
+    assertEquals(parse(all.value), all)
+    assertEquals(parse(ninguno.value), ninguno)
+  }
+
 }

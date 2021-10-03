@@ -49,11 +49,11 @@ private[util] object ChunkWriter {
       ec: ExecutionContext): Future[Boolean] = {
     val promise = Promise[Boolean]()
     val f = trailer.map { trailerHeaders =>
-      if (trailerHeaders.nonEmpty) {
+      if (!trailerHeaders.isEmpty) {
         val rr = new StringWriter(256)
         rr << "0\r\n" // Last chunk
         trailerHeaders.foreach { h =>
-          h.render(rr) << "\r\n"; ()
+          rr << h << "\r\n"; ()
         } // trailers
         rr << "\r\n" // end of chunks
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))

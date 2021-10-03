@@ -21,13 +21,13 @@ import fs2.concurrent.Queue
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
-// import io.chrisdavenport.log4cats.testing.TestingLogger
 import fs2._
 import cats.effect.concurrent._
 import cats.data.OptionT
 import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
 import org.http4s.headers.Expires
+import org.typelevel.ci._
 
 class ParsingSuite extends Http4sSuite {
   object Helpers {
@@ -108,7 +108,7 @@ class ParsingSuite extends Http4sSuite {
     val expected = Request[IO](
       Method.GET,
       Uri.unsafeFromString("www.google.com"),
-      headers = Headers.of(org.http4s.headers.Host("www.google.com"))
+      headers = Headers(org.http4s.headers.Host("www.google.com"))
     )
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -130,8 +130,8 @@ class ParsingSuite extends Http4sSuite {
   test("Parser.Request.parser should Parse a request with a body correctly") {
     val raw =
       """POST /foo HTTP/1.1
-      |Content-Type: text/plain; charset=UTF-8
       |Content-Length: 11
+      |Content-Type: text/plain; charset=UTF-8
       |
       |Entity Here""".stripMargin
     val expected = Request[IO](Method.POST, Uri.unsafeFromString("/foo"))
@@ -139,17 +139,17 @@ class ParsingSuite extends Http4sSuite {
 
     val result = Helpers.parseRequestRig[IO](raw)
 
-    result.map(_.method).assertEquals(expected.method)
-    result.map(_.uri.scheme).assertEquals(expected.uri.scheme)
-    // result.map(_.uri.authority).assertEquals(expected.uri.authority)
-    // result.map(_.uri.path).assertEquals(expected.uri.path)
-    // result.map(_.uri.query).assertEquals(expected.uri.query)
-    result.map(_.uri.fragment).assertEquals(expected.uri.fragment)
-    result.map(_.headers).assertEquals(expected.headers)
     for {
+      _ <- result.map(_.method).assertEquals(expected.method)
+      _ <- result.map(_.uri.scheme).assertEquals(expected.uri.scheme)
+      // result.map(_.uri.authority).assertEquals(expected.uri.authority)
+      // result.map(_.uri.path).assertEquals(expected.uri.path)
+      // result.map(_.uri.query).assertEquals(expected.uri.query)
+      _ <- result.map(_.uri.fragment).assertEquals(expected.uri.fragment)
+      _ <- result.map(_.headers).assertEquals(expected.headers)
       r <- result
-      a <- r.body.compile.toVector
-      b <- expected.body.compile.toVector
+      a <- r.body.through(fs2.text.utf8Decode).compile.string
+      b <- expected.body.through(fs2.text.utf8Decode).compile.string
     } yield assertEquals(a, b)
   }
 
@@ -327,7 +327,7 @@ class ParsingSuite extends Http4sSuite {
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8Decode).compile.string
       trailers <- result._1.trailerHeaders
-    } yield body == "MozillaDeveloperNetwork" && trailers.get(Expires).isDefined).assert
+    } yield body == "MozillaDeveloperNetwork" && trailers.get[Expires].isDefined).assert
   }
 
   test(
@@ -370,14 +370,16 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(base)
     val bv = asHttp.getBytes()
 
-    Parser.HeaderP.parseHeaders[IO](bv, 0).map { headerP =>
-      assert(
-        headerP.headers.toList == List(
-          Header("Content-Type", "text/plain; charset=UTF-8"),
-          Header("Content-Length", "11"))
-      )
-      assert(!headerP.chunked)
-      assert(headerP.contentLength == Some(11L))
+    Parser.HeaderP.parseHeaders[IO](bv, 0, 4096).map {
+      case Right(headerP) =>
+        assert(
+          headerP.headers.headers == List(
+            Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
+            Header.Raw(ci"Content-Length", "11"))
+        )
+        assert(!headerP.chunked)
+        assert(headerP.contentLength == Some(11L))
+      case Left(_) => fail("Headers were not right")
     }
   }
 
@@ -385,6 +387,7 @@ class ParsingSuite extends Http4sSuite {
     val defaultMaxHeaderLength = 4096
     val respS =
       Stream(
+        "POST / HTTP/1.1\r\n",
         "Content-Type: text/plain\r\n",
         "Transfer-Encoding: chunked\r\n",
         "Trailer: Expires\r\n",
@@ -396,14 +399,22 @@ class ParsingSuite extends Http4sSuite {
 
     val result = for {
       take <- Helpers.taking[IO, Byte](byteStream)
-      message <- Parser.MessageP
-        .parseMessage(Array.emptyByteArray, take, defaultMaxHeaderLength)
+      message <- Parser.Request
+        .parser(defaultMaxHeaderLength)(Array.emptyByteArray, take)
     } yield message
 
     result
-      .map(_.bytes.toList)
-      .assertEquals(
-        respS.compile.string.getBytes(java.nio.charset.StandardCharsets.US_ASCII).toList)
+      .map { case (req, _) =>
+        assertEquals(req.method, Method.POST)
+        assertEquals(
+          req.headers,
+          Headers(
+            "Content-Type" -> "text/plain",
+            "Transfer-Encoding" -> "chunked",
+            "Trailer" -> "Expires"
+          ))
+
+      }
   }
 
   test("Request Prelude should parse an expected value") {
@@ -413,10 +424,12 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
 
-    Parser.Request.ReqPrelude.parsePrelude[IO](bv).map { prelude =>
-      assert(prelude.method == Method.GET)
-      assert(prelude.uri == uri"/")
-      assert(prelude.version == HttpVersion.`HTTP/1.1`)
+    Parser.Request.ReqPrelude.parsePrelude[IO](bv, 4096).map {
+      case Right(prelude) =>
+        assert(prelude.method == Method.GET)
+        assert(prelude.uri == uri"/")
+        assert(prelude.version == HttpVersion.`HTTP/1.1`)
+      case Left(_) => fail("Prelude was not right")
     }
   }
 
@@ -426,9 +439,11 @@ class ParsingSuite extends Http4sSuite {
         |""".stripMargin
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
-    Parser.Response.RespPrelude.parsePrelude[IO](bv).map { prelude =>
-      assert(prelude.version == HttpVersion.`HTTP/1.1`)
-      assert(prelude.status == Status.Ok)
+    Parser.Response.RespPrelude.parsePrelude[IO](bv, 4096).map {
+      case Right(prelude) =>
+        assert(prelude.version == HttpVersion.`HTTP/1.1`)
+        assert(prelude.status == Status.Ok)
+      case Left(_) => fail("Prelude was not right")
     }
   }
 
@@ -453,6 +468,7 @@ class ParsingSuite extends Http4sSuite {
         .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
       body1 <- resp1._1.body.through(fs2.text.utf8Decode).compile.string
       drained <- resp1._2
+      _ <- IO(println(new String(drained.get)))
       resp2 <- Parser.Response
         .parser[IO](defaultMaxHeaderLength)(drained.get, take)
       body2 <- resp2._1.body.through(fs2.text.utf8Decode).compile.string
@@ -545,9 +561,9 @@ class ParsingSuite extends Http4sSuite {
       .through(text.utf8Encode)
 
     Helpers.taking[IO, Byte](byteStream).flatMap { take =>
-      Parser.MessageP
-        .parseMessage[IO](Array.emptyByteArray, take, 10)
-        .intercept[Parser.MessageP.MessageTooLongError]
+      Parser.Request
+        .parser[IO](10)(Array.emptyByteArray, take)
+        .intercept[EmberException.MessageTooLong]
     }
   }
 }

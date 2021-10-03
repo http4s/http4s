@@ -20,11 +20,10 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
 import org.http4s._
-import org.http4s.implicits._
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.headers.AgentProduct
-import io.chrisdavenport.keypool.Reusable
+import org.typelevel.ci._
+import org.typelevel.keypool.Reusable
 
 class ClientHelpersSuite extends Http4sSuite {
 
@@ -32,7 +31,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), None)
       .map { req =>
-        req.headers.get(Date).isDefined
+        req.headers.get[Date].isDefined
       }
       .assert
   }
@@ -41,11 +40,11 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(
         Request[IO](
-          headers = Headers.of(Date(HttpDate.Epoch))
+          headers = Headers(Date(HttpDate.Epoch))
         ),
         None)
       .map { req =>
-        req.headers.get(Date).map { case d: Date =>
+        req.headers.get[Date].map { case d: Date =>
           d.date
         }
       }
@@ -55,7 +54,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), None)
       .map { req =>
-        req.headers.get(Connection).map { case c: Connection =>
+        req.headers.get[Connection].map { case c: Connection =>
           c.hasKeepAlive
         }
       }
@@ -65,11 +64,11 @@ class ClientHelpersSuite extends Http4sSuite {
   test("Request Preprocessing should not add a connection header if already present") {
     ClientHelpers
       .preprocessRequest(
-        Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+        Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
         None
       )
       .map { req =>
-        req.headers.get(Connection).map { case c: Connection =>
+        req.headers.get[Connection].map { case c: Connection =>
           c.hasKeepAlive
         }
       }
@@ -80,7 +79,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), EmberClientBuilder.default[IO].userAgent)
       .map { req =>
-        req.headers.get(`User-Agent`).isDefined
+        req.headers.get[`User-Agent`].isDefined
       }
       .assert
   }
@@ -90,12 +89,12 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(
         Request[IO](
-          headers = Headers.of(`User-Agent`(AgentProduct(name, None)))
+          headers = Headers(`User-Agent`(ProductId(name, None)))
         ),
         EmberClientBuilder.default[IO].userAgent)
       .map { req =>
-        req.headers.get(`User-Agent`).map { case e =>
-          e.product.name
+        req.headers.get[`User-Agent`].map { case e =>
+          e.product.value
         }
       }
       .assertEquals(Some(name))
@@ -142,7 +141,7 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+          Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
           Response[IO](),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
@@ -161,7 +160,7 @@ class ClientHelpersSuite extends Http4sSuite {
       _ <- ClientHelpers
         .postProcessResponse[IO](
           Request[IO](),
-          Response[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+          Response[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse

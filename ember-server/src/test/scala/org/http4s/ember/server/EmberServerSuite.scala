@@ -43,7 +43,7 @@ class EmberServerSuite extends Http4sSuite {
       .orNotFound
   }
 
-  val serverResource: Resource[IO, Server[IO]] =
+  val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
