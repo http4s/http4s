@@ -593,7 +593,7 @@ lazy val variables: sbt.Def.Initialize[Map[String, String]] = sbt.Def.setting {
     "version.http4s.current" -> version.value,
     "version.http4s.doc"     -> docExampleVersion(version.value),
     "version.circe"          -> circeJawn.value.revision,
-    "version.cryptobits"     -> cryptobits.value.revision
+    "version.cryptobits"     -> cryptobits.revision
   ) ++ latestInSeries
 }
 
@@ -671,6 +671,7 @@ lazy val docs = http4sProject("docs")
         .site.layout(
           contentWidth = px(860),
           navigationWidth = px(275),
+          topBarHeight = px(35),
           defaultBlockSpacing = px(10),
           defaultLineHeight = 1.5,
           anchorPlacement = laika.helium.config.AnchorPlacement.Right
