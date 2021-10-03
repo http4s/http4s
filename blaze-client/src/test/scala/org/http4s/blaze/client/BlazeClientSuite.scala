@@ -130,7 +130,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = address.getPort
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
-        builder(1, requestTimeout = 2.seconds).resource.use { client =>
+        builder(1, requestTimeout = 60.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
           val req = Request[IO](
             method = Method.POST,
@@ -153,7 +153,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = address.getPort
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
-        builder(1, requestTimeout = 2.seconds).resource.use { client =>
+        builder(1, requestTimeout = 60.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
           val req = Request[IO](
             method = Method.POST,

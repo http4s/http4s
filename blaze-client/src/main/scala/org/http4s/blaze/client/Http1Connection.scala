@@ -224,9 +224,9 @@ private final class Http1Connection[F[_]](
               // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
             ).map(response =>
               Resource.make(F.pure(writeFiber))(writeFiber => {
-                logger.trace("Waiting for write to complete")
-                writeFiber.join.attempt.void.map(_ => {
-                  logger.trace("write complete")
+                logger.trace("Waiting for write to cancel")
+                writeFiber.cancel.map(_ => {
+                  logger.trace("write cancelled")
                   ()
                 })
               }
