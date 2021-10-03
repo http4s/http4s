@@ -155,16 +155,16 @@ private final class Http1Connection[F[_]](
     f
   }
 
-  def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Resource[F, Response[F]]] =
+  def runRequest(req: Request[F], cancellation: F[TimeoutException]): F[Resource[F, Response[F]]] =
     F.defer[Resource[F, Response[F]]] {
       stageState.get match {
         case i @ Idle(idleRead) =>
           if (stageState.compareAndSet(i, ReadWrite)) {
             logger.debug(s"Connection was idle. Running.")
-            executeRequest(req, idleTimeoutF, idleRead)
+            executeRequest(req, cancellation, idleRead)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
-            runRequest(req, idleTimeoutF)
+            runRequest(req, cancellation)
           }
         case ReadWrite | Read | Write =>
           logger.error(s"Tried to run a request already in running state.")
@@ -182,7 +182,7 @@ private final class Http1Connection[F[_]](
 
   private def executeRequest(
       req: Request[F],
-      idleTimeoutF: F[TimeoutException],
+      cancellation: F[TimeoutException],
       idleRead: Option[Future[ByteBuffer]]): F[Resource[F, Response[F]]] = {
     logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
@@ -205,43 +205,37 @@ private final class Http1Connection[F[_]](
             case None => getHttpMinor(req) == 0
           }
 
-          idleTimeoutF.start.flatMap { timeoutFiber =>
-            val idleTimeoutS = timeoutFiber.join.attempt.map {
-              case Right(t) => Left(t): Either[Throwable, Unit]
-              case Left(t) => Left(t): Either[Throwable, Unit]
+          val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
+            .write(rr, req.body)
+            .guarantee(F.delay(resetWrite()))
+            .onError {
+              case EOF => F.unit
+              case t => F.delay(logger.error(t)("Error rendering request"))
             }
 
-            val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-              .write(rr, req.body)
-              .guarantee(F.delay(resetWrite()))
-              .onError {
-                case EOF => F.unit
-                case t => F.delay(logger.error(t)("Error rendering request"))
+          F.bracketCase(
+            writeRequest.start
+          )(writeFiber =>
+            receiveResponse(
+              mustClose,
+              doesntHaveBody = req.method == Method.HEAD,
+              cancellation.map(Left(_)),
+              idleRead
+              // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
+            ).map(response =>
+              Resource.make(F.pure(writeFiber))(writeFiber => {
+                logger.trace("Waiting for write to complete")
+                writeFiber.join.attempt.void.map(_ => {
+                  logger.trace("write complete")
+                  ()
+                })
               }
-
-            F.bracketCase(
-              writeRequest.start
-            )(writeFiber =>
-              receiveResponse(
-                mustClose,
-                doesntHaveBody = req.method == Method.HEAD,
-                cancellation.map(Left(_)),
-                idleRead
-                // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
-              ).map(response =>
-                Resource.make(F.pure(writeFiber))(writeFiber => {
-                  logger.trace("Waiting for write to complete")
-                  writeFiber.join.attempt.void.map(_ => {
-                    logger.trace("write complete")
-                    ()
-                  })
-                }
-                ).as(response))) {
-              case (_, ExitCase.Completed) => F.unit
-              case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
-            }
+              ).as(response))) {
+            case (_, ExitCase.Completed) => F.unit
+            case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
           }
         }
+
     }
   }
 
