@@ -23,6 +23,7 @@ import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.util.Renderer.renderString
 import org.scalacheck.Prop._
+import scala.annotation.nowarn
 
 class Ipv4AddressSuite extends Http4sSuite {
   checkAll("Order[Ipv4Address]", OrderTests[Ipv4Address].order)
@@ -36,7 +37,8 @@ class Ipv4AddressSuite extends Http4sSuite {
   if (Platform.isJvm)
     test("fromInet4Address should round trip with toInet4Address") {
       forAll { (ipv4: Ipv4Address) =>
-        assert(Ipv4Address.fromInet4Address(ipv4.toInet4Address) == ipv4)
+        assert(Ipv4Address.fromInet4Address(ipv4.toInet4Address) == ipv4): @nowarn(
+          "cat=deprecation")
       }
     }
 
