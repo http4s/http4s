@@ -16,27 +16,22 @@
 
 package org.http4s
 
-import cats.effect.Resource
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import scala.concurrent.ExecutionContext
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.TimeUnit
 
-private[http4s] trait Http4sSuitePlatform { self: Http4sSuite =>
-  // The default munit EC causes an IllegalArgumentException in
-  // BatchExecutor on Scala 2.12.
-  override val munitExecutionContext =
-    ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
+trait Http4sSuitePlatform { this: Http4sSuite =>
 
   def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
     ResourceSuiteLocalFixture(name, resource))
 
+  // allow flaky tests on ci
+  override def munitFlakyOK = sys.env.get("CI").isDefined
 }
 
-private[http4s] trait Http4sSuiteSingletonPlatform {
+trait Http4sSuiteCompanionPlatform {
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-suite", timeout = true))
 
@@ -64,5 +59,4 @@ private[http4s] trait Http4sSuiteSingletonPlatform {
       IORuntimeConfig()
     )
   }
-
 }

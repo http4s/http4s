@@ -21,7 +21,6 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
-import scala.concurrent.ExecutionContext.global
 
 object BlazeSslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -34,7 +33,7 @@ object BlazeSslExampleApp {
 
   def builder[F[_]: Async]: F[BlazeServerBuilder[F]] =
     context.map { sslContext =>
-      BlazeServerBuilder[F](global)
+      BlazeServerBuilder[F]
         .bindHttp(8443)
         .withSslContext(sslContext)
     }

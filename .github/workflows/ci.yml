@@ -15,10 +15,11 @@ on:
     tags: [v*]
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
   SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+  JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
+  SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
   PGP_SECRET: ${{ secrets.PGP_SECRET }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
@@ -28,13 +29,13 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [2.13.6, 2.12.15, 3.0.1]
-        java: [adopt@1.8, adopt@1.11, adopt@1.16]
+        java: [adoptium@8, adoptium@11, adoptium@17]
         ci: [ciJVM, ciNodeJS]
         exclude:
           - ci: ciNodeJS
-            java: adopt@1.11
+            java: adoptium@11
           - ci: ciNodeJS
-            java: adopt@1.16
+            java: adoptium@17
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -78,13 +79,12 @@ jobs:
       - name: Compile
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
 
+      - name: Check binary compatibility
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
+
       - name: FastOptJS
         if: matrix.ci != 'ciJVM'
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' fastOptJS test:fastOptJS'
-
-      - name: Check binary compatibility
-        if: matrix.ci == 'ciJVM'
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
 
       - name: Run tests
         run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' test
@@ -101,7 +101,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [2.12.15]
-        java: [adopt@1.8]
+        java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -162,7 +162,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [2.12.15]
-        java: [adopt@1.8]
+        java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -191,7 +191,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [2.12.15]
-        java: [adopt@1.8]
+        java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -220,7 +220,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [2.13.6, 2.12.15, 3.0.1]
-        java: [adopt@1.8]
+        java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)

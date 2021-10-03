@@ -113,7 +113,7 @@ class DecodeSpec extends Http4sSuite {
     })
   }
 
-  if (Platform.isJvm) // TODO Scala.js doesn't support IBM1098
+  if (Platform.isJvm)
     test("decode should handle unmappable character") {
       // https://stackoverflow.com/a/22902806
       val source = Stream(0x80.toByte, 0x81.toByte)
@@ -125,7 +125,7 @@ class DecodeSpec extends Http4sSuite {
       })
     }
 
-  if (Platform.isJvm) // TODO Scala.js doesn't support x-ISCII91
+  if (Platform.isJvm)
     test("decode should handle overflows") {
       // Found by scalachek
       val source = Stream(-36.toByte)
@@ -134,7 +134,7 @@ class DecodeSpec extends Http4sSuite {
       assert(decoded == Right("ी"))
     }
 
-  if (Platform.isJvm) // TODO Scala.js doesn't support x-IBM943
+  if (Platform.isJvm)
     test("decode should not crash in IllegalStateException") {
       // Found by scalachek
       val source = Stream(-1.toByte)

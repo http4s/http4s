@@ -18,9 +18,9 @@ package org.http4s
 
 import cats.{Applicative, Monad, ~>}
 import cats.data.NonEmptyList
-import cats.effect.SyncIO
+import cats.effect.{Sync, SyncIO}
 import cats.syntax.all._
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
+import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
 import fs2.{Pure, Stream}
 import fs2.text.utf8
 import java.io.File
@@ -29,6 +29,7 @@ import org.http4s.syntax.KleisliSyntax
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
+import fs2.io.net.unixsocket.UnixSocketAddress
 
 import scala.util.hashing.MurmurHash3
 
@@ -244,8 +245,7 @@ final class Request[F[_]] private (
     val headers: Headers,
     val body: EntityBody[F],
     val attributes: Vault
-) extends RequestPlatform[F]
-    with Message[F]
+) extends Message[F]
     with Product
     with Serializable {
   import Request._
@@ -406,6 +406,11 @@ final class Request[F[_]] private (
 
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
+  def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
+    val inetAddress = remote.map(_.host.toInetAddress)
+    F.delay(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
+  }
+
   def remotePort: Option[Port] = remote.map(_.port)
 
   def remoteUser: Option[String] = None
@@ -536,6 +541,8 @@ object Request {
     val PathTranslated: Key[File] = Key.newKey[SyncIO, File].unsafeRunSync()
     val ConnectionInfo: Key[Connection] = Key.newKey[SyncIO, Connection].unsafeRunSync()
     val ServerSoftware: Key[ServerSoftware] = Key.newKey[SyncIO, ServerSoftware].unsafeRunSync()
+    val UnixSocketAddress: Key[UnixSocketAddress] =
+      Key.newKey[SyncIO, UnixSocketAddress].unsafeRunSync()
   }
 }
 

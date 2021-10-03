@@ -930,7 +930,7 @@ class UriSpec extends Http4sSuite {
       val ps = Map("param" -> List(1.2, 2.1))
       assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
     }
-    if (Platform.isJvm) // TODO Scala.js behaves weird with floats
+    if (Platform.isJvm)
       test("Uri parameter convenience methods should set a parameter with a float values") {
         val ps = Map("param" -> List(1.2f, 2.1f))
         assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
@@ -1102,15 +1102,8 @@ class UriSpec extends Http4sSuite {
       forAll(pathGen) { (input: String) =>
         val prefix = "/this/isa/prefix/"
         val processed = Uri.removeDotSegments(Uri.Path.unsafeFromString(input)).renderString
-        try {
-          val path = Paths.get(prefix, processed).normalize
-          assert(path.startsWith(Paths.get(prefix)))
-        } catch {
-          case ex: UnsupportedOperationException
-              if ex.getMessage == "Path.normalize() is only supported in Node.js" =>
-          // Ignore
-          // TODO Would be nice to check for Node.js via Platform but this seems tricky in practice
-        }
+        val path = Paths.get(prefix, processed).normalize
+        assert(path.startsWith(Paths.get(prefix)))
         assert(!processed.contains("./"))
         assert(!processed.contains("../"))
       }

@@ -19,6 +19,7 @@ package server
 package middleware
 
 import org.http4s.crypto.Hmac
+import org.http4s.crypto.HmacKeyGen
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.SecretKey
 import org.http4s.crypto.SecretKeySpec
@@ -513,7 +514,7 @@ object CSRF {
 
   /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Async[F]): F[ByteVector] =
-    Hmac[F].generateKey(SigningAlgorithm).map { case SecretKeySpec(key, _) => key }
+    HmacKeyGen[F].generateKey(SigningAlgorithm).map { case SecretKeySpec(key, _) => key }
 
   /** Build a new HMACSHA1 Key for our CSRF Middleware
     * from key bytes. This operation is unsafe, in that

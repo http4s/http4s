@@ -32,6 +32,7 @@ import cats.kernel.Semigroup
 import cats.parse.{Parser0, Parser => P}
 import cats.syntax.all._
 import com.comcast.ip4s
+import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.charset.StandardCharsets
@@ -317,8 +318,8 @@ object Uri extends UriPlatform {
 
     override def hashCode(): Int = {
       var hash = segments.hashCode()
-      hash += 31 * absolute.hashCode
-      hash += 31 * endsWithSlash.hashCode
+      hash += 31 * absolute.hashCode()
+      hash += 31 * endsWithSlash.hashCode()
       hash
     }
 
@@ -612,8 +613,7 @@ object Uri extends UriPlatform {
   }
 
   final case class Ipv4Address(address: ip4s.Ipv4Address)
-      extends Ipv4AddressPlatform
-      with Host
+      extends Host
       with Ordered[Ipv4Address]
       with Serializable {
     override def toString: String = s"Ipv4Address($value)"
@@ -624,11 +624,14 @@ object Uri extends UriPlatform {
     def toByteArray: Array[Byte] =
       address.toBytes
 
+    def toInet4Address: Inet4Address =
+      address.toInetAddress
+
     def value: String =
       address.toString
   }
 
-  object Ipv4Address extends Ipv4AddressCompanionPlatform {
+  object Ipv4Address {
     def fromString(s: String): ParseResult[Ipv4Address] =
       ParseResult.fromParser(Parser.ipv4Address, "Invalid IPv4 Address")(s)
 
@@ -646,6 +649,9 @@ object Uri extends UriPlatform {
 
     def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Ipv4Address =
       apply(ip4s.Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
+
+    def fromInet4Address(address: Inet4Address): Ipv4Address =
+      apply(ip4s.Ipv4Address.fromInet4Address(address))
 
     implicit val http4sInstancesForIpv4Address: HttpCodec[Ipv4Address]
       with Order[Ipv4Address]
@@ -669,8 +675,7 @@ object Uri extends UriPlatform {
   }
 
   final case class Ipv6Address(address: ip4s.Ipv6Address)
-      extends Ipv6AddressPlatform
-      with Host
+      extends Host
       with Ordered[Ipv6Address]
       with Serializable {
     override def compare(that: Ipv6Address): Int =
@@ -679,11 +684,14 @@ object Uri extends UriPlatform {
     def toByteArray: Array[Byte] =
       address.toBytes
 
+    def toInetAddress: InetAddress =
+      address.toInetAddress
+
     def value: String =
       address.toString
   }
 
-  object Ipv6Address extends Ipv6AddressCompanionPlatform {
+  object Ipv6Address {
     def fromString(s: String): ParseResult[Ipv6Address] =
       ParseResult.fromParser(Parser.ipv6Address, "Invalid IPv6 address")(s)
 
@@ -698,6 +706,9 @@ object Uri extends UriPlatform {
           Left(
             ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}"))
       }
+
+    def fromInet6Address(address: Inet6Address): Ipv6Address =
+      apply(ip4s.Ipv6Address.fromInet6Address(address))
 
     def fromShorts(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
         : Ipv6Address = {

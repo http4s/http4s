@@ -34,6 +34,8 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
 
 import scala.concurrent.duration._
+import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
 import org.typelevel.vault.Key
 import _root_.org.http4s.websocket.WebSocketContext
 
@@ -69,7 +71,93 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         .evalTap(e => ready.complete(e.map(_._1)))
         .rethrow
         .flatMap(_._2)
+    serverInternal(
+      server,
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F],
+      true,
+      webSocketKey
+    )
+  }
 
+  def unixSocketServer[F[_]: Async](
+      unixSockets: UnixSockets[F],
+      unixSocketAddress: UnixSocketAddress,
+      deleteIfExists: Boolean,
+      deleteOnClose: Boolean,
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F],
+      webSocketKey: Key[WebSocketContext[F]]
+  ): Stream[F, Nothing] = {
+    val server =
+      // Our interface has an issue
+      Stream
+        .eval(
+          ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
+            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), Port.fromInt(0).get))
+          )
+        ) // Sketchy
+        .drain ++
+        unixSockets
+          .server(unixSocketAddress, deleteIfExists, deleteOnClose)
+
+    serverInternal(
+      server,
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F],
+      false,
+      webSocketKey
+    )
+  }
+
+  def serverInternal[F[_]: Async](
+      server: Stream[F, Socket[F]],
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      shutdown: Shutdown[F],
+      // Defaults
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F],
+      createRequestVault: Boolean,
+      webSocketKey: Key[WebSocketContext[F]]
+  ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
@@ -87,6 +175,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 httpApp,
                 errorHandler,
                 onWriteFailure,
+                createRequestVault,
                 webSocketKey
               ))
 
@@ -132,20 +221,24 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      socket: Socket[F])(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
+      socket: Socket[F],
+      createRequestVault: Boolean
+  )(implicit F: Temporal[F], D: Defer[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
     val parseWithHeaderTimeout = timeoutToMaybe(
       parse,
       requestHeaderReceiveTimeout,
-      F.raiseError[(Request[F], F[Option[Array[Byte]]])](new java.util.concurrent.TimeoutException(
-        s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout"))
+      D.defer(
+        F.raiseError[(Request[F], F[Option[Array[Byte]]])](
+          new java.util.concurrent.TimeoutException(
+            s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout")))
     )
 
     for {
       tmp <- parseWithHeaderTimeout
       (req, drain) = tmp
-      requestVault <- mkRequestVault(socket)
+      requestVault <- if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F]
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
@@ -188,6 +281,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[org.http4s.Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]]
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
@@ -219,7 +313,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               requestHeaderReceiveTimeout,
               httpApp,
               errorHandler,
-              socket)
+              socket,
+              createRequestVault
+            )
           }
 
           result.attempt.flatMap {
@@ -270,7 +366,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       .drain
   }
 
-  private def mkRequestVault[F[_]: Applicative](socket: Socket[F]) =
+  private def mkRequestVault[F[_]: Applicative](socket: Socket[F]): F[Vault] =
     (mkConnectionInfo(socket), mkSecureSession(socket)).mapN(_ ++ _)
 
   private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =

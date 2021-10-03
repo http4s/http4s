@@ -90,7 +90,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
-          case Protocol.HTTP_2 => HttpVersion.`HTTP/2.0`
+          case Protocol.HTTP_2 => HttpVersion.`HTTP/2`
           case Protocol.HTTP_1_1 => HttpVersion.`HTTP/1.1`
           case Protocol.HTTP_1_0 => HttpVersion.`HTTP/1.0`
           case _ => HttpVersion.`HTTP/1.1`
