@@ -21,6 +21,7 @@ import scala.collection.immutable
 
 trait BlazeClientState[F[_]] {
   def isClosed: F[Boolean]
+  def totalAllocations: F[Long]
   def allocated: F[immutable.Map[RequestKey, Int]]
   def idleQueueDepth: F[immutable.Map[RequestKey, Int]]
   def waitQueueDepth: F[Int]
