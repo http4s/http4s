@@ -213,29 +213,42 @@ private final class Http1Connection[F[_]](
               case t => F.delay(logger.error(t)("Error rendering request"))
             }
 
-          F.bracketCase(
-            writeRequest.start
-          )(writeFiber =>
-            receiveResponse(
-              mustClose,
-              doesntHaveBody = req.method == Method.HEAD,
-              cancellation.map(Left(_)),
-              idleRead
-              // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
-            ).map(response =>
-              Resource.make(F.pure(writeFiber))(writeFiber => {
-                logger.trace("Waiting for write to cancel")
-                writeFiber.cancel.map(_ => {
-                  logger.trace("write cancelled")
-                  ()
-                })
+          val idleTimeoutF: F[TimeoutException] = idleTimeoutStage match {
+            case Some(stage) => F.async[TimeoutException](stage.setTimeout)
+            case None => F.never[TimeoutException]
+          }
+
+          idleTimeoutF.start.flatMap { timeoutFiber =>
+
+            F.bracketCase(
+              writeRequest.start
+            )(writeFiber =>
+              receiveResponse(
+                mustClose,
+                doesntHaveBody = req.method == Method.HEAD,
+                cancellation.race(timeoutFiber.join).map(e => Left(e.merge)),
+                idleRead
+              ).map(response =>
+                // We need to stop writing before we attempt to recycle the connection.
+                Resource.make(F.pure(writeFiber))(writeFiber => {
+                  logger.trace("Waiting for write to cancel")
+                  writeFiber.cancel.map(_ => {
+                    logger.trace("write cancelled")
+                    ()
+                  })
+                }
+                ).as(response))) {
+              case (_, ExitCase.Completed) => F.unit
+              case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
+            }.race(timeoutFiber.join)
+              .flatMap {
+                case Left(r) =>
+                  F.pure(r)
+                case Right(t) =>
+                  F.raiseError(t)
               }
-              ).as(response))) {
-            case (_, ExitCase.Completed) => F.unit
-            case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
           }
         }
-
     }
   }
 

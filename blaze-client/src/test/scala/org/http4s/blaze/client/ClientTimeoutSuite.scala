@@ -33,10 +33,14 @@ import org.http4s.blazecore.{IdleTimeoutStage, QueueTestHead, SeqTestHead, SlowT
 import org.http4s.client.{Client, RequestKey}
 import org.http4s.syntax.all._
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class ClientTimeoutSuite extends Http4sSuite {
+
+  override def munitTimeout: Duration = new FiniteDuration(10, TimeUnit.SECONDS)
+
 
   def tickWheelFixture = ResourceFixture(
     Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
@@ -100,7 +104,7 @@ class ClientTimeoutSuite extends Http4sSuite {
 
   tickWheelFixture.test("Idle timeout on slow response") { tickWheel =>
     val tail = mkConnection(FooRequestKey, tickWheel, idleTimeout = 1.second)
-    val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
+    val h = new SlowTestHead(List(mkBuffer(resp)), 60.seconds, tickWheel)
     val c = mkClient(h, tail, tickWheel)()
 
     c.fetchAs[String](FooRequest).intercept[TimeoutException]
@@ -108,7 +112,7 @@ class ClientTimeoutSuite extends Http4sSuite {
 
   tickWheelFixture.test("Request timeout on slow response") { tickWheel =>
     val tail = mkConnection(FooRequestKey, tickWheel)
-    val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
+    val h = new SlowTestHead(List(mkBuffer(resp)), 60.seconds, tickWheel)
     val c = mkClient(h, tail, tickWheel)(requestTimeout = 1.second)
 
     c.fetchAs[String](FooRequest).intercept[TimeoutException]
@@ -154,7 +158,7 @@ class ClientTimeoutSuite extends Http4sSuite {
   }
 
   tickWheelFixture.test("Request timeout on slow response body") { tickWheel =>
-    val tail = mkConnection(FooRequestKey, tickWheel, idleTimeout = 10.second)
+    val tail = mkConnection(FooRequestKey, tickWheel)
     val (f, b) = resp.splitAt(resp.length - 1)
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
     val c = mkClient(h, tail, tickWheel)(requestTimeout = 1.second)
