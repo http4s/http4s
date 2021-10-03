@@ -1,7 +1,7 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.ScaladocApiMapping
+import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import laika.ast._
@@ -581,24 +581,6 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
-// This could move back to the Http4sPlugin that currently writes these values to a TOML file for Hugo
-lazy val variables: sbt.Def.Initialize[Map[String, String]] = sbt.Def.setting {
-  val (major, minor) = version.value match { // cannot use the existing http4sApiVersion as it is somehow defined as a task, not a setting
-    case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
-  }
-  val latestInSeries = latestPerMinorVersion(baseDirectory.value)
-    .map { case ((major, minor), v) => s"version.http4s.latest.$major.$minor" -> v.toString }
-  Map(
-    "version.http4s.api"     -> s"$major.$minor",
-    "version.http4s.current" -> version.value,
-    "version.http4s.doc"     -> docExampleVersion(version.value),
-    "version.circe"          -> circeJawn.value.revision,
-    "version.cryptobits"     -> cryptobits.revision
-  ) ++ latestInSeries
-}
-
-val LaikaCodeSubstitution = "(.*)@\\{(.*)}(.*)".r
-
 lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
@@ -638,45 +620,9 @@ lazy val docs = http4sProject("docs")
       if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
     },
-    laikaExtensions := Seq(
-      laika.markdown.github.GitHubFlavor,
-      laika.parse.code.SyntaxHighlighting,
-      laikaSpanRewriteRule {
-        // Laika currently does not do variable substitutions in code blocks, this serves as a temporary workaround.
-        // This will potentially be supported out of the box in the 0.19 series, but requires some significant work
-        // due to issues with processing order (variable substitutions normally run after highlighters which would
-        // be the wrong order - Laika's default variable substitution format `${...}` also conflicts with Scala code.
-        case CodeSpan(content, cats, opts) if cats.contains(CodeCategory.StringLiteral) => content match {
-          case LaikaCodeSubstitution(pre, varName, post) =>
-            val newNode = variables.value.get(varName).fold[Span](
-              InvalidSpan(s"Unknown variable: '$varName'", laika.parse.GeneratedSource)
-            ){ value => CodeSpan(pre + value + post, cats, opts) }
-            Replace(newNode)
-          case _ => Retain
-        }
-      }
-    ),
-    laikaConfig := {
-      laika.sbt.LaikaConfig(
-        configBuilder = laika.config.ConfigBuilder.empty
-          .withValue(laika.config.Key.root, variables.value)
-      )
-    },
-    laikaTheme := {
-      import laika.ast.LengthUnit._
-      laika.helium.Helium.defaults
-        .site.markupEditLinks(
-          text = "Edit this page",
-          baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc")
-        .site.layout(
-          contentWidth = px(860),
-          navigationWidth = px(275),
-          topBarHeight = px(35),
-          defaultBlockSpacing = px(10),
-          defaultLineHeight = 1.5,
-          anchorPlacement = laika.helium.config.AnchorPlacement.Right
-        )
-    }.build,
+    laikaExtensions := SiteConfig.extensions.value,
+    laikaConfig := SiteConfig.config.value,
+    laikaTheme := SiteConfig.theme,
     Laika / sourceDirectories := Seq(mdocOut.value),
     siteMappings := {
       val docsPrefix = extractDocsPrefix(version.value)
