@@ -29,7 +29,7 @@ import scala.concurrent.duration._
 class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   override def munitTimeout: Duration = new FiniteDuration(50, TimeUnit.SECONDS)
 
-  test("BlazeClient should the reuse connection after a simple successful request") {
+  test("BlazeClient should the reuse connection after a simple successful request".flaky) {
     val servers = makeServers()
     builder().resourceWithState.use { case (client, state) =>
       for {
@@ -53,7 +53,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient.status shouldn't wait for the response entity, but it may reuse the connection if the response entity was fully read nonetheless") {
+    "BlazeClient.status shouldn't wait for the response entity, but it may reuse the connection if the response entity was fully read nonetheless".flaky) {
     val servers = makeServers()
     builder().resourceWithState.use { case (client, state) =>
       for {
@@ -78,7 +78,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     }
   }
 
-  test("BlazeClient should reuse connection to different servers separately") {
+  test("BlazeClient should reuse connection to different servers separately".flaky) {
     val servers = makeServers()
     builder().resourceWithState.use { case (client, state) =>
       for {
@@ -94,7 +94,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
 
   //// Decoding failures ////
 
-  test("BlazeClient should reuse the connection after response decoding failed") {
+  test("BlazeClient should reuse the connection after response decoding failed".flaky) {
     // This will work regardless of whether we drain the entity or not,
     // because the response is small and it is read in full in first read operation
     val servers = makeServers()
@@ -142,7 +142,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
 
   //// Requests with an entity ////
 
-  test("BlazeClient should reuse the connection after a request with an entity") {
+  test("BlazeClient should reuse the connection after a request with an entity".flaky) {
     val servers = makeServers()
     builder().resourceWithState.use { case (client, state) =>
       for {
