@@ -129,7 +129,9 @@ import org.http4s.server.Router
 ```scala mdoc
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
-val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(httpApp)
+val serverBuilder = BlazeServerBuilder[IO](global)
+  .bindHttp(8080, "localhost")
+  .withHttpApp(httpApp)
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run

@@ -81,7 +81,8 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc:nest
-val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
+val hstsHeader = `Strict-Transport-Security`
+  .unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
 val hstsService = HSTS(service, hstsHeader)
 
 // Do not call 'unsafeRunSync' in your code

@@ -100,7 +100,8 @@ val service = {
 ```scala mdoc:silent:nest
 val middlewareWithFallThrough: AuthMiddleware[IO, User] =
   AuthMiddleware.withFallThrough(authUser)
-val service: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
+val service: HttpRoutes[IO] = 
+  middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
 ```
 
 * Reorder the routes so that authed routes compose last
@@ -127,7 +128,9 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```scala mdoc:silent:nest
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedRoutes[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.context)))
+val onFailure: AuthedRoutes[String, IO] = 
+  Kleisli(req => OptionT.liftF(Forbidden(req.context)))
+  
 val middleware = AuthMiddleware(authUser, onFailure)
 
 val service: HttpRoutes[IO] = middleware(authedRoutes)
@@ -157,12 +160,16 @@ The message is simply the user id.
 
 ```scala mdoc:silent
 import org.reactormonk.{CryptoBits, PrivateKey}
+import scala.io.Codec
+import scala.util.Random
 
-val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString("")))
+val key = PrivateKey(Codec.toUTF8(Random.alphanumeric.take(20).mkString("")))
 val crypto = CryptoBits(key)
 val clock = java.time.Clock.systemUTC
 
-def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
+// gotta figure out how to do the form
+def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? 
+
 val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
   verifyLogin(request: Request[IO]).flatMap(_ match {
     case Left(error) =>
@@ -183,10 +190,14 @@ import org.http4s.headers.Cookie
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
-    header <- request.headers.get[Cookie].toRight("Cookie parsing error")
-    cookie <- header.values.toList.find(_.name == "authcookie").toRight("Couldn't find the authcookie")
-    token <- crypto.validateSignedToken(cookie.content).toRight("Cookie invalid")
-    message <- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
+    header  <- request.headers.get[Cookie]
+                 .toRight("Cookie parsing error")
+    cookie  <- header.values.toList.find(_.name == "authcookie")
+                 .toRight("Couldn't find the authcookie")
+    token   <- crypto.validateSignedToken(cookie.content)
+                 .toRight("Cookie invalid")
+    message <- Either.catchOnly[NumberFormatException](token.toLong)
+                 .leftMap(_.toString)
   } yield message
   message.traverse(retrieveUser.run)
 })
@@ -204,9 +215,12 @@ import org.http4s.headers.Authorization
 
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
-    header <- request.headers.get[Authorization].toRight("Couldn't find an Authorization header")
-    token <- crypto.validateSignedToken(header.value).toRight("Invalid token")
-    message <- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
+    header  <- request.headers.get[Authorization]
+                 .toRight("Couldn't find an Authorization header")
+    token   <- crypto.validateSignedToken(header.value)
+                 .toRight("Invalid token")
+    message <- Either.catchOnly[NumberFormatException](token.toLong)
+                 .leftMap(_.toString)
   } yield message
   message.traverse(retrieveUser.run)
 })

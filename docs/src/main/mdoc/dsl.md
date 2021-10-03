@@ -148,7 +148,8 @@ import cats.data.NonEmptyList
 ```
 
 ```scala mdoc
-Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync().headers
+Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil)))
+  .unsafeRunSync().headers
 ```
 
 http4s defines all the well known headers directly, but sometimes you need to
@@ -156,7 +157,8 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand:
 
 ```scala mdoc
-Ok("Ok response.", "X-Auth-Token" -> "value").unsafeRunSync().headers
+Ok("Ok response.", "X-Auth-Token" -> "value")
+  .unsafeRunSync().headers
 ```
 
 ### Cookies
@@ -165,7 +167,8 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```scala mdoc
-Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync().headers
+Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar")))
+  .unsafeRunSync().headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
@@ -175,7 +178,8 @@ val cookieResp = {
   for {
     resp <- Ok("Ok response.")
     now <- HttpDate.current[IO]
-  } yield resp.addCookie(ResponseCookie("foo", "bar", expires = Some(now), httpOnly = true, secure = true))
+  } yield resp.addCookie(ResponseCookie("foo", "bar", 
+    expires = Some(now), httpOnly = true, secure = true))
 }
 cookieResp.unsafeRunSync().headers
 ```
@@ -283,7 +287,11 @@ val drip: Stream[IO, String] =
 We can see it for ourselves in the REPL:
 
 ```scala mdoc
-val dripOutIO = drip.through(fs2.text.lines).evalMap(s => {IO{println(s); s}}).compile.drain
+val dripOutIO = drip
+  .through(fs2.text.lines)
+  .evalMap(s => { IO{println(s); s} })
+  .compile
+  .drain
 dripOutIO.unsafeRunSync()
 ```
 
@@ -415,7 +423,8 @@ def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
 val dailyWeatherService = HttpRoutes.of[IO] {
   case GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
-    Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
+    Ok(getTemperatureForecast(localDate)
+      .map(s"The temperature on $localDate will be: " + _))
 }
 
 val req = GET(uri"/weather/temperature/2016-11-05")
@@ -441,7 +450,9 @@ val greetingService = HttpRoutes.of[IO] {
     Ok(s"Hello, $first $last.")
 }
 
-greetingService.orNotFound(GET(uri"/hello/name;first=john;last=doe/greeting")).unsafeRunSync()
+greetingService
+  .orNotFound(GET(uri"/hello/name;first=john;last=doe/greeting"))
+  .unsafeRunSync()
 ```
 
 Like standard path parameters, matrix path parameters can be extracted as numeric types using `IntVar` or `LongVar`.
@@ -454,7 +465,9 @@ val greetingWithIdService = HttpRoutes.of[IO] {
     Ok(s"Hello, $first $last. Your User ID is $id.")
 }
 
-greetingWithIdService.orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting")).unsafeRunSync()
+greetingWithIdService
+  .orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting"))
+  .unsafeRunSync()
 ```
 
 ### Handling Query Parameters
@@ -484,8 +497,9 @@ object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Double] = ???
 
 val averageTemperatureService = HttpRoutes.of[IO] {
-  case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
-    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
+  case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year) =>
+    Ok(getAverageTemperatureForCountryAndYear(country, year)
+      .map(s"Average temperature for $country in $year was: " + _))
 }
 ```
 
@@ -511,7 +525,8 @@ import java.time.Year
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
 
-object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Year]("year")
+object OptionalYearQueryParamMatcher 
+  extends OptionalQueryParamDecoderMatcher[Year]("year")
 
 def getAverageTemperatureForCurrentYear: IO[String] = ???
 def getAverageTemperatureForYear(y: Year): IO[String] = ???
@@ -537,7 +552,10 @@ To validate query parsing you can use `ValidatingQueryParamDecoderMatcher` which
 
 ```scala mdoc:nest
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
-  QueryParamDecoder[Int].emap(i => Try(Year.of(i)).toEither.leftMap(t => ParseFailure(t.getMessage, t.getMessage)))
+  QueryParamDecoder[Int]
+    .emap(i => Try(Year.of(i))
+    .toEither
+    .leftMap(t => ParseFailure(t.getMessage, t.getMessage)))
 
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
 

@@ -92,7 +92,8 @@ class TWStream[F[_]: Async] {
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
    */
-  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
+  def sign(consumerKey: String, consumerSecret: String, 
+           accessToken: String, accessSecret: String)
           (req: Request[F]): F[Request[F]] = {
     val consumer = Consumer(consumerKey, consumerSecret)
     val token    = Token(accessToken, accessSecret)
@@ -110,8 +111,9 @@ class TWStream[F[_]: Async] {
    * `parseJsonStream` the `Response[F]`.
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
-            (req: Request[F]): Stream[F, Json] =
+  def jsonStream(consumerKey: String, consumerSecret: String, 
+                 accessToken: String, accessSecret: String)
+                (req: Request[F]): Stream[F, Json] =
     for {
       client <- BlazeClientBuilder(global).stream
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
@@ -124,8 +126,10 @@ class TWStream[F[_]: Async] {
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
   val stream: Stream[F, Unit] = {
-    val req = Request[F](Method.GET, uri"https://stream.twitter.com/1.1/statuses/sample.json")
-    val s   = jsonStream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
+    val req = Request[F](Method.GET, 
+                uri"https://stream.twitter.com/1.1/statuses/sample.json")
+    val s   = jsonStream("<consumerKey>", "<consumerSecret>", 
+                "<accessToken>", "<accessSecret>")(req)
     s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout)
   }
 

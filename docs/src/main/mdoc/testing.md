@@ -58,7 +58,8 @@ def check[A](actual:        IO[Response[IO]],
    val actualResp         = actual.unsafeRunSync()
    val statusCheck        = actualResp.status == expectedStatus 
    val bodyCheck          = expectedBody.fold[Boolean](
-       actualResp.body.compile.toVector.unsafeRunSync().isEmpty)( // Verify Response's body is empty.
+       // Verify Response's body is empty.
+       actualResp.body.compile.toVector.unsafeRunSync().isEmpty)(
        expected => actualResp.as[A].unsafeRunSync() == expected
    )
    statusCheck && bodyCheck   
@@ -103,7 +104,8 @@ Finally, let's pass a `Request` which our service does not handle.
 
 ```scala mdoc:nest
 val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
-  def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException("Should not get called!"))
+  def find(id: String): IO[Option[User]] = 
+    IO.raiseError(new RuntimeException("Should not get called!"))
 } 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(

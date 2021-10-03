@@ -86,9 +86,12 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```scala mdoc
-val googleGet = Request[IO](Method.GET, uri"/", headers = Headers("Origin" -> "https://google.com"))
-val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers("Origin" -> "https://yahoo.com"))
-val duckPost = Request[IO](Method.POST, uri"/", headers = Headers("Origin" -> "https://duckduckgo.com"))
+val googleGet = Request[IO](Method.GET, uri"/", 
+  headers = Headers("Origin" -> "https://google.com"))
+val yahooPut = Request[IO](Method.PUT, uri"/", 
+  headers = Headers("Origin" -> "https://yahoo.com"))
+val duckPost = Request[IO](Method.POST, uri"/", 
+  headers = Headers("Origin" -> "https://duckduckgo.com"))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`

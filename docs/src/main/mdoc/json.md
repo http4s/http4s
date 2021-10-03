@@ -242,10 +242,14 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080).withHttpApp(jsonApp).resource
+val server = BlazeServerBuilder[IO](global)
+  .bindHttp(8080)
+  .withHttpApp(jsonApp)
+  .resource
 
 // This is typically provided by IOApp
-implicit val runtime: cats.effect.unsafe.IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val runtime: cats.effect.unsafe.IORuntime = 
+  cats.effect.unsafe.IORuntime.global
 
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```

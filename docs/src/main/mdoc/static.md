@@ -85,8 +85,10 @@ only files matching a list of extensions are served. Append to the `List` as nee
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
+val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
+
 val routes = HttpRoutes.of[IO] {
-  case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
+  case request @ GET -> Root / path if fileTypes.exists(path.endsWith) =>
     static(path, request)
 }
 ```
@@ -113,7 +115,9 @@ import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO].withWebjarAssetFilter(isJsAsset).toRoutes
+val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO]
+  .withWebjarAssetFilter(isJsAsset)
+  .toRoutes
 ```
 
 Assuming that the service is mounted as root on port `8080`, and you included the webjar `swagger-ui-3.20.9.jar` on your classpath, you would reach the assets with the path: `http://localhost:8080/swagger-ui/3.20.9/index.html`

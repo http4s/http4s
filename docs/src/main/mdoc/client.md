@@ -49,7 +49,10 @@ val app = HttpRoutes.of[IO] {
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(app).resource
+val server = BlazeServerBuilder[IO](global)
+  .bindHttp(8080, "localhost")
+  .withHttpApp(app)
+  .resource
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
@@ -235,7 +238,8 @@ import com.codahale.metrics.SharedMetricRegistries
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient = Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+val meteredClient = 
+  Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
 A `classifier` is just a function `Request[F] => Option[String]` that allows
