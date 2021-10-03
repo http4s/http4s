@@ -313,8 +313,8 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   val http4sGenMediaRangeExtensions: Gen[Map[String, String]] =
     Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
 
-  implicit val http4sArbitraryMediaType: Arbitrary[MediaType] =
-    Arbitrary(oneOf(MediaType.all.values.toSeq))
+  val http4sGenMediaType: Gen[MediaType] = oneOf(MediaType.all.values.toSeq)
+  implicit val http4sArbitraryMediaType: Arbitrary[MediaType] = Arbitrary(http4sGenMediaType)
 
   implicit val http4sTestingCogenForMediaType: Cogen[MediaType] =
     Cogen[(String, String, Map[String, String])].contramap(m =>
@@ -1029,4 +1029,10 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
   }
   val dntGen = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
   implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
+
+  implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
+    for {
+      values <- listOf(http4sGenMediaType)
+    } yield headers.`Accept-Post`(values)
+  }
 }
