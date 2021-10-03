@@ -120,17 +120,17 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
     requestTimeout match {
       case d: FiniteDuration =>
         F.cancelable[TimeoutException] { cb =>
-          println("scheduling request timeout")
+//          println("scheduling request timeout")
           val c = scheduler.schedule (
             () => {
-              println("request timeout happened")
+//              println("request timeout happened")
               cb(Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
             },
             ec,
             d
           )
-          F.delay{println("cancel"); c.cancel()}
-        }.background.map(_.guaranteeCase(caze => F.delay(println(caze.toString))))
+          F.delay{/*println("cancel");*/ c.cancel()}
+        }.background//.map(_.guaranteeCase(caze => F.delay(println(caze.toString))))
       case _ => Resource.pure[F, F[TimeoutException]](F.never)
     }
 

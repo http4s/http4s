@@ -41,7 +41,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient should reuse the connection after a successful request with large response".fail) {
+    "BlazeClient should reuse the connection after a successful request with large response") {
     val servers = makeServers()
     builder().resourceWithState.use { case (client, state) =>
       for {
@@ -109,7 +109,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient should reuse the connection after response decoding failed and the (large) entity was drained".fail) {
+    "BlazeClient should reuse the connection after response decoding failed and the (large) entity was drained") {
     val servers = makeServers()
     val drainThenFail = EntityDecoder.error[IO, String](new Exception())
     builder().resourceWithState.use { case (client, state) =>
@@ -170,7 +170,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
 
   //// Load tests ////
 
-  test("BlazeClient should keep reusing connections even when under heavy load".fail) {
+  test("BlazeClient should keep reusing connections even when under heavy load") {
     val servers = makeServers()
     builder().resourceWithState
       .use { case (client, state) =>
