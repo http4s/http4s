@@ -8,6 +8,65 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.6
+
+This is a routine maintenance release.  It is binary compatible with v0.22.5 and includes the changes in v0.21.30.
+
+## http4s-core
+
+### Enhancements
+
+* [#5189](https://github.com/http4s/http4s/pull/5189): Add `Order[HttpDate]` and `Hash[HttpDate]` instance
+* [#5265](https://github.com/http4s/http4s/pull/5265): Add `Ordering[QValue]` instance
+* [#5279](https://github.com/http4s/http4s/pull/5279): Add constants for `HTTP/3`, `HTTP/2` (deprecating `HTTP/2.0`), and `HTTP/0.9`.
+* [#5294](https://github.com/http4s/http4s/pull/5294): Implement `DNT` header
+* [#5296](https://github.com/http4s/http4s/pull/5296): Add `Accept-Post` header
+
+### Deprecation
+
+* [#5260](https://github.com/http4s/http4s/pull/5260): Deprecate `HttpVersion#copy`, which circumvents validation and could create out-of-bounds HTTP protocol versions.
+* [#5253](https://github.com/http4s/http4s/pull/5253): Deprecate custom status reason phrases.  They are a security risk for something that not all backends support and the spec does not require us to support.
+
+### Notable refactoring
+
+* [#5139](https://github.com/http4s/http4s/pull/5139): Add dependency on new `http4s-crypto` library, which abstracts the target platform.  All of its uses should be internal.  Scala.js support is added in later branches, but this aids maintenance.
+* [#5308](https://github.com/http4s/http4s/pull/5308): Use `Uri.unsafeFromString` in `Uri` literal macro to ease WartRemover usage.
+
+## http4s-laws
+
+### Deprecation
+
+* [#5274](https://github.com/http4s/http4s/pull/5274): Deprecate `ArbitraryInstances`, which was redundant with the `arbitrary` object.  The latter is packaged consistently with Cats' arbitraries.
+
+## http4s-blaze-client
+
+### Semantic change
+
+* [#5032](https://github.com/http4s/http4s/pull/5032): Wrap `EOF` when borrowing a dead connection in a `java.net.SocketException` with information on which host failed.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#5271](https://github.com/http4s/http4s/pull/5271): Eliminate exception allocation on the parser hot path
+* [#5290](https://github.com/http4s/http4s/pull/5290): Retry on `IOException` with `"Connection reset by peer"` or `"Broken pipe"` in the message
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#5271](https://github.com/http4s/http4s/pull/5271): Eliminate exception allocation on the parser hot path
+
+## Dependency updates
+
+* ip4s-2.0.4
+* jetty-9.4.44.v20210927
+* metrics-4.2.4
+* munit-cats-effect-1.0.6
+* okhttp-4.9.2
+* scodec-bits-1.2.29
+* tomcat-9.0.54
+
 # v0.22.5 (2021-09-21)
 
 This release contains important security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the v0.22.4, and forward-merges 0.21.29.
