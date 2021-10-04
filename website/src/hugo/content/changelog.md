@@ -46,7 +46,7 @@ Scala.js support is backported for a large subset of the modules present in 1.0.
 
 ### Bug fixes
 
-* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, compbined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
+* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, combined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
 
 ## http4s-blaze-client
 
@@ -64,7 +64,7 @@ Scala.js support is backported for a large subset of the modules present in 1.0.
 
 ### Bug fixes
 
-* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, compbined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
+* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, combined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
 
 ## http4s-ember-client
 
