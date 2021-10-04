@@ -18,6 +18,8 @@ package org.http4s
 package blazecore
 
 import cats.effect.Async
+import cats.effect.concurrent.Deferred
+import cats.implicits._
 import org.http4s.blaze.util.Execution.directec
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -48,5 +50,15 @@ package object util {
           }
       }
     }
+
+  // TODO try optimising it
+  private[http4s] def fromFutureNoShift2[F[_], A](f: F[Future[A]])(implicit F: Async[F]): F[A] =
+    evenMoreUncancelable(fromFutureNoShift(f))
+
+  private def evenMoreUncancelable[F[_], A](fa: F[A])(implicit F: Async[F]): F[A] = for {
+    da <- Deferred.uncancelable[F, A]
+    _ <- F.bracket(F.unit)(_ => F.unit)(_ => fa.flatMap(da.complete))
+    a <- da.get
+  } yield a
 
 }

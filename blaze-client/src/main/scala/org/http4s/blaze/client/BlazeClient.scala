@@ -18,7 +18,6 @@ package org.http4s
 package blaze
 package client
 
-
 import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.implicits._
@@ -70,12 +69,13 @@ object BlazeClient {
     new BlazeClient[F, A](manager, responseHeaderTimeout, requestTimeout, scheduler, ec)
 }
 
-private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionManager[F, A],
-                  responseHeaderTimeout: Duration,
-                  requestTimeout: Duration,
-                  scheduler: TickWheelExecutor,
-                  ec: ExecutionContext
-                 )(implicit F: ConcurrentEffect[F]) extends DefaultClient[F]{
+private class BlazeClient[F[_], A <: BlazeConnection[F]](
+    manager: ConnectionManager[F, A],
+    responseHeaderTimeout: Duration,
+    requestTimeout: Duration,
+    scheduler: TickWheelExecutor,
+    ec: ExecutionContext)(implicit F: ConcurrentEffect[F])
+    extends DefaultClient[F] {
 
   override def run(req: Request[F]): Resource[F, Response[F]] = for {
     _ <- Resource.pure[F, Unit](())
@@ -98,7 +98,8 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
 
   private def borrowConnection(key: RequestKey): Resource[F, A] =
     Resource.makeCase(manager.borrow(key).map(_.connection)) {
-      case (conn, ExitCase.Canceled) => manager.invalidate(conn) // TODO why can't we just release and let the pool figure it out?
+      case (conn, ExitCase.Canceled) =>
+        manager.invalidate(conn) // TODO why can't we just release and let the pool figure it out?
       case (conn, _) => manager.release(conn)
     }
 
@@ -106,12 +107,13 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
     responseHeaderTimeout match {
       case d: FiniteDuration =>
         Resource.apply(
-          Deferred[F, Either[Throwable, TimeoutException]].flatMap(timeout => F.delay {
-            val stage = new ResponseHeaderTimeoutStage[ByteBuffer](d, scheduler, ec)
-            conn.spliceBefore(stage)
-            stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
-            (timeout.get.rethrow, F.delay(stage.removeStage()))
-          })
+          Deferred[F, Either[Throwable, TimeoutException]].flatMap(timeout =>
+            F.delay {
+              val stage = new ResponseHeaderTimeoutStage[ByteBuffer](d, scheduler, ec)
+              conn.spliceBefore(stage)
+              stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
+              (timeout.get.rethrow, F.delay(stage.removeStage()))
+            })
         )
       case _ => Resource.pure[F, F[TimeoutException]](F.never)
     }
@@ -120,20 +122,24 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](manager: ConnectionMana
     requestTimeout match {
       case d: FiniteDuration =>
         F.cancelable[TimeoutException] { cb =>
-          val c = scheduler.schedule (
-            () => {
-              cb(Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
-            },
+          val c = scheduler.schedule(
+            () =>
+              cb(Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms"))),
             ec,
             d
           )
-          F.delay{c.cancel()}
+          F.delay(c.cancel())
         }.background
       case _ => Resource.pure[F, F[TimeoutException]](F.never)
     }
 
-  private def runRequest(conn: A, req: Request[F], timeout: F[TimeoutException]): F[Resource[F, Response[F]]] =
-    conn.runRequest(req, timeout)
-      .race(timeout.flatMap(F.raiseError[Resource[F, Response[F]]](_))).map(_.merge)
+  private def runRequest(
+      conn: A,
+      req: Request[F],
+      timeout: F[TimeoutException]): F[Resource[F, Response[F]]] =
+    conn
+      .runRequest(req, timeout)
+      .race(timeout.flatMap(F.raiseError[Resource[F, Response[F]]](_)))
+      .map(_.merge)
 
 }

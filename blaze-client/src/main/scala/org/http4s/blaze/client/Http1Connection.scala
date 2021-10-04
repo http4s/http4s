@@ -219,7 +219,6 @@ private final class Http1Connection[F[_]](
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
-
             F.bracketCase(
               writeRequest.start
             )(writeFiber =>
@@ -230,14 +229,15 @@ private final class Http1Connection[F[_]](
                 idleRead
               ).map(response =>
                 // We need to stop writing before we attempt to recycle the connection.
-                Resource.make(F.pure(writeFiber))(writeFiber => {
-                  logger.trace("Waiting for write to cancel")
-                  writeFiber.cancel.map(_ => {
-                    logger.trace("write cancelled")
-                    ()
-                  })
-                }
-                ).as(response))) {
+                Resource
+                  .make(F.pure(writeFiber)) { writeFiber =>
+                    logger.trace("Waiting for write to cancel")
+                    writeFiber.cancel.map { _ =>
+                      logger.trace("write cancelled")
+                      ()
+                    }
+                  }
+                  .as(response))) {
               case (_, ExitCase.Completed) => F.unit
               case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
             }.race(timeoutFiber.join)
