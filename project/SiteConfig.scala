@@ -3,8 +3,9 @@ package org.http4s.sbt
 import laika.ast.LengthUnit._
 import laika.ast._
 import laika.bundle.ExtensionBundle
-import laika.config.{ConfigBuilder, LaikaKeys}
+import laika.config.{ConfigBuilder, Key, LaikaKeys}
 import laika.helium.Helium
+import laika.helium.config.{HeliumIcon, IconLink}
 import laika.parse.code.CodeCategory
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
@@ -76,9 +77,9 @@ object SiteConfig {
   }
 
   def config (versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
-    laika.sbt.LaikaConfig(
+    LaikaConfig(
       configBuilder = ConfigBuilder.empty
-        .withValue(laika.config.Key.root, variables.value)
+        .withValue(Key.root, variables.value)
         .withValue(LaikaKeys.versioned, versioned)
     )
   }
@@ -88,23 +89,31 @@ object SiteConfig {
       text = "Edit this page",
       baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc")
     .site.layout(
-      contentWidth = px(860),
-      navigationWidth = px(275),
-      topBarHeight = px(35),
+      contentWidth        = px(860),
+      navigationWidth     = px(275),
+      topBarHeight        = px(35),
       defaultBlockSpacing = px(10),
-      defaultLineHeight = 1.5,
-      anchorPlacement = laika.helium.config.AnchorPlacement.Right
+      defaultLineHeight   = 1.5,
+      anchorPlacement     = laika.helium.config.AnchorPlacement.Right
     )
     .site.themeColors(
-      primary = Color.hex("5B7980"),
-      secondary = Color.hex("cc6600"),
+      primary       = Color.hex("5B7980"),
+      secondary     = Color.hex("cc6600"),
       primaryMedium = Color.hex("a7d4de"),
-      primaryLight = Color.hex("e9f1f2"),
-      text = Color.hex("5f5f5f"),
-      background = Color.hex("ffffff"),
-      bgGradient = (Color.hex("095269"), Color.hex("007c99"))
+      primaryLight  = Color.hex("e9f1f2"),
+      text          = Color.hex("5f5f5f"),
+      background    = Color.hex("ffffff"),
+      bgGradient    = (Color.hex("5B7980"), Color.hex("a7d4de"))
     )
     .site.darkMode.disabled
+    .site.topNavigationBar(
+      homeLink = IconLink.external("../", HeliumIcon.home),
+      navLinks = Seq(
+        IconLink.external("https://github.com/http4s/http4s", HeliumIcon.github, options = Styles("svg-link")),
+        IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
+        IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter)
+      )
+    )
     .site.versions(versions.config(currentVersion))
     .build
 }
