@@ -623,6 +623,7 @@ lazy val docs = http4sProject("docs")
     laikaExtensions := SiteConfig.extensions.value,
     laikaConfig := SiteConfig.config.value,
     laikaTheme := SiteConfig.theme,
+    laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
     siteMappings := {
       val docsPrefix = extractDocsPrefix(version.value)

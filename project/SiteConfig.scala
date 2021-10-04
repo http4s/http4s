@@ -5,10 +5,12 @@ import laika.ast._
 import laika.bundle.ExtensionBundle
 import laika.config.ConfigBuilder
 import laika.helium.Helium
+import laika.helium.config.ThemeColors
 import laika.parse.code.CodeCategory
 import laika.sbt.LaikaConfig
 import laika.sbt.LaikaPlugin.autoImport.laikaSpanRewriteRule
 import laika.theme.ThemeProvider
+import laika.theme.config.Color
 import org.http4s.sbt.Http4sPlugin.{circeJawn, cryptobits, docExampleVersion, latestPerMinorVersion}
 import sbt.Keys.{baseDirectory, version}
 import sbt.librarymanagement.VersionNumber
@@ -73,5 +75,15 @@ object SiteConfig {
       defaultLineHeight = 1.5,
       anchorPlacement = laika.helium.config.AnchorPlacement.Right
     )
+    .site.themeColors(
+      primary = Color.hex("5B7980"),
+      secondary = Color.hex("cc6600"),
+      primaryMedium = Color.hex("a7d4de"),
+      primaryLight = Color.hex("e9f1f2"),
+      text = Color.hex("5f5f5f"),
+      background = Color.hex("ffffff"),
+      bgGradient = (Color.hex("095269"), Color.hex("007c99"))
+    )
+    .site.darkMode.disabled
     .build
 }
