@@ -76,12 +76,6 @@ Scala.js support is backported for a large subset of the modules present in 1.0.
 
 * [#5219](https://github.com/http4s/http4s/pull/5219): Add support for Unix sockets.  This works on Linux and Darwin, but not on Windows.  Use the new `UnixSocket` middleware to route requests to an `fs2.io.net.unixsocket.UnixSocketAddress`.
 
-## http4s-node-serverless
-
-### Cross Builds
-
-* [#5298](https://github.com/http4s/http4s/pull/5298): New module in the 0.23 series.
-
 ## Dependency versions
 
 * fs2-3.1.3
