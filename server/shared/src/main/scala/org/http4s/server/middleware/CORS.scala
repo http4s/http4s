@@ -332,17 +332,6 @@ sealed class CORSPolicy(
             .some
       }
 
-    val someAllowHeadersSpecificHeader =
-      allowHeaders match {
-        case AllowHeaders.All | AllowHeaders.Reflect => None
-        case AllowHeaders.In(headers) =>
-          Header
-            .Raw(
-              Header[`Access-Control-Allow-Headers`].name,
-              headers.map(_.toString).mkString(", "))
-            .some
-      }
-
     val maxAgeHeader =
       maxAge match {
         case MaxAge.Some(deltaSeconds) =>
@@ -470,10 +459,11 @@ sealed class CORSPolicy(
           else
             None
         case AllowHeaders.In(allowedHeaders) =>
-          if ((headers -- allowedHeaders).isEmpty)
-            someAllowHeadersSpecificHeader
-          else
-            None
+          Header
+            .Raw(
+              Header[`Access-Control-Allow-Headers`].name,
+              allowedHeaders.map(_.toString).mkString(", "))
+            .some
         case AllowHeaders.Reflect =>
           Header.Raw(Header[`Access-Control-Allow-Headers`].name, headers.mkString(", ")).some
       }

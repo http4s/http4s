@@ -556,7 +556,7 @@ class CORSSuite extends Http4sSuite {
       .run(preflightReq.putHeaders(
         Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")))
       .map { resp =>
-        assertAllowHeaders(resp, None)
+        assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
         assertVary(
           resp,
           Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
