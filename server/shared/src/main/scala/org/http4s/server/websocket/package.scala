@@ -31,4 +31,10 @@ package object websocket {
     "0.23.5")
   def websocketKey[F[_]]: Key[WebSocketContext[F]] =
     Keys.WebSocket.asInstanceOf[Key[WebSocketContext[F]]]
+
+  @deprecated("Renamed to WebSocketBuilder", "1.0.0-M28")
+  type WebSocketBuilder2[F[_]] = WebSocketBuilder[F]
+
+  @deprecated("Renamed to WebSocketBuilder", "1.0.0-M28")
+  val WebSocketBuilder2 = WebSocketBuilder
 }
