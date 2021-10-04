@@ -1036,4 +1036,18 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  implicit val http4sTestingArbitraryForSiteData: Arbitrary[SiteData] =
+    Arbitrary(
+      Gen.oneOf(
+        SiteData.`*`,
+        SiteData.cache,
+        SiteData.cookies,
+        SiteData.storage,
+        SiteData.executionContexts
+      )
+    )
+
+  implicit val http4sTestingArbitraryForClearSiteData: Arbitrary[`Clear-Site-Data`] =
+    Arbitrary(getArbitrary[NonEmptyList[SiteData]].flatMap(`Clear-Site-Data`(_)))
 }
