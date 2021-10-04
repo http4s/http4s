@@ -3,10 +3,10 @@ package org.http4s.sbt
 import laika.ast.LengthUnit._
 import laika.ast._
 import laika.bundle.ExtensionBundle
-import laika.config.ConfigBuilder
+import laika.config.{ConfigBuilder, LaikaKeys}
 import laika.helium.Helium
-import laika.helium.config.ThemeColors
 import laika.parse.code.CodeCategory
+import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
 import laika.sbt.LaikaPlugin.autoImport.laikaSpanRewriteRule
 import laika.theme.ThemeProvider
@@ -16,6 +16,25 @@ import sbt.Keys.{baseDirectory, version}
 import sbt.librarymanagement.VersionNumber
 
 object SiteConfig {
+
+  object versions {
+
+    private def version(version: String, label: String): Version =
+      Version(version, "v" + version, "/index.html", Some(label))
+
+    val v1_0: Version  = version("1.0", "Dev")
+    val v0_23: Version = version("0.23", "Stable")
+    val v0_22: Version = version("0.22", "Stable")
+    val v0_21: Version = version("0.21", "EOL")
+
+    private val all = Seq(v1_0, v0_23, v0_22, v0_21)
+
+    def config (current: Version): Versions = Versions(
+      currentVersion = current,
+      olderVersions = all.dropWhile(_ != current).drop(1),
+      newerVersions = all.takeWhile(_ != current)
+    )
+  }
 
   // This could move back to the Http4sPlugin that currently writes these values to a TOML file for Hugo
   lazy val variables: sbt.Def.Initialize[Map[String, String]] = sbt.Def.setting {
@@ -56,14 +75,15 @@ object SiteConfig {
     )
   }
 
-  lazy val config: sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
+  def config (versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
     laika.sbt.LaikaConfig(
       configBuilder = ConfigBuilder.empty
         .withValue(laika.config.Key.root, variables.value)
+        .withValue(LaikaKeys.versioned, versioned)
     )
   }
 
-  val theme: ThemeProvider = Helium.defaults
+  def theme (currentVersion: Version): ThemeProvider = Helium.defaults
     .site.markupEditLinks(
       text = "Edit this page",
       baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc")
@@ -85,5 +105,6 @@ object SiteConfig {
       bgGradient = (Color.hex("095269"), Color.hex("007c99"))
     )
     .site.darkMode.disabled
+    .site.versions(versions.config(currentVersion))
     .build
 }
