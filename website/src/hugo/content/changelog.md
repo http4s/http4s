@@ -8,6 +8,85 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.5
+
+This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.5.
+
+Scala.js support is backported for a large subset of the modules present in 1.0.
+
+## http4s-core
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+### Deprecations
+
+* [#5226](https://github.com/http4s/http4s/pull/5226): Migrate to the `fs2.io.file` APIs in `EntityDecoder`, `StaticFile`, and `Part`.
+
+## http4s-laws
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+## http4s-client
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+## http4s-server
+
+### Deprecations
+
+* [#5226](https://github.com/http4s/http4s/pull/5226): Migrate to the `fs2.io.file` APIs in `FileService`.
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, compbined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
+
+## http4s-blaze-client
+
+### Enhancements
+
+* [#5201](https://github.com/http4s/http4s/pull/5201): Adds an `BlazeClientBuilder.apply` method that uses the `ExecutionContext` from the `Async[F]` instance.  The old constructor that required an explicit `ExecutionContext` is now deprecated.  Users who need a custom `ExecutionContext` for blaze should call `withExecutionContext`.
+
+## http4s-ember-core
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+## http4s-ember-server
+
+### Bug fixes
+
+* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, compbined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
+
+## http4s-ember-client
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+### Enhancements
+
+* [#5219](https://github.com/http4s/http4s/pull/5219): Add support for Unix sockets.  This works on Linux and Darwin, but not on Windows.  Use the new `UnixSocket` middleware to route requests to an `fs2.io.net.unixsocket.UnixSocketAddress`.
+
+## http4s-node-serverless
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): New module in the 0.23 series.
+
+## Dependency versions
+
+* fs2-3.1.3
+* ip4s-3.0.4
+
 # v0.23.4 (2021-09-21)
 
 This release includes security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with v0.22.4, and forward-merges 0.22.5.
