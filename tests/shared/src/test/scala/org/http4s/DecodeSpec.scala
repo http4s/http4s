@@ -93,26 +93,6 @@ class DecodeSpec extends Http4sSuite {
     decoded == Right("")
   }
 
-  test("decode should handle malformed input") {
-    // Not a valid first byte in UTF-8
-    val source = Stream(0x80.toByte)
-    val decoded = source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
-    assert(decoded match {
-      case Left(_: MalformedInputException) => true
-      case _ => false
-    })
-  }
-
-  test("decode should handle incomplete input") {
-    // Only the first byte of a two-byte UTF-8 sequence
-    val source = Stream(0xc2.toByte)
-    val decoded = source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
-    assert(decoded match {
-      case Left(_: MalformedInputException) => true
-      case _ => false
-    })
-  }
-
   if (Platform.isJvm)
     test("decode should handle unmappable character") {
       // https://stackoverflow.com/a/22902806
@@ -131,7 +111,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(-36.toByte)
       val decoded =
         source.through(decodeWithCharset[Fallible](JCharset.forName("x-ISCII91"))).compile.string
-      assert(decoded == Right("ी"))
+      assertEquals(decoded, Right("ी"))
     }
 
   if (Platform.isJvm)
@@ -148,19 +128,21 @@ class DecodeSpec extends Http4sSuite {
 
   test("decode stream result should be consistent with nio's decode on full stream") {
     forAll { (bs: Array[Byte], cs: Charset) =>
-      val referenceDecoder = cs.nioCharset
-        .newDecoder()
-        // setting these to be consistent with our decoder's behavior
-        // note that java.nio.charset.Charset.decode and fs2's utf8.decode
-        // will replace character instead of raising exception
-        .onMalformedInput(CodingErrorAction.REPORT)
-        .onUnmappableCharacter(CodingErrorAction.REPORT)
+      (cs != Charset.`UTF-8`) ==> {
+        val referenceDecoder = cs.nioCharset
+          .newDecoder()
+          // setting these to be consistent with our decoder's behavior
+          // note that java.nio.charset.Charset.decode and fs2's utf8.decode
+          // will replace character instead of raising exception
+          .onMalformedInput(CodingErrorAction.REPORT)
+          .onUnmappableCharacter(CodingErrorAction.REPORT)
 
-      val referenceResult = Try(referenceDecoder.decode(ByteBuffer.wrap(bs)).toString).toEither
-      val source = Stream.emits(bs)
-      val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.foldMonoid
-      // Ignoring the actual exception type
-      assertEquals(decoded.toOption, referenceResult.toOption)
+        val referenceResult = Try(referenceDecoder.decode(ByteBuffer.wrap(bs)).toString).toEither
+        val source = Stream.emits(bs)
+        val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.foldMonoid
+        // Ignoring the actual exception type
+        assertEquals(decoded.toOption, referenceResult.toOption)
+      }
     }
   }
 }
