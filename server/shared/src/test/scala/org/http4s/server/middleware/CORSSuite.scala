@@ -614,9 +614,7 @@ class CORSSuite extends Http4sSuite {
       .run(preflightReq)
       .map { resp =>
         assertAllowHeaders(resp, None)
-        assertVary(
-          resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
       }
   }
 
@@ -628,9 +626,7 @@ class CORSSuite extends Http4sSuite {
       .run(preflightReq)
       .map { resp =>
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite, X-Cors-Suite-2"))
-        assertVary(
-          resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
       }
   }
 
@@ -644,9 +640,7 @@ class CORSSuite extends Http4sSuite {
         Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")))
       .map { resp =>
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
-        assertVary(
-          resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
       }
   }
 
@@ -659,9 +653,7 @@ class CORSSuite extends Http4sSuite {
         preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1")))
       .map { resp =>
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
-        assertVary(
-          resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
       }
   }
 

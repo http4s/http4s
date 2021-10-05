@@ -360,8 +360,8 @@ sealed class CORSPolicy(
         case AllowMethods.In(_) => List(Header[`Access-Control-Request-Method`].name)
       }
       def headers = allowHeaders match {
-        case AllowHeaders.All => Nil
-        case AllowHeaders.In(_) | AllowHeaders.Reflect | AllowHeaders.Static(_) =>
+        case AllowHeaders.All | AllowHeaders.Static(_) => Nil
+        case AllowHeaders.In(_) | AllowHeaders.Reflect =>
           List(ci"Access-Control-Request-Headers")
       }
       (origin ++ methods ++ headers) match {
