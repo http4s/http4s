@@ -24,6 +24,7 @@ import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
+import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
 import org.http4s._
 import org.http4s.ember.core.Util._
 import org.http4s.headers.Connection
@@ -32,15 +33,15 @@ import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
 import org.http4s.headers.Date
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.{SecureSession, ServerRequestKeys}
+import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
-import org.typelevel.vault.Vault
+import org.typelevel.vault.{Key, Vault}
 
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
-import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.io.net.unixsocket.UnixSockets
-import org.typelevel.vault.Key
-import _root_.org.http4s.websocket.WebSocketContext
+import org.http4s.headers.Connection
+import java.nio.channels.InterruptedByTimeoutException
+import java.util.concurrent.TimeoutException
 
 private[server] object ServerHelpers {
 
@@ -233,9 +234,8 @@ private[server] object ServerHelpers {
       parse,
       requestHeaderReceiveTimeout,
       D.defer(
-        F.raiseError[(Request[F], F[Option[Array[Byte]]])](
-          new java.util.concurrent.TimeoutException(
-            s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout")))
+        F.raiseError[(Request[F], F[Option[Array[Byte]]])](new TimeoutException(
+          s"Timed out while waiting for request headers: $requestHeaderReceiveTimeout")))
     )
 
     for {
@@ -299,10 +299,11 @@ private[server] object ServerHelpers {
           } else if (reuse) {
             // the connection is keep-alive, but we don't have any bytes.
             // we want to be on the idle timeout until the next request is received.
-            read.flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
-            }
+            read
+              .flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+              }
           } else {
             // first request begins immediately
             Array.emptyByteArray.pure[F]
@@ -354,6 +355,10 @@ private[server] object ServerHelpers {
             case Left(err) =>
               err match {
                 case EmberException.EmptyStream() =>
+                  Applicative[F].pure(None)
+                case _: TimeoutException =>
+                  Applicative[F].pure(None)
+                case _: InterruptedByTimeoutException =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)
