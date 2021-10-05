@@ -16,11 +16,14 @@
 
 package org.http4s.server.middleware
 
+import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
 import cats.effect.Concurrent
-import org.http4s.{ContextRequest, ContextRoutes, HttpApp, HttpRoutes, Request}
-import fs2.Stream
 import cats.implicits._
+import cats.~>
+import fs2.Stream
+import org.http4s._
+import scodec.bits.ByteVector
 
 /** Middleware for caching the request body for multiple compilations
   *
@@ -41,31 +44,27 @@ import cats.implicits._
   */
 object BodyCache {
 
-  def httpRoutes[F[_]: Concurrent](routes: HttpRoutes[F]): HttpRoutes[F] =
-    Kleisli {
-      case req if hasNoBody(req) => routes(req)
-      case req => OptionT.liftF(compileBody(req)).flatMap(routes.apply)
+  def apply[G[_]: Concurrent, F[_]: Concurrent, R](
+      old: Kleisli[G, R, Response[F]])(reqGet: R => Request[F], reqSet: R => Request[F] => R)(
+      lift: F ~> G): Kleisli[G, R, Response[F]] = Kleisli {
+    case req if hasNoBody(reqGet(req)) => old(req)
+    case req => lift(compileBody(reqGet(req))).flatMap(reqSet(req).andThen(old.run))
+  }
 
-    }
+  def httpRoutes[F[_]: Concurrent](routes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(routes)(identity, _ => identity)(OptionT.liftK)
 
   def contextRoutes[T, F[_]: Concurrent](routes: ContextRoutes[T, F]): ContextRoutes[T, F] =
-    Kleisli {
-      case cr @ ContextRequest(_, req) if req.contentLength.contains(0L) => routes(cr)
-      case cr @ ContextRequest(_, req) =>
-        OptionT.liftF(compileBody(req)).flatMap(cachedReq => routes(cr.copy(req = cachedReq)))
-    }
+    apply(routes)(_.req, in => cached => in.copy(req = cached))(OptionT.liftK)
 
   def httpApp[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] =
-    Kleisli {
-      case req if req.contentLength.contains(0L) => app(req)
-      case req => compileBody(req).flatMap(app.apply)
-    }
+    apply(app)(identity, _ => identity)(FunctionK.id)
 
   private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[F]] = for {
-    body <- req.body.compile.toList
-    cachedReq = req.withBodyStream(Stream.emits(body))
+    body <- req.body.compile.to(ByteVector)
+    cachedReq = req.withBodyStream(Stream.emits(body.toIndexedSeq))
   } yield cachedReq
 
-  private def hasNoBody[F[_]](req: Request[F]) =
+  def hasNoBody[F[_]](req: Request[F]): Boolean =
     req.contentLength.contains(0L)
 }
