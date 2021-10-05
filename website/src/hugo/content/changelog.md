@@ -13,6 +13,7 @@ it.
 This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.5.
 
 Scala.js support is backported for a large subset of the modules present in 1.0.
+Additional Scala.js-only modules for using http4s in the browser have been spun off as https://github.com/http4s/http4s-dom.
 
 ## http4s-core
 
@@ -65,6 +66,10 @@ Scala.js support is backported for a large subset of the modules present in 1.0.
 ### Bug fixes
 
 * [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, combined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
+
+### Enhancements
+
+* [#5219](https://github.com/http4s/http4s/pull/5219): Add support for Unix sockets.  This works on Linux and Darwin, but not on Windows. Use the new `withUnixSocketConfig` method on `EmberServerBuilder` to bind to an `fs2.io.net.unixsocket.UnixSocketAddress`.
 
 ## http4s-ember-client
 
