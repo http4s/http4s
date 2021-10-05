@@ -621,9 +621,9 @@ lazy val docs = http4sProject("docs")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
     },
 
-    laikaExtensions := SiteConfig.extensions.value,
+    laikaExtensions := SiteConfig.extensions,
     laikaConfig     := SiteConfig.config(versioned = true).value,
-    laikaTheme      := SiteConfig.theme(currentVersion = SiteConfig.versions.v1_0),
+    laikaTheme      := SiteConfig.theme(currentVersion = SiteConfig.versions.v1_0, SiteConfig.variables.value),
     laikaDescribe   := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
 

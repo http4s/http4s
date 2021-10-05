@@ -6,10 +6,8 @@ import laika.bundle.ExtensionBundle
 import laika.config.{ConfigBuilder, Key, LaikaKeys}
 import laika.helium.Helium
 import laika.helium.config.{HeliumIcon, IconLink}
-import laika.parse.code.CodeCategory
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
-import laika.sbt.LaikaPlugin.autoImport.laikaSpanRewriteRule
 import laika.theme.ThemeProvider
 import laika.theme.config.Color
 import org.http4s.sbt.Http4sPlugin.{circeJawn, cryptobits, docExampleVersion, latestPerMinorVersion}
@@ -53,28 +51,10 @@ object SiteConfig {
     ) ++ latestInSeries
   }
 
-  private val LaikaCodeSubstitution = "(.*)@\\{(.*)}(.*)".r
-
-  lazy val extensions: sbt.Def.Initialize[Seq[ExtensionBundle]] = sbt.Def.setting {
-    Seq(
-      laika.markdown.github.GitHubFlavor,
-      laika.parse.code.SyntaxHighlighting,
-      laikaSpanRewriteRule {
-        // Laika currently does not do variable substitutions in code blocks, this serves as a temporary workaround.
-        // This will potentially be supported out of the box in the 0.19 series, but requires some significant work
-        // due to issues with processing order (variable substitutions normally run after highlighters which would
-        // be the wrong order - Laika's default variable substitution format `${...}` also conflicts with Scala code.
-        case CodeSpan(content, cats, opts) if cats.contains(CodeCategory.StringLiteral) => content match {
-          case SiteConfig.LaikaCodeSubstitution(pre, varName, post) =>
-            val newNode = SiteConfig.variables.value.get(varName).fold[Span](
-              InvalidSpan(s"Unknown variable: '$varName'", laika.parse.GeneratedSource)
-            ){ value => CodeSpan(pre + value + post, cats, opts) }
-            Replace(newNode)
-          case _ => Retain
-        }
-      }
-    )
-  }
+  val extensions: Seq[ExtensionBundle] = Seq(
+    laika.markdown.github.GitHubFlavor,
+    laika.parse.code.SyntaxHighlighting
+  )
 
   def config (versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
     LaikaConfig(
@@ -84,7 +64,7 @@ object SiteConfig {
     )
   }
 
-  def theme (currentVersion: Version): ThemeProvider = Helium.defaults
+  def theme (currentVersion: Version, variables: Map[String, String]): ThemeProvider = HeliumExtensions.applyTo(Helium.defaults
     .site.markupEditLinks(
       text = "Edit this page",
       baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc")
@@ -103,7 +83,7 @@ object SiteConfig {
       primaryLight  = Color.hex("e9f1f2"),
       text          = Color.hex("5f5f5f"),
       background    = Color.hex("ffffff"),
-      bgGradient    = (Color.hex("5B7980"), Color.hex("a7d4de"))
+      bgGradient    = (Color.hex("5B7980"), Color.hex("a7d4de")) // gradient not used for http4s site atm
     )
     .site.darkMode.disabled
     .site.topNavigationBar(
@@ -115,5 +95,5 @@ object SiteConfig {
       )
     )
     .site.versions(versions.config(currentVersion))
-    .build
+    .build, variables)
 }
