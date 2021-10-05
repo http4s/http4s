@@ -53,6 +53,10 @@ This is a routine maintenance release.  It is binary compatible with v0.22.5 and
 
 ## http4s-ember-server
 
+### Semantic change
+
+* [#5286](https://github.com/http4s/http4s/pull/5286): On `requestHeaderTimeout` and `idleTimeout`, close the connection without rendering a `500 Internal Server Error` response.  The HTTP/1.1 spec is not prescrptive on this matter, but this behavior is more consistent with prevaling usage in http4s and a sampling of other servers.  Furthermore, an empty response is retriable (assuming request idempotence) by clients, whereas a `500 Internal Server Error` is not.
+
 ### Enhancements
 
 * [#5271](https://github.com/http4s/http4s/pull/5271): Eliminate exception allocation on the parser hot path
