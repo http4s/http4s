@@ -8,9 +8,12 @@ import laika.helium.Helium
 import laika.helium.config.{HeliumIcon, IconLink}
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
+import laika.sbt.LaikaPlugin.autoImport.laikaPreviewConfig
 import laika.theme.ThemeProvider
 import laika.theme.config.Color
+import org.http4s.sbt.Http4sPlugin.autoImport.isCi
 import org.http4s.sbt.Http4sPlugin.{circeJawn, cryptobits, docExampleVersion, latestPerMinorVersion}
+import sbt.Def.{Initialize, setting}
 import sbt.Keys.{baseDirectory, version}
 import sbt.librarymanagement.VersionNumber
 
@@ -25,8 +28,9 @@ object SiteConfig {
     val v0_23: Version = version("0.23", "Stable")
     val v0_22: Version = version("0.22", "Stable")
     val v0_21: Version = version("0.21", "EOL")
+    val choose: Version = Version("Help me choose...", "versions", "/index.html") // Pretend it's a "version" to get it into the menu
 
-    private val all = Seq(v1_0, v0_23, v0_22, v0_21)
+    private val all = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
     def config (current: Version): Versions = Versions(
       currentVersion = current,
@@ -36,7 +40,7 @@ object SiteConfig {
   }
 
   // This could move back to the Http4sPlugin that currently writes these values to a TOML file for Hugo
-  lazy val variables: sbt.Def.Initialize[Map[String, String]] = sbt.Def.setting {
+  lazy val variables: Initialize[Map[String, String]] = setting {
     val (major, minor) = version.value match { // cannot use the existing http4sApiVersion as it is somehow defined as a task, not a setting
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }
@@ -49,6 +53,11 @@ object SiteConfig {
       "version.circe"          -> circeJawn.value.revision,
       "version.cryptobits"     -> cryptobits.revision
     ) ++ latestInSeries
+  }
+
+  val homeURL: Initialize[String] = setting {
+    if (isCi.value) "https://http4s.org"
+    else s"http://127.0.0.1:4242" // port hardcoded for now as laikaPreviewConfig is accidentally declared as a task
   }
 
   val extensions: Seq[ExtensionBundle] = Seq(
@@ -64,10 +73,16 @@ object SiteConfig {
     )
   }
 
-  def theme (currentVersion: Version, variables: Map[String, String]): ThemeProvider = HeliumExtensions.applyTo(Helium.defaults
+  def theme (currentVersion: Version,
+             variables: Map[String, String],
+             homeURL: String): ThemeProvider = HeliumExtensions.applyTo(Helium.defaults
+    .all.metadata(
+      language = Some("en")
+    )
     .site.markupEditLinks(
       text = "Edit this page",
-      baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc")
+      baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc"
+    )
     .site.layout(
       contentWidth        = px(860),
       navigationWidth     = px(275),

@@ -610,16 +610,9 @@ lazy val docs = http4sProject("docs")
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     fatalWarningsInCI := false,
 
-//    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
-//    Hugo / baseURL := {
-//      val docsPrefix = extractDocsPrefix(version.value)
-//      if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
-//      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
-//    },
-
     laikaExtensions := SiteConfig.extensions,
     laikaConfig     := SiteConfig.config(versioned = true).value,
-    laikaTheme      := SiteConfig.theme(currentVersion = SiteConfig.versions.v1_0, SiteConfig.variables.value),
+    laikaTheme      := SiteConfig.theme(currentVersion = SiteConfig.versions.v1_0, SiteConfig.variables.value, SiteConfig.homeURL.value),
     laikaDescribe   := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
 
