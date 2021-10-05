@@ -3,10 +3,6 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
-import scala.xml.transform.{RewriteRule, RuleTransformer}
-import laika.ast._
-import laika.parse.code._
-
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
@@ -584,7 +580,6 @@ lazy val bench = http4sProject("bench")
 lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
-    HugoPlugin,
     NoPublishPlugin,
     ScalaUnidocPlugin,
     MdocPlugin,
@@ -613,13 +608,14 @@ lazy val docs = http4sProject("docs")
         ) ++ jsModules): _*
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
-    Hugo / baseURL := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
-    },
+
+//    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
+//    Hugo / baseURL := {
+//      val docsPrefix = extractDocsPrefix(version.value)
+//      if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
+//      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
+//    },
 
     laikaExtensions := SiteConfig.extensions,
     laikaConfig     := SiteConfig.config(versioned = true).value,
@@ -627,15 +623,15 @@ lazy val docs = http4sProject("docs")
     laikaDescribe   := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
 
-    siteMappings := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
-    },
-    siteMappings ++= {
-      val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
-        yield (f, s"$docsPrefix/api/$d")
-    },
+//    siteMappings := {
+//      val docsPrefix = extractDocsPrefix(version.value)
+//      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
+//    },
+//    siteMappings ++= {
+//      val docsPrefix = extractDocsPrefix(version.value)
+//      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
+//        yield (f, s"$docsPrefix/api/$d")
+//    },
     ghpagesCleanSite / includeFilter := {
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
@@ -653,17 +649,11 @@ lazy val docs = http4sProject("docs")
   .dependsOn(client.jvm, core.jvm, theDsl.jvm, blazeServer, blazeClient, circe.jvm, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
-  .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
+  .enablePlugins(GhpagesPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
     description := "Common area of http4s.org",
     startYear := Some(2013),
-    Hugo / baseURL := {
-      if (isCi.value) new URI(s"https://http4s.org")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
-    },
-    makeSite := makeSite.dependsOn(http4sBuildData).value,
-    // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
     ghpagesCleanSite / excludeFilter  :=
       new FileFilter {

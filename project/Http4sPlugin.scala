@@ -1,24 +1,19 @@
 package org.http4s.sbt
 
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
-import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
+import com.timushev.sbt.updates.UpdatesPlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
-import com.typesafe.tools.mima.plugin.MimaKeys._
-import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
-import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
-import sbtghactions.GenerativeKeys._
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
-    val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
   }
   import autoImport._
 
@@ -43,32 +38,6 @@ object Http4sPlugin extends AutoPlugin {
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    http4sBuildData := {
-      val dest = target.value / "hugo-data" / "build.toml"
-      val (major, minor) = http4sApiVersion.value
-
-      val releases = latestPerMinorVersion(baseDirectory.value)
-        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.toString}""""}
-        .mkString("\n")
-
-      // Would be more elegant if `[versions.http4s]` was nested, but then
-      // the index lookups in `shortcodes/version.html` get complicated.
-      val buildData: String =
-        s"""
-           |[versions]
-           |"http4s.api" = "$major.$minor"
-           |"http4s.current" = "${version.value}"
-           |"http4s.doc" = "${docExampleVersion(version.value)}"
-           |circe = "${circeJawn.value.revision}"
-           |cryptobits = "${cryptobits.revision}"
-           |
-           |[releases]
-           |$releases
-         """.stripMargin
-
-      IO.write(dest, buildData)
-    },
-
     // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
@@ -153,26 +122,14 @@ object Http4sPlugin extends AutoPlugin {
   }
 
   def docsProjectSettings: Seq[Setting[_]] = {
-    import com.typesafe.sbt.site.hugo.HugoPlugin.autoImport._
     Seq(
       git.remoteRepo := "git@github.com:http4s/http4s.git",
-      Hugo / includeFilter := (
-        "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-          "*.js" | "*.swf" | "*.json" | "*.md" |
-          "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-          "CNAME" | "_config.yml" | "_redirects"
-      )
     )
   }
 
   def sbtghactionsSettings: Seq[Setting[_]] = {
-    import sbtghactions._
     import sbtghactions.GenerativeKeys._
-
-    val setupHugoStep = WorkflowStep.Run(List("""
-      |echo "$HOME/bin" > $GITHUB_PATH
-      |HUGO_VERSION=0.26 scripts/install-hugo
-    """.stripMargin), name = Some("Setup Hugo"))
+    import sbtghactions._
 
     def siteBuildJob(subproject: String) =
       WorkflowJob(
@@ -183,8 +140,7 @@ object Http4sPlugin extends AutoPlugin {
         steps = List(
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
-          setupHugoStep,
-          WorkflowStep.Sbt(List(s"$subproject/makeSite"), name = Some(s"Build $subproject"))
+          WorkflowStep.Sbt(List(s"$subproject/mdoc", s"$subproject/laikaSite"), name = Some(s"Build $subproject"))
         )
       )
 
@@ -193,7 +149,7 @@ object Http4sPlugin extends AutoPlugin {
       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
       |git config --global user.name "GitHub Actions CI"
       |git config --global user.email "ghactions@invalid"
-      |sbt ++$scala_212 $subproject/makeSite $subproject/ghpagesPushSite
+      |sbt ++$scala_212 $subproject/mdoc $subproject/laikaSite $subproject/ghpagesPushSite
       |
       """.stripMargin),
       name = Some(s"Publish $subproject"),
@@ -224,14 +180,13 @@ object Http4sPlugin extends AutoPlugin {
         RefPredicate.StartsWith(Ref.Tag("v"))
       ),
       githubWorkflowPublishPostamble := Seq(
-        setupHugoStep,
         sitePublishStep("website"),
         // sitePublishStep("docs")
       ),
-      // this results in nonexistant directories trying to be compressed
+      // this results in nonexistent directories trying to be compressed
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
-        siteBuildJob("website"),
+        // siteBuildJob("website"), TODO - enable once website project migrated
         siteBuildJob("docs")
       ),
     )
