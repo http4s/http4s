@@ -21,7 +21,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.Concurrent
 import cats.implicits._
 import cats.~>
-import fs2.Stream
+import fs2.{Chunk, Stream}
 import org.http4s._
 import scodec.bits.ByteVector
 
@@ -32,13 +32,16 @@ import scodec.bits.ByteVector
   * This middleware forbids such behaviour, compiling the body only once.
   * It does so only for the "inner" middlewares:
   *
-  * As the entire request body will be allocated in memory, there is a possibility of OOM error with a large body. So using the `EntityLimiter` middleware is strongly advised. 
   * {{{
   * val route = AMiddleware(BodyCache(SomeOtherMiddleware(myRoute)))
   * }}}
   *
   * In this example only `myRoute` & `SomeOtherMiddleware` will receive cached request body,
   * while the `AMiddleware` will get the raw one.
+  *
+  * As the entire request body will be allocated in memory,
+  * there is a possibility of OOM error with a large body.
+  * Because of that, using the `EntityLimiter` middleware is strongly advised.
   *
   * @note This middleware has nothing to do with the HTTP caching mechanism
   *       and it does not cache bodies between multiple requests.
