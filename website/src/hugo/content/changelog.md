@@ -8,6 +8,26 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.30
+
+This is a bugfix release. Routine maintenance has stopped on 0.21.x, but we'll continue to entertain PRs from the community.  It is binary compatible wit hthe 0.21.x series.
+
+## blaze-client
+
+### Compatibility restorations
+
+* [#5288](https://github.com/http4s/http4s/pull/5288): Allow `' '` when rendering URI. This is against the spec, but bug-compatible with previous versions and not a security threat. It has come up for users trimming strings from config. Starting in 0.22, such whitespace is encoded properly.
+
+## ember-client
+
+### Bugfixes
+
+* [#5247](https://github.com/http4s/http4s/pull/5247): Match on `ClosedChannelException` when detecting connections that terminated inside the pool.
+
+### Compatibility restorations
+
+* [#5288](https://github.com/http4s/http4s/pull/5288): Allow `' '` when rendering URI. This is against the spec, but bug-compatible with previous versions and not a security threat. It has come up for users trimming strings from config. Starting in 0.22, such whitespace is encoded properly.
+
 # v0.21.29 (2021-09-21)
 
 This release contains important security patches for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the 0.21.x series.
