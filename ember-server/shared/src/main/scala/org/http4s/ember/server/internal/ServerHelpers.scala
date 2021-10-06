@@ -24,21 +24,18 @@ import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
 import org.http4s._
 import org.http4s.headers.Connection
 import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
 import org.http4s.ember.core.Util._
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
-import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.{Key, Vault}
 
 import scala.concurrent.duration._
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
-import org.typelevel.vault.Key
 import _root_.org.http4s.websocket.WebSocketContext
 import java.util.concurrent.TimeoutException
 
