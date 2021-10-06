@@ -32,7 +32,7 @@ import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.jdk.CollectionConverters._
 import org.http4s.server.{
   DefaultServiceErrorHandler,
   SSLClientAuthMode,

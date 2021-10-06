@@ -21,7 +21,6 @@ import cats.data._
 import cats.effect.IO
 import cats.syntax.all.{catsSyntaxEq => _, _}
 import cats.kernel.laws.discipline.MonoidTests
-import org.http4s.internal.CollectionCompat
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop
 import org.scalacheck.effect.PropF
@@ -142,7 +141,7 @@ class UrlFormSpec extends Http4sSuite {
           v <- vs.toList
         } yield k -> v
         UrlForm(flattened: _*) == UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          map.view.mapValues(nel => Chain.fromSeq(nel.toList)).toMap)
       }
     }
 
@@ -157,7 +156,7 @@ class UrlFormSpec extends Http4sSuite {
           v <- Chain.fromSeq(vs.toList)
         } yield k -> v
         UrlForm.fromChain(flattened) == UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          map.view.mapValues(nel => Chain.fromSeq(nel.toList)).toMap)
       }
     }
   }

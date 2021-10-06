@@ -32,7 +32,7 @@ import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.client.{Client, defaults}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.jdk.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
 import org.reactivestreams.Publisher

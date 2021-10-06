@@ -20,7 +20,7 @@ package client
 
 import cats.effect.Sync
 import org.asynchttpclient.{ClientStats, HostStats, Response => _}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.jdk.CollectionConverters._
 
 class AsyncHttpClientStats[F[_]](private val underlying: ClientStats)(implicit F: Sync[F]) {
 

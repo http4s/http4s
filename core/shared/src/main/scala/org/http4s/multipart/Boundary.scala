@@ -19,7 +19,6 @@ package org.http4s.multipart
 import cats.Eq
 import fs2.Chunk
 import java.nio.charset.StandardCharsets
-import org.http4s.internal.CollectionCompat
 import scala.util.Random
 
 final case class Boundary(value: String) extends AnyVal {
@@ -42,8 +41,7 @@ object Boundary {
   private val rand = new Random()
 
   private def nextChar = CHARS(rand.nextInt(nchars - 1))
-  private def stream: CollectionCompat.LazyList[Char] =
-    CollectionCompat.LazyList.continually(nextChar)
+  private def stream: LazyList[Char] = LazyList.continually(nextChar)
   //Don't use filterNot it works for 2.11.4 and nothing else, it will hang.
   private def endChar: Char = stream.filter(_ != ' ').headOption.getOrElse('X')
   private def value(l: Int): String = stream.take(l).mkString

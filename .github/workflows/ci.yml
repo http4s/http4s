@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.1]
+        scala: [2.13.6, 3.0.1]
         java: [adoptium@8, adoptium@11, adoptium@17]
         ci: [ciJVM, ciNodeJS]
         exclude:
@@ -100,7 +100,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.15]
+        scala: [2.13.6]
         java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -152,7 +152,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.15 website/makeSite website/ghpagesPushSite
+          sbt ++2.13.6 website/makeSite website/ghpagesPushSite
 
                 
 
@@ -161,7 +161,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.15]
+        scala: [2.13.6]
         java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -190,7 +190,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.15]
+        scala: [2.13.6]
         java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -219,7 +219,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.1]
+        scala: [2.13.6, 3.0.1]
         java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:

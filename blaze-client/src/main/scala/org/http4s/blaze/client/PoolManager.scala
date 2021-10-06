@@ -24,7 +24,6 @@ import cats.effect.syntax.all._
 import cats.effect.std.Semaphore
 import java.time.Instant
 import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
-import org.http4s.internal.CollectionCompat
 import org.log4s.getLogger
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -381,7 +380,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     new BlazeClientState[F] {
       def isClosed = F.delay(self.isClosed)
       def allocated = F.delay(self.allocated.toMap)
-      def idleQueueDepth = F.delay(CollectionCompat.mapValues(self.idleQueues.toMap)(_.size))
+      def idleQueueDepth = F.delay(self.idleQueues.toMap.view.mapValues(_.size).toMap)
       def waitQueueDepth = F.delay(self.waitQueue.size)
     }
 }

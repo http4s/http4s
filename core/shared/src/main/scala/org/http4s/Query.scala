@@ -21,7 +21,7 @@ import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
 import java.nio.charset.StandardCharsets
 import org.http4s.Query._
-import org.http4s.internal.{CollectionCompat, UriCoding}
+import org.http4s.internal.UriCoding
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, Writer}
@@ -138,7 +138,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
     * none exist, the empty `String` "" is returned.
     */
   lazy val params: Map[String, String] =
-    CollectionCompat.mapValues(multiParams)(_.headOption.getOrElse(""))
+    multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
 
   /** Map[String, Seq[String]] representation of the [[Query]]
     *
@@ -152,7 +152,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
         case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
         case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
-      CollectionCompat.mapValues(m.toMap)(_.toList)
+      m.toMap.view.mapValues(_.toList).toMap
     }
 
   override def equals(that: Any): Boolean =

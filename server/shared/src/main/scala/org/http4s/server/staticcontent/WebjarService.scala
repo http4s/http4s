@@ -22,7 +22,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.kernel.Async
 import cats.syntax.all._
 import java.nio.file.{Path, Paths}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.control.NoStackTrace
 
 /** [[org.http4s.server.staticcontent.WebjarServiceBuilder]] builder

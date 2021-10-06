@@ -27,7 +27,6 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.6"
-  val scala_212 = "2.12.15"
   val scala_3 = "3.0.1"
 
   override lazy val globalSettings = Seq(
@@ -178,7 +177,7 @@ object Http4sPlugin extends AutoPlugin {
       WorkflowJob(
         id = subproject,
         name = s"Build $subproject",
-        scalas = List(scala_212),
+        scalas = List(scala_213),
         javas = List("adoptium@8"),
         steps = List(
           WorkflowStep.CheckoutFull,
@@ -193,7 +192,7 @@ object Http4sPlugin extends AutoPlugin {
       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
       |git config --global user.name "GitHub Actions CI"
       |git config --global user.email "ghactions@invalid"
-      |sbt ++$scala_212 $subproject/makeSite $subproject/ghpagesPushSite
+      |sbt ++$scala_213 $subproject/makeSite $subproject/ghpagesPushSite
       |
       """.stripMargin),
       name = Some(s"Publish $subproject"),

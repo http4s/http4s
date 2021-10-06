@@ -36,7 +36,7 @@ import okhttp3.{
 import okio.BufferedSink
 import org.http4s.client.Client
 import org.http4s.internal.BackendBuilder
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.jdk.CollectionConverters._
 import org.log4s.getLogger
 import scala.util.control.NonFatal
 import cats.effect.std.Dispatcher

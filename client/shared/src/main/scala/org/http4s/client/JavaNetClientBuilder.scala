@@ -25,7 +25,7 @@ import java.io.IOException
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import org.http4s.internal.BackendBuilder
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.jdk.CollectionConverters._
 import org.typelevel.ci.CIString
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
