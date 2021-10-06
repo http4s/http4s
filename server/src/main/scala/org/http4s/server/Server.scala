@@ -17,6 +17,8 @@
 package org.http4s
 package server
 
+import com.comcast.ip4s
+
 import java.net.{Inet4Address, Inet6Address, InetSocketAddress}
 import org.log4s.getLogger
 
@@ -34,9 +36,9 @@ abstract class Server {
         Uri.Authority(
           host = address.getAddress match {
             case ipv4: Inet4Address =>
-              Uri.Ipv4Address.fromInet4Address(ipv4)
+              Uri.Ipv4Address(ip4s.Ipv4Address.fromInet4Address(ipv4))
             case ipv6: Inet6Address =>
-              Uri.Ipv6Address.fromInet6Address(ipv6)
+              Uri.Ipv6Address(ip4s.Ipv6Address.fromInet6Address(ipv6))
             case weird =>
               logger.warn(s"Unexpected address type ${weird.getClass}: $weird")
               Uri.RegName(weird.getHostAddress)
