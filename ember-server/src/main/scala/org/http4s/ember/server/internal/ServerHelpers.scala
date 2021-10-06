@@ -39,7 +39,6 @@ import org.typelevel.vault.{Key, Vault}
 
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
-import org.http4s.headers.Connection
 import java.nio.channels.InterruptedByTimeoutException
 import java.util.concurrent.TimeoutException
 
