@@ -155,6 +155,10 @@
                         <a href="AutoSlash$.html" title="Removes a trailing slash from Request path">AutoSlash</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="BodyCache$.html" title="Middleware for caching the request body for multiple compilations"></a>
+                        <a href="BodyCache$.html" title="Middleware for caching the request body for multiple compilations">BodyCache</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream."></a>
                         <a href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream.">BracketRequestResponse</a>
                       </li><li class="current-entities indented4">
@@ -319,11 +323,11 @@
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Middleware for virtual host mapping</p><p>The <code>VirtualHost</code> middleware allows multiple services to be mapped
 based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">org.http4s.headers.Host</a> header of the <a href="../../Request.html" class="extype" name="org.http4s.Request">org.http4s.Request</a>.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.4/server/src/main/scala/org/http4s/server/middleware/VirtualHost.scala" target="_blank">VirtualHost.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.6/server/src/main/scala/org/http4s/server/middleware/VirtualHost.scala" target="_blank">VirtualHost.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -383,7 +387,7 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Specification of the virtual host service and predicate." href="VirtualHost$$HostService.html"><span class="name">HostService</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.14/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Specification of the virtual host service and predicate." href="VirtualHost$$HostService.html"><span class="name">HostService</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Specification of the virtual host service and predicate.</p><div class="fullcomment"><div class="comment cmt"><p>Specification of the virtual host service and predicate.</p><p>The predicate receives the the Host header information with the port
@@ -410,7 +414,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -426,7 +430,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -442,7 +446,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -490,7 +494,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -514,7 +518,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -530,7 +534,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -546,7 +550,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">exact</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.G">G</span>]</span>, <span name="requestHost">requestHost: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.G">G</span>]</span>
+        <span class="name">exact</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.G">G</span>]</span>, <span name="requestHost">requestHost: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that will match based on the exact host string
@@ -566,7 +570,7 @@ given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -607,7 +611,7 @@ given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
@@ -626,7 +630,7 @@ given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -642,7 +646,7 @@ given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -658,7 +662,7 @@ given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -677,7 +681,7 @@ given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -696,7 +700,7 @@ given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">regex</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.G">G</span>]</span>, <span name="hostRegex">hostRegex: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.G">G</span>]</span>
+        <span class="name">regex</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.G">G</span>]</span>, <span name="hostRegex">hostRegex: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that uses a regular expression to match the host
@@ -749,7 +753,7 @@ is given. If the port is not given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -771,7 +775,7 @@ is given. If the port is not given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -793,7 +797,7 @@ is given. If the port is not given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -817,7 +821,7 @@ is given. If the port is not given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wildcard</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.G">G</span>]</span>, <span name="wildcardHost">wildcardHost: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.G">G</span>]</span>
+        <span class="name">wildcard</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.G">G</span>]</span>, <span name="wildcardHost">wildcardHost: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that will match based on the host string allowing
@@ -837,9 +841,9 @@ given. If the port is not given, it is ignored.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

@@ -106,6 +106,53 @@
 
 <p>For further information about the changes since 0.21, check the <a href="https://http4s.org/changelog/">changelog</a></p>
 
+<h2 id="http4s-0-21-0-22-migration-guide">Http4s 0.21 -&gt; 0.22 Migration Guide</h2>
+
+<p>General Changes:</p>
+
+<p>Header names are now CIStrings which can be created by importing <code>org.typelevel.ci._</code> and using the <code>ci</code> string interpolator.</p>
+
+<table>
+<thead>
+<tr>
+<th>0.21</th>
+<th>0.22</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>headers.get(`If-Match`)</td>
+<td>headers.get[`If-Match`]</td>
+</tr>
+
+<tr>
+<td>Headers.of(</td>
+<td>Headers(</td>
+</tr>
+
+<tr>
+<td>Header(&ldquo;x-ms&rdquo;, &ldquo;1&rdquo;)</td>
+<td>Header(ci&rdquo;x-ms&rdquo;, &ldquo;1&rdquo;)</td>
+</tr>
+
+<tr>
+<td>baseUri +?? (&ldquo;p&rdquo;, w)</td>
+<td>baseUri +?? (&ldquo;p&rdquo; -&gt; w)</td>
+</tr>
+
+<tr>
+<td>&ldquo;x-ms&rdquo;.ci</td>
+<td>ci&rdquo;x-ms&rdquo;</td>
+</tr>
+
+<tr>
+<td>import org.http4s.server.blaze</td>
+<td>import org.http4s.blaze.server</td>
+</tr>
+</tbody>
+</table>
+
 <h2 id="help-us-help-you">Help us help you!</h2>
 
 <p>If you see recurring patterns that could benefit from a scalafix, please <a href="https://github.com/http4s/http4s/issues/4858">report them for consideration</a>.  For general upgrade tips, please consider a <a href="https://github.com/http4s/http4s/edit/series/0.22/docs/src/main/mdoc/upgrading.md">pull request to this document</a>.</p>

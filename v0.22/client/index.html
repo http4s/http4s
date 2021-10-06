@@ -93,7 +93,7 @@ http4s to try our service.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.13.4&quot; // Also supports 2.11.x and 2.12.x
 
-val http4sVersion = &quot;0.22.3&quot;
+val http4sVersion = &quot;0.22.5&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -133,15 +133,42 @@ val app = HttpRoutes.of[IO] {
     Ok(s&quot;Hello, $name.&quot;)
 }.orNotFound
 // app: cats.data.Kleisli[IO, Request[IO], Response[IO]] = Kleisli(
-//   org.http4s.syntax.KleisliResponseOps$$Lambda$8433/477668960@62188f86
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$8530/2032599859@2e960f9a
 // )
 
 val server = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;).withHttpApp(app).resource
 // server: Resource[IO, org.http4s.server.Server] = Bind(
 //   Allocate(
 //     Map(
-//       Delay(org.http4s.blazecore.package$$$Lambda$8437/1017535719@44090753),
-//       cats.effect.Resource$$$Lambda$8438/1034471179@7bad299b,
+//       Delay(
+//         org.http4s.blazecore.package$$$Lambda$8534/10443736@69f675d2,
+//         StackTrace(
+//           List(
+//             cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//             cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//             cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//             cats.effect.IO$.delay(IO.scala:1176),
+//             cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:919),
+//             cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:865),
+//             org.http4s.blazecore.package$.tickWheelResource(package.scala:24),
+//             org.http4s.blaze.server.BlazeServerBuilder.resource(BlazeServerBuilder.scala:339),
+//             repl.MdocSession$App.&lt;init&gt;(client.md:49),
+//             repl.MdocSession$.app(client.md:3),
+//             mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//             scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//             scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//             scala.Console$.withErr(Console.scala:196),
+//             mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//             scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//             scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//             scala.Console$.withOut(Console.scala:167),
+//             mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//             mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//             mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//           )
+//         )
+//       ),
+//       cats.effect.Resource$$$Lambda$8536/1059328284@4b91a7e6,
 //       StackTrace(
 //         List(
 //           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -150,31 +177,7 @@ val server = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;
 //           cats.effect.IO.map(IO.scala:106),
 //           cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
 //           cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
-//           cats.Functor$Ops.map(Functor.scala:233),
-//           cats.Functor$Ops.map$(Functor.scala:233),
-//           cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
-//           cats.effect.Resource$.apply(Resource.scala:304),
-//           org.http4s.blazecore.package$.tickWheelResource(package.scala:24),
-//           org.http4s.blaze.server.BlazeServerBuilder.resource(BlazeServerBuilder.scala:339),
-//           repl.MdocSession$App.&lt;init&gt;(client.md:49),
-//           repl.MdocSession$.app(client.md:3),
-//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
-//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//           scala.Console$.withErr(Console.scala:196),
-//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
-//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//           scala.Console$.withOut(Console.scala:167),
-//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//           mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
-//           mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
-//         )
-//       )
-//     )
-//   ),
-//   org.http4s.blaze.server.BlazeServerBuilder$$Lambda$8439/1013453521@4ff45ca
-// )
+// ...
 </code></pre>
 
 <p>We&rsquo;ll start the server in the background.  The <code>IO.never</code> keeps it
@@ -184,7 +187,7 @@ running until we cancel the fiber.</p>
 // fiber: Fiber[IO, Nothing] = Tuple(
 //   Bind(
 //     Async(
-//       cats.effect.internals.IOAsync$$$Lambda$8189/1578059249@406943c8,
+//       cats.effect.internals.IOAsync$$$Lambda$8281/403022134@51ab083,
 //       false,
 //       StackTrace(
 //         List(
@@ -192,17 +195,17 @@ running until we cancel the fiber.</p>
 //           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
 //           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
 //           cats.effect.internals.IOAsync$.apply(IOAsync.scala:30),
-//           cats.effect.IO$.async(IO.scala:1276),
+//           cats.effect.IO$.async(IO.scala:1284),
 //           cats.effect.internals.IOFromFuture$.apply(IOFromFuture.scala:37),
 //           cats.effect.internals.IOStart$.fiber(IOStart.scala:48),
 //           cats.effect.internals.IOStart$.$anonfun$apply$1(IOStart.scala:42),
 //           cats.effect.internals.IOStart$.$anonfun$apply$1$adapted(IOStart.scala:29),
-//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:447),
-//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:156),
-//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1(IORunLoop.scala:321),
-//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1$adapted(IORunLoop.scala:320),
-//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:447),
-//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:156),
+//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:464),
+//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:165),
+//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1(IORunLoop.scala:338),
+//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1$adapted(IORunLoop.scala:337),
+//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:464),
+//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:165),
 //           cats.effect.internals.IORunLoop$.start(IORunLoop.scala:38),
 //           cats.effect.IO.unsafeRunAsync(IO.scala:274),
 //           cats.effect.internals.IOPlatform$.unsafeResync(IOPlatform.scala:39),
@@ -265,43 +268,44 @@ and the URI we want:</p>
 // helloJames: IO[String] = Bind(
 //   Map(
 //     Delay(
-//       org.http4s.client.JavaNetClientBuilder$$Lambda$8555/1231745915@463f5b1f
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8655/522184911@41e3e45,
+//       StackTrace(
+//         List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.IO$.delay(IO.scala:1176),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:919),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:865),
+//           org.http4s.client.JavaNetClientBuilder.$anonfun$create$1(JavaNetClientBuilder.scala:131),
+//           org.http4s.client.Client$$anon$1.run(Client.scala:186),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:94),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:118),
+//           org.http4s.client.DefaultClient.$anonfun$expectOr$6(DefaultClient.scala:129),
+//           scala.util.Either.fold(Either.scala:191),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:129),
+//           org.http4s.client.DefaultClient.expect(DefaultClient.scala:136),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:104),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withErr(Console.scala:196),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withOut(Console.scala:167),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//           mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//           mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//         )
+//       )
 //     ),
-//     cats.effect.Resource$$$Lambda$8482/109008369@4cc23713,
+//     cats.effect.Resource$$$Lambda$8570/1993710216@545018ed,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//         cats.effect.IO.map(IO.scala:106),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
-//         cats.Functor$Ops.map(Functor.scala:233),
-//         cats.Functor$Ops.map$(Functor.scala:233),
-//         cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
-//         cats.effect.Resource$.eval(Resource.scala:375),
-//         org.http4s.blaze.server.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:375),
-//         cats.effect.Resource.$anonfun$fold$1(Resource.scala:124),
-//         cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
-//         cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
-//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
-//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
-//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
-//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
-//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:183),
-//         cats.effect.internals.IORunLoop$.restart(IORunLoop.scala:41),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1(IOBracket.scala:48),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1$adapted(IOBracket.scala:34),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1(IOAsync.scala:37),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1$adapted(IOAsync.scala:37),
-//         cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:44...
+// ...
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -339,7 +343,7 @@ val greetingList = people.parTraverse(hello)
 // greetingList: IO[Vector[String]] = Map(
 //   Map(
 //     Async(&lt;function3&gt;, true, null),
-//     cats.data.Chain$$$Lambda$8566/1226587681@29abc646,
+//     cats.data.Chain$$$Lambda$8666/789643916@1c38f4a8,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -373,7 +377,7 @@ val greetingList = people.parTraverse(hello)
 //       )
 //     )
 //   ),
-//   cats.instances.VectorInstances$$anon$1$$Lambda$8567/475155743@6125d1d9,
+//   cats.instances.VectorInstances$$anon$1$$Lambda$8667/961971000@7942f601,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -402,7 +406,7 @@ server.</li>
 //   Map(
 //     Map(
 //       Async(&lt;function3&gt;, true, null),
-//       cats.data.Chain$$$Lambda$8566/1226587681@29abc646,
+//       cats.data.Chain$$$Lambda$8666/789643916@1c38f4a8,
 //       StackTrace(
 //         List(
 //           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -436,7 +440,7 @@ server.</li>
 //         )
 //       )
 //     ),
-//     cats.instances.VectorInstances$$anon$1$$Lambda$8567/475155743@6125d1d9,
+//     cats.instances.VectorInstances$$anon$1$$Lambda$8667/961971000@7942f601,
 //     StackTrace(
 //       List(
 // ...
@@ -566,14 +570,14 @@ import com.codahale.metrics.SharedMetricRegistries
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@1e6023d0
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@725f88ad
 val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
-// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@6c8ec316
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@d24632c
 val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
 // requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
 
 val meteredClient = Metrics[IO](Dropwizard(registry, &quot;prefix&quot;), requestMethodClassifier)(httpClient)
-// meteredClient: Client[IO] = org.http4s.client.Client$$anon$1@1abf306f
+// meteredClient: Client[IO] = org.http4s.client.Client$$anon$1@18ad1c14
 </code></pre>
 
 <p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
@@ -598,7 +602,7 @@ import org.http4s.metrics.prometheus.Prometheus
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: Clock[IO] = cats.effect.Clock$$anon$1@629fd84
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@39c2226
 val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
 // requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
 
@@ -612,37 +616,40 @@ val meteredClient: Resource[IO, Client[IO]] =
 //     Map(
 //       Map(
 //         Delay(
-//           org.http4s.metrics.prometheus.Prometheus$$$Lambda$8938/896305904@19c82032
+//           org.http4s.metrics.prometheus.Prometheus$$$Lambda$9094/59800571@d88c818,
+//           StackTrace(
+//             List(
+//               cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//               cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//               cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//               cats.effect.IO$.delay(IO.scala:1176),
+//               cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:919),
+//               cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:865),
+//               org.http4s.metrics.prometheus.Prometheus$.collectorRegistry(Prometheus.scala:79),
+//               repl.MdocSession$App.&lt;init&gt;(client.md:229),
+//               repl.MdocSession$.app(client.md:3),
+//               mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//               scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//               scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//               scala.Console$.withErr(Console.scala:196),
+//               mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//               scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//               scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//               scala.Console$.withOut(Console.scala:167),
+//               mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//               mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//               mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//             )
+//           )
 //         ),
-//         cats.effect.Resource$$$Lambda$8480/1027212719@3c4d66e,
+//         cats.effect.Resource$$$Lambda$8568/2017059629@231be786,
 //         StackTrace(
 //           List(
 //             cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
 //             cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
 //             cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
 //             cats.effect.IO.map(IO.scala:106),
-//             cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
-//             cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
-//             cats.Functor$Ops.map(Functor.scala:233),
-//             cats.Functor$Ops.map$(Functor.scala:233),
-//             cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
-//             cats.effect.Resource$.make(Resource.scala:342),
-//             org.http4s.blaze.server.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:353),
-//             cats.effect.Resource.$anonfun$fold$1(Resource.scala:124),
-//             cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
-//             cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
-//             cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
-//             cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
-//             cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
-//             cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
-//             scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//             scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
-//             cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
-//             cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
-//             cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
-//             cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
-//             cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
-//             cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$lo...
+// ...
 </code></pre>
 
 <p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
@@ -658,43 +665,44 @@ to add a label to every metric based on the <code>Request</code></p>
 // res3: IO[String] = Bind(
 //   Map(
 //     Delay(
-//       org.http4s.client.JavaNetClientBuilder$$Lambda$8555/1231745915@601ba231
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8655/522184911@5326124d,
+//       StackTrace(
+//         List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.IO$.delay(IO.scala:1176),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:919),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:865),
+//           org.http4s.client.JavaNetClientBuilder.$anonfun$create$1(JavaNetClientBuilder.scala:131),
+//           org.http4s.client.Client$$anon$1.run(Client.scala:186),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:94),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:118),
+//           org.http4s.client.DefaultClient.$anonfun$expectOr$6(DefaultClient.scala:129),
+//           scala.util.Either.fold(Either.scala:191),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:129),
+//           org.http4s.client.DefaultClient.expect(DefaultClient.scala:136),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:104),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withErr(Console.scala:196),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withOut(Console.scala:167),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//           mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//           mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//         )
+//       )
 //     ),
-//     cats.effect.Resource$$$Lambda$8482/109008369@2997a66b,
+//     cats.effect.Resource$$$Lambda$8570/1993710216@31c9871d,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//         cats.effect.IO.map(IO.scala:106),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
-//         cats.Functor$Ops.map(Functor.scala:233),
-//         cats.Functor$Ops.map$(Functor.scala:233),
-//         cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
-//         cats.effect.Resource$.eval(Resource.scala:375),
-//         org.http4s.blaze.server.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:375),
-//         cats.effect.Resource.$anonfun$fold$1(Resource.scala:124),
-//         cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
-//         cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
-//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
-//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
-//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
-//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
-//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:183),
-//         cats.effect.internals.IORunLoop$.restart(IORunLoop.scala:41),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1(IOBracket.scala:48),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1$adapted(IOBracket.scala:34),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1(IOAsync.scala:37),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1$adapted(IOAsync.scala:37),
-//         cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:44...
+// ...
 </code></pre>
 
 <p>If you need to do something more complicated like setting request headers, you
@@ -723,50 +731,51 @@ import org.http4s.Method._
 //   HttpVersion(1, 1),
 //   Headers(Authorization: Bearer open sesame, Accept: application/json),
 //   Stream(..),
-//   org.typelevel.vault.Vault@4e4dd21e
+//   org.typelevel.vault.Vault@3bcaeba9
 // )
 
 httpClient.expect[String](request)
 // res4: IO[String] = Bind(
 //   Map(
 //     Delay(
-//       org.http4s.client.JavaNetClientBuilder$$Lambda$8555/1231745915@3e23fa5a
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8655/522184911@6d5c0431,
+//       StackTrace(
+//         List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.IO$.delay(IO.scala:1176),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:919),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:865),
+//           org.http4s.client.JavaNetClientBuilder.$anonfun$create$1(JavaNetClientBuilder.scala:131),
+//           org.http4s.client.Client$$anon$1.run(Client.scala:186),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:94),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:118),
+//           org.http4s.client.DefaultClient.$anonfun$expectOr$6(DefaultClient.scala:129),
+//           scala.util.Either.fold(Either.scala:191),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:129),
+//           org.http4s.client.DefaultClient.expect(DefaultClient.scala:136),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:104),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withErr(Console.scala:196),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withOut(Console.scala:167),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//           mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//           mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//         )
+//       )
 //     ),
-//     cats.effect.Resource$$$Lambda$8482/109008369@58d6cea5,
+//     cats.effect.Resource$$$Lambda$8570/1993710216@22c93973,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//         cats.effect.IO.map(IO.scala:106),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
-//         cats.Functor$Ops.map(Functor.scala:233),
-//         cats.Functor$Ops.map$(Functor.scala:233),
-//         cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
-//         cats.effect.Resource$.eval(Resource.scala:375),
-//         org.http4s.blaze.server.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:375),
-//         cats.effect.Resource.$anonfun$fold$1(Resource.scala:124),
-//         cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
-//         cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
-//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
-//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
-//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
-//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
-//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:183),
-//         cats.effect.internals.IORunLoop$.restart(IORunLoop.scala:41),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1(IOBracket.scala:48),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1$adapted(IOBracket.scala:34),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1(IOAsync.scala:37),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1$adapted(IOAsync.scala:37),
-//         cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:44...
+// ...
 </code></pre>
 
 <h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
@@ -778,7 +787,7 @@ case class AuthResponse(access_token: String)
 
 implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] =
   jsonOf[IO, AuthResponse]
-// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = org.http4s.EntityDecoder$$anon$2@4726cf32
+// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = org.http4s.EntityDecoder$$anon$2@1cc8a9de
 
 val postRequest = POST(
   UrlForm(
@@ -800,50 +809,51 @@ val postRequest = POST(
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
 //   Stream(..),
-//   org.typelevel.vault.Vault@675b38ea
+//   org.typelevel.vault.Vault@70338e4d
 // )
 
 httpClient.expect[AuthResponse](postRequest)
 // res5: IO[AuthResponse] = Bind(
 //   Map(
 //     Delay(
-//       org.http4s.client.JavaNetClientBuilder$$Lambda$8555/1231745915@460bff71
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8655/522184911@7dc361f6,
+//       StackTrace(
+//         List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.IO$.delay(IO.scala:1176),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:919),
+//           cats.effect.IOLowPriorityInstances$IOEffect.delay(IO.scala:865),
+//           org.http4s.client.JavaNetClientBuilder.$anonfun$create$1(JavaNetClientBuilder.scala:131),
+//           org.http4s.client.Client$$anon$1.run(Client.scala:186),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:94),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:118),
+//           org.http4s.client.DefaultClient.$anonfun$expectOr$6(DefaultClient.scala:129),
+//           scala.util.Either.fold(Either.scala:191),
+//           org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:129),
+//           org.http4s.client.DefaultClient.expect(DefaultClient.scala:136),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:104),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withErr(Console.scala:196),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withOut(Console.scala:167),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//           mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
+//           mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
+//         )
+//       )
 //     ),
-//     cats.effect.Resource$$$Lambda$8482/109008369@2846b2f3,
+//     cats.effect.Resource$$$Lambda$8570/1993710216@16aacd9c,
 //     StackTrace(
 //       List(
 //         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//         cats.effect.IO.map(IO.scala:106),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:872),
-//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:865),
-//         cats.Functor$Ops.map(Functor.scala:233),
-//         cats.Functor$Ops.map$(Functor.scala:233),
-//         cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
-//         cats.effect.Resource$.eval(Resource.scala:375),
-//         org.http4s.blaze.server.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:375),
-//         cats.effect.Resource.$anonfun$fold$1(Resource.scala:124),
-//         cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
-//         cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
-//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
-//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
-//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
-//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
-//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
-//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:183),
-//         cats.effect.internals.IORunLoop$.restart(IORunLoop.scala:41),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1(IOBracket.scala:48),
-//         cats.effect.internals.IOBracket$.$anonfun$apply$1$adapted(IOBracket.scala:34),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1(IOAsync.scala:37),
-//         cats.effect.internals.IOAsync$.$anonfun$apply$1$adapted(IOAsync.scala:37),
-//         cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:44...
+// ...
 </code></pre>
 
 <h2 id="calls-to-a-json-api">Calls to a JSON API</h2>

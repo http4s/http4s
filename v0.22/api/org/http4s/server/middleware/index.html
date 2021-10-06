@@ -155,6 +155,10 @@
                         <a href="AutoSlash$.html" title="Removes a trailing slash from Request path">AutoSlash</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="BodyCache$.html" title="Middleware for caching the request body for multiple compilations"></a>
+                        <a href="BodyCache$.html" title="Middleware for caching the request body for multiple compilations">BodyCache</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream."></a>
                         <a href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream.">BracketRequestResponse</a>
                       </li><li class="current-entities indented4">
@@ -398,7 +402,7 @@ for serious static content serving.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="A middleware that applies the CORS protocol to any Http value." href="CORSPolicy.html"><span class="name">CORSPolicy</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="A middleware that applies the CORS protocol to any Http value." href="CORSPolicy.html"><span class="name">CORSPolicy</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">A middleware that applies the CORS protocol to any <code>Http</code> value.</p><div class="fullcomment"><div class="comment cmt"><p>A middleware that applies the CORS protocol to any <code>Http</code> value.
@@ -424,7 +428,7 @@ across origins according to the CORS protocol.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="Middleware to avoid Cross-site request forgery attacks." href="CSRF.html"><span class="name">CSRF</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="Middleware to avoid Cross-site request forgery attacks." href="CSRF.html"><span class="name">CSRF</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">Middleware to avoid Cross-site request forgery attacks.</p><div class="fullcomment"><div class="comment cmt"><p>Middleware to avoid Cross-site request forgery attacks.
@@ -454,7 +458,7 @@ user data). Please do not use the CSRF protection from this middleware as a safe
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.27) Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">CORSConfig</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.27) Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">CORSConfig</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">CORS middleware config options.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware config options.
@@ -491,6 +495,30 @@ to specify its behavior
 this middleware will cause <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>s with uri = &quot;/foo&quot; and
 uri = &quot;/foo/&quot; to match the route.
 </p></div></div>
+    </li><li name="org.http4s.server.middleware.BodyCache" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BodyCache"></a><a id="BodyCache:BodyCache"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/BodyCache$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Middleware for caching the request body for multiple compilations" href="BodyCache$.html"><span class="name">BodyCache</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Middleware for caching the request body for multiple compilations</p><div class="fullcomment"><div class="comment cmt"><p>Middleware for caching the request body for multiple compilations</p><p>As the body of the request is the <span class="extype" name="Stream">Stream</span> of bytes,
+compiling it several times (e.g. with middlewares) is unsafe.
+This middleware forbids such behaviour, compiling the body only once.
+It does so only for the &quot;inner&quot; middlewares:</p><pre><span class="kw">val</span> route = AMiddleware(BodyCache(SomeOtherMiddleware(myRoute)))</pre><p>In this example only <code>myRoute</code> &amp; <code>SomeOtherMiddleware</code> will receive cached request body,
+while the <code>AMiddleware</code> will get the raw one.</p><p>As the entire request body will be allocated in memory,
+there is a possibility of OOM error with a large body.
+Because of that, using the <code>EntityLimiter</code> middleware is strongly advised.
+</p></div><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>This middleware has nothing to do with the HTTP caching mechanism
+      and it does not cache bodies between multiple requests.</p></span></dd></dl></div>
     </li><li name="org.http4s.server.middleware.BracketRequestResponse" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="BracketRequestResponse"></a><a id="BracketRequestResponse:BracketRequestResponse"></a>
       <span class="permalink">

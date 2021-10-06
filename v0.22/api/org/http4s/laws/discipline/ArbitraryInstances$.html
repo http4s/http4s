@@ -180,16 +180,19 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">ArbitraryInstances</span><span class="result"> extends <span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances">ArbitraryInstances</span></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.6) Use arbitrary instead. They were redundant, and that one is consistent with Cats.">ArbitraryInstances</span><span class="result"> extends <span class="extype" name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0">ArbitraryInstancesBinCompat0</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.4/laws/src/main/scala/org/http4s/laws/discipline/ArbitraryInstances.scala" target="_blank">ArbitraryInstances.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.6)</i> Use <code>arbitrary</code> instead. They were redundant, and that one is consistent with Cats.</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.6/laws/src/main/scala/org/http4s/laws/discipline/arbitrary.scala" target="_blank">arbitrary.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances">ArbitraryInstances</span>, <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0">ArbitraryInstancesBinCompat0</span>, <span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances">ArbitraryInstances</span>, <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -215,7 +218,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.laws.discipline.ArbitraryInstances"><span>ArbitraryInstances</span></li><li class="in" name="org.http4s.laws.discipline.ArbitraryInstances"><span>ArbitraryInstances</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.laws.discipline.ArbitraryInstances"><span>ArbitraryInstances</span></li><li class="in" name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0"><span>ArbitraryInstancesBinCompat0</span></li><li class="in" name="org.http4s.laws.discipline.ArbitraryInstances"><span>ArbitraryInstances</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -254,7 +257,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -270,7 +273,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -286,7 +289,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -302,7 +305,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">allowedQDText</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">allowedQDText</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -318,10 +321,42 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">allowedText</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">allowedText</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#arbDnt" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="arbDnt:org.scalacheck.Arbitrary[org.http4s.headers.DNT]"></a><a id="arbDnt:Arbitrary[DNT]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#arbDnt:org.scalacheck.Arbitrary[org.http4s.headers.DNT]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">arbDnt</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../../headers/DNT.html" class="extype" name="org.http4s.headers.DNT">DNT</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#arbitraryAcceptPost" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="arbitraryAcceptPost:org.scalacheck.Arbitrary[org.http4s.headers.Accept-Post]"></a><a id="arbitraryAcceptPost:Arbitrary[Accept-Post]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#arbitraryAcceptPost:org.scalacheck.Arbitrary[org.http4s.headers.Accept-Post]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">arbitraryAcceptPost</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../../headers/Accept$minusPost.html" class="extype" name="org.http4s.headers.Accept-Post">Accept-Post</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -350,7 +385,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -374,7 +409,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">cogenFuture</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="cats.effect.laws.util.TestContext">TestContext</span></span>, <span name="cg">cg: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/util/Try.html#scala.util.Try" class="extype" name="scala.util.Try">Try</a>[<span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances.cogenFuture.A">A</span>]]</span>)</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances.cogenFuture.A">A</span>]]</span>
+        <span class="name">cogenFuture</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="cats.effect.laws.util.TestContext">TestContext</span></span>, <span name="cg">cg: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/util/Try.html#scala.util.Try" class="extype" name="scala.util.Try">Try</a>[<span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances.cogenFuture.A">A</span>]]</span>)</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances.cogenFuture.A">A</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -390,10 +425,26 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">ctlChar</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">ctlChar</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#dntGen" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="dntGen:org.scalacheck.Gen[org.http4s.headers.DNT]"></a><a id="dntGen:Gen[DNT]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#dntGen:org.scalacheck.Gen[org.http4s.headers.DNT]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">dntGen</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../../headers/DNT.html" class="extype" name="org.http4s.headers.DNT">DNT</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -406,7 +457,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -422,7 +473,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -438,7 +489,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -448,7 +499,7 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genAlphaToken" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#genAlphaToken" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genAlphaToken:org.scalacheck.Gen[String]"></a><a id="genAlphaToken:Gen[String]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#genAlphaToken:org.scalacheck.Gen[String]" title="Permalink">
@@ -463,7 +514,7 @@
         <span class="name">genAlphaToken</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genChar" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genChar:org.scalacheck.Gen[Char]"></a><a id="genChar:Gen[Char]"></a>
       <span class="permalink">
@@ -476,7 +527,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genChar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genChar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -528,10 +579,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genCustomStatus" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="genCustomStatus:org.scalacheck.Gen[org.http4s.Status]"></a><a id="genCustomStatus:Gen[Status]"></a>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#genCustomStatusReason" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="genCustomStatusReason:org.scalacheck.Gen[String]"></a><a id="genCustomStatusReason:Gen[String]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#genCustomStatus:org.scalacheck.Gen[org.http4s.Status]" title="Permalink">
+      <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#genCustomStatusReason:org.scalacheck.Gen[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -540,10 +591,10 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genCustomStatus</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
+        <span class="name">genCustomStatusReason</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genFieldContent" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genFieldContent:org.scalacheck.Gen[String]"></a><a id="genFieldContent:Gen[String]"></a>
       <span class="permalink">
@@ -588,7 +639,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genFieldVchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genFieldVchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -604,7 +655,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genFiniteDuration</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a>]</span>
+        <span class="name">genFiniteDuration</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -620,7 +671,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genHexDigit</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genHexDigit</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -672,7 +723,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genListSep" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#genListSep" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genListSep:org.scalacheck.Gen[String]"></a><a id="genListSep:Gen[String]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#genListSep:org.scalacheck.Gen[String]" title="Permalink">
@@ -687,7 +738,7 @@
         <span class="name">genListSep</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genLws" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genLws:org.scalacheck.Gen[String]"></a><a id="genLws:Gen[String]"></a>
       <span class="permalink">
@@ -716,7 +767,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genNonTchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genNonTchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -748,11 +799,11 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genOctet</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genOctet</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genOptWs" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#genOptWs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genOptWs:org.scalacheck.Gen[String]"></a><a id="genOptWs:Gen[String]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#genOptWs:org.scalacheck.Gen[String]" title="Permalink">
@@ -767,7 +818,7 @@
         <span class="name">genOptWs</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#genPctEncoded" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genPctEncoded:org.scalacheck.Gen[String]"></a><a id="genPctEncoded:Gen[String]"></a>
       <span class="permalink">
@@ -892,7 +943,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genSubDelims</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genSubDelims</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -908,7 +959,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genTchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genTchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -956,7 +1007,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genUnreserved</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genUnreserved</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -972,7 +1023,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genValidStatusCode</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>
+        <span class="name">genValidStatusCode</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -988,7 +1039,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">genVchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">genVchar</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -1023,7 +1074,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
@@ -1107,6 +1158,22 @@
       </span>
       <span class="symbol">
         <span class="name">http4sGenMediaRangeExtensions</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sGenMediaType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sGenMediaType:org.scalacheck.Gen[org.http4s.MediaType]"></a><a id="http4sGenMediaType:Gen[MediaType]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sGenMediaType:org.scalacheck.Gen[org.http4s.MediaType]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sGenMediaType</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../../MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -1746,7 +1813,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">http4sTestingArbitraryForQueryParam</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[(<span class="extype" name="scala.Predef.String">String</span>, <a href="https://www.scala-lang.org/api/2.12.14/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>])]</span>
+        <span class="name">http4sTestingArbitraryForQueryParam</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[(<span class="extype" name="scala.Predef.String">String</span>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>])]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -1766,7 +1833,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingArbitraryForRegName" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingArbitraryForRegName" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingArbitraryForRegName:org.scalacheck.Arbitrary[org.http4s.Uri.RegName]"></a><a id="http4sTestingArbitraryForRegName:Arbitrary[RegName]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingArbitraryForRegName:org.scalacheck.Arbitrary[org.http4s.Uri.RegName]" title="Permalink">
@@ -1781,8 +1848,8 @@
         <span class="name">http4sTestingArbitraryForRegName</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../../Uri$$RegName.html" class="extype" name="org.http4s.Uri.RegName">RegName</a>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingArbitraryForRequestPrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingArbitraryForRequestPrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingArbitraryForRequestPrelude:org.scalacheck.Arbitrary[org.http4s.RequestPrelude]"></a><a id="http4sTestingArbitraryForRequestPrelude:Arbitrary[RequestPrelude]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingArbitraryForRequestPrelude:org.scalacheck.Arbitrary[org.http4s.RequestPrelude]" title="Permalink">
@@ -1797,8 +1864,8 @@
         <span class="name">http4sTestingArbitraryForRequestPrelude</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../../RequestPrelude.html" class="extype" name="org.http4s.RequestPrelude">RequestPrelude</a>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingArbitraryForResponsePrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingArbitraryForResponsePrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingArbitraryForResponsePrelude:org.scalacheck.Arbitrary[org.http4s.ResponsePrelude]"></a><a id="http4sTestingArbitraryForResponsePrelude:Arbitrary[ResponsePrelude]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingArbitraryForResponsePrelude:org.scalacheck.Arbitrary[org.http4s.ResponsePrelude]" title="Permalink">
@@ -1813,7 +1880,7 @@
         <span class="name">http4sTestingArbitraryForResponsePrelude</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../../ResponsePrelude.html" class="extype" name="org.http4s.ResponsePrelude">ResponsePrelude</a>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingArbitraryForRetryAfterHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingArbitraryForRetryAfterHeader:org.scalacheck.Arbitrary[org.http4s.headers.Retry-After]"></a><a id="http4sTestingArbitraryForRetryAfterHeader:Arbitrary[Retry-After]"></a>
       <span class="permalink">
@@ -1909,7 +1976,10 @@
         <span class="name">http4sTestingArbitraryForStatus</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd><dt>Annotations</dt><dd>
+                <span class="name">@nowarn</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingArbitraryForTransferCoding" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingArbitraryForTransferCoding:org.scalacheck.Arbitrary[org.http4s.TransferCoding]"></a><a id="http4sTestingArbitraryForTransferCoding:Arbitrary[TransferCoding]"></a>
       <span class="permalink">
@@ -2086,7 +2156,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForAuthority" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingCogenForAuthority" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForAuthority:org.scalacheck.Cogen[org.http4s.Uri.Authority]"></a><a id="http4sTestingCogenForAuthority:Cogen[Authority]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingCogenForAuthority:org.scalacheck.Cogen[org.http4s.Uri.Authority]" title="Permalink">
@@ -2101,7 +2171,7 @@
         <span class="name">http4sTestingCogenForAuthority</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForCharset" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForCharset:org.scalacheck.Cogen[org.http4s.Charset]"></a><a id="http4sTestingCogenForCharset:Cogen[Charset]"></a>
       <span class="permalink">
@@ -2390,7 +2460,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForQuery" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingCogenForQuery" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForQuery:org.scalacheck.Cogen[org.http4s.Query]"></a><a id="http4sTestingCogenForQuery:Cogen[Query]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingCogenForQuery:org.scalacheck.Cogen[org.http4s.Query]" title="Permalink">
@@ -2405,8 +2475,8 @@
         <span class="name">http4sTestingCogenForQuery</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../../Query.html" class="extype" name="org.http4s.Query">Query</a>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForRegName" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingCogenForRegName" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForRegName:org.scalacheck.Cogen[org.http4s.Uri.RegName]"></a><a id="http4sTestingCogenForRegName:Cogen[RegName]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingCogenForRegName:org.scalacheck.Cogen[org.http4s.Uri.RegName]" title="Permalink">
@@ -2421,8 +2491,8 @@
         <span class="name">http4sTestingCogenForRegName</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../../Uri$$RegName.html" class="extype" name="org.http4s.Uri.RegName">RegName</a>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForRequestPrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingCogenForRequestPrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForRequestPrelude:org.scalacheck.Cogen[org.http4s.RequestPrelude]"></a><a id="http4sTestingCogenForRequestPrelude:Cogen[RequestPrelude]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingCogenForRequestPrelude:org.scalacheck.Cogen[org.http4s.RequestPrelude]" title="Permalink">
@@ -2437,8 +2507,8 @@
         <span class="name">http4sTestingCogenForRequestPrelude</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../../RequestPrelude.html" class="extype" name="org.http4s.RequestPrelude">RequestPrelude</a>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForResponsePrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingCogenForResponsePrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForResponsePrelude:org.scalacheck.Cogen[org.http4s.ResponsePrelude]"></a><a id="http4sTestingCogenForResponsePrelude:Cogen[ResponsePrelude]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingCogenForResponsePrelude:org.scalacheck.Cogen[org.http4s.ResponsePrelude]" title="Permalink">
@@ -2453,7 +2523,7 @@
         <span class="name">http4sTestingCogenForResponsePrelude</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../../ResponsePrelude.html" class="extype" name="org.http4s.ResponsePrelude">ResponsePrelude</a>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForScheme" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForScheme:org.scalacheck.Cogen[org.http4s.Uri.Scheme]"></a><a id="http4sTestingCogenForScheme:Cogen[Scheme]"></a>
       <span class="permalink">
@@ -2534,7 +2604,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForUriHost" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0#http4sTestingCogenForUriHost" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForUriHost:org.scalacheck.Cogen[org.http4s.Uri.Host]"></a><a id="http4sTestingCogenForUriHost:Cogen[Host]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#http4sTestingCogenForUriHost:org.scalacheck.Cogen[org.http4s.Uri.Host]" title="Permalink">
@@ -2549,7 +2619,7 @@
         <span class="name">http4sTestingCogenForUriHost</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../../Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstancesBinCompat0</dd></dl></div>
     </li><li name="org.http4s.laws.discipline.ArbitraryInstances#http4sTestingCogenForUserInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sTestingCogenForUserInfo:org.scalacheck.Cogen[org.http4s.Uri.UserInfo]"></a><a id="http4sTestingCogenForUserInfo:Cogen[UserInfo]"></a>
       <span class="permalink">
@@ -2642,7 +2712,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">http4sTestingGenForPureByteStream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.9/fs2-core_2.12-2.5.9-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="fs2.Pure">Pure</span>, <a href="https://www.scala-lang.org/api/2.12.14/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+        <span class="name">http4sTestingGenForPureByteStream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.9/fs2-core_2.12-2.5.9-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="fs2.Pure">Pure</span>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -2674,7 +2744,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -2690,7 +2760,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">lws</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">lws</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -2706,7 +2776,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -2722,7 +2792,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2741,7 +2811,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2760,7 +2830,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">octets</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.14/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
+        <span class="name">octets</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd></dl></div>
@@ -2808,7 +2878,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2830,7 +2900,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.14/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2852,7 +2922,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.14/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.14/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2870,16 +2940,40 @@
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.laws.discipline.ArbitraryInstances#genCustomStatus" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="genCustomStatus:org.scalacheck.Gen[org.http4s.Status]"></a><a id="genCustomStatus:Gen[Status]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/laws/discipline/ArbitraryInstances$.html#genCustomStatus:org.scalacheck.Gen[org.http4s.Status]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.22.6) Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.">genCustomStatus</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ArbitraryInstances</dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.22.6)</i> Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.laws.discipline.ArbitraryInstances">
+        <div class="parent" name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0">
+              <h3>Inherited from <span class="extype" name="org.http4s.laws.discipline.ArbitraryInstancesBinCompat0">ArbitraryInstancesBinCompat0</span></h3>
+            </div><div class="parent" name="org.http4s.laws.discipline.ArbitraryInstances">
               <h3>Inherited from <span class="extype" name="org.http4s.laws.discipline.ArbitraryInstances">ArbitraryInstances</span></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.14/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.14/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>
