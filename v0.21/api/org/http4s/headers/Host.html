@@ -535,7 +535,7 @@
 information from the target URI, enabling the origin server to
 distinguish among resources <span class="kw">while</span> servicing requests <span class="kw">for</span> multiple
 host names on a single IP address.</pre><p>This header was mandatory in version 1.1 of the Http protocol.</p><p><a href="https://tools.ietf.org/html/rfc7230#section-5.4" target="_blank">RFC-7230 Section 5.4</a>
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.28/core/src/main/scala/org/http4s/headers/Host.scala" target="_blank">Host.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.30/core/src/main/scala/org/http4s/headers/Host.scala" target="_blank">Host.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -836,6 +836,24 @@ host names on a single IP address.</pre><p>This header was mandatory in version 
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.headers.Host#isNameValid" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isNameValid:Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Host.html#isNameValid:Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isNameValid</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">True if <a href="#name:org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.headers.Host#name">name</a> is a valid field-name per RFC7230.</p><div class="fullcomment"><div class="comment cmt"><p>True if <a href="#name:org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.headers.Host#name">name</a> is a valid field-name per RFC7230.  Where it
+is not, the header may be dropped by the backend.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.headers.Host">Host</a> → <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="org.http4s.Header#isNot" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isNot(key:org.http4s.HeaderKey):Boolean"></a><a id="isNot(HeaderKey):Boolean"></a>
       <span class="permalink">

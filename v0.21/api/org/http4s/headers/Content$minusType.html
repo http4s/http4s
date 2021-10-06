@@ -535,7 +535,7 @@
 associated representation: either the representation enclosed in the
 message payload or the selected representation, as determined by the
 message semantics.</pre><p><a href="https://tools.ietf.org/html/rfc7231#section-3.1.1.5" target="_blank">RFC-7231</a>
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.28/core/src/main/scala/org/http4s/headers/Content-Type.scala" target="_blank">Content-Type.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.30/core/src/main/scala/org/http4s/headers/Content-Type.scala" target="_blank">Content-Type.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -833,6 +833,24 @@ message semantics.</pre><p><a href="https://tools.ietf.org/html/rfc7231#section-
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.headers.Content-Type#isNameValid" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isNameValid:Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Content$minusType.html#isNameValid:Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isNameValid</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">True if <a href="#name:org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.headers.Content-Type#name">name</a> is a valid field-name per RFC7230.</p><div class="fullcomment"><div class="comment cmt"><p>True if <a href="#name:org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.headers.Content-Type#name">name</a> is a valid field-name per RFC7230.  Where it
+is not, the header may be dropped by the backend.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a> → <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="org.http4s.Header#isNot" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isNot(key:org.http4s.HeaderKey):Boolean"></a><a id="isNot(HeaderKey):Boolean"></a>
       <span class="permalink">

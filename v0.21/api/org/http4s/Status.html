@@ -867,7 +867,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response code and reason</p><p><b>Note: </b> the reason is not important to the protocol and is not considered in equality checks.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.28/core/src/main/scala/org/http4s/Status.scala" target="_blank">Status.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="http://tools.ietf.org/html/rfc7231#section-6" target="_blank">RFC 7231, Section 6, Response Status Codes</a></p></span><span class="cmt"><p><a href="http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml" target="_blank">IANA Status Code Registry</a></p></span></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.30/core/src/main/scala/org/http4s/Status.scala" target="_blank">Status.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="http://tools.ietf.org/html/rfc7231#section-6" target="_blank">RFC 7231, Section 6, Response Status Codes</a></p></span><span class="cmt"><p><a href="http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml" target="_blank">IANA Status Code Registry</a></p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1347,6 +1347,24 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
+    </li><li name="org.http4s.Status#sanitizedReason" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="sanitizedReason:String"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Status.html#sanitizedReason:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sanitizedReason</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A sanitized <a href="#reason:String" class="extmbr" name="org.http4s.Status#reason">reason</a> phrase.</p><div class="fullcomment"><div class="comment cmt"><p>A sanitized <a href="#reason:String" class="extmbr" name="org.http4s.Status#reason">reason</a> phrase. Blank if reason is invalid per
+RFC7230, otherwise equivalent to reason.
+</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">

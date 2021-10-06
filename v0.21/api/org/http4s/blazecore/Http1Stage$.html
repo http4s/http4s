@@ -169,7 +169,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.28/blaze-core/src/main/scala/org/http4s/blazecore/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.30/blaze-core/src/main/scala/org/http4s/blazecore/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -329,9 +329,11 @@
         <span class="name">encodeHeaders</span><span class="params">(<span name="headers">headers: <a href="../../../scala/index.html#Iterable[+A]=Iterable[A]" class="extmbr" name="scala.Iterable">Iterable</a>[<a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>]</span>, <span name="rr">rr: <a href="../util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>, <span name="isServer">isServer: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
-      <p class="shortcomment cmt">Encodes the headers into the Writer.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes the headers into the Writer. Does not encode <code>Transfer-Encoding</code> or
-<code>Content-Length</code> headers, which are left for the body encoder. Adds
-<code>Date</code> header if one is missing and this is a server response.</p><p>Note: this method is very niche but useful for both server and client.
+      <p class="shortcomment cmt">Encodes the headers into the Writer.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes the headers into the Writer. Does not encode
+<code>Transfer-Encoding</code> or <code>Content-Length</code> headers, which are left
+for the body encoder. Does not encode headers with invalid
+names. Adds <code>Date</code> header if one is missing and this is a server
+response.</p><p>Note: this method is very niche but useful for both server and client.
 </p></div></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>

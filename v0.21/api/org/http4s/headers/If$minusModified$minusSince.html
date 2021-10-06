@@ -536,7 +536,7 @@
   method conditional on the selected representation's modification date
   being more recent than the date provided in the field-value.
 }}</p><p><a href="https://tools.ietf.org/html/rfc7232#section-3.3" target="_blank">RFC-7232</a>
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.28/core/src/main/scala/org/http4s/headers/If-Modified-Since.scala" target="_blank">If-Modified-Since.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.30/core/src/main/scala/org/http4s/headers/If-Modified-Since.scala" target="_blank">If-Modified-Since.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -837,6 +837,24 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.headers.If-Modified-Since#isNameValid" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isNameValid:Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/If$minusModified$minusSince.html#isNameValid:Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isNameValid</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">True if <a href="#name:org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.headers.If-Modified-Since#name">name</a> is a valid field-name per RFC7230.</p><div class="fullcomment"><div class="comment cmt"><p>True if <a href="#name:org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.headers.If-Modified-Since#name">name</a> is a valid field-name per RFC7230.  Where it
+is not, the header may be dropped by the backend.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.headers.If-Modified-Since">If-Modified-Since</a> → <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="org.http4s.Header#isNot" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isNot(key:org.http4s.HeaderKey):Boolean"></a><a id="isNot(HeaderKey):Boolean"></a>
       <span class="permalink">
