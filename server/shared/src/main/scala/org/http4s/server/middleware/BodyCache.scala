@@ -32,6 +32,7 @@ import scodec.bits.ByteVector
   * This middleware forbids such behaviour, compiling the body only once.
   * It does so only for the "inner" middlewares:
   *
+  * As the entire request body will be allocated in memory, there is a possibility of OOM error with a large body. So using the `EntityLimiter` middleware is strongly advised. 
   * {{{
   * val route = AMiddleware(BodyCache(SomeOtherMiddleware(myRoute)))
   * }}}
