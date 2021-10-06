@@ -25,7 +25,7 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.server.Server
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
 
@@ -34,7 +34,7 @@ class EmberServerWebSocketSuite
     with DispatcherIOFixture
     with EmberServerWebSocketSuitePlatform {
 
-  def service[F[_]](wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
+  def service[F[_]](wsBuilder: WebSocketBuilder[F])(implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
