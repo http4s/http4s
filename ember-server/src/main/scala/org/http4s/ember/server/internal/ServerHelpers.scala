@@ -39,8 +39,6 @@ import org.typelevel.vault.{Key, Vault}
 
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
-import org.http4s.headers.Connection
-import java.nio.channels.InterruptedByTimeoutException
 import java.util.concurrent.TimeoutException
 
 private[server] object ServerHelpers {
@@ -357,8 +355,6 @@ private[server] object ServerHelpers {
                 case EmberException.EmptyStream() =>
                   Applicative[F].pure(None)
                 case _: TimeoutException =>
-                  Applicative[F].pure(None)
-                case _: InterruptedByTimeoutException =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)
