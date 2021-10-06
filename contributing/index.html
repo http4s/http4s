@@ -25,16 +25,14 @@
       </button>
 
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav me-auto">
+        <ul class="navbar-nav mr-auto">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
-  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -69,8 +67,8 @@
       <div class="row row-offcanvas row-offcanvas-right">
 
         <div class="col-12 col-md-9 order-1">
-          <span class="float-end">
-          <a href="https://github.com/http4s/http4s/edit/main/website/jvm/src/hugo/content/contributing.md" class="btn btn-secondary btn-sm">
+          <span class="float-right">
+          <a href="https://github.com/http4s/http4s/edit/main/website/src/hugo/content/contributing.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -123,27 +121,27 @@ contributors from duplicating effort.</p>
 <pre><code class="language-sh">git clone git@github.com:http4s/http4s.git
 </code></pre>
 
-<p>To build http4s, you should have <a href="https://www.scala-sbt.org/1.x/docs/Setup.html">SBT</a> and <a href="https://gohugo.io/getting-started/installing/">Hugo</a> installed.
-To test http4s you will also need <a href="https://nodejs.org">Node.js</a> v16 and <a href="https://yarnpkg.com/getting-started/install">yarn</a>.
-Run <code>sbt ci</code>. This runs:</p>
+<p>To build http4s, you should have <a href="http://www.scala-sbt.org/0.13/tutorial/Setup.html">SBT</a> and <a href="https://gohugo.io/getting-started/installing/">Hugo</a> installed.  Run <code>sbt ci</code>.
+This runs:</p>
 
 <ul>
 <li><code>test</code>: compiles all code and runs the unit tests</li>
 <li><code>makeSite</code>: compiles the tutorial, generates the scaladoc, and
 builds the static site.</li>
-<li><code>mimaReportBinaryIssues</code>: checks for binary incompatible changes,
-which are relevant past patch release .0.</li>
+<li><code>mimaReportBinaryIssues</code>: checks for binary compatibility changes,
+which are relevant past patch release .0.
+<br /></li>
 </ul>
 
 <h2 id="coding-standard">Coding standard</h2>
 
 <h3 id="formatting">Formatting</h3>
 
-<p>The Github Actions CI workflow verifies that code is formatted correctly
+<p>The Travis CI build verifies that code is formatted correctly
 according to the <a href="http://scalameta.org/scalafmt/">Scalafmt</a> config and will fail if a diff is found.</p>
 
-<p>You can run <code>scalafmtCheckAll</code> to test the formatting before opening a PR.  If
-your PR fails due to formatting, run <code>scalafmtAll</code>.</p>
+<p>You can run <code>validate</code> to test the formatting before opening a PR.  If
+your PR fails due to formatting, run <code>;test:scalafmt</code>.</p>
 
 <h4 id="intellij-idea-specific-settings">IntelliJ IDEA specific settings</h4>
 
@@ -185,10 +183,10 @@ replacements from libraries such as Scalaz or Dogs.</p>
 
 <p>When a list must not be empty, use <code>cats.data.NonEmptyList</code>.</p>
 
-<h4 id="cistring"><code>CIString</code></h4>
+<h4 id="caseinsensitivestring"><code>CaseInsensitiveString</code></h4>
 
 <p>Many parts of the HTTP spec require case-insensitive semantics. Use
-<code>org.typelevel.ci.CIString</code> to represent these. This is important to
+<code>org.http4s.util.CaseInsensitiveString</code> to represent these. This is important to
 get correct matching semantics when using case class extractors.</p>
 
 <h3 id="case-classes">Case classes</h3>
@@ -213,11 +211,11 @@ includes constructors that return a value as a <code>ParseResult</code>.</p>
 object Foo {
   def fromFiniteDuration(d: FiniteDuration): Foo =
     apply(d.toSeconds)
-
+    
   def fromString(s: String): ParseResult[Foo] =
     try s.toLong
-    catch { case e: NumberFormatException =&gt;
-      new ParseFailure(&quot;not a long&quot;)
+    catch { case e: NumberFormatException =&gt; 
+      new ParseFailure(&quot;not a long&quot;) 
     }
 }
 </code></pre>
@@ -232,7 +230,7 @@ object Foo {
 def fromLong(l: Long): ParseResult[Foo] =
   if (l &lt; 0) Left(ParseFailure(&quot;l must be non-negative&quot;))
   else Right(new Foo(l))
-def unsafeFromLong(l: Long): Foo =
+def unsafeFromLong(l: Long): Foo = 
   fromLong(l).fold(throw _, identity)
 
 // Bad
@@ -299,57 +297,13 @@ documentation as part of the build.</p>
 <h4 id="editing-the-versioned-site">Editing the versioned site</h4>
 
 <p>All pages have an edit link at the top right for direct editing of the
-markdown via GitHub.  Be aware that the Github Actions build will fail if invalid
+markdown via GitHub.  Be aware that the Travis build will fail if invalid
 code is added.</p>
-
-<h3 id="running-the-common-or-versioned-site-locally">Running the common or versioned site locally</h3>
-
-<p>To run common or versioned site locally you need <a href="https://gohugo.io/getting-started/installing/">Hugo</a> version 0.26 (since
-this is what CI uses) installed.</p>
-
-<h3 id="running-common-site-locally">Running common site locally</h3>
-
-<p>In your terminal run this command (in root folder of http4s):</p>
-
-<pre><code class="language-sh">hugo -s website/jvm/src/hugo server -p 4000
-</code></pre>
-
-<p>Now you can open browser at <a href="http://localhost:4000/">http://localhost:4000/</a> to see local version
-of common site.</p>
-
-<p>If the site looks broken make sure you have Hugo version compatible with
-version 0.26.</p>
-
-<p>Hugo server will automatically detect any changes in Hugo content files
-located in <code>website/src/hugo/content</code> and it will reload corresponding
-pages automatically.</p>
-
-<h3 id="running-versioned-site-locally">Running versioned site locally</h3>
-
-<p>In your terminal run these commands (in root folder of http4s):</p>
-
-<pre><code class="language-sh">sbt docs/makeSite
-hugo -s docs/src/hugo server -p 4000
-</code></pre>
-
-<p>Now you can open browser <a href="http://localhost:4000/v0.22">http://localhost:4000/v0.22</a> to see local version
-of versioned site.</p>
-
-<p>If the site looks broken make sure you have Hugo version compatible with
-version 0.26.</p>
-
-<p>When you change content files located at <code>docs/src/main/mdoc</code> you need
-to run:</p>
-
-<pre><code class="language-sh">sbt docs/mdoc
-</code></pre>
-
-<p>for Hugo server to picks up your changes.</p>
 
 <h2 id="submit-a-pull-request">Submit a pull request</h2>
 
 <p>Before you open a pull request, you should make sure that <code>sbt ci</code> runs
-successfully. Github Actions will run this as well, but it may save you some
+successfully. Travis CI will run this as well, but it may save you some
 time to be alerted to style or <a href="https://scalameta.org/mdoc/">mdoc</a> problems earlier.</p>
 
 <p>If your pull request addresses an existing issue, please tag that
@@ -407,7 +361,7 @@ contributors guide</a></small></p>
       </div>
       <hr />
       <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
       </footer>
 
     </div>
