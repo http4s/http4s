@@ -62,7 +62,7 @@ object BodyCache {
 
   private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[F]] = for {
     body <- req.body.compile.to(ByteVector)
-    cachedReq = req.withBodyStream(Stream.emits(body.toIndexedSeq))
+    cachedReq = req.withBodyStream(Stream.chunk(Chunk.byteVector(body)))
   } yield cachedReq
 
   def hasNoBody[F[_]](req: Request[F]): Boolean =
