@@ -8,6 +8,37 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M28 (2021-10-06)
+
+This is the latest development milestone in the 1.x series.  It is not binary compatible with previous milestones.
+
+The http4s-dom-core, http4s-dom-fetch-client, and http4s-dom-service-worker modules have been moved to the [https://github.com/http4s/http4s-dom](http4s-dom repo) and are now on their own release cycle.
+
+## Various modules
+
+## Noteworthy refactoring
+
+* [#5303](https://github.com/http4s/http4s/pull/5303): Many of the changes on the 1.x line were backported to 0.23.x.  This resynchronized those branches for continuing merges.  Nothing significant should have changed here that isn't already noted in 0.23.5.
+
+## http4s-core
+
+### Breaking changes
+
+* [#5328](https://github.com/http4s/http4s/pull/5328): `HttpVersion#copy` is removed from the public API.  It was deprecated in 0.22.6.
+* [#5329](https://github.com/http4s/http4s/pull/5329): Custom status reason phrases are removed.  They were deprecated in 0.22.6.
+
+## http4s-client
+
+### Breaking changes
+
+* [#5287](https://github.com/http4s/http4s/pull/5287): Weaken constraint on `DestinationAttribute` to `MonadCancelThrow`. Does not break source compatibility.
+
+## http4s-server
+
+### Breaking changes
+
+* [#5327](https://github.com/http4s/http4s/pull/5327): `WebSocketBuilder2` is renamed back to `WebSocketBuilder`.  A deprecated alias is left as `WebSocketBuilder` to aid migration.
+
 # v0.23.5 (2021-10-06)
 
 This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.6.
