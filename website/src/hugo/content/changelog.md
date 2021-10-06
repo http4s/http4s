@@ -26,6 +26,7 @@ This is a routine maintenance release.  It is binary compatible with v0.22.5 and
 
 * [#5260](https://github.com/http4s/http4s/pull/5260): Deprecate `HttpVersion#copy`, which circumvents validation and could create out-of-bounds HTTP protocol versions.
 * [#5253](https://github.com/http4s/http4s/pull/5253): Deprecate custom status reason phrases.  They are a security risk for something that not all backends support and the spec does not require us to support.
+* [#5331](https://github.com/http4s/http4s/pull/5331): Deprecate `Status.apply`, which does not validate the code. Use `fromInt` instead.
 
 ### Notable refactoring
 
