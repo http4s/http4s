@@ -149,5 +149,5 @@ private[ember] object Encoder {
     }
   }
 
-  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, ' ', '\r', '\n')
+  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
 }

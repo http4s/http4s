@@ -57,6 +57,7 @@ sealed abstract case class Status private (code: Int) extends Ordered[Status] wi
 object Status {
   import Registry._
 
+  @deprecated("Use fromInt(Int). This does not validate the code.", "0.22.6")
   def apply(code: Int): Status =
     trust(code, "", true)
 

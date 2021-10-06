@@ -21,7 +21,7 @@ import cats.effect._
 import fs2.io.file._
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
-import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
 import org.http4s.client.middleware.UnixSocket
 import scala.concurrent.duration._
 import fs2.io.net.unixsocket.UnixSockets
@@ -36,12 +36,12 @@ class EmberUnixSocketSuite extends Http4sSuite {
       localSocket = UnixSocketAddress(path.toString)
       _ <- EmberServerBuilder
         .default[IO]
-        .withUnixSocketConfig(UnixSockets.forAsync[IO], localSocket)
+        .withUnixSocketConfig(UnixSockets[IO], localSocket)
         .withHttpApp(app)
         .build
       client <- EmberClientBuilder
         .default[IO]
-        .withUnixSockets(UnixSockets.forAsync[IO])
+        .withUnixSockets(UnixSockets[IO])
         .build
         .map(UnixSocket(localSocket))
       _ <- Resource.eval(IO.sleep(4.seconds))
