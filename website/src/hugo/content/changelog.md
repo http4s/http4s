@@ -164,6 +164,10 @@ This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.2
 
 * [#5130](https://github.com/http4s/http4s/pull/5130): Fix the parsing of empty `Origin` headers to be a parse failure instead of `Origin.Null`.
 
+### Enhancements
+
+* [#5321](https://github.com/http4s/http4s/pull/5321): Add `BodyCaching` middleware.
+
 ## Dependency updates
 
 * scodec-bits-1.1.28
