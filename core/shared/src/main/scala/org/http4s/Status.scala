@@ -20,7 +20,6 @@ import cats.{Order, Show}
 import org.http4s.Status.ResponseClass
 import org.http4s.internal.CharPredicate
 import org.http4s.util.Renderable
-import scala.annotation.nowarn
 
 /** Representation of the HTTP response code and reason
   *
@@ -74,7 +73,7 @@ object Status {
       0x80.toChar to Char.MaxValue)
 
   @deprecated(
-    "Use apply(Int). Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends. For simplicity, we'll now assume that entities are allowed on all custom status codes.",
+    "Use fromInt(Int). This does not validate the code. Furthermore, custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends. For simplicity, we'll now assume that entities are allowed on all custom status codes.",
     "0.22.6")
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
@@ -85,7 +84,7 @@ object Status {
           ""
     }
 
-  @nowarn("cat=deprecation")
+  @deprecated("Use fromInt(Int). This does not validate the code.", "0.22.6")
   def apply(code: Int): Status =
     apply(code, "", true)
 

@@ -624,6 +624,7 @@ object Uri extends UriPlatform {
     def toByteArray: Array[Byte] =
       address.toBytes
 
+    @deprecated("Use address.toInetAddress", "0.23.5")
     def toInet4Address: Inet4Address =
       address.toInetAddress
 
@@ -650,6 +651,7 @@ object Uri extends UriPlatform {
     def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Ipv4Address =
       apply(ip4s.Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
 
+    @deprecated("Use apply(ip4s.Ipv4Address.fromInet4Address(address))", "0.23.5")
     def fromInet4Address(address: Inet4Address): Ipv4Address =
       apply(ip4s.Ipv4Address.fromInet4Address(address))
 
@@ -684,6 +686,7 @@ object Uri extends UriPlatform {
     def toByteArray: Array[Byte] =
       address.toBytes
 
+    @deprecated("Use address.toInetAddress", "0.23.5")
     def toInetAddress: InetAddress =
       address.toInetAddress
 
@@ -707,6 +710,7 @@ object Uri extends UriPlatform {
             ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}"))
       }
 
+    @deprecated("Use apply(ip4s.Ipv6Address.fromInet6Address(address))", "0.23.5")
     def fromInet6Address(address: Inet6Address): Ipv6Address =
       apply(ip4s.Ipv6Address.fromInet6Address(address))
 

@@ -609,6 +609,57 @@ class CORSSuite extends Http4sSuite {
       }
   }
 
+  test("withAllowHeadersStatic, preflight request with non-matching origin and matching headers") {
+    CORS.policy
+      .withAllowOriginHeader(_ => false)
+      .withAllowHeadersStatic(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertAllowHeaders(resp, None)
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
+      }
+  }
+
+  test("withAllowHeadersStatic, preflight request with matching origin and headers") {
+    CORS.policy
+      .withAllowOriginHeader(_ => true)
+      .withAllowHeadersStatic(Set(ci"X-Cors-Suite", ci"X-Cors-Suite-2"))
+      .apply(app)
+      .run(preflightReq)
+      .map { resp =>
+        assertAllowHeaders(resp, Some(ci"X-Cors-Suite, X-Cors-Suite-2"))
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
+      }
+  }
+
+  test(
+    "withAllowHeadersStatic, preflight request with matching origin and some non-matching headers") {
+    CORS.policy
+      .withAllowOriginHeader(_ => true)
+      .withAllowHeadersStatic(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
+      .apply(app)
+      .run(preflightReq.putHeaders(
+        Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")))
+      .map { resp =>
+        assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
+      }
+  }
+
+  test("withAllowHeadersStatic, preflight request with matching origin and all matching headers") {
+    CORS.policy
+      .withAllowOriginHeader(_ => true)
+      .withAllowHeadersStatic(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
+      .apply(app)
+      .run(
+        preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1")))
+      .map { resp =>
+        assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
+        assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
+      }
+  }
+
   test("withMaxAge, non-preflight request with matching origin") {
     CORS.policy
       .withAllowOriginHeader(_ => true)

@@ -39,6 +39,7 @@ import org.http4s.websocket.WebSocketFrame._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
+import java.net.ProtocolException
 
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],

@@ -19,6 +19,8 @@ package org.http4s
 import scala.annotation.switch
 import scodec.bits.ByteVector
 
+import fs2.io.net.ProtocolException
+
 package object websocket {
   // Masks for extracting fields
   private[websocket] val OP_CODE = 0xf

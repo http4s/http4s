@@ -21,8 +21,7 @@ package staticcontent
 import cats.effect.IO
 import cats.syntax.all._
 import fs2._
-import java.io.File
-import java.nio.file._
+import fs2.io.file._
 import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Range`
 import org.http4s.headers.Range.SubRange
@@ -31,7 +30,7 @@ import org.http4s.server.middleware.TranslateUri
 class FileServiceSuite extends Http4sSuite with StaticContentShared {
   val defaultSystemPath = org.http4s.server.test.BuildInfo.test_resourceDirectory.getAbsolutePath
   val routes = fileService(
-    FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath)
+    FileService.Config[IO](defaultSystemPath)
   )
 
   test("Respect UriTranslation") {
@@ -75,17 +74,17 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
         systemPath = defaultSystemPath,
         pathPrefix = "/path-prefix"
       ))
-    val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
+    val file = Path(defaultSystemPath).resolve(relativePath)
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assert *>
+    Files[IO].exists(file).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("Return a 400 if the request tries to escape the context") {
     val relativePath = "../testresource.txt"
-    val systemPath = Paths.get(defaultSystemPath).resolve("testDir")
-    val file = systemPath.resolve(relativePath).toFile
+    val systemPath = Path(defaultSystemPath).resolve("testDir")
+    val file = systemPath.resolve(relativePath)
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
@@ -93,39 +92,39 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       FileService.Config[IO](
         systemPath = systemPath.toString
       ))
-    IO(file.exists()).assert *>
+    Files[IO].exists(file).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test("Return a 400 on path traversal, even if it's inside the context") {
     val relativePath = "testDir/../testresource.txt"
-    val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
+    val file = Path(defaultSystemPath).resolve(relativePath)
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assert *>
+    Files[IO].exists(file).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test(
     "Return a 404 Not Found if the request tries to escape the context with a partial system path prefix match") {
     val relativePath = "Dir/partial-prefix.txt"
-    val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
+    val file = Path(defaultSystemPath).resolve(relativePath)
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
     val s0 = fileService(
       FileService.Config[IO](
-        systemPath = Paths.get(defaultSystemPath).resolve("test").toString
+        systemPath = Path(defaultSystemPath).resolve("test").toString
       ))
-    IO(file.exists()).assert *>
+    Files[IO].exists(file).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
   test(
     "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match") {
     val relativePath = "Dir/partial-prefix.txt"
-    val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
+    val file = Path(defaultSystemPath).resolve(relativePath)
 
     val uri = Uri.unsafeFromString("/prefix" + relativePath)
     val req = Request[IO](uri = uri)
@@ -134,41 +133,41 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
         systemPath = defaultSystemPath,
         pathPrefix = "/prefix"
       ))
-    IO(file.exists()).assert *>
+    Files[IO].exists(file).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
   test("Return a 400 if the request tries to escape the context with /") {
-    val absPath = Paths.get(defaultSystemPath).resolve("testresource.txt")
-    val file = absPath.toFile
+    val absPath = Path(defaultSystemPath).resolve("testresource.txt")
+    val file = absPath
 
     val uri = Uri.unsafeFromString("///" + absPath)
     val req = Request[IO](uri = uri)
-    IO(file.exists()).assert *>
+    Files[IO].exists(file).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test("return files included via symlink") {
     val relativePath = "symlink/org/http4s/server/staticcontent/FileServiceSuite.scala"
-    val path = Paths.get(defaultSystemPath).resolve(relativePath)
-    val file = path.toFile
-    val bytes = Chunk.array(Files.readAllBytes(path))
-
-    val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
-    IO(file.exists()).assert *>
-      IO(Files.isSymbolicLink(Paths.get(defaultSystemPath).resolve("symlink"))).assert *>
-      routes.orNotFound(req).map(_.status).assertEquals(Status.Ok) *>
-      Stream
-        .eval(routes.orNotFound(req))
-        .flatMap(_.body.chunks)
-        .compile
-        .lastOrError
-        .assertEquals(bytes)
+    val path = Path(defaultSystemPath).resolve(relativePath)
+    val file = path
+    Files[IO].readAll(path).chunks.compile.foldMonoid.flatMap { bytes =>
+      val uri = Uri.unsafeFromString("/" + relativePath)
+      val req = Request[IO](uri = uri)
+      Files[IO].exists(file).assert *>
+        Files[IO].isSymbolicLink(Path(defaultSystemPath).resolve("symlink")).assert *>
+        routes.orNotFound(req).map(_.status).assertEquals(Status.Ok) *>
+        Stream
+          .eval(routes.orNotFound(req))
+          .flatMap(_.body.chunks)
+          .compile
+          .lastOrError
+          .assertEquals(bytes)
+    }
   }
 
   test("Return index.html if request points to ''") {
-    val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
+    val path = Path(defaultSystemPath).resolve("testDir/").absolute.toString
     val s0 = fileService(FileService.Config[IO](systemPath = path))
     val req = Request[IO](uri = uri"")
     s0.orNotFound(req)
@@ -181,7 +180,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Return index.html if request points to '/'") {
-    val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
+    val path = Path(defaultSystemPath).resolve("testDir/").absolute.toString
     val s0 = fileService(FileService.Config[IO](systemPath = path))
     val req = Request[IO](uri = uri"/")
     val rb = s0.orNotFound(req)
@@ -251,14 +250,15 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       headers.Range(200, 201),
       headers.Range(-200)
     )
-    val size = new File(getClass.getResource("/testresource.txt").toURI).length
-    val reqs = ranges.map(r => Request[IO](uri = uri"/testresource.txt").withHeaders(r))
-    reqs.toList.traverse { req =>
-      routes.orNotFound(req).map(_.status).assertEquals(Status.RangeNotSatisfiable) *>
-        routes
-          .orNotFound(req)
-          .map(_.headers.get[`Content-Range`])
-          .assertEquals(Some(headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
+    Files[IO].size(Path(defaultSystemPath) / "testresource.txt").flatMap { size =>
+      val reqs = ranges.map(r => Request[IO](uri = uri"/testresource.txt").withHeaders(r))
+      reqs.toList.traverse { req =>
+        routes.orNotFound(req).map(_.status).assertEquals(Status.RangeNotSatisfiable) *>
+          routes
+            .orNotFound(req)
+            .map(_.headers.get[`Content-Range`])
+            .assertEquals(Some(headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
+      }
     }
   }
 
@@ -268,7 +268,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("handle a relative system path") {
     val s = fileService(FileService.Config[IO]("."))
-    IO(Paths.get(".").resolve("build.sbt").toFile.exists()).assert *>
+    Files[IO].exists(Path(".").resolve("build.sbt")).assert *>
       s.orNotFound(Request[IO](uri = uri"/build.sbt")).map(_.status).assertEquals(Status.Ok)
   }
 
