@@ -22,9 +22,8 @@ import java.nio.charset.StandardCharsets
 import org.http4s.Status._
 import org.scalacheck.Gen
 import org.scalacheck.Prop.{forAll, propBoolean}
-import scala.annotation.nowarn
 
-class StatusSpec extends StatusDeprecatedSpec {
+class StatusSpec extends Http4sSuite {
   checkAll("Status", OrderTests[Status].order)
 
   test("Statuses should not be equal if their codes are not") {
@@ -35,8 +34,8 @@ class StatusSpec extends StatusDeprecatedSpec {
 
   test("Statuses should be equal if their codes are") {
     forAll(genValidStatusCode) { i =>
-      val s1: Status = getStatus(i, "a reason")
-      val s2: Status = getStatus(i, "another reason")
+      val s1: Status = getStatus(i)
+      val s2: Status = getStatus(i)
       s1 == s2
     }
   }
@@ -92,22 +91,6 @@ class StatusSpec extends StatusDeprecatedSpec {
     assertEquals(getStatus(NotFound.code).reason, "Not Found")
   }
 
-  test(
-    "Finding a status by code and reason should succeed if the code is in the valid range, but not a standard code") {
-    val s1 = getStatus(371, "some reason")
-    assertEquals(s1.code, 371)
-    assertEquals(s1.reason, "some reason")
-  }
-
-  test(
-    "Finding a status by code and reason should succeed for a standard code and nonstandard reason, without replacing the default reason") {
-    assertEquals(
-      getStatus(NotFound.code, "My dog ate my homework").reason,
-      "My dog ate my homework")
-
-    assertEquals(getStatus(NotFound.code).reason, "Not Found")
-  }
-
   test("all known status have a reason") {
     Status.registered.foreach { status =>
       assert(status.renderString.drop(4).nonEmpty, status.renderString)
@@ -124,23 +107,6 @@ class StatusSpec extends StatusDeprecatedSpec {
 
   private def getStatus(code: Int) =
     fromInt(code) match {
-      case Right(s) => s
-      case Left(t) => throw t
-    }
-}
-
-@nowarn("cat=deprecation")
-class StatusDeprecatedSpec extends Http4sSuite {
-  test("Finding a status by code and reason should fail if the code is not in the valid range") {
-    assert(fromIntAndReason(17, "a reason").isLeft)
-  }
-
-  test("Finding a status by code and reason should succeed for a standard code and reason") {
-    assertEquals(getStatus(NotFound.code, "Not Found").reason, "Not Found")
-  }
-
-  protected def getStatus(code: Int, reason: String) =
-    fromIntAndReason(code, reason) match {
       case Right(s) => s
       case Left(t) => throw t
     }
