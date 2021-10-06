@@ -116,7 +116,7 @@ object AsyncHttpClient {
         val eff = for {
           _ <- onStreamCalled.set(true)
 
-          subscriber <- StreamSubscriber[F, HttpResponseBodyPart](dispatcher)
+          subscriber <- StreamSubscriber[F, HttpResponseBodyPart]
 
           subscribeF = F.delay(publisher.subscribe(subscriber))
 

@@ -163,7 +163,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
     oneOf(
-      genValidStatusCode.map(Status(_)),
+      genValidStatusCode.map(Status.fromInt(_).yolo),
       genStandardStatus
     ))
 
@@ -193,13 +193,14 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield Query(vs: _*)
     }
 
-  implicit val http4sTestingArbitraryForHttpVersion: Arbitrary[HttpVersion] =
-    Arbitrary {
-      for {
-        major <- choose(0, 9)
-        minor <- choose(0, 9)
-      } yield HttpVersion.fromVersion(major, minor).yolo
-    }
+  implicit val http4sTestingArbitraryForHttpVersion: Arbitrary[HttpVersion] = {
+    val genSpecified = Gen.oneOf(HttpVersion.specified)
+    val genAll = for {
+      major <- Gen.chooseNum(0, 9)
+      minor <- Gen.chooseNum(0, 9)
+    } yield HttpVersion.fromVersion(major, minor).yolo
+    Arbitrary(Gen.oneOf(genSpecified, genAll))
+  }
 
   implicit val http4sTestingCogenForHttpVersion: Cogen[HttpVersion] =
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))

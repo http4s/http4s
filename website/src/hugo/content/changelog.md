@@ -39,6 +39,154 @@ The http4s-dom-core, http4s-dom-fetch-client, and http4s-dom-service-worker modu
 
 * [#5327](https://github.com/http4s/http4s/pull/5327): `WebSocketBuilder2` is renamed back to `WebSocketBuilder`.  A deprecated alias is left as `WebSocketBuilder` to aid migration.
 
+# v0.23.5 (2021-10-06)
+
+This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.6.
+
+Scala.js support is backported for a large subset of the modules present in 1.0.
+Additional Scala.js-only modules for using http4s in the browser have been spun off as https://github.com/http4s/http4s-dom.
+
+## http4s-core
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+### Deprecations
+
+* [#5226](https://github.com/http4s/http4s/pull/5226): Migrate to the `fs2.io.file` APIs in `EntityDecoder`, `StaticFile`, and `Part`.
+
+## http4s-laws
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+## http4s-client
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+## http4s-server
+
+### Deprecations
+
+* [#5226](https://github.com/http4s/http4s/pull/5226): Migrate to the `fs2.io.file` APIs in `FileService`.
+
+## http4s-blaze-server
+
+### Bug fixes
+
+* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, combined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
+
+## http4s-blaze-client
+
+### Enhancements
+
+* [#5201](https://github.com/http4s/http4s/pull/5201): Adds an `BlazeClientBuilder.apply` method that uses the `ExecutionContext` from the `Async[F]` instance.  The old constructor that required an explicit `ExecutionContext` is now deprecated.  Users who need a custom `ExecutionContext` for blaze should call `withExecutionContext`.
+
+## http4s-ember-core
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+## http4s-ember-server
+
+### Bug fixes
+
+* [#5152](https://github.com/http4s/http4s/pull/5152): Pass a `WebSocketBuilder`, now named `WebSocketBuilder2`, when adding an `HttpApp`.  This, combined with the new `imapK` method, lets web socket applications vary the local effect.  Previously, this threw a `ClassCastException`.
+
+### Enhancements
+
+* [#5219](https://github.com/http4s/http4s/pull/5219): Add support for Unix sockets.  This works on Linux and Darwin, but not on Windows. Use the new `withUnixSocketConfig` method on `EmberServerBuilder` to bind to an `fs2.io.net.unixsocket.UnixSocketAddress`.
+
+## http4s-ember-client
+
+### Cross Builds
+
+* [#5298](https://github.com/http4s/http4s/pull/5298): Add support for Scala.js
+
+### Enhancements
+
+* [#5219](https://github.com/http4s/http4s/pull/5219): Add support for Unix sockets.  This works on Linux and Darwin, but not on Windows.  Use the new `UnixSocket` middleware to route requests to an `fs2.io.net.unixsocket.UnixSocketAddress`.
+
+## Dependency versions
+
+* fs2-3.1.4
+* ip4s-3.0.4
+
+# v0.22.6 (2021-10-06)
+
+This is a routine maintenance release.  It is binary compatible with v0.22.5 and includes the changes in v0.21.30.
+
+## http4s-core
+
+### Enhancements
+
+* [#5189](https://github.com/http4s/http4s/pull/5189): Add `Order[HttpDate]` and `Hash[HttpDate]` instance
+* [#5265](https://github.com/http4s/http4s/pull/5265): Add `Ordering[QValue]` instance
+* [#5279](https://github.com/http4s/http4s/pull/5279): Add constants for `HTTP/3`, `HTTP/2` (deprecating `HTTP/2.0`), and `HTTP/0.9`.
+* [#5294](https://github.com/http4s/http4s/pull/5294): Implement `DNT` header
+* [#5296](https://github.com/http4s/http4s/pull/5296): Add `Accept-Post` header
+
+### Deprecation
+
+* [#5260](https://github.com/http4s/http4s/pull/5260): Deprecate `HttpVersion#copy`, which circumvents validation and could create out-of-bounds HTTP protocol versions.
+* [#5253](https://github.com/http4s/http4s/pull/5253): Deprecate custom status reason phrases.  They are a security risk for something that not all backends support and the spec does not require us to support.
+* [#5331](https://github.com/http4s/http4s/pull/5331): Deprecate `Status.apply`, which does not validate the code. Use `fromInt` instead.
+
+### Notable refactoring
+
+* [#5139](https://github.com/http4s/http4s/pull/5139): Add dependency on new `http4s-crypto` library, which abstracts the target platform.  All of its uses should be internal.  Scala.js support is added in later branches, but this aids maintenance.
+* [#5308](https://github.com/http4s/http4s/pull/5308): Use `Uri.unsafeFromString` in `Uri` literal macro to ease WartRemover usage.
+
+## http4s-laws
+
+### Deprecation
+
+* [#5274](https://github.com/http4s/http4s/pull/5274): Deprecate `ArbitraryInstances`, which was redundant with the `arbitrary` object.  The latter is packaged consistently with Cats' arbitraries.
+
+## http4s-server
+
+### Enhancements
+
+* [#5323](https://github.com/http4s/http4s/pull/5323): In `CORSPolicy`, add `withAllowHeadersStatic`, which supports a static list of `Access-Control-Allow-Headers` whether the `Access-Control-Request-Headers` values match or not.
+
+## http4s-blaze-client
+
+### Semantic change
+
+* [#5032](https://github.com/http4s/http4s/pull/5032): Wrap `EOF` when borrowing a dead connection in a `java.net.SocketException` with information on which host failed.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#5271](https://github.com/http4s/http4s/pull/5271): Eliminate exception allocation on the parser hot path
+* [#5290](https://github.com/http4s/http4s/pull/5290): Retry on `IOException` with `"Connection reset by peer"` or `"Broken pipe"` in the message
+
+## http4s-ember-server
+
+### Semantic change
+
+* [#5286](https://github.com/http4s/http4s/pull/5286): On `requestHeaderTimeout` and `idleTimeout`, close the connection without rendering a `500 Internal Server Error` response.  The HTTP/1.1 spec is not prescrptive on this matter, but this behavior is more consistent with prevaling usage in http4s and a sampling of other servers.  Furthermore, an empty response is retriable (assuming request idempotence) by clients, whereas a `500 Internal Server Error` is not.
+
+### Enhancements
+
+* [#5271](https://github.com/http4s/http4s/pull/5271): Eliminate exception allocation on the parser hot path
+
+## Dependency updates
+
+* ip4s-2.0.4
+* jetty-9.4.44.v20210927
+* metrics-4.2.4
+* munit-cats-effect-1.0.6
+* okhttp-4.9.2
+* scodec-bits-1.2.29
+* tomcat-9.0.54
+
 # v1.0.0-M27 (2021-09-21)
 
 This release includes security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It forward-merges 0.23.4.
@@ -114,6 +262,26 @@ This release includes security patches for [GHSA-5vcm-3xc3-w7x3](https://github.
 * scalafix-0.9.31
 * tomcat-9.0.53
 
+# v0.21.30 (2021-10-06)
+
+This is a bugfix release. Routine maintenance has stopped on 0.21.x, but we'll continue to entertain PRs from the community.  It is binary compatible wit hthe 0.21.x series.
+
+## blaze-client
+
+### Compatibility restorations
+
+* [#5288](https://github.com/http4s/http4s/pull/5288): Allow `' '` when rendering URI. This is against the spec, but bug-compatible with previous versions and not a security threat. It has come up for users trimming strings from config. Starting in 0.22, such whitespace is encoded properly.
+
+## ember-client
+
+### Bugfixes
+
+* [#5247](https://github.com/http4s/http4s/pull/5247): Match on `ClosedChannelException` when detecting connections that terminated inside the pool.
+
+### Compatibility restorations
+
+* [#5288](https://github.com/http4s/http4s/pull/5288): Allow `' '` when rendering URI. This is against the spec, but bug-compatible with previous versions and not a security threat. It has come up for users trimming strings from config. Starting in 0.22, such whitespace is encoded properly.
+
 # v0.21.29 (2021-09-21)
 
 This release includes security patches for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the 0.21.x series.
@@ -150,6 +318,10 @@ This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.2
 ### Bugfixes
 
 * [#5130](https://github.com/http4s/http4s/pull/5130): Fix the parsing of empty `Origin` headers to be a parse failure instead of `Origin.Null`.
+
+### Enhancements
+
+* [#5321](https://github.com/http4s/http4s/pull/5321): Add `BodyCaching` middleware.
 
 ## Dependency updates
 
