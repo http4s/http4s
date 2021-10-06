@@ -10,7 +10,7 @@ it.
 
 # v0.23.5 (2021-10-06)
 
-This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.5.
+This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.6.
 
 Scala.js support is backported for a large subset of the modules present in 1.0.
 Additional Scala.js-only modules for using http4s in the browser have been spun off as https://github.com/http4s/http4s-dom.
