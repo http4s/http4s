@@ -38,6 +38,12 @@ This is a routine maintenance release.  It is binary compatible with v0.22.5 and
 
 * [#5274](https://github.com/http4s/http4s/pull/5274): Deprecate `ArbitraryInstances`, which was redundant with the `arbitrary` object.  The latter is packaged consistently with Cats' arbitraries.
 
+## http4s-server
+
+### Enhancements
+
+* [#5323](https://github.com/http4s/http4s/pull/5323): In `CORSPolicy`, add `withAllowHeadersStatic`, which supports a static list of `Access-Control-Allow-Headers` whether the `Access-Control-Request-Headers` values match or not.
+
 ## http4s-blaze-client
 
 ### Semantic change
