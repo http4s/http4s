@@ -408,7 +408,7 @@ final class Request[F[_]] private (
 
   def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
     val inetAddress = remote.map(_.host.toInetAddress)
-    F.delay(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
+    F.blocking(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
   }
 
   def remotePort: Option[Port] = remote.map(_.port)

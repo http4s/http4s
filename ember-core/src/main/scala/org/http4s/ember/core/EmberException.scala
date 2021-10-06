@@ -51,4 +51,5 @@ object EmberException {
   final case class MessageTooLong(maxHeaderSize: Int) extends EmberException {
     override def getMessage: String = s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes"
   }
+
 }

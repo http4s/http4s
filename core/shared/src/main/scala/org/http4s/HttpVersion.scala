@@ -139,6 +139,15 @@ object HttpVersion {
     */
   val `HTTP/3` = new HttpVersion(3, 0)
 
+  /** The set of HTTP versions that have a specification */
+  private[http4s] val specified: Set[HttpVersion] = Set(
+    `HTTP/0.9`,
+    `HTTP/1.0`,
+    `HTTP/1.1`,
+    `HTTP/2`,
+    `HTTP/3`
+  )
+
   private[this] val right_1_0 = Right(`HTTP/1.0`)
   private[this] val right_1_1 = Right(`HTTP/1.1`)
 
