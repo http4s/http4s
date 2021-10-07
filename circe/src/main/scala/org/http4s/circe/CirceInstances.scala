@@ -19,9 +19,10 @@ package circe
 
 import java.nio.ByteBuffer
 
+import cats.data.EitherT
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
-import cats.syntax.either._
+import cats.syntax.all._
 import fs2.{Chunk, Pull, Stream}
 import io.circe._
 import io.circe.jawn._
@@ -31,7 +32,7 @@ import org.typelevel.jawn.ParseException
 import org.typelevel.jawn.fs2.unwrapJsonArray
 
 trait CirceInstances extends JawnInstances {
-  protected val circeSupportParser =
+  protected lazy val circeSupportParser =
     new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
 
   import circeSupportParser.facade
@@ -64,7 +65,10 @@ trait CirceInstances extends JawnInstances {
 
   // default cutoff value is based on benchmarks results
   implicit def jsonDecoder[F[_]: Concurrent]: EntityDecoder[F, Json] =
-    jsonDecoderAdaptive(cutoff = 100000, MediaType.application.json)
+    if (Platform.isJvm)
+      jsonDecoderAdaptive(cutoff = 100000, MediaType.application.json)
+    else
+      jsonDecoderNative(MediaType.application.json)
 
   def jsonDecoderAdaptive[F[_]: Concurrent](
       cutoff: Long,
@@ -76,6 +80,14 @@ trait CirceInstances extends JawnInstances {
           jsonDecoderByteBufferImpl[F](msg)
         case _ => this.jawnDecoderImpl[F, Json](msg)
       }
+    }
+
+  // Uses native JSON parser on JS. On JVM it would use Jawn, but we won't call it
+  private def jsonDecoderNative[F[_]: Concurrent](
+      r1: MediaRange,
+      rs: MediaRange*): EntityDecoder[F, Json] =
+    EntityDecoder.decodeBy(r1, rs: _*) { msg =>
+      EitherT(msg.bodyText.compile.foldMonoid.map(parser.parse)).leftMap(circeParseExceptionMessage)
     }
 
   def jsonOf[F[_]: Concurrent, A: Decoder]: EntityDecoder[F, A] =
@@ -104,7 +116,8 @@ trait CirceInstances extends JawnInstances {
       r1: MediaRange,
       decodeErrorHandler: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure,
       rs: MediaRange*)(implicit F: Concurrent[F], decoder: Decoder[A]): EntityDecoder[F, A] =
-    jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
+    (if (Platform.isJvm) jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*)
+     else jsonDecoderNative[F](r1, rs: _*)).flatMapR { json =>
       decoder
         .decodeJson(json)
         .fold(
@@ -231,7 +244,7 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
 
   def build: CirceInstances =
     new CirceInstances {
-      override val circeSupportParser: CirceSupportParser = self.circeSupportParser
+      override lazy val circeSupportParser: CirceSupportParser = self.circeSupportParser
       override val defaultPrinter: Printer = self.defaultPrinter
       override val jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
         self.jsonDecodeError
@@ -248,7 +261,7 @@ object CirceInstances {
   def withPrinter(p: Printer): CirceInstancesBuilder =
     builder.withPrinter(p)
 
-  val builder: CirceInstancesBuilder = new CirceInstancesBuilder() {}
+  lazy val builder: CirceInstancesBuilder = new CirceInstancesBuilder() {}
 
   // These are lazy since they are used when initializing the `builder`!
 

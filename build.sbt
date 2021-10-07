@@ -544,6 +544,7 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
+      circeParser.value,
       circeTesting.value % Test
     )
   )
@@ -607,7 +608,7 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     startYear := Some(2015),
-    libraryDependencies += circeParser,
+    libraryDependencies += circeParser.value,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
   )

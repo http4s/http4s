@@ -309,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeJawn                        = Def.setting("io.circe"               %%% "circe-jawn"                % V.circe)
   lazy val circeJawn15                      = Def.setting("io.circe"               %%% "circe-jawn"                % V.circe15)
   lazy val circeLiteral                     =             "io.circe"               %%  "circe-literal"             % V.circe
-  lazy val circeParser                      =             "io.circe"               %%  "circe-parser"              % V.circe
+  lazy val circeParser                      = Def.setting("io.circe"               %%% "circe-parser"              % V.circe)
   lazy val circeTesting                     = Def.setting("io.circe"               %%% "circe-testing"             % V.circe)
   lazy val crypto                           = Def.setting("org.http4s"             %%% "http4s-crypto"             % V.crypto)
   lazy val cryptobits                       =             "org.reactormonk"        %%  "cryptobits"                % V.cryptobits
