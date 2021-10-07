@@ -8,9 +8,40 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M28 (2021-10-06)
+
+This is the latest development milestone in the 1.x series.  It is not binary compatible with previous milestones.
+
+The http4s-dom-core, http4s-dom-fetch-client, and http4s-dom-service-worker modules have been moved to the [https://github.com/http4s/http4s-dom](http4s-dom repo) and are now on their own release cycle.
+
+## Various modules
+
+## Noteworthy refactoring
+
+* [#5303](https://github.com/http4s/http4s/pull/5303): Many of the changes on the 1.x line were backported to 0.23.x.  This resynchronized those branches for continuing merges.  Nothing significant should have changed here that isn't already noted in 0.23.5.
+
+## http4s-core
+
+### Breaking changes
+
+* [#5328](https://github.com/http4s/http4s/pull/5328): `HttpVersion#copy` is removed from the public API.  It was deprecated in 0.22.6.
+* [#5329](https://github.com/http4s/http4s/pull/5329): Custom status reason phrases are removed.  They were deprecated in 0.22.6.
+
+## http4s-client
+
+### Breaking changes
+
+* [#5287](https://github.com/http4s/http4s/pull/5287): Weaken constraint on `DestinationAttribute` to `MonadCancelThrow`. Does not break source compatibility.
+
+## http4s-server
+
+### Breaking changes
+
+* [#5327](https://github.com/http4s/http4s/pull/5327): `WebSocketBuilder2` is renamed back to `WebSocketBuilder`.  A deprecated alias is left as `WebSocketBuilder` to aid migration.
+
 # v0.23.5 (2021-10-06)
 
-This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.5.
+This is a maintenance release.  It is binary compatible with 0.23.4, and includes the changes in 0.22.6.
 
 Scala.js support is backported for a large subset of the modules present in 1.0.
 Additional Scala.js-only modules for using http4s in the browser have been spun off as https://github.com/http4s/http4s-dom.
@@ -156,6 +187,22 @@ This is a routine maintenance release.  It is binary compatible with v0.22.5 and
 * scodec-bits-1.2.29
 * tomcat-9.0.54
 
+# v1.0.0-M27 (2021-09-21)
+
+This release includes security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It forward-merges 0.23.4.
+
+## http4s-dom-fetch-client
+
+### Enhancments
+
+* [#5101](https://github.com/http4s/http4s/pull/5101): Add a request timeout and new `FetchOptions` to configure the fetch client.
+
+## http4s-dom-service-worker
+
+### Breaking changes
+
+* [#5089](https://github.com/http4s/http4s/pull/5089): Simplify service worker API and make safe(r).  The `ServerWorkerApp` is now replaced by a method that suspends into `SyncIO`.
+
 # v0.23.4 (2021-09-21)
 
 This release includes security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with v0.22.4, and forward-merges 0.22.5.
@@ -248,6 +295,10 @@ This release includes security patches for blaze-client, blaze-server, ember-cli
   * URI authority registered names.  Requests with invalid reg-names now raise an exception.
   * URI paths.  Requests with invalid URI paths now raise an exception.
 
+# v1.0.0-M26 (2021-09-02)
+
+This release is a forward port of all the changes in v0.23.3.
+
 # v0.23.3 (2021-09-02)
 
 This is binary compatible with v0.23.3.  It includes the fixes in v0.22.2.
@@ -287,6 +338,29 @@ This release is binary compatible with 0.21.x.
 ### Breaking changes
 
 * [#5144](https://github.com/http4s/http4s/pull/5144): In the `CORS` middleware, respond to preflight `OPTIONS` requests with a 200 status.  It was previously passing through to the wrapped `Http`, most of which won't respond to `OPTIONS`.  The breaking change is that the constraint is promoted from `Functor` to `Applicative`.  The `Functor` version is left for binary compatibility with a runtime warning.
+
+# v1.0.0-M25 (2021-09-01)
+
+This is the latest development release.  No binary compatibility is promised yet.  Includes all changes in v0.23.2.
+
+## http4s-core
+
+### Breaking changes
+
+* [#5051](https://github.com/http4s/http4s/pull/5051): Per spec, `Access-Control-Allow-Headers` and `Access-Control-Expose-Headers` can be empty.
+* [#5082](https://github.com/http4s/http4s/pull/5082): Remodel `Origin` header. `Origin.Null` is changed to `Origin.null`.  The obsolete `Origin.HostList` is gone in favor of `Origin.Host` being an `Origin`.  Fixes parsing of an empty header to be an error instead of returning `null`.
+
+## http4s-dom-core
+
+### Enhancements
+
+* [#5049](https://github.com/http4s/http4s/pull/5049): Implement `EntityEncoder` for `File` and `ReadableStream[Unit8Array]`.
+* [#5094](https://github.com/http4s/http4s/pull/5094), [#5103](https://github.com/http4s/http4s/pull/5103): Fix readable stream cancellation bug in Firefox
+
+## Dependency updates
+
+* simpleclient-0.12.0 (Prometheus)
+* scalajs-dom-1.2.0
 
 # v0.23.2 (2021-09-01)
 
@@ -442,10 +516,126 @@ This is a security release.  It is binary compatible with the 0.21.x series.
 
 The 0.21 series is no longer actively maintained by the team, but we'll continue to entertain binary compatible patches.  All users are still encouraged to upgrade to 0.22 (for Cats-Effect 2) or 0.23 (the latest stable series, on Cats-Effect 3).
 
+# v1.0.0-M24 (2020-08-07)
+
+This release adds support for Scala.js, including an Ember client and server, serverless apps, a browser client backed by fetch, and browser service worker apps.
+
+This is the first significant divergence from the 0.23 line since it was forked off an earlier 1.0 milestone.  It is not binary compatible with 0.23.x or 1.0.0-M23.
+
+Includes all changes through 0.23.1.
+
+## http4s-core
+
+### Subtle changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): JsonDebugErrorHandler now logs the class name instead of the canonical class name, which is not supported in Scala.js.  The difference is some dots vs. dollar signs.  This is neither source nor binary breaking.
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-laws
+
+### Breaking changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Binary compatibility is broken by replacing ip4s-testkit instances with a copy that suits our Scala.js needs.
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-server
+
+### Breaking changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): `DigestAuth` and `CSRF` middleware now require an `Async` constraint
+* [#4938](https://github.com/http4s/http4s/pull/4938): `Server.address` is now an `com.comast.ip4s.SocketAddress` instead of a `java.net.InetSocketAddress`.
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-client
+
+### Breaking changes
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): `oauth1.signRequest` now requires an `Async` constraint
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-ember-core
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
 ## http4s-ember-client
 
 ### Enhancements
 
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-ember-server
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-node-serverless
+
+### New module
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Run `HttpApp` in a serverless environment
+
+## http4s-dom-core
+
+### New module
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Base library for DOM support.  Scala 2 only for now.
+
+## http4s-dom-fetch-client
+
+### New module
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): http4s-client backend built on browser fetch API.  Scala 2 only for now.
+
+## http4s-dom-service-worker
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Run `HttpApp` in a service worker in the browser.  Scala 2 only for now.
+
+## http4s-dsl
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-boopickle
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-jawn
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## http4s-circe
+
+### Enhancements
+
+* [#4938](https://github.com/http4s/http4s/pull/4938): Add Scala.js support
+
+## Dependency updates
+
+* circe-0.15.0-M1
+* scala-java-locales-1.2.1 (new)
+* scala-java-time-2.3.0 (new)
+* scala-js-dom-1.1.0 (new)
+=======
 * [#5064](https://github.com/http4s/http4s/pull/5064): Add a conservative retry policy for dead connections.  Connections can be terminated on the server side while idling in our pool, which does not manifest until we attempt to read the response.  This is now raised as a `java.nio.channels.ClosedChannelException`.   A `retryPolicy` configuration has been added to the `EmberClientBuilder`.  The default policy handles the error and resubmits the request if:
    * The request method is idempotent OR has an `Idempotency-Key` header
    * Less than 2 attempts have been made

@@ -148,11 +148,7 @@ object JsonDebugErrorHandler {
           .map(_.toList.map(encodeThrowable(_)))
           .asJson,
         "class_name" -> Option(a.getClass())
-          .flatMap(c =>
-            if (Platform.isJvm)
-              Option(c.getCanonicalName())
-            else
-              Option(c.getName()))
+          .flatMap(c => Option(c.getName()))
           .asJson
       )
       .dropNullValues

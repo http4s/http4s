@@ -16,13 +16,13 @@
 
 package com.example.http4s.blaze.demo.server.service
 
-import java.io.File
-import java.nio.file.Paths
 import cats.effect.Async
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import fs2.io.file.{Files, Path}
 import org.http4s.multipart.Part
+
+import java.io.File
 
 class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
   def homeDirectories(depth: Option[Int]): Stream[F, String] =
@@ -52,7 +52,7 @@ class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
     for {
       home <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
       filename <- S.evalF(part.filename.getOrElse("sample"))
-      path <- S.evalF(Paths.get(s"$home/$filename"))
-      result <- part.body.through(Files[F].writeAll(Path.fromNioPath(path)))
+      path <- S.evalF(Path(s"$home/$filename"))
+      result <- part.body.through(Files[F].writeAll(path))
     } yield result
 }

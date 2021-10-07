@@ -43,7 +43,6 @@ import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
 
 import java.util.concurrent.TimeUnit
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
@@ -162,20 +161,12 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   val genStandardStatus =
     oneOf(Status.registered)
 
-  @deprecated(
-    "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
-    "0.22.6")
-  val genCustomStatus = for {
-    code <- genValidStatusCode
-    reason <- genCustomStatusReason
-  } yield Status.fromInt(code).yolo.withReason(reason)
-
-  @nowarn("cat=deprecation")
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
-    frequency(
-      4 -> genStandardStatus,
-      1 -> genCustomStatus
+    oneOf(
+      genValidStatusCode.map(Status.fromInt(_).yolo),
+      genStandardStatus
     ))
+
   implicit val http4sTestingCogenForStatus: Cogen[Status] =
     Cogen[Int].contramap(_.code)
 
@@ -533,16 +524,16 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       : Arbitrary[headers.`Access-Control-Allow-Headers`] =
     Arbitrary {
       for {
-        values <- nonEmptyListOf(genToken.map(CIString(_)))
-      } yield headers.`Access-Control-Allow-Headers`(NonEmptyList.of(values.head, values.tail: _*))
+        values <- listOf(genToken.map(CIString(_)))
+      } yield headers.`Access-Control-Allow-Headers`(values)
     }
 
   implicit val http4sTestingArbitraryForAccessControlExposeHeaders
       : Arbitrary[headers.`Access-Control-Expose-Headers`] =
     Arbitrary {
       for {
-        values <- nonEmptyListOf(genToken.map(CIString(_)))
-      } yield headers.`Access-Control-Expose-Headers`(NonEmptyList.of(values.head, values.tail: _*))
+        values <- listOf(genToken.map(CIString(_)))
+      } yield headers.`Access-Control-Expose-Headers`(values)
     }
 
   implicit val http4sTestingArbitraryForRetryAfterHeader: Arbitrary[headers.`Retry-After`] =

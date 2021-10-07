@@ -22,6 +22,7 @@ import cats.effect._
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
+import com.comcast.ip4s
 import java.net.InetSocketAddress
 import java.util
 import javax.net.ssl.{SSLContext, SSLParameters}
@@ -306,10 +307,10 @@ sealed class JettyBuilder[F[_]] private (
         )
         .map((jetty: JServer) =>
           new Server {
-            lazy val address: InetSocketAddress = {
+            lazy val address: ip4s.SocketAddress[ip4s.Host] = {
               val host = socketAddress.getHostString
               val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-              new InetSocketAddress(host, port)
+              ip4s.SocketAddress.fromInetSocketAddress(new InetSocketAddress(host, port))
             }
 
             lazy val isSecure: Boolean = sslConfig.isSecure

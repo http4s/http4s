@@ -22,6 +22,7 @@ import cats.kernel.BoundedEnumerable
 import cats.parse.{Parser => P}
 import cats.parse.Rfc5234.digit
 import org.http4s.util._
+import scala.annotation.nowarn
 
 /** HTTP's version number consists of two decimal digits separated by
   * a "." (period or decimal point). The first digit ("major version")
@@ -38,7 +39,7 @@ import org.http4s.util._
   * [[https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#protocol.version
   * HTTP Semantics, Protocol Versioning]]
   */
-final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
+final case class HttpVersion private (major: Int, minor: Int)
     extends Renderable
     with Ordered[HttpVersion] {
 
@@ -62,7 +63,8 @@ final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
     (this.major, this.minor).compare((that.major, that.minor))
 
   @deprecated("Does not range check parameters. Will be removed from public API in 1.0.", "0.22.6")
-  def copy(major: Int = major, minor: Int = minor): HttpVersion =
+  @nowarn("cat=unused")
+  private def copy(major: Int = major, minor: Int = minor): HttpVersion =
     new HttpVersion(major, minor)
 }
 

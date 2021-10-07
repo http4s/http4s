@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.websocket
+package org.http4s
+package websocket
 
 import org.http4s.Http4sSuite
+import cats.effect.IO
+import cats.data.EitherT
 
 class WebSocketHandshakeSpec extends Http4sSuite {
 
@@ -30,11 +33,14 @@ class WebSocketHandshakeSpec extends Http4sSuite {
 
   test("WebSocketHandshake should Do a round trip") {
     val client = WebSocketHandshake.clientHandshaker("www.foo.com")
-    val valid = WebSocketHandshake.serverHandshake(client.initHeaders)
-    assert(valid.isRight)
-
-    val Right(headers) = valid
-    assert(client.checkResponse(headers).isRight)
+    assertIOBoolean(
+      EitherT(WebSocketHandshake.serverHandshake[IO](client.initHeaders)).toOption
+        .flatMap { headers =>
+          EitherT(client.checkResponse[IO](headers)).toOption
+        }
+        .value
+        .map(_.isDefined)
+    )
   }
 
 }

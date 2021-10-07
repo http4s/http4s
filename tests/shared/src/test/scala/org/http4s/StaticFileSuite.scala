@@ -221,7 +221,7 @@ class StaticFileSuite extends Http4sSuite {
 
     val tests = List(
       "./testing/shared/src/test/resources/logback-test.xml",
-      "./server/src/test/resources/testresource.txt")
+      "./server/jvm/src/test/resources/testresource.txt")
 
     tests.traverse(check)
   }
