@@ -16,26 +16,30 @@
 
 package org.http4s.ember.server
 
-import _root_.org.typelevel.log4cats.Logger
 import cats._
 import cats.effect._
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
+import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
 import org.http4s._
-import org.http4s.ember.server.internal.ServerHelpers
-import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
 
 import scala.concurrent.duration._
+import _root_.org.typelevel.log4cats.Logger
+import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
+import org.typelevel.vault.Key
+import org.http4s.websocket.WebSocketContext
+import org.http4s.server.websocket.WebSocketBuilder
 
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
     val port: Port,
-    private val httpApp: HttpApp[F],
+    private val httpApp: WebSocketBuilder[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
     private val sgOpt: Option[SocketGroup[F]],
     private val errorHandler: Throwable => F[Response[F]],
@@ -47,7 +51,8 @@ final class EmberServerBuilder[F[_]: Async] private (
     val idleTimeout: Duration,
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
-    private val logger: Logger[F]
+    private val logger: Logger[F],
+    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)]
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -56,7 +61,7 @@ final class EmberServerBuilder[F[_]: Async] private (
   private def copy(
       host: Option[Host] = self.host,
       port: Port = self.port,
-      httpApp: HttpApp[F] = self.httpApp,
+      httpApp: WebSocketBuilder[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
@@ -68,7 +73,9 @@ final class EmberServerBuilder[F[_]: Async] private (
       idleTimeout: Duration = self.idleTimeout,
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
-      logger: Logger[F] = self.logger
+      logger: Logger[F] = self.logger,
+      unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
+        self.unixSocketConfig
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -85,7 +92,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       idleTimeout = idleTimeout,
       shutdownTimeout = shutdownTimeout,
       additionalSocketOptions = additionalSocketOptions,
-      logger = logger
+      logger = logger,
+      unixSocketConfig = unixSocketConfig
     )
 
   def withHostOption(host: Option[Host]) = copy(host = host)
@@ -93,7 +101,8 @@ final class EmberServerBuilder[F[_]: Async] private (
   def withoutHost = withHostOption(None)
 
   def withPort(port: Port) = copy(port = port)
-  def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = httpApp)
+  def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = _ => httpApp)
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]) = copy(httpApp = f)
 
   def withSocketGroup(sg: SocketGroup[F]) =
     copy(sgOpt = sg.pure[Option])
@@ -130,19 +139,54 @@ final class EmberServerBuilder[F[_]: Async] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]) = copy(logger = l)
 
+  // If used will bind to UnixSocket
+  def withUnixSocketConfig(
+      unixSockets: UnixSockets[F],
+      unixSocketAddress: UnixSocketAddress,
+      deleteIfExists: Boolean = true,
+      deleteOnClose: Boolean = true) =
+    copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
+  def withoutUnixSocketConfig =
+    copy(unixSocketConfig = None)
+
   def build: Resource[F, Server] =
     for {
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      _ <- Concurrent[F].background(
+      wsKey <- Resource.eval(Key.newKey[F, WebSocketContext[F]])
+      _ <- unixSocketConfig.fold(
+        Concurrent[F].background(
+          ServerHelpers
+            .server(
+              host,
+              port,
+              additionalSocketOptions,
+              sg,
+              httpApp(WebSocketBuilder(wsKey)),
+              tlsInfoOpt,
+              ready,
+              shutdown,
+              errorHandler,
+              onWriteFailure,
+              maxConnections,
+              receiveBufferSize,
+              maxHeaderSize,
+              requestHeaderReceiveTimeout,
+              idleTimeout,
+              logger,
+              wsKey
+            )
+            .compile
+            .drain
+        )) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
         ServerHelpers
-          .server(
-            host,
-            port,
-            additionalSocketOptions,
-            sg,
-            httpApp,
+          .unixSocketServer(
+            unixSockets,
+            unixSocketAddress,
+            deleteIfExists,
+            deleteOnClose,
+            httpApp(WebSocketBuilder(wsKey)),
             tlsInfoOpt,
             ready,
             shutdown,
@@ -153,11 +197,13 @@ final class EmberServerBuilder[F[_]: Async] private (
             maxHeaderSize,
             requestHeaderReceiveTimeout,
             idleTimeout,
-            logger
+            logger,
+            wsKey
           )
           .compile
           .drain
-      )
+          .background
+      }
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
@@ -172,7 +218,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
-      httpApp = Defaults.httpApp[F],
+      httpApp = _ => Defaults.httpApp[F],
       tlsInfoOpt = None,
       sgOpt = None,
       errorHandler = Defaults.errorHandler[F],
@@ -184,7 +230,8 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      logger = defaultLogger[F]
+      logger = defaultLogger[F],
+      None
     )
 
   private object Defaults {

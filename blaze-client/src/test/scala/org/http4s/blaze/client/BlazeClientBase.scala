@@ -39,7 +39,7 @@ trait BlazeClientBase extends Http4sSuite {
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
   ) = {
     val builder: BlazeClientBuilder[IO] =
-      BlazeClientBuilder[IO](munitExecutionContext)
+      BlazeClientBuilder[IO]
         .withCheckEndpointAuthentication(false)
         .withResponseHeaderTimeout(responseHeaderTimeout)
         .withRequestTimeout(requestTimeout)

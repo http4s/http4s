@@ -17,16 +17,18 @@
 package org.http4s
 package multipart
 
-import cats.data.EitherT
+import cats.data._
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import org.http4s.EntityEncoder._
+
 import org.http4s.headers._
 import org.http4s.syntax.literals._
+import org.http4s.EntityEncoder._
 import org.typelevel.ci._
+import scala.annotation.nowarn
 
-class MultipartSuite extends Http4sSuite with MultipartSuitePlatform {
+class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
 
   def eqPartIO(a: Part[IO], b: Part[IO]): IO[Boolean] =
@@ -72,6 +74,28 @@ class MultipartSuite extends Http4sSuite with MultipartSuitePlatform {
       test(s"Multipart form data $name should be encoded and decoded without content types") {
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
         val multipart = Multipart[IO](Vector(field1))
+
+        val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+        val body = entity.body
+        val request =
+          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+
+        mkDecoder.use { decoder =>
+          val decoded = decoder.decode(request, true)
+          val result = decoded.value
+
+          assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+        }
+      }
+
+      test(s"Multipart form data $name should encoded and decoded with binary data") {
+        val path = CrossPlatformResource("/ball.png")
+
+        val field1 = Part.formData[IO]("field1", "Text_Field_1")
+        val field2 = Part
+          .fileData[IO]("image", path, `Content-Type`(MediaType.image.png))
+
+        val multipart = Multipart[IO](Vector(field1, field2))
 
         val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
         val body = entity.body
@@ -180,6 +204,14 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(Resource.pure(implicitly))
+
+  {
+    @nowarn("cat=deprecation")
+    val testDeprecated =
+      multipartSpec("with mixed decoder")(Resource.pure(EntityDecoder.mixedMultipart[IO]()))
+    testDeprecated
+  }
+  multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
   def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
 

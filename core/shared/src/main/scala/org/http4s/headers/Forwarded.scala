@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import cats.parse.{Numbers, Parser0, Rfc5234, Parser => P}
 import cats.syntax.either._
 import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
+import java.net.{Inet4Address, Inet6Address}
 import java.nio.ByteBuffer
 import java.util.Locale
 import org.http4s._
@@ -43,13 +44,20 @@ object Forwarded extends ForwardedRenderers {
 
     sealed trait Name { self: Product => }
 
-    object Name extends NameCompanionPlatform {
+    object Name {
       case class Ipv4(address: Ipv4Address) extends Name
       case class Ipv6(address: Ipv6Address) extends Name
       case object Unknown extends Name
 
+      @deprecated("Use Name.Ipv4(Ipv4Address.fromInet4Address(address))", "0.23.5")
+      def ofInet4Address(address: Inet4Address): Name =
+        Ipv4(Ipv4Address.fromInet4Address(address))
       def ofIpv4Address(a: Byte, b: Byte, c: Byte, d: Byte): Name = Ipv4(
         Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
+
+      @deprecated("Use Name.Ipv6(Ipv6Address.fromInet6Address(address))", "0.23.5")
+      def ofInet6Address(address: Inet6Address): Name =
+        Ipv6(Ipv6Address.fromInet6Address(address))
 
       def ofIpv6Address(
           a: Short,

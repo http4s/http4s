@@ -20,7 +20,6 @@ package blaze
 import cats.effect._
 import fs2._
 import org.http4s.blaze.server.BlazeServerBuilder
-import scala.concurrent.ExecutionContext.global
 
 object BlazeSslExampleWithRedirect extends IOApp {
   import BlazeSslExampleWithRedirectApp._
@@ -35,7 +34,7 @@ object BlazeSslExampleWithRedirect extends IOApp {
 
 object BlazeSslExampleWithRedirectApp {
   def redirectStream[F[_]: Async]: Stream[F, ExitCode] =
-    BlazeServerBuilder[F](global)
+    BlazeServerBuilder[F]
       .bindHttp(8080)
       .withHttpApp(ssl.redirectApp(8443))
       .serve

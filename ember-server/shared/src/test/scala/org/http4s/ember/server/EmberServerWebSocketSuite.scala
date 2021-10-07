@@ -34,7 +34,7 @@ class EmberServerWebSocketSuite
     with DispatcherIOFixture
     with EmberServerWebSocketSuitePlatform {
 
-  def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
+  def service[F[_]](wsBuilder: WebSocketBuilder[F])(implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -47,10 +47,10 @@ class EmberServerWebSocketSuite
             case WebSocketFrame.Text(text, _) => Stream(WebSocketFrame.Text(text))
             case _ => Stream(WebSocketFrame.Text("unknown"))
           }
-          WebSocketBuilder[F].build(sendReceive)
+          wsBuilder.build(sendReceive)
         case GET -> Root / "ws-close" =>
           val send = Stream(WebSocketFrame.Text("foo"))
-          WebSocketBuilder[F].build(send, _.void)
+          wsBuilder.build(send, _.void)
       }
       .orNotFound
   }
@@ -58,7 +58,7 @@ class EmberServerWebSocketSuite
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
-      .withHttpApp(service[IO])
+      .withHttpWebSocketApp(service[IO])
       .withPort(Port.fromInt(org.http4s.server.defaults.HttpPort + 2).get)
       .build
 

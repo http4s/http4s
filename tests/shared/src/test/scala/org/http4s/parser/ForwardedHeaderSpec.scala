@@ -147,7 +147,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
 object ForwardedHeaderSpec {
   import Forwarded.{Host, Node}
 
-  private val ObfuscatedRe = """^(_[a-zA-Z0-9\.\_\-]+)$""".r
+  private val ObfuscatedRe = """^(_[\p{Alnum}\.\_\-]+)$""".r
 
   private object UnCIString {
     def unapply(cistr: CIString): Option[String] = Some(cistr.toString)

@@ -24,6 +24,7 @@ import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2.io
 
+import scala.annotation.nowarn
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 
@@ -46,7 +47,7 @@ object ServerlessApp {
         handler.get.flatMap(_(req, res)).unsafeRunAndForget()
       }
       .toMap
-      .toJSDictionary
+      .toJSDictionary: @nowarn("cat=deprecation")
   }
 
   def unsafeExportApp(app: IO[HttpApp[IO]])(implicit

@@ -24,7 +24,7 @@ import org.http4s.laws.discipline.arbitrary._
 import org.http4s.util.Renderer.renderString
 import org.scalacheck.Prop._
 
-class Ipv4AddressSuite extends Http4sSuite with Ipv4AddressSuitePlatform {
+class Ipv4AddressSuite extends Http4sSuite {
   checkAll("Order[Ipv4Address]", OrderTests[Ipv4Address].order)
   checkAll("Hash[Ipv4Address]", HashTests[Ipv4Address].hash)
   checkAll("HttpCodec[Ipv4Address]", HttpCodecTests[Ipv4Address].httpCodec)

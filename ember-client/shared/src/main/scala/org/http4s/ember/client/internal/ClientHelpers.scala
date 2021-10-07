@@ -17,7 +17,6 @@
 package org.http4s.ember.client.internal
 
 import org.http4s.ember.client._
-import fs2.io.ClosedChannelException
 import fs2.io.net._
 import cats._
 import cats.data.NonEmptyList
@@ -38,6 +37,8 @@ import org.typelevel.keypool._
 import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
 import com.comcast.ip4s.{Host, Port, SocketAddress}
+import fs2.io.ClosedChannelException
+import java.io.IOException
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: Sync](
@@ -57,6 +58,22 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
     )
   }
 
+  def unixSocket[F[_]: Async](
+      request: Request[F],
+      unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
+      address: fs2.io.net.unixsocket.UnixSocketAddress,
+      tlsContextOpt: Option[TLSContext[F]]
+  ): Resource[F, RequestKeySocket[F]] = {
+    val requestKey = RequestKey.fromRequest(request)
+    elevateSocket(
+      requestKey,
+      unixSockets.client(address),
+      tlsContextOpt,
+      false,
+      None
+    )
+  }
+
   def requestKeyToSocketWithKey[F[_]: Sync](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
@@ -64,23 +81,42 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption]
   ): Resource[F, RequestKeySocket[F]] =
+    Resource
+      .eval(getAddress(requestKey))
+      .flatMap { address =>
+        val s = sg.client(address, options = additionalSocketOptions)
+        elevateSocket(
+          requestKey: RequestKey,
+          s: Resource[F, Socket[F]],
+          tlsContextOpt: Option[TLSContext[F]],
+          enableEndpointValidation: Boolean,
+          Some(address)
+        )
+      }
+
+  def elevateSocket[F[_]: Sync](
+      requestKey: RequestKey,
+      initSocket: Resource[F, Socket[F]],
+      tlsContextOpt: Option[TLSContext[F]],
+      enableEndpointValidation: Boolean,
+      optionNames: Option[SocketAddress[Host]]
+  ): Resource[F, RequestKeySocket[F]] =
     for {
-      address <- Resource.eval(getAddress(requestKey))
-      initSocket <- sg.client(address, options = additionalSocketOptions)
+      iSocket <- initSocket
       socket <- {
-        if (requestKey.scheme === Uri.Scheme.https)
+        if (requestKey.scheme === Uri.Scheme.https) {
           tlsContextOpt.fold[Resource[F, Socket[F]]] {
             ApplicativeThrow[Resource[F, *]].raiseError(
               new Throwable("EmberClient Not Configured for Https")
             )
           } { tlsContext =>
             tlsContext
-              .clientBuilder(initSocket)
-              .withParameters(mkTLSParameters(address, enableEndpointValidation))
+              .clientBuilder(iSocket)
+              .withParameters(mkTLSParameters(optionNames, enableEndpointValidation))
               .build
               .widen[Socket[F]]
           }
-        else initSocket.pure[Resource[F, *]]
+        } else iSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
 
@@ -111,8 +147,9 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
           timeoutToMaybe(
             parse,
             timeout,
-            ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
+            Defer[F].defer(ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
               s"Timed Out on EmberClient Header Receive Timeout: $timeout")))
+          )
         }
 
     for {
@@ -185,8 +222,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
             Resource.eval(managed.canBeReused.set(Reusable.DontReuse)) >>
               getValidManaged(pool, request)
           } else
-            Resource.eval(
-              Sync[F].raiseError(new SocketException("Fresh connection from pool was not open")))
+            Resource.eval(Sync[F].raiseError(
+              new fs2.io.net.SocketException("Fresh connection from pool was not open")))
         )
     }
 
@@ -201,12 +238,15 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
         req: Request[F],
         result: Either[Throwable, Response[F]]): Boolean =
       (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
-        isEmptyStreamError(result)
+        isRetryableError(result)
 
-    def isEmptyStreamError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+    def isRetryableError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
       result match {
         case Right(_) => false
-        case Left(EmberException.EmptyStream()) => true
+        case Left(_: ClosedChannelException) => true
+        case Left(ex: IOException) =>
+          val msg = ex.getMessage()
+          msg == "Connection reset by peer" || msg == "Broken pipe"
         case _ => false
       }
   }

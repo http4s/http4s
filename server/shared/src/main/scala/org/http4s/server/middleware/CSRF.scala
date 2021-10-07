@@ -18,18 +18,28 @@ package org.http4s
 package server
 package middleware
 
+import org.http4s.crypto.Hmac
+import org.http4s.crypto.HmacKeyGen
+import org.http4s.crypto.HmacAlgorithm
+import org.http4s.crypto.SecretKey
+import org.http4s.crypto.SecretKeySpec
+import org.http4s.crypto.SecureEq
+import org.http4s.crypto.unsafe.SecureRandom
 import cats.~>
 import cats.Applicative
 import cats.data.{EitherT, Kleisli}
-import cats.effect.{Concurrent, Sync}
+import cats.effect.{Concurrent, Sync, SyncIO}
 import cats.syntax.all._
+import java.nio.charset.StandardCharsets
 import java.time.Clock
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Referer, `Content-Type`, `X-Forwarded-For`}
+import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
 import org.typelevel.ci._
 import scala.util.control.NoStackTrace
 import cats.effect.Async
+import scodec.bits.ByteVector
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
@@ -66,17 +76,27 @@ import cats.effect.Async
 final class CSRF[F[_], G[_]] private[middleware] (
     headerName: CIString,
     cookieSettings: CSRF.CookieSettings,
-    private[middleware] val clock: Clock,
+    clock: Clock,
     onFailure: Response[G],
     createIfNotFound: Boolean,
-    private[middleware] val key: CSRF.SecretKey,
+    key: SecretKey[HmacAlgorithm],
     headerCheck: Request[G] => Boolean,
     csrfCheck: CSRF[F, G] => CSRF.CSRFCheck[F, G]
-)(implicit F: Async[F])
-    extends CSRFPlatform[F, G] { self =>
+)(implicit F: Async[F]) { self =>
   import CSRF._
 
   private val csrfChecker: CSRFCheck[F, G] = csrfCheck(self)
+
+  /** Sign our token using the current time in milliseconds as a nonce
+    * Signing and generating a token is potentially a unsafe operation
+    * if constructed with a bad key.
+    */
+  def signToken[M[_]](rawToken: String)(implicit F: Async[M]): M[CSRFToken] =
+    for {
+      joined <- F.delay(rawToken + "-" + clock.millis())
+      data <- F.fromEither(ByteVector.encodeUtf8(joined))
+      out <- Hmac[M].digest(key, data)
+    } yield lift(joined + "-" + encodeHexString(out.toArray))
 
   /** Generate a new token */
   def generateToken[M[_]](implicit F: Async[M]): M[CSRFToken] =
@@ -129,6 +149,29 @@ final class CSRF[F[_], G[_]] private[middleware] (
         EitherT(extractRaw(c.content)).semiflatMap(signToken[M])
       case None =>
         EitherT.liftF(generateToken[M])
+    }
+
+  /** Decode our CSRF token, check the signature
+    * and extract the original token string to sign
+    */
+  def extractRaw[M[_]: Async](rawToken: String): M[Either[CSRFCheckFailed, String]] =
+    rawToken.split("-") match {
+      case Array(raw, nonce, signed) =>
+        Hmac[M]
+          .digest(key, ByteVector.view((raw + "-" + nonce).getBytes(StandardCharsets.UTF_8)))
+          .map { out =>
+            decodeHexString(signed) match {
+              case Some(decoded) =>
+                if (SecureEq[ByteVector].eqv(out, ByteVector.view(decoded)))
+                  Right(raw)
+                else
+                  Left(CSRFCheckFailed)
+              case None =>
+                Left(CSRFCheckFailed)
+            }
+          }
+      case _ =>
+        Left(CSRFCheckFailed).pure[M].widen
     }
 
   /** To be only used on safe methods: if the method is safe (i.e doesn't modify data)
@@ -210,9 +253,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
     generateToken[M].map(embedInResponseCookie(res, _))
 }
 
-object CSRF extends CSRFSingletonPlatform {
+object CSRF {
   def apply[F[_]: Async, G[_]: Applicative](
-      key: SecretKey,
+      key: ByteVector,
       headerCheck: Request[G] => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
@@ -225,13 +268,13 @@ object CSRF extends CSRFSingletonPlatform {
       clock = Clock.systemUTC(),
       onFailure = Response[G](Status.Forbidden),
       createIfNotFound = true,
-      key = key,
+      key = SecretKeySpec(key, HmacAlgorithm.SHA1),
       headerCheck = headerCheck,
       csrfCheck = checkCSRFDefault
     )
 
   def withDefaultOriginCheck[F[_]: Async, G[_]: Applicative](
-      key: SecretKey,
+      key: ByteVector,
       host: String,
       scheme: Scheme,
       port: Option[Int]
@@ -242,7 +285,7 @@ object CSRF extends CSRFSingletonPlatform {
     )
 
   def withDefaultOriginCheckFormAware[F[_]: Async, G[_]: Concurrent](fieldName: String, nt: G ~> F)(
-      key: SecretKey,
+      key: ByteVector,
       host: String,
       scheme: Scheme,
       port: Option[Int]
@@ -269,7 +312,7 @@ object CSRF extends CSRFSingletonPlatform {
       clock: Clock,
       onFailure: Response[G],
       createIfNotFound: Boolean,
-      key: SecretKey,
+      key: SecretKey[HmacAlgorithm],
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
   )(implicit F: Async[F], G: Applicative[G]) {
@@ -279,7 +322,7 @@ object CSRF extends CSRFSingletonPlatform {
         clock: Clock = clock,
         onFailure: Response[G] = onFailure,
         createIfNotFound: Boolean = createIfNotFound,
-        key: SecretKey = key,
+        key: SecretKey[HmacAlgorithm] = key,
         headerCheck: Request[G] => Boolean = headerCheck,
         csrfCheck: CSRF[F, G] => CSRFCheck[F, G] = csrfCheck
     ): CSRFBuilder[F, G] =
@@ -300,7 +343,8 @@ object CSRF extends CSRFSingletonPlatform {
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
     def withCreateIfNotFound(createIfNotFound: Boolean): CSRFBuilder[F, G] =
       copy(createIfNotFound = createIfNotFound)
-    def withKey(key: SecretKey): CSRFBuilder[F, G] = copy(key = key)
+    def withKey(key: ByteVector): CSRFBuilder[F, G] =
+      copy(key = SecretKeySpec(key, HmacAlgorithm.SHA1))
     def withHeaderCheck(headerCheck: Request[G] => Boolean): CSRFBuilder[F, G] =
       copy(headerCheck = headerCheck)
     def withCSRFCheck(csrfCheck: CSRF[F, G] => CSRFCheck[F, G]): CSRFBuilder[F, G] =
@@ -377,7 +421,7 @@ object CSRF extends CSRFSingletonPlatform {
 
   //Newtype hax. Remove when we have a better story for newtypes
   type CSRFToken
-  private[middleware] def lift(s: String): CSRFToken = s.asInstanceOf[CSRFToken]
+  private[CSRF] def lift(s: String): CSRFToken = s.asInstanceOf[CSRFToken]
   def unlift(s: CSRFToken): String = s.asInstanceOf[String]
 
   case object CSRFCheckFailed extends Exception("CSRF Check failed") with NoStackTrace
@@ -416,6 +460,8 @@ object CSRF extends CSRFSingletonPlatform {
 
   ///
 
+  private val SigningAlgorithm = HmacAlgorithm.SHA1
+  val SigningAlgo: String = "HmacSHA1"
   @deprecated("Unused. Will be removed", "0.20.10")
   val SHA1ByteLen: Int = 20
   val CSRFTokenLength: Int = 32
@@ -427,7 +473,12 @@ object CSRF extends CSRFSingletonPlatform {
     * Note: The user is responsible for setting the proper
     * SecureRandom use via jvm flags.
     */
-  private[middleware] val InitialSeedArraySize: Int = 20
+  private val InitialSeedArraySize: Int = 20
+  private val CachedRandom: SecureRandom = {
+    val r = new SecureRandom()
+    r.nextBytes(new Array[Byte](InitialSeedArraySize))
+    r
+  }
 
   private[CSRF] def cookieFromHeadersF[F[_], G[_]](request: Request[G], cookieName: String)(implicit
       F: Sync[F]): F[RequestCookie] =
@@ -447,4 +498,36 @@ object CSRF extends CSRFSingletonPlatform {
   def tokensEqual(s1: CSRFToken, s2: CSRFToken): Boolean =
     isEqual(unlift(s1), unlift(s2))
 
+  /** A Constant-time string equality */
+  def isEqual(s1: String, s2: String): Boolean =
+    SecureEq[ByteVector].eqv(
+      SyncIO.fromEither(ByteVector.encodeUtf8(s1)).unsafeRunSync(),
+      SyncIO.fromEither(ByteVector.encodeUtf8(s2)).unsafeRunSync()
+    )
+
+  /** Generate an unsigned CSRF token from a `SecureRandom` */
+  private[middleware] def genTokenString: String = {
+    val bytes = new Array[Byte](CSRFTokenLength)
+    CachedRandom.nextBytes(bytes)
+    encodeHexString(bytes)
+  }
+
+  /** Generate a signing Key for the CSRF token */
+  def generateSigningKey[F[_]]()(implicit F: Async[F]): F[ByteVector] =
+    HmacKeyGen[F].generateKey(SigningAlgorithm).map { case SecretKeySpec(key, _) => key }
+
+  /** Build a new HMACSHA1 Key for our CSRF Middleware
+    * from key bytes. This operation is unsafe, in that
+    * any amount less than 20 bytes will throw an exception when loaded
+    * into `Mac`. Any keys larger than 64 bytes are just hashed.
+    *
+    * For more information, refer to: https://tools.ietf.org/html/rfc2104#section-3
+    *
+    * Use for loading a key from a config file, after having generated
+    * one safely
+    */
+  def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Async[F]): F[ByteVector] =
+    Hmac[F].importKey(ByteVector.view(array), SigningAlgorithm).map { case SecretKeySpec(key, _) =>
+      key
+    }
 }

@@ -33,16 +33,6 @@ class ResponseSplittingSuite extends Http4sSuite {
       result <- Parser.Response.parser[F](1024)(respBytes, F.pure(None))
     } yield (result._1)
 
-  test("Prevent response splitting attacks on status reason phrase") {
-    val app = HttpApp[IO] { req =>
-      Response(Status.NoContent.withReason(req.params("reason"))).pure[IO]
-    }
-    val req = Request[IO](uri = uri"/?reason=%0D%0AEvil:true%0D%0A")
-    attack(app, req).map { resp =>
-      assertEquals(resp.headers.headers.find(_.name === ci"Evil"), None)
-    }
-  }
-
   test("Prevent response splitting attacks on field name") {
     val app = HttpApp[IO] { req =>
       Response(Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]

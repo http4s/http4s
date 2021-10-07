@@ -32,6 +32,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
+import org.http4s.websocket.WebSocketContext
 import org.http4s.{headers => H}
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -87,7 +88,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       httpApp,
       () => Vault.empty,
       munitExecutionContext,
-      enableWebSockets = true,
+      wsKey = Key.newKey[SyncIO, WebSocketContext[IO]].unsafeRunSync(),
       maxReqLine,
       maxHeaders,
       10 * 1024,
@@ -532,20 +533,6 @@ class Http1ServerStageSpec extends Http4sSuite {
     val head = runRequest(tw, Seq.empty, Kleisli.liftF(Ok("")))
     head.result.map { _ =>
       assert(head.closeCauses == Seq(None))
-    }
-  }
-
-  fixture.test("Prevent response splitting attacks on status reason phrase") { tw =>
-    val rawReq = "GET /?reason=%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
-    val head = runRequest(
-      tw,
-      List(rawReq),
-      HttpApp { req =>
-        Response[IO](Status.NoContent.withReason(req.params("reason"))).pure[IO]
-      })
-    head.result.map { buff =>
-      val (_, headers, _) = ResponseParser.parseBuffer(buff)
-      assertEquals(headers.find(_.name === ci"Evil"), None)
     }
   }
 

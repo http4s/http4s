@@ -17,7 +17,7 @@
 package org.http4s
 
 import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
-import org.http4s.UriTemplate.{Fragment, Path}
+import org.http4s.UriTemplate._
 import org.http4s.util.StringWriter
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -53,21 +53,19 @@ final case class UriTemplate(
     */
   def expandFragment[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     if (fragment.isEmpty) this
-    else
-      copy(fragment =
-        UriTemplate.expandFragmentN(fragment, name, QueryParamEncoder[T].encode(value).value))
+    else copy(fragment = expandFragmentN(fragment, name, QueryParamEncoder[T].encode(value).value))
 
   /** Replaces any expansion type in `path` that matches the given `name`. If no
     * matching `expansion` could be found the same instance will be returned.
     */
   def expandPath[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate =
-    copy(path = UriTemplate.expandPathN(path, name, values.map(QueryParamEncoder[T].encode)))
+    copy(path = expandPathN(path, name, values.map(QueryParamEncoder[T].encode)))
 
   /** Replaces any expansion type in `path` that matches the given `name`. If no
     * matching `expansion` could be found the same instance will be returned.
     */
   def expandPath[T: QueryParamEncoder](name: String, value: T): UriTemplate =
-    copy(path = UriTemplate.expandPathN(path, name, QueryParamEncoder[T].encode(value) :: Nil))
+    copy(path = expandPathN(path, name, QueryParamEncoder[T].encode(value) :: Nil))
 
   /** Replaces any expansion type in `query` that matches the specified `name`.
     * If no matching `expansion` could be found the same instance will be
@@ -75,9 +73,7 @@ final case class UriTemplate(
     */
   def expandQuery[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate =
     if (query.isEmpty) this
-    else
-      copy(query =
-        UriTemplate.expandQueryN(query, name, values.map(QueryParamEncoder[T].encode(_).value)))
+    else copy(query = expandQueryN(query, name, values.map(QueryParamEncoder[T].encode(_).value)))
 
   /** Replaces any expansion type in `query` that matches the specified `name`.
     * If no matching `expansion` could be found the same instance will be
@@ -93,19 +89,19 @@ final case class UriTemplate(
     expandQuery(name, values.toList)
 
   override lazy val toString =
-    UriTemplate.renderUriTemplate(this)
+    renderUriTemplate(this)
 
   /** If no expansion is available an `Uri` will be created otherwise the
     * current instance of `UriTemplate` will be returned.
     */
   def toUriIfPossible: Try[Uri] =
-    if (UriTemplate.containsExpansions(this))
+    if (containsExpansions(this))
       Failure(
         new IllegalStateException(s"all expansions must be resolved to be convertable: $this"))
-    else Success(UriTemplate.toUri(this))
+    else Success(toUri(this))
 }
 
-object UriTemplate extends UriTemplateCompanionPlatform {
+object UriTemplate {
   type Path = List[PathDef]
   type Query = List[QueryDef]
   type Fragment = List[FragmentDef]
@@ -120,7 +116,9 @@ object UriTemplate extends UriTemplateCompanionPlatform {
   def isUnreserved(s: String): Boolean = s.forall(unreserved.contains)
 
   def isUnreservedOrEncoded(s: String): Boolean =
-    encodeURI(s).forall(c => unreserved.contains(c) || c == '%')
+    Uri
+      .encode(s, spaceIsPlus = true, toSkip = unreserved)
+      .forall(c => unreserved.contains(c) || c == '%')
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()
