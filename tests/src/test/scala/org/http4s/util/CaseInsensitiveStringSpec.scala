@@ -22,7 +22,6 @@ import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 import java.util.Locale
 import org.http4s.Http4sSpec
 import org.scalacheck.{Arbitrary, Gen, Prop}
-import org.typelevel.ci.CIString
 
 class CaseInsensitiveStringSpec extends Http4sSpec {
   "equals" should {
@@ -107,15 +106,6 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
         } yield (s, i, j)
       Prop.forAll(gen) { case (s, i, j) =>
         s.ci.subSequence(i, j).equals(s.subSequence(i, j).toString.ci)
-      }
-    }
-  }
-
-  "implicit conversion from CIString" should {
-    "work" in {
-      def expectsCaseInsensitiveString(s: CaseInsensitiveString): CaseInsensitiveString = s
-      prop { (s: String) =>
-        expectsCaseInsensitiveString(CIString(s)).equals(s.ci)
       }
     }
   }

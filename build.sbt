@@ -146,7 +146,6 @@ lazy val tests = libraryProject("tests")
   .settings(
     description := "Tests for core project",
     startYear := Some(2013),
-    libraryDependencies += caseInsensitive
   )
   .dependsOn(core, testing % "test->test")
 

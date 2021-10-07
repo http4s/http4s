@@ -320,7 +320,6 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.18"
     val boopickle = "1.3.3"
-    val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
     val catsEffect = "2.5.1"
     val catsEffectTesting = "0.5.4"
@@ -370,7 +369,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val blazeCore                        = "org.http4s"             %% "blaze-core"                % V.blaze
   lazy val blazeHttp                        = "org.http4s"             %% "blaze-http"                % V.blaze
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % V.boopickle
-  lazy val caseInsensitive                  = "org.typelevel"          %% "case-insensitive"          % V.caseInsensitive
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
