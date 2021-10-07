@@ -86,7 +86,6 @@ lazy val core = libraryProject("core")
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
-      caseInsensitive % Optional,
       catsCore,
       catsEffect,
       fs2Core,
