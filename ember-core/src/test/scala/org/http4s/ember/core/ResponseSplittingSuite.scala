@@ -21,6 +21,7 @@ import cats.effect.{Concurrent, IO}
 import cats.implicits._
 import org.http4s.implicits._
 import org.typelevel.ci._
+import scala.annotation.nowarn
 
 class ResponseSplittingSuite extends Http4sSuite {
   def attack[F[_]](app: HttpApp[F], req: Request[F])(implicit F: Concurrent[F]): F[Response[F]] =
@@ -34,6 +35,7 @@ class ResponseSplittingSuite extends Http4sSuite {
     } yield (result._1)
 
   test("Prevent response splitting attacks on status reason phrase") {
+    @nowarn("cat=deprecation")
     val app = HttpApp[IO] { req =>
       Response(Status.NoContent.withReason(req.params("reason"))).pure[IO]
     }

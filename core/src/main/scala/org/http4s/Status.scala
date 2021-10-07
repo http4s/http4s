@@ -47,6 +47,9 @@ sealed abstract case class Status private (code: Int)(
 
   def isSuccess: Boolean = responseClass.isSuccess
 
+  @deprecated(
+    "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
+    "0.22.6")
   def withReason(reason: String): Status = Status(code, reason, isEntityAllowed)
 
   /** A sanitized [[reason]] phrase. Blank if reason is invalid per
@@ -69,6 +72,9 @@ object Status {
     CharPredicate("\t ") ++ CharPredicate(0x21.toChar to 0x7e.toChar) ++ CharPredicate(
       0x80.toChar to Char.MaxValue)
 
+  @deprecated(
+    "Use fromInt(Int). This does not validate the code. Furthermore, custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends. For simplicity, we'll now assume that entities are allowed on all custom status codes.",
+    "0.22.6")
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
       override lazy val sanitizedReason =
@@ -77,6 +83,10 @@ object Status {
         else
           ""
     }
+
+  @deprecated("Use fromInt(Int). This does not validate the code.", "0.22.6")
+  def apply(code: Int): Status =
+    apply(code, "", true)
 
   private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
@@ -124,6 +134,9 @@ object Status {
       }
     }
 
+  @deprecated(
+    "Use fromInt. Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
+    "0.22.6")
   def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
     withRangeCheck(code) {
       lookup(code, reason) match {

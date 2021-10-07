@@ -65,7 +65,7 @@ class ResponseParser extends Http1ClientParser {
         Header.Raw(CIString(kv._1), kv._2)
       }
 
-    val status = Status.fromIntAndReason(this.code, reason).valueOr(throw _)
+    val status = Status.fromInt(this.code).valueOr(throw _)
 
     (status, headers, bp)
   }

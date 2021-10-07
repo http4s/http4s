@@ -359,10 +359,9 @@ private[ember] object Parser {
               }
             case 2 =>
               if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                val reason = new String(buffer, start, idx - start - 1)
                 try {
                   val codeInt = codeS.toInt
-                  Status.fromIntAndReason(codeInt, reason) match {
+                  Status.fromInt(codeInt) match {
                     case Left(e) =>
                       throw e
                     case Right(s) =>

@@ -18,7 +18,7 @@ package org.http4s
 
 import org.http4s.implicits._
 
-class LiteralSynxtaxMacrosSuite extends Http4sSuite {
+class LiteralSyntaxMacrosSuite extends Http4sSuite {
   test("'uri' macro works for valid input") {
     assertEquals(uri"a.b.c", Uri.fromString("a.b.c").toOption.get)
   }
