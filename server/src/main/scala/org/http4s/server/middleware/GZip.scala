@@ -26,9 +26,11 @@ import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.Stream.chunk
 import fs2.compression.deflate
 import java.nio.{ByteBuffer, ByteOrder}
-import java.util.zip.{CRC32, Deflater}
+import java.util.zip.Deflater
 import org.http4s.headers._
 import org.log4s.getLogger
+import scodec.bits.BitVector
+import scodec.bits
 
 object GZip {
   private[this] val logger = getLogger
@@ -112,7 +114,9 @@ object GZip {
     ) // Operating system
   )
 
-  private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
+  private final case class TrailerGen(
+      val crc: bits.crc.CrcBuilder[BitVector] = bits.crc.crc32Builder,
+      val inputLength: Int = 0)
 
   private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Int): Pipe[F, Byte, Byte] =
     _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).void.stream
@@ -121,11 +125,11 @@ object GZip {
       : (Option[(Chunk[Byte], Stream[F, Byte])]) => Pull[F, Byte, Option[Stream[F, Byte]]] = {
     case None => Pull.pure(None)
     case Some((chunk, stream)) =>
-      gen.crc.update(chunk.toArray)
-      gen.inputLength = gen.inputLength + chunk.size
+      val newCrc = gen.crc.updated(chunk.toBitVector)
+      val newInputLength = gen.inputLength + chunk.size
       Pull.output(chunk) >> stream.pull
         .unconsLimit(maxReadLimit)
-        .flatMap(trailerStep(gen, maxReadLimit))
+        .flatMap(trailerStep(TrailerGen(newCrc, newInputLength), maxReadLimit))
   }
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] =
@@ -133,7 +137,7 @@ object GZip {
       ByteBuffer
         .allocate(Integer.BYTES * 2)
         .order(ByteOrder.LITTLE_ENDIAN)
-        .putInt(gen.crc.getValue.toInt)
+        .putInt(gen.crc.result.toInt())
         .putInt((gen.inputLength % GZIP_LENGTH_MOD).toInt)
         .array())
 }
