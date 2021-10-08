@@ -23,6 +23,7 @@ import cats.effect.kernel.Deferred
 import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2.io
+import fs2.Stream
 
 import scala.annotation.nowarn
 import scala.scalajs.js
@@ -67,7 +68,7 @@ object ServerlessApp {
       method <- F.fromEither(Method.fromString(req.method))
       uri <- F.fromEither(Uri.fromString(req.url))
       headers = Headers(req.headers.toList)
-      body = io.readReadable[F](F.pure(req))
+      body = Stream.resource(io.suspendReadableAndRead()(req)).flatMap(_._2)
       request = Request(method, uri, headers = headers, body = body)
       response <- app.run(request)
       _ <- F.delay {
