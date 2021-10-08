@@ -1036,4 +1036,21 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  implicit val http4sTestingArbitraryForReferrerPolicyDir: Arbitrary[`Referrer-Policy`.Directive] =
+    Arbitrary(
+      Gen.oneOf(
+        `Referrer-Policy`.`no-referrer`,
+        `Referrer-Policy`.`no-referrer-when-downgrade`,
+        `Referrer-Policy`.`origin`,
+        `Referrer-Policy`.`origin-when-cross-origin`,
+        `Referrer-Policy`.`same-origin`,
+        `Referrer-Policy`.`strict-origin`,
+        `Referrer-Policy`.`strict-origin-when-cross-origin`,
+        `Referrer-Policy`.`unsafe-url`
+      )
+    )
+
+  implicit val http4sTestingArbitraryForReferrerPolicy: Arbitrary[`Referrer-Policy`] =
+    Arbitrary(getArbitrary[NonEmptyList[`Referrer-Policy`.Directive]].flatMap(`Referrer-Policy`(_)))
 }
