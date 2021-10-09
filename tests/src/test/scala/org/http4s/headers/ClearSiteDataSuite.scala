@@ -46,21 +46,26 @@ class ClearSiteDataSuite extends HeaderLaws {
     )
   }
 
+  test("render should render unknown directives") {
+    assertEquals(
+      `Clear-Site-Data`(
+        `Clear-Site-Data`.UnknownType("unknownA"),
+        `Clear-Site-Data`.UnknownType("unknownB")
+      ).renderString,
+      """Clear-Site-Data: "unknownA", "unknownB""""
+    )
+  }
+
   test("parse should parse a single directive") {
     Prop.forAll { (a: Directive) =>
       `Clear-Site-Data`.parse(s""""${a.value}"""").map(_.values) == Right(NonEmptyList.one(a))
     }
   }
 
-  test("parse should parse a single unknown directive") {
-    val expected = Right(NonEmptyList.one(UnknownType("unknown")))
-    assert(`Clear-Site-Data`.parse(""""unknown"""").map(_.values) == expected)
-  }
-
   test("parse should parse multiple directives") {
     assertEquals(
       `Clear-Site-Data`
-        .parse(""""*", "cache", "cookies", "storage", "executionContexts", "unknown"""")
+        .parse(""""*", "cache", "cookies", "storage", "executionContexts"""")
         .map(_.values),
       Right(
         NonEmptyList.of(
@@ -68,11 +73,23 @@ class ClearSiteDataSuite extends HeaderLaws {
           `Clear-Site-Data`.cache,
           `Clear-Site-Data`.cookies,
           `Clear-Site-Data`.storage,
-          `Clear-Site-Data`.executionContexts,
-          `Clear-Site-Data`.UnknownType("unknown")
+          `Clear-Site-Data`.executionContexts
         )
       )
     )
+  }
+
+  test("parse should parse directives in any letter case") {
+    Prop.forAll { (a: Directive) =>
+      val expected = Right(NonEmptyList.one(a))
+      (`Clear-Site-Data`.parse(s""""${a.value.toLowerCase}"""").map(_.values) == expected) &&
+      (`Clear-Site-Data`.parse(s""""${a.value.toUpperCase}"""").map(_.values) == expected)
+    }
+  }
+
+  test("parse should parse unknown directives") {
+    val expected = Right(NonEmptyList.of(UnknownType("unknownA"), UnknownType("unknownB")))
+    assert(`Clear-Site-Data`.parse(""""unknownA", "unknownB"""").map(_.values) == expected)
   }
 
   test("parse should fail with an empty string") {
