@@ -1037,17 +1037,17 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
     } yield headers.`Accept-Post`(values)
   }
 
-  implicit val http4sTestingArbitraryForSiteData: Arbitrary[SiteData] =
+  implicit val http4sTestingArbitraryForClearSiteDataDir: Arbitrary[`Clear-Site-Data`.Directive] =
     Arbitrary(
       Gen.oneOf(
-        SiteData.`*`,
-        SiteData.cache,
-        SiteData.cookies,
-        SiteData.storage,
-        SiteData.executionContexts
+        `Clear-Site-Data`.`*`,
+        `Clear-Site-Data`.cache,
+        `Clear-Site-Data`.cookies,
+        `Clear-Site-Data`.storage,
+        `Clear-Site-Data`.executionContexts
       )
     )
 
   implicit val http4sTestingArbitraryForClearSiteData: Arbitrary[`Clear-Site-Data`] =
-    Arbitrary(getArbitrary[NonEmptyList[SiteData]].flatMap(`Clear-Site-Data`(_)))
+    Arbitrary(getArbitrary[NonEmptyList[`Clear-Site-Data`.Directive]].flatMap(`Clear-Site-Data`(_)))
 }

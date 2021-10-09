@@ -22,20 +22,42 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.typelevel.ci._
 import org.http4s.Header
+import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.Rfc7230
 
-/** Clear-Site-Data header
-  * See https://www.w3.org/TR/clear-site-data/
-  */
+// https://w3c.github.io/webappsec-clear-site-data/#header
+
+final case class `Clear-Site-Data`(values: NonEmptyList[`Clear-Site-Data`.Directive])
+
 object `Clear-Site-Data` {
-  def apply(head: SiteData, tail: SiteData*): `Clear-Site-Data` =
-    apply(NonEmptyList(head, tail.toList))
+
+  sealed abstract class Directive(val value: String) extends Renderable {
+    override def render(writer: Writer): writer.type =
+      writer.append(s""""$value"""")
+  }
+
+  case object `*` extends Directive("*")
+  case object cache extends Directive("cache")
+  case object cookies extends Directive("cookies")
+  case object storage extends Directive("storage")
+  case object executionContexts extends Directive("executionContexts")
+
+  private val types: Map[String, Directive] =
+    List(`*`, cache, cookies, storage, executionContexts)
+      .map(i => (i.value.toLowerCase, i))
+      .toMap
+
+  private val directiveParser: Parser[Directive] =
+    Rfc7230.quotedString.mapFilter(s => types.get(s.toLowerCase))
+
+  private[http4s] val parser: Parser[`Clear-Site-Data`] =
+    Rfc7230.headerRep1(directiveParser).map(apply)
 
   def parse(s: String): ParseResult[`Clear-Site-Data`] =
     ParseResult.fromParser(parser, "Invalid Clear-Site-Data header")(s)
 
-  private[http4s] val parser: Parser[`Clear-Site-Data`] =
-    Rfc7230.headerRep1(SiteData.parser).map(apply)
+  def apply(head: Directive, tail: Directive*): `Clear-Site-Data` =
+    apply(NonEmptyList(head, tail.toList))
 
   implicit val headerInstance: Header[`Clear-Site-Data`, Header.Recurring] =
     Header.createRendered(
@@ -47,5 +69,3 @@ object `Clear-Site-Data` {
   implicit val headerSemigroupInstance: Semigroup[`Clear-Site-Data`] =
     (a, b) => `Clear-Site-Data`(a.values.concatNel(b.values))
 }
-
-final case class `Clear-Site-Data`(values: NonEmptyList[SiteData])

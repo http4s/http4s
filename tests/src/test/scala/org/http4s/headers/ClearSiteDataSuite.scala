@@ -25,8 +25,10 @@ import org.scalacheck.Prop
 class ClearSiteDataSuite extends HeaderLaws {
   checkAll("ClearSiteData", headerLaws[`Clear-Site-Data`])
 
+  import `Clear-Site-Data`.Directive
+
   test("render should render a single directive") {
-    Prop.forAll { (a: SiteData) =>
+    Prop.forAll { (a: Directive) =>
       `Clear-Site-Data`(a).renderString == s"""Clear-Site-Data: "${a.value}""""
     }
   }
@@ -34,18 +36,18 @@ class ClearSiteDataSuite extends HeaderLaws {
   test("render should render multiple directives") {
     assertEquals(
       `Clear-Site-Data`(
-        SiteData.*,
-        SiteData.cache,
-        SiteData.cookies,
-        SiteData.storage,
-        SiteData.executionContexts
+        `Clear-Site-Data`.`*`,
+        `Clear-Site-Data`.cache,
+        `Clear-Site-Data`.cookies,
+        `Clear-Site-Data`.storage,
+        `Clear-Site-Data`.executionContexts
       ).renderString,
       """Clear-Site-Data: "*", "cache", "cookies", "storage", "executionContexts""""
     )
   }
 
   test("parse should parse a single directive") {
-    Prop.forAll { (a: SiteData) =>
+    Prop.forAll { (a: Directive) =>
       `Clear-Site-Data`.parse(s""""${a.value}"""").map(_.values) == Right(NonEmptyList.one(a))
     }
   }
@@ -57,11 +59,11 @@ class ClearSiteDataSuite extends HeaderLaws {
         .map(_.values),
       Right(
         NonEmptyList.of(
-          SiteData.*,
-          SiteData.cache,
-          SiteData.cookies,
-          SiteData.storage,
-          SiteData.executionContexts
+          `Clear-Site-Data`.`*`,
+          `Clear-Site-Data`.cache,
+          `Clear-Site-Data`.cookies,
+          `Clear-Site-Data`.storage,
+          `Clear-Site-Data`.executionContexts
         )
       )
     )
@@ -69,6 +71,10 @@ class ClearSiteDataSuite extends HeaderLaws {
 
   test("parse should fail with an empty string") {
     assert(`Clear-Site-Data`.parse("").isLeft)
+  }
+
+  test("parse should fail with an empty quoted string") {
+    assert(`Clear-Site-Data`.parse("""""""").isLeft)
   }
 
   test("parse should fail with a single unknown directive") {
