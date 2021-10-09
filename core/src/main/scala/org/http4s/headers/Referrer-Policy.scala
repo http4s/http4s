@@ -38,7 +38,7 @@ object `Referrer-Policy` {
 
   case object `no-referrer` extends Directive("no-referrer")
   case object `no-referrer-when-downgrade` extends Directive("no-referrer-when-downgrade")
-  case object `origin` extends Directive("origin")
+  case object origin extends Directive("origin")
   case object `origin-when-cross-origin` extends Directive("origin-when-cross-origin")
   case object `same-origin` extends Directive("same-origin")
   case object `strict-origin` extends Directive("strict-origin")
@@ -51,7 +51,7 @@ object `Referrer-Policy` {
     List(
       `no-referrer`,
       `no-referrer-when-downgrade`,
-      `origin`,
+      origin,
       `origin-when-cross-origin`,
       `same-origin`,
       `strict-origin`,

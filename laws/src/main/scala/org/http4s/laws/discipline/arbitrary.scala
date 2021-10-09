@@ -1042,7 +1042,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       Gen.oneOf(
         `Referrer-Policy`.`no-referrer`,
         `Referrer-Policy`.`no-referrer-when-downgrade`,
-        `Referrer-Policy`.`origin`,
+        `Referrer-Policy`.origin,
         `Referrer-Policy`.`origin-when-cross-origin`,
         `Referrer-Policy`.`same-origin`,
         `Referrer-Policy`.`strict-origin`,
