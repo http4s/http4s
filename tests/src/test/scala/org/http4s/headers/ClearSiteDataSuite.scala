@@ -25,7 +25,7 @@ import org.scalacheck.Prop
 class ClearSiteDataSuite extends HeaderLaws {
   checkAll("ClearSiteData", headerLaws[`Clear-Site-Data`])
 
-  import `Clear-Site-Data`.Directive
+  import `Clear-Site-Data`.{Directive, UnknownType}
 
   test("render should render a single directive") {
     Prop.forAll { (a: Directive) =>
@@ -52,10 +52,15 @@ class ClearSiteDataSuite extends HeaderLaws {
     }
   }
 
+  test("parse should parse a single unknown directive") {
+    val expected = Right(NonEmptyList.one(UnknownType("unknown")))
+    assert(`Clear-Site-Data`.parse(""""unknown"""").map(_.values) == expected)
+  }
+
   test("parse should parse multiple directives") {
     assertEquals(
       `Clear-Site-Data`
-        .parse(""""*", "cache", "cookies", "storage", "executionContexts"""")
+        .parse(""""*", "cache", "cookies", "storage", "executionContexts", "unknown"""")
         .map(_.values),
       Right(
         NonEmptyList.of(
@@ -63,7 +68,8 @@ class ClearSiteDataSuite extends HeaderLaws {
           `Clear-Site-Data`.cache,
           `Clear-Site-Data`.cookies,
           `Clear-Site-Data`.storage,
-          `Clear-Site-Data`.executionContexts
+          `Clear-Site-Data`.executionContexts,
+          `Clear-Site-Data`.UnknownType("unknown")
         )
       )
     )
@@ -73,20 +79,8 @@ class ClearSiteDataSuite extends HeaderLaws {
     assert(`Clear-Site-Data`.parse("").isLeft)
   }
 
-  test("parse should fail with an empty quoted string") {
-    assert(`Clear-Site-Data`.parse("""""""").isLeft)
-  }
-
-  test("parse should fail with a single unknown directive") {
-    assert(`Clear-Site-Data`.parse(""""unknown"""").isLeft)
-  }
-
   test("parse should fail with a single invalid directive (not quoted)") {
     assert(`Clear-Site-Data`.parse("cookies").isLeft)
-  }
-
-  test("parse should fail when some directives are unknown") {
-    assert(`Clear-Site-Data`.parse(""""cache", "unknown", "storage", "executionContexts"""").isLeft)
   }
 
   test("parse should fail when some directives are invalid (not quoted)") {
