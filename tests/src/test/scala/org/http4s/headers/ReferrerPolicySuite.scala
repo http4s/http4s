@@ -40,6 +40,16 @@ class ReferrerPolicySuite extends HeaderLaws {
     }
   }
 
+  test("render should render unknown directives") {
+    assertEquals(
+      `Referrer-Policy`(
+        `Referrer-Policy`.UnknownPolicy("unknown-a"),
+        `Referrer-Policy`.UnknownPolicy("unknown-b")
+      ).renderString,
+      s"Referrer-Policy: unknown-a, unknown-b"
+    )
+  }
+
   test("parse should parse a single directive") {
     Prop.forAll { (a: Directive) =>
       `Referrer-Policy`.parse(s"${a.value}").map(_.values) == Right(NonEmptyList.one(a))
@@ -51,6 +61,14 @@ class ReferrerPolicySuite extends HeaderLaws {
       `Referrer-Policy`
         .parse(s"${a.value}, ${b.value}, ${c.value}")
         .map(_.values) == Right(NonEmptyList.of(a, b, c))
+    }
+  }
+
+  test("parse should parse directives in any letter case") {
+    Prop.forAll { (a: Directive) =>
+      val expected = Right(NonEmptyList.one(a))
+      (`Referrer-Policy`.parse(s"${a.value.toLowerCase}").map(_.values) == expected) &&
+      (`Referrer-Policy`.parse(s"${a.value.toUpperCase}").map(_.values) == expected)
     }
   }
 
