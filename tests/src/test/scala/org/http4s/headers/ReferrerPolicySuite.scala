@@ -46,7 +46,7 @@ class ReferrerPolicySuite extends HeaderLaws {
         `Referrer-Policy`.UnknownPolicy("unknown-a"),
         `Referrer-Policy`.UnknownPolicy("unknown-b")
       ).renderString,
-      s"Referrer-Policy: unknown-a, unknown-b"
+      "Referrer-Policy: unknown-a, unknown-b"
     )
   }
 
