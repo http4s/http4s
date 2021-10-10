@@ -257,11 +257,8 @@ private[server] object ServerHelpers {
               }
             case Left(err) =>
               err match {
-                case EmberException.EmptyStream() =>
-                  Applicative[F].pure(None)
-                case _: EmberException.RequestHeadersTimeout =>
-                  Applicative[F].pure(None)
-                case _: EmberException.ReadTimeout =>
+                case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                    EmberException.ReadTimeout(_) =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)

@@ -19,6 +19,7 @@ package org.http4s.ember.core
 import cats.syntax.all._
 import java.time.Instant
 import scala.concurrent.duration.Duration
+import scala.util.control.NoStackTrace
 
 sealed trait EmberException extends RuntimeException with Product with Serializable
 
@@ -57,7 +58,9 @@ object EmberException {
     override def getMessage: String = s"Read timeout after $duration"
   }
 
-  final case class RequestHeadersTimeout(duration: Duration) extends EmberException {
+  private[ember] final case class RequestHeadersTimeout(duration: Duration)
+      extends EmberException
+      with NoStackTrace {
     override def getMessage: String = s"Timed out waiting for request headers after $duration"
   }
 
