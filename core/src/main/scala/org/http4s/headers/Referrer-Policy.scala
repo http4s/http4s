@@ -45,7 +45,12 @@ object `Referrer-Policy` {
   case object `strict-origin-when-cross-origin` extends Directive("strict-origin-when-cross-origin")
   case object `unsafe-url` extends Directive("unsafe-url")
 
-  final case class UnknownPolicy(name: String) extends Directive(name)
+  sealed abstract case class UnknownPolicy(name: String) extends Directive(name)
+
+  object UnknownPolicy {
+    private[http4s] def unsafeFromString(s: String): UnknownPolicy =
+      new UnknownPolicy(s) {}
+  }
 
   private val types: Map[String, Directive] =
     List(
@@ -63,10 +68,10 @@ object `Referrer-Policy` {
 
   private val directiveParser: Parser[Directive] =
     Rfc5234.alpha.orElse(Parser.char('-')).rep.string.map { s =>
-      types.getOrElse(s.toLowerCase, UnknownPolicy(s))
+      types.getOrElse(s.toLowerCase, new UnknownPolicy(s) {})
     }
 
-  private[http4s] val parser: Parser[`Referrer-Policy`] =
+  private val parser: Parser[`Referrer-Policy`] =
     Rfc7230.headerRep1(directiveParser).map(apply)
 
   def parse(s: String): ParseResult[`Referrer-Policy`] =
