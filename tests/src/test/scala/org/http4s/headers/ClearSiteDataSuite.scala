@@ -49,8 +49,8 @@ class ClearSiteDataSuite extends HeaderLaws {
   test("render should render unknown directives") {
     assertEquals(
       `Clear-Site-Data`(
-        `Clear-Site-Data`.UnknownType("unknownA"),
-        `Clear-Site-Data`.UnknownType("unknownB")
+        `Clear-Site-Data`.UnknownType.unsafeFromString("unknownA"),
+        `Clear-Site-Data`.UnknownType.unsafeFromString("unknownB")
       ).renderString,
       """Clear-Site-Data: "unknownA", "unknownB""""
     )
@@ -88,7 +88,9 @@ class ClearSiteDataSuite extends HeaderLaws {
   }
 
   test("parse should parse unknown directives") {
-    val expected = Right(NonEmptyList.of(UnknownType("unknownA"), UnknownType("unknownB")))
+    val unknownA = UnknownType.unsafeFromString("unknownA")
+    val unknownB = UnknownType.unsafeFromString("unknownB")
+    val expected = Right(NonEmptyList.of(unknownA, unknownB))
     assert(`Clear-Site-Data`.parse(""""unknownA", "unknownB"""").map(_.values) == expected)
   }
 

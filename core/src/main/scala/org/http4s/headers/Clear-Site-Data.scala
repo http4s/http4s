@@ -42,7 +42,12 @@ object `Clear-Site-Data` {
   case object storage extends Directive("storage")
   case object executionContexts extends Directive("executionContexts")
 
-  final case class UnknownType(name: String) extends Directive(name)
+  sealed abstract case class UnknownType(name: String) extends Directive(name)
+
+  object UnknownType {
+    private[http4s] def unsafeFromString(s: String): UnknownType =
+      new UnknownType(s) {}
+  }
 
   private val types: Map[String, Directive] =
     List(`*`, cache, cookies, storage, executionContexts)
@@ -50,9 +55,9 @@ object `Clear-Site-Data` {
       .toMap
 
   private val directiveParser: Parser[Directive] =
-    Rfc7230.quotedString.map(s => types.getOrElse(s.toLowerCase, UnknownType(s)))
+    Rfc7230.quotedString.map(s => types.getOrElse(s.toLowerCase, new UnknownType(s) {}))
 
-  private[http4s] val parser: Parser[`Clear-Site-Data`] =
+  private val parser: Parser[`Clear-Site-Data`] =
     Rfc7230.headerRep1(directiveParser).map(apply)
 
   def parse(s: String): ParseResult[`Clear-Site-Data`] =
