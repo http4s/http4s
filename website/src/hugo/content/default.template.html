@@ -20,7 +20,11 @@
     @:@
     @:linkCSS { paths = ${helium.site.includeCSS} }
     @:linkJS { paths = ${helium.site.includeJS} }
-    @:heliumInitVersions
+
+    <!-- custom start - workaround for version menu on unversioned page -->
+    <script>initVersions("", "", "");</script>
+    <!-- custom end -->
+
     @:heliumInitPreview(container)
     <script> /* for avoiding page load transitions */ </script>
   </head>
@@ -35,9 +39,11 @@
         </a>
         @:for(laika.versions)
         <div id="version-menu-container">
+          <!-- custom start - override label of version dropdown -->
           <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
-            ${helium.topBar.versionPrefix} ${_.currentVersion.displayValue}
+            Documentation
           </a>
+          <!-- custom end -->
           <nav id="version-menu">
             <ul id="version-list" class="nav-list">
             </ul>
@@ -54,22 +60,12 @@
 
     <nav id="sidebar">
 
-      <!-- custom start - adjust left navigation - add extra section -->
       @:navigationTree {
-        entries = [
-          { target = "/README.md", excludeSections = true }
-          { target = "/", excludeRoot = true, excludeSections = true, depth = 2 }
+        entries = [ 
+          { target = "/", excludeRoot = true, excludeSections = true, depth = 2 } 
         ]
       }
-
-      <ul class="nav-list">
-        <li class="level1 nav-header">Related Projects</li>
-        <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
-        <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
-        <li class="level2"><a href="https://github.com/http4s/rho">rho</a></li>
-      </ul>
-      <!-- custom end -->
-
+      
     </nav>
 
     <div id="container">
@@ -89,13 +85,6 @@
       <main class="content">
 
         ${cursor.currentDocument.content}
-
-        <!-- custom start - integrate footer, a feature not yet available in Helium -->
-        <hr style="margin-top: 30px"/>
-        <footer style="font-size: 90%; text-align: center">
-          http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
-        </footer>
-        <!-- custom end -->
 
       </main>
 

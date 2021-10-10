@@ -1,8 +1,6 @@
----
-menu: main
-weight: 400
-title: Contributing
----
+
+# Contributing
+
 
 This guide is for people who would like to be involved in building
 http4s.
@@ -296,10 +294,9 @@ rebasing. Squashing and rebasing can lead to a tidier git history, but
 they can also be a hassle if somebody else has done work based on your
 branch.
 
-<hr />
+----
 
-<small class="text-muted">This guide borrows heavily from the [Cats'
-contributors guide]</small>
+This guide borrows heavily from the [Cats' contributors guide][cats].
 
-[Cats' contributors guide]: https://github.com/typelevel/cats/blob/master/CONTRIBUTING.md
+[cats]: https://github.com/typelevel/cats/blob/master/CONTRIBUTING.md
 [mdoc]: https://scalameta.org/mdoc/

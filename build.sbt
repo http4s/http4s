@@ -642,12 +642,21 @@ lazy val docs = http4sProject("docs")
   .dependsOn(client.jvm, core.jvm, theDsl.jvm, blazeServer, blazeClient, circe.jvm, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
-  .enablePlugins(GhpagesPlugin, NoPublishPlugin)
+  .enablePlugins(GhpagesPlugin, LaikaPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
     description := "Common area of http4s.org",
     startYear := Some(2013),
     ghpagesNoJekyll := true,
+
+    laikaExtensions := SiteConfig.extensions,
+    laikaConfig     := SiteConfig.config(versioned = false).value,
+    laikaTheme      := SiteConfig.theme(currentVersion = SiteConfig.versions.v1_0, SiteConfig.variables.value, SiteConfig.homeURL.value),
+    laikaDescribe   := "<disabled>",
+    Laika / sourceDirectories := Seq(baseDirectory.value / "src" / "hugo" / "content", baseDirectory.value / "src" / "hugo" / "static"),
+
+    // TODO - wire mappings
+
     ghpagesCleanSite / excludeFilter  :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"

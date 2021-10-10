@@ -53,6 +53,7 @@ object HeliumExtensions {
 
   def renderTarget (fmt: HTMLFormatter, target: Target): String =
     fmt.pathTranslator.translate(adjustForPrettyURL(target)) match {
+      case ext: ExternalTarget if ext.url.startsWith("http:mailto:") => ext.url.stripPrefix("http:") // remove this when 0.18.1 is out
       case ext: ExternalTarget => ext.url
       case int: InternalTarget => int.relativeTo(fmt.path).relativePath.toString.replace("index.html","")
     }
@@ -81,7 +82,7 @@ object HeliumExtensions {
     }
   }
 
-  def applyTo(helium: ThemeProvider, variables: Map[String, String]): ThemeProvider = new ThemeProvider {
+  def applyTo(helium: ThemeProvider, variables: Map[String, String], versionLinks: Seq[Path]): ThemeProvider = new ThemeProvider {
 
     override def build[F[_]: Sync]: Resource[F, Theme[F]] = {
       val heliumTheme = helium.build[F]
@@ -89,12 +90,13 @@ object HeliumExtensions {
         .processTree(treeProcessor, HTML)
         .addRenderOverrides(HTML.Overrides(renderOverride))
         .addRewriteRules(codeBlockVariables(variables))
+        .addInputs(InputTree[F].addProvidedPaths(versionLinks))
         .build
       for {
         hel <- heliumTheme
         ext <- extensionTheme
       } yield new Theme[F] {
-        override def inputs: InputTree[F] = hel.inputs
+        override def inputs: InputTree[F] = hel.inputs ++ ext.inputs
         override def extensions: Seq[ExtensionBundle] = hel.extensions ++ ext.extensions
         override def treeProcessor: Format => TreeProcessor[F] = fmt =>
           hel.treeProcessor(fmt).andThen(ext.treeProcessor(fmt))

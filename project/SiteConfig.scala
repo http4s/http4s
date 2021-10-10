@@ -1,14 +1,14 @@
 package org.http4s.sbt
 
 import laika.ast.LengthUnit._
+import laika.ast.Path.Root
 import laika.ast._
 import laika.bundle.ExtensionBundle
-import laika.config.{ConfigBuilder, Key, LaikaKeys}
+import laika.config.{ConfigBuilder, LaikaKeys}
 import laika.helium.Helium
-import laika.helium.config.{HeliumIcon, IconLink}
+import laika.helium.config.{HeliumIcon, IconLink, ReleaseInfo, Teaser, TextLink}
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
-import laika.sbt.LaikaPlugin.autoImport.laikaPreviewConfig
 import laika.theme.ThemeProvider
 import laika.theme.config.Color
 import org.http4s.sbt.Http4sPlugin.autoImport.isCi
@@ -18,6 +18,25 @@ import sbt.Keys.{baseDirectory, version}
 import sbt.librarymanagement.VersionNumber
 
 object SiteConfig {
+
+  object landingPage {
+
+    val teasers: Seq[Teaser] = Seq(
+      Teaser("Typeful", "http4s servers and clients share an immutable model of requests and responses. Standard headers are modeled as semantic types, and entity codecs are done by typeclass."),
+      Teaser("Functional", "The pure functional side of Scala is favored to promote composability and easy reasoning about your code. I/O is managed through cats-effect."),
+      Teaser("Streaming", "http4s is built on FS2, a streaming library that provides for processing and emitting large payloads in constant space and implementing websockets.")
+    )
+
+    val projectLinks: Seq[TextLink] = Seq(
+      TextLink.internal(Root / "versions" / "README.md", "Versions"),
+      TextLink.internal(Root / "changelog" / "README.md", "Changelog"),
+      TextLink.internal(Root / "getting-help" / "README.md", "Getting Help"),
+      TextLink.internal(Root / "contributing" / "README.md", "Contributing"),
+      TextLink.internal(Root / "adopters" / "README.md", "Adopters"),
+      TextLink.internal(Root / "code-of-conduct" / "README.md", "Code of Conduct"),
+      TextLink.internal(Root / "further-reading" / "README.md", "Further Reading"),
+    )
+  }
 
   object versions {
 
@@ -30,13 +49,19 @@ object SiteConfig {
     val v0_21: Version = version("0.21", "EOL")
     val choose: Version = Version("Help me choose...", "versions", "/index.html") // Pretend it's a "version" to get it into the menu
 
-    private val all = Seq(v1_0, v0_23, v0_22, v0_21, choose)
+    val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
     def config (current: Version): Versions = Versions(
       currentVersion = current,
       olderVersions = all.dropWhile(_ != current).drop(1),
       newerVersions = all.takeWhile(_ != current)
     )
+
+    val paths: Seq[Path] = all.map { v =>
+      Root / v.pathSegment
+    } ++ all.map { v =>
+      Root / v.pathSegment / "index.html"
+    }
   }
 
   // This could move back to the Http4sPlugin that currently writes these values to a TOML file for Hugo
@@ -66,10 +91,11 @@ object SiteConfig {
   )
 
   def config (versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
+    val config = variables.value.foldLeft(ConfigBuilder.empty) {
+      case (builder, (key, value)) => builder.withValue(key, value)
+    }
     LaikaConfig(
-      configBuilder = ConfigBuilder.empty
-        .withValue(Key.root, variables.value)
-        .withValue(LaikaKeys.versioned, versioned)
+      configBuilder = config.withValue(LaikaKeys.versioned, versioned)
     )
   }
 
@@ -77,11 +103,12 @@ object SiteConfig {
              variables: Map[String, String],
              homeURL: String): ThemeProvider = HeliumExtensions.applyTo(Helium.defaults
     .all.metadata(
-      language = Some("en")
+      language = Some("en"),
+      title = Some("http4s")
     )
     .site.markupEditLinks(
       text = "Edit this page",
-      baseURL = "https://github.com/http4s/http4s/tree/main/docs/jvm/src/main/mdoc"
+      baseURL = "https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc"
     )
     .site.layout(
       contentWidth        = px(860),
@@ -98,17 +125,30 @@ object SiteConfig {
       primaryLight  = Color.hex("e9f1f2"),
       text          = Color.hex("5f5f5f"),
       background    = Color.hex("ffffff"),
-      bgGradient    = (Color.hex("5B7980"), Color.hex("a7d4de")) // gradient not used for http4s site atm
+      bgGradient    = (Color.hex("334044"), Color.hex("5B7980")) // only used for landing page background
     )
     .site.darkMode.disabled
     .site.topNavigationBar(
-      homeLink = IconLink.external("../", HeliumIcon.home),
+      homeLink = IconLink.external(homeURL, HeliumIcon.home),
       navLinks = Seq(
         IconLink.external("https://github.com/http4s/http4s", HeliumIcon.github, options = Styles("svg-link")),
         IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
         IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter)
       )
     )
+    .site.landingPage(
+      logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light.svg")),
+      title = None,
+      subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
+      latestReleases = Seq(
+        ReleaseInfo("Latest Stable Release", variables(s"version.http4s.latest.${versions.all(1).displayValue}")),
+        ReleaseInfo("Latest Milestone Release", variables(s"version.http4s.latest.${versions.all.head.displayValue}"))
+      ),
+      license = Some("Apache 2.0"),
+      documentationLinks = landingPage.projectLinks,
+      projectLinks = Nil, // TODO
+      teasers = landingPage.teasers
+    )
     .site.versions(versions.config(currentVersion))
-    .build, variables)
+    .build, variables, versions.paths)
 }
