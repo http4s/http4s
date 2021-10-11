@@ -36,7 +36,6 @@ import org.typelevel.vault.{Key, Vault}
 import scala.concurrent.duration._
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
-import _root_.org.http4s.websocket.WebSocketContext
 import java.util.concurrent.TimeoutException
 
 private[server] object ServerHelpers extends ServerHelpersPlatform {
