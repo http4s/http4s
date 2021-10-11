@@ -34,12 +34,12 @@ import _root_.org.typelevel.log4cats.Logger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
 import org.typelevel.vault.Key
 import org.http4s.websocket.WebSocketContext
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
     val port: Port,
-    private val httpApp: WebSocketBuilder2[F] => HttpApp[F],
+    private val httpApp: WebSocketBuilder[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
     private val sgOpt: Option[SocketGroup[F]],
     private val errorHandler: Throwable => F[Response[F]],
@@ -61,7 +61,7 @@ final class EmberServerBuilder[F[_]: Async] private (
   private def copy(
       host: Option[Host] = self.host,
       port: Port = self.port,
-      httpApp: WebSocketBuilder2[F] => HttpApp[F] = self.httpApp,
+      httpApp: WebSocketBuilder[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
@@ -102,7 +102,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def withPort(port: Port) = copy(port = port)
   def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = _ => httpApp)
-  def withHttpWebSocketApp(f: WebSocketBuilder2[F] => HttpApp[F]) = copy(httpApp = f)
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]) = copy(httpApp = f)
 
   def withSocketGroup(sg: SocketGroup[F]) =
     copy(sgOpt = sg.pure[Option])
@@ -163,7 +163,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               port,
               additionalSocketOptions,
               sg,
-              httpApp(WebSocketBuilder2(wsKey)),
+              httpApp(WebSocketBuilder(wsKey)),
               tlsInfoOpt,
               ready,
               shutdown,
@@ -186,7 +186,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
-            httpApp(WebSocketBuilder2(wsKey)),
+            httpApp(WebSocketBuilder(wsKey)),
             tlsInfoOpt,
             ready,
             shutdown,

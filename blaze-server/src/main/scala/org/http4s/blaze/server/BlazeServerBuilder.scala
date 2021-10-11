@@ -51,7 +51,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
 import org.http4s.websocket.WebSocketContext
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 
 /** BlazeServerBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
@@ -98,7 +98,7 @@ class BlazeServerBuilder[F[_]] private (
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
     chunkBufferMaxSize: Int,
-    httpApp: WebSocketBuilder2[F] => HttpApp[F],
+    httpApp: WebSocketBuilder[F] => HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     maxConnections: Int,
@@ -123,7 +123,7 @@ class BlazeServerBuilder[F[_]] private (
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
       chunkBufferMaxSize: Int = chunkBufferMaxSize,
-      httpApp: WebSocketBuilder2[F] => HttpApp[F] = httpApp,
+      httpApp: WebSocketBuilder[F] => HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
       maxConnections: Int = maxConnections,
@@ -223,7 +223,7 @@ class BlazeServerBuilder[F[_]] private (
   def withHttpApp(httpApp: HttpApp[F]): Self =
     copy(httpApp = _ => httpApp)
 
-  def withHttpWebSocketApp(f: WebSocketBuilder2[F] => HttpApp[F]): Self =
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): Self =
     copy(httpApp = f)
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
@@ -295,7 +295,7 @@ class BlazeServerBuilder[F[_]] private (
         engine: Option[SSLEngine],
         webSocketKey: Key[WebSocketContext[F]]) =
       Http1ServerStage(
-        httpApp(WebSocketBuilder2(webSocketKey)),
+        httpApp(WebSocketBuilder(webSocketKey)),
         requestAttributes(secure = secure, engine),
         executionContext,
         webSocketKey,
@@ -315,7 +315,7 @@ class BlazeServerBuilder[F[_]] private (
         webSocketKey: Key[WebSocketContext[F]]): ALPNServerSelector =
       ProtocolSelector(
         engine,
-        httpApp(WebSocketBuilder2(webSocketKey)),
+        httpApp(WebSocketBuilder(webSocketKey)),
         maxRequestLineLen,
         maxHeadersLen,
         chunkBufferMaxSize,

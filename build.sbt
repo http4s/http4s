@@ -421,7 +421,6 @@ lazy val nodeServerless = libraryProject("node-serverless")
   .settings(
     description := "Node.js serverless wrapper for http4s apps",
     startYear := Some(2021),
-    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
   )
   .dependsOn(core.js)
 

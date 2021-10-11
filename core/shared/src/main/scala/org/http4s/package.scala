@@ -23,7 +23,7 @@ import org.typelevel.ci.CIString
 
 import scala.annotation.nowarn
 
-package object http4s extends Http4sPlatform {
+package object http4s {
 
   type AuthScheme = CIString
 

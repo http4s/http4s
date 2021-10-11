@@ -31,13 +31,13 @@ import org.http4s.ember.core.Util._
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
 import org.typelevel.log4cats.Logger
-import org.typelevel.vault.Vault
+import org.typelevel.vault.{Key, Vault}
 
 import scala.concurrent.duration._
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
-import org.typelevel.vault.Key
 import _root_.org.http4s.websocket.WebSocketContext
+import java.util.concurrent.TimeoutException
 
 private[server] object ServerHelpers extends ServerHelpersPlatform {
 
@@ -230,9 +230,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       parse,
       requestHeaderReceiveTimeout,
       D.defer(
-        F.raiseError[(Request[F], F[Option[Array[Byte]]])](
-          new java.util.concurrent.TimeoutException(
-            s"Timed Out on EmberServer Header Receive Timeout: $requestHeaderReceiveTimeout")))
+        F.raiseError[(Request[F], F[Option[Array[Byte]]])](new TimeoutException(
+          s"Timed out while waiting for request headers: $requestHeaderReceiveTimeout")))
     )
 
     for {
@@ -296,10 +295,11 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
           } else if (reuse) {
             // the connection is keep-alive, but we don't have any bytes.
             // we want to be on the idle timeout until the next request is received.
-            read.flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
-            }
+            read
+              .flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+              }
           } else {
             // first request begins immediately
             Array.emptyByteArray.pure[F]
@@ -351,6 +351,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             case Left(err) =>
               err match {
                 case EmberException.EmptyStream() =>
+                  Applicative[F].pure(None)
+                case _: TimeoutException =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)
