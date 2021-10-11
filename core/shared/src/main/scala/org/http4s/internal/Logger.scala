@@ -37,7 +37,8 @@ object Logger {
     if (logBody) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
-        mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
+        mT.mediaType == MediaType.application.json || mT.mediaType.subType.toString
+          .endsWith("+json"))
       val bodyStream = if (!isBinary || isJson) {
         message.bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
       } else {

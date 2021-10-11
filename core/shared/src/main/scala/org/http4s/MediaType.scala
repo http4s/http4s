@@ -31,30 +31,31 @@ import cats.parse.Parser
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.util.{StringWriter, Writer}
+import org.typelevel.ci._
 
 import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
-    val mainType: String,
-    val extensions: Map[String, String] = Map.empty) {
+    val mainType: CIString,
+    val extensions: Map[CIString, String] = Map.empty) {
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
-    mainType.charAt(0) === '*' || mainType === mediaType.mainType
+    mainType.toString.charAt(0) === '*' || mainType === mediaType.mainType
 
   final def satisfies(mediaRange: MediaRange): Boolean = mediaRange.satisfiedBy(this)
 
-  def isApplication: Boolean = mainType === "application"
-  def isAudio: Boolean = mainType === "audio"
-  def isImage: Boolean = mainType === "image"
-  def isMessage: Boolean = mainType === "message"
-  def isMultipart: Boolean = mainType === "multipart"
-  def isText: Boolean = mainType === "text"
-  def isVideo: Boolean = mainType === "video"
+  def isApplication: Boolean = mainType === ci"application"
+  def isAudio: Boolean = mainType === ci"audio"
+  def isImage: Boolean = mainType === ci"image"
+  def isMessage: Boolean = mainType === ci"message"
+  def isMultipart: Boolean = mainType === ci"multipart"
+  def isText: Boolean = mainType === ci"text"
+  def isVideo: Boolean = mainType === ci"video"
 
   def withQValue(q: QValue): MediaRangeAndQValue = MediaRangeAndQValue(this, q)
 
-  def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, ext)
+  def withExtensions(ext: Map[CIString, String]): MediaRange = new MediaRange(mainType, ext)
 
   override def toString: String = s"MediaRange($mainType/*${MediaRange.extensionsToString(this)})"
 
@@ -72,22 +73,22 @@ sealed class MediaRange private[http4s] (
   private[this] var hash = 0
   override def hashCode(): Int = {
     if (hash == 0)
-      hash = MurmurHash3.mixLast(mainType.toLowerCase.##, extensions.##)
+      hash = MurmurHash3.mixLast(mainType.##, extensions.##)
     hash
   }
 }
 
 object MediaRange {
-  val `*/*` = new MediaRange("*")
-  val `application/*` = new MediaRange("application")
-  val `audio/*` = new MediaRange("audio")
-  val `image/*` = new MediaRange("image")
-  val `message/*` = new MediaRange("message")
-  val `multipart/*` = new MediaRange("multipart")
-  val `text/*` = new MediaRange("text")
-  val `video/*` = new MediaRange("video")
+  val `*/*` = new MediaRange(ci"*")
+  val `application/*` = new MediaRange(ci"application")
+  val `audio/*` = new MediaRange(ci"audio")
+  val `image/*` = new MediaRange(ci"image")
+  val `message/*` = new MediaRange(ci"message")
+  val `multipart/*` = new MediaRange(ci"multipart")
+  val `text/*` = new MediaRange(ci"text")
+  val `video/*` = new MediaRange(ci"video")
 
-  val standard: Map[String, MediaRange] =
+  val standard: Map[CIString, MediaRange] =
     List(
       `*/*`,
       `application/*`,
@@ -103,7 +104,7 @@ object MediaRange {
   def parse(s: String): ParseResult[MediaRange] =
     ParseResult.fromParser(fullParser, "media range")(s)
 
-  private[http4s] val mediaTypeExtensionParser: Parser[(String, String)] = {
+  private[http4s] val mediaTypeExtensionParser: Parser[(CIString, String)] = {
     import Parser.char
     import org.http4s.internal.parsing.Rfc7230.{ows, quotedString, token}
 
@@ -112,7 +113,7 @@ object MediaRange {
 
     (char(';') *> ows *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
       case (s: String, s2: Option[String]) =>
-        (s, s2.map(_.replace(escapedString, unescapedString)).getOrElse(""))
+        (CIString(s), s2.map(_.replace(escapedString, unescapedString)).getOrElse(""))
     }
   }
 
@@ -157,13 +158,15 @@ object MediaRange {
       }
   }
 
-  private[http4s] def getMediaRange(mainType: String, subType: String): MediaRange =
-    if (subType === "*")
-      MediaRange.standard.getOrElse(mainType.toLowerCase, new MediaRange(mainType))
+  private[http4s] def getMediaRange(mainType: String, subType: String): MediaRange = {
+    val mainCI = CIString(mainType)
+    val subCI = CIString(subType)
+
+    if (subCI === ci"*")
+      MediaRange.standard.getOrElse(mainCI, new MediaRange(mainCI))
     else
-      MediaType.all.getOrElse(
-        (mainType.toLowerCase, subType.toLowerCase),
-        new MediaType(mainType.toLowerCase, subType.toLowerCase))
+      MediaType.all.getOrElse((mainCI, subCI), new MediaType(mainCI, subCI))
+  }
 
   implicit val http4sShowForMediaRange: Show[MediaRange] =
     Show.show(s => s"${s.mainType}/*${MediaRange.extensionsToString(s)}")
@@ -172,10 +175,10 @@ object MediaRange {
       def orderedSubtype(a: MediaRange) =
         a match {
           case mt: MediaType => mt.subType
-          case _ => ""
+          case _ => ci""
         }
       def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
-      Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
+      Order[(CIString, CIString, Vector[(CIString, String)])].compare(f(x), f(y))
     }
   implicit val http4sHttpCodecForMediaRange: HttpCodec[MediaRange] =
     new HttpCodec[MediaRange] {
@@ -194,14 +197,14 @@ object MediaRange {
 }
 
 sealed class MediaType(
-    mainType: String,
-    val subType: String,
+    mainType: CIString,
+    val subType: CIString,
     val compressible: Boolean = false,
     val binary: Boolean = false,
     val fileExtensions: List[String] = Nil,
-    extensions: Map[String, String] = Map.empty)
+    extensions: Map[CIString, String] = Map.empty)
     extends MediaRange(mainType, extensions) {
-  override def withExtensions(ext: Map[String, String]): MediaType =
+  override def withExtensions(ext: Map[CIString, String]): MediaType =
     new MediaType(mainType, subType, compressible, binary, fileExtensions, ext)
 
   final def satisfies(mediaType: MediaType): Boolean = mediaType.satisfiedBy(this)
@@ -246,17 +249,17 @@ sealed class MediaType(
 object MediaType extends MimeDB {
   def forExtension(ext: String): Option[MediaType] = extensionMap.get(ext.toLowerCase)
 
-  def multipartType(subType: String, boundary: Option[String] = None): MediaType = {
-    val ext = boundary.map(b => Map("boundary" -> b)).getOrElse(Map.empty)
-    new MediaType("multipart", subType, Compressible, NotBinary, Nil, extensions = ext)
+  def multipartType(subType: CIString, boundary: Option[String] = None): MediaType = {
+    val ext = boundary.map(b => Map(ci"boundary" -> b)).getOrElse(Map.empty)
+    new MediaType(ci"multipart", subType, Compressible, NotBinary, Nil, extensions = ext)
   }
 
   // Curiously text/event-stream isn't included in MimeDB
-  lazy val `text/event-stream` = new MediaType("text", "event-stream")
+  lazy val `text/event-stream` = new MediaType(ci"text", ci"event-stream")
 
-  lazy val all: Map[(String, String), MediaType] =
+  lazy val all: Map[(CIString, CIString), MediaType] =
     (`text/event-stream` :: allMediaTypes)
-      .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
+      .map(m => (m.mainType, m.subType) -> m)
       .toMap
 
   val extensionMap: Map[String, MediaType] =
@@ -289,8 +292,8 @@ object MediaType extends MimeDB {
 
   private[http4s] def getMediaType(mainType: String, subType: String): MediaType =
     MediaType.all.getOrElse(
-      (mainType.toLowerCase, subType.toLowerCase),
-      new MediaType(mainType.toLowerCase, subType.toLowerCase))
+      (CIString(mainType), CIString(subType)),
+      new MediaType(CIString(mainType), CIString(subType)))
 
   implicit val http4sEqForMediaType: Eq[MediaType] =
     Eq.fromUniversalEquals

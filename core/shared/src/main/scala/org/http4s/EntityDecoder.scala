@@ -27,6 +27,7 @@ import scodec.bits.ByteVector
 
 import scala.annotation.implicitNotFound
 import cats.effect.Resource
+import org.typelevel.ci._
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -134,7 +135,7 @@ trait EntityDecoder[F[_], T] { self =>
   */
 object EntityDecoder {
   // This is not a real media type but will still be matched by `*/*`
-  private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
+  private val UndefinedMediaType = new MediaType(ci"UNKNOWN", ci"UNKNOWN")
 
   /** summon an implicit [[EntityDecoder]] */
   def apply[F[_], T](implicit ev: EntityDecoder[F, T]): EntityDecoder[F, T] = ev

@@ -31,7 +31,7 @@ object `Content-Type` {
 
   private[http4s] val parser: Parser[`Content-Type`] =
     (MediaRange.parser ~ MediaRange.mediaTypeExtensionParser.rep0).flatMap {
-      case (range: MediaRange, exts: Seq[(String, String)]) =>
+      case (range: MediaRange, exts: Seq[(CIString, String)]) =>
         val mediaTypeParser = range match {
           case m: MediaType => Parser.pure(m)
           case _ =>
@@ -39,9 +39,9 @@ object `Content-Type` {
         }
 
         val (ext, charset) =
-          exts.foldLeft((Map.empty[String, String], None: Option[Charset])) {
+          exts.foldLeft((Map.empty[CIString, String], None: Option[Charset])) {
             case ((ext, charset), p @ (k, v)) =>
-              if (k == "charset") (ext, Charset.fromString(v).toOption)
+              if (k == ci"charset") (ext, Charset.fromString(v).toOption)
               else (ext + p, charset)
           }
 

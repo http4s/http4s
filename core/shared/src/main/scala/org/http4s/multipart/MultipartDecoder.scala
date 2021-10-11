@@ -23,6 +23,7 @@ import cats.effect.std.Supervisor
 import cats.syntax.all._
 import fs2.io.file.Files
 import fs2.Pipe
+import org.typelevel.ci._
 
 private[http4s] object MultipartDecoder {
   def decoder[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
@@ -127,7 +128,7 @@ private[http4s] object MultipartDecoder {
       impl: Boundary => Pipe[F, Byte, Part[F]]
   ): EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
+      msg.contentType.flatMap(_.mediaType.extensions.get(ci"boundary")) match {
         case Some(boundary) =>
           DecodeResult {
             msg.body
