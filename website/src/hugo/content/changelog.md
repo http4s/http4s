@@ -44,6 +44,7 @@ This is a routine maintenance release.  It is binary compatible with the v0.22.x
 
 ## Dependency updates
 
+* netty-4.1.69.Final
 * scalacheck-effect-1.0.3
 
 # v0.22.6 (2021-10-06)
