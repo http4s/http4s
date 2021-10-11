@@ -91,7 +91,12 @@ object GZip {
             ref.set(gen).as((gen, Chunk.empty[Byte]))
         }
         .flatMap(x => Stream.chunk(x._2))
-        .through(Compression[F].deflate(DeflateParams(level = level, bufferSize = bufferSize))) ++
+        .through(
+          Compression[F].deflate(
+            DeflateParams(
+              level = level,
+              header = ZLibParams.Header.GZIP,
+              bufferSize = bufferSize))) ++
         Stream.eval(ref.get).flatMap { case TrailerGen(crc, inputLength) =>
           val checksum = crc.result.toByteVector.reverse
           val length = ByteVector.fromInt(
