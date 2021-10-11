@@ -27,7 +27,6 @@ import fs2.io.net.tls._
 import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
 import org.http4s._
 import org.http4s.ember.core.Util._
-import org.http4s.headers.Connection
 import java.net.InetSocketAddress
 import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
 import org.http4s.headers.{Connection, Date}

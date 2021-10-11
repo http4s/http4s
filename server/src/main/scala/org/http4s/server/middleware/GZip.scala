@@ -23,7 +23,6 @@ import cats.data.Kleisli
 import cats.effect.{Async, Ref}
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
-import fs2.Stream
 import fs2.compression._
 import java.util.zip.Deflater
 import org.http4s.headers._
