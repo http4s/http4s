@@ -73,8 +73,6 @@ object GZip {
       resp: Response[F]): Response[F] = {
 
     logger.trace("GZip middleware encoding content")
-    // Need to add the Gzip header and trailer
-
     resp
       .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
