@@ -57,6 +57,5 @@ object `X-Forwarded-Host` extends HeaderCompanion[`X-Forwarded-Host`]("X-Forward
   *   unescaping, MUST conform to the Host ABNF described in Section 5.4 of
   *   [RFC7230].
   * }}}
-  *
   */
 final case class `X-Forwarded-Host`(host: String, port: Option[Int] = None)
