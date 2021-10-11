@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.{Order, Show}
+import cats.syntax.all._
 import org.http4s.Status.ResponseClass
 import org.http4s.internal.CharPredicate
 import org.http4s.util.Renderable
@@ -250,4 +251,16 @@ object Status {
 
   implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
   implicit val http4sShowForStatus: Show[Status] = Show.fromToString[Status]
+
+  val http1Codec: Http1Encoder[Status] = {
+    import Http1Encoder._
+    (
+      int.suffix(const(byte, ' '.toByte)),
+      ascii
+    ).contramapN(s =>
+      (
+        s.code,
+        s.reason
+      ))
+  }
 }

@@ -227,4 +227,16 @@ object HttpVersion {
     override def minBound: HttpVersion = HttpVersion(0, 0)
     override def maxBound: HttpVersion = HttpVersion(9, 9)
   }
+
+  implicit val http1Codec: Http1Encoder[HttpVersion] = {
+    import Http1Encoder._
+    (
+      int.prefix(const(ascii, "HTTP/")).suffix(const(byte, '/'.toByte)),
+      int
+    ).contramapN(v =>
+      (
+        v.major,
+        v.minor
+      ))
+  }
 }
