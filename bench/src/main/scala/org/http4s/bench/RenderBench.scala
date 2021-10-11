@@ -17,7 +17,6 @@
 package org.http4s
 package bench
 
-import cats.implicits._
 import fs2.Chunk
 import java.nio.charset.StandardCharsets
 import org.openjdk.jmh.annotations._
@@ -35,6 +34,7 @@ class RenderBench {
     sw << resp.httpVersion << " " << resp.status << "\r\n"
     resp.headers.foreach { h =>
       sw << h << "\r\n"
+      ()
     }
     sw << "\r\n"
     Chunk.array(sw.result.getBytes(StandardCharsets.US_ASCII)).toByteBuffer
