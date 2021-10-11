@@ -131,7 +131,8 @@ object Http4sPlugin extends AutoPlugin {
     import sbtghactions.GenerativeKeys._
     import sbtghactions._
 
-    def siteBuildJob(subproject: String) =
+    def siteBuildJob(subproject: String, runMdoc: Boolean) = {
+      val mdoc = if (runMdoc) Some(s"$subproject/mdoc") else None
       WorkflowJob(
         id = subproject,
         name = s"Build $subproject",
@@ -140,21 +141,25 @@ object Http4sPlugin extends AutoPlugin {
         steps = List(
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
-          WorkflowStep.Sbt(List(s"$subproject/mdoc", s"$subproject/laikaSite"), name = Some(s"Build $subproject"))
+          WorkflowStep.Sbt(mdoc.toList ++ List(s"$subproject/laikaSite"), name = Some(s"Build $subproject"))
         )
       )
+    }
 
-    def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
-      |eval "$$(ssh-agent -s)"
-      |echo "$$SSH_PRIVATE_KEY" | ssh-add -
-      |git config --global user.name "GitHub Actions CI"
-      |git config --global user.email "ghactions@invalid"
-      |sbt ++$scala_212 $subproject/mdoc $subproject/laikaSite $subproject/ghpagesPushSite
-      |
+    def sitePublishStep(subproject: String, runMdoc: Boolean) = {
+      val mdoc = if (runMdoc) s"$subproject/mdoc " else ""
+      WorkflowStep.Run(List(s"""
+       |eval "$$(ssh-agent -s)"
+       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
+       |git config --global user.name "GitHub Actions CI"
+       |git config --global user.email "ghactions@invalid"
+       |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
+       |
       """.stripMargin),
-      name = Some(s"Publish $subproject"),
-      env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
-    )
+        name = Some(s"Publish $subproject"),
+        env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
+      )
+    }
 
     Http4sOrgPlugin.githubActionsSettings ++ Seq(
       githubWorkflowBuild := Seq(
@@ -180,14 +185,14 @@ object Http4sPlugin extends AutoPlugin {
         RefPredicate.StartsWith(Ref.Tag("v"))
       ),
       githubWorkflowPublishPostamble := Seq(
-        sitePublishStep("website"),
-        // sitePublishStep("docs")
+        sitePublishStep("website", runMdoc = false),
+        // sitePublishStep("docs", runMdoc = false)
       ),
       // this results in nonexistent directories trying to be compressed
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
-        // siteBuildJob("website"), TODO - enable once website project migrated
-        siteBuildJob("docs")
+        siteBuildJob("website", runMdoc = false),
+        siteBuildJob("docs", runMdoc = true)
       ),
     )
   }
