@@ -27,7 +27,6 @@ import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
 import org.typelevel.ci._
 import scala.annotation.nowarn
-import org.typelevel.ci._
 
 class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
