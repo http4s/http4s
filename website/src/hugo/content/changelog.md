@@ -8,6 +8,44 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.7 (2021-10-07)
+
+This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.21.31.
+
+## http4s-core
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated aliases at `Header.apply(String, String)`, `Header.of(Header.ToRaw*)`, and `util.CaseInsensitiveString` to ease migration from 0.21.x.
+
+## http4s-server
+
+### Noteworthy refactoring
+
+* [#5189](https://github.com/http4s/http4s/pull/5189): In `GZip`, use `scodec.bits.crc` internally instead of `java.util.zip.CRC32`. The former is also available on the Scala.js platform.
+
+## http4s-blaze-client
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated alias for `org.http4s.client.blaze.BlazeClientBuilder` to ease migration from 0.21.x.
+
+## http4s-blaze-server
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated alias for `org.http4s.server.blaze.BlazeServerBuilder` to ease migration from 0.21.x.
+
+## http4s-ember-core
+
+### Semantic change
+
+* [#5341](https://github.com/http4s/http4s/pull/5341): Add `EmberException.ReadTimeout` and `EmberException.RequestHeadersTimeout` (unobservable) to distinguish backend timeouts that close the connection from application `TimeoutExceptions` that can be handled to generate a `503` response or similar.
+
+## Dependency updates
+
+* scalacheck-effect-1.0.3
+
 # v0.22.6 (2021-10-06)
 
 This is a routine maintenance release.  It is binary compatible with v0.22.5 and includes the changes in v0.21.30.
