@@ -22,7 +22,7 @@ This is a routine maintenance release.  It is binary compatible with the v0.22.x
 
 ### Noteworthy refactoring
 
-* [#5189](https://github.com/http4s/http4s/pull/5189): In `GZip`, use `scodec.bits.crc` internally instead of `java.util.zip.CRC32`. The former is also available on the Scala.js platform.
+* [#5189](https://github.com/http4s/http4s/pull/5189), [#5368](https://github.com/http4s/http4s/pull/5368): In `GZip`, use `fs2.compress.gzip` for compression.
 
 ## http4s-blaze-client
 
