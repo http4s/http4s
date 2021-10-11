@@ -1036,4 +1036,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  implicit val http4sTestingArbitraryForSecFetchMode: Arbitrary[`Sec-Fetch-Mode`] =
+    Arbitrary(Gen.oneOf(`Sec-Fetch-Mode`.types.values))
 }
