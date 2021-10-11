@@ -27,6 +27,7 @@ import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
 import org.typelevel.ci._
 import scala.annotation.nowarn
+import org.typelevel.ci._
 
 class MultipartSuite extends Http4sSuite {
   val url = uri"https://example.com/path/to/some/where"
@@ -131,7 +132,7 @@ Content-Type: application/pdf
       """.replace("\n", "\r\n")
         val header = Headers(
           `Content-Type`(
-            MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
+            MediaType.multipartType(ci"form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
         val request = Request[IO](
           method = Method.POST,
           uri = url,
@@ -161,7 +162,7 @@ I am a big moose
       """.replace("\n", "\r\n")
         val header = Headers(
           `Content-Type`(
-            MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
+            MediaType.multipartType(ci"form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
         val request = Request[IO](
           method = Method.POST,
           uri = url,

@@ -25,17 +25,18 @@ import java.nio.charset.StandardCharsets
 import cats.data.Chain
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+import org.typelevel.ci._
 import java.util.Arrays
 import fs2.io.file.Path
 
 class EntityDecoderSuite extends Http4sSuite {
   val `application/excel`: MediaType =
-    new MediaType("application", "excel", true, false, List("xls"))
+    new MediaType(ci"application", ci"excel", true, false, List("xls"))
   val `application/gnutar`: MediaType =
-    new MediaType("application", "gnutar", true, false, List("tar"))
+    new MediaType(ci"application", ci"gnutar", true, false, List("tar"))
   val `application/soap+xml`: MediaType =
-    new MediaType("application", "soap+xml", MediaType.Compressible, MediaType.NotBinary)
-  val `text/x-h` = new MediaType("text", "x-h")
+    new MediaType(ci"application", ci"soap+xml", MediaType.Compressible, MediaType.NotBinary)
+  val `text/x-h` = new MediaType(ci"text", ci"x-h")
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.compile.toVector.map(_.toArray)

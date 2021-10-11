@@ -39,7 +39,7 @@ import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
 import org.scalacheck.Gen._
 import org.scalacheck.rng.Seed
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 import org.typelevel.ci.testing.arbitraries._
 
 import java.util.concurrent.TimeUnit
@@ -295,36 +295,36 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     c.substring(1, c.length - 1)
   }
 
-  val http4sGenMediaRangeExtension: Gen[(String, String)] =
+  val http4sGenMediaRangeExtension: Gen[(CIString, String)] =
     for {
       token <- genToken
       value <- oneOf(http4sGenUnquotedPair, genQDText)
-    } yield (token, value)
+    } yield (CIString(token), value)
 
-  val http4sGenMediaRangeExtensions: Gen[Map[String, String]] =
+  val http4sGenMediaRangeExtensions: Gen[Map[CIString, String]] =
     Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
 
   val http4sGenMediaType: Gen[MediaType] = oneOf(MediaType.all.values.toSeq)
   implicit val http4sArbitraryMediaType: Arbitrary[MediaType] = Arbitrary(http4sGenMediaType)
 
   implicit val http4sTestingCogenForMediaType: Cogen[MediaType] =
-    Cogen[(String, String, Map[String, String])].contramap(m =>
+    Cogen[(CIString, CIString, Map[CIString, String])].contramap(m =>
       (m.mainType, m.subType, m.extensions))
 
   val http4sGenMediaRange: Gen[MediaRange] =
     for {
-      `type` <- genToken.map(_.toLowerCase)
+      `type` <- genToken
       extensions <- http4sGenMediaRangeExtensions
-    } yield new MediaRange(`type`, extensions)
+    } yield new MediaRange(CIString(`type`), extensions)
 
   implicit val http4sTestingArbitraryForMediaRange: Arbitrary[MediaRange] =
     Arbitrary(http4sGenMediaRange)
 
   implicit val http4sTestingCogenForMediaRange: Cogen[MediaRange] =
-    Cogen[(String, String, Map[String, String])].contramap { m =>
+    Cogen[(CIString, CIString, Map[CIString, String])].contramap { m =>
       val effectiveSubtype = m match {
         case mt: MediaType => mt.subType
-        case _ => "*"
+        case _ => ci"*"
       }
       (m.mainType, effectiveSubtype, m.extensions)
     }
