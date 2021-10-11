@@ -102,6 +102,9 @@ object ResponsePrelude {
   implicit val catsShowForResponsePrelude: Show[ResponsePrelude] =
     Show.fromToString
 
+  implicit def stdLibOrdering: Ordering[ResponsePrelude] =
+    catsHashAndOrderForResponsePrelude.toOrdering
+ 
   val http1Codec: Http1Encoder[ResponsePrelude] = {
     import Http1Encoder._
     (
