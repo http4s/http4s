@@ -30,7 +30,7 @@ import org.http4s.ember.core.Util._
 import org.http4s.headers.Connection
 import java.net.InetSocketAddress
 import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
-import org.http4s.headers.Date
+import org.http4s.headers.{Connection, Date}
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.{SecureSession, ServerRequestKeys}
 import org.http4s.websocket.WebSocketContext
@@ -232,8 +232,8 @@ private[server] object ServerHelpers {
       parse,
       requestHeaderReceiveTimeout,
       D.defer(
-        F.raiseError[(Request[F], F[Option[Array[Byte]]])](new TimeoutException(
-          s"Timed out while waiting for request headers: $requestHeaderReceiveTimeout")))
+        F.raiseError[(Request[F], F[Option[Array[Byte]]])](
+          EmberException.RequestHeadersTimeout(requestHeaderReceiveTimeout)))
     )
 
     for {
@@ -288,6 +288,10 @@ private[server] object ServerHelpers {
     type State = (Array[Byte], Boolean)
     val _ = logger
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
+      .adaptError {
+        // TODO MERGE: Replace with TimeoutException on series/0.23+.
+        case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
+      }
     Stream
       .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
         case (buffer, reuse) =>
@@ -341,7 +345,7 @@ private[server] object ServerHelpers {
                           logger)
                         .as(None)
                     case None =>
-                      Concurrent[F].pure(None)
+                      Applicative[F].pure(None)
                   }
                 case None =>
                   for {
@@ -352,9 +356,8 @@ private[server] object ServerHelpers {
               }
             case Left(err) =>
               err match {
-                case EmberException.EmptyStream() =>
-                  Applicative[F].pure(None)
-                case _: TimeoutException =>
+                case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                    EmberException.ReadTimeout(_) =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)
