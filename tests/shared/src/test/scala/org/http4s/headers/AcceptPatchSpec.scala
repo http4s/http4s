@@ -36,7 +36,7 @@ class AcceptPatchSpec extends Http4sSuite {
             new MediaType(
               ci"text",
               ci"example",
-              extensions = Map(ci"charset" -> "utf-8")))).renderString,
+              extensions = List(ci"charset" -> "utf-8")))).renderString,
         "Accept-Patch: application/example, text/example; charset=\"utf-8\""
       )
     }

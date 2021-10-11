@@ -39,10 +39,10 @@ object `Content-Type` {
         }
 
         val (ext, charset) =
-          exts.foldLeft((Map.empty[CIString, String], None: Option[Charset])) {
-            case ((ext, charset), p @ (k, v)) =>
+          exts.foldRight((List.empty[(CIString, String)], None: Option[Charset])) {
+            case (p @ (k, v), (ext, charset)) =>
               if (k == ci"charset") (ext, Charset.fromString(v).toOption)
-              else (ext + p, charset)
+              else (p :: ext, charset)
           }
 
         mediaTypeParser.map { mediaType =>

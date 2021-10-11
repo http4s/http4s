@@ -128,7 +128,9 @@ private[http4s] object MultipartDecoder {
       impl: Boundary => Pipe[F, Byte, Part[F]]
   ): EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get(ci"boundary")) match {
+      msg.contentType.flatMap(_.mediaType.extensions.collectFirst { case (ci"boundary", boundary) =>
+        boundary
+      }) match {
         case Some(boundary) =>
           DecodeResult {
             msg.body

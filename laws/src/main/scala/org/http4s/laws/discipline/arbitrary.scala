@@ -301,14 +301,14 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       value <- oneOf(http4sGenUnquotedPair, genQDText)
     } yield (CIString(token), value)
 
-  val http4sGenMediaRangeExtensions: Gen[Map[CIString, String]] =
-    Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
+  val http4sGenMediaRangeExtensions: Gen[List[(CIString, String)]] =
+    Gen.listOf(http4sGenMediaRangeExtension)
 
   val http4sGenMediaType: Gen[MediaType] = oneOf(MediaType.all.values.toSeq)
   implicit val http4sArbitraryMediaType: Arbitrary[MediaType] = Arbitrary(http4sGenMediaType)
 
   implicit val http4sTestingCogenForMediaType: Cogen[MediaType] =
-    Cogen[(CIString, CIString, Map[CIString, String])].contramap(m =>
+    Cogen[(CIString, CIString, List[(CIString, String)])].contramap(m =>
       (m.mainType, m.subType, m.extensions))
 
   val http4sGenMediaRange: Gen[MediaRange] =
@@ -321,7 +321,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     Arbitrary(http4sGenMediaRange)
 
   implicit val http4sTestingCogenForMediaRange: Cogen[MediaRange] =
-    Cogen[(CIString, CIString, Map[CIString, String])].contramap { m =>
+    Cogen[(CIString, CIString, List[(CIString, String)])].contramap { m =>
       val effectiveSubtype = m match {
         case mt: MediaType => mt.subType
         case _ => ci"*"

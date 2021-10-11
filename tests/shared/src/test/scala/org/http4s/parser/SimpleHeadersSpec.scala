@@ -31,7 +31,7 @@ class SimpleHeadersSpec extends Http4sSuite {
     val header =
       `Accept-Patch`(
         NonEmptyList.of(
-          new MediaType(ci"text", ci"example", extensions = Map(ci"charset" -> "utf-8"))))
+          new MediaType(ci"text", ci"example", extensions = List(ci"charset" -> "utf-8"))))
     assertEquals(parse(header.value), Right(header))
     val multipleMediaTypes =
       `Accept-Patch`(

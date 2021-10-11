@@ -34,7 +34,7 @@ class MediaTypeSuite extends Http4sSuite {
   test("MediaType should Quote extension strings") {
     assertEquals(
       MediaType.text.html
-        .withExtensions(Map(ci"foo" -> "bar"))
+        .withExtensions(List(ci"foo" -> "bar"))
         .show,
       """text/html; foo="bar"""")
   }
@@ -42,7 +42,7 @@ class MediaTypeSuite extends Http4sSuite {
   test("MediaType should Encode extensions with special characters") {
     assertEquals(
       MediaType.text.html
-        .withExtensions(Map(ci"foo" -> ";"))
+        .withExtensions(List(ci"foo" -> ";"))
         .show,
       """text/html; foo=";"""")
   }
@@ -50,12 +50,12 @@ class MediaTypeSuite extends Http4sSuite {
   test("MediaType should Escape special chars in media range extensions") {
     assertEquals(
       MediaType.text.html
-        .withExtensions(Map(ci"foo" -> "\\"))
+        .withExtensions(List(ci"foo" -> "\\"))
         .show,
       """text/html; foo="\\"""")
     assertEquals(
       MediaType.text.html
-        .withExtensions(Map(ci"foo" -> "\""))
+        .withExtensions(List(ci"foo" -> "\""))
         .show,
       """text/html; foo="\""""")
   }

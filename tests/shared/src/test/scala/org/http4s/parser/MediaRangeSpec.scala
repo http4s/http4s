@@ -32,7 +32,7 @@ class MediaRangeSpec extends Http4sSuite {
       MediaType.Binary,
       List("aif", "aiff", "aifc"))
 
-  def ext = Map(ci"foo" -> "bar")
+  def ext = List(ci"foo" -> "bar")
 
   test("MediaRanges should Perform equality correctly") {
     assertEquals(`text/*`, `text/*`)

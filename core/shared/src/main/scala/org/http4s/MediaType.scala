@@ -37,7 +37,7 @@ import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
     val mainType: CIString,
-    val extensions: Map[CIString, String] = Map.empty) {
+    val extensions: List[(CIString, String)] = List.empty) {
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
@@ -55,7 +55,7 @@ sealed class MediaRange private[http4s] (
 
   def withQValue(q: QValue): MediaRangeAndQValue = MediaRangeAndQValue(this, q)
 
-  def withExtensions(ext: Map[CIString, String]): MediaRange = new MediaRange(mainType, ext)
+  def withExtensions(ext: List[(CIString, String)]): MediaRange = new MediaRange(mainType, ext)
 
   override def toString: String = s"MediaRange($mainType/*${MediaRange.extensionsToString(this)})"
 
@@ -125,7 +125,7 @@ object MediaRange {
     (parser ~ extensions).map { case (mr, exts) =>
       exts match {
         case Nil => mr
-        case _ => mr.withExtensions(exts.toMap)
+        case _ => mr.withExtensions(exts)
       }
     }
   }
@@ -202,9 +202,9 @@ sealed class MediaType(
     val compressible: Boolean = false,
     val binary: Boolean = false,
     val fileExtensions: List[String] = Nil,
-    extensions: Map[CIString, String] = Map.empty)
+    extensions: List[(CIString, String)] = List.empty)
     extends MediaRange(mainType, extensions) {
-  override def withExtensions(ext: Map[CIString, String]): MediaType =
+  override def withExtensions(ext: List[(CIString, String)]): MediaType =
     new MediaType(mainType, subType, compressible, binary, fileExtensions, ext)
 
   final def satisfies(mediaType: MediaType): Boolean = mediaType.satisfiedBy(this)
@@ -250,7 +250,7 @@ object MediaType extends MimeDB {
   def forExtension(ext: String): Option[MediaType] = extensionMap.get(ext.toLowerCase)
 
   def multipartType(subType: CIString, boundary: Option[String] = None): MediaType = {
-    val ext = boundary.map(b => Map(ci"boundary" -> b)).getOrElse(Map.empty)
+    val ext = boundary.tupleLeft(ci"boundary").toList
     new MediaType(ci"multipart", subType, Compressible, NotBinary, Nil, extensions = ext)
   }
 
@@ -272,7 +272,7 @@ object MediaType extends MimeDB {
     (mediaType ~ extensions).map { case (mr, exts) =>
       exts match {
         case Nil => mr
-        case _ => mr.withExtensions(exts.toMap)
+        case _ => mr.withExtensions(exts)
       }
     }
   }
