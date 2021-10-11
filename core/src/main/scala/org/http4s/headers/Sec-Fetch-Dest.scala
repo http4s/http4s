@@ -85,7 +85,7 @@ object `Sec-Fetch-Dest` {
   }
 
   private val parser: Parser[`Sec-Fetch-Dest`] =
-    token.mapFilter(s => types.get(s.toLowerCase))
+    token().mapFilter(s => types.get(s.toLowerCase))
 
   def parse(s: String): ParseResult[`Sec-Fetch-Dest`] =
     ParseResult.fromParser(parser, "Invalid Sec-Fetch-Dest header")(s)
