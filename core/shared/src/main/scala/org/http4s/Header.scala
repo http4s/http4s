@@ -95,6 +95,9 @@ object Header {
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
 
+  @deprecated("use Header.Raw.apply", "0.22.0")
+  def apply(name: String, value: String): Header.Raw = Raw(CIString(name), value)
+
   def create[A, T <: Header.Type](
       name_ : CIString,
       value_ : A => String,
