@@ -52,7 +52,7 @@ object `Referrer-Policy` {
       new UnknownPolicy(s) {}
   }
 
-  private val types: Map[String, Directive] =
+  private[http4s] val types: Map[String, Directive] =
     List(
       `no-referrer`,
       `no-referrer-when-downgrade`,
