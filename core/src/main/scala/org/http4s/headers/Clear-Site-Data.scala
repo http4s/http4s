@@ -49,7 +49,7 @@ object `Clear-Site-Data` {
       new UnknownType(s) {}
   }
 
-  private val types: Map[String, Directive] =
+  private[http4s] val types: Map[String, Directive] =
     List(`*`, cache, cookies, storage, executionContexts)
       .map(i => (i.value.toLowerCase, i))
       .toMap
