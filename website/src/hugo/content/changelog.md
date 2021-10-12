@@ -14,6 +14,10 @@ This is a routine maintenance release.  It is binary compatible with the v0.22.x
 
 ## http4s-core
 
+### Enhancements
+
+* [#5165](https://github.com/http4s/http4s/pull/5165): Add `Keep-Alive` header.
+
 ### Compatibility
 
 * [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated aliases at `Header.apply(String, String)`, `Header.of(Header.ToRaw*)`, and `util.CaseInsensitiveString` to ease migration from 0.21.x.
