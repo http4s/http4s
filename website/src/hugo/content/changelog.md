@@ -48,6 +48,7 @@ This is a routine maintenance release.  It is binary compatible with the v0.22.x
 
 ## Dependency updates
 
+* fs2-2.5.10
 * netty-4.1.69.Final
 * scalacheck-effect-1.0.3
 
