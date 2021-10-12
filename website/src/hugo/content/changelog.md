@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.22.7 (2021-10-07)
+# v0.22.7 (2021-10-12)
 
 This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.21.31.
 
@@ -46,6 +46,28 @@ This is a routine maintenance release.  It is binary compatible with the v0.22.x
 
 * netty-4.1.69.Final
 * scalacheck-effect-1.0.3
+
+# v0.21.31 (2021-10-12)
+
+This is a maintenance release.  The only changes are to increase forward source compatibility with 0.22.  It is binary compatible with the 0.21.x series.
+
+## http4s-core
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Undeprecate `Headers.apply`.  Something similar exists in 0.22.
+
+## http4s-blaze-server
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.server.BlazeServerBuilder` to `org.http4s.server.blaze.BlazeServerBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
+
+## http4s-blaze-client
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.client.BlazeClientBuilder` to `org.http4s.client.blaze.BlazeClientBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
 
 # v0.22.6 (2021-10-06)
 
