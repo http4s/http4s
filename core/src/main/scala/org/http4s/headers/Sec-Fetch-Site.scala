@@ -29,14 +29,14 @@ object `Sec-Fetch-Site` {
   case object `cross-site` extends `Sec-Fetch-Site`("cross-site")
   case object `same-origin` extends `Sec-Fetch-Site`("same-origin")
   case object `same-site` extends `Sec-Fetch-Site`("same-site")
-  case object none extends `Sec-Fetch-Site`("none")
+  case object `none` extends `Sec-Fetch-Site`("none")
 
   private[http4s] val types: Map[String, `Sec-Fetch-Site`] =
     List(
       `cross-site`,
       `same-origin`,
       `same-site`,
-      none
+      `none`
     )
       .map(i => (i.value.toLowerCase, i))
       .toMap
