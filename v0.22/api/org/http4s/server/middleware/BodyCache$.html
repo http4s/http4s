@@ -328,7 +328,7 @@ It does so only for the &quot;inner&quot; middlewares:</p><pre><span class="kw">
 while the <code>AMiddleware</code> will get the raw one.</p><p>As the entire request body will be allocated in memory,
 there is a possibility of OOM error with a large body.
 Because of that, using the <code>EntityLimiter</code> middleware is strongly advised.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.6/server/src/main/scala/org/http4s/server/middleware/BodyCache.scala" target="_blank">BodyCache.scala</a></dd><dt>Note</dt><dd><span class="cmt"><p>This middleware has nothing to do with the HTTP caching mechanism
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.22.7/server/src/main/scala/org/http4s/server/middleware/BodyCache.scala" target="_blank">BodyCache.scala</a></dd><dt>Note</dt><dd><span class="cmt"><p>This middleware has nothing to do with the HTTP caching mechanism
       and it does not cache bodies between multiple requests.</p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
