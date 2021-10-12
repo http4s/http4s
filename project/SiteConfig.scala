@@ -17,6 +17,24 @@ import sbt.Def.{Initialize, setting}
 import sbt.Keys.{baseDirectory, version}
 import sbt.librarymanagement.VersionNumber
 
+/** Shared configuration for the `docs` and `website` projects.
+ *
+ * This class represents relatively trivial configuration code talking to well-documented public APIs of the Laika toolkit.
+ * It is the only Laika-related build artifact that is intended to live in this repo indefinitely (the others are
+ * temporary workarounds for features not yet part of Laika Core).
+ *
+ * The configuration code is fairly verbose as Laika prefers code over HOCON for global config.
+ * It covers the following areas:
+ *
+ * - Version configuration for Laika's auto-generated version switcher dropdown.
+ * - Link definitions for the landing page and the top navigation bar.
+ * - Style adjustments to override the default Helium color theme for the orange/grey theme used by http4s.
+ * - Generators for variable substitutions that are used to inject version numbers in markup pages.
+ * - The text for the three teaser boxes on the landing page.
+ *
+ * Helium theme settings are documented here:
+ * https://planet42.github.io/Laika/0.18/03-preparing-content/03-theme-settings.html
+ */
 object SiteConfig {
 
   object landingPage {
@@ -64,7 +82,7 @@ object SiteConfig {
     }
   }
 
-  // This could move back to the Http4sPlugin that currently writes these values to a TOML file for Hugo
+  // This kind of variable generator used to live in Http4sPlugin, but it's not used by anything other than Laika.
   lazy val variables: Initialize[Map[String, String]] = setting {
     val (major, minor) = version.value match { // cannot use the existing http4sApiVersion as it is somehow defined as a task, not a setting
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)

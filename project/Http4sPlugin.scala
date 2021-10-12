@@ -186,7 +186,7 @@ object Http4sPlugin extends AutoPlugin {
       ),
       githubWorkflowPublishPostamble := Seq(
         sitePublishStep("website", runMdoc = false),
-        // sitePublishStep("docs", runMdoc = false)
+        // sitePublishStep("docs", runMdoc = true)
       ),
       // this results in nonexistent directories trying to be compressed
       githubWorkflowArtifactUpload := false,
