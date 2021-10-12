@@ -25,16 +25,14 @@
       </button>
 
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav me-auto">
+        <ul class="navbar-nav mr-auto">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
-  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -69,8 +67,8 @@
       <div class="row row-offcanvas row-offcanvas-right">
 
         <div class="col-12 col-md-9 order-1">
-          <span class="float-end">
-          <a href="https://github.com/http4s/http4s/edit/main/website/jvm/src/hugo/content/index.md" class="btn btn-secondary btn-sm">
+          <span class="float-right">
+          <a href="https://github.com/http4s/http4s/edit/main/website/src/hugo/content/index.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -83,8 +81,8 @@
 
           
           
-          <div class="container mb-4">
-  <div class="bg-light p-5 rounded-3">
+          <div class="jumbotron mt-3">
+  <div class="container">
     <p class="display-4">
       Typeful, functional, streaming HTTP for Scala.
     </p>
@@ -93,9 +91,7 @@
     </button>
      <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
-  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -108,42 +104,33 @@
 </div>
 
 <div class="container">
-  <div class="row">
-    <div class="col">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">Typeful</h3>
-          <p class="card-text">
-            http4s servers and clients share an immutable model of
-            requests and responses. Standard headers are modeled as
-            semantic types, and entity codecs are done by typeclass.
-          </p>
-        </div>
-      </div>
+  <div class="card-deck">
+    <div class="card p-3">
+      <h3 class="card-title">Typeful</h3>
+
+      <p class="card-text">
+        http4s servers and clients share an immutable model of
+        requests and responses. Standard headers are modeled as
+        semantic types, and entity codecs are done by typeclass.
+      </p>
     </div>
-    <div class="col">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">Functional</h3>
-          <p>
-            The pure functional side of Scala is favored to promote
-            composability and easy reasoning about your code. I/O is
-            managed through <a href="https://github.com/typelevel/cats-effect">cats-effect</a>.
-          </p>
-        </div>
-      </div>
+    <div class="card p-3">
+      <h3 class="card-title">Functional</h3>
+
+      <p>
+        The pure functional side of Scala is favored to promote
+        composability and easy reasoning about your code.  I/O is
+        managed through <a href="https://github.com/typelevel/cats-effect">cats-effect</a>.
+      </p>
     </div>
-    <div class="col">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">Streaming</h3>
-          <p class="card-text">
-            http4s is built on <a href="https://github.com/functional-streams-for-scala/fs2">FS2</a>,
-            a streaming library that provides for processing and emitting
-            large payloads in constant space and implementing websockets.
-          </p>
-        </div>
-      </div>
+    <div class="card p-3">
+      <h3 class="card-title">Streaming</h3>
+
+      <p class="card-text">
+        http4s is built on <a href="https://github.com/functional-streams-for-scala/fs2">FS2</a>, 
+        a streaming library that provides for processing and emitting
+        large payloads in constant space and implementing websockets.
+      </p>
     </div>
   </div>
 </div>
@@ -187,7 +174,7 @@
       </div>
       <hr />
       <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
       </footer>
 
     </div>
