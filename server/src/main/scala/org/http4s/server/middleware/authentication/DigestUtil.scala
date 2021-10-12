@@ -19,13 +19,16 @@ package server
 package middleware
 package authentication
 
-import java.security.MessageDigest
+import org.http4s.crypto.Hash
+import org.http4s.crypto.HashAlgorithm
+import cats.Monad
+import cats.syntax.all._
+import scodec.bits.ByteVector
 
 private[authentication] object DigestUtil {
-  private def bytes2hex(bytes: Array[Byte]): String = bytes.map("%02x".format(_)).mkString
 
-  private def md5(str: String): String =
-    bytes2hex(MessageDigest.getInstance("MD5").digest(str.getBytes))
+  private def md5[F[_]: Monad: Hash](str: String): F[String] =
+    Hash[F].digest(HashAlgorithm.MD5, ByteVector.view(str.getBytes())).map(_.toHex)
 
   /** Computes the response value used in Digest Authentication.
     * @param method
@@ -39,7 +42,7 @@ private[authentication] object DigestUtil {
     * @param qop
     * @return
     */
-  def computeResponse(
+  def computeResponse[F[_]: Monad: Hash](
       method: String,
       username: String,
       realm: String,
@@ -48,12 +51,12 @@ private[authentication] object DigestUtil {
       nonce: String,
       nc: String,
       cnonce: String,
-      qop: String): String = {
-    val ha1str = username + ":" + realm + ":" + password
-    val ha1 = md5(ha1str)
-    val ha2str = method + ":" + uri
-    val ha2 = md5(ha2str)
-    val respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
-    md5(respstr)
-  }
+      qop: String): F[String] = for {
+    ha1str <- (username + ":" + realm + ":" + password).pure[F]
+    ha1 <- md5(ha1str)
+    ha2str = method + ":" + uri
+    ha2 <- md5(ha2str)
+    respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
+    result <- md5(respstr)
+  } yield result
 }

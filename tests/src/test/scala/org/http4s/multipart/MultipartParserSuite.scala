@@ -116,8 +116,6 @@ class MultipartParserSuite extends Http4sSuite {
             .foldMonoid
           result <- bodies.attempt
         } yield {
-          headers.headers.foreach(h => println(">> " + h))
-          expectedHeaders.headers.foreach(h => println("<< " + h))
           assertEquals(headers, expectedHeaders)
           assertEquals(result, Right(expected))
         }

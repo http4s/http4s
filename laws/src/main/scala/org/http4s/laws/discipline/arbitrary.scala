@@ -35,7 +35,6 @@ import java.time._
 import java.util.Locale
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
-import org.http4s.laws.discipline.ArbitraryInstances.genAlphaToken
 import org.http4s.syntax.literals._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
@@ -45,11 +44,20 @@ import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
 
 import java.util.concurrent.TimeUnit
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-private[http4s] trait ArbitraryInstances {
+object arbitrary extends ArbitraryInstancesBinCompat0
+
+@deprecated(
+  "Use `arbitrary` instead. They were redundant, and that one is consistent with Cats.",
+  "0.22.6")
+object ArbitraryInstances extends ArbitraryInstancesBinCompat0
+
+private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat0 =>
+
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
@@ -90,9 +98,15 @@ private[http4s] trait ArbitraryInstances {
 
   val genQDText: Gen[String] = nonEmptyListOf(oneOf(allowedQDText)).map(_.mkString)
 
+  @deprecated(
+    "Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.",
+    "0.22.5")
   val genQuotedPair: Gen[String] =
     genChar.map(c => s"\\$c")
 
+  @deprecated(
+    "Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.",
+    "0.22.5")
   val genQuotedString: Gen[String] = oneOf(genQDText, genQuotedPair).map(s => s"""\"$s\"""")
 
   private val tchars =
@@ -155,14 +169,18 @@ private[http4s] trait ArbitraryInstances {
   val genStandardStatus =
     oneOf(Status.registered)
 
+  @deprecated(
+    "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
+    "0.22.6")
   val genCustomStatus = for {
     code <- genValidStatusCode
-    reason <- getArbitrary[String]
-  } yield Status.fromIntAndReason(code, reason).yolo
+    reason <- genCustomStatusReason
+  } yield Status.fromInt(code).yolo.withReason(reason)
 
+  @nowarn("cat=deprecation")
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
     frequency(
-      10 -> genStandardStatus,
+      4 -> genStandardStatus,
       1 -> genCustomStatus
     ))
   implicit val http4sTestingCogenForStatus: Cogen[Status] =
@@ -191,13 +209,14 @@ private[http4s] trait ArbitraryInstances {
       } yield Query(vs: _*)
     }
 
-  implicit val http4sTestingArbitraryForHttpVersion: Arbitrary[HttpVersion] =
-    Arbitrary {
-      for {
-        major <- choose(0, 9)
-        minor <- choose(0, 9)
-      } yield HttpVersion.fromVersion(major, minor).yolo
-    }
+  implicit val http4sTestingArbitraryForHttpVersion: Arbitrary[HttpVersion] = {
+    val genSpecified = Gen.oneOf(HttpVersion.specified)
+    val genAll = for {
+      major <- Gen.chooseNum(0, 9)
+      minor <- Gen.chooseNum(0, 9)
+    } yield HttpVersion.fromVersion(major, minor).yolo
+    Arbitrary(Gen.oneOf(genSpecified, genAll))
+  }
 
   implicit val http4sTestingCogenForHttpVersion: Cogen[HttpVersion] =
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
@@ -288,9 +307,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
 
   // MediaRange exepects the quoted pair without quotes
-  val http4sGenUnquotedPair = genQuotedPair.map { c =>
-    c.substring(1, c.length - 1)
-  }
+  val http4sGenUnquotedPair = genQDText
 
   val http4sGenMediaRangeExtension: Gen[(String, String)] =
     for {
@@ -301,8 +318,8 @@ private[http4s] trait ArbitraryInstances {
   val http4sGenMediaRangeExtensions: Gen[Map[String, String]] =
     Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
 
-  implicit val http4sArbitraryMediaType: Arbitrary[MediaType] =
-    Arbitrary(oneOf(MediaType.all.values.toSeq))
+  val http4sGenMediaType: Gen[MediaType] = oneOf(MediaType.all.values.toSeq)
+  implicit val http4sArbitraryMediaType: Arbitrary[MediaType] = Arbitrary(http4sGenMediaType)
 
   implicit val http4sTestingCogenForMediaType: Cogen[MediaType] =
     Cogen[(String, String, Map[String, String])].contramap(m =>
@@ -581,7 +598,7 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
-        token <- genToken
+        token <- frequency(8 -> genToken, 1 -> asciiStr, 1 -> getArbitrary[String])
         value <- genFieldValue
       } yield Header.Raw(CIString(token), value)
     }
@@ -940,9 +957,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[String].contramap(_.encoded)
 }
 
-object ArbitraryInstances extends ArbitraryInstances {
-  // http4s-0.21: add extra values here to prevent binary incompatibility.
-
+private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstances {
   val genAlphaToken: Gen[String] =
     nonEmptyListOf(alphaChar).map(_.mkString)
 
@@ -999,4 +1014,47 @@ object ArbitraryInstances extends ArbitraryInstances {
   implicit val http4sTestingCogenForResponsePrelude: Cogen[ResponsePrelude] =
     Cogen[(Headers, HttpVersion, Status)].contramap(value =>
       (value.headers, value.httpVersion, value.status))
+
+  implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
+    val genExtension = for {
+      extName <- genToken
+      quotedStringEquivWithoutQuotes =
+        genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
+      extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
+    } yield (extName -> extValue)
+
+    for {
+      timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      l <- Gen.listOf(genExtension)
+      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
+    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
+  }
+
+  val genCustomStatusReason: Gen[String] = {
+    val word = poisson(5).flatMap(stringOfN(_, alphaChar))
+    val normal = poisson(3).flatMap(listOfN(_, word)).map(_.mkString(" "))
+    val exotic = stringOf(
+      frequency(
+        1 -> '\t',
+        1 -> const(' '),
+        94 -> asciiPrintableChar
+      ))
+    val unsanitizedAscii = asciiStr
+    val unsanitized = getArbitrary[String]
+    oneOf(
+      normal,
+      exotic,
+      unsanitizedAscii,
+      unsanitized
+    )
+  }
+  val dntGen = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
+  implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
+
+  implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
+    for {
+      values <- listOf(http4sGenMediaType)
+    } yield headers.`Accept-Post`(values)
+  }
 }

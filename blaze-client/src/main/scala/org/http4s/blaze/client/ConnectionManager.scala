@@ -56,6 +56,9 @@ private trait ConnectionManager[F[_], A <: Connection[F]] {
 }
 
 private object ConnectionManager {
+  trait Stateful[F[_], A <: Connection[F]] extends ConnectionManager[F, A] {
+    def state: BlazeClientState[F]
+  }
 
   /** Create a [[ConnectionManager]] that creates new connections on each request
     *
@@ -80,7 +83,7 @@ private object ConnectionManager {
       maxConnectionsPerRequestKey: RequestKey => Int,
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
-      executionContext: ExecutionContext): F[ConnectionManager[F, A]] =
+      executionContext: ExecutionContext): F[ConnectionManager.Stateful[F, A]] =
     Semaphore.uncancelable(1).map { semaphore =>
       new PoolManager[F, A](
         builder,

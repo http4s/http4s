@@ -18,7 +18,7 @@ package org.http4s.headers
 
 import org.scalacheck.Prop._
 import org.http4s.syntax.header._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 class ContentLengthSuite extends HeaderLaws {
   checkAll("Content-Length", headerLaws[`Content-Length`])

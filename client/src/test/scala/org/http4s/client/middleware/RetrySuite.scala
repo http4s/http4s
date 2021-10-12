@@ -24,7 +24,7 @@ import cats.syntax.all._
 import fs2.Stream
 import org.http4s.dsl.io._
 import org.http4s.headers.`Idempotency-Key`
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF
 import org.scalacheck.Gen

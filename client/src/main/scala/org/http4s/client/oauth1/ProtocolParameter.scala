@@ -105,4 +105,7 @@ object ProtocolParameter {
         case v: Verifier => tupleShow.contramap[Verifier](_.toTuple).show(v)
       }
   }
+
+  implicit val stdLibOrderingInstance: Ordering[ProtocolParameter] =
+    http4sClientOauth1SortForProtocolParameters.toOrdering
 }

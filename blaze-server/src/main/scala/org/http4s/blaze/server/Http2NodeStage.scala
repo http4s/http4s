@@ -190,7 +190,7 @@ private class Http2NodeStage[F[_]](
         pseudoDone = true
         hs match {
           case h @ (HeaderNames.Connection, _) =>
-            error += s"HTTP/2.0 forbids connection specific headers: $h. "
+            error += s"HTTP/2 forbids connection specific headers: $h. "
 
           case (HeaderNames.ContentLength, v) =>
             if (contentLength < 0) try {
@@ -206,7 +206,7 @@ private class Http2NodeStage[F[_]](
 
           case (HeaderNames.TE, v) =>
             if (!v.equalsIgnoreCase("trailers"))
-              error += s"HTTP/2.0 forbids TE header values other than 'trailers'. "
+              error += s"HTTP/2 forbids TE header values other than 'trailers'. "
           // ignore otherwise
 
           case (k, v) => headers += k -> v
@@ -221,7 +221,7 @@ private class Http2NodeStage[F[_]](
     else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = Headers(headers.result())
-      val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
+      val req = Request(method, path, HttpVersion.`HTTP/2`, hs, body, attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = Sync[F]
