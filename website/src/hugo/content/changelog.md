@@ -8,6 +8,28 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.31 (2021-10-11)
+
+This is a maintenance release.  The only changes are to increase forward source compatibility with 0.22.  It is binary compatible with the 0.21.x series.
+
+## http4s-core
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Undeprecate `Headers.apply`.  Something similar exists in 0.22.
+
+## http4s-blaze-server
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.server.BlazeServerBuilder` to `org.http4s.server.blaze.BlazeServerBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
+
+## http4s-blaze-client
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.client.BlazeClientBuilder` to `org.http4s.client.blaze.BlazeClientBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
+
 # v0.21.30
 
 This is a bugfix release. Routine maintenance has stopped on 0.21.x, but we'll continue to entertain PRs from the community.  It is binary compatible wit hthe 0.21.x series.
