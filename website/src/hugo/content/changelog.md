@@ -8,6 +8,30 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.6 (2021-10-12)
+
+This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.22.7.
+
+## http4s-core
+
+### Noteworthy refactorings
+
+* [#5340](https://github.com/http4s/http4s/pull/5340): Replace our internal `decode` with FS2's `decodeWithCharset`.  This only affects non-UTF-8 encodings.
+
+## http4s-client
+
+### Breaking changes
+
+* [#5348](https://github.com/http4s/http4s/pull/5348): Scala.js only: remove `JavaNetClientBuilder`.  It already failed to link, and now it will fail to compile.
+
+### Bug fixes
+
+* [#5349](https://github.com/http4s/http4s/pull/5349): Fix deadlocks in `Retry` and `FollowRedirect` middlewares.  We no longer attempt to acquire a second connection before releasing the first, potentially starving the connection pool.
+
+## Dependency updates
+
+* scalajs-1.7.1
+
 # v0.22.7 (2021-10-12)
 
 This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.21.31.
