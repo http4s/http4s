@@ -25,7 +25,7 @@ import fs2._
 import fs2.concurrent.Queue
 import org.http4s._
 // import _root_.io.chrisdavenport.log4cats.testing.TestingLogger
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import scala.concurrent.ExecutionContext
 
 // FIXME Restore after #3935 is worked out

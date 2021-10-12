@@ -40,12 +40,14 @@ object JettyClient {
         Client[F] { req =>
           Resource.suspend(F.asyncF[Resource[F, Response[F]]] { cb =>
             F.bracket(StreamRequestContentProvider()) { dcp =>
-              val jReq = toJettyRequest(client, req, dcp)
-              for {
+              (for {
+                jReq <- F.catchNonFatal(toJettyRequest(client, req, dcp))
                 rl <- ResponseListener(cb)
                 _ <- F.delay(jReq.send(rl))
                 _ <- dcp.write(req)
-              } yield ()
+              } yield ()).recover { case e =>
+                cb(Left(e))
+              }
             } { dcp =>
               F.delay(dcp.close())
             }
@@ -83,13 +85,14 @@ object JettyClient {
       .version(
         request.httpVersion match {
           case HttpVersion.`HTTP/1.1` => JHttpVersion.HTTP_1_1
-          case HttpVersion.`HTTP/2.0` => JHttpVersion.HTTP_2
+          case HttpVersion.`HTTP/2` => JHttpVersion.HTTP_2
           case HttpVersion.`HTTP/1.0` => JHttpVersion.HTTP_1_0
           case _ => JHttpVersion.HTTP_1_1
         }
       )
 
-    for (h <- request.headers.headers) jReq.header(h.name.toString, h.value)
+    for (h <- request.headers.headers if h.isNameValid)
+      jReq.header(h.name.toString, h.value)
     jReq.content(dcp)
   }
 }

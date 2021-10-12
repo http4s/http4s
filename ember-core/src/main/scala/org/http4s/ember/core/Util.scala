@@ -43,14 +43,10 @@ private[ember] object Util {
     else close
 
   def isKeepAlive(httpVersion: HttpVersion, headers: Headers): Boolean = {
-    // We know this is raw because we have not parsed any headers in the underlying alg.
-    // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
     // TODO: the problem is that any string that contains `expected` is admissible
     def hasConnection(expected: String): Boolean =
-      headers.headers.exists {
-        case Header.Raw(name, value) =>
-          name == connectionCi && value.toLowerCase(Locale.ROOT).contains(expected)
-        case _ => false
+      headers.headers.exists { case Header.Raw(name, value) =>
+        name == connectionCi && value.toLowerCase(Locale.ROOT).contains(expected)
       }
 
     httpVersion match {

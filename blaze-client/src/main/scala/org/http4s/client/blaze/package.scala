@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.laws.discipline
+package org.http4s.client
 
-object arbitrary extends ArbitraryInstances
+package object blaze {
+  @deprecated("use org.http4s.blaze.client.BlazeClientBuilder", "0.22")
+  type BlazeClientBuilder[F[_]] = org.http4s.blaze.client.BlazeClientBuilder[F]
+
+  @deprecated("use org.http4s.blaze.client.BlazeClientBuilder", "0.22")
+  val BlazeClientBuilder = org.http4s.blaze.client.BlazeClientBuilder
+}

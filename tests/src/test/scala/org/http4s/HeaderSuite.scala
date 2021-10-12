@@ -17,8 +17,10 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.OrderTests
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.headers._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.Prop._
 
 class HeaderSuite extends munit.DisciplineSuite {
   test("Headers should Equate same headers") {
@@ -53,5 +55,25 @@ class HeaderSuite extends munit.DisciplineSuite {
 
   test("Order instance for Header should be lawful") {
     checkAll("Order[Header]", OrderTests[Header.Raw].order)
+  }
+
+  test("isNameValid") {
+    forAll { (h: Header.Raw) =>
+      val tchar =
+        Set(0x21.toChar to 0x7e.toChar: _*).diff(Set("\"(),/:;<=>?@[\\]{}": _*)).map(_.toByte)
+      assertEquals(
+        h.isNameValid,
+        h.name.toString.nonEmpty && h.name.toString.getBytes(ISO_8859_1).forall(tchar),
+        h.name)
+    }
+  }
+
+  private val ProhibitedFieldValueChars = Set(0x0.toChar, '\r', '\n')
+
+  test("sanitizes prohibited header characters") {
+    forAll { (h: Header.Raw) =>
+      val s = h.sanitizedValue
+      assert(!s.exists(ProhibitedFieldValueChars), s)
+    }
   }
 }

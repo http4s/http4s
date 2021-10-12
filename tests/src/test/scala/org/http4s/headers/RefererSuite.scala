@@ -19,7 +19,7 @@ package headers
 
 import cats.effect.IO
 import org.http4s.syntax.header._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 
 class RefererSuite extends HeaderLaws {
   checkAll("Referer", headerLaws[`Retry-After`])

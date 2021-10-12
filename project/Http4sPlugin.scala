@@ -10,6 +10,7 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import sbt.Keys._
 import sbt._
+import sbtghactions.GenerativeKeys._
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -25,7 +26,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.6"
-  val scala_212 = "2.12.14"
+  val scala_212 = "2.12.15"
   val scala_3 = "3.0.1"
 
   override lazy val globalSettings = Seq(
@@ -232,6 +233,7 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
+        javas = List("adoptium@8"),
         steps = List(
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
@@ -295,41 +297,42 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.4.0"
     val caseInsensitive = "1.1.4"
     val cats = "2.6.1"
-    val catsEffect = "2.5.3"
+    val catsEffect = "2.5.4"
     val catsParse = "0.3.4"
     val circe = "0.14.1"
+    val crypto = "0.1.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.5"
-    val dropwizardMetrics = "4.2.3"
+    val dropwizardMetrics = "4.2.4"
     val fs2 = "2.5.9"
-    val ip4s = "2.0.3"
+    val ip4s = "2.0.4"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
     val jawnFs2 = "1.1.3"
-    val jetty = "9.4.43.v20210629"
+    val jetty = "9.4.44.v20210927"
     val keypool = "0.3.5"
     val literally = "1.0.2"
-    val logback = "1.2.5"
+    val logback = "1.2.6"
     val log4cats = "1.3.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
-    val munitCatsEffect = "1.0.5"
+    val munitCatsEffect = "1.0.6"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.67.Final"
+    val netty = "4.1.68.Final"
     val okio = "2.10.0"
-    val okhttp = "4.9.1"
+    val okhttp = "4.9.2"
     val playJson = "2.9.2"
     val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
-    val scalacheckEffect = "1.0.2"
+    val scalacheckEffect = "1.0.3"
     val scalatags = "0.9.4"
     val scalaXml = "2.0.1"
-    val scodecBits = "1.1.28"
+    val scodecBits = "1.1.29"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.52"
+    val tomcat = "9.0.54"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.13"
@@ -352,6 +355,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % V.circe
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % V.circe
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % V.circe
+  lazy val crypto                           = "org.http4s"             %% "http4s-crypto"             % V.crypto
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % V.cryptobits
   lazy val disciplineCore                   = "org.typelevel"          %% "discipline-core"           % V.disciplineCore
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % V.dropwizardMetrics
