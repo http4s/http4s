@@ -23,15 +23,15 @@ import org.http4s.laws.discipline.arbitrary._
 class SecFetchUserSuite extends HeaderLaws {
   checkAll("Sec-Fetch-User", headerLaws[`Sec-Fetch-User`])
 
-  test("render should render value") {
+  test("render should render all directives") {
     assert(`Sec-Fetch-User`(`Sec-Fetch-User`.`?1`).renderString == "Sec-Fetch-User: ?1")
   }
 
-  test("parse should parse valid values") {
+  test("parse should parse all directives") {
     assert(`Sec-Fetch-User`.parse("?1") == Right(`Sec-Fetch-User`.`?1`))
   }
 
-  test("parse should fail with invalid values") {
+  test("parse should fail with invalid directives") {
     assert(`Sec-Fetch-User`.parse("invalid").isLeft)
   }
 }
