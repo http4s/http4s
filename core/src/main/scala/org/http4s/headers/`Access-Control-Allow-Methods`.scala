@@ -40,7 +40,8 @@ object `Access-Control-Allow-Methods` {
   final case class Methods(methods: NonEmptyList[Method]) extends `Access-Control-Allow-Methods`
 
   private[http4s] val parser =
-    Rfc7230.headerRep1(Rfc7230.token.map(CIString(_)))
+    Rfc7230
+      .headerRep1(Rfc7230.token.map(CIString(_)))
       .mapFilter { list =>
         if (containsOnlyTheWildcard(list)) {
           Some(AllMethods)
@@ -54,9 +55,8 @@ object `Access-Control-Allow-Methods` {
         }
       }
 
-  private def containsOnlyTheWildcard(list: NonEmptyList[CIString]) = {
+  private def containsOnlyTheWildcard(list: NonEmptyList[CIString]) =
     list.size == 1 && list.head == Wildcard
-  }
 
   def parse(s: String): ParseResult[`Access-Control-Allow-Methods`] =
     ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Methods header")(s)
