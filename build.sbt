@@ -3,6 +3,8 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
+Global / excludeLintKeys += laikaDescribe
+
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
@@ -611,25 +613,26 @@ lazy val docs = http4sProject("docs")
 
     laikaExtensions := SiteConfig.extensions,
     laikaConfig     := SiteConfig.config(versioned = true).value,
-    laikaTheme      := SiteConfig.theme(currentVersion = SiteConfig.versions.v1_0, SiteConfig.variables.value, SiteConfig.homeURL.value),
+    laikaTheme      := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.v1_0,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = false
+    ),
     laikaDescribe   := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
 
-//    siteMappings := {
-//      val docsPrefix = extractDocsPrefix(version.value)
-//      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
-//    },
-//    siteMappings ++= {
-//      val docsPrefix = extractDocsPrefix(version.value)
-//      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
-//        yield (f, s"$docsPrefix/api/$d")
-//    },
+    ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
+      val docsPrefix = extractDocsPrefix(version.value)
+      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
+        yield (f, s"$docsPrefix/api/$d")
+    },
     ghpagesCleanSite / includeFilter := {
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
-        def accept(f: File) =
-          f.getCanonicalPath.startsWith(
-            (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
+        def accept(f: File): Boolean = f.getCanonicalPath.startsWith(
+          (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath
+        )
       }
     },
     apiMappings ++= {
@@ -646,16 +649,20 @@ lazy val website = http4sProject("website")
   .settings(
     description := "Common area of http4s.org",
     startYear := Some(2013),
-    ghpagesNoJekyll := true,
 
     laikaExtensions := SiteConfig.extensions,
     laikaConfig     := SiteConfig.config(versioned = false).value,
-    laikaTheme      := SiteConfig.theme(currentVersion = SiteConfig.versions.v1_0, SiteConfig.variables.value, SiteConfig.homeURL.value),
+    laikaTheme      := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.v1_0,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = true
+    ),
     laikaDescribe   := "<disabled>",
     Laika / sourceDirectories := Seq(baseDirectory.value / "src" / "hugo" / "content", baseDirectory.value / "src" / "hugo" / "static"),
 
-    // TODO - wire mappings
-
+    ghpagesNoJekyll := true,
+    ghpagesPrivateMappings := (laikaSite / mappings).value,
     ghpagesCleanSite / excludeFilter  :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"

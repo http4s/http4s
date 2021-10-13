@@ -119,54 +119,62 @@ object SiteConfig {
 
   def theme (currentVersion: Version,
              variables: Map[String, String],
-             homeURL: String): ThemeProvider = HeliumExtensions.applyTo(Helium.defaults
-    .all.metadata(
-      language = Some("en"),
-      title = Some("http4s")
-    )
-    .site.markupEditLinks(
-      text = "Edit this page",
-      baseURL = "https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc"
-    )
-    .site.layout(
-      contentWidth        = px(860),
-      navigationWidth     = px(275),
-      topBarHeight        = px(35),
-      defaultBlockSpacing = px(10),
-      defaultLineHeight   = 1.5,
-      anchorPlacement     = laika.helium.config.AnchorPlacement.Right
-    )
-    .site.themeColors(
-      primary       = Color.hex("5B7980"),
-      secondary     = Color.hex("cc6600"),
-      primaryMedium = Color.hex("a7d4de"),
-      primaryLight  = Color.hex("e9f1f2"),
-      text          = Color.hex("5f5f5f"),
-      background    = Color.hex("ffffff"),
-      bgGradient    = (Color.hex("334044"), Color.hex("5B7980")) // only used for landing page background
-    )
-    .site.darkMode.disabled
-    .site.topNavigationBar(
-      homeLink = IconLink.external(homeURL, HeliumIcon.home),
-      navLinks = Seq(
-        IconLink.external("https://github.com/http4s/http4s", HeliumIcon.github, options = Styles("svg-link")),
-        IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
-        IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter)
+             homeURL: String,
+             includeLandingPage: Boolean): ThemeProvider = {
+
+    val baseTheme = if (includeLandingPage) Helium.defaults
+      .site.landingPage(
+        logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light.svg")),
+        title = None,
+        subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
+        latestReleases = Seq(
+          ReleaseInfo("Latest Stable Release", variables(s"version.http4s.latest.${versions.all(1).displayValue}")),
+          ReleaseInfo("Latest Milestone Release", variables(s"version.http4s.latest.${versions.all.head.displayValue}"))
+        ),
+        license = Some("Apache 2.0"),
+        documentationLinks = landingPage.projectLinks,
+        projectLinks = Nil, // TODO
+        teasers = landingPage.teasers
+      ) else Helium.defaults
+
+    val fullTheme = baseTheme
+      .all.metadata(
+        language = Some("en"),
+        title = Some("http4s")
       )
-    )
-    .site.landingPage(
-      logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light.svg")),
-      title = None,
-      subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
-      latestReleases = Seq(
-        ReleaseInfo("Latest Stable Release", variables(s"version.http4s.latest.${versions.all(1).displayValue}")),
-        ReleaseInfo("Latest Milestone Release", variables(s"version.http4s.latest.${versions.all.head.displayValue}"))
-      ),
-      license = Some("Apache 2.0"),
-      documentationLinks = landingPage.projectLinks,
-      projectLinks = Nil, // TODO
-      teasers = landingPage.teasers
-    )
-    .site.versions(versions.config(currentVersion))
-    .build, variables, versions.paths)
+      .site.markupEditLinks(
+        text = "Edit this page",
+        baseURL = "https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc"
+      )
+      .site.layout(
+        contentWidth        = px(860),
+        navigationWidth     = px(275),
+        topBarHeight        = px(35),
+        defaultBlockSpacing = px(10),
+        defaultLineHeight   = 1.5,
+        anchorPlacement     = laika.helium.config.AnchorPlacement.Right
+      )
+      .site.themeColors(
+        primary       = Color.hex("5B7980"),
+        secondary     = Color.hex("cc6600"),
+        primaryMedium = Color.hex("a7d4de"),
+        primaryLight  = Color.hex("e9f1f2"),
+        text          = Color.hex("5f5f5f"),
+        background    = Color.hex("ffffff"),
+        bgGradient    = (Color.hex("334044"), Color.hex("5B7980")) // only used for landing page background
+      )
+      .site.darkMode.disabled
+      .site.topNavigationBar(
+        homeLink = IconLink.external(homeURL, HeliumIcon.home),
+        navLinks = Seq(
+          IconLink.external("https://github.com/http4s/http4s", HeliumIcon.github, options = Styles("svg-link")),
+          IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
+          IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter)
+        )
+      )
+      .site.versions(versions.config(currentVersion))
+      .build
+
+    HeliumExtensions.applyTo(fullTheme, variables, versions.paths)
+  }
 }
