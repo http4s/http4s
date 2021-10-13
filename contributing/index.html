@@ -25,16 +25,16 @@
       </button>
 
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
+        <ul class="navbar-nav me-auto">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.23/">v0.23 (development)</a>
-  <a class="dropdown-item" href="/v0.22/">v0.22 (development)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -69,8 +69,8 @@
       <div class="row row-offcanvas row-offcanvas-right">
 
         <div class="col-12 col-md-9 order-1">
-          <span class="float-right">
-          <a href="https://github.com/http4s/http4s/edit/main/website/src/hugo/content/contributing.md" class="btn btn-secondary btn-sm">
+          <span class="float-end">
+          <a href="https://github.com/http4s/http4s/edit/main/website/jvm/src/hugo/content/contributing.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -123,14 +123,15 @@ contributors from duplicating effort.</p>
 <pre><code class="language-sh">git clone git@github.com:http4s/http4s.git
 </code></pre>
 
-<p>To build http4s, you should have <a href="http://www.scala-sbt.org/0.13/tutorial/Setup.html">SBT</a> and <a href="https://gohugo.io/getting-started/installing/">Hugo</a> installed.  Run <code>sbt ci</code>.
-This runs:</p>
+<p>To build http4s, you should have <a href="https://www.scala-sbt.org/1.x/docs/Setup.html">SBT</a> and <a href="https://gohugo.io/getting-started/installing/">Hugo</a> installed.
+To test http4s you will also need <a href="https://nodejs.org">Node.js</a> v16 and <a href="https://yarnpkg.com/getting-started/install">yarn</a>.
+Run <code>sbt ci</code>. This runs:</p>
 
 <ul>
 <li><code>test</code>: compiles all code and runs the unit tests</li>
 <li><code>makeSite</code>: compiles the tutorial, generates the scaladoc, and
 builds the static site.</li>
-<li><code>mimaReportBinaryIssues</code>: checks for binary compatibility changes,
+<li><code>mimaReportBinaryIssues</code>: checks for binary incompatible changes,
 which are relevant past patch release .0.</li>
 </ul>
 
@@ -138,11 +139,11 @@ which are relevant past patch release .0.</li>
 
 <h3 id="formatting">Formatting</h3>
 
-<p>The Travis CI build verifies that code is formatted correctly
+<p>The Github Actions CI workflow verifies that code is formatted correctly
 according to the <a href="http://scalameta.org/scalafmt/">Scalafmt</a> config and will fail if a diff is found.</p>
 
-<p>You can run <code>validate</code> to test the formatting before opening a PR.  If
-your PR fails due to formatting, run <code>;test:scalafmt</code>.</p>
+<p>You can run <code>scalafmtCheckAll</code> to test the formatting before opening a PR.  If
+your PR fails due to formatting, run <code>scalafmtAll</code>.</p>
 
 <h4 id="intellij-idea-specific-settings">IntelliJ IDEA specific settings</h4>
 
@@ -298,7 +299,7 @@ documentation as part of the build.</p>
 <h4 id="editing-the-versioned-site">Editing the versioned site</h4>
 
 <p>All pages have an edit link at the top right for direct editing of the
-markdown via GitHub.  Be aware that the Travis build will fail if invalid
+markdown via GitHub.  Be aware that the Github Actions build will fail if invalid
 code is added.</p>
 
 <h3 id="running-the-common-or-versioned-site-locally">Running the common or versioned site locally</h3>
@@ -310,7 +311,7 @@ this is what CI uses) installed.</p>
 
 <p>In your terminal run this command (in root folder of http4s):</p>
 
-<pre><code class="language-sh">hugo -s website/src/hugo server -p 4000
+<pre><code class="language-sh">hugo -s website/jvm/src/hugo server -p 4000
 </code></pre>
 
 <p>Now you can open browser at <a href="http://localhost:4000/">http://localhost:4000/</a> to see local version
@@ -348,7 +349,7 @@ to run:</p>
 <h2 id="submit-a-pull-request">Submit a pull request</h2>
 
 <p>Before you open a pull request, you should make sure that <code>sbt ci</code> runs
-successfully. Travis CI will run this as well, but it may save you some
+successfully. Github Actions will run this as well, but it may save you some
 time to be alerted to style or <a href="https://scalameta.org/mdoc/">mdoc</a> problems earlier.</p>
 
 <p>If your pull request addresses an existing issue, please tag that
