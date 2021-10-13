@@ -6,7 +6,8 @@ import laika.ast._
 import laika.bundle.ExtensionBundle
 import laika.config.{ConfigBuilder, LaikaKeys}
 import laika.helium.Helium
-import laika.helium.config.{HeliumIcon, IconLink, ReleaseInfo, Teaser, TextLink}
+import laika.helium.config.{HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
+import laika.rewrite.link.LinkConfig
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
 import laika.theme.ThemeProvider
@@ -113,7 +114,9 @@ object SiteConfig {
       case (builder, (key, value)) => builder.withValue(key, value)
     }
     LaikaConfig(
-      configBuilder = config.withValue(LaikaKeys.versioned, versioned)
+      configBuilder = config
+        .withValue(LaikaKeys.versioned, versioned)
+        .withValue(LinkConfig(excludeFromValidation = Seq(Root / "api")))
     )
   }
 
@@ -122,9 +125,13 @@ object SiteConfig {
              homeURL: String,
              includeLandingPage: Boolean): ThemeProvider = {
 
+    val apiLink =
+      if (includeLandingPage) None
+      else Some(IconLink.internal(Root / "api" / "index.html", HeliumIcon.api, options = Styles("svg-link")))
+
     val baseTheme = if (includeLandingPage) Helium.defaults
       .site.landingPage(
-        logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light.svg")),
+        logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
         title = None,
         subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
         latestReleases = Seq(
@@ -165,8 +172,8 @@ object SiteConfig {
       )
       .site.darkMode.disabled
       .site.topNavigationBar(
-        homeLink = IconLink.external(homeURL, HeliumIcon.home),
-        navLinks = Seq(
+        homeLink = ImageLink.external(homeURL, Image.internal(Root / "images" / "http4s-logo-text-dark-2.svg")),
+        navLinks = apiLink.toSeq ++ Seq(
           IconLink.external("https://github.com/http4s/http4s", HeliumIcon.github, options = Styles("svg-link")),
           IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
           IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter)

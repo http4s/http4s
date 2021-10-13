@@ -86,6 +86,10 @@ h2 {
   border-top: 8px solid var(--primary-medium);
 }
 
+#version-menu {
+  top: 37px;
+}
+
 .svg-link {
   padding-top: 0;
   padding-bottom: 5px;

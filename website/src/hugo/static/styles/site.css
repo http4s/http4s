@@ -10,3 +10,7 @@ hr {
 .footer .icofont-laika {
   font-size: 1.2em
 }
+
+#sidebar li.nav-header {
+  margin-top: -20px;
+}
