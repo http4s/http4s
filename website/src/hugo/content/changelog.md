@@ -87,7 +87,7 @@ This is a maintenance release.  The only changes are to increase forward source 
 
 This is the latest development milestone in the 1.x series.  It is not binary compatible with previous milestones.
 
-The http4s-dom-core, http4s-dom-fetch-client, and http4s-dom-service-worker modules have been moved to the [https://github.com/http4s/http4s-dom](http4s-dom repo) and are now on their own release cycle.
+The http4s-dom-core, http4s-dom-fetch-client, and http4s-dom-service-worker modules have been moved to the [http4s-dom repo](https://github.com/http4s/http4s-dom) and are now on their own release cycle.
 
 * Various modules
     * Noteworthy refactoring
