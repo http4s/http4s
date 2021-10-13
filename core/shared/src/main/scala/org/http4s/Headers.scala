@@ -113,6 +113,9 @@ object Headers {
   def apply(headers: Header.ToRaw*): Headers =
     new Headers(headers.values)
 
+  @deprecated("use Headers.apply", "0.22.0")
+  def of(headers: Header.ToRaw*): Headers = apply(headers: _*)
+
   implicit val headersShow: Show[Headers] =
     _.headers.iterator.map(_.show).mkString("Headers(", ", ", ")")
 

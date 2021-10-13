@@ -8,6 +8,96 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.23.6 (2021-10-12)
+
+This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.22.7.
+
+## http4s-core
+
+### Noteworthy refactorings
+
+* [#5340](https://github.com/http4s/http4s/pull/5340): Replace our internal `decode` with FS2's `decodeWithCharset`.  This only affects non-UTF-8 encodings.
+
+## http4s-client
+
+### Breaking changes
+
+* [#5348](https://github.com/http4s/http4s/pull/5348): Scala.js only: remove `JavaNetClientBuilder`.  It already failed to link, and now it will fail to compile.
+
+### Bug fixes
+
+* [#5349](https://github.com/http4s/http4s/pull/5349): Fix deadlocks in `Retry` and `FollowRedirect` middlewares.  We no longer attempt to acquire a second connection before releasing the first, potentially starving the connection pool.
+
+## Dependency updates
+
+* scalajs-1.7.1
+
+# v0.22.7 (2021-10-12)
+
+This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.21.31.
+
+## http4s-core
+
+### Enhancements
+
+* [#5165](https://github.com/http4s/http4s/pull/5165): Add `Keep-Alive` header.
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated aliases at `Header.apply(String, String)`, `Header.of(Header.ToRaw*)`, and `util.CaseInsensitiveString` to ease migration from 0.21.x.
+
+## http4s-server
+
+### Noteworthy refactoring
+
+* [#5189](https://github.com/http4s/http4s/pull/5189), [#5368](https://github.com/http4s/http4s/pull/5368): In `GZip`, use `fs2.compress.gzip` for compression.
+
+## http4s-blaze-client
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated alias for `org.http4s.client.blaze.BlazeClientBuilder` to ease migration from 0.21.x.
+
+## http4s-blaze-server
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated alias for `org.http4s.server.blaze.BlazeServerBuilder` to ease migration from 0.21.x.
+
+## http4s-ember-core
+
+### Semantic change
+
+* [#5341](https://github.com/http4s/http4s/pull/5341): Add `EmberException.ReadTimeout` and `EmberException.RequestHeadersTimeout` (unobservable) to distinguish backend timeouts that close the connection from application `TimeoutExceptions` that can be handled to generate a `503` response or similar.
+
+## Dependency updates
+
+* fs2-2.5.10
+* netty-4.1.69.Final
+* scalacheck-effect-1.0.3
+
+# v0.21.31 (2021-10-12)
+
+This is a maintenance release.  The only changes are to increase forward source compatibility with 0.22.  It is binary compatible with the 0.21.x series.
+
+## http4s-core
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Undeprecate `Headers.apply`.  Something similar exists in 0.22.
+
+## http4s-blaze-server
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.server.BlazeServerBuilder` to `org.http4s.server.blaze.BlazeServerBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
+
+## http4s-blaze-client
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.client.BlazeClientBuilder` to `org.http4s.client.blaze.BlazeClientBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
+
 # v1.0.0-M28 (2021-10-06)
 
 This is the latest development milestone in the 1.x series.  It is not binary compatible with previous milestones.
