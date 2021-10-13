@@ -147,7 +147,7 @@ jobs:
           git config --global user.email "ghactions@invalid"
           sbt ++2.12.15 website/laikaSite website/ghpagesPushSite
 
-
+                
 
   website:
     name: Build website
