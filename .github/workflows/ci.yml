@@ -140,15 +140,15 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          
+
           eval "$(ssh-agent -s)"
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
           sbt ++2.12.15 website/laikaSite website/ghpagesPushSite
-          
 
-  
+
+
   website:
     name: Build website
     strategy:
