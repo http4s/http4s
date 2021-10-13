@@ -8,6 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M29 (2021-10-11)
+
+This is the latest development milestone in the 1.x series.  It is not binary compatible with previous milestones.  It includes all the changes through 0.23.6.
+
+# http4s-server
+
+## Breaking changes
+
+* [#5346](https://github.com/http4s/http4s/pull/5346): Relax `Async` constraint to `Sync` in `CookieJar`, `ConcurrentRequests`, and `MaxActiveRequests` middleware.
+
+## Enhancements
+
+* [#5353](https://github.com/http4s/http4s/pull/5353): Include the `BodyCache` middleware that was introduced in 0.22 but not properly merged to main.
+
 # v0.23.6 (2021-10-12)
 
 This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.22.7.
