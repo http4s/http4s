@@ -79,7 +79,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       silentErrorHandler,
       30.seconds,
       30.seconds,
-      tickWheel
+      tickWheel,
+      0
     )
 
     pipeline.LeafBuilder(httpStage).base(head)

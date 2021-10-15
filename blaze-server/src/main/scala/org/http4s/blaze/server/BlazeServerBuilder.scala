@@ -82,6 +82,7 @@ import scodec.bits.ByteVector
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   * @param maxConnections: The maximum number of client connections that may be active at any time.
+  * @param maxWebSocketBufferSize: The maximum Websocket buffer length. '0' means unbounded.
   */
 class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
@@ -101,7 +102,8 @@ class BlazeServerBuilder[F[_]] private (
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     maxConnections: Int,
-    val channelOptions: ChannelOptions
+    val channelOptions: ChannelOptions,
+    maxWebSocketBufferSize: Int
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
@@ -127,7 +129,8 @@ class BlazeServerBuilder[F[_]] private (
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
       maxConnections: Int = maxConnections,
-      channelOptions: ChannelOptions = channelOptions
+      channelOptions: ChannelOptions = channelOptions,
+      maxWebSocketBufferSize: Int = maxWebSocketBufferSize
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
@@ -147,7 +150,8 @@ class BlazeServerBuilder[F[_]] private (
       serviceErrorHandler,
       banner,
       maxConnections,
-      channelOptions
+      channelOptions,
+      maxWebSocketBufferSize
     )
 
   /** Configure HTTP parser length limits
@@ -244,6 +248,9 @@ class BlazeServerBuilder[F[_]] private (
   def withMaxConnections(maxConnections: Int): BlazeServerBuilder[F] =
     copy(maxConnections = maxConnections)
 
+  def withMaxWebSocketBufferSize(maxWebSocketBufferSize: Int): BlazeServerBuilder[F] =
+    copy(maxWebSocketBufferSize = maxWebSocketBufferSize)
+
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
       engineConfig: Option[(SSLContext, SSLEngine => Unit)]
@@ -297,7 +304,8 @@ class BlazeServerBuilder[F[_]] private (
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        maxWebSocketBufferSize
       )
 
     def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -312,7 +320,8 @@ class BlazeServerBuilder[F[_]] private (
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        maxWebSocketBufferSize
       )
 
     Future.successful {
@@ -425,7 +434,8 @@ object BlazeServerBuilder {
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,
       maxConnections = defaults.MaxConnections,
-      channelOptions = ChannelOptions(Vector.empty)
+      channelOptions = ChannelOptions(Vector.empty),
+      maxWebSocketBufferSize = 0
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =

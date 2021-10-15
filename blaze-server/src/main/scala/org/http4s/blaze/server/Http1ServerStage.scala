@@ -52,7 +52,8 @@ private[http4s] object Http1ServerStage {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F]): Http1ServerStage[F] =
+      scheduler: TickWheelExecutor,
+      maxWebSocketBufferSize: Int)(implicit F: ConcurrentEffect[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
         routes,
@@ -64,7 +65,9 @@ private[http4s] object Http1ServerStage {
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler) with WebSocketSupport[F]
+        scheduler) with WebSocketSupport[F] {
+        override protected def maxBufferSize: Int = maxWebSocketBufferSize
+      }
     else
       new Http1ServerStage(
         routes,
