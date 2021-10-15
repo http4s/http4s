@@ -35,7 +35,7 @@ import scala.util.{Failure, Success}
 private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit val F: ConcurrentEffect[F]
 
-  protected def maxBufferSize: Int
+  protected def maxBufferSize: Option[Int]
 
   override protected def renderResponse(
       req: Request[F],
@@ -90,7 +90,7 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                   val segment =
                     LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal))
                       .prepend(new WSFrameAggregator)
-                      .prepend(new WebSocketDecoder(maxBufferSize))
+                      .prepend(new WebSocketDecoder(maxBufferSize.getOrElse(0)))
 
                   this.replaceTail(segment, true)
 

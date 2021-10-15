@@ -80,7 +80,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       30.seconds,
       30.seconds,
       tickWheel,
-      0
+      None
     )
 
     pipeline.LeafBuilder(httpStage).base(head)

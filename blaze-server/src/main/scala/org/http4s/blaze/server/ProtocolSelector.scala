@@ -44,7 +44,7 @@ private[http4s] object ProtocolSelector {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
-      maxWebSocketBufferSize: Int)(implicit
+      maxWebSocketBufferSize: Option[Int])(implicit
       F: ConcurrentEffect[F],
       timer: Timer[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {

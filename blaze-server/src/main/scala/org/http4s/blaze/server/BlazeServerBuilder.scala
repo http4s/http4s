@@ -82,7 +82,7 @@ import scodec.bits.ByteVector
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   * @param maxConnections: The maximum number of client connections that may be active at any time.
-  * @param maxWebSocketBufferSize: The maximum Websocket buffer length. '0' means unbounded.
+  * @param maxWebSocketBufferSize: The maximum Websocket buffer length. 'None' means unbounded.
   */
 class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
@@ -103,7 +103,7 @@ class BlazeServerBuilder[F[_]] private (
     banner: immutable.Seq[String],
     maxConnections: Int,
     val channelOptions: ChannelOptions,
-    maxWebSocketBufferSize: Int
+    maxWebSocketBufferSize: Option[Int]
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
@@ -130,7 +130,7 @@ class BlazeServerBuilder[F[_]] private (
       banner: immutable.Seq[String] = banner,
       maxConnections: Int = maxConnections,
       channelOptions: ChannelOptions = channelOptions,
-      maxWebSocketBufferSize: Int = maxWebSocketBufferSize
+      maxWebSocketBufferSize: Option[Int] = maxWebSocketBufferSize
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
@@ -248,7 +248,7 @@ class BlazeServerBuilder[F[_]] private (
   def withMaxConnections(maxConnections: Int): BlazeServerBuilder[F] =
     copy(maxConnections = maxConnections)
 
-  def withMaxWebSocketBufferSize(maxWebSocketBufferSize: Int): BlazeServerBuilder[F] =
+  def withMaxWebSocketBufferSize(maxWebSocketBufferSize: Option[Int]): BlazeServerBuilder[F] =
     copy(maxWebSocketBufferSize = maxWebSocketBufferSize)
 
   private def pipelineFactory(
@@ -435,7 +435,7 @@ object BlazeServerBuilder {
       banner = defaults.Banner,
       maxConnections = defaults.MaxConnections,
       channelOptions = ChannelOptions(Vector.empty),
-      maxWebSocketBufferSize = 0
+      maxWebSocketBufferSize = None
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =
