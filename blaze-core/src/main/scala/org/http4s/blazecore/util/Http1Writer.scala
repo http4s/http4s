@@ -27,7 +27,7 @@ import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
   final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
-    fromFutureNoShift(F.delay(writeHeaders(headerWriter))).attempt.flatMap {
+    fromFutureNoShiftUncancelable(F.delay(writeHeaders(headerWriter))).attempt.flatMap {
       case Right(()) =>
         writeEntityBody(body)
       case Left(t) =>

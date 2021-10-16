@@ -30,14 +30,12 @@ import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.{Client, DefaultClient, RequestKey}
-import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 /** Blaze client implementation */
 object BlazeClient {
-  private[this] val logger = getLogger
 
   /** Construct a new [[Client]] using blaze components
     *
