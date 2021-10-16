@@ -31,6 +31,7 @@ import fs2.io.tcp.Socket
 import org.http4s.ember.core.Parser
 import org.http4s.ember.core.Encoder
 import org.http4s.ember.core.EmberException
+import _root_.fs2.Chunk
 
 class ConnectionSuite extends Http4sSuite {
 
@@ -64,12 +65,25 @@ class ConnectionSuite extends Http4sSuite {
       .withRequestHeaderReceiveTimeout(headerTimeout)
       .build
 
-  def clientResource(host: InetSocketAddress): Resource[IO, Socket[IO]] =
+  case class TestClient(client: Socket[IO]) {
+    def request(req: Request[IO]): IO[Unit] =
+      client.writes(None)(Encoder.reqToBytes(req)).compile.drain
+    def response: IO[Response[IO]] =
+      Parser.Response.parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None)).map(_._1)
+    def responseAndDrain: IO[Unit] =
+      response.flatMap(_.body.compile.drain)
+    def readChunk: IO[Option[Chunk[Byte]]] = 
+      client.read(ClientChunkSize, None)
+    def writes(bytes: Stream[IO, Byte]): IO[Unit] =
+      client.writes(None)(bytes).compile.drain
+  }
+
+  def clientResource(host: InetSocketAddress): Resource[IO, TestClient] =
     for {
       blocker <- Blocker[IO]
       socketGroup <- SocketGroup[IO](blocker)
       socket <- socketGroup.client[IO](host)
-    } yield socket
+    } yield TestClient(socket)
 
   def fixture(idleTimeout: FiniteDuration = 60.seconds, headerTimeout: FiniteDuration = 60.seconds) = ResourceFixture(
     for {
@@ -81,10 +95,9 @@ class ConnectionSuite extends Http4sSuite {
   fixture().test("close connection") { client =>
     val request = GET(uri"http://localhost:9000/close")
     for {
-      _ <- client.writes(None)(Encoder.reqToBytes(request)).compile.drain
-      response <- Parser.Response.parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None))
-      _ <- response._1.body.compile.drain
-      chunk <- client.read(ClientChunkSize, None)
+      _ <- client.request(request)
+      response <- client.responseAndDrain
+      chunk <- client.readChunk
     } yield assertEquals(chunk, None)
   }
 
@@ -92,21 +105,19 @@ class ConnectionSuite extends Http4sSuite {
     val req1 = GET(uri"http://localhost:9000/keep-alive")
     val req2 = GET(uri"http://localhost:9000/close")
     for {
-      _ <- client.writes(None)(Encoder.reqToBytes(req1)).compile.drain
-      resp1 <- Parser.Response.parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None))
-      _ <- resp1._1.body.compile.drain
-      _ <- client.writes(None)(Encoder.reqToBytes(req2)).compile.drain
-      resp2 <- Parser.Response.parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None))
-      _ <- resp2._1.body.compile.drain
-      chunk <- client.read(ClientChunkSize, None)
+      _ <- client.request(req1)
+      resp1 <- client.responseAndDrain
+      _ <- client.request(req2)
+      resp2 <- client.responseAndDrain
+      chunk <- client.readChunk
     } yield assertEquals(chunk, None)
   }
 
   fixture(idleTimeout = 1.seconds).test("read timeout during header terminates connection with no response") { client =>
     val request = GET(uri"http://localhost:9000/close")
     for {
-      _ <- client.writes(None)(Encoder.reqToBytes(request).take(10)).compile.drain
-      chunk <- client.read(ClientChunkSize, None)
+      _ <- client.writes(Encoder.reqToBytes(request).take(10))
+      chunk <- client.readChunk
     } yield assertEquals(chunk, None)
   }
 
@@ -118,10 +129,9 @@ class ConnectionSuite extends Http4sSuite {
       "less than 100 bytes"
     )
     (for {
-      _ <- client.writes(None)(fs2.text.utf8Encode(request)).compile.drain
-      response <- Parser.Response.parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None))
-      body <- fs2.text.utf8Decode(response._1.body).compile.string
-      chunk <- client.read(ClientChunkSize, None)
+      _ <- client.writes(fs2.text.utf8Encode(request))
+      response <- client.responseAndDrain
+      chunk <- client.readChunk
     } yield ()).intercept[EmberException.ReachedEndOfStream]
   }
 
@@ -129,8 +139,8 @@ class ConnectionSuite extends Http4sSuite {
   fixture(headerTimeout = 1.seconds).test("header timeout terminates connection with no response") { client =>
     val request = GET(uri"http://localhost:9000/close")
     for {
-      _ <- client.writes(None)(Encoder.reqToBytes(request).take(10)).compile.drain
-      chunk <- client.read(ClientChunkSize, None)
+      _ <- client.writes(Encoder.reqToBytes(request).take(10))
+      chunk <- client.readChunk
     } yield assertEquals(chunk, None)
   }
 
@@ -142,10 +152,9 @@ class ConnectionSuite extends Http4sSuite {
       "not enough bytes"
     )
     for {
-      _ <- client.writes(None)(fs2.text.utf8Encode(request)).compile.drain
-      response <- Parser.Response.parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None))
-      _ <- response._1.body.compile.drain
-      chunk <- client.read(ClientChunkSize, None)
+      _ <- client.writes(fs2.text.utf8Encode(request))
+      response <- client.responseAndDrain
+      chunk <- client.readChunk
     } yield assertEquals(chunk, None)
   }
 
