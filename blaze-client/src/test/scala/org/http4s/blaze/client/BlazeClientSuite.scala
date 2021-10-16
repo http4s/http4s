@@ -274,7 +274,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
-    val uri = Uri.fromString(s"http://$name:$port/simple").yolo
+    val uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
     builder(1, requestTimeout = 2.seconds).resourceWithState.use { case (client, state) =>
       for {
         // We're not thoroughly exercising the pool stats.  We're doing a rudimentary check.
