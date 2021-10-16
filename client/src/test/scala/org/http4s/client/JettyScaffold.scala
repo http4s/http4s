@@ -16,7 +16,9 @@
 
 package org.http4s.client
 
-import cats.effect.{Resource, Sync}
+import cats.effect.concurrent.Ref
+import cats.effect.{IO, Resource, Sync}
+import cats.implicits._
 import java.net.{InetSocketAddress}
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
@@ -24,6 +26,10 @@ import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.eclipse.jetty
+import org.eclipse.jetty.io.EndPoint
+import org.http4s.client.JettyScaffold._
+import org.http4s.Uri
 
 object JettyScaffold {
   def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(implicit
@@ -32,20 +38,36 @@ object JettyScaffold {
       val scaffold = new JettyScaffold(num, secure)
       scaffold.startServers(testServlet)
     })(s => F.delay(s.stopServers()))
+
+  class JettyTestServer(
+      private[JettyScaffold] val server: JServer,
+      val address: InetSocketAddress,
+      val secure: Boolean,
+      private val connectionsCounter: Ref[IO, Int]
+  ) {
+    def uri = Uri.unsafeFromString(
+      s"${if (secure) "https" else "http"}://${address.getHostName}:${address.getPort}")
+
+    def numberOfEstablishedConnections: IO[Int] = connectionsCounter.get
+
+    def resetCounters(): IO[Unit] = connectionsCounter.set(0)
+  }
 }
 
 class JettyScaffold private (num: Int, secure: Boolean) {
-  private var servers = Vector.empty[JServer]
-  var addresses = Vector.empty[InetSocketAddress]
+
+  var servers = Vector.empty[JettyTestServer]
 
   def startServers(testServlet: HttpServlet): this.type = {
-    val res = (0 until num).map { _ =>
+    servers = (0 until num).map { _ =>
       val server = new JServer()
       val context = new ServletContextHandler()
       context.setContextPath("/")
       context.addServlet(new ServletHolder("Test-servlet", testServlet), "/*")
 
       server.setHandler(context)
+
+      val connectionsCounter = Ref.unsafe[IO, Int](0)
 
       val connector =
         if (secure) {
@@ -69,14 +91,18 @@ class JettyScaffold private (num: Int, secure: Boolean) {
           val httpsConfig = new HttpConfiguration()
           httpsConfig.setSecureScheme("https")
           httpsConfig.addCustomizer(new SecureRequestCustomizer())
-          val connectionFactory = new HttpConnectionFactory(httpsConfig)
+          val connectionFactory = new CountingHttpConnectionFactory(httpsConfig, connectionsCounter)
           new ServerConnector(
             server,
             new SslConnectionFactory(
               sslContextFactory,
               org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()),
             connectionFactory)
-        } else new ServerConnector(server)
+        } else {
+          val httpConfig = new HttpConfiguration()
+          val connectionFactory = new CountingHttpConnectionFactory(httpConfig, connectionsCounter)
+          new ServerConnector(server, connectionFactory)
+        }
       connector.setPort(0)
       server.addConnector(connector)
       server.start()
@@ -85,14 +111,25 @@ class JettyScaffold private (num: Int, secure: Boolean) {
         "localhost",
         server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort)
 
-      (address, server)
+      new JettyTestServer(server, address, secure, connectionsCounter)
     }.toVector
-
-    servers = res.map(_._2)
-    addresses = res.map(_._1)
 
     this
   }
 
-  def stopServers(): Unit = servers.foreach(_.stop())
+  private class CountingHttpConnectionFactory(
+      config: HttpConfiguration,
+      connectionsCounter: Ref[IO, Int]
+  ) extends HttpConnectionFactory(config) {
+    override def newConnection(connector: Connector, endPoint: EndPoint): jetty.io.Connection = {
+      connectionsCounter.update(_ + 1).unsafeRunSync()
+      super.newConnection(connector, endPoint)
+    }
+  }
+
+  def addresses: Vector[InetSocketAddress] = servers.map(_.address)
+
+  def resetCounters(): IO[Unit] = servers.traverse[IO, Unit](_.resetCounters()).void
+
+  def stopServers(): Unit = servers.foreach(_.server.stop())
 }

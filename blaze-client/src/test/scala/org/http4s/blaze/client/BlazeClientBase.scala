@@ -54,26 +54,40 @@ trait BlazeClientBase extends Http4sSuite {
   private def testServlet =
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-        GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(response) =>
-            val resp = response.unsafeRunSync()
-            srv.setStatus(resp.status.code)
-            resp.headers.foreach { h =>
-              srv.addHeader(h.name.toString, h.value)
-            }
-
-            val os: ServletOutputStream = srv.getOutputStream
-
-            val writeBody: IO[Unit] = resp.body
-              .evalMap { byte =>
-                IO(os.write(Array(byte)))
-              }
+        req.getRequestURI match {
+          case "/infinite" =>
+            srv.setStatus(Status.Ok.code)
+            fs2.Stream
+              .emit[IO, String]("a" * 8 * 1024)
+              .through(fs2.text.utf8EncodeC)
+              .evalMap(chunk => IO(srv.getOutputStream.write(chunk.toArray)))
+              .repeat
               .compile
               .drain
-            val flushOutputStream: IO[Unit] = IO(os.flush())
-            (writeBody *> flushOutputStream).unsafeRunSync()
+              .unsafeRunSync()
 
-          case None => srv.sendError(404)
+          case _ =>
+            GetRoutes.getPaths.get(req.getRequestURI) match {
+              case Some(response) =>
+                val resp = response.unsafeRunSync()
+                srv.setStatus(resp.status.code)
+                resp.headers.foreach { h =>
+                  srv.addHeader(h.name.toString, h.value)
+                }
+
+                val os: ServletOutputStream = srv.getOutputStream
+
+                val writeBody: IO[Unit] = resp.body
+                  .evalMap { byte =>
+                    IO(os.write(Array(byte)))
+                  }
+                  .compile
+                  .drain
+                val flushOutputStream: IO[Unit] = IO(os.flush())
+                (writeBody *> flushOutputStream).unsafeRunSync()
+
+              case None => srv.sendError(404)
+            }
         }
 
       override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit =
