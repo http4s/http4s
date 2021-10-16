@@ -8,11 +8,6 @@
     </encoder>
   </appender>
 
-<!--  <logger name="org.http4s.blaze.client.PoolManager" level="DEBUG"/>-->
-<!--  <logger name="org.http4s.blaze.client.Http1Connection" level="TRACE"/>-->
-
-  <logger name="org.http4s.blaze.client.ConnectionReuseTestServer$" level="TRACE"/>
-
   <root level="${LOGBACK_ROOT_LEVEL:-WARN}">
     <appender-ref ref="STDOUT" />
   </root>
