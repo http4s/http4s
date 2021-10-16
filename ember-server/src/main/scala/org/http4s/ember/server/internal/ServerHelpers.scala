@@ -37,6 +37,7 @@ import org.typelevel.vault.Vault
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
 import org.http4s.headers.Connection
+import java.nio.channels.InterruptedByTimeoutException
 
 private[server] object ServerHelpers {
 
@@ -134,8 +135,7 @@ private[server] object ServerHelpers {
           duration,
           Concurrent[F].defer(
             ApplicativeThrow[F].raiseError(
-              new java.util.concurrent.TimeoutException(
-                s"Timed Out on EmberServer Header Receive Timeout: $duration"))
+              EmberException.RequestHeadersTimeout(requestHeaderReceiveTimeout))
           )
         ))
 
@@ -189,7 +189,12 @@ private[server] object ServerHelpers {
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
-    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    val read: Read[F] = socket
+      .read(receiveBufferSize, durationToFinite(idleTimeout))
+      .adaptError {
+        // TODO MERGE: Replace with TimeoutException on series/0.23+.
+        case _: InterruptedByTimeoutException => EmberException.ReadTimeout(idleTimeout)
+      }
     Stream
       .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
         case (buffer, reuse) =>
@@ -199,10 +204,11 @@ private[server] object ServerHelpers {
           } else if (reuse) {
             // the connection is keep-alive, but we don't have any bytes.
             // we want to be on the idle timeout until the next request is received.
-            read.flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
-            }
+            read
+              .flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+              }
           } else {
             // first request begins immediately
             Array.emptyByteArray.pure[F]
@@ -240,7 +246,7 @@ private[server] object ServerHelpers {
                           logger)
                         .as(None)
                     case None =>
-                      Concurrent[F].pure(None)
+                      Applicative[F].pure(None)
                   }
                 case None =>
                   for {
@@ -251,7 +257,8 @@ private[server] object ServerHelpers {
               }
             case Left(err) =>
               err match {
-                case EmberException.EmptyStream() =>
+                case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                    EmberException.ReadTimeout(_) =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)

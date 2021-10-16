@@ -196,6 +196,8 @@ lazy val server = libraryProject("server")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF.this"), // private[middleware]
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.server.middleware.CSRF#CSRFBuilder.this"), // private[middleware]
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.middleware.authentication.DigestUtil.computeResponse"), // private[authentication]
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.server.middleware.GZip$TrailerGen"), // private
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.server.middleware.GZip$TrailerGen$"), // private
     )
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
@@ -295,7 +297,7 @@ lazy val emberServer = libraryProject("ember-server")
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      log4catsSlf4j, 
+      log4catsSlf4j,
       javaWebSocket % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
@@ -336,6 +338,8 @@ lazy val blazeServer = libraryProject("blaze-server")
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this")
     )
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")

@@ -43,7 +43,8 @@ private[http4s] object ProtocolSelector {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(implicit
+      scheduler: TickWheelExecutor,
+      maxWebSocketBufferSize: Option[Int])(implicit
       F: ConcurrentEffect[F],
       timer: Timer[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
@@ -85,7 +86,8 @@ private[http4s] object ProtocolSelector {
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        maxWebSocketBufferSize
       )
 
     def preference(protos: Set[String]): String =

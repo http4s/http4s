@@ -8,6 +8,142 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.22.7 (2021-10-12)
+
+This is a routine maintenance release.  It is binary compatible with the v0.22.x series and includes the changes in v0.21.31.
+
+## http4s-core
+
+### Enhancements
+
+* [#5165](https://github.com/http4s/http4s/pull/5165): Add `Keep-Alive` header.
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated aliases at `Header.apply(String, String)`, `Header.of(Header.ToRaw*)`, and `util.CaseInsensitiveString` to ease migration from 0.21.x.
+
+## http4s-server
+
+### Noteworthy refactoring
+
+* [#5189](https://github.com/http4s/http4s/pull/5189), [#5368](https://github.com/http4s/http4s/pull/5368): In `GZip`, use `fs2.compress.gzip` for compression.
+
+## http4s-blaze-client
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated alias for `org.http4s.client.blaze.BlazeClientBuilder` to ease migration from 0.21.x.
+
+## http4s-blaze-server
+
+### Compatibility
+
+* [#5344](https://github.com/http4s/http4s/pull/5344): Reintroduce deprecated alias for `org.http4s.server.blaze.BlazeServerBuilder` to ease migration from 0.21.x.
+
+## http4s-ember-core
+
+### Semantic change
+
+* [#5341](https://github.com/http4s/http4s/pull/5341): Add `EmberException.ReadTimeout` and `EmberException.RequestHeadersTimeout` (unobservable) to distinguish backend timeouts that close the connection from application `TimeoutExceptions` that can be handled to generate a `503` response or similar.
+
+## Dependency updates
+
+* fs2-2.5.10
+* netty-4.1.69.Final
+* scalacheck-effect-1.0.3
+
+# v0.21.31 (2021-10-12)
+
+This is a maintenance release.  The only changes are to increase forward source compatibility with 0.22.  It is binary compatible with the 0.21.x series.
+
+## http4s-core
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Undeprecate `Headers.apply`.  Something similar exists in 0.22.
+
+## http4s-blaze-server
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.server.BlazeServerBuilder` to `org.http4s.server.blaze.BlazeServerBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
+
+## http4s-blaze-client
+
+### Compatibility
+
+* [#5291](https://github.com/http4s/http4s/pull/5291): Add `org.http4s.blaze.client.BlazeClientBuilder` to `org.http4s.client.blaze.BlazeClientBuilder`.  In 0.22, the alias becomes the canonical name for consistency with the other backends.
+
+# v0.22.6 (2021-10-06)
+
+This is a routine maintenance release.  It is binary compatible with v0.22.5 and includes the changes in v0.21.30.
+
+## http4s-core
+
+### Enhancements
+
+* [#5189](https://github.com/http4s/http4s/pull/5189): Add `Order[HttpDate]` and `Hash[HttpDate]` instance
+* [#5265](https://github.com/http4s/http4s/pull/5265): Add `Ordering[QValue]` instance
+* [#5279](https://github.com/http4s/http4s/pull/5279): Add constants for `HTTP/3`, `HTTP/2` (deprecating `HTTP/2.0`), and `HTTP/0.9`.
+* [#5294](https://github.com/http4s/http4s/pull/5294): Implement `DNT` header
+* [#5296](https://github.com/http4s/http4s/pull/5296): Add `Accept-Post` header
+
+### Deprecation
+
+* [#5260](https://github.com/http4s/http4s/pull/5260): Deprecate `HttpVersion#copy`, which circumvents validation and could create out-of-bounds HTTP protocol versions.
+* [#5253](https://github.com/http4s/http4s/pull/5253): Deprecate custom status reason phrases.  They are a security risk for something that not all backends support and the spec does not require us to support.
+* [#5331](https://github.com/http4s/http4s/pull/5331): Deprecate `Status.apply`, which does not validate the code. Use `fromInt` instead.
+
+### Notable refactoring
+
+* [#5139](https://github.com/http4s/http4s/pull/5139): Add dependency on new `http4s-crypto` library, which abstracts the target platform.  All of its uses should be internal.  Scala.js support is added in later branches, but this aids maintenance.
+* [#5308](https://github.com/http4s/http4s/pull/5308): Use `Uri.unsafeFromString` in `Uri` literal macro to ease WartRemover usage.
+
+## http4s-laws
+
+### Deprecation
+
+* [#5274](https://github.com/http4s/http4s/pull/5274): Deprecate `ArbitraryInstances`, which was redundant with the `arbitrary` object.  The latter is packaged consistently with Cats' arbitraries.
+
+## http4s-server
+
+### Enhancements
+
+* [#5323](https://github.com/http4s/http4s/pull/5323): In `CORSPolicy`, add `withAllowHeadersStatic`, which supports a static list of `Access-Control-Allow-Headers` whether the `Access-Control-Request-Headers` values match or not.
+
+## http4s-blaze-client
+
+### Semantic change
+
+* [#5032](https://github.com/http4s/http4s/pull/5032): Wrap `EOF` when borrowing a dead connection in a `java.net.SocketException` with information on which host failed.
+
+## http4s-ember-client
+
+### Enhancements
+
+* [#5271](https://github.com/http4s/http4s/pull/5271): Eliminate exception allocation on the parser hot path
+* [#5290](https://github.com/http4s/http4s/pull/5290): Retry on `IOException` with `"Connection reset by peer"` or `"Broken pipe"` in the message
+
+## http4s-ember-server
+
+### Semantic change
+
+* [#5286](https://github.com/http4s/http4s/pull/5286): On `requestHeaderTimeout` and `idleTimeout`, close the connection without rendering a `500 Internal Server Error` response.  The HTTP/1.1 spec is not prescrptive on this matter, but this behavior is more consistent with prevaling usage in http4s and a sampling of other servers.  Furthermore, an empty response is retriable (assuming request idempotence) by clients, whereas a `500 Internal Server Error` is not.
+
+### Enhancements
+
+* [#5271](https://github.com/http4s/http4s/pull/5271): Eliminate exception allocation on the parser hot path
+
+## Dependency updates
+
+* ip4s-2.0.4
+* jetty-9.4.44.v20210927
+* metrics-4.2.4
+* munit-cats-effect-1.0.6
+* okhttp-4.9.2
+* scodec-bits-1.2.29
+* tomcat-9.0.54
+
 # v0.22.5 (2021-09-21)
 
 This release contains important security patches for [GHSA-5vcm-3xc3-w7x3](https://github.com/http4s/http4s/security/advisories/GHSA-5vcm-3xc3-w7x3) for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the v0.22.4, and forward-merges 0.21.29.
@@ -51,6 +187,26 @@ This release contains important security patches for [GHSA-5vcm-3xc3-w7x3](https
 * scalafix-0.9.31
 * tomcat-9.0.53
 
+# v0.21.30 (2021-10-06)
+
+This is a bugfix release. Routine maintenance has stopped on 0.21.x, but we'll continue to entertain PRs from the community.  It is binary compatible wit hthe 0.21.x series.
+
+## blaze-client
+
+### Compatibility restorations
+
+* [#5288](https://github.com/http4s/http4s/pull/5288): Allow `' '` when rendering URI. This is against the spec, but bug-compatible with previous versions and not a security threat. It has come up for users trimming strings from config. Starting in 0.22, such whitespace is encoded properly.
+
+## ember-client
+
+### Bugfixes
+
+* [#5247](https://github.com/http4s/http4s/pull/5247): Match on `ClosedChannelException` when detecting connections that terminated inside the pool.
+
+### Compatibility restorations
+
+* [#5288](https://github.com/http4s/http4s/pull/5288): Allow `' '` when rendering URI. This is against the spec, but bug-compatible with previous versions and not a security threat. It has come up for users trimming strings from config. Starting in 0.22, such whitespace is encoded properly.
+
 # v0.21.29 (2021-09-21)
 
 This release contains important security patches for blaze-client, blaze-server, ember-client, ember-server, and jetty-client.  It is binary compatible with the 0.21.x series.
@@ -73,6 +229,10 @@ This is binary compatibile with v0.22.3.  It includes the CORS bugfix in v0.21.2
 ### Bugfixes
 
 * [#5130](https://github.com/http4s/http4s/pull/5130): Fix the parsing of empty `Origin` headers to be a parse failure instead of `Origin.Null`.
+
+### Enhancements
+
+* [#5321](https://github.com/http4s/http4s/pull/5321): Add `BodyCaching` middleware.
 
 ## Dependency updates
 
