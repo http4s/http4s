@@ -40,7 +40,7 @@ class ConnectionSuite extends Http4sSuite {
 
   val ClientChunkSize = 32 * 1024
 
-  def service: HttpApp[IO] = {
+  def service: HttpApp[IO] =
     HttpRoutes
       .of[IO] {
         case GET -> Root =>
@@ -55,9 +55,10 @@ class ConnectionSuite extends Http4sSuite {
           Ok("unread")
       }
       .orNotFound
-  }
 
-  def serverResource(idleTimeout: FiniteDuration, headerTimeout: FiniteDuration): Resource[IO, Server] =
+  def serverResource(
+      idleTimeout: FiniteDuration,
+      headerTimeout: FiniteDuration): Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service)
@@ -69,10 +70,12 @@ class ConnectionSuite extends Http4sSuite {
     def request(req: Request[IO]): IO[Unit] =
       client.writes(None)(Encoder.reqToBytes(req)).compile.drain
     def response: IO[Response[IO]] =
-      Parser.Response.parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None)).map(_._1)
+      Parser.Response
+        .parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None))
+        .map(_._1)
     def responseAndDrain: IO[Unit] =
       response.flatMap(_.body.compile.drain)
-    def readChunk: IO[Option[Chunk[Byte]]] = 
+    def readChunk: IO[Option[Chunk[Byte]]] =
       client.read(ClientChunkSize, None)
     def writes(bytes: Stream[IO, Byte]): IO[Unit] =
       client.writes(None)(bytes).compile.drain
@@ -85,7 +88,9 @@ class ConnectionSuite extends Http4sSuite {
       socket <- socketGroup.client[IO](host)
     } yield TestClient(socket)
 
-  def fixture(idleTimeout: FiniteDuration = 60.seconds, headerTimeout: FiniteDuration = 60.seconds) = ResourceFixture(
+  def fixture(
+      idleTimeout: FiniteDuration = 60.seconds,
+      headerTimeout: FiniteDuration = 60.seconds) = ResourceFixture(
     for {
       server <- serverResource(idleTimeout, headerTimeout)
       client <- clientResource(server.address)
@@ -113,49 +118,52 @@ class ConnectionSuite extends Http4sSuite {
     } yield assertEquals(chunk, None)
   }
 
-  fixture(idleTimeout = 1.seconds).test("read timeout during header terminates connection with no response") { client =>
-    val request = GET(uri"http://localhost:9000/close")
-    for {
-      _ <- client.writes(Encoder.reqToBytes(request).take(10))
-      chunk <- client.readChunk
-    } yield assertEquals(chunk, None)
+  fixture(idleTimeout = 1.seconds)
+    .test("read timeout during header terminates connection with no response") { client =>
+      val request = GET(uri"http://localhost:9000/close")
+      for {
+        _ <- client.writes(Encoder.reqToBytes(request).take(10))
+        chunk <- client.readChunk
+      } yield assertEquals(chunk, None)
+    }
+
+  fixture(idleTimeout = 1.seconds).test("read timeout during body terminates connection") {
+    client =>
+      val request = Stream(
+        "POST /echo HTTP/1.1\r\n",
+        "Accept: text/plain\r\n",
+        "Content-Length: 100\r\n\r\n",
+        "less than 100 bytes"
+      )
+      (for {
+        _ <- client.writes(fs2.text.utf8Encode(request))
+        response <- client.responseAndDrain
+        chunk <- client.readChunk
+      } yield ()).intercept[EmberException.ReachedEndOfStream]
   }
 
-  fixture(idleTimeout = 1.seconds).test("read timeout during body terminates connection") { client =>
-    val request = Stream(
-      "POST /echo HTTP/1.1\r\n",
-      "Accept: text/plain\r\n",
-      "Content-Length: 100\r\n\r\n",
-      "less than 100 bytes"
-    )
-    (for {
-      _ <- client.writes(fs2.text.utf8Encode(request))
-      response <- client.responseAndDrain
-      chunk <- client.readChunk
-    } yield ()).intercept[EmberException.ReachedEndOfStream]
+  fixture(headerTimeout = 1.seconds).test("header timeout terminates connection with no response") {
+    client =>
+      val request = GET(uri"http://localhost:9000/close")
+      for {
+        _ <- client.writes(Encoder.reqToBytes(request).take(10))
+        chunk <- client.readChunk
+      } yield assertEquals(chunk, None)
   }
 
-
-  fixture(headerTimeout = 1.seconds).test("header timeout terminates connection with no response") { client =>
-    val request = GET(uri"http://localhost:9000/close")
-    for {
-      _ <- client.writes(Encoder.reqToBytes(request).take(10))
-      chunk <- client.readChunk
-    } yield assertEquals(chunk, None)
-  }
-
-  fixture().test("close connection after response when request body stream is partially read") { client =>
-    val request = Stream(
-      "POST /unread HTTP/1.1\r\n",
-      "Accept: text/plain\r\n",
-      "Content-Length: 100\r\n\r\n",
-      "not enough bytes"
-    )
-    for {
-      _ <- client.writes(fs2.text.utf8Encode(request))
-      response <- client.responseAndDrain
-      chunk <- client.readChunk
-    } yield assertEquals(chunk, None)
+  fixture().test("close connection after response when request body stream is partially read") {
+    client =>
+      val request = Stream(
+        "POST /unread HTTP/1.1\r\n",
+        "Accept: text/plain\r\n",
+        "Content-Length: 100\r\n\r\n",
+        "not enough bytes"
+      )
+      for {
+        _ <- client.writes(fs2.text.utf8Encode(request))
+        response <- client.responseAndDrain
+        chunk <- client.readChunk
+      } yield assertEquals(chunk, None)
   }
 
 }
