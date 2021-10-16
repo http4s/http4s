@@ -137,7 +137,7 @@ class ConnectionSuite extends Http4sSuite {
       (for {
         _ <- client.writes(fs2.text.utf8Encode(request))
         _ <- client.responseAndDrain
-        chunk <- client.readChunk
+        _ <- client.readChunk
       } yield ()).intercept[EmberException.ReachedEndOfStream]
   }
 
