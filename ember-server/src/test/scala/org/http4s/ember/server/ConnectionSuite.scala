@@ -49,7 +49,7 @@ class ConnectionSuite extends Http4sSuite {
           Ok("close").map(_.withHeaders(Connection(ci"close")))
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
-        case req @ POST -> Root / "unread" =>
+        case POST -> Root / "unread" =>
           Ok("unread")
       }
       .orNotFound
@@ -75,7 +75,7 @@ class ConnectionSuite extends Http4sSuite {
     def responseAndDrain: IO[Unit] =
       response.flatMap(_.body.compile.drain)
     def readChunk: IO[Option[Chunk[Byte]]] =
-      client.read(ClientChunkSize, None)
+      client.read(clientChunkSize, None)
     def writes(bytes: Stream[IO, Byte]): IO[Unit] =
       client.writes(None)(bytes).compile.drain
   }
@@ -100,7 +100,7 @@ class ConnectionSuite extends Http4sSuite {
     val request = GET(uri"http://localhost:9000/close")
     for {
       _ <- client.request(request)
-      response <- client.responseAndDrain
+      _ <- client.responseAndDrain
       chunk <- client.readChunk
     } yield assertEquals(chunk, None)
   }
@@ -110,9 +110,9 @@ class ConnectionSuite extends Http4sSuite {
     val req2 = GET(uri"http://localhost:9000/close")
     for {
       _ <- client.request(req1)
-      resp1 <- client.responseAndDrain
+      _ <- client.responseAndDrain
       _ <- client.request(req2)
-      resp2 <- client.responseAndDrain
+      _ <- client.responseAndDrain
       chunk <- client.readChunk
     } yield assertEquals(chunk, None)
   }
@@ -136,7 +136,7 @@ class ConnectionSuite extends Http4sSuite {
       )
       (for {
         _ <- client.writes(fs2.text.utf8Encode(request))
-        response <- client.responseAndDrain
+        _ <- client.responseAndDrain
         chunk <- client.readChunk
       } yield ()).intercept[EmberException.ReachedEndOfStream]
   }
@@ -160,7 +160,7 @@ class ConnectionSuite extends Http4sSuite {
       )
       for {
         _ <- client.writes(fs2.text.utf8Encode(request))
-        response <- client.responseAndDrain
+        _ <- client.responseAndDrain
         chunk <- client.readChunk
       } yield assertEquals(chunk, None)
   }
