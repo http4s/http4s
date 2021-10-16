@@ -38,6 +38,7 @@ import org.typelevel.vault._
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import java.net.SocketException
 
 private final class Http1Connection[F[_]](
     val requestKey: RequestKey,
@@ -189,7 +190,7 @@ private final class Http1Connection[F[_]](
       case Left(e) =>
         F.raiseError(e)
       case Right(req) =>
-        F.defer {
+        F.defer[Resource[F, Response[F]]] {
           val initWriterSize: Int = 512
           val rr: StringWriter = new StringWriter(initWriterSize)
           val isServer: Boolean = false
@@ -230,13 +231,7 @@ private final class Http1Connection[F[_]](
               ).map(response =>
                 // We need to stop writing before we attempt to recycle the connection.
                 Resource
-                  .make(F.pure(writeFiber)) { writeFiber =>
-                    logger.trace("Waiting for write to cancel")
-                    writeFiber.cancel.map { _ =>
-                      logger.trace("write cancelled")
-                      ()
-                    }
-                  }
+                  .make(F.pure(writeFiber))(_.cancel)
                   .as(response))) {
               case (_, ExitCase.Completed) => F.unit
               case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
@@ -248,6 +243,9 @@ private final class Http1Connection[F[_]](
                   F.raiseError(t)
               }
           }
+        }
+        .adaptError { case EOF =>
+          new SocketException(s"HTTP connection closed: ${requestKey}")
         }
     }
   }

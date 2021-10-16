@@ -23,10 +23,8 @@ import cats.effect.concurrent._
 import cats.effect.implicits._
 import cats.implicits._
 
-import java.net.SocketException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
-import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.{Client, DefaultClient, RequestKey}
@@ -81,11 +79,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
     requestTimeoutF <- scheduleRequestTimeout(key)
     (conn, responseHeaderTimeoutF) <- prepareConnection(key)
     timeout = responseHeaderTimeoutF.race(requestTimeoutF).map(_.merge)
-    responseResource <- Resource.eval(
-      runRequest(conn, req, timeout).adaptError { case EOF =>
-        new SocketException(s"HTTP connection closed: ${key}")
-      }
-    )
+    responseResource <- Resource.eval(runRequest(conn, req, timeout))
     response <- responseResource
   } yield response
 
@@ -97,7 +91,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
   private def borrowConnection(key: RequestKey): Resource[F, A] =
     Resource.makeCase(manager.borrow(key).map(_.connection)) {
       case (conn, ExitCase.Canceled) =>
-        manager.invalidate(conn) // TODO why can't we just release and let the pool figure it out?
+        manager.invalidate(conn) // Currently we can't just release in case of cancellation, beause cancellation clears the Write state of Http1Connection so it migth result in isRecycle=true even if there's a half written request.
       case (conn, _) => manager.release(conn)
     }
 
