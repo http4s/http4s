@@ -91,7 +91,8 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
   private def borrowConnection(key: RequestKey): Resource[F, A] =
     Resource.makeCase(manager.borrow(key).map(_.connection)) {
       case (conn, ExitCase.Canceled) =>
-        manager.invalidate(conn) // Currently we can't just release in case of cancellation, beause cancellation clears the Write state of Http1Connection so it migth result in isRecycle=true even if there's a half written request.
+        // Currently we can't just release in case of cancelation, beause cancelation clears the Write state of Http1Connection, so it migth result in isRecycle=true even if there's a half written request.
+        manager.invalidate(conn)
       case (conn, _) => manager.release(conn)
     }
 

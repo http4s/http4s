@@ -243,8 +243,7 @@ private final class Http1Connection[F[_]](
                   F.raiseError(t)
               }
           }
-        }
-        .adaptError { case EOF =>
+        }.adaptError { case EOF =>
           new SocketException(s"HTTP connection closed: ${requestKey}")
         }
     }

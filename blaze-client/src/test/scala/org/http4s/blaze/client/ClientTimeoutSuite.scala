@@ -41,7 +41,6 @@ class ClientTimeoutSuite extends Http4sSuite {
 
   override def munitTimeout: Duration = new FiniteDuration(10, TimeUnit.SECONDS)
 
-
   def tickWheelFixture = ResourceFixture(
     Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
       IO(tickWheel.shutdown())))

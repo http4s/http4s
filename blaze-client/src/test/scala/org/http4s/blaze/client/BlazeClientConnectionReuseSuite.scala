@@ -42,8 +42,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     }
   }
 
-  test(
-    "BlazeClient should reuse the connection after a successful request with large response") {
+  test("BlazeClient should reuse the connection after a successful request with large response") {
     builder().resource.use { client =>
       for {
         servers <- makeServers()

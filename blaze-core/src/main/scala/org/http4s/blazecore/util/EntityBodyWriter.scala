@@ -70,7 +70,8 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     */
   private def writePipe: Pipe[F, Byte, Unit] = { s =>
     val writeStream: Stream[F, Unit] =
-      s.chunks.evalMap(chunk => fromFutureNoShiftUncancelable(F.delay(writeBodyChunk(chunk, flush = false))))
+      s.chunks.evalMap(chunk =>
+        fromFutureNoShiftUncancelable(F.delay(writeBodyChunk(chunk, flush = false))))
     val errorStream: Throwable => Stream[F, Unit] = e =>
       Stream
         .eval(fromFutureNoShiftUncancelable(F.delay(exceptionFlush())))
