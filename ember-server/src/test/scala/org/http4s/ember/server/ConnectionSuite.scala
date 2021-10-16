@@ -38,8 +38,6 @@ class ConnectionSuite extends Http4sSuite {
   import org.http4s.dsl.io._
   import org.http4s.client.dsl.io._
 
-  val ClientChunkSize = 32 * 1024
-
   def service: HttpApp[IO] =
     HttpRoutes
       .of[IO] {
@@ -67,11 +65,12 @@ class ConnectionSuite extends Http4sSuite {
       .build
 
   case class TestClient(client: Socket[IO]) {
+    val clientChunkSize = 32 * 1024
     def request(req: Request[IO]): IO[Unit] =
       client.writes(None)(Encoder.reqToBytes(req)).compile.drain
     def response: IO[Response[IO]] =
       Parser.Response
-        .parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(ClientChunkSize, None))
+        .parser[IO](Int.MaxValue)(Array.emptyByteArray, client.read(clientChunkSize, None))
         .map(_._1)
     def responseAndDrain: IO[Unit] =
       response.flatMap(_.body.compile.drain)
