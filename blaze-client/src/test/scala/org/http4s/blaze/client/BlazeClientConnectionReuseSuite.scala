@@ -18,7 +18,6 @@ package org.http4s.blaze
 package client
 
 import cats.implicits._
-import cats.effect.implicits._
 import cats.effect._
 import fs2.Stream
 import org.http4s.Method._
@@ -216,8 +215,5 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
 
   private implicit class ParReplicateASyntax[A](ioa: IO[A]) {
     def parReplicateA(n: Int): IO[List[A]] = List.fill(n)(ioa).parSequence
-
-    def parReplicateAN(n: Int, parallelism: Long): IO[List[A]] =
-      List.fill(n)(ioa).parSequenceN(parallelism)
   }
 }
