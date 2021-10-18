@@ -42,12 +42,16 @@ class v0_22 extends SemanticRule("v0_22") {
     ) + doc.tree.collect {
       case t @ Term.Select(name, CaseInsensitiveString_value_M(_)) => 
         Patch.replaceTree(t, s"${name.syntax}.toString")
-      case t @ Term.Select(s@Lit.String(_), StringOps_ci_M(_)) =>
-        Patch.addGlobalImport(CIWildcard) + Patch.replaceTree(t, s"ci$s")
-      case t @ Term.Select(s, StringOps_ci_M(_)) =>
-        Patch.addGlobalImport(CIWildcard) + Patch.replaceTree(t, s"${CIString_S.displayName}($s)")
+      case t @ Term.Select(s, StringOps_ci_M(_)) => 
+        makeCI(t, s)
       case _ => Patch.empty
     }.asPatch
+
+  def makeCI(t: Term, s: Term): Patch =
+    Patch.addGlobalImport(CIWildcard) + Patch.replaceTree(t, s match {
+      case s @ Lit.String(_) => s"ci$s"
+      case _ => s"${CIString_S.displayName}($s)"
+    })
 
   val CaseInsensitiveString_value_M = SymbolMatcher.exact("org/http4s/util/CaseInsensitiveString#value.")
   val StringOps_ci_M = SymbolMatcher.exact("org/http4s/syntax/StringOps#ci().")
@@ -60,11 +64,7 @@ class v0_22 extends SemanticRule("v0_22") {
     doc.tree.collect {
       // ci-ify header name
       case Term.Apply(Header_M(_), List(k, _)) =>
-        Patch.addGlobalImport(CIWildcard) + 
-          Patch.replaceTree(k, k match {
-            case s @ Lit.String(_) => s"ci$s"
-            case _ => s"${CIString_S.displayName}($k)"
-          })
+        makeCI(k, k)
       // `Header` => `Header.Raw` 
       case t @ Header_M(Type.Name(_) | Term.Name(_)) => 
         Patch.replaceTree(t, s"${Header_S.displayName}.Raw")
