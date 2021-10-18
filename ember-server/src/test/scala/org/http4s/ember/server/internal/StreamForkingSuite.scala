@@ -18,11 +18,11 @@ package org.http4s.ember.server.internal
 
 import cats.syntax.all._
 import cats.effect.IO
-import cats.effect.concurrent.{Deferred, Ref}
 import fs2.Stream
 import munit._
 
 import scala.concurrent.duration._
+import cats.effect.{ Deferred, Ref }
 
 class StreamForkingSuite extends CatsEffectSuite {
 

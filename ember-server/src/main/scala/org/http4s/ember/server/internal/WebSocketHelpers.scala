@@ -38,7 +38,7 @@ import scala.concurrent.duration.Duration
 import java.nio.ByteBuffer
 import org.typelevel.log4cats.Logger
 import fs2.concurrent.SignallingRef
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 
 object WebSocketHelpers {
 

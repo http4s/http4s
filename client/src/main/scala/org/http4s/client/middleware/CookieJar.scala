@@ -22,6 +22,7 @@ import cats.effect._
 import cats.effect.concurrent._
 import org.http4s._
 import org.http4s.client.Client
+import cats.effect.{ Ref, Temporal }
 
 /** Algebra for Interfacing with the Cookie Jar.
   * Allows manual intervention and eviction.
@@ -79,13 +80,13 @@ object CookieJar {
   /** Constructor which builds a non-exposed CookieJar
     * and applies it to the client.
     */
-  def impl[F[_]: Sync: Timer](c: Client[F]): F[Client[F]] =
+  def impl[F[_]: Sync: Temporal](c: Client[F]): F[Client[F]] =
     in[F, F](c)
 
   /** Like [[impl]] except it allows the creation of the middleware in a
     * different HKT than the client is in.
     */
-  def in[F[_]: Sync: Timer, G[_]: Sync](c: Client[F]): G[Client[F]] =
+  def in[F[_]: Sync: Temporal, G[_]: Sync](c: Client[F]): G[Client[F]] =
     jarIn[F, G].map(apply(_)(c))
 
   /** Jar Constructor

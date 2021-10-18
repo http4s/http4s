@@ -34,7 +34,7 @@ class TimeoutSuite extends Http4sSuite {
       Ok("Fast")
 
     case _ -> Root / "never" =>
-      IO.async[Response[IO]] { _ =>
+      IO.async_[Response[IO]] { _ =>
         ()
       }
   }

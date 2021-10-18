@@ -17,7 +17,7 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import fs2.Stream
 import fs2.io.readInputStream
 import fs2.io.file.readAll
@@ -55,14 +55,12 @@ Moreover, it allows the creation of potentially incorrect multipart bodies""",
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       file: File,
-      blocker: Blocker,
       headers: Header.ToRaw*): Part[F] =
     fileData(name, file.getName, readAll[F](file.toPath, blocker, ChunkSize), headers: _*)
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       resource: URL,
-      blocker: Blocker,
       headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), blocker, headers: _*)
 
@@ -87,7 +85,6 @@ Moreover, it allows the creation of potentially incorrect multipart bodies""",
       name: String,
       filename: String,
       in: => InputStream,
-      blocker: Blocker,
-      headers: Header.ToRaw*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
+      headers: Header.ToRaw*)(implicit F: Sync[F]): Part[F] =
     fileData(name, filename, readInputStream(F.delay(in), ChunkSize, blocker), headers: _*)
 }

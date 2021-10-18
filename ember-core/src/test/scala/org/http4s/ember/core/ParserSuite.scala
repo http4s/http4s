@@ -28,6 +28,7 @@ import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
 import org.http4s.headers.Expires
 import org.typelevel.ci._
+import cats.effect.Ref
 
 class ParsingSuite extends Http4sSuite {
   object Helpers {

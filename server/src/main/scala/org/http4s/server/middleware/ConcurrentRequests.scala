@@ -22,6 +22,7 @@ import cats.effect.concurrent._
 import cats.implicits._
 import org.http4s._
 import org.http4s.server._
+import cats.effect.Ref
 
 /** Middlewares for tracking the quantity of concurrent requests.
   *

@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.Semigroup
 import cats.data.{NonEmptyList, OptionT}
-import cats.effect.{Blocker, ContextShift, IO, Sync}
+import cats.effect.{IO, Sync}
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io._
@@ -38,13 +38,11 @@ object StaticFile {
 
   def fromString[F[_]: Sync: ContextShift](
       url: String,
-      blocker: Blocker,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(new File(url), blocker, req)
 
   def fromResource[F[_]: Sync: ContextShift](
       name: String,
-      blocker: Blocker,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
@@ -79,9 +77,8 @@ object StaticFile {
         .flatMap(fromURL(_, blocker, req)))
   }
 
-  def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] = {
+  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit
+      F: Sync[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
     OptionT.apply(F.defer {
@@ -134,13 +131,11 @@ object StaticFile {
 
   def fromFile[F[_]: Sync: ContextShift](
       f: File,
-      blocker: Blocker,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, blocker, req, calcETag[F])
 
   def fromFile[F[_]: Sync: ContextShift](
       f: File,
-      blocker: Blocker,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, blocker, req, etagCalculator)
@@ -148,7 +143,6 @@ object StaticFile {
   def fromFile[F[_]: Sync: ContextShift](
       f: File,
       buffsize: Int,
-      blocker: Blocker,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, 0, f.length(), buffsize, blocker, req, etagCalculator)
@@ -158,11 +152,9 @@ object StaticFile {
       start: Long,
       end: Long,
       buffsize: Int,
-      blocker: Blocker,
       req: Option[Request[F]],
       etagCalculator: File => F[String])(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
+      F: Sync[F]): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- F.delay {
@@ -235,9 +227,7 @@ object StaticFile {
   private def fileToBody[F[_]: Sync: ContextShift](
       f: File,
       start: Long,
-      end: Long,
-      blocker: Blocker
-  ): EntityBody[F] =
+      end: Long): EntityBody[F] =
     readRange[F](f.toPath, blocker, DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =

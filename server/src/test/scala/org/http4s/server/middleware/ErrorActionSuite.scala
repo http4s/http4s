@@ -17,13 +17,13 @@
 package org.http4s.server.middleware
 
 import cats.effect.IO
-import cats.effect.concurrent.Ref
 import com.comcast.ip4s.{Ipv4Address, Port, SocketAddress}
 import org.http4s._
 import org.http4s.Request.Connection
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.typelevel.vault.Vault
+import cats.effect.Ref
 
 class ErrorActionSuite extends Http4sSuite {
   val remote = Ipv4Address.fromBytes(192, 168, 0, 1)

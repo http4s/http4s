@@ -13,12 +13,12 @@ package ember.core
 
 import cats._
 import cats.syntax.all._
-import cats.effect.concurrent.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
 import Shared._
 
 import scala.util.control.NonFatal
+import cats.effect.{ Deferred, Ref }
 
 private[ember] object ChunkedEncoding {
 

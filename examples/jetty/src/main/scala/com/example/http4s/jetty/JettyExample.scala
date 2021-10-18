@@ -23,6 +23,7 @@ import org.http4s.metrics.dropwizard._
 import org.http4s.server.{HttpMiddleware, Server}
 import org.http4s.jetty.server.JettyBuilder
 import org.http4s.server.middleware.Metrics
+import cats.effect.{ Resource, Temporal }
 
 object JettyExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -30,7 +31,7 @@ object JettyExample extends IOApp {
 }
 
 object JettyExampleApp {
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): JettyBuilder[F] = {
+  def builder[F[_]: ConcurrentEffect: ContextShift: Temporal]: JettyBuilder[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
 
@@ -41,9 +42,9 @@ object JettyExampleApp {
       .mountFilter(NoneShallPass, "/black-knight/*")
   }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Temporal]: Resource[F, Server] =
     for {
-      blocker <- Blocker[F]
+      blocker <- Resource.unit[F]
       server <- builder[F](blocker).resource
     } yield server
 }

@@ -31,8 +31,9 @@ import java.net.InetSocketAddress
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
+import cats.effect.{ Deferred, Resource, Temporal }
 
-final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
+final class EmberServerBuilder[F[_]: Concurrent: Temporal: ContextShift] private (
     val host: String,
     val port: Int,
     private val httpApp: HttpApp[F],
@@ -103,7 +104,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withoutTLS =
     copy(tlsInfoOpt = None)
 
-  def withBlocker(blocker: Blocker) =
+  def withBlocker =
     copy(blockerOpt = blocker.pure[Option])
 
   def withIdleTimeout(idleTimeout: Duration) =
@@ -136,7 +137,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def build: Resource[F, Server] =
     for {
       bindAddress <- Resource.eval(Sync[F].delay(new InetSocketAddress(host, port)))
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
+      blocker <- blockerOpt.fold(Resource.unit[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
       ready <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
@@ -172,7 +173,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 }
 
 object EmberServerBuilder {
-  def default[F[_]: Concurrent: Timer: ContextShift]: EmberServerBuilder[F] =
+  def default[F[_]: Concurrent: Temporal: ContextShift]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Defaults.host,
       port = Defaults.port,

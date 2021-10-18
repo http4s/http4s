@@ -20,7 +20,6 @@ package server
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -37,6 +36,7 @@ import org.typelevel.vault._
 import scala.annotation.nowarn
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import cats.effect.Deferred
 
 class Http1ServerStageSpec extends Http4sSuite {
 

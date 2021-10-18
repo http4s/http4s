@@ -18,7 +18,6 @@ package org.http4s.ember.core
 
 import cats._
 import cats.effect.{MonadThrow => _, _}
-import cats.effect.concurrent.{Deferred, Ref}
 import cats.syntax.all._
 import fs2._
 import org.http4s._
@@ -26,6 +25,8 @@ import org.typelevel.ci.CIString
 import scala.annotation.switch
 import scala.collection.mutable
 import cats.data.EitherT
+import cats.MonadThrow
+import cats.effect.{ Deferred, Ref }
 
 private[ember] object Parser {
 

@@ -19,7 +19,6 @@ package blazecore
 package websocket
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import fs2._
 import fs2.concurrent.SignallingRef
@@ -41,6 +40,7 @@ import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 import java.net.ProtocolException
+import cats.effect.std.Semaphore
 
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
@@ -72,7 +72,7 @@ private[http4s] class Http4sWSStage[F[_]](
     }
 
   private[this] def writeFrame(frame: WebSocketFrame, ec: ExecutionContext): F[Unit] =
-    writeSemaphore.withPermit(F.async[Unit] { cb =>
+    writeSemaphore.withPermit(F.async_[Unit] { cb =>
       channelWrite(frame).onComplete {
         case Success(res) => cb(Right(res))
         case Failure(t) => cb(Left(t))
@@ -80,7 +80,7 @@ private[http4s] class Http4sWSStage[F[_]](
     })
 
   private[this] def readFrameTrampoline: F[WebSocketFrame] =
-    F.async[WebSocketFrame] { cb =>
+    F.async_[WebSocketFrame] { cb =>
       channelRead().onComplete {
         case Success(ws) => cb(Right(ws))
         case Failure(exception) => cb(Left(exception))

@@ -191,7 +191,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
-    val t = F.async[Option[Chunk[Byte]]] { cb =>
+    val t = F.async_[Option[Chunk[Byte]]] { cb =>
       if (!contentComplete()) {
         def go(): Unit =
           try {

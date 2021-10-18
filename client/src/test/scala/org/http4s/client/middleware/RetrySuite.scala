@@ -18,7 +18,6 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.concurrent.{Ref, Semaphore}
 import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import fs2.Stream
@@ -30,6 +29,8 @@ import org.scalacheck.effect.PropF
 import org.scalacheck.Gen
 
 import scala.concurrent.duration._
+import cats.effect.Ref
+import cats.effect.std.Semaphore
 
 class RetrySuite extends Http4sSuite {
   val app = HttpRoutes

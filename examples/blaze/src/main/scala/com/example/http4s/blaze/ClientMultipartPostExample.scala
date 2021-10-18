@@ -16,7 +16,7 @@
 
 package com.example.http4s.blaze
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp}
+import cats.effect.{ExitCode, IO, IOApp}
 import java.net.URL
 import org.http4s._
 import org.http4s.Uri._

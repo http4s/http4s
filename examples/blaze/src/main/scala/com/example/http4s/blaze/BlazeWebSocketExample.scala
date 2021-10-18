@@ -29,13 +29,14 @@ import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.global
+import cats.effect.Temporal
 
 object BlazeWebSocketExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     BlazeWebSocketExampleApp[IO].stream.compile.drain.as(ExitCode.Success)
 }
 
-class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F])
+class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Temporal[F])
     extends Http4sDsl[F] {
   def routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
@@ -87,6 +88,6 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
 }
 
 object BlazeWebSocketExampleApp {
-  def apply[F[_]: ConcurrentEffect: Timer]: BlazeWebSocketExampleApp[F] =
+  def apply[F[_]: ConcurrentEffect: Temporal]: BlazeWebSocketExampleApp[F] =
     new BlazeWebSocketExampleApp[F]
 }

@@ -40,6 +40,7 @@ import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
 import _root_.org.http4s.ember.core.Util._
 import java.nio.channels.ClosedChannelException
 import java.io.IOException
+import cats.effect.{ Ref, Temporal }
 
 private[client] object ClientHelpers {
 
@@ -91,7 +92,7 @@ private[client] object ClientHelpers {
       }
     } yield RequestKeySocket(socket, requestKey)
 
-  def request[F[_]: Concurrent: Timer](
+  def request[F[_]: Concurrent: Temporal](
       request: Request[F],
       connection: EmberConnection[F],
       chunkSize: Int,

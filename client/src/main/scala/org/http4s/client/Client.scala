@@ -20,12 +20,12 @@ package client
 import cats.~>
 import cats.data.Kleisli
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2._
 import java.io.IOException
 import org.http4s.headers.Host
 import scala.util.control.NoStackTrace
+import cats.effect.{ MonadCancelThrow, Ref }
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
 trait Client[F[_]] {
@@ -181,7 +181,7 @@ trait Client[F[_]] {
 
 object Client {
   def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
-      F: BracketThrow[F]): Client[F] =
+      F: MonadCancelThrow[F]): Client[F] =
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }
@@ -229,7 +229,7 @@ object Client {
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
-  def liftKleisli[F[_]: BracketThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
+  def liftKleisli[F[_]: MonadCancelThrow: cats.Defer, A](client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { (req: Request[Kleisli[F, A, *]]) =>
       Resource.eval(Kleisli.ask[F, A]).flatMap { a =>
         client

@@ -16,7 +16,7 @@
 
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import java.net.URL
@@ -35,7 +35,7 @@ object MultipartClient extends MultipartHttpClient
 class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4sClientDsl[IO] {
   private val image: IO[URL] = IO(getClass.getResource("/beerbottle.png"))
 
-  private def multipart(url: URL, blocker: Blocker) =
+  private def multipart(url: URL) =
     Multipart[IO](
       Vector(
         Part.formData("name", "gvolpe"),
@@ -43,14 +43,14 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
       )
     )
 
-  private def request(blocker: Blocker) =
+  private def request =
     image
       .map(multipart(_, blocker))
       .map(body => POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers))
 
   private val resources: Resource[IO, (Blocker, Client[IO])] =
     for {
-      blocker <- Blocker[IO]
+      blocker <- Resource.unit[IO]
       client <- BlazeClientBuilder[IO](global).resource
     } yield (blocker, client)
 

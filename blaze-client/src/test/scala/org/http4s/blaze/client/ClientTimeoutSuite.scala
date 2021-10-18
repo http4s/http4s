@@ -19,7 +19,6 @@ package blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
@@ -35,6 +34,7 @@ import org.http4s.syntax.all._
 
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
+import cats.effect.Deferred
 
 class ClientTimeoutSuite extends Http4sSuite {
 

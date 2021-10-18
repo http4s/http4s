@@ -205,7 +205,7 @@ private final class Http1Connection[F[_]](
           }
 
           val idleTimeoutF = idleTimeoutStage match {
-            case Some(stage) => F.async[TimeoutException](stage.setTimeout)
+            case Some(stage) => F.async_[TimeoutException](stage.setTimeout)
             case None => F.never[TimeoutException]
           }
 
@@ -256,7 +256,7 @@ private final class Http1Connection[F[_]](
       doesntHaveBody: Boolean,
       idleTimeoutS: F[Either[Throwable, Unit]],
       idleRead: Option[Future[ByteBuffer]]): F[Response[F]] =
-    F.async[Response[F]](cb =>
+    F.async_[Response[F]](cb =>
       idleRead match {
         case Some(read) =>
           handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)

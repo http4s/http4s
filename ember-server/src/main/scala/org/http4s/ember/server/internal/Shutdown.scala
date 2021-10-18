@@ -23,6 +23,7 @@ import cats.effect.concurrent._
 import fs2.Stream
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import cats.effect.{ Deferred, Ref, Temporal }
 
 private[server] abstract class Shutdown[F[_]] {
   def await: F[Unit]
@@ -36,7 +37,7 @@ private[server] abstract class Shutdown[F[_]] {
 
 private[server] object Shutdown {
 
-  def apply[F[_]](timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] =
+  def apply[F[_]](timeout: Duration)(implicit F: Concurrent[F], timer: Temporal[F]): F[Shutdown[F]] =
     timeout match {
       case fi: FiniteDuration =>
         if (fi.length == 0) immediateShutdown else timedShutdown(timeout)
@@ -44,7 +45,7 @@ private[server] object Shutdown {
     }
 
   private def timedShutdown[F[_]](
-      timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
+      timeout: Duration)(implicit F: Concurrent[F], timer: Temporal[F]): F[Shutdown[F]] = {
     case class State(isShutdown: Boolean, active: Int)
 
     for {

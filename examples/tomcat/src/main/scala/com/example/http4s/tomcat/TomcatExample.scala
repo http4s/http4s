@@ -24,6 +24,7 @@ import org.http4s.server.{HttpMiddleware, Server}
 import org.http4s.metrics.dropwizard._
 import org.http4s.server.middleware.Metrics
 import org.http4s.tomcat.server.TomcatBuilder
+import cats.effect.{ Resource, Temporal }
 
 object TomcatExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -31,7 +32,7 @@ object TomcatExample extends IOApp {
 }
 
 object TomcatExampleApp {
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): TomcatBuilder[F] = {
+  def builder[F[_]: ConcurrentEffect: ContextShift: Temporal]: TomcatBuilder[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
 
@@ -42,9 +43,9 @@ object TomcatExampleApp {
       .mountFilter(NoneShallPass, "/black-knight/*")
   }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Temporal]: Resource[F, Server] =
     for {
-      blocker <- Blocker[F]
+      blocker <- Resource.unit[F]
       server <- builder[F](blocker).resource
     } yield server
 }

@@ -19,7 +19,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.syntax.all._
 import java.io.File
 import java.nio.file.{Files, LinkOption, NoSuchFileException, Path, Paths}
@@ -56,7 +56,6 @@ object FileService {
   object Config {
     def apply[F[_]: Sync: ContextShift](
         systemPath: String,
-        blocker: Blocker,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
@@ -111,8 +110,7 @@ object FileService {
   }
 
   private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
+      F: Sync[F]): OptionT[F, Response[F]] =
     OptionT(F.defer {
       if (file.isDirectory)
         StaticFile
@@ -137,8 +135,7 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): F[Option[Response[F]]] = {
+      F: Sync[F]): F[Option[Response[F]]] = {
     def nope: F[Option[Response[F]]] = F.delay(file.length()).map { size =>
       Some(
         Response[F](

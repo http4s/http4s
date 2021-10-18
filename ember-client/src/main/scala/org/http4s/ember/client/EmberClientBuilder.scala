@@ -35,8 +35,9 @@ import org.http4s.headers.{`User-Agent`}
 import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.client.middleware.Retry
+import cats.effect.{ Resource, Temporal }
 
-final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
+final class EmberClientBuilder[F[_]: Concurrent: Temporal: ContextShift] private (
     private val blockerOpt: Option[Blocker],
     private val tlsContextOpt: Option[TLSContext],
     private val sgOpt: Option[SocketGroup],
@@ -93,7 +94,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     copy(tlsContextOpt = tlsContext.some)
   def withoutTLSContext = copy(tlsContextOpt = None)
 
-  def withBlocker(blocker: Blocker) =
+  def withBlocker =
     copy(blockerOpt = blocker.some)
 
   def withSocketGroup(sg: SocketGroup) = copy(sgOpt = sg.some)
@@ -128,7 +129,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Client[F]] =
     for {
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
+      blocker <- blockerOpt.fold(Resource.unit[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
       tlsContextOptWithDefault <- Resource.eval(
         tlsContextOpt
@@ -202,7 +203,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
 object EmberClientBuilder {
 
-  def default[F[_]: Concurrent: Timer: ContextShift] =
+  def default[F[_]: Concurrent: Temporal: ContextShift] =
     new EmberClientBuilder[F](
       blockerOpt = None,
       tlsContextOpt = None,

@@ -19,7 +19,6 @@ package blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.tcp.SocketGroup
@@ -28,6 +27,7 @@ import java.util.concurrent.TimeoutException
 import org.http4s.client.{ConnectionFailure, RequestKey}
 import org.http4s.syntax.all._
 import scala.concurrent.duration._
+import cats.effect.Deferred
 
 class BlazeClientSuite extends BlazeClientBase {
 

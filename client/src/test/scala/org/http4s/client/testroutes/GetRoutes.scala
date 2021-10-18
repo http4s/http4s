@@ -22,6 +22,7 @@ import cats.syntax.all._
 import fs2._
 import org.http4s.Status._
 import scala.concurrent.duration._
+import cats.effect.Temporal
 
 object GetRoutes {
   val SimplePath = "/simple"
@@ -32,7 +33,7 @@ object GetRoutes {
   val EmptyNotFoundPath = "/empty-not-found"
   val InternalServerErrorPath = "/internal-server-error"
 
-  def getPaths(implicit timer: Timer[IO]): Map[String, IO[Response[IO]]] =
+  def getPaths(implicit timer: Temporal[IO]): Map[String, IO[Response[IO]]] =
     Map(
       SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
       ChunkedPath -> Response[IO](Ok)

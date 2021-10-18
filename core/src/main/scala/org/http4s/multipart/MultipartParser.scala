@@ -17,7 +17,7 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.{readAll, writeAll}
@@ -547,7 +547,6 @@ object MultipartParser {
     */
   def parseStreamedFile[F[_]: Sync: ContextShift](
       boundary: Boundary,
-      blocker: Blocker,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
@@ -566,7 +565,6 @@ object MultipartParser {
 
   def parseToPartsStreamedFile[F[_]: Sync: ContextShift](
       boundary: Boundary,
-      blocker: Blocker,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
@@ -592,8 +590,7 @@ object MultipartParser {
       limit: Int,
       maxSizeBeforeWrite: Int,
       maxParts: Int,
-      failOnLimit: Boolean,
-      blocker: Blocker): Stream[F, Part[F]] = {
+      failOnLimit: Boolean): Stream[F, Part[F]] = {
     val values = StartLineBytesN(b)
 
     def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
@@ -636,9 +633,7 @@ object MultipartParser {
       limit: Int,
       maxBeforeWrite: Int,
       maxParts: Int,
-      failOnLimit: Boolean,
-      blocker: Blocker
-  ): Pull[F, Part[F], Unit] = {
+      failOnLimit: Boolean): Pull[F, Part[F], Unit] = {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
 
@@ -692,8 +687,7 @@ object MultipartParser {
       maxBeforeWrite: Int,
       partsCounter: Int,
       partsLimit: Int,
-      failOnLimit: Boolean,
-      blocker: Blocker): Pull[F, Part[F], Unit] =
+      failOnLimit: Boolean): Pull[F, Part[F], Unit] =
     Pull
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
@@ -746,8 +740,7 @@ object MultipartParser {
   private def splitWithFileStream[F[_]](
       values: Array[Byte],
       stream: Stream[F, Byte],
-      maxBeforeWrite: Int,
-      blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F]): SplitFileStream[F] = {
+      maxBeforeWrite: Int)(implicit F: Sync[F]): SplitFileStream[F] = {
     def streamAndWrite(
         s: Stream[F, Byte],
         state: Int,

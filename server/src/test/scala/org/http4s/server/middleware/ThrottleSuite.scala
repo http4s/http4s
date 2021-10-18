@@ -18,18 +18,19 @@ package org.http4s.server.middleware
 
 import cats.effect.IO.ioEffect
 import cats.effect.laws.util.TestContext
-import cats.effect.{IO, Timer}
+import cats.effect.IO
 import cats.implicits._
 import org.http4s.{Http4sSuite, HttpApp, Request, Status}
 import org.http4s.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
 import scala.concurrent.duration._
+import cats.effect.Temporal
 
 class ThrottleSuite extends Http4sSuite {
   test("LocalTokenBucket should contain initial number of tokens equal to specified capacity") {
     val ctx = TestContext()
-    val munitTimer: Timer[IO] = ctx.timer[IO]
+    val munitTimer: Temporal[IO] = ctx.timer[IO]
 
     val someRefillTime = 1234.milliseconds
     val capacity = 5

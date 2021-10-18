@@ -19,7 +19,6 @@ package blazecore
 package util
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2._
 import fs2.Stream._
@@ -30,6 +29,7 @@ import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
 import org.typelevel.ci._
 import scala.concurrent.{ExecutionContext, Future}
+import cats.effect.Ref
 
 class Http1WriterSpec extends Http4sSuite {
   implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext
@@ -268,7 +268,7 @@ class Http1WriterSpec extends Http4sSuite {
   }
 
   test("FlushingChunkWriter should must be stack safe") {
-    val p = repeatEval(IO.async[Byte](_(Right(0.toByte)))).take(300000)
+    val p = repeatEval(IO.async_[Byte](_(Right(0.toByte)))).take(300000)
 
     // The dumping writer is stack safe when using a trampolining EC
     (new DumpingWriter).writeEntityBody(p).attempt.map(_.isRight).assert

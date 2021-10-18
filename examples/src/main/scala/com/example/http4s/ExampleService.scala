@@ -34,18 +34,19 @@ import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 // import org.http4s.twirl._
 import org.http4s._
 import scala.concurrent.duration._
+import cats.effect.Temporal
 
 class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F])
     extends Http4sDsl[F] {
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
-  def routes(implicit timer: Timer[F]): HttpRoutes[F] =
+  def routes(implicit timer: Temporal[F]): HttpRoutes[F] =
     Router[F](
       "" -> rootRoutes,
       "/auth" -> authRoutes
     )
 
-  def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =
+  def rootRoutes(implicit timer: Temporal[F]): HttpRoutes[F] =
     HttpRoutes.of[F] {
       case GET -> Root =>
         // disabled until twirl supports dotty
@@ -193,7 +194,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
   def helloWorldService: F[Response[F]] = Ok("Hello World!")
 
   // This is a mock data source, but could be a Process representing results from a database
-  def dataStream(n: Int)(implicit timer: Timer[F]): Stream[F, String] = {
+  def dataStream(n: Int)(implicit timer: Temporal[F]): Stream[F, String] = {
     val interval = 100.millis
     val stream = Stream
       .awakeEvery[F](interval)
@@ -225,6 +226,6 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 }
 
 object ExampleService {
-  def apply[F[_]: Effect: ContextShift](blocker: Blocker): ExampleService[F] =
+  def apply[F[_]: Effect: ContextShift]: ExampleService[F] =
     new ExampleService[F](blocker)
 }

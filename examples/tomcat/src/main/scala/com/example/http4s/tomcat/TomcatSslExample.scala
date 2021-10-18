@@ -20,6 +20,7 @@ import cats.effect._
 import com.example.http4s.ssl
 import org.http4s.server.Server
 import org.http4s.tomcat.server.TomcatBuilder
+import cats.effect.{ Resource, Temporal }
 
 object TomcatSslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -27,15 +28,15 @@ object TomcatSslExample extends IOApp {
 }
 
 object TomcatSslExampleApp {
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): TomcatBuilder[F] =
+  def builder[F[_]: ConcurrentEffect: ContextShift: Temporal]: TomcatBuilder[F] =
     TomcatExampleApp
       .builder[F](blocker)
       .bindHttp(8443)
       .withSSL(ssl.storeInfo, ssl.keyManagerPassword)
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Temporal]: Resource[F, Server] =
     for {
-      blocker <- Blocker[F]
+      blocker <- Resource.unit[F]
       server <- builder[F](blocker).resource
     } yield server
 }

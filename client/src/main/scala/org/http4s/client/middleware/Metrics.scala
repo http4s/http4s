@@ -20,13 +20,13 @@ import cats.effect.{Clock, Resource, Sync}
 import cats.syntax.all._
 import java.util.concurrent.TimeUnit
 
-import cats.effect.concurrent.Ref
 import org.http4s.{Request, Response, Status}
 import org.http4s.client.Client
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.{Error, Timeout}
 
 import scala.concurrent.TimeoutException
+import cats.effect.Ref
 
 /** Client middleware to record metrics for the http4s client.
   *

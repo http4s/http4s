@@ -28,6 +28,7 @@ import _root_.org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 import scala.concurrent.duration._
+import cats.effect.Temporal
 
 object EmberServerSimpleExample extends IOApp {
 
@@ -48,7 +49,7 @@ object EmberServerSimpleExample extends IOApp {
     IO.delay(println(s"Server Has Started at ${server.address}")) >>
       IO.never.as(ExitCode.Success))
 
-  def service[F[_]: Sync: Timer]: HttpApp[F] = {
+  def service[F[_]: Sync: Temporal]: HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 

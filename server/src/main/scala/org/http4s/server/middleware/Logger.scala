@@ -22,11 +22,12 @@ import cats.~>
 import cats.arrow.FunctionK
 import cats.syntax.all._
 import cats.data.OptionT
-import cats.effect.{BracketThrow, Concurrent, Sync}
+import cats.effect.{Concurrent, Sync}
 import cats.effect.Sync._
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+import cats.effect.MonadCancelThrow
 
 /** Simple Middleware for Logging All Requests and Responses
   */
@@ -39,7 +40,7 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: BracketThrow[G], F: Concurrent[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       Sync[F].delay(logger.info(s))
     }
@@ -54,7 +55,7 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: BracketThrow[G], F: Concurrent[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       Sync[F].delay(logger.info(s))
     }

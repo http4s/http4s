@@ -18,7 +18,7 @@ package com.example.http4s.blaze.demo.server.service
 
 import java.io.File
 import java.nio.file.Paths
-import cats.effect.{Blocker, ContextShift, Effect}
+import cats.effect.Effect
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import org.http4s.multipart.Part

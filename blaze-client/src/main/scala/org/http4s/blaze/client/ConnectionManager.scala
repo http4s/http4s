@@ -19,11 +19,11 @@ package blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
+import cats.effect.std.Semaphore
 
 /** Type that is responsible for the client lifecycle
   *

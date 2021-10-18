@@ -20,7 +20,7 @@ class TraversalSpecItsNotYouItsMe
 
 import org.scalacheck.effect.PropF
 import cats.syntax.all._
-import cats.effect.{Concurrent, ContextShift, IO}
+import cats.effect.{Concurrent, IO}
 import fs2._
 import fs2.concurrent.Queue
 import org.http4s._

@@ -17,7 +17,7 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.syntax.all._
 
 private[http4s] object MultipartDecoder {
@@ -69,9 +69,7 @@ private[http4s] object MultipartDecoder {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
-  def mixedMultipart[F[_]: Sync: ContextShift](
-      blocker: Blocker,
-      headerLimit: Int = 1024,
+  def mixedMultipart[F[_]: Sync: ContextShift](headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =

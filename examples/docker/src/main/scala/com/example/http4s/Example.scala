@@ -22,6 +22,7 @@ import org.http4s._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.dsl.Http4sDsl
 import scala.concurrent.ExecutionContext.global
+import cats.effect.Temporal
 
 object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
@@ -29,7 +30,7 @@ object Main extends IOApp {
 }
 
 object ExampleApp {
-  def serverStream[F[_]: ConcurrentEffect: Timer]: Stream[F, ExitCode] =
+  def serverStream[F[_]: ConcurrentEffect: Temporal]: Stream[F, ExitCode] =
     BlazeServerBuilder[F](global)
       .bindHttp(port = 8080, host = "0.0.0.0")
       .withHttpApp(ExampleRoutes[F]().routes.orNotFound)

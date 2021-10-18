@@ -18,7 +18,7 @@ package org.http4s
 package blaze
 package server
 
-import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.{ConcurrentEffect, IO, Sync}
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
@@ -37,6 +37,7 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util._
+import cats.effect.Temporal
 
 private class Http2NodeStage[F[_]](
     streamId: Int,
@@ -47,7 +48,7 @@ private class Http2NodeStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Timer[F])
+    scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Temporal[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -100,7 +101,7 @@ private class Http2NodeStage[F[_]](
     var complete = false
     var bytesRead = 0L
 
-    val t = F.async[Option[Chunk[Byte]]] { cb =>
+    val t = F.async_[Option[Chunk[Byte]]] { cb =>
       if (complete) cb(End)
       else
         channelRead(timeout = timeout).onComplete {

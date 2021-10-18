@@ -21,9 +21,10 @@ import cats.syntax.all._
 import cats.effect._
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
+import cats.effect.Temporal
 
 class DateSuite extends Http4sSuite {
-  implicit val timer: Timer[IO] = Http4sSuite.TestTimer
+  implicit val timer: Temporal[IO] = Http4sSuite.TestTimer
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] { case _ =>
     Response[IO](Status.Ok).pure[IO]

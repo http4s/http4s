@@ -21,14 +21,14 @@ package middleware
 import cats.~>
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{BracketThrow, Concurrent, ExitCase, Sync}
+import cats.effect.{Concurrent, ExitCase, Sync}
 import cats.effect.implicits._
 import cats.effect.Sync._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+import cats.effect.{ MonadCancelThrow, Ref }
 
 /** Simple middleware for logging responses as they are processed
   */
@@ -41,7 +41,7 @@ object ResponseLogger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(implicit
-      G: BracketThrow[G],
+      G: MonadCancelThrow[G],
       F: Concurrent[F]): Kleisli[G, A, Response[F]] =
     impl[G, F, A](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
@@ -51,7 +51,7 @@ object ResponseLogger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
       logAction: Option[String => F[Unit]])(http: Kleisli[G, A, Response[F]])(implicit
-      G: BracketThrow[G],
+      G: MonadCancelThrow[G],
       F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
     val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
     val log = logAction.fold(fallback)(identity)

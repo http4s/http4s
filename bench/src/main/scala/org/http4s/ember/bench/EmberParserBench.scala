@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit
 import org.http4s._
 import cats.effect.IO
 import org.openjdk.jmh.annotations._
-import cats.effect.ContextShift
 import org.http4s.ember.core.Parser
 
 // sbt "bench/Jmh/run -i 5 -wi 5 -f 1 -t 1 org.http4s.ember.bench.EmberParserBench"

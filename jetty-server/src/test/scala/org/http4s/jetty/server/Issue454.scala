@@ -18,7 +18,7 @@ package org.http4s
 package jetty
 package server
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._

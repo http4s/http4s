@@ -26,7 +26,7 @@ import java.util.concurrent.{
 import cats.{Comonad, Eval, Order}
 import cats.data.NonEmptyChain
 import cats.effect.implicits._
-import cats.effect.{Async, Concurrent, ConcurrentEffect, ContextShift, Effect, IO}
+import cats.effect.{Async, Concurrent, ConcurrentEffect, Effect, IO}
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
@@ -36,6 +36,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.control.NoStackTrace
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
+import cats.effect.Spawn
 
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
@@ -135,10 +136,9 @@ package object internal {
   private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
       fcs: F[CF[A]])(implicit
       // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
-      F: Concurrent[F],
-      CS: ContextShift[F]): F[A] =
+      F: Concurrent[F]): F[A] =
     fcs.flatMap { cs =>
-      F.async[A] { cb =>
+      F.async_[A] { cb =>
         cs.handle[Unit] { (result, err) =>
           err match {
             case null => cb(Right(result))
@@ -148,7 +148,7 @@ package object internal {
           }
         }
         ()
-      }.guarantee(CS.shift)
+      }.guarantee(Spawn[F].cede)
     }
 
   private[http4s] def unsafeToCompletionStage[F[_], A](

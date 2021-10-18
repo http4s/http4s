@@ -17,7 +17,7 @@
 package org.http4s.client.oauth1
 
 import cats.data.NonEmptyList
-import cats.effect.{IO, Timer}
+import cats.effect.IO
 import org.http4s.Credentials.AuthParams
 import org.http4s._
 import org.http4s.client.oauth1
@@ -28,11 +28,12 @@ import org.typelevel.ci._
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
+import cats.effect.Temporal
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // http://tools.ietf.org/html/rfc5849
-  implicit val timer: Timer[IO] = Http4sSuite.TestTimer
+  implicit val timer: Temporal[IO] = Http4sSuite.TestTimer
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")

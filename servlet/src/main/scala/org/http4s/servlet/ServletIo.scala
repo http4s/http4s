@@ -27,6 +27,7 @@ import org.http4s.internal.bug
 import org.http4s.internal.Trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
+import cats.effect.Sync
 
 /** Determines the mode of I/O used for reading request bodies and writing response bodies.
   */
@@ -55,7 +56,7 @@ final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, b
     val flush = response.isChunked
     response.body.chunks
       .evalTap { chunk =>
-        blocker.delay[F, Unit] {
+        Sync[F].blocking {
           // Avoids copying for specialized chunks
           val byteChunk = chunk.toBytes
           out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
@@ -114,7 +115,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         val registerRead =
           // Shift execution to a different EC
           Async.shift(Trampoline) *>
-            F.async[Option[Chunk[Byte]]] { cb =>
+            F.async_[Option[Chunk[Byte]]] { cb =>
               if (!state.compareAndSet(Init, Blocked(cb)))
                 cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
               else
@@ -145,7 +146,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
           .repeatEval( // perform the initial set then transition into normal read mode
             // Shift execution to a different EC
             Async.shift(Trampoline) *>
-              F.async[Option[Chunk[Byte]]] { cb =>
+              F.async_[Option[Chunk[Byte]]] { cb =>
                 @tailrec
                 def go(): Unit =
                   state.get match {
@@ -236,7 +237,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
     val awaitLastWrite = Stream.eval_ {
       // Shift execution to a different EC
       Async.shift(Trampoline) *>
-        F.async[Unit] { cb =>
+        F.async_[Unit] { cb =>
           state.getAndSet(AwaitingLastWrite(cb)) match {
             case Ready if out.isReady => cb(Right(()))
             case _ => ()
@@ -251,7 +252,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         .evalMap { chunk =>
           // Shift execution to a different EC
           Async.shift(Trampoline) *>
-            F.async[Chunk[Byte] => Unit] { cb =>
+            F.async_[Chunk[Byte] => Unit] { cb =>
               val blocked = Blocked(cb)
               state.getAndSet(blocked) match {
                 case Ready if out.isReady =>

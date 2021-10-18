@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.{Contravariant, Show}
 import cats.data.NonEmptyList
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import fs2.io.file.readAll
@@ -157,27 +157,25 @@ object EntityEncoder {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, File] =
+  def fileEncoder[F[_]: Sync: ContextShift]: EntityEncoder[F, File] =
     filePathEncoder[F](blocker).contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
+  def filePathEncoder[F[_]: Sync: ContextShift]: EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
       Entity(readAll[F](p, blocker, 4096)) //2 KB :P
     }
 
   // TODO parameterize chunk size
-  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
-      blocker: Blocker): EntityEncoder[F, F[IS]] =
+  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream]: EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { (in: F[IS]) =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(implicit
+  implicit def readerEncoder[F[_], R <: Reader](implicit
       F: Sync[F],
-      cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer

@@ -19,11 +19,12 @@ package client
 package middleware
 
 import cats.data.NonEmptyList
-import cats.effect.{BracketThrow, Sync}
+import cats.effect.Sync
 import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import org.typelevel.ci._
 import scala.util.control.NoStackTrace
+import cats.effect.MonadCancelThrow
 
 /** Client middleware for enabling gzip.
   */
@@ -71,7 +72,7 @@ object GZip {
     }
 
   private def decompressWith[F[_]](decompressor: Pipe[F, Byte, Byte])(implicit
-      F: BracketThrow[F]): Pipe[F, Byte, Byte] =
+      F: MonadCancelThrow[F]): Pipe[F, Byte, Byte] =
     _.pull.peek1
       .flatMap {
         case None => Pull.raiseError(EmptyBodyException)

@@ -19,7 +19,6 @@ package blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
@@ -35,6 +34,7 @@ import org.http4s.headers.`User-Agent`
 import org.http4s.syntax.all._
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import cats.effect.Deferred
 
 class Http1ClientStageSuite extends Http4sSuite {
   val trampoline = org.http4s.blaze.util.Execution.trampoline

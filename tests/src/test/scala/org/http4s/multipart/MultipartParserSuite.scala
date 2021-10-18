@@ -17,7 +17,6 @@
 package org.http4s.multipart
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.instances.string._
 import fs2._
 import org.http4s._
@@ -26,6 +25,7 @@ import org.http4s.util._
 import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
+import cats.effect.Ref
 
 class MultipartParserSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift

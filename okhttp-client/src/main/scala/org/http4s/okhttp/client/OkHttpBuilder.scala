@@ -63,14 +63,12 @@ sealed abstract class OkHttpBuilder[F[_]] private (
   private[this] val logger = getLogger
 
   private def copy(
-      okHttpClient: OkHttpClient = okHttpClient,
-      blocker: Blocker = blocker
-  ) = new OkHttpBuilder[F](okHttpClient, blocker) {}
+      okHttpClient: OkHttpClient = okHttpClient) = new OkHttpBuilder[F](okHttpClient, blocker) {}
 
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
     copy(okHttpClient = okHttpClient)
 
-  def withBlocker(blocker: Blocker): OkHttpBuilder[F] =
+  def withBlocker: OkHttpBuilder[F] =
     copy(blocker = blocker)
 
   @deprecated("Use withBlocker instead", "0.21.0")
@@ -87,14 +85,13 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     Resource.make(F.delay(create))(_ => F.unit)
 
   private def run(req: Request[F]) =
-    Resource.suspend(F.async[Resource[F, Response[F]]] { cb =>
+    Resource.suspend(F.async_[Resource[F, Response[F]]] { cb =>
       okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
       ()
     })
 
   private def handler(cb: Either[Throwable, Resource[F, Response[F]]] => Unit)(implicit
-      F: ConcurrentEffect[F],
-      cs: ContextShift[F]): Callback =
+      F: ConcurrentEffect[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
         invokeCallback(logger)(cb(Left(e)))
@@ -198,8 +195,7 @@ object OkHttpBuilder {
     * @param blocker $BLOCKER
     */
   def apply[F[_]: ConcurrentEffect: ContextShift](
-      okHttpClient: OkHttpClient,
-      blocker: Blocker): OkHttpBuilder[F] =
+      okHttpClient: OkHttpClient): OkHttpBuilder[F] =
     new OkHttpBuilder[F](okHttpClient, blocker) {}
 
   /** Create a builder with a default OkHttp client.  The builder is
@@ -208,8 +204,7 @@ object OkHttpBuilder {
     *
     * @param blocker $BLOCKER
     */
-  def withDefaultClient[F[_]: ConcurrentEffect: ContextShift](
-      blocker: Blocker): Resource[F, OkHttpBuilder[F]] =
+  def withDefaultClient[F[_]: ConcurrentEffect: ContextShift]: Resource[F, OkHttpBuilder[F]] =
     defaultOkHttpClient.map(apply(_, blocker))
 
   private def defaultOkHttpClient[F[_]](implicit

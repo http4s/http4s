@@ -28,7 +28,6 @@ import org.http4s.server.websocket.WebSocketBuilder
 
 import org.java_websocket.client.WebSocketClient
 import java.net.URI
-import cats.effect.concurrent.Deferred
 import org.java_websocket.handshake.ServerHandshake
 import fs2.concurrent.Queue
 import org.java_websocket.WebSocket
@@ -36,6 +35,7 @@ import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import cats.effect.Deferred
 
 class EmberServerWebSocketSuite extends Http4sSuite {
 

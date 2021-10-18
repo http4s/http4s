@@ -19,7 +19,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.syntax.all._
 import java.nio.file.Paths
 import org.http4s.server.middleware.TranslateUri
@@ -49,7 +49,6 @@ class ResourceServiceBuilder[F[_]] private (
 
   private def copy(
       basePath: String = basePath,
-      blocker: Blocker = blocker,
       pathPrefix: String = pathPrefix,
       bufferSize: Int = bufferSize,
       cacheStrategy: CacheStrategy[F] = cacheStrategy,
@@ -66,7 +65,7 @@ class ResourceServiceBuilder[F[_]] private (
 
   def withBasePath(basePath: String): ResourceServiceBuilder[F] = copy(basePath = basePath)
 
-  def withBlocker(blocker: Blocker): ResourceServiceBuilder[F] = copy(blocker = blocker)
+  def withBlocker: ResourceServiceBuilder[F] = copy(blocker = blocker)
 
   def withPathPrefix(pathPrefix: String): ResourceServiceBuilder[F] =
     copy(pathPrefix = pathPrefix)
@@ -82,7 +81,7 @@ class ResourceServiceBuilder[F[_]] private (
 
   def withBufferSize(bufferSize: Int): ResourceServiceBuilder[F] = copy(bufferSize = bufferSize)
 
-  def toRoutes(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
+  def toRoutes(implicit F: Sync[F]): HttpRoutes[F] = {
     val basePath = if (this.basePath.isEmpty) "/" else this.basePath
     object BadTraversal extends Exception with NoStackTrace
 
@@ -127,7 +126,7 @@ class ResourceServiceBuilder[F[_]] private (
 }
 
 object ResourceServiceBuilder {
-  def apply[F[_]](basePath: String, blocker: Blocker): ResourceServiceBuilder[F] =
+  def apply[F[_]](basePath: String): ResourceServiceBuilder[F] =
     new ResourceServiceBuilder[F](
       basePath = basePath,
       blocker = blocker,
@@ -161,7 +160,7 @@ object ResourceService {
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   @deprecated("use ResourceServiceBuilder", "1.0.0-M1")
   private[staticcontent] def apply[F[_]](
-      config: Config[F])(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
+      config: Config[F])(implicit F: Sync[F]): HttpRoutes[F] = {
     val basePath = if (config.basePath.isEmpty) "/" else config.basePath
     object BadTraversal extends Exception with NoStackTrace
 

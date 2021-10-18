@@ -19,12 +19,12 @@ package server
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.Stream
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
+import cats.effect.Ref
 
 class DefaultHeadSuite extends Http4sSuite {
   val httpRoutes = HttpRoutes.of[IO] {

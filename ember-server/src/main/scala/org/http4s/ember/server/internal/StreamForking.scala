@@ -18,9 +18,9 @@ package org.http4s.ember.server.internal
 
 import cats.syntax.all._
 import cats.effect.Concurrent
-import cats.effect.concurrent.Semaphore
 import fs2.{INothing, Stream}
 import fs2.concurrent.{Signal, SignallingRef}
+import cats.effect.std.Semaphore
 
 private[internal] object StreamForking {
 

@@ -18,7 +18,7 @@ package org.http4s
 package servlet
 
 import cats.syntax.all._
-import cats.effect.{IO, Resource, Timer}
+import cats.effect.{IO, Resource}
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.eclipse.jetty.server.HttpConfiguration
@@ -31,6 +31,7 @@ import org.http4s.syntax.all._
 import org.http4s.server.DefaultServiceErrorHandler
 import scala.io.Source
 import scala.concurrent.duration._
+import cats.effect.{ Sync, Temporal }
 
 class BlockingHttp4sServletSuite extends Http4sSuite {
   lazy val service = HttpRoutes
@@ -42,7 +43,7 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
       case GET -> Root / "shifted" =>
         IO.shift(munitExecutionContext) *>
           // Wait for a bit to make sure we lose the race
-          Timer[IO].sleep(50.millis) *>
+          Temporal[IO].sleep(50.millis) *>
           Ok("shifted")
     }
     .orNotFound
@@ -50,14 +51,14 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
   val servletServer = ResourceFixture[Int](serverPortR)
 
   def get(serverPort: Int, path: String): IO[String] =
-    testBlocker.delay[IO, String](
+    Sync[IO].blocking(
       Source
         .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
         .getLines()
         .mkString)
 
   def post(serverPort: Int, path: String, body: String): IO[String] =
-    testBlocker.delay[IO, String] {
+    Sync[IO].blocking {
       val url = new URL(s"http://127.0.0.1:$serverPort/$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)

@@ -18,7 +18,7 @@ package org.http4s
 package jetty
 package server
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.IO
 import cats.syntax.all._
 import java.net.{HttpURLConnection, URL}
 import java.io.IOException
@@ -27,6 +27,7 @@ import org.http4s.dsl.io._
 import org.http4s.server.Server
 import scala.concurrent.duration._
 import scala.io.Source
+import cats.effect.Temporal
 
 class JettyServerSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
@@ -53,7 +54,7 @@ class JettyServerSuite extends Http4sSuite {
             IO.never
 
           case GET -> Root / "slow" =>
-            implicitly[Timer[IO]].sleep(50.millis) *> Ok("slow")
+            implicitly[Temporal[IO]].sleep(50.millis) *> Ok("slow")
         },
         "/"
       )

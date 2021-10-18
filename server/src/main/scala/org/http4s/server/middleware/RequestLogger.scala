@@ -21,14 +21,14 @@ package middleware
 import cats.~>
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{BracketThrow, Concurrent, ExitCase, Sync}
+import cats.effect.{Concurrent, ExitCase, Sync}
 import cats.effect.implicits._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import cats.effect.Sync._
+import cats.effect.{ MonadCancelThrow, Ref }
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
@@ -43,7 +43,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None
   )(http: Http[G, F])(implicit
       F: Concurrent[F],
-      G: BracketThrow[G]
+      G: MonadCancelThrow[G]
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
@@ -55,7 +55,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]]
   )(http: Http[G, F])(implicit
       F: Concurrent[F],
-      G: BracketThrow[G]
+      G: MonadCancelThrow[G]
   ): Http[G, F] = {
     val log = logAction.fold { (s: String) =>
       Sync[F].delay(logger.info(s))

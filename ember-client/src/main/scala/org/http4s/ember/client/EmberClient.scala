@@ -20,11 +20,12 @@ import cats.effect._
 import org.http4s._
 import org.http4s.client._
 import org.typelevel.keypool._
+import cats.effect.MonadCancelThrow
 
 final class EmberClient[F[_]] private[client] (
     private val client: Client[F],
     private val pool: KeyPool[F, RequestKey, EmberConnection[F]]
-)(implicit F: BracketThrow[F])
+)(implicit F: MonadCancelThrow[F])
     extends DefaultClient[F] {
 
   /** The reason for this extra class. This allows you to see the present state

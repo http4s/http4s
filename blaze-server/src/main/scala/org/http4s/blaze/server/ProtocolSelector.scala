@@ -18,7 +18,7 @@ package org.http4s
 package blaze
 package server
 
-import cats.effect.{ConcurrentEffect, Timer}
+import cats.effect.ConcurrentEffect
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
@@ -29,6 +29,7 @@ import org.http4s.server.ServiceErrorHandler
 import org.typelevel.vault._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
+import cats.effect.Temporal
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private[http4s] object ProtocolSelector {
@@ -46,7 +47,7 @@ private[http4s] object ProtocolSelector {
       scheduler: TickWheelExecutor,
       maxWebSocketBufferSize: Option[Int])(implicit
       F: ConcurrentEffect[F],
-      timer: Timer[F]): ALPNServerSelector = {
+      timer: Temporal[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(

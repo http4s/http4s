@@ -22,6 +22,7 @@ import cats.data._
 import cats.effect.concurrent._
 import org.http4s._
 import org.http4s.syntax.all._
+import cats.effect.Deferred
 
 class MaxActiveRequestsSuite extends Http4sSuite {
   val req = Request[IO]()

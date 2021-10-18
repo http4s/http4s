@@ -18,7 +18,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{Concurrent, Resource, Timer}
+import cats.effect.{Concurrent, Resource}
 import cats.syntax.all._
 import org.http4s.Status._
 import org.http4s.headers.{`Idempotency-Key`, `Retry-After`}
@@ -29,6 +29,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
+import cats.effect.Temporal
 
 object Retry {
   private[this] val logger = getLogger
@@ -36,7 +37,7 @@ object Retry {
   def apply[F[_]](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
+      client: Client[F])(implicit F: Concurrent[F], T: Temporal[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
         case Right((response, dispose)) =>

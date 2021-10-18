@@ -24,6 +24,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecut
 import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import scala.concurrent.ExecutionContext
 import munit._
+import cats.effect.Temporal
 
 /** Common stack for http4s' munit based tests
   */
@@ -85,6 +86,6 @@ object Http4sSuite {
     s
   }
 
-  val TestTimer: Timer[IO] =
+  val TestTimer: Temporal[IO] =
     IO.timer(TestExecutionContext, TestScheduler)
 }

@@ -38,6 +38,7 @@ import scala.concurrent.duration._
 import scodec.bits.ByteVector
 import org.http4s.headers.Connection
 import java.nio.channels.InterruptedByTimeoutException
+import cats.effect.{ Deferred, Temporal }
 
 private[server] object ServerHelpers {
 
@@ -61,7 +62,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
+  )(implicit F: Concurrent[F], T: Temporal[F]): Stream[F, Nothing] = {
 
     val server: Stream[F, Resource[F, Socket[F]]] =
       Stream
@@ -120,7 +121,7 @@ private[server] object ServerHelpers {
         .widen[Socket[F]]
     }
 
-  private[internal] def runApp[F[_]: Concurrent: Timer](
+  private[internal] def runApp[F[_]: Concurrent: Temporal](
       buffer: Array[Byte],
       read: Read[F],
       maxHeaderSize: Int,
@@ -167,7 +168,7 @@ private[server] object ServerHelpers {
         case Right(()) => Sync[F].pure(())
       }
 
-  private[internal] def postProcessResponse[F[_]: Timer: Monad](
+  private[internal] def postProcessResponse[F[_]: Temporal: Monad](
       req: Request[F],
       resp: Response[F]): F[Response[F]] = {
     val connection = connectionFor(req.httpVersion, req.headers)
@@ -176,7 +177,7 @@ private[server] object ServerHelpers {
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
   }
 
-  private[internal] def runConnection[F[_]: Concurrent: Timer](
+  private[internal] def runConnection[F[_]: Concurrent: Temporal](
       socket: Socket[F],
       logger: Logger[F],
       idleTimeout: Duration,

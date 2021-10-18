@@ -112,7 +112,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
         (Status.NotModified, Set(connKeep), ""))
     )
 
-  def apply()(implicit cs: ContextShift[IO]) =
+  def apply() =
     HttpRoutes
       .of[IO] {
         case req if req.method == Method.GET && req.pathInfo == path"/get" =>

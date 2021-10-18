@@ -36,6 +36,7 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
+import cats.effect.{ Deferred, Ref }
 
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
@@ -50,7 +51,7 @@ object AsyncHttpClient {
 
   def apply[F[_]](httpClient: AsyncHttpClient)(implicit F: ConcurrentEffect[F]): Client[F] =
     Client[F] { req =>
-      Resource(F.async[(Response[F], F[Unit])] { cb =>
+      Resource(F.async_[(Response[F], F[Unit])] { cb =>
         httpClient.executeRequest(toAsyncRequest(req), asyncHandler(cb))
         ()
       })

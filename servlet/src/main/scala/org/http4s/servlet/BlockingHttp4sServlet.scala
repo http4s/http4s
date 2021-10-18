@@ -71,8 +71,7 @@ class BlockingHttp4sServlet[F[_]](
 
 object BlockingHttp4sServlet {
   def apply[F[_]: Effect: ContextShift](
-      service: HttpApp[F],
-      blocker: Blocker): BlockingHttp4sServlet[F] =
+      service: HttpApp[F]): BlockingHttp4sServlet[F] =
     new BlockingHttp4sServlet[F](
       service,
       BlockingServletIo(DefaultChunkSize, blocker),

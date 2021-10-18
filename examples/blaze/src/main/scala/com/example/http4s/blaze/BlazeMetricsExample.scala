@@ -26,6 +26,7 @@ import org.http4s.metrics.dropwizard._
 import org.http4s.server.{HttpMiddleware, Router, Server}
 import org.http4s.server.middleware.Metrics
 import scala.concurrent.ExecutionContext.global
+import cats.effect.{ Resource, Temporal }
 
 class BlazeMetricsExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -33,7 +34,7 @@ class BlazeMetricsExample extends IOApp {
 }
 
 object BlazeMetricsExampleApp {
-  def httpApp[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): HttpApp[F] = {
+  def httpApp[F[_]: ConcurrentEffect: ContextShift: Temporal]: HttpApp[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry()
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
     Router(
@@ -42,9 +43,9 @@ object BlazeMetricsExampleApp {
     ).orNotFound
   }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Temporal]: Resource[F, Server] =
     for {
-      blocker <- Blocker[F]
+      blocker <- Resource.unit[F]
       app = httpApp[F](blocker)
       server <- BlazeServerBuilder[F](global)
         .bindHttp(8080)

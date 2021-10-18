@@ -17,7 +17,7 @@
 package org.http4s
 package server
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
@@ -28,7 +28,7 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceServiceBuilder[F[_]](basePath: String, blocker: Blocker): ResourceServiceBuilder[F] =
+  def resourceServiceBuilder[F[_]](basePath: String): ResourceServiceBuilder[F] =
     ResourceServiceBuilder[F](basePath, blocker)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
@@ -41,7 +41,7 @@ package object staticcontent {
     FileService(config)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
-  def webjarServiceBuilder[F[_]](blocker: Blocker): WebjarServiceBuilder[F] =
+  def webjarServiceBuilder[F[_]]: WebjarServiceBuilder[F] =
     WebjarServiceBuilder[F](blocker)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */

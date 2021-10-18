@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.{Applicative, Functor, Monad, SemigroupK}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import fs2.io.file.writeAll
@@ -236,17 +236,15 @@ object EntityDecoder {
     text.map(_.toArray)
 
   // File operations
-  def binFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def binFile[F[_]](file: File)(implicit
+      F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val pipe = writeAll[F](file.toPath, blocker)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
-  def textFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def textFile[F[_]](file: File)(implicit
+      F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val pipe = writeAll[F](file.toPath, blocker)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
@@ -255,9 +253,7 @@ object EntityDecoder {
   implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
-  def mixedMultipart[F[_]: Sync: ContextShift](
-      blocker: Blocker,
-      headerLimit: Int = 1024,
+  def mixedMultipart[F[_]: Sync: ContextShift](headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =

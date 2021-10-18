@@ -19,7 +19,6 @@ package blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import java.time.Instant
 import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
@@ -29,6 +28,7 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Random
+import cats.effect.std.Semaphore
 
 final case class WaitQueueFullFailure() extends RuntimeException {
   @deprecated("Use `getMessage` instead", "0.20.0")

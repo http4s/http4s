@@ -22,6 +22,7 @@ import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.{Router, Server}
 import scala.concurrent.ExecutionContext.global
+import cats.effect.{ Resource, Temporal }
 
 object BlazeExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -29,14 +30,14 @@ object BlazeExample extends IOApp {
 }
 
 object BlazeExampleApp {
-  def httpApp[F[_]: Effect: ContextShift: Timer](blocker: Blocker): HttpApp[F] =
+  def httpApp[F[_]: Effect: ContextShift: Temporal]: HttpApp[F] =
     Router(
       "/http4s" -> ExampleService[F](blocker).routes
     ).orNotFound
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Temporal]: Resource[F, Server] =
     for {
-      blocker <- Blocker[F]
+      blocker <- Resource.unit[F]
       app = httpApp[F](blocker)
       server <- BlazeServerBuilder[F](global)
         .bindHttp(8080)

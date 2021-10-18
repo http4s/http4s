@@ -24,6 +24,7 @@ import org.http4s._
 import org.http4s.headers.{Date => HDate, _}
 import org.typelevel.ci.CIString
 import scala.concurrent.duration._
+import cats.MonadThrow
 
 /** Caching contains middlewares to support caching functionality.
   *

@@ -24,6 +24,7 @@ import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci._
 import org.typelevel.keypool.Reusable
+import cats.effect.Ref
 
 class ClientHelpersSuite extends Http4sSuite {
 

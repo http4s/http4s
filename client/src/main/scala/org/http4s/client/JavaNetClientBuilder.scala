@@ -17,7 +17,7 @@
 package org.http4s
 package client
 
-import cats.effect.{Async, Blocker, ContextShift, Resource, Sync}
+import cats.effect.{Async, Resource, Sync}
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.{readInputStream, writeOutputStream}
@@ -58,9 +58,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       readTimeout: Duration = readTimeout,
       proxy: Option[Proxy] = proxy,
       hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
-      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
-      blocker: Blocker = blocker
-  ): JavaNetClientBuilder[F] =
+      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory): JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
@@ -99,7 +97,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
   def withoutSslSocketFactory: JavaNetClientBuilder[F] =
     withSslSocketFactoryOption(None)
 
-  def withBlocker(blocker: Blocker): JavaNetClientBuilder[F] =
+  def withBlocker: JavaNetClientBuilder[F] =
     copy(blocker = blocker)
 
   @deprecated("Use withBlocker instead", "0.21.0")
@@ -219,7 +217,7 @@ object JavaNetClientBuilder {
   /** @param blockingExecutionContext An `ExecutionContext` on which
     * blocking operations will be performed.
     */
-  def apply[F[_]: Async: ContextShift](blocker: Blocker): JavaNetClientBuilder[F] =
+  def apply[F[_]: Async: ContextShift]: JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = defaults.ConnectTimeout,
       readTimeout = defaults.RequestTimeout,

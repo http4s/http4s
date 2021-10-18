@@ -19,12 +19,12 @@ package server
 
 import cats.syntax.all._
 import cats.effect._
-import cats.effect.concurrent.Ref
 import fs2._
 import fs2.concurrent.{Signal, SignallingRef}
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.internal.BackendBuilder
 import scala.collection.immutable
+import cats.effect.Ref
 
 trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   type Self <: ServerBuilder[F]

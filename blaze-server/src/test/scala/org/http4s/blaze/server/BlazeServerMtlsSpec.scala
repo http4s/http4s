@@ -16,7 +16,7 @@
 
 package org.http4s.blaze.server
 
-import cats.effect.{ContextShift, IO, Resource}
+import cats.effect.{IO, Resource}
 import fs2.io.tls.TLSParameters
 import java.net.URL
 import java.nio.charset.StandardCharsets

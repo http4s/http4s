@@ -19,7 +19,6 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import java.util.concurrent.atomic._
 import org.http4s.client.dsl.Http4sClientDsl
@@ -27,6 +26,7 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.headers._
 import org.typelevel.ci._
+import cats.effect.std.Semaphore
 
 class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   private val loopCounter = new AtomicInteger(0)

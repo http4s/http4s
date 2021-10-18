@@ -18,7 +18,6 @@ package org.http4s
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s.Method._
@@ -26,6 +25,7 @@ import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.syntax.all._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
+import cats.effect.Ref
 
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val app = HttpRoutes

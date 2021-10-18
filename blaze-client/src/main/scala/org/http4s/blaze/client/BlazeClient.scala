@@ -32,6 +32,7 @@ import org.http4s.client.{Client, RequestKey}
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import cats.effect.Deferred
 
 /** Blaze client implementation */
 object BlazeClient {

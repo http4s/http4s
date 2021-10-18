@@ -19,7 +19,7 @@ package blaze
 package server
 
 import cats.data.Kleisli
-import cats.effect.{ConcurrentEffect, Resource, Sync, Timer}
+import cats.effect.{ConcurrentEffect, Resource, Sync}
 import cats.syntax.all._
 import cats.{Alternative, Applicative}
 import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
@@ -49,6 +49,7 @@ import scala.collection.immutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
+import cats.effect.Temporal
 
 /** BlazeBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
@@ -104,7 +105,7 @@ class BlazeServerBuilder[F[_]] private (
     maxConnections: Int,
     val channelOptions: ChannelOptions,
     maxWebSocketBufferSize: Option[Int]
-)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+)(implicit protected val F: ConcurrentEffect[F], timer: Temporal[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
   type Self = BlazeServerBuilder[F]
@@ -410,12 +411,12 @@ class BlazeServerBuilder[F[_]] private (
 
 object BlazeServerBuilder {
   @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
-  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
+  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Temporal[F]): BlazeServerBuilder[F] =
     apply(ExecutionContext.global)
 
   def apply[F[_]](executionContext: ExecutionContext)(implicit
       F: ConcurrentEffect[F],
-      timer: Timer[F]): BlazeServerBuilder[F] =
+      timer: Temporal[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.IPv4SocketAddress,
       executionContext = executionContext,
