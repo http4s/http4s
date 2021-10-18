@@ -23,7 +23,7 @@ import scala.meta._
 
 class v0_22 extends SemanticRule("v0_22") {
   override def fix(implicit doc: SemanticDocument): Patch =
-    rewritePackages + rewriteCIString + rewriteHeaders
+    rewritePackages + rewriteCIString + rewriteHeaders + rewriteUri
 
   def rewritePackages(implicit doc: SemanticDocument): Patch =
     Patch.replaceSymbols(
@@ -78,4 +78,22 @@ class v0_22 extends SemanticRule("v0_22") {
 
   val Headers_of_M = SymbolMatcher.exact("org/http4s/Headers.of().")
   val Headers_S = Symbol("org/http4s/Headers#")
+
+  def rewriteUri(implicit doc: SemanticDocument) = 
+    doc.tree.collect {
+      case t @ Term.Apply(Uri_M(_), args) =>
+        val path: Option[Term] =
+          args match {
+            case _ :: _ :: (path @ Lit.String(_)) :: _ => Some(path)
+            case _ => args.collectFirst { case Term.Assign(Term.Name("path"), path @ Lit.String(_)) => path }
+          }
+        path.fold(Patch.empty){ path =>
+          Patch.addGlobalImport(StringSyntaxWildcard) + 
+            Patch.replaceTree(path, s"path$path")
+        }
+    }.asPatch
+
+  val Uri_M = SymbolMatcher.exact("org/http4s/Uri.")
+
+  val StringSyntaxWildcard = Importer(q"org.http4s.syntax.string", List(Importee.Wildcard()))
 }
