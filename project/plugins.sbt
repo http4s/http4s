@@ -13,7 +13,7 @@ addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.6.
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.1")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.5.1")
-addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.8.1")
+addSbtPlugin("com.github.sbt"           %  "sbt-native-packager"       % "1.9.0")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
 addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.23")
 addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.4.3")
