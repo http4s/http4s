@@ -46,7 +46,7 @@ class StringWriterSuite extends Http4sSuite {
           val s = sw.result
           assert(s.startsWith(s1))
           assert(s.endsWith(s3))
-          assert(!s.drop(s1.length).dropRight(s3.length).exists(forbiddenChars))
+          unitToProp(assert(!s.drop(s1.length).dropRight(s3.length).exists(forbiddenChars)))
         }
     }
   }

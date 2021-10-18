@@ -98,6 +98,6 @@ class EmberServerSuite extends Http4sSuite {
       for {
         r1 <- client.fetchAs[String](request)
         r2 <- client.fetchAs[String](request)
-      } yield assertEquals(expected, r1) && assertEquals(expected, r2)
+      } yield unitToProp(assertEquals(expected, r1)) && unitToProp(assertEquals(expected, r2))
   }
 }
