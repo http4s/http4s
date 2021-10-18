@@ -28,7 +28,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.6"
   val scala_212 = "2.12.15"
-  val scala_3 = "3.0.1"
+  val scala_3 = "3.0.2"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
