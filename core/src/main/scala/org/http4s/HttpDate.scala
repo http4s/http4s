@@ -25,12 +25,12 @@ import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
 import org.http4s.util.{Renderable, Writer}
 import scala.concurrent.duration.SECONDS
 
-/** An HTTP-date value represents time as an instance of Coordinated Universal
-  * Time (UTC). It expresses time at a resolution of one second.  By using it
-  * over java.time.Instant in the model, we assure that if two headers render
-  * equally, their values are equal.
+/** An HTTP-date value represents time as an instance of Coordinated Universal Time (UTC). It
+  * expresses time at a resolution of one second. By using it over java.time.Instant in the model,
+  * we assure that if two headers render equally, their values are equal.
   *
-  * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+  * @see
+  *   [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
   */
 class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[HttpDate] {
   def compare(that: HttpDate): Int =
@@ -68,25 +68,25 @@ object HttpDate {
     *
     * The minimum year is specified by RFC5322 as 1900.
     *
-    * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
-    * @see [[https://tools.ietf.org/html/rfc5322#section-3.3 RFC 5322, Section 3.3, Date and Time Specification]]
+    * @see
+    *   [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+    * @see
+    *   [[https://tools.ietf.org/html/rfc5322#section-3.3 RFC 5322, Section 3.3, Date and Time Specification]]
     */
   val MinValue = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
 
   /** The latest value reprsentable by RFC1123, `Fri, 31 Dec 9999 23:59:59 GMT`. */
   val MaxValue = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
 
-  /** Constructs an `HttpDate` from the current time. Starting on January 1,n
-    * 10000, this will throw an exception. The author intends to leave this
-    * problem for future generations.
+  /** Constructs an `HttpDate` from the current time. Starting on January 1,n 10000, this will throw
+    * an exception. The author intends to leave this problem for future generations.
     */
   @deprecated("0.20.16", "Use HttpDate.current instead, this breaks referential transparency")
   def now: HttpDate =
     unsafeFromInstant(Instant.now)
 
-  /** Constructs an [[HttpDate]] from the current time. Starting on January 1,n
-    * 10000, this will throw an exception. The author intends to leave this
-    * problem for future generations.
+  /** Constructs an [[HttpDate]] from the current time. Starting on January 1,n 10000, this will
+    * throw an exception. The author intends to leave this problem for future generations.
     */
   def current[F[_]: Functor: Clock]: F[HttpDate] =
     Clock[F].realTime(SECONDS).map(unsafeFromEpochSecond)
@@ -97,7 +97,8 @@ object HttpDate {
 
   /** Parses a date according to RFC7231, Section 7.1.1.1
     *
-    * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+    * @see
+    *   [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
     */
   def fromString(s: String): ParseResult[HttpDate] =
     ParseResult.fromParser(parser, "Invalid HTTP date")(s)
@@ -106,8 +107,8 @@ object HttpDate {
   def unsafeFromString(s: String): HttpDate =
     fromString(s).fold(throw _, identity)
 
-  /** Constructs a date from the seconds since the [[Epoch]]. If out of range,
-    *  returns a ParseFailure.
+  /** Constructs a date from the seconds since the [[Epoch]]. If out of range, returns a
+    * ParseFailure.
     */
   def fromEpochSecond(epochSecond: Long): ParseResult[HttpDate] =
     if (epochSecond < MinEpochSecond || epochSecond > MaxEpochSecond)
@@ -121,8 +122,8 @@ object HttpDate {
   def unsafeFromEpochSecond(epochSecond: Long): HttpDate =
     fromEpochSecond(epochSecond).fold(throw _, identity)
 
-  /** Constructs a date from an instant, truncating to the most recent second. If
-    *  out of range, returns a ParseFailure.
+  /** Constructs a date from an instant, truncating to the most recent second. If out of range,
+    * returns a ParseFailure.
     */
   def fromInstant(instant: Instant): ParseResult[HttpDate] =
     fromEpochSecond(instant.toEpochMilli / 1000)
@@ -131,8 +132,8 @@ object HttpDate {
   def unsafeFromInstant(instant: Instant): HttpDate =
     unsafeFromEpochSecond(instant.toEpochMilli / 1000)
 
-  /** Constructs a date from an zoned date-time, truncating to the most recent
-    *  second. If out of range, returns a ParseFailure.
+  /** Constructs a date from an zoned date-time, truncating to the most recent second. If out of
+    * range, returns a ParseFailure.
     */
   def fromZonedDateTime(dateTime: ZonedDateTime): ParseResult[HttpDate] =
     fromInstant(dateTime.toInstant)

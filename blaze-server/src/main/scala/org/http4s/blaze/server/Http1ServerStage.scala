@@ -24,7 +24,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.pipeline.{Command => Cmd, TailStage}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
 import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}

@@ -114,7 +114,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
   def withOnError(onError: Throwable => Response[F]) =
-    withErrorHandler({ case e => onError(e).pure[F] })
+    withErrorHandler { case e => onError(e).pure[F] }
 
   def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
     copy(errorHandler = errorHandler)

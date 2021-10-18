@@ -29,13 +29,20 @@ import scala.util.{Failure, Success, Try}
 
 /** [[org.http4s.server.staticcontent.ResourceServiceBuilder]] builder
   *
-  * @param basePath prefix of the path files will be served from
-  * @param blocker execution context to use when collecting content
-  * @param pathPrefix prefix of the Uri that content will be served from
-  * @param bufferSize size hint of internal buffers to use when serving resources
-  * @param cacheStrategy strategy to use for caching purposes.
-  * @param preferGzipped whether to serve pre-gzipped files (with extension ".gz") if they exist
-  * @param classLoader optional classloader for extracting the resources
+  * @param basePath
+  *   prefix of the path files will be served from
+  * @param blocker
+  *   execution context to use when collecting content
+  * @param pathPrefix
+  *   prefix of the Uri that content will be served from
+  * @param bufferSize
+  *   size hint of internal buffers to use when serving resources
+  * @param cacheStrategy
+  *   strategy to use for caching purposes.
+  * @param preferGzipped
+  *   whether to serve pre-gzipped files (with extension ".gz") if they exist
+  * @param classLoader
+  *   optional classloader for extracting the resources
   */
 class ResourceServiceBuilder[F[_]] private (
     basePath: String,
@@ -143,12 +150,18 @@ object ResourceService {
 
   /** [[org.http4s.server.staticcontent.ResourceService]] configuration
     *
-    * @param basePath prefix of the path files will be served from
-    * @param blocker execution context to use when collecting content
-    * @param pathPrefix prefix of the Uri that content will be served from
-    * @param bufferSize size hint of internal buffers to use when serving resources
-    * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
-    * @param preferGzipped whether to serve pre-gzipped files (with extension ".gz") if they exist
+    * @param basePath
+    *   prefix of the path files will be served from
+    * @param blocker
+    *   execution context to use when collecting content
+    * @param pathPrefix
+    *   prefix of the Uri that content will be served from
+    * @param bufferSize
+    *   size hint of internal buffers to use when serving resources
+    * @param cacheStrategy
+    *   strategy to use for caching purposes. Default to no caching.
+    * @param preferGzipped
+    *   whether to serve pre-gzipped files (with extension ".gz") if they exist
     */
   final case class Config[F[_]](
       basePath: String,

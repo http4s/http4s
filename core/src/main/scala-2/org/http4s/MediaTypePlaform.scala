@@ -23,8 +23,7 @@ import scala.reflect.macros.whitebox
   "0.22.2")
 trait MediaTypePlaform {
 
-  /** Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
-    * at compile time.
+  /** Literal syntax for MediaTypes. Invalid or non-literal arguments are rejected at compile time.
     */
   @deprecated("""use mediaType"" string interpolation instead""", "0.20")
   def mediaType(s: String): MediaType = macro MediaTypePlaform.Macros.mediaTypeLiteral

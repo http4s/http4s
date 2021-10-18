@@ -23,12 +23,12 @@ import cats.effect._
 import cats.syntax.all._
 import cats.~>
 
-/** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
-  * request query params.
+/** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the request query
+  * params.
   *
-  * The params are merged into the existing paras _after_ the existing query params. This
-  * means that if the query already contains the pair "foo" -> Some("bar"), parameters on
-  * the body must be acessed through `multiParams`.
+  * The params are merged into the existing paras _after_ the existing query params. This means that
+  * if the query already contains the pair "foo" -> Some("bar"), parameters on the body must be
+  * acessed through `multiParams`.
   */
 object UrlFormLifter {
   def apply[F[_]: Sync, G[_]: Sync](f: G ~> F)(

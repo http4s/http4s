@@ -31,7 +31,7 @@ import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{`User-Agent`}
+import org.http4s.headers.`User-Agent`
 import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.client.middleware.Retry

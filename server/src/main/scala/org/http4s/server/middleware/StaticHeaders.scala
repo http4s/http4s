@@ -22,8 +22,7 @@ import cats.data.{Kleisli, NonEmptyList}
 import cats.syntax.all._
 import org.http4s.headers.`Cache-Control`
 
-/** Simple middleware for adding a static set of headers to responses
-  * returned by a kleisli.
+/** Simple middleware for adding a static set of headers to responses returned by a kleisli.
   */
 object StaticHeaders {
   def apply[F[_]: Functor, G[_], A](headers: Headers)(
