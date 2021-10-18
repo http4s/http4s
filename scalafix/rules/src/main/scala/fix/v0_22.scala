@@ -23,7 +23,7 @@ import scala.meta._
 
 class v0_22 extends SemanticRule("v0_22") {
   override def fix(implicit doc: SemanticDocument): Patch =
-    rewritePackages + rewriteCIString
+    rewritePackages + rewriteCIString + rewriteHeaders
 
   def rewritePackages(implicit doc: SemanticDocument): Patch =
     Patch.replaceSymbols(
@@ -55,4 +55,27 @@ class v0_22 extends SemanticRule("v0_22") {
   val CIString_S = Symbol("org/typelevel/ci/CIString#")
 
   val CIWildcard = Importer(q"org.typelevel.ci", List(Importee.Wildcard()))
+
+  def rewriteHeaders(implicit doc: SemanticDocument) =
+    doc.tree.collect {
+      // ci-ify header name
+      case Term.Apply(Header_M(_), List(k, _)) =>
+        Patch.addGlobalImport(CIWildcard) + 
+          Patch.replaceTree(k, k match {
+            case s @ Lit.String(_) => s"ci$s"
+            case _ => s"${CIString_S.displayName}($k)"
+          })
+      // `Header` => `Header.Raw` 
+      case t @ Header_M(Type.Name(_) | Term.Name(_)) => 
+        Patch.replaceTree(t, s"${Header_S.displayName}.Raw")
+      // `Headers.of` => `Headers`
+      case t @ Term.Apply(fun@Headers_of_M(_), args) =>
+        Patch.replaceTree(t, s"${Headers_S.displayName}(${args.mkString(", ")})")
+    }.asPatch
+
+  val Header_M = SymbolMatcher.normalized("org/http4s/Header.")
+  val Header_S = Symbol("org/http4s/Header#")
+
+  val Headers_of_M = SymbolMatcher.exact("org/http4s/Headers.of().")
+  val Headers_S = Symbol("org/http4s/Headers#")
 }
