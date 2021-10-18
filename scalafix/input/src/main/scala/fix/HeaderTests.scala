@@ -3,6 +3,7 @@ rule = v0_22
 */
 
 import org.http4s.{Header, Headers}
+import org.http4s.headers.{AgentProduct, `User-Agent`}
 
 object HeaderTests {
   val k = "k"
@@ -14,4 +15,6 @@ object HeaderTests {
   }
 
   Headers.of(foo, bar)
+
+  `User-Agent`(AgentProduct("scalafix"))
 }

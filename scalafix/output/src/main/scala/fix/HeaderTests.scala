@@ -1,4 +1,6 @@
 import org.http4s.{Header, Headers}
+import org.http4s.headers.`User-Agent`
+import org.http4s.ProductId
 import org.typelevel.ci._
 
 object HeaderTests {
@@ -11,4 +13,6 @@ object HeaderTests {
   }
 
   Headers(foo, bar)
+
+  `User-Agent`(ProductId("scalafix"))
 }
