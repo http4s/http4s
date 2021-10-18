@@ -18,9 +18,12 @@ package fix
 
 import scalafix.v1._
 
+import scala.meta.Token._
+import scala.meta._
+
 class v0_22 extends SemanticRule("v0_22") {
   override def fix(implicit doc: SemanticDocument): Patch =
-    rewritePackages
+    rewritePackages + ciStringRename + ciStringToString
 
   def rewritePackages(implicit doc: SemanticDocument): Patch =
     Patch.replaceSymbols(
@@ -32,4 +35,19 @@ class v0_22 extends SemanticRule("v0_22") {
       "org.http4s.client.blaze" -> "org.http4s.blaze.client",
       "org.http4s.server.blaze" -> "org.http4s.blaze.server"
     )
+
+  def ciStringToString(implicit doc: SemanticDocument): Patch =
+    doc.tree.collect {
+      case t @ Term.Select(name, CaseInsensitiveString_value_M(_)) => 
+        Patch.replaceTree(t, s"${name.syntax}.toString")
+      case _ => Patch.empty
+    }.asPatch
+
+  def ciStringRename(implicit doc: SemanticDocument): Patch =
+    Patch.replaceSymbols(
+      "org.http4s.util.CaseInsensitiveString" -> "org.typelevel.ci.CIString"
+    )
+
+  val CaseInsensitiveString_value_M = SymbolMatcher.exact("org/http4s/util/CaseInsensitiveString#value.")
+  val CIString_S = Symbol("org/typelevel/ci/CIString#")
 }
