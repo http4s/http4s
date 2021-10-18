@@ -335,7 +335,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.54"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.13"
+    val vault = "3.1.0"
   }
 
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
