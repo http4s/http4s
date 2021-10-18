@@ -93,7 +93,8 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
       Parser.string("timeout=") *> digits.mapFilter(s => safeToLong(s).map(Timeout.apply))
 
     //"max" "=" 1*DIGIT
-    val max: Parser[Max] = Parser.string("max=") *> digits.mapFilter(s => safeToLong(s).map(Max.apply))
+    val max: Parser[Max] =
+      Parser.string("max=") *> digits.mapFilter(s => safeToLong(s).map(Max.apply))
 
     //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     val keepAliveExtension: Parser[Extension] =
