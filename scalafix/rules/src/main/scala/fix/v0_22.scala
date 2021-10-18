@@ -88,12 +88,12 @@ class v0_22 extends SemanticRule("v0_22") {
             case _ => args.collectFirst { case Term.Assign(Term.Name("path"), path @ Lit.String(_)) => path }
           }
         path.fold(Patch.empty){ path =>
-          Patch.addGlobalImport(StringSyntaxWildcard) + 
+          Patch.addGlobalImport(LiteralsSyntaxWildcard) + 
             Patch.replaceTree(path, s"path$path")
         }
     }.asPatch
 
   val Uri_M = SymbolMatcher.exact("org/http4s/Uri.")
 
-  val StringSyntaxWildcard = Importer(q"org.http4s.syntax.string", List(Importee.Wildcard()))
+  val LiteralsSyntaxWildcard = Importer(q"org.http4s.syntax.literals", List(Importee.Wildcard()))
 }
