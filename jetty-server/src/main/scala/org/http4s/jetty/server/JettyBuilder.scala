@@ -29,10 +29,10 @@ import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory
 import org.eclipse.jetty.server.{
-  ServerConnector,
   HttpConfiguration,
   HttpConnectionFactory,
-  Server => JServer
+  Server => JServer,
+  ServerConnector
 }
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
@@ -127,14 +127,14 @@ sealed class JettyBuilder[F[_]] private (
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
     copy(sslConfig = new ContextWithClientAuth(sslContext, clientAuth))
 
-  /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters`
+  /** Configures the server with TLS, using the provided `SSLContext` and its default
+    * `SSLParameters`
     */
   def withSslContext(sslContext: SSLContext): Self =
     copy(sslConfig = new ContextOnly(sslContext))
 
-  /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters`
+  /** Configures the server with TLS, using the provided `SSLContext` and its default
+    * `SSLParameters`
     */
   def withSslContextAndParameters(sslContext: SSLContext, sslParameters: SSLParameters): Self =
     copy(sslConfig = new ContextWithParameters(sslContext, sslParameters))
@@ -148,20 +148,19 @@ sealed class JettyBuilder[F[_]] private (
 
   /** Set the [[org.eclipse.jetty.util.thread.ThreadPool]] that Jetty will use.
     *
-    * It is recommended you use [[JettyThreadPools#resource]] to build this so
-    * that it will be gracefully shutdown when/if the Jetty server is
-    * shutdown.
+    * It is recommended you use [[JettyThreadPools#resource]] to build this so that it will be
+    * gracefully shutdown when/if the Jetty server is shutdown.
     */
   def withThreadPoolResource(threadPoolResource: Resource[F, ThreadPool]): JettyBuilder[F] =
     copy(threadPoolResourceOption = Some(threadPoolResource))
 
   /** Set the [[org.eclipse.jetty.util.thread.ThreadPool]] that Jetty will use.
     *
-    * @note You should prefer [[#withThreadPoolResource]] instead of this
-    *       method. If you invoke this method the provided
-    *       [[org.eclipse.jetty.util.thread.ThreadPool]] ''will not'' be
-    *       joined, stopped, or destroyed when/if the Jetty server stops. This
-    *       is to preserve the <= 0.21.23 semantics.
+    * @note
+    *   You should prefer [[#withThreadPoolResource]] instead of this method. If you invoke this
+    *   method the provided [[org.eclipse.jetty.util.thread.ThreadPool]] ''will not'' be joined,
+    *   stopped, or destroyed when/if the Jetty server stops. This is to preserve the <= 0.21.23
+    *   semantics.
     */
   @deprecated(
     message = "Please use withThreadPoolResource instead and see JettyThreadPools.",
@@ -214,8 +213,8 @@ sealed class JettyBuilder[F[_]] private (
   def withAsyncTimeout(asyncTimeout: Duration): Self =
     copy(asyncTimeout = asyncTimeout)
 
-  /** Sets the graceful shutdown timeout for Jetty.  Closing the resource
-    * will wait this long before a forcible stop.
+  /** Sets the graceful shutdown timeout for Jetty. Closing the resource will wait this long before
+    * a forcible stop.
     */
   def withShutdownTimeout(shutdownTimeout: Duration): Self =
     copy(shutdownTimeout = shutdownTimeout)
@@ -226,8 +225,8 @@ sealed class JettyBuilder[F[_]] private (
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
 
-  /** Enables HTTP/2 connection upgrade over plain text (no TLS).
-    * See https://webtide.com/introduction-to-http2-in-jetty
+  /** Enables HTTP/2 connection upgrade over plain text (no TLS). See
+    * https://webtide.com/introduction-to-http2-in-jetty
     */
   def withHttp2c: Self =
     copy(supportHttp2 = true)
@@ -240,8 +239,8 @@ sealed class JettyBuilder[F[_]] private (
 
   /** Provide a specific [[org.eclipse.jetty.server.HttpConfiguration]].
     *
-    * This can be used for direct low level control over many HTTP related
-    * configuration settings which http4s may not directly expose.
+    * This can be used for direct low level control over many HTTP related configuration settings
+    * which http4s may not directly expose.
     */
   def withJettyHttpConfiguration(value: HttpConfiguration): Self =
     copy(jettyHttpConfiguration = value)

@@ -20,8 +20,7 @@ import scala.reflect.macros.whitebox
 
 trait UriPlatform {
 
-  /** Literal syntax for URIs.  Invalid or non-literal arguments are rejected
-    * at compile time.
+  /** Literal syntax for URIs. Invalid or non-literal arguments are rejected at compile time.
     */
   @deprecated("""use uri"" string interpolation instead""", "0.20")
   def uri(s: String): Uri = macro UriPlatform.Macros.uriLiteral

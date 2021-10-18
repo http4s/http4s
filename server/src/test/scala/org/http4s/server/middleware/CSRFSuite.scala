@@ -32,9 +32,9 @@ class CSRFSuite extends Http4sSuite {
 
   /** Create a clock that always ticks forward once per millis() call.
     *
-    * This is to emulate scenarios where we want to mitigate BREACH where, in
-    * a real world service, a huge number of requests wouldn't be processed
-    * before the clock at least traverses a millisecond.
+    * This is to emulate scenarios where we want to mitigate BREACH where, in a real world service,
+    * a huge number of requests wouldn't be processed before the clock at least traverses a
+    * millisecond.
     */
   private val testClock: Clock = new Clock { self =>
     private lazy val clockTick = new AtomicLong(Instant.now().toEpochMilli)

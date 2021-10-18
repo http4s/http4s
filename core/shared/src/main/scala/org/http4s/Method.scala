@@ -25,19 +25,22 @@ import scala.util.hashing.MurmurHash3
 
 /** An HTTP method.
   *
-  * @param name The name of the method
+  * @param name
+  *   The name of the method
   *
-  * @param isSafe Request methods are considered "safe" if their defined
-  * semantics are essentially read-only; i.e., the client does not request, and
-  * does not expect, any state change on the origin server as a result of
-  * applying a safe method to a target resource.
+  * @param isSafe
+  *   Request methods are considered "safe" if their defined semantics are essentially read-only;
+  *   i.e., the client does not request, and does not expect, any state change on the origin server
+  *   as a result of applying a safe method to a target resource.
   *
-  * @param isIdempotent A request method is considered "idempotent" if the
-  * intended effect on the server of multiple identical requests with that
-  * method is the same as the effect for a single such request.
+  * @param isIdempotent
+  *   A request method is considered "idempotent" if the intended effect on the server of multiple
+  *   identical requests with that method is the same as the effect for a single such request.
   *
-  * @see [[http://tools.ietf.org/html/rfc7231#section-4 RFC 7321, Section 4, Request Methods]]
-  * @see [[http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]]
+  * @see
+  *   [[http://tools.ietf.org/html/rfc7231#section-4 RFC 7321, Section 4, Request Methods]]
+  * @see
+  *   [[http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]]
   */
 final class Method private (val name: String, val isSafe: Boolean, val isIdempotent: Boolean)
     extends Renderable

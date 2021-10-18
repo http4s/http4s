@@ -22,10 +22,11 @@ import org.typelevel.ci._
 
 /** Constructs a `Content-Length` header.
   *
-  * The HTTP RFCs do not specify a maximum length.  We have decided that `Long.MaxValue`
-  * bytes ought to be good enough for anybody in order to avoid the irritations of `BigInt`.
+  * The HTTP RFCs do not specify a maximum length. We have decided that `Long.MaxValue` bytes ought
+  * to be good enough for anybody in order to avoid the irritations of `BigInt`.
   *
-  * @param length the length
+  * @param length
+  *   the length
   */
 final case class `Content-Length`(length: Long) {
   def modify(f: Long => Long): Option[`Content-Length`] =
