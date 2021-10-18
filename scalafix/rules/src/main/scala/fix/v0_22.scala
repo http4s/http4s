@@ -23,7 +23,7 @@ import scala.meta._
 
 class v0_22 extends SemanticRule("v0_22") {
   override def fix(implicit doc: SemanticDocument): Patch =
-    rewritePackages + ciStringRename + ciStringToString
+    rewritePackages + rewriteCIString
 
   def rewritePackages(implicit doc: SemanticDocument): Patch =
     Patch.replaceSymbols(
@@ -36,18 +36,23 @@ class v0_22 extends SemanticRule("v0_22") {
       "org.http4s.server.blaze" -> "org.http4s.blaze.server"
     )
 
-  def ciStringToString(implicit doc: SemanticDocument): Patch =
-    doc.tree.collect {
+  def rewriteCIString(implicit doc: SemanticDocument): Patch =
+    Patch.replaceSymbols(
+      "org.http4s.util.CaseInsensitiveString" -> "org.typelevel.ci.CIString"
+    ) + doc.tree.collect {
       case t @ Term.Select(name, CaseInsensitiveString_value_M(_)) => 
         Patch.replaceTree(t, s"${name.syntax}.toString")
+      case t @ Term.Select(s@Lit.String(_), StringOps_ci_M(_)) =>
+        Patch.addGlobalImport(CIWildcard) + Patch.replaceTree(t, s"ci$s")
+      case t @ Term.Select(s, StringOps_ci_M(_)) =>
+        Patch.addGlobalImport(CIWildcard) + Patch.replaceTree(t, s"${CIString_S.displayName}($s)")
       case _ => Patch.empty
     }.asPatch
 
-  def ciStringRename(implicit doc: SemanticDocument): Patch =
-    Patch.replaceSymbols(
-      "org.http4s.util.CaseInsensitiveString" -> "org.typelevel.ci.CIString"
-    )
-
   val CaseInsensitiveString_value_M = SymbolMatcher.exact("org/http4s/util/CaseInsensitiveString#value.")
+  val StringOps_ci_M = SymbolMatcher.exact("org/http4s/syntax/StringOps#ci().")
+
   val CIString_S = Symbol("org/typelevel/ci/CIString#")
+
+  val CIWildcard = Importer(q"org.typelevel.ci", List(Importee.Wildcard()))
 }

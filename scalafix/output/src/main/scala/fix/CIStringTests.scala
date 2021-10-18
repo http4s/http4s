@@ -1,7 +1,10 @@
-import org.typelevel.ci.CIString
+import org.http4s.syntax.all._
+import org.typelevel.ci.{ CIString, _ }
 
 class CIStringTests {
   val s = "bar"
   val foo: CIString = CIString(s)
-  val baz = foo.toString
+  foo.toString
+  ci"hi"
+  CIString(s)
 }
