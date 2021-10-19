@@ -247,7 +247,7 @@ Knowing this, we could say a `Client[F]` is equivalent to a function from `Reque
 
 A client middleware follows the same idea as our original middleware did: it takes a `Client` (which is a function) and returns another `Client` (which is also a function).
 
-It can see the input `Request[F]` that we pass to the client when we call it, it can modify that request, pass the underlying client (or any other client, really!), and do all sorts of other things, including effects - all it has to do is return a `Resource[F, Response[F]]`.
+It can see the input `Request[F]` that we pass to the client when we call it, it can modify that request, pass it to the underlying client (or any other client, really!), and do all sorts of other things, including effects - all it has to do is return a `Resource[F, Response[F]]`.
 
 The real definition of `Client` is a little more complicated because there's several more abstract methods.
 If you want to implement a client using just a function (for example, to make a middleware), consider using `Client.apply`.
