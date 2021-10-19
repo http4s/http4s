@@ -268,6 +268,9 @@ def addTestHeader[F[_]: MonadCancelThrow](underlying: Client[F]): Client[F] = Cl
 }
 ```
 
+As the caller of the client you would get from this, you would see the extra header in the response.
+Similarly, every service called by the client would see an extra header in the requests.
+
 ### Included Middleware
 
 Http4s includes some middleware Out of the Box in the `org.http4s.client.middleware`
