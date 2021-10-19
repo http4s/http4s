@@ -243,7 +243,7 @@ trait Client[F[_]] {
 }
 ```
 
-Knowing this, we could say a `Client[F]` is equivalent to a function from `Request[F]` to `Response[F, Response[F]]`. In fact, given a client, we could call `client.run _` to get that function.
+Knowing this, we could say a `Client[F]` is equivalent to a function from `Request[F]` to `Resource[F, Response[F]]`. In fact, given a client, we could call `client.run _` to get that function.
 
 A client middleware follows the same idea as our original middleware did: it takes a `Client` (which is a function) and returns another `Client` (which is also a function).
 
