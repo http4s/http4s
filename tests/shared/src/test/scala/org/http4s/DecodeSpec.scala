@@ -24,11 +24,11 @@ import org.scalacheck.Prop.{forAll, propBoolean}
 
 import java.nio.ByteBuffer
 import java.nio.charset.{
+  Charset => JCharset,
   CodingErrorAction,
   MalformedInputException,
   StandardCharsets,
-  UnmappableCharacterException,
-  Charset => JCharset
+  UnmappableCharacterException
 }
 import scala.util.Try
 

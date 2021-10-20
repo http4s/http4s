@@ -22,8 +22,8 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
 import org.typelevel.discipline.Laws
 
-/** Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]]
-  * must satisfy the following properties
+/** Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]] must satisfy the following
+  * properties
   */
 object QueryParamCodecLaws extends Laws {
   val parseFailure = ParseFailure("For Test", "Let's assume we didn't like this value")

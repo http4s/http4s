@@ -23,7 +23,8 @@ import cats.parse.Rfc5234.{alpha, digit, dquote, htab, sp, vchar}
 
 /** Common rules defined in RFC7230
   *
-  * @see [[https://tools.ietf.org/html/rfc7230#appendix-B]]
+  * @see
+  *   [[https://tools.ietf.org/html/rfc7230#appendix-B]]
   */
 private[http4s] object Rfc7230 {
   /* `tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /

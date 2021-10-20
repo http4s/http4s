@@ -19,16 +19,14 @@ package org.http4s.jetty.server
 import org.eclipse.jetty.util.thread.ThreadPool
 
 /** A [[org.eclipse.jetty.util.thread.ThreadPool]] which does not implement
-  * [[[[org.eclipse.jetty.util.component.Destroyable]]]] and with a `join`
-  * method that does not do anything.
+  * [[[[org.eclipse.jetty.util.component.Destroyable]]]] and with a `join` method that does not do
+  * anything.
   *
-  * We use this class to ensure that code compiled against http4s < 0.21.23
-  * will have consistent semantics. Otherwise, attempts to run
-  * [[JettyBuilder#resource]] more than once would fail as the
-  * [[org.eclipse.jetty.util.thread.ThreadPool]] would have been shut down
-  * after the first invocation completed. This is a side effect of cleaning up
-  * the resource leak by invoking `.destroy` on the Jetty Server when the
-  * resource is completed.
+  * We use this class to ensure that code compiled against http4s < 0.21.23 will have consistent
+  * semantics. Otherwise, attempts to run [[JettyBuilder#resource]] more than once would fail as the
+  * [[org.eclipse.jetty.util.thread.ThreadPool]] would have been shut down after the first
+  * invocation completed. This is a side effect of cleaning up the resource leak by invoking
+  * `.destroy` on the Jetty Server when the resource is completed.
   */
 private[jetty] final class UndestroyableThreadPool(value: ThreadPool) extends ThreadPool {
   override final def getIdleThreads: Int = value.getIdleThreads

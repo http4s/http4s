@@ -27,24 +27,23 @@ import scodec.bits.ByteVector
 
 /** Middleware for caching the request body for multiple compilations
   *
-  * As the body of the request is the [[Stream]] of bytes,
-  * compiling it several times (e.g. with middlewares) is unsafe.
-  * This middleware forbids such behaviour, compiling the body only once.
-  * It does so only for the "inner" middlewares:
+  * As the body of the request is the [[Stream]] of bytes, compiling it several times (e.g. with
+  * middlewares) is unsafe. This middleware forbids such behaviour, compiling the body only once. It
+  * does so only for the "inner" middlewares:
   *
   * {{{
   * val route = AMiddleware(BodyCache(SomeOtherMiddleware(myRoute)))
   * }}}
   *
-  * In this example only `myRoute` & `SomeOtherMiddleware` will receive cached request body,
-  * while the `AMiddleware` will get the raw one.
+  * In this example only `myRoute` & `SomeOtherMiddleware` will receive cached request body, while
+  * the `AMiddleware` will get the raw one.
   *
-  * As the entire request body will be allocated in memory,
-  * there is a possibility of OOM error with a large body.
-  * Because of that, using the `EntityLimiter` middleware is strongly advised.
+  * As the entire request body will be allocated in memory, there is a possibility of OOM error with
+  * a large body. Because of that, using the `EntityLimiter` middleware is strongly advised.
   *
-  * @note This middleware has nothing to do with the HTTP caching mechanism
-  *       and it does not cache bodies between multiple requests.
+  * @note
+  *   This middleware has nothing to do with the HTTP caching mechanism and it does not cache bodies
+  *   between multiple requests.
   */
 object BodyCache {
 

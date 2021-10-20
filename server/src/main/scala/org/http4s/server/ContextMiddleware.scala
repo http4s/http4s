@@ -26,11 +26,12 @@ object ContextMiddleware {
       getContext: Kleisli[OptionT[F, *], Request[F], T]): ContextMiddleware[F, T] =
     _.compose(Kleisli((r: Request[F]) => getContext(r).map(ContextRequest(_, r))))
 
-  /** Useful for Testing, Construct a Middleware from a single
-    * value T to use as the context
+  /** Useful for Testing, Construct a Middleware from a single value T to use as the context
     *
-    * @param t The value to use as the context
-    * @return A ContextMiddleware that always provides T
+    * @param t
+    *   The value to use as the context
+    * @return
+    *   A ContextMiddleware that always provides T
     */
   def const[F[_]: Monad, T](t: T): ContextMiddleware[F, T] =
     apply(Kleisli(_ => t.pure[OptionT[F, *]]))
