@@ -16,7 +16,7 @@
 
 package org.http4s.headers
 
-import cats.{Semigroup, Eq}
+import cats.{Eq, Semigroup}
 import cats.data.NonEmptyList
 import org.typelevel.ci._
 import cats.parse.Parser
