@@ -16,16 +16,21 @@
 
 package org.http4s.headers
 
+import cats.{Semigroup, Eq}
 import cats.data.NonEmptyList
 import org.typelevel.ci._
 import cats.parse.Parser
 import org.http4s.Header
 import org.http4s.internal.parsing.Rfc7230
 
-sealed trait Vary
+sealed trait Vary {
+  def ++(that: Vary): Vary = (this, that) match {
+    case (Vary.`*`, _) | (_, Vary.`*`) => Vary.`*`
+    case (Vary.HeaderList(these), Vary.HeaderList(those)) => Vary.HeaderList(these ++ those.toList)
+  }
+}
 
 object Vary extends HeaderCompanion[Vary]("Vary") {
-
   def apply(headers: NonEmptyList[CIString]): Vary = HeaderList(headers)
   def apply(head: CIString, tail: CIString*): Vary = HeaderList(NonEmptyList.of(head, tail: _*))
 
@@ -39,4 +44,8 @@ object Vary extends HeaderCompanion[Vary]("Vary") {
     case HeaderList(values) => values
     case `*` => NonEmptyList.one(ci"*")
   }
+
+  implicit val eqInstance: Eq[Vary] = Eq.fromUniversalEquals
+
+  implicit val semigroupInstance: Semigroup[Vary] = Semigroup.instance(_ ++ _)
 }

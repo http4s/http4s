@@ -18,7 +18,9 @@ package org.http4s
 package headers
 
 import org.http4s.laws.discipline.arbitrary._
+import cats.kernel.laws.discipline.SemigroupTests
 
 final class VarySpec extends HeaderLaws {
   checkAll("Vary", headerLaws[Vary])
+  checkAll("Semigroup[Vary]", SemigroupTests[Vary].semigroup)
 }
