@@ -261,7 +261,7 @@ A simple middleware, which would add a constant header to every request and resp
 ```scala mdoc
 import org.typelevel.ci.CIString
 
-def addTestHeader[F[_]: MonadCancelThrow](underlying: Client[F]): Client[F] = Client[F] { req =>
+def addTestHeader[F[_]: Concurrent](underlying: Client[F]): Client[F] = Client[F] { req =>
   underlying
     .run(
       req.withHeaders(Header.Raw(CIString("X-Test-Request"), "test"))
