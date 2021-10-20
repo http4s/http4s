@@ -28,9 +28,8 @@ import org.typelevel.ci._
 import org.typelevel.vault.Key
 import java.util.UUID
 
-/** Propagate a `X-Request-Id` header to the response, generate a UUID
-  * when the `X-Request-Id` header is unset.
-  * https://devcenter.heroku.com/articles/http-request-id
+/** Propagate a `X-Request-Id` header to the response, generate a UUID when the `X-Request-Id`
+  * header is unset. https://devcenter.heroku.com/articles/http-request-id
   */
 object RequestId {
 

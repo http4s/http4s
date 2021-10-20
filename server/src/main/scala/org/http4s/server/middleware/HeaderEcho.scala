@@ -26,8 +26,10 @@ object HeaderEcho {
 
   /** Simple server middleware that adds selected headers present on the request to the response.
     *
-    * @param echoHeadersWhen the function that selects which headers to echo on the response
-    * @param http [[Http]] to transform
+    * @param echoHeadersWhen
+    *   the function that selects which headers to echo on the response
+    * @param http
+    *   [[Http]] to transform
     */
   def apply[F[_]: Functor, G[_]](echoHeadersWhen: CIString => Boolean)(
       http: Http[F, G]): Http[F, G] =

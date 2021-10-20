@@ -101,16 +101,18 @@ private final class PoolManager[F[_], A <: Connection[F]](
     (requestTimeout.isFinite && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout.isFinite && elapsed >= responseHeaderTimeout.toMillis)
   }
 
-  /** This method is the core method for creating a connection which increments allocated synchronously
-    * then builds the connection with the given callback and completes the callback.
+  /** This method is the core method for creating a connection which increments allocated
+    * synchronously then builds the connection with the given callback and completes the callback.
     *
     * If we can create a connection then it initially increments the allocated value within a region
-    * that is called synchronously by the calling method. Then it proceeds to attempt to create the connection
-    * and feed it the callback. If we cannot create a connection because we are already full then this
-    * completes the callback on the error synchronously.
+    * that is called synchronously by the calling method. Then it proceeds to attempt to create the
+    * connection and feed it the callback. If we cannot create a connection because we are already
+    * full then this completes the callback on the error synchronously.
     *
-    * @param key      The RequestKey for the Connection.
-    * @param callback The callback to complete with the NextConnection.
+    * @param key
+    *   The RequestKey for the Connection.
+    * @param callback
+    *   The callback to complete with the NextConnection.
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     F.ifM(F.delay(numConnectionsCheckHolds(key)))(
@@ -149,19 +151,20 @@ private final class PoolManager[F[_], A <: Connection[F]](
     *
     * If the pool is closed the effect failure is executed.
     *
-    * If the pool is not closed then we look for any connections in the idleQueues that match
-    * the RequestKey requested.
-    * If a matching connection exists and it is stil open the callback is executed with the connection.
-    * If a matching connection is closed we deallocate and repeat the check through the idleQueues.
-    * If no matching connection is found, and the pool is not full we create a new Connection to perform
-    * the request.
-    * If no matching connection is found and the pool is full, and we have connections in the idleQueues
-    * then a connection in the idleQueues is shutdown and a new connection is created to perform the request.
-    * If no matching connection is found and the pool is full, and all connections are currently in use
-    * then the Request is placed in a waitingQueue to be executed when a connection is released.
+    * If the pool is not closed then we look for any connections in the idleQueues that match the
+    * RequestKey requested. If a matching connection exists and it is stil open the callback is
+    * executed with the connection. If a matching connection is closed we deallocate and repeat the
+    * check through the idleQueues. If no matching connection is found, and the pool is not full we
+    * create a new Connection to perform the request. If no matching connection is found and the
+    * pool is full, and we have connections in the idleQueues then a connection in the idleQueues is
+    * shutdown and a new connection is created to perform the request. If no matching connection is
+    * found and the pool is full, and all connections are currently in use then the Request is
+    * placed in a waitingQueue to be executed when a connection is released.
     *
-    * @param key The Request Key For The Connection
-    * @return An effect of NextConnection
+    * @param key
+    *   The Request Key For The Connection
+    * @return
+    *   An effect of NextConnection
     */
   def borrow(key: RequestKey): F[NextConnection] =
     F.asyncF { callback =>
@@ -274,22 +277,24 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   /** This is how connections are returned to the ConnectionPool.
     *
-    * If the pool is closed the connection is shutdown and logged.
-    * If it is not closed we check if the connection is recyclable.
+    * If the pool is closed the connection is shutdown and logged. If it is not closed we check if
+    * the connection is recyclable.
     *
-    * If the connection is Recyclable we check if any of the connections in the waitQueue
-    * are looking for the returned connections RequestKey.
-    * If one is the first found is given the connection.And runs it using its callback asynchronously.
-    * If one is not found and the waitingQueue is Empty then we place the connection on the idle queue.
-    * If the waiting queue is not empty and we did not find a match then we shutdown the connection
-    * and create a connection for the first item in the waitQueue.
+    * If the connection is Recyclable we check if any of the connections in the waitQueue are
+    * looking for the returned connections RequestKey. If one is the first found is given the
+    * connection.And runs it using its callback asynchronously. If one is not found and the
+    * waitingQueue is Empty then we place the connection on the idle queue. If the waiting queue is
+    * not empty and we did not find a match then we shutdown the connection and create a connection
+    * for the first item in the waitQueue.
     *
-    * If it is not recyclable, and it is not shutdown we shutdown the connection. If there
-    * are values in the waitQueue we create a connection and execute the callback asynchronously.
+    * If it is not recyclable, and it is not shutdown we shutdown the connection. If there are
+    * values in the waitQueue we create a connection and execute the callback asynchronously.
     * Otherwise the pool is shrunk.
     *
-    * @param connection The connection to be released.
-    * @return An effect of Unit
+    * @param connection
+    *   The connection to be released.
+    * @return
+    *   An effect of Unit
     */
   def release(connection: A): F[Unit] =
     semaphore.withPermit {
@@ -315,11 +320,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
       }
     }
 
-  /** This invalidates a Connection. This is what is exposed externally, and
-    * is just an effect wrapper around disposing the connection.
+  /** This invalidates a Connection. This is what is exposed externally, and is just an effect
+    * wrapper around disposing the connection.
     *
-    * @param connection The connection to invalidate
-    * @return An effect of Unit
+    * @param connection
+    *   The connection to invalidate
+    * @return
+    *   An effect of Unit
     */
   override def invalidate(connection: A): F[Unit] =
     semaphore.withPermit {
@@ -343,8 +350,10 @@ private final class PoolManager[F[_], A <: Connection[F]](
     *
     * By taking an Option of a connection this also serves as a synchronized allocated decrease.
     *
-    * @param key        The request key for the connection. Not used internally.
-    * @param connection An Option of a Connection to Dispose Of.
+    * @param key
+    *   The request key for the connection. Not used internally.
+    * @param connection
+    *   An Option of a Connection to Dispose Of.
     */
   private def disposeConnection(key: RequestKey, connection: Option[A]): F[Unit] =
     semaphore.withPermit {
@@ -359,10 +368,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   /** Shuts down the connection pool permanently.
     *
-    * Changes isClosed to true, no methods can reopen a closed Pool.
-    * Shutdowns all connections in the IdleQueue and Sets Allocated to Zero
+    * Changes isClosed to true, no methods can reopen a closed Pool. Shutdowns all connections in
+    * the IdleQueue and Sets Allocated to Zero
     *
-    * @return An effect Of Unit
+    * @return
+    *   An effect Of Unit
     */
   def shutdown: F[Unit] =
     semaphore.withPermit {

@@ -50,11 +50,11 @@ object QueryParameterValue {
     Hash.by(_.value)
 }
 
-/** type class defining the key of a query parameter
-  * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
+/** type class defining the key of a query parameter Usually used in conjunction with
+  * [[QueryParamEncoder]] and [[QueryParamDecoder]]
   *
-  * Any [[QueryParam]] instance is also a valid [[QueryParamKeyLike]] instance
-  * where the same key is used for all values.
+  * Any [[QueryParam]] instance is also a valid [[QueryParamKeyLike]] instance where the same key is
+  * used for all values.
   */
 trait QueryParam[T] extends QueryParamKeyLike[T] {
   def key: QueryParameterKey
@@ -171,7 +171,8 @@ object QueryParamCodec {
 }
 
 /** Type class defining how to encode a `T` as a [[QueryParameterValue]]s
-  * @see QueryParamCodecLaws
+  * @see
+  *   QueryParamCodecLaws
   */
 trait QueryParamEncoder[T] { outer =>
   def encode(value: T): QueryParameterValue
@@ -290,7 +291,8 @@ object QueryParamEncoder {
 }
 
 /** Type class defining how to decode a [[QueryParameterValue]] into a `T`
-  * @see QueryParamCodecLaws
+  * @see
+  *   QueryParamCodecLaws
   */
 trait QueryParamDecoder[T] { outer =>
   def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, T]

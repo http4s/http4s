@@ -39,8 +39,8 @@ import scala.util.{Failure, Success}
 /** Utility bits for dealing with the HTTP 1.x protocol */
 private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
-  /** ExecutionContext to be used for all Future continuations
-    * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows
+  /** ExecutionContext to be used for all Future continuations '''WARNING:''' The ExecutionContext
+    * should trampoline or risk possibly unhandled stack overflows
     */
   protected implicit def executionContext: ExecutionContext
 
@@ -87,8 +87,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     )
   }
 
-  /** Get the proper body encoder based on the request,
-    * adding the appropriate Connection and Transfer-Encoding headers along the way
+  /** Get the proper body encoder based on the request, adding the appropriate Connection and
+    * Transfer-Encoding headers along the way
     */
   final protected def getEncoder(
       connectionHeader: Option[Connection],
@@ -152,10 +152,12 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
   /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *
-    * @param buffer starting `ByteBuffer` to use in parsing.
-    * @param eofCondition If the other end hangs up, this is the condition used in the stream for termination.
-    *                     The desired result will differ between Client and Server as the former can interpret
-    *                     and `Command.EOF` as the end of the body while a server cannot.
+    * @param buffer
+    *   starting `ByteBuffer` to use in parsing.
+    * @param eofCondition
+    *   If the other end hangs up, this is the condition used in the stream for termination. The
+    *   desired result will differ between Client and Server as the former can interpret and
+    *   `Command.EOF` as the end of the body while a server cannot.
     */
   final protected def collectBodyFromParser(
       buffer: ByteBuffer,
@@ -234,8 +236,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     (repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F]), () => drainBody(currentBuffer))
   }
 
-  /** Called when a fatal error has occurred
-    * The method logs an error and shuts down the stage, sending the error outbound
+  /** Called when a fatal error has occurred The method logs an error and shuts down the stage,
+    * sending the error outbound
     * @param t
     * @param msg
     */
@@ -290,11 +292,9 @@ object Http1Stage {
       Future.successful(buffer)
     } else CachedEmptyBufferThunk
 
-  /** Encodes the headers into the Writer. Does not encode
-    * `Transfer-Encoding` or `Content-Length` headers, which are left
-    * for the body encoder. Does not encode headers with invalid
-    * names. Adds `Date` header if one is missing and this is a server
-    * response.
+  /** Encodes the headers into the Writer. Does not encode `Transfer-Encoding` or `Content-Length`
+    * headers, which are left for the body encoder. Does not encode headers with invalid names. Adds
+    * `Date` header if one is missing and this is a server response.
     *
     * Note: this method is very niche but useful for both server and client.
     */
