@@ -20,6 +20,7 @@ import scalafix.v1._
 
 import scala.meta.Token._
 import scala.meta._
+import scala.xml.transform.RewriteRule
 
 class v0_22 extends SemanticRule("v0_22") {
   override def fix(implicit doc: SemanticDocument): Patch =
@@ -71,6 +72,13 @@ class v0_22 extends SemanticRule("v0_22") {
       // `Headers.of` => `Headers`
       case t @ Term.Apply(fun@Headers_of_M(_), args) =>
         Patch.replaceTree(t, s"${Headers_S.displayName}(${args.mkString(", ")})")
+
+      case t @ AgentProduct_M(Type.Name(_) | Term.Name(_)) => 
+        Patch.addGlobalImport(ProductId_S) + 
+          Patch.replaceTree(t, ProductId_S.displayName)
+      case AgentProduct_M(imp: Importee) =>
+        Patch.removeImportee(imp)
+
     }.asPatch
 
   val Header_M = SymbolMatcher.normalized("org/http4s/Header.")
@@ -78,6 +86,10 @@ class v0_22 extends SemanticRule("v0_22") {
 
   val Headers_of_M = SymbolMatcher.exact("org/http4s/Headers.of().")
   val Headers_S = Symbol("org/http4s/Headers#")
+
+  val AgentProduct_M = SymbolMatcher.exact("org/http4s/headers/AgentProduct.")
+  val AgentProduct_S = Symbol("org/http4s/headers/AgentProduct.")
+  val ProductId_S = Symbol("org.http4s.ProductId#")
 
   def rewriteUri(implicit doc: SemanticDocument) = 
     doc.tree.collect {

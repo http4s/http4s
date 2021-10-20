@@ -1,5 +1,5 @@
 lazy val V = _root_.scalafix.sbt.BuildInfo
-lazy val outputVersion = "0.20.0"
+lazy val outputVersion = "0.22.7"
 inThisBuild(
   List(
     organization := "org.http4s",
