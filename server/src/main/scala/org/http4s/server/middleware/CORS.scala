@@ -495,7 +495,7 @@ sealed class CORSPolicy(
         case _ => varyHeaderNonOptions
       }).fold(resp) { vary =>
         resp.putHeaders(
-          resp.headers.get[Vary].map(vary ++ _)
+          resp.headers.get[Vary].fold(vary)(_ ++ vary)
         )
       }
 
