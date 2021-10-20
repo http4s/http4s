@@ -24,20 +24,19 @@ import cats.parse.Rfc5234.digit
 import org.http4s.util._
 import scala.annotation.nowarn
 
-/** HTTP's version number consists of two decimal digits separated by
-  * a "." (period or decimal point). The first digit ("major version")
-  * indicates the messaging syntax, whereas the second digit ("minor
-  * version") indicates the highest minor version within that major
-  * version to which the sender is conformant (able to understand for
-  * future communication).
+/** HTTP's version number consists of two decimal digits separated by a "." (period or decimal
+  * point). The first digit ("major version") indicates the messaging syntax, whereas the second
+  * digit ("minor version") indicates the highest minor version within that major version to which
+  * the sender is conformant (able to understand for future communication).
   *
-  * @param major The major version, `0` to `9` inclusive
+  * @param major
+  *   The major version, `0` to `9` inclusive
   *
-  * @param minor The minor version, `0` to `9` inclusive
+  * @param minor
+  *   The minor version, `0` to `9` inclusive
   *
   * @see
-  * [[https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#protocol.version
-  * HTTP Semantics, Protocol Versioning]]
+  *   [[https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#protocol.version HTTP Semantics, Protocol Versioning]]
   */
 final case class HttpVersion private (major: Int, minor: Int)
     extends Renderable
@@ -70,72 +69,74 @@ final case class HttpVersion private (major: Int, minor: Int)
 
 object HttpVersion {
 
-  /** HTTP/0.9 was first formalized in the HTTP/1.0 spec. `HTTP/0.9`
-    * does not literally appear in the HTTP/0.9 protocol.
+  /** HTTP/0.9 was first formalized in the HTTP/1.0 spec. `HTTP/0.9` does not literally appear in
+    * the HTTP/0.9 protocol.
     *
-    * @see [[https://www.w3.org/Protocols/HTTP/AsImplemented.html The
-    * original HTTP as defined in 1991]]
+    * @see
+    *   [[https://www.w3.org/Protocols/HTTP/AsImplemented.html The original HTTP as defined in 1991]]
     *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc1945 RFC1945,
-    * Hypertext Transfer Protocol -- HTTP/1.0]]
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc1945 RFC1945, Hypertext Transfer Protocol -- HTTP/1.0]]
     */
   val `HTTP/0.9` = new HttpVersion(0, 9)
 
   /** HTTP/1.0 is the first major version of HTTP.
     *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc1945 RFC1945,
-    * Hypertext Transfer Protocol -- HTTP/1.0]]
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc1945 RFC1945, Hypertext Transfer Protocol -- HTTP/1.0]]
     */
   val `HTTP/1.0` = new HttpVersion(1, 0)
 
   /** HTTP/1.1 revises HTTP/1.0, and is currently defined by six RFCs.
     *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc208 Hypertext
-    * Transfer Protocol -- HTTP/1.1]] (obsolete)
-    *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc2616 Hypertext
-    * Transfer Protocol -- HTTP/1.1]] (obsolete)
-    *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7230 Hypertext
-    * Transfer Protocol (HTTP/1.1): Message Syntax and Routing]]
-    *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7231 Hypertext
-    * Transfer Protocol (HTTP/1.1): Semantics and Content]]
-    *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7232 Hypertext
-    * Transfer Protocol (HTTP/1.1): Conditional Requests]]
-    *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7233 Hypertext
-    * Transfer Protocol (HTTP/1.1): Range Requests]]
-    *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7234 Hypertext
-    * Transfer Protocol (HTTP/1.1): Caching]]
-    *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7235 Hypertext
-    * Transfer Protocol (HTTP/1.1): Authentication]]
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc208 Hypertext Transfer Protocol -- HTTP/1.1]]
+    *   (obsolete)
     *
     * @see
-    * [[https://datatracker.ietf.org/doc/draft-ietf-httpbis-messaging/
-    * HTTP/1.1]] (draft)
+    *   [[https://datatracker.ietf.org/doc/html/rfc2616 Hypertext Transfer Protocol -- HTTP/1.1]]
+    *   (obsolete)
+    *
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc7230 Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing]]
+    *
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc7231 Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content]]
+    *
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc7232 Hypertext Transfer Protocol (HTTP/1.1): Conditional Requests]]
+    *
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc7233 Hypertext Transfer Protocol (HTTP/1.1): Range Requests]]
+    *
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc7234 Hypertext Transfer Protocol (HTTP/1.1): Caching]]
+    *
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc7235 Hypertext Transfer Protocol (HTTP/1.1): Authentication]]
+    *
+    * @see
+    *   [[https://datatracker.ietf.org/doc/draft-ietf-httpbis-messaging/ HTTP/1.1]] (draft)
     */
   val `HTTP/1.1` = new HttpVersion(1, 1)
 
-  /** HTTP/2 is the second major version of HTTP.  It defines no minor
-    * versions, so minor version `0` is implied.
+  /** HTTP/2 is the second major version of HTTP. It defines no minor versions, so minor version `0`
+    * is implied.
     *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7540 RFC7540,
-    * Hypertext Transfer Protocol Version 2 (HTTP/2)]]
+    * @see
+    *   [[https://datatracker.ietf.org/doc/html/rfc7540 RFC7540, Hypertext Transfer Protocol Version 2 (HTTP/2)]]
     */
   val `HTTP/2` = new HttpVersion(2, 0)
 
   @deprecated("Renamed to `HTTP/2`. HTTP/2 does not define minor versions.", "0.22.6")
   def `HTTP/2.0` = `HTTP/2`
 
-  /** HTTP/3 is the third major version of HTTP.  It defines no minor
-    * versions, so minor version `0` is implied.
+  /** HTTP/3 is the third major version of HTTP. It defines no minor versions, so minor version `0`
+    * is implied.
     *
-    * @see [[https://quicwg.org/base-drafts/draft-ietf-quic-http.html
-    * Hypertext Transfer Protocol Version 3 (HTTP/3)]] (draft)
+    * @see
+    *   [[https://quicwg.org/base-drafts/draft-ietf-quic-http.html Hypertext Transfer Protocol Version 3 (HTTP/3)]]
+    *   (draft)
     */
   val `HTTP/3` = new HttpVersion(3, 0)
 
@@ -186,8 +187,10 @@ object HttpVersion {
     * Left(org.http4s.ParseFailure: Invalid HTTP version: major must be <= 9: 10)
     * }}}
     *
-    * @param major The major version, `0` to `9` inclusive
-    * @param minor The minor version, `0` to `9` inclusive
+    * @param major
+    *   The major version, `0` to `9` inclusive
+    * @param minor
+    *   The minor version, `0` to `9` inclusive
     */
   def fromVersion(major: Int, minor: Int): ParseResult[HttpVersion] =
     if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $major")

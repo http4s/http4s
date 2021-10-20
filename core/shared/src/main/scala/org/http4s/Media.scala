@@ -46,9 +46,12 @@ trait Media[F[_]] {
 
   /** Decode the [[Media]] to the specified type
     *
-    * @param decoder [[EntityDecoder]] used to decode the [[Media]]
-    * @tparam T type of the result
-    * @return the effect which will generate the `DecodeResult[T]`
+    * @param decoder
+    *   [[EntityDecoder]] used to decode the [[Media]]
+    * @tparam T
+    *   type of the result
+    * @return
+    *   the effect which will generate the `DecodeResult[T]`
     */
   final def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
     decoder.decode(this, strict = false)
@@ -57,9 +60,12 @@ trait Media[F[_]] {
     *
     * If no valid [[Status]] has been described, allow Ok
     *
-    * @param decoder [[EntityDecoder]] used to decode the [[Media]]
-    * @tparam A type of the result
-    * @return the effect which will generate the A
+    * @param decoder
+    *   [[EntityDecoder]] used to decode the [[Media]]
+    * @tparam A
+    *   type of the result
+    * @return
+    *   the effect which will generate the A
     */
   final def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
     F.rethrow(attemptAs.value)

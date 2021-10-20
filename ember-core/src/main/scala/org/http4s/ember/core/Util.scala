@@ -42,17 +42,14 @@ private[ember] object Util {
       .eval(clock.realTime)
       .map(_.toMillis)
 
-  /** The issue with a normal http body is that there is no termination character,
-    * thus unless you have content-length and the client still has their input side open,
-    * the server cannot know whether more data follows or not
-    * This means this Stream MUST be infinite and additional parsing is required.
-    * To know how much client input to consume
+  /** The issue with a normal http body is that there is no termination character, thus unless you
+    * have content-length and the client still has their input side open, the server cannot know
+    * whether more data follows or not This means this Stream MUST be infinite and additional
+    * parsing is required. To know how much client input to consume
     *
-    * Function if timeout reads via socket read and then incrementally lowers
-    * the remaining time after each read.
-    * By setting the timeout signal outside this after the
-    * headers have been read it triggers this function
-    * to then not timeout on the remaining body.
+    * Function if timeout reads via socket read and then incrementally lowers the remaining time
+    * after each read. By setting the timeout signal outside this after the headers have been read
+    * it triggers this function to then not timeout on the remaining body.
     */
   def readWithTimeout[F[_]](
       socket: Socket[F],

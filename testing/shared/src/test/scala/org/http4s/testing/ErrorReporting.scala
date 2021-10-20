@@ -35,8 +35,8 @@ import scala.util.control.NonFatal
 
 object ErrorReporting {
 
-  /** Silences System.out and System.err streams for the duration of thunk.
-    * Restores the original streams before exiting.
+  /** Silences System.out and System.err streams for the duration of thunk. Restores the original
+    * streams before exiting.
     */
   def silenceOutputStreams[R](thunk: => R): R =
     synchronized {
@@ -74,8 +74,8 @@ object ErrorReporting {
             )))
     }
 
-  /** Silences `System.err`, only printing the output in case exceptions are
-    * thrown by the executed `thunk`.
+  /** Silences `System.err`, only printing the output in case exceptions are thrown by the executed
+    * `thunk`.
     */
   def silenceSystemErr[A](thunk: => A): A =
     synchronized {
