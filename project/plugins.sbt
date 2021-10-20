@@ -15,5 +15,5 @@ addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.5.1")
 addSbtPlugin("com.github.sbt"           %  "sbt-native-packager"       % "1.9.0")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
-addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.23")
+addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.24")
 addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.4.3")
