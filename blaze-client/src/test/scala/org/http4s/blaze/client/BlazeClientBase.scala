@@ -83,7 +83,7 @@ trait BlazeClientBase extends Http4sSuite {
             }
         }
       case "POST" =>
-        exchange.getRequestURI.getPath match {
+        IO.blocking(exchange.getRequestURI.getPath match {
           case "/respond-and-close-immediately" =>
             // We don't consume the req.getInputStream (the request entity). That means that:
             // - The client may receive the response before sending the whole request
@@ -105,11 +105,10 @@ trait BlazeClientBase extends Http4sSuite {
               result = exchange.getRequestBody.read()
             exchange.sendResponseHeaders(204, 0L)
             exchange.close()
-        }
-        IO.blocking {
-          exchange.sendResponseHeaders(204, -1)
-          exchange.close()
-        }
+          case _ =>
+            exchange.sendResponseHeaders(404, -1L)
+            exchange.close()
+        })
     }
     io.start.unsafeRunAndForget()
   }

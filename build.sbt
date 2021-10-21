@@ -348,7 +348,7 @@ lazy val emberServer = libraryProject("ember-server")
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      log4catsSlf4j, 
+      log4catsSlf4j,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
     ),
@@ -405,6 +405,7 @@ lazy val blazeServer = libraryProject("blaze-server")
     startYear := Some(2014),
     mimaBinaryIssueFilters := Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"), // private
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this"), // private
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"), // private
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig"), // private
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$"), // private

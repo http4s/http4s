@@ -22,11 +22,9 @@ import org.http4s.blaze.pipeline.stages.ByteToObjectStage
 import org.http4s.websocket.FrameTranscoder.TranscodeError
 import org.http4s.websocket.{FrameTranscoder, WebSocketFrame}
 
-private class WebSocketDecoder
+private class WebSocketDecoder(val maxBufferSize: Int = 0) // unbounded
     extends FrameTranscoder(isClient = false)
     with ByteToObjectStage[WebSocketFrame] {
-  // unbounded
-  val maxBufferSize: Int = 0
 
   val name = "Websocket Decoder"
 
