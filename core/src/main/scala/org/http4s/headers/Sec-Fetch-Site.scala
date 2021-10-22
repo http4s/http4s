@@ -37,11 +37,11 @@ object `Sec-Fetch-Site` {
       `same-site`,
       `none`
     )
-      .map(i => (i.value.toLowerCase, i))
+      .map(i => (i.value, i))
       .toMap
 
   private val parser: Parser[`Sec-Fetch-Site`] =
-    Parser.anyChar.rep.string.mapFilter(s => types.get(s.toLowerCase))
+    Parser.anyChar.rep.string.mapFilter(types.get)
 
   def parse(s: String): ParseResult[`Sec-Fetch-Site`] =
     ParseResult.fromParser(parser, "Invalid Sec-Fetch-Site header")(s)
