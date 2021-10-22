@@ -17,9 +17,8 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.Parser
 import org.typelevel.ci._
-import org.http4s.internal.parsing.Rfc7230
 
 // https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-mode-header
 
@@ -43,17 +42,8 @@ object `Sec-Fetch-Mode` {
       .map(i => (i.value.toLowerCase, i))
       .toMap
 
-  // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-header-structure#section-3.3.4
-
-  private def token: Parser[String] = {
-    import Rfc5234.alpha, Rfc7230.tchar, Parser.char
-    val head = alpha.orElse(char('*')).string
-    val tail = tchar.orElse(char(':')).orElse(char('/')).rep0.string
-    (head ~ tail).map(t => t._1 + t._2)
-  }
-
   private val parser: Parser[`Sec-Fetch-Mode`] =
-    token.mapFilter(s => types.get(s.toLowerCase))
+    Parser.anyChar.rep.string.mapFilter(s => types.get(s.toLowerCase))
 
   def parse(s: String): ParseResult[`Sec-Fetch-Mode`] =
     ParseResult.fromParser(parser, "Invalid Sec-Fetch-Mode header")(s)
