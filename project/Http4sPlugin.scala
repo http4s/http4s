@@ -68,24 +68,6 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
-    // servlet containers skipped until we figure out our Jakarta EE strategy
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
-    // Cursed release. Calls ByteBuffer incompatibly with JDK8
-    dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
-    // CE3
-    dependencyUpdatesFilter -= moduleFilter(name = "log4cats-*", revision = "2.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "ip4s-*", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "cats-effect*", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "vault", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(name = "keypool", revision = "0.4.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2", name = "fs2-*", revision = "3.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
-
     headerSources / excludeFilter := HiddenFileFilter ||
       new FileFilter {
         def accept(file: File) = {
