@@ -20,6 +20,7 @@ package client
 import cats.effect._
 import cats.syntax.all._
 import com.sun.net.httpserver.HttpHandler
+import fs2.Stream
 import javax.net.ssl.SSLContext
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
@@ -58,13 +59,14 @@ trait BlazeClientBase extends Http4sSuite {
         GetRoutes.getPaths.get(path) match {
           case Some(responseIO) =>
             responseIO.flatMap { resp =>
-              val prelude = IO.blocking {
-                resp.headers.foreach { h =>
-                  if (h.name =!= headers.`Content-Length`.name)
-                    exchange.getResponseHeaders.add(h.name.toString, h.value)
-                }
-                exchange.sendResponseHeaders(resp.status.code, resp.contentLength.getOrElse(0L))
-              }
+              val prelude =
+                resp.headers.headers
+                  .filter(_.name =!= headers.`Content-Length`.name)
+                  .traverse_(h =>
+                    IO.blocking(exchange.getResponseHeaders.add(h.name.toString, h.value))) *>
+                  IO.blocking(
+                    exchange
+                      .sendResponseHeaders(resp.status.code, resp.contentLength.getOrElse(0L)))
               val body =
                 resp.body
                   .evalMap { byte =>
@@ -77,38 +79,42 @@ trait BlazeClientBase extends Http4sSuite {
               (prelude *> body *> flush).guarantee(close)
             }
           case None =>
-            IO.blocking {
-              exchange.sendResponseHeaders(404, -1)
-              exchange.close()
-            }
+            IO.blocking(exchange.sendResponseHeaders(404, -1)) *>
+              IO.blocking(exchange.close())
         }
       case "POST" =>
-        IO.blocking(exchange.getRequestURI.getPath match {
+        exchange.getRequestURI.getPath match {
           case "/respond-and-close-immediately" =>
             // We don't consume the req.getInputStream (the request entity). That means that:
             // - The client may receive the response before sending the whole request
             // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
-            exchange.sendResponseHeaders(200, 1L)
-            exchange.getResponseBody.write(Array("a".toByte))
-            exchange.getResponseBody.flush()
-            exchange.close()
+            IO.blocking(exchange.sendResponseHeaders(200, 1L)) *>
+              IO.blocking(exchange.getResponseBody.write(Array("a".toByte))) *>
+              IO.blocking(exchange.getResponseBody.flush()) *>
+              IO.blocking(exchange.close())
           case "/respond-and-close-immediately-no-body" =>
             // We don't consume the req.getInputStream (the request entity). That means that:
             // - The client may receive the response before sending the whole request
             // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
-            exchange.sendResponseHeaders(204, 0L)
-            exchange.close()
+            IO.blocking(exchange.sendResponseHeaders(204, 0L)) *>
+              IO.blocking(exchange.close())
           case "/process-request-entity" =>
             // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
-            var result: Int = 0
-            while (result != -1)
-              result = exchange.getRequestBody.read()
-            exchange.sendResponseHeaders(204, 0L)
-            exchange.close()
+            Stream
+              .eval(IO.blocking(exchange.getRequestBody.read()))
+              .repeat
+              .takeWhile(_ =!= -1)
+              .compile
+              .drain *>
+              IO.blocking(exchange.sendResponseHeaders(204, 0L)) *>
+              IO.blocking(exchange.close())
           case _ =>
-            exchange.sendResponseHeaders(404, -1L)
-            exchange.close()
-        })
+            IO.blocking(exchange.sendResponseHeaders(404, -1)) *>
+              IO.blocking(exchange.close())
+        }
+      case _ =>
+        IO.blocking(exchange.sendResponseHeaders(404, -1)) *>
+          IO.blocking(exchange.close())
     }
     io.start.unsafeRunAndForget()
   }
