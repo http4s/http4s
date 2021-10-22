@@ -69,18 +69,6 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
-    // servlet containers skipped until we figure out our Jakarta EE strategy
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
-    // Cursed release. Calls ByteBuffer incompatibly with JDK8
-    dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
-    // Breaking change deferred to 1.0
-    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.12.*"),
-
     headerSources / excludeFilter := HiddenFileFilter,
 
     nowarnCompatAnnotationProvider := None,
@@ -244,7 +232,7 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.12.3"
     val blaze = "0.15.2"
     val boopickle = "1.4.0"
-    val caseInsensitive = "1.1.4"
+    val caseInsensitive = "1.2.0"
     val cats = "2.6.1"
     val catsEffect = "3.2.9"
     val catsParse = "0.3.4"
@@ -280,7 +268,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "1.0.3"
     val scalaJavaLocales = "1.2.1"
     val scalaJavaTime = "2.3.0"
-    val scalatags = "0.9.4"
+    val scalatags = "0.10.0"
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.29"
     val servlet = "3.1.0"
