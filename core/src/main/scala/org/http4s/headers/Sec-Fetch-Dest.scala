@@ -71,11 +71,11 @@ object `Sec-Fetch-Dest` {
       worker,
       xslt
     )
-      .map(i => (i.value.toLowerCase, i))
+      .map(i => (i.value, i))
       .toMap
 
   private val parser: Parser[`Sec-Fetch-Dest`] =
-    Parser.anyChar.rep.string.mapFilter(s => types.get(s.toLowerCase))
+    Parser.anyChar.rep.string.mapFilter(types.get)
 
   def parse(s: String): ParseResult[`Sec-Fetch-Dest`] =
     ParseResult.fromParser(parser, "Invalid Sec-Fetch-Dest header")(s)

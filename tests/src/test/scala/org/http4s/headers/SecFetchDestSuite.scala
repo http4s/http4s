@@ -36,13 +36,6 @@ class SecFetchDestSuite extends HeaderLaws {
     }
   }
 
-  test("parse should parse directives in any letter case") {
-    Prop.forAll { (a: `Sec-Fetch-Dest`) =>
-      (`Sec-Fetch-Dest`.parse(a.value.toLowerCase) == Right(a)) &&
-      (`Sec-Fetch-Dest`.parse(a.value.toUpperCase) == Right(a))
-    }
-  }
-
   test("parse should fail with invalid directives") {
     assert(`Sec-Fetch-Dest`.parse("invalid").isLeft)
   }
