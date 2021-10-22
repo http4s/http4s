@@ -198,6 +198,79 @@ Like the server [middleware], the client middleware is a wrapper around a
 `Client` that provides a means of accessing or manipulating `Request`s
 and `Response`s being sent.
 
+Consider functions from `Int` to `String. We could create a wrapper over functions of this type,
+which would take an `Int => String` and return an `Int => String`.
+
+Such a wrapper could make the result inspect its input, do something to it,
+and call the original function with that input (or even another one).
+Then it could look at the response and also make some actions based on it.
+
+An example wrapper could look something like this:
+
+```scala mdoc
+def mid(f: Int => String): Int => String = in => {
+  // here, `in` is the input originally passed to the function
+  // we can decide to pass it to `f`, or modify it first. We'll change it for the example.
+  val resultOfF = f(in + 1)
+
+  // Now, `resultOfF` is the result of the function applied with the modified result.
+  // We can return it verbatim or _also_ modify it first! We could even ignore it.
+  // Here, we'll use both results - the one we got from the original call (f(in)) and the customized one (f(in + 1)).
+  s"${f(in)} is the original result, but $resultOfF's input was modified!"
+}
+```
+
+If we were to wrap a simple function, say, one returning the String representation of a number:
+
+```scala mdoc
+val f1: Int => String = _.toString
+
+// Here, we're applying our wrapper to `f1`. Notice that this is still a function.
+val f2: Int => String = mid(f1)
+
+f1(10)
+f2(10)
+```
+
+We would see how it's changing the result of the `f1` function by giving it another input.
+
+This wrapper could be considered a **middleware** over functions from `Int` to `String`.
+Now consider a simplified definition of `Client[F]` - it boils down to a single abstract method:
+
+```scala
+trait Client[F[_]] {
+  def run(request: Request[F]): Resource[F, Response[F]]
+}
+```
+
+Knowing this, we could say a `Client[F]` is equivalent to a function from `Request[F]` to `Resource[F, Response[F]]`. In fact, given a client, we could call `client.run _` to get that function.
+
+A client middleware follows the same idea as our original middleware did: it takes a `Client` (which is a function) and returns another `Client` (which is also a function).
+
+It can see the input `Request[F]` that we pass to the client when we call it, it can modify that request, pass it to the underlying client (or any other client, really!), and do all sorts of other things, including effects - all it has to do is return a `Resource[F, Response[F]]`.
+
+The real definition of `Client` is a little more complicated because there's several more abstract methods.
+If you want to implement a client using just a function (for example, to make a middleware), consider using `Client.apply`.
+
+A simple middleware, which would add a constant header to every request and response, could look like this:
+
+```scala mdoc
+import org.typelevel.ci.CIString
+
+def addTestHeader[F[_]: MonadCancelThrow](underlying: Client[F]): Client[F] = Client[F] { req =>
+  underlying
+    .run(
+      req.withHeaders(Header.Raw(CIString("X-Test-Request"), "test"))
+    )
+    .map(
+      _.withHeaders(Header.Raw(CIString("X-Test-Response"), "test"))
+    )
+}
+```
+
+As the caller of the client you would get from this, you would see the extra header in the response.
+Similarly, every service called by the client would see an extra header in the requests.
+
 ### Included Middleware
 
 Http4s includes some middleware Out of the Box in the `org.http4s.client.middleware`

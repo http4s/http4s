@@ -54,7 +54,9 @@ private[http4s] object Http1ServerStage {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
-      dispatcher: Dispatcher[F])(implicit F: Async[F]): Http1ServerStage[F] =
+      dispatcher: Dispatcher[F],
+      maxWebSocketBufferSize: Option[Int]
+  )(implicit F: Async[F]): Http1ServerStage[F] =
     new Http1ServerStage(
       routes,
       attributes,
@@ -68,8 +70,8 @@ private[http4s] object Http1ServerStage {
       scheduler,
       dispatcher) with WebSocketSupport[F] {
       val webSocketKey = wsKey
+      override protected def maxBufferSize: Option[Int] = maxWebSocketBufferSize
     }
-
 }
 
 private[blaze] class Http1ServerStage[F[_]](

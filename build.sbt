@@ -328,7 +328,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      log4catsSlf4j, 
+      log4catsSlf4j,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
     ),
