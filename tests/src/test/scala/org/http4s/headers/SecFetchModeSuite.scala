@@ -36,13 +36,6 @@ class SecFetchModeSuite extends HeaderLaws {
     }
   }
 
-  test("parse should parse directives in any letter case") {
-    Prop.forAll { (a: `Sec-Fetch-Mode`) =>
-      (`Sec-Fetch-Mode`.parse(a.value.toLowerCase) == Right(a)) &&
-      (`Sec-Fetch-Mode`.parse(a.value.toUpperCase) == Right(a))
-    }
-  }
-
   test("parse should fail with invalid directives") {
     assert(`Sec-Fetch-Mode`.parse("invalid").isLeft)
   }

@@ -39,11 +39,11 @@ object `Sec-Fetch-Mode` {
       `same-origin`,
       websocket
     )
-      .map(i => (i.value.toLowerCase, i))
+      .map(i => (i.value, i))
       .toMap
 
   private val parser: Parser[`Sec-Fetch-Mode`] =
-    Parser.anyChar.rep.string.mapFilter(s => types.get(s.toLowerCase))
+    Parser.anyChar.rep.string.mapFilter(types.get)
 
   def parse(s: String): ParseResult[`Sec-Fetch-Mode`] =
     ParseResult.fromParser(parser, "Invalid Sec-Fetch-Mode header")(s)
