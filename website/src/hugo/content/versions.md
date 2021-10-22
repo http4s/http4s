@@ -38,8 +38,8 @@ title: Versions
 	  <th class="text-center">Scala 2.11</th>
 	  <th class="text-center">Scala 2.12</th>
 	  <th class="text-center">Scala 2.13</th>
-	  <th class="text-center">Scala 3.0</th>
-          <th class="text-center">Scala.js 1.x</th>
+	  <th class="text-center">Scala 3</th>
+      <th class="text-center">Scala.js</th>
 	  <th>Cats</th>
 	  <th>FS2</th>
 	  <th>JDK</th>
@@ -53,8 +53,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
-	  <td class="text-center"><i class="fa fa-check"></i></td>
-	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center">3.0+</i></td>
+	  <td class="text-center">1.7+</i></td>
 	  <td>2.x</td>
 	  <td>3.x</td>
 	  <td>1.8+</td>
@@ -66,8 +66,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
-	  <td class="text-center"><i class="fa fa-check"></i></td>
-	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center">3.0+</i></td>
+	  <td class="text-center">1.7+</i></td>
 	  <td>2.x</td>
 	  <td>3.x</td>
 	  <td>1.8+</td>
@@ -79,7 +79,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
-	  <td class="text-center"><i class="fa fa-gear"></i></td>
+	  <td class="text-center">3.0+</i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td>2.x</td>
 	  <td>2.x</td>
