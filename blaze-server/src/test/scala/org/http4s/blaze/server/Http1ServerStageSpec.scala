@@ -96,7 +96,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       30.seconds,
       30.seconds,
       tw,
-      dispatcher()
+      dispatcher(),
+      None
     )
 
     pipeline.LeafBuilder(httpStage).base(head)

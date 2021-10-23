@@ -99,19 +99,20 @@ object FollowRedirect {
         req: Request[F],
         redirects: Int,
         hotswap: Hotswap[F, Response[F]]): F[Response[F]] =
-      hotswap.swap(client.run(req)).flatMap { resp =>
-        val l: Option[Location] = resp.headers.get[Location]
-        (methodForRedirect(req, resp), l) match {
-          case (Some(method), Some(loc)) if redirects < maxRedirects =>
-            val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
-            redirectLoop(nextReq, redirects + 1, hotswap)
-              .map(res => res.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(res)))
-          case _ =>
-            // IF the response is missing the Location header, OR there is no method to redirect,
-            // OR we have exceeded max number of redirections, THEN we redirect no more
-            resp.pure[F]
+      hotswap.clear *> // Release the prior connection before allocating a new
+        hotswap.swap(client.run(req)).flatMap { resp =>
+          val l: Option[Location] = resp.headers.get[Location]
+          (methodForRedirect(req, resp), l) match {
+            case (Some(method), Some(loc)) if redirects < maxRedirects =>
+              val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
+              redirectLoop(nextReq, redirects + 1, hotswap)
+                .map(res => res.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(res)))
+            case _ =>
+              // IF the response is missing the Location header, OR there is no method to redirect,
+              // OR we have exceeded max number of redirections, THEN we redirect no more
+              resp.pure[F]
+          }
         }
-      }
 
     Client { req =>
       Hotswap.create[F, Response[F]].flatMap { case hotswap =>

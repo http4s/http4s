@@ -166,21 +166,22 @@ class RetrySuite extends Http4sSuite {
     countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(1)
   }
 
-  test("default retriable should not exhaust the connection pool on retry") {
-    Semaphore[IO](2)
+  test("does not use more than one connection") {
+    // https://github.com/http4s/http4s/issues/5180
+    Semaphore[IO](1)
       .flatMap { semaphore =>
         val client = Retry[IO](
           RetryPolicy(
             (att =>
-              if (att < 3) Some(Duration.Zero)
+              if (att < 100) Some(Duration.Zero)
               else None),
             RetryPolicy.defaultRetriable[IO]))(Client[IO](_ =>
           Resource.make(semaphore.tryAcquire.flatMap {
-            case true => Response[IO](Status.InternalServerError).pure[IO]
-            case false => IO.raiseError(new IllegalStateException("Exhausted all connections"))
+            case true => Response[IO](Status.ServiceUnavailable).pure[IO]
+            case false => IO.raiseError(new IllegalStateException("Allocated a second connection"))
           })(_ => semaphore.release)))
         client.status(Request[IO]())
       }
-      .assertEquals(Status.InternalServerError)
+      .assertEquals(Status.ServiceUnavailable)
   }
 }
