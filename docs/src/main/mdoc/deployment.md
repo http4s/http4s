@@ -1,8 +1,6 @@
----
-menu: main
-weight: 999 
-title: Deployment 
----
+
+# Deployment 
+
 
 ## Overview
 

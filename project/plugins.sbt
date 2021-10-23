@@ -11,7 +11,6 @@ addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.
 addSbtPlugin("org.http4s"                 %  "sbt-http4s-org"            % "0.8.3")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.6.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
-addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.1")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.5.1")
 addSbtPlugin("com.github.sbt"           %  "sbt-native-packager"       % "1.9.6")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
@@ -20,3 +19,4 @@ addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.4.
 addSbtPlugin("org.portable-scala"         %  "sbt-scalajs-crossproject"  % "1.1.0")
 addSbtPlugin("org.scala-js"               % "sbt-scalajs"                % "1.7.1")
 addSbtPlugin("ch.epfl.scala"              % "sbt-scalajs-bundler"        % "0.20.0")
+addSbtPlugin("org.planet42"               % "laika-sbt"                  % "0.18.0")

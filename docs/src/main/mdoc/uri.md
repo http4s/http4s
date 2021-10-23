@@ -1,8 +1,6 @@
----
-menu: main
-weight: 350
-title: URI handling
----
+
+# URI Handling
+
 
 ## Literals
 
@@ -58,8 +56,9 @@ own, use [`Uri.fromString`].
 
 For example one for [knobs]:
 
-```
-implicit val configuredUri = Configured[String].flatMap(s => Configured(_ => Uri.fromString(s).toOption))
+```scala
+implicit val configuredUri = Configured[String]
+  .flatMap(s => Configured(_ => Uri.fromString(s).toOption))
 ```
 
 [play http client]: https://www.playframework.com/documentation/2.5.x/api/scala/index.html#play.api.libs.ws.WS$
