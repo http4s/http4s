@@ -54,19 +54,26 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient.status shouldn't wait for the response entity, nonetheless it may reuse the connection if the response entity has already been fully read".flaky) {
+    "BlazeClient.status should reuse the connection after receiving a response without an entity".flaky) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
-        _ <- client.status(Request[IO](GET, servers(0).uri / "simple"))
+        _ <- client.status(Request[IO](GET, servers(0).uri / "no-content"))
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
         _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
       } yield ()
     }
   }
 
+  // BlazeClient.status may or may not reuse the connection after receiving a response with an entity.
+  // It's up to the implementation.
+  // The connection can be reused only if the entity has been fully read from the socket.
+  // The current BlazeClient implementation will reuse the connection if it read the entire entity while reading the status line and headers.
+  // This behaviour depends on `BlazeClientBuilder.bufferSize`.
+  // In particular, responses not bigger than `bufferSize` will lead to reuse of the connection.
+
   test(
-    "BlazeClient.status shouldn't wait for the response entity and shouldn't reuse the connection if the response entity hasn't been fully read") {
+    "BlazeClient.status shouldn't wait for an infinite response entity and shouldn't reuse the connection") {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
