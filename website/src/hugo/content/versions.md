@@ -17,8 +17,8 @@
 * _I'll upgrade to Scala 3 before Cats-Effect 3:_ ${version.http4s.latest.0.22}
 * _I'm ready for Cats-Effect 3:_ ${version.http4s.latest.0.23}
 * _I'm new here, pick one:_ ${version.http4s.latest.0.23}
+* _I'm using Scala.js serverless or in the [browser](https://github.com/http4s/http4s-dom):_ ${version.http4s.latest.0.23}
 * _I live on the bleeding edge:_ ${version.http4s.latest.1.0}
-* _I'm using Scala.js serverless or in the browser:_ ${version.http4s.latest.1.0}
 
 
 | http4s                                   | Status                                  | Scala 2.11    | Scala 2.12    | Scala 2.13    | Scala 3       | Scala.js 1.x  | cats | fs2 | JDK |
