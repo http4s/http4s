@@ -24,6 +24,7 @@ import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
 import scala.io.Codec
+import fs2.Pure
 
 class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -97,10 +98,9 @@ object UrlForm {
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
 
-  implicit def entityEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
-    EntityEncoder
-      .stringEncoder[F]
+  implicit def entityEncoder(implicit
+      charset: Charset = DefaultCharset): EntityEncoder[Pure, UrlForm] =
+    EntityEncoder.stringEncoder
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 

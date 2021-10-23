@@ -20,7 +20,7 @@ import cats.{Contravariant, Show}
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import fs2.{Chunk, Pure, Stream}
 import fs2.io.file.Files
 import fs2.io.readInputStream
 import java.io._
@@ -32,7 +32,7 @@ import scala.annotation.implicitNotFound
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
-trait EntityEncoder[F[_], A] { self =>
+trait EntityEncoder[+F[_], -A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
   def toEntity(a: A): Entity[F]
@@ -88,23 +88,23 @@ object EntityEncoder {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
+  def simple[A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[Pure, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
+      Entity[Pure](Stream.chunk(c), Some(c.size.toLong))
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-  def showEncoder[F[_], A](implicit
+  def showEncoder[A](implicit
       charset: Charset = DefaultCharset,
-      show: Show[A]): EntityEncoder[F, A] = {
+      show: Show[A]): EntityEncoder[Pure, A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple[F, A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
+    simple[A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
   }
 
-  def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
-    new EntityEncoder[F, A] {
-      def toEntity(a: A): Entity[F] = Entity.empty
+  val emptyEncoder: EntityEncoder[Pure, Any] =
+    new EntityEncoder[Pure, Any] {
+      def toEntity(a: Any): Entity[Pure] = Entity.empty
       def headers: Headers = Headers.empty
     }
 
@@ -127,24 +127,23 @@ object EntityEncoder {
         }
     }
 
-  implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
-    emptyEncoder[F, Unit]
+  implicit val unitEncoder: EntityEncoder[Pure, Unit] = emptyEncoder
 
-  implicit def stringEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
+  implicit def stringEncoder(implicit
+      charset: Charset = DefaultCharset): EntityEncoder[Pure, String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.array(s.getBytes(charset.nioCharset)))
   }
 
-  implicit def charArrayEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
-    stringEncoder[F].contramap(new String(_))
+  implicit def charArrayEncoder(implicit
+      charset: Charset = DefaultCharset): EntityEncoder[Pure, Array[Char]] =
+    stringEncoder.contramap(new String(_))
 
-  implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
+  implicit val chunkEncoder: EntityEncoder[Pure, Chunk[Byte]] =
     simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
 
-  implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
-    chunkEncoder[F].contramap(Chunk.array[Byte])
+  implicit val byteArrayEncoder: EntityEncoder[Pure, Array[Byte]] =
+    chunkEncoder.contramap(Chunk.array[Byte])
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know

@@ -20,6 +20,7 @@ package twirl
 import org.http4s.headers.`Content-Type`
 import org.http4s.MediaType
 import _root_.play.twirl.api._
+import fs2.Pure
 
 trait TwirlInstances {
   implicit def htmlContentEncoder[F[_]](implicit
@@ -41,10 +42,9 @@ trait TwirlInstances {
       charset: Charset = DefaultCharset): EntityEncoder[F, Txt] =
     contentEncoder(MediaType.text.plain)
 
-  private def contentEncoder[F[_], C <: Content](mediaType: MediaType)(implicit
-      charset: Charset): EntityEncoder[F, C] =
-    EntityEncoder
-      .stringEncoder[F]
+  private def contentEncoder[C <: Content](mediaType: MediaType)(implicit
+      charset: Charset): EntityEncoder[Pure, C] =
+    EntityEncoder.stringEncoder
       .contramap[C](content => content.body)
       .withContentType(`Content-Type`(mediaType, charset))
 }

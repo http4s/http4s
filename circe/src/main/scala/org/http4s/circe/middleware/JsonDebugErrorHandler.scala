@@ -80,7 +80,7 @@ object JsonDebugErrorHandler {
         redactWhen: CIString => Boolean
     ): EntityEncoder[F, JsonErrorHandlerResponse[G]] =
       jsonEncoderOf(
-        encoder(redactWhen)
+        encoder[G](redactWhen)
       )
     def encoder[F[_]](
         redactWhen: CIString => Boolean

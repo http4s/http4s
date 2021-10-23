@@ -21,14 +21,13 @@ import _root_.scalatags.generic.Frag
 import org.http4s.headers.`Content-Type`
 
 trait ScalatagsInstances {
-  implicit def scalatagsEncoder[F[_], C <: Frag[_, String]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, C] =
+  implicit def scalatagsEncoder[C <: Frag[_, String]](implicit
+      charset: Charset = DefaultCharset): EntityEncoder[fs2.Pure, C] =
     contentEncoder(MediaType.text.html)
 
-  private def contentEncoder[F[_], C <: Frag[_, String]](mediaType: MediaType)(implicit
-      charset: Charset): EntityEncoder[F, C] =
-    EntityEncoder
-      .stringEncoder[F]
+  private def contentEncoder[C <: Frag[_, String]](mediaType: MediaType)(implicit
+      charset: Charset): EntityEncoder[fs2.Pure, C] =
+    EntityEncoder.stringEncoder
       .contramap[C](content => content.render)
       .withContentType(`Content-Type`(mediaType, charset))
 }
