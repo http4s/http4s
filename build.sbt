@@ -155,7 +155,10 @@ lazy val core = libraryCrossProject("core")
       catsParse.value.exclude("org.typelevel", "cats-core_2.13"),
       crypto.value,
       fs2Core.value,
-      fs2Io.value,
+      fs2Io.value // Workaround for https://github.com/typelevel/fs2/pull/2681
+        .exclude("org.scala-js", "scalajs-dom_sjs1_2.12")
+        .exclude("org.scala-js", "scalajs-dom_sjs1_2.13")
+        .exclude("org.scala-js", "scalajs-dom_sjs1_3"),
       ip4sCore.value,
       literally.value,
       log4s.value,
