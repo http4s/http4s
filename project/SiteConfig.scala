@@ -172,7 +172,7 @@ object SiteConfig {
       )
       .site.darkMode.disabled
       .site.topNavigationBar(
-        homeLink = ImageLink.external(homeURL, Image.internal(Root / "images" / "http4s-logo-text-dark-2.svg")),
+        homeLink = ImageLink.external(homeURL, Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
         navLinks = apiLink.toSeq ++ Seq(
           IconLink.external("https://github.com/http4s/http4s", HeliumIcon.github, options = Styles("svg-link")),
           IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
