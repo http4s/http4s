@@ -1,8 +1,6 @@
----
-menu: main
-weight: 140
-title: Static Files
----
+
+# Static Files
+
 
 Http4s can serve static files, subject to a configuration policy. There are three
 locations that Http4s can serve static content from: the filesystem, resources
@@ -55,7 +53,7 @@ a file version. So the next time the browser requests that information, it sends
 the ETag along, and gets a 304 Not Modified back, so you don't have to send the
 data over the wire again.
 
-## Inline in a route
+## Inline in a Route
 
 For custom behaviour, `StaticFile.fromFile` can also be used directly in a route, to respond with a file:
 
@@ -71,7 +69,7 @@ val routes = HttpRoutes.of[IO] {
 }
 ```
 
-## Serving from jars
+## Serving from JARs
 
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
@@ -87,8 +85,10 @@ only files matching a list of extensions are served. Append to the `List` as nee
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
+val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
+
 val routes = HttpRoutes.of[IO] {
-  case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
+  case request @ GET -> Root / path if fileTypes.exists(path.endsWith) =>
     static(path, request)
 }
 ```
@@ -115,7 +115,9 @@ import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO].withWebjarAssetFilter(isJsAsset).toRoutes
+val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO]
+  .withWebjarAssetFilter(isJsAsset)
+  .toRoutes
 ```
 
 Assuming that the service is mounted as root on port `8080`, and you included the webjar `swagger-ui-3.20.9.jar` on your classpath, you would reach the assets with the path: `http://localhost:8080/swagger-ui/3.20.9/index.html`

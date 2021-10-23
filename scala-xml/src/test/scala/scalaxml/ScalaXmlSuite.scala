@@ -20,7 +20,8 @@ package scalaxml
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.text.utf8
+import fs2.text.{decodeWithCharset, utf8}
+import java.nio.charset.StandardCharsets
 import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.Status.Ok
@@ -28,7 +29,6 @@ import org.scalacheck.Prop._
 import org.typelevel.ci._
 import scala.xml.Elem
 import fs2.Chunk
-import java.nio.charset.StandardCharsets
 
 class ScalaXmlSuite extends Http4sSuite {
   def getBody(body: EntityBody[IO]): IO[String] =
@@ -94,7 +94,7 @@ class ScalaXmlSuite extends Http4sSuite {
       xmlEncoder(Charset.`UTF-16`)
         .toEntity(hello)
         .body
-        .through(internal.decode[IO](Charset.`UTF-16`))
+        .through(decodeWithCharset[IO](StandardCharsets.UTF_16))
         .compile
         .string,
       """<?xml version='1.0' encoding='UTF-16'?>
@@ -108,7 +108,7 @@ class ScalaXmlSuite extends Http4sSuite {
       xmlEncoder(Charset.`ISO-8859-1`)
         .toEntity(hello)
         .body
-        .through(internal.decode[IO](Charset.`ISO-8859-1`))
+        .through(decodeWithCharset[IO](StandardCharsets.ISO_8859_1))
         .compile
         .string,
       """<?xml version='1.0' encoding='ISO-8859-1'?>

@@ -47,7 +47,8 @@ private[http4s] object ProtocolSelector {
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
       dispatcher: Dispatcher[F],
-      webSocketKey: Key[WebSocketContext[F]])(implicit F: Async[F]): ALPNServerSelector = {
+      webSocketKey: Key[WebSocketContext[F]],
+      maxWebSocketBufferSize: Option[Int])(implicit F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(
@@ -89,7 +90,8 @@ private[http4s] object ProtocolSelector {
         responseHeaderTimeout,
         idleTimeout,
         scheduler,
-        dispatcher
+        dispatcher,
+        maxWebSocketBufferSize
       )
 
     def preference(protos: Set[String]): String =

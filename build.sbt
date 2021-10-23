@@ -1,9 +1,9 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.ScaladocApiMapping
+import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
-import scala.xml.transform.{RewriteRule, RuleTransformer}
+Global / excludeLintKeys += laikaDescribe
 
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
@@ -328,7 +328,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      log4catsSlf4j, 
+      log4catsSlf4j,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
     ),
@@ -423,7 +423,6 @@ lazy val nodeServerless = libraryProject("node-serverless")
   .settings(
     description := "Node.js serverless wrapper for http4s apps",
     startYear := Some(2021),
-    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
   )
   .dependsOn(core.js)
 
@@ -582,10 +581,10 @@ lazy val bench = http4sProject("bench")
 lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
-    HugoPlugin,
     NoPublishPlugin,
     ScalaUnidocPlugin,
-    MdocPlugin
+    MdocPlugin,
+    LaikaPlugin
   )
   .settings(docsProjectSettings)
   .settings(
@@ -610,18 +609,20 @@ lazy val docs = http4sProject("docs")
         ) ++ jsModules): _*
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
-    Hugo / baseURL := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
-    },
-    siteMappings := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
-    },
-    siteMappings ++= {
+
+    laikaExtensions := SiteConfig.extensions,
+    laikaConfig     := SiteConfig.config(versioned = true).value,
+    laikaTheme      := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.v1_0,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = false
+    ),
+    laikaDescribe   := "<disabled>",
+    Laika / sourceDirectories := Seq(mdocOut.value),
+
+    ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
       for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
         yield (f, s"$docsPrefix/api/$d")
@@ -629,9 +630,9 @@ lazy val docs = http4sProject("docs")
     ghpagesCleanSite / includeFilter := {
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
-        def accept(f: File) =
-          f.getCanonicalPath.startsWith(
-            (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
+        def accept(f: File): Boolean = f.getCanonicalPath.startsWith(
+          (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath
+        )
       }
     },
     apiMappings ++= {
@@ -643,18 +644,25 @@ lazy val docs = http4sProject("docs")
   .dependsOn(client.jvm, core.jvm, theDsl.jvm, blazeServer, blazeClient, circe.jvm, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
-  .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
+  .enablePlugins(GhpagesPlugin, LaikaPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
     description := "Common area of http4s.org",
     startYear := Some(2013),
-    Hugo / baseURL := {
-      if (isCi.value) new URI(s"https://http4s.org")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
-    },
-    makeSite := makeSite.dependsOn(http4sBuildData).value,
-    // all .md|markdown files go into `content` dir for hugo processing
+
+    laikaExtensions := SiteConfig.extensions,
+    laikaConfig     := SiteConfig.config(versioned = false).value,
+    laikaTheme      := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.v1_0,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = true
+    ),
+    laikaDescribe   := "<disabled>",
+    Laika / sourceDirectories := Seq(baseDirectory.value / "src" / "hugo" / "content", baseDirectory.value / "src" / "hugo" / "static"),
+
     ghpagesNoJekyll := true,
+    ghpagesPrivateMappings := (laikaSite / mappings).value,
     ghpagesCleanSite / excludeFilter  :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
