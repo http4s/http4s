@@ -79,14 +79,6 @@ class ClearSiteDataSuite extends HeaderLaws {
     )
   }
 
-  test("parse should parse directives in any letter case") {
-    Prop.forAll { (a: Directive) =>
-      val expected = Right(NonEmptyList.one(a))
-      (`Clear-Site-Data`.parse(s""""${a.value.toLowerCase}"""").map(_.values) == expected) &&
-      (`Clear-Site-Data`.parse(s""""${a.value.toUpperCase}"""").map(_.values) == expected)
-    }
-  }
-
   test("parse should parse unknown directives") {
     val unknownA = UnknownType.unsafeFromString("unknownA")
     val unknownB = UnknownType.unsafeFromString("unknownB")

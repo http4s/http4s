@@ -51,11 +51,11 @@ object `Clear-Site-Data` {
 
   private[http4s] val types: Map[String, Directive] =
     List(`*`, cache, cookies, storage, executionContexts)
-      .map(i => (i.value.toLowerCase, i))
+      .map(i => (i.value, i))
       .toMap
 
   private val directiveParser: Parser[Directive] =
-    Rfc7230.quotedString.map(s => types.getOrElse(s.toLowerCase, new UnknownType(s) {}))
+    Rfc7230.quotedString.map(s => types.getOrElse(s, new UnknownType(s) {}))
 
   private val parser: Parser[`Clear-Site-Data`] =
     Rfc7230.headerRep1(directiveParser).map(apply)
