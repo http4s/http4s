@@ -1,191 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.18.0 + Helium Theme" />
+    <title>Getting Help</title>
+    
+    
+      <meta name="description" content="Common area of http4s.org"/>
+    
+    
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
+    
+    <link rel="stylesheet" type="text/css" href="../helium/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/site.css" />
+    <script src="../helium/laika-versions.js"></script>
+    <script src="../helium/laika-helium.js"></script>
 
-  <title>http4s | Getting help</title>
+    <!-- custom start - workaround for version menu on unversioned page -->
+    <script>initVersions("../", "", "");</script>
+    <!-- custom end -->
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/fontello.css" >
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/style.css" >
-</head>
+    
+    <script> /* for avoiding page load transitions */ </script>
+  </head>
 
   <body>
-    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
-      <div class="container">
-      <a class="navbar-brand" href="/">
-        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
-      </a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="fa fa-navicon"></i>
-      </button>
 
-      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav me-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <header id="top-bar">
+
+      <div class="row">
+        <a id="nav-icon">
+          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
+        </a>
+        
+        <div id="version-menu-container">
+          <!-- custom start - override label of version dropdown -->
+          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
             Documentation
           </a>
-          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
-  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
-  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
-  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
-  <a class="dropdown-item" href="/versions/">Help me choose...</a>
-</div>
-
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Projects
-          </a>
-          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
-            <a class="dropdown-item" href="/">http4s</a>
-            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
-            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
-            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
-          </div>
-        </li>
-        </ul>
-        <ul class="navbar-nav" id="http4s-social">
-        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
-        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
-        </ul>
+          <!-- custom end -->
+          <nav id="version-menu">
+            <ul id="version-list" class="nav-list">
+            </ul>
+          </nav>
+        </div>
         
       </div>
+  
+      <a class="image-link" href="http://127.0.0.1:4242"><img src="../images/http4s-logo-text-dark-2.svg"></a>
+      
+      <span class="row"><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a></span>
+      
+    </header>
+
+    <nav id="sidebar">
+
+      <ul class="nav-list">
+        
+        <li class="level2"><a href="../versions/">Versions</a></li>
+        
+        <li class="level2"><a href="../changelog/">Changelog</a></li>
+        
+        <li class="level2 active"><a href="#">Getting Help</a></li>
+        
+        <li class="level2"><a href="../contributing/">Contributing</a></li>
+        
+        <li class="level2"><a href="../adopters/">Adopters</a></li>
+        
+        <li class="level2"><a href="../code-of-conduct/">Code of Conduct</a></li>
+        
+        <li class="level2"><a href="../further-reading/">Further Reading</a></li>
+      </ul>
+
+      <!-- custom start - adjust left navigation - add extra section -->
+      <ul class="nav-list">
+        <li class="level1 nav-header">Projects</li>
+        <li class="level2"><a href="https://http4s.org/">http4s</a></li>
+        <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
+        <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+        <li class="level2"><a href="https://github.com/http4s/rho">rho</a></li>
+      </ul>
+      <!-- custom end -->
+      
     </nav>
 
-    <div class="container">
+    <div id="container">
 
-      <div class="row row-offcanvas row-offcanvas-right">
+      <nav id="page-nav">
+        <p class="header"><a href="#">Getting Help</a></p>
 
-        <div class="col-12 col-md-9 order-1">
-          <span class="float-end">
-          <a href="https://github.com/http4s/http4s/edit/main/website/jvm/src/hugo/content/getting-help.md" class="btn btn-secondary btn-sm">
-  <i class="fa fa-edit"></i>
-</a>
+        <ul class="nav-list">
+          <li class="level1"><a href="#gitter">Gitter</a></li>
+          <li class="level1"><a href="#issues">Issues</a></li>
+          <li class="level1"><a href="#twitter">Twitter</a></li>
+        </ul>
+        
+        <p class="footer"><a href="https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc/getting-help/README.md"><i class="icofont-laika" title="Edit">&#xef10;</i>Edit this page</a></p>
+      </nav>
 
-          <span class="d-md-none">
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
-              <i class="fa fa-navicon"></i>
-            </button>
-          </span>
-          </span>
+      <main class="content">
 
-          
-          <h1>Getting help</h1>
-          
-          
-          
+        <h1 id="getting-help" class="title">Getting Help</h1>
+        
+        <h2 id="gitter" class="section">Gitter<a class="anchor-link right" href="#gitter"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>The discussion forum for http4s is <a href="https://gitter.im/http4s/http4s">http4s/http4s on Gitter</a>.
+        This channel is open to user questions of all levels of experience.
+        More general questions about Cats, FS2, HTTP, Scala, etc. are always
+        welcome, but may politely be redirected to a more specific forum.  We
+        are less concerned about staying strictly on topic than helping
+        people.  If in doubt, ask.</p>
+        <p>The contributors also use this channel to discuss development.  Please
+        do not hesitate to interject with support questions or weigh in on
+        development.</p>
+        <p><a href="https://github.com/http4s/blaze">blaze</a> and <a href="https://github.com/http4s/rho">rho</a> do not yet have dedicated channels.  Questions about
+        these projects are welcome in the http4s channel.</p>
+        <p>We expect users to observe the <a href="../code-of-conduct">Scala Code of Conduct</a> while on the Gitter
+        channel.</p>
+        
+        <h2 id="issues" class="section">Issues<a class="anchor-link right" href="#issues"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>http4s uses <a href="https://github.com/http4s/http4s/issues">GitHub issues</a>.  If you have a bug report or feature
+        request, please submit an issue.</p>
+        <p>If we helped you in the Gitter room, and it resulted in a bug, a
+        feature request, or something to improve in the documentation, we
+        appreciate it if you open an issue.  Pull requests with documentation
+        fixes are a great way to start <a href="../contributing">contributing</a>.</p>
+        <p>We expect users to observe the <a href="../code-of-conduct">Scala Code of Conduct</a> on our GitHub
+        organization.</p>
+        
+        <h2 id="twitter" class="section">Twitter<a class="anchor-link right" href="#twitter"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>We tweet from <a href="https://twitter.com/http4s">@http4s</a>.  Twitter is ill-suited to support, but we
+        encourage you to follow for release announcements.  Your likes and
+        retweets help grow our community.</p>
 
-<h2 id="gitter">Gitter</h2>
+        <!-- custom start - integrate footer, a feature not yet available in Helium -->
+        <hr style="margin-top: 30px"/>
+        <footer style="font-size: 90%; text-align: center">
+          http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        </footer>
+        <!-- custom end -->
 
-<p>The discussion forum for http4s is <a href="https://gitter.im/http4s/http4s">http4s/http4s on Gitter</a>.
-This channel is open to user questions of all levels of experience.
-More general questions about Cats, FS2, HTTP, Scala, etc. are always
-welcome, but may politely be redirected to a more specific forum.  We
-are less concerned about staying strictly on topic than helping
-people.  If in doubt, ask.</p>
-
-<p>The contributors also use this channel to discuss development.  Please
-do not hesitate to interject with support questions or weigh in on
-development.</p>
-
-<p><a href="https://github.com/http4s/blaze">blaze</a> and <a href="https://github.com/http4s/rho">rho</a> do not yet have dedicated channels.  Questions about
-these projects are welcome in the http4s channel.</p>
-
-<p>We expect users to observe the <a href="../code-of-conduct/">Scala Code of Conduct</a> while on the Gitter
-channel.</p>
-
-<h2 id="issues">Issues</h2>
-
-<p>http4s uses <a href="https://github.com/http4s/http4s/issues">GitHub issues</a>.  If you have a bug report or feature
-request, please submit an issue.</p>
-
-<p>If we helped you in the Gitter room, and it resulted in a bug, a
-feature request, or something to improve in the documentation, we
-appreciate it if you open an issue.  Pull requests with documentation
-fixes are a great way to start <a href="../contributing/">contributing</a>.</p>
-
-<p>We expect users to observe the <a href="../code-of-conduct/">Scala Code of Conduct</a> on our GitHub
-organization.</p>
-
-<h2 id="twitter">Twitter</h2>
-
-<p>We tweet from <a href="https://twitter.com/http4s">@http4s</a>.  Twitter is ill-suited to support, but we
-encourage you to follow for release announcements.  Your likes and
-retweets help grow our community.</p>
-
-        </div>
-
-        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
-          <ul class="nav flex-column">          
-            
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/versions/">Versions</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/changelog/">Changelog</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link active" href="/getting-help/">Getting help</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/contributing/">Contributing</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/adopters/">Adopters</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/code-of-conduct/">Code of conduct</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/further-reading/">Further reading</a>
-            </li>
-            
-          </ul>
-        </div>
-      </div>
-      <hr />
-      <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
-      </footer>
+      </main>
 
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/js/highlight.pack.js"></script>
-<script>
-  hljs.initHighlightingOnLoad();
-  
-  $(document).ready(function () {
-    $('[data-toggle="offcanvas"]').click(function () {
-      $('.row-offcanvas').toggleClass('active')
-    });
-  });
-
-  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
-</script>
-
   </body>
 </html>
-
-
