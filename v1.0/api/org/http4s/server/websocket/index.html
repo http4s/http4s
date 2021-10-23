@@ -199,11 +199,11 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/server/src/main/scala/org/http4s/server/websocket/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/server/shared/src/main/scala/org/http4s/server/websocket/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -251,26 +251,42 @@ for serious static content serving.
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.websocket.WebSocketBuilder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="WebSocketBuilder[F[_]]extendsProductwithSerializable"></a><a id="WebSocketBuilder[F[_]]:WebSocketBuilder[F]"></a>
+              <ol><li name="org.http4s.server.websocket.WebSocketBuilder" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WebSocketBuilder[F[_]]extendsAnyRef"></a><a id="WebSocketBuilder[F[_]]:WebSocketBuilder[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the supplied exchange to process and respond to websocket messages." href="WebSocketBuilder.html"><span class="name">WebSocketBuilder</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onClose">onClose: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>, <span name="filterPingPongs">filterPingPongs: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$1">evidence$1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the supplied exchange to process and respond to websocket messages." href="WebSocketBuilder.html"><span class="name">WebSocketBuilder</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
-supplied exchange to process and respond to websocket messages.</p><div class="fullcomment"><div class="comment cmt"><p>Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
-supplied exchange to process and respond to websocket messages.</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p>Handshake response headers, such as such as:Sec-WebSocket-Protocol.</p></dd><dt class="param">onNonWebSocketRequest</dt><dd class="cmt"><p>The status code to return to a client making a non-websocket HTTP request to this route.
-                             default: NotImplemented</p></dd><dt class="param">onHandshakeFailure</dt><dd class="cmt"><p>The status code to return when failing to handle a websocket HTTP request to this route.
-                          default: BadRequest</p></dd></dl></div>
+supplied exchange to process and respond to websocket messages.</p>
+    </li><li name="org.http4s.server.websocket.WebSocketBuilder2" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WebSocketBuilder2[F[_]]=org.http4s.server.websocket.WebSocketBuilder[F]"></a><a id="WebSocketBuilder2[F[_]]:WebSocketBuilder2[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/websocket/index.html#WebSocketBuilder2[F[_]]=org.http4s.server.websocket.WebSocketBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 1.0.0-M28) Renamed to WebSocketBuilder">WebSocketBuilder2</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="WebSocketBuilder.html" class="extype" name="org.http4s.server.websocket.WebSocketBuilder">WebSocketBuilder</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder2.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 1.0.0-M28)</i> Renamed to WebSocketBuilder</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -279,23 +295,7 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.server.websocket#websocketKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="websocketKey[F[_]]:org.typelevel.vault.Key[org.http4s.websocket.WebSocketContext[F]]"></a><a id="websocketKey[F[_]]:Key[WebSocketContext[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/index.html#websocketKey[F[_]]:org.typelevel.vault.Key[org.http4s.websocket.WebSocketContext[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">websocketKey</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="org.typelevel.vault.Key">Key</span>[<a href="../../websocket/WebSocketContext.html" class="extype" name="org.http4s.websocket.WebSocketContext">WebSocketContext</a>[<span class="extype" name="org.http4s.server.websocket.websocketKey.F">F</span>]]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.server.websocket.WebSocketBuilder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="org.http4s.server.websocket.WebSocketBuilder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="WebSocketBuilder"></a><a id="WebSocketBuilder:WebSocketBuilder"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/websocket/WebSocketBuilder$.html" title="Permalink">
@@ -307,7 +307,7 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="WebSocketBuilder$.html"><span class="name">WebSocketBuilder</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="WebSocketBuilder$.html"><span class="name">WebSocketBuilder</span></a>
       </span>
       
       
@@ -317,14 +317,55 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.websocket#WebSocketBuilder2" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WebSocketBuilder2:org.http4s.server.websocket.WebSocketBuilder.type"></a><a id="WebSocketBuilder2:WebSocketBuilder.type"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/websocket/index.html#WebSocketBuilder2:org.http4s.server.websocket.WebSocketBuilder.type" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 1.0.0-M28) Renamed to WebSocketBuilder">WebSocketBuilder2</span><span class="result">: <a href="WebSocketBuilder$.html" class="extype" name="org.http4s.server.websocket.WebSocketBuilder">WebSocketBuilder</a>.type</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 1.0.0-M28)</i> Renamed to WebSocketBuilder</p></dd></dl></div>
+    </li><li name="org.http4s.server.websocket#websocketKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="websocketKey[F[_]]:org.typelevel.vault.Key[org.http4s.websocket.WebSocketContext[F]]"></a><a id="websocketKey[F[_]]:Key[WebSocketContext[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/websocket/index.html#websocketKey[F[_]]:org.typelevel.vault.Key[org.http4s.websocket.WebSocketContext[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Performs an unsafe cast. Should be passed in from the backend builder that knows what F is.">websocketKey</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="org.typelevel.vault.Key">Key</span>[<a href="../../websocket/WebSocketContext.html" class="extype" name="org.http4s.websocket.WebSocketContext">WebSocketContext</a>[<span class="extype" name="org.http4s.server.websocket.websocketKey.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Performs an unsafe cast. Should be passed in from the backend builder that knows what F is.</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

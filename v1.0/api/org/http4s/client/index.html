@@ -629,11 +629,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/client/shared/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../ClientTypes.html" class="extype" name="org.http4s.ClientTypes">ClientTypes</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../ClientTypes.html" class="extype" name="org.http4s.ClientTypes">ClientTypes</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -693,7 +693,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="A Client submits Requests to a server and processes the Response." href="Client.html"><span class="name">Client</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="A Client submits Requests to a server and processes the Response." href="Client.html"><span class="name">Client</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.</p>
@@ -709,7 +709,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="Connection.html"><span class="name">Connection</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="" href="Connection.html"><span class="name">Connection</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       
@@ -763,8 +763,7 @@ that we tried to connect to.</p>
       
       <p class="shortcomment cmt">Builder for a <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> backed by on <code>java.net.HttpUrlConnection</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Builder for a <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> backed by on <code>java.net.HttpUrlConnection</code>.</p><p>The java.net client adds no dependencies beyond <code>http4s-client</code>.
 This client is generally not production grade, but convenient for
-exploration in a REPL.</p><p>All I/O operations in this client are blocking.
-</p></div></div>
+exploration in a REPL.</p><p>All I/O operations in this client are blocking.</p></div></div>
     </li><li name="org.http4s.ClientTypes.Middleware" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Middleware[F[_]]=org.http4s.client.Client[F]=&gt;org.http4s.client.Client[F]"></a><a id="Middleware[F[_]]:Middleware[F]"></a>
       <span class="permalink">
@@ -793,7 +792,7 @@ exploration in a REPL.</p><p>All I/O operations in this client are blocking.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Represents a key for requests that can conceivably share a Connection." href="RequestKey.html"><span class="name">RequestKey</span></a><span class="params">(<span name="scheme">scheme: <a href="../Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a></span>, <span name="authority">authority: <a href="../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Represents a key for requests that can conceivably share a Connection." href="RequestKey.html"><span class="name">RequestKey</span></a><span class="params">(<span name="scheme">scheme: <a href="../Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a></span>, <span name="authority">authority: <a href="../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Represents a key for requests that can conceivably share a <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a>.</p>
@@ -809,7 +808,7 @@ exploration in a REPL.</p><p>All I/O operations in this client are blocking.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="UnexpectedStatus.html"><span class="name">UnexpectedStatus</span></a><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>, <span name="requestMethod">requestMethod: <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a></span>, <span name="requestUri">requestUri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="https://www.scala-lang.org/api/2.12.13/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="UnexpectedStatus.html"><span class="name">UnexpectedStatus</span></a><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>, <span name="requestMethod">requestMethod: <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a></span>, <span name="requestUri">requestUri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="https://www.scala-lang.org/api/2.12.15/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -849,7 +848,7 @@ exploration in a REPL.</p><p>All I/O operations in this client are blocking.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="ConnectionFailure$.html"><span class="name">ConnectionFailure</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="ConnectionFailure$.html"><span class="name">ConnectionFailure</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -881,7 +880,7 @@ exploration in a REPL.</p><p>All I/O operations in this client are blocking.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="RequestKey$.html"><span class="name">RequestKey</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="RequestKey$.html"><span class="name">RequestKey</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -914,9 +913,9 @@ exploration in a REPL.</p><p>All I/O operations in this client are blocking.
         <div class="parent" name="org.http4s.ClientTypes">
               <h3>Inherited from <a href="../ClientTypes.html" class="extype" name="org.http4s.ClientTypes">ClientTypes</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

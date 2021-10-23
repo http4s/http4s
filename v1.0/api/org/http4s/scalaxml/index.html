@@ -556,11 +556,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/scala-xml/src/main/scala/scalaxml/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/scala-xml/src/main/scala/scalaxml/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="ElemInstances.html" class="extype" name="org.http4s.scalaxml.ElemInstances">ElemInstances</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="ElemInstances.html" class="extype" name="org.http4s.scalaxml.ElemInstances">ElemInstances</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -620,7 +620,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="ElemInstances.html"><span class="name">ElemInstances</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="" href="ElemInstances.html"><span class="name">ElemInstances</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       
@@ -652,9 +652,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               <h3>Concrete Value Members</h3>
               <ol>
                 <li name="org.http4s.scalaxml.ElemInstances#xml" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="xml[F[_]](implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,scala.xml.Elem]"></a><a id="xml[F[_]](Sync[F]):EntityDecoder[F,Elem]"></a>
+      <a id="xml[F[_]](implicitF:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,scala.xml.Elem]"></a><a id="xml[F[_]](Concurrent[F]):EntityDecoder[F,Elem]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/scalaxml/index.html#xml[F[_]](implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,scala.xml.Elem]" title="Permalink">
+      <a href="../../../org/http4s/scalaxml/index.html#xml[F[_]](implicitF:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,scala.xml.Elem]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -663,7 +663,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">xml</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.scalaxml.ElemInstances.xml.F">F</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.scalaxml.ElemInstances.xml.F">F</span>, <span class="extype" name="scala.xml.Elem">Elem</span>]</span>
+        <span class="name">xml</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.scalaxml.ElemInstances.xml.F">F</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.scalaxml.ElemInstances.xml.F">F</span>, <span class="extype" name="scala.xml.Elem">Elem</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Handles a message body as XML.</p><div class="fullcomment"><div class="comment cmt"><p>Handles a message body as XML.</p><p>TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
@@ -697,9 +697,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div class="parent" name="org.http4s.scalaxml.ElemInstances">
               <h3>Inherited from <a href="ElemInstances.html" class="extype" name="org.http4s.scalaxml.ElemInstances">ElemInstances</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

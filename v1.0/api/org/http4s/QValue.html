@@ -629,18 +629,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="Http$.html" title="Functions for creating Http kleislis."></a>
                         <a href="Http$.html" title="Functions for creating Http kleislis.">Http</a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4s$.html" title=""></a>
-                        <a class="trait" href="Http4s.html" title=""></a>
-                        <a href="Http4s.html" title="">Http4s</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sFunctions$.html" title=""></a>
-                        <a class="trait" href="Http4sFunctions.html" title=""></a>
-                        <a href="Http4sFunctions.html" title="">Http4sFunctions</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sInstances$.html" title=""></a>
-                        <a class="trait" href="Http4sInstances.html" title=""></a>
-                        <a href="Http4sInstances.html" title="">Http4sInstances</a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
@@ -662,8 +650,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis.">HttpRoutes</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="HttpVersion$.html" title=""></a>
-                        <a class="class" href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response."></a>
-                        <a href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response.">HttpVersion</a>
+                        <a class="class" href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point)."></a>
+                        <a href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point).">HttpVersion</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="InvalidBodyException.html" title="Exception dealing with invalid body"></a>
@@ -749,6 +737,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="ProductIdOrComment.html" title=""></a>
                         <a href="ProductIdOrComment.html" title="">ProductIdOrComment</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="Protocol$.html" title=""></a>
+                        <a class="class" href="Protocol.html" title=""></a>
+                        <a href="Protocol.html" title="">Protocol</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="" title="A Quality Value."></a>
                         <a href="" title="A Quality Value.">QValue</a>
@@ -809,6 +801,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="RequestPrelude$.html" title=""></a>
+                        <a class="class" href="RequestPrelude.html" title="A projection of a Request without the body."></a>
+                        <a href="RequestPrelude.html" title="A projection of a Request without the body.">RequestPrelude</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -816,6 +812,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ResponseCookie$.html" title=""></a>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ResponsePrelude$.html" title=""></a>
+                        <a class="class" href="ResponsePrelude.html" title="A projection of a Response without the body."></a>
+                        <a href="ResponsePrelude.html" title="A projection of a Response without the body.">ResponsePrelude</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SameSite$.html" title=""></a>
                         <a class="trait" href="SameSite.html" title="RFC6265 SameSite cookie attribute values."></a>
@@ -893,18 +893,18 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">QValue</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>]</span>
+        <span class="name">QValue</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>]</span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A Quality Value.  Represented as thousandths for an exact representation rounded to three
 decimal places.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/QValue.scala" target="_blank">QValue.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.9" target="_blank">RFC 2616, Section 3.9, Quality Values</a></p></span></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/core/shared/src/main/scala/org/http4s/QValue.scala" target="_blank">QValue.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.9" target="_blank">RFC 2616, Section 3.9, Quality Values</a></p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>], <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>], <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.15/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>], <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>], <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -969,7 +969,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -985,7 +985,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -1001,7 +1001,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less" class="name">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $less" class="name">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
@@ -1017,7 +1017,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$eq" class="name">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $less$eq" class="name">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
@@ -1033,7 +1033,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -1049,7 +1049,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $greater" class="name">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $greater" class="name">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
@@ -1065,7 +1065,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $greater$eq" class="name">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $greater$eq" class="name">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
@@ -1097,7 +1097,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">compare</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">compare</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.QValue">QValue</a> → Ordered</dd></dl></div>
@@ -1113,7 +1113,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
@@ -1129,7 +1129,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.Class">Class</span>[_ &lt;: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a>]</span>
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.Class">Class</span>[_ &lt;: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyVal → Any</dd></dl></div>
@@ -1145,7 +1145,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isAcceptable</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isAcceptable</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       
@@ -1161,7 +1161,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -1193,7 +1193,7 @@ decimal places.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">thousandths</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">thousandths</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       
@@ -1209,7 +1209,7 @@ decimal places.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toDouble</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>
+        <span class="name">toDouble</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>
       </span>
       
       
@@ -1240,13 +1240,13 @@ decimal places.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.math.Ordered">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>]</h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>]</h3>
             </div><div class="parent" name="java.lang.Comparable">
               <h3>Inherited from <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.QValue">QValue</a>]</h3>
             </div><div class="parent" name="scala.AnyVal">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

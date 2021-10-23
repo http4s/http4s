@@ -1,1018 +1,763 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <title>http4s | The http4s DSL</title>
-
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/fontello.css" >
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v1.0/css/style.css" >
-</head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.18.0 + Helium Theme" />
+    <title>The http4s DSL</title>
+    
+    
+      <meta name="description" content="Documentation for http4s"/>
+    
+    
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
+    
+    <link rel="stylesheet" type="text/css" href="../helium/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/site.css" />
+    <script src="../helium/laika-helium.js"></script>
+    <script src="../helium/laika-versions.js"></script>
+    <script>initVersions("../../", "/dsl/index.html", "1.0");</script>
+    
+    <script> /* for avoiding page load transitions */ </script>
+  </head>
 
   <body>
-    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
-      <div class="container">
-      <a class="navbar-brand" href="/">
-        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
-      </a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="fa fa-navicon"></i>
-      </button>
 
-      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Documentation
-          </a>
-          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
-  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
-  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
-  <a class="dropdown-item" href="/versions/">Help me choose...</a>
-</div>
+    <header id="top-bar">
 
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Projects
+      <div class="row">
+        <a id="nav-icon">
+          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
+        </a>
+        
+        <div id="version-menu-container">
+          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
+            Version 1.0
           </a>
-          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
-            <a class="dropdown-item" href="/">http4s</a>
-            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
-            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
-            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
-          </div>
-        </li>
-        </ul>
-        <ul class="navbar-nav" id="http4s-social">
-        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
-        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
-        </ul>
+          <nav id="version-menu">
+            <ul id="version-list" class="nav-list">
+            </ul>
+          </nav>
+        </div>
         
       </div>
+  
+      <a class="image-link" href="http://127.0.0.1:4242"><img src="../images/http4s-logo-text-dark-2.svg"></a>
+      
+      <span class="row"><a class="icon-link svg-link" href="../api/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a></span>
+      
+    </header>
+
+    <nav id="sidebar">
+
+      <!-- custom start - adjust left navigation - add extra section -->
+      <ul class="nav-list">
+        <li class="level1"><a href="../">Quick Start</a></li>
+        
+        <li class="level2"><a href="../index/">README.md</a></li>
+        
+        <li class="level2"><a href="../integrations/">Integrations</a></li>
+        
+        <li class="level2"><a href="../upgrading/">Upgrading</a></li>
+        
+        <li class="level2"><a href="../service/">Service</a></li>
+        
+        <li class="level2 active"><a href="#">The http4s DSL</a></li>
+        
+        <li class="level2"><a href="../middleware/">Middleware</a></li>
+        
+        <li class="level2"><a href="../auth/">Authentication</a></li>
+        
+        <li class="level2"><a href="../cors/">CORS</a></li>
+        
+        <li class="level2"><a href="../csrf/">CSRF</a></li>
+        
+        <li class="level2"><a href="../gzip/">GZip Compression</a></li>
+        
+        <li class="level2"><a href="../hsts/">HSTS</a></li>
+        
+        <li class="level2"><a href="../static/">Static Files</a></li>
+        
+        <li class="level2"><a href="../client/">HTTP Client</a></li>
+        
+        <li class="level2"><a href="../entity/">Entity Handling</a></li>
+        
+        <li class="level2"><a href="../streaming/">Streaming</a></li>
+        
+        <li class="level2"><a href="../json/">JSON Handling</a></li>
+        
+        <li class="level2"><a href="../testing/">Testing</a></li>
+        
+        <li class="level2"><a href="../uri/">URI Handling</a></li>
+        
+        <li class="level2"><a href="../deployment/">Deployment</a></li>
+        
+        <li class="level2"><a href="../methods/">HTTP Methods</a></li>
+        
+        <li class="level2"><a href="../error-handling/">Error Handling</a></li>
+      </ul>
+
+      <ul class="nav-list">
+        <li class="level1 nav-header">Related Projects</li>
+        <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
+        <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+        <li class="level2"><a href="https://github.com/http4s/rho">rho</a></li>
+      </ul>
+      <!-- custom end -->
+
     </nav>
 
-    <div class="container">
+    <div id="container">
 
-      <div class="row row-offcanvas row-offcanvas-right">
+      <nav id="page-nav">
+        <p class="header"><a href="#">The http4s DSL</a></p>
+        
+        <ul class="nav-list">
+          <li class="level1"><a href="#add-the-http4s-dsl-to-your-build">Add the http4s-dsl to your build</a></li>
+          <li class="level1"><a href="#the-simplest-service">The Simplest Service</a></li>
+          <li class="level1"><a href="#testing-the-service">Testing the Service</a></li>
+          <li class="level1"><a href="#generating-responses">Generating Responses</a></li>
+          <li class="level2"><a href="#status-codes">Status Codes</a></li>
+          <li class="level2"><a href="#headers">Headers</a></li>
+          <li class="level2"><a href="#cookies">Cookies</a></li>
+          <li class="level2"><a href="#responding-with-a-body">Responding with a Body</a></li>
+          <li class="level1"><a href="#matching-and-extracting-requests">Matching and Extracting Requests</a></li>
+          <li class="level2"><a href="#the-object">The <code>-&gt;</code> object</a></li>
+          <li class="level2"><a href="#path-info">Path Info</a></li>
+          <li class="level2"><a href="#matching-paths">Matching Paths</a></li>
+          <li class="level2"><a href="#handling-path-parameters">Handling Path Parameters</a></li>
+          <li class="level2"><a href="#handling-matrix-path-parameters">Handling Matrix Path Parameters</a></li>
+          <li class="level2"><a href="#handling-query-parameters">Handling Query Parameters</a></li>
+        </ul>
+        
+        <p class="footer"><a href="https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc/dsl/README.md"><i class="icofont-laika" title="Edit">&#xef10;</i>Edit this page</a></p>
+      </nav>
 
-        <div class="col-12 col-md-9 order-1">
-          <span class="float-right">
-          
-<a href="https://github.com/http4s/http4s/edit/series/1.0/docs/src/main/mdoc/dsl.md" class="btn btn-secondary btn-sm">
-  <i class="fa fa-edit"></i>
-</a>
+      <main class="content">
 
-          <span class="d-md-none">
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
-              <i class="fa fa-navicon"></i>
-            </button>
-          </span>
-          </span>
-
-          
-          <h1>The http4s DSL</h1>
-          
-          
-          
-
-<p>Recall from earlier that an <code>HttpRoutes[F]</code> is just a type alias for
-<code>Kleisli[OptionT[F, *], Request[F], Response[F]]</code>.  This provides a minimal
-foundation for declaring services and executing them on blaze or a
-servlet container.  While this foundation is composable, it is not
-highly productive.  Most service authors will seek a higher level DSL.</p>
-
-<h2 id="add-the-http4s-dsl-to-your-build">Add the http4s-dsl to your build</h2>
-
-<p>One option is the http4s-dsl.  It is officially supported by the
-http4s team, but kept separate from core in order to encourage
-multiple approaches for different needs.</p>
-
-<p>This tutorial assumes that http4s-dsl is on your classpath.  Add the
-following to your build.sbt:</p>
-
-<pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
-)
-</code></pre>
-
-<p>All we need is a REPL to follow along at home:</p>
-
-<pre><code>$ sbt console
-</code></pre>
-
-<h2 id="the-simplest-service">The simplest service</h2>
-
-<p>We&rsquo;ll need the following imports to get started:</p>
-
-<pre><code class="language-scala">import cats.effect._
-import cats.syntax.all._
-import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
-// Provided by `cats.effect.IOApp`
-implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
-</code></pre>
-
-<p>The central concept of http4s-dsl is pattern matching.  An
-<code>HttpRoutes[F]</code> is declared as a simple series of case statements.  Each
-case statement attempts to match and optionally extract from an
-incoming <code>Request[F]</code>.  The code associated with the first matching case
-is used to generate a <code>F[Response[F]]</code>.</p>
-
-<p>The simplest case statement matches all requests without extracting
-anything.  The right hand side of the request must return a
-<code>F[Response[F]]</code>.</p>
-
-<p>In the following we use <code>cats.effect.IO</code> as the effect type <code>F</code>.</p>
-
-<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
-  case _ =&gt;
-    IO(Response(Status.Ok))
+        <h1 id="the-http4s-dsl" class="title">The http4s DSL</h1>
+        <p>Recall from earlier that an <code>HttpRoutes[F]</code> is just a type alias for
+        <code>Kleisli[OptionT[F, *], Request[F], Response[F]]</code>.  This provides a minimal
+        foundation for declaring services and executing them on blaze or a
+        servlet container.  While this foundation is composable, it is not
+        highly productive.  Most service authors will seek a higher level DSL.</p>
+        
+        <h2 id="add-the-http4s-dsl-to-your-build" class="section">Add the http4s-dsl to your build<a class="anchor-link right" href="#add-the-http4s-dsl-to-your-build"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>One option is the http4s-dsl.  It is officially supported by the
+        http4s team, but kept separate from core in order to encourage
+        multiple approaches for different needs.</p>
+        <p>This tutorial assumes that http4s-dsl is on your classpath.  Add the
+        following to your build.sbt:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+)</span></code></pre>
+        <p>All we need is a REPL to follow along at home:</p>
+        <pre><code>$ sbt console</code></pre>
+        
+        <h2 id="the-simplest-service" class="section">The Simplest Service<a class="anchor-link right" href="#the-simplest-service"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>We&#39;ll need the following imports to get started:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span></code></pre>
+        <p>If you&#39;re in a REPL, we also need a runtime:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
+        <p>The central concept of http4s-dsl is pattern matching.  An
+        <code>HttpRoutes[F]</code> is declared as a simple series of case statements.  Each
+        case statement attempts to match and optionally extract from an
+        incoming <code>Request[F]</code>.  The code associated with the first matching case
+        is used to generate a <code>F[Response[F]]</code>.</p>
+        <p>The simplest case statement matches all requests without extracting
+        anything.  The right hand side of the request must return a
+        <code>F[Response[F]]</code>.</p>
+        <p>In the following we use <code>cats.effect.IO</code> as the effect type <code>F</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt;
+    </span><span class="type-name">IO</span><span>(</span><span class="type-name">Response</span><span>(</span><span class="type-name">Status</span><span>.</span><span class="type-name">Ok</span><span>))
 }
-// service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@5da722e9
-// )
-</code></pre>
-
-<h2 id="testing-the-service">Testing the Service</h2>
-
-<p>One beautiful thing about the <code>HttpRoutes[F]</code> model is that we don&rsquo;t
-need a server to test our route.  We can construct our own request
-and experiment directly in the REPL.</p>
-
-<pre><code class="language-scala">val getRoot = Request[IO](Method.GET, uri&quot;/&quot;)
-// getRoot: Request[IO] = (
+</span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@56573df2
+// )</span></code></pre>
+        
+        <h2 id="testing-the-service" class="section">Testing the Service<a class="anchor-link right" href="#testing-the-service"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>One beautiful thing about the <code>HttpRoutes[F]</code> model is that we don&#39;t
+        need a server to test our route.  We can construct our own request
+        and experiment directly in the REPL.</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">getRoot</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
+</span><span class="comment">// getRoot: Request[IO] = (
 //   GET,
 //   Uri(None, None, /, , None),
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@76a63e57
+//   org.typelevel.vault.Vault@321e4668
 // )
-
-val io = service.orNotFound.run(getRoot)
-// io: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$14598/1808586267@39ee1b07),
-//   cats.data.OptionT$$Lambda$14607/2068288400@2c63dc01,
-//   StackTrace(
-//     List(
-//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//       cats.effect.IO.map(IO.scala:106),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
-//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
-//       cats.data.OptionT.getOrElse(OptionT.scala:99),
-//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:47),
-//       org.http4s.blaze.server.Http1ServerStage.$anonfun$raceTimeout$4(Http1ServerStage.scala:356),
-//       org.http4s.blaze.server.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:192),
-//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:114),
-//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:114),
-//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:48),
-//       cats.effect.IO.unsafeRunCancelable(IO.scala:305),
-//       cats.effect.IO.$anonfun$runCancelable$1(IO.scala:234),
-//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:241),
-//       cats.effect.IO.unsafeRunTimed(IO.scala:338),
-//       cats.effect.IO.unsafeRunSync(IO.scala:256),
-//       cats.effect.SyncIO.unsafeRunSync(SyncIO.scala:51),
-//       org.http4s.blaze.server.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:197),
-//       java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1402),
-//       java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289),
-//       java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056),
-//       java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1692),
-//       java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:175)
-//     )
-//   )
-// )
-</code></pre>
-
-<p>Where is our <code>Response[F]</code>?  It hasn&rsquo;t been created yet.  We wrapped it
-in an <code>IO</code>.  In a real service, generating a <code>Response[F]</code> is likely to
-be an asynchronous operation with side effects, such as invoking
-another web service or querying a database, or maybe both.  Operating
-in a <code>F</code> gives us control over the sequencing of operations and
-lets us reason about our code like good functional programmers.  It is
-the <code>HttpRoutes[F]</code>&rsquo;s job to describe the task, and the server&rsquo;s job to
-run it.</p>
-
-<p>But here in the REPL, it&rsquo;s up to us to run it:</p>
-
-<pre><code class="language-scala">val response = io.unsafeRunSync()
-// response: Response[IO] = (
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">io</span><span> = </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>)
+</span><span class="comment">// io: IO[Response[IO]] = Map(
+//   FlatMap(
+//     Pure(()),
+//     cats.syntax.FlatMapOps$$$Lambda$20389/860429259@64063fef,
+//     cats.effect.tracing.TracingEvent$StackTrace
+//   ),
+//   cats.data.OptionT$$Lambda$20559/1133418143@6999e57f,
+//   cats.effect.tracing.TracingEvent$StackTrace
+// )</span></code></pre>
+        <p>Where is our <code>Response[F]</code>?  It hasn&#39;t been created yet.  We wrapped it
+        in an <code>IO</code>.  In a real service, generating a <code>Response[F]</code> is likely to
+        be an asynchronous operation with side effects, such as invoking
+        another web service or querying a database, or maybe both.  Operating
+        in a <code>F</code> gives us control over the sequencing of operations and
+        lets us reason about our code like good functional programmers.  It is
+        the <code>HttpRoutes[F]</code>&#39;s job to describe the task, and the server&#39;s job to
+        run it.</p>
+        <p>But here in the REPL, it&#39;s up to us to run it:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">response</span><span> = </span><span class="identifier">io</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// response: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@4837030e
-// )
-</code></pre>
-
-<p>Cool.</p>
-
-<h2 id="generating-responses">Generating responses</h2>
-
-<p>We&rsquo;ll circle back to more sophisticated pattern matching of requests,
-but it will be a tedious affair until we learn a more succinct way of
-generating <code>F[Response]</code>s.</p>
-
-<h3 id="status-codes">Status codes</h3>
-
-<p>http4s-dsl provides a shortcut to create an <code>F[Response]</code> by
-applying a status code:</p>
-
-<pre><code class="language-scala">val okIo = Ok()
-// okIo: IO[Response[IO]] = Pure(
+//   org.typelevel.vault.Vault@64eed13
+// )</span></code></pre>
+        <p>Cool.</p>
+        
+        <h2 id="generating-responses" class="section">Generating Responses<a class="anchor-link right" href="#generating-responses"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>We&#39;ll circle back to more sophisticated pattern matching of requests,
+        but it will be a tedious affair until we learn a more succinct way of
+        generating <code>F[Response]</code>s.</p>
+        
+        <h3 id="status-codes" class="section">Status Codes<a class="anchor-link right" href="#status-codes"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>http4s-dsl provides a shortcut to create an <code>F[Response]</code> by
+        applying a status code:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">okIo</span><span> = </span><span class="type-name">Ok</span><span>()
+</span><span class="comment">// okIo: IO[Response[IO]] = Pure(
 //   (
 //     Status(200),
 //     HttpVersion(1, 1),
 //     Headers(Content-Length: 0),
 //     Stream(..),
-//     org.typelevel.vault.Vault@fa4c8d9
+//     org.typelevel.vault.Vault@46a3d6b4
 //   )
 // )
-val ok = okIo.unsafeRunSync()
-// ok: Response[IO] = (
+</span><span class="keyword">val</span><span> </span><span class="identifier">ok</span><span> = </span><span class="identifier">okIo</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// ok: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@fa4c8d9
-// )
-</code></pre>
-
-<p>This simple <code>Ok()</code> expression succinctly says what we mean in a
-service:</p>
-
-<pre><code class="language-scala">HttpRoutes.of[IO] {
-  case _ =&gt; Ok()
-}.orNotFound.run(getRoot).unsafeRunSync()
-// res0: Response[IO] = (
+//   org.typelevel.vault.Vault@46a3d6b4
+// )</span></code></pre>
+        <p>This simple <code>Ok()</code> expression succinctly says what we mean in a
+        service:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Ok</span><span>()
+}.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res0: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   org.typelevel.vault.Vault@46dbdc09
-// )
-</code></pre>
-
-<p>This syntax works for other status codes as well.  In our example, we
-don&rsquo;t return a body, so a <code>204 No Content</code> would be a more appropriate
-response:</p>
-
-<pre><code class="language-scala">HttpRoutes.of[IO] {
-  case _ =&gt; NoContent()
-}.orNotFound.run(getRoot).unsafeRunSync()
-// res1: Response[IO] = (
+//   org.typelevel.vault.Vault@138f60c8
+// )</span></code></pre>
+        <p>This syntax works for other status codes as well.  In our example, we
+        don&#39;t return a body, so a <code>204 No Content</code> would be a more appropriate
+        response:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">NoContent</span><span>()
+}.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res1: Response[IO] = (
 //   Status(204),
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@746a8307
-// )
-</code></pre>
-
-<h3 id="headers">Headers</h3>
-
-<p>http4s adds a minimum set of headers depending on the response, e.g:</p>
-
-<pre><code class="language-scala">Ok(&quot;Ok response.&quot;).unsafeRunSync().headers
-// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12)
-</code></pre>
-
-<p>Extra headers can be added using <code>putHeaders</code>, for example to specify cache policies:</p>
-
-<pre><code class="language-scala">import org.http4s.headers.`Cache-Control`
-import org.http4s.CacheDirective.`no-cache`
-import cats.data.NonEmptyList
-</code></pre>
-
-<pre><code class="language-scala">Ok(&quot;Ok response.&quot;, `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync().headers
-// res3: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cache-Control: no-cache, Content-Length: 12)
-</code></pre>
-
-<p>http4s defines all the well known headers directly, but sometimes you need to
-define custom headers, typically prefixed by an <code>X-</code>. In simple cases you can
-construct a <code>Header</code> instance by hand:</p>
-
-<pre><code class="language-scala">Ok(&quot;Ok response.&quot;, &quot;X-Auth-Token&quot; -&gt; &quot;value&quot;).unsafeRunSync().headers
-// res4: Headers = Headers(Content-Type: text/plain; charset=UTF-8, X-Auth-Token: value, Content-Length: 12)
-</code></pre>
-
-<h3 id="cookies">Cookies</h3>
-
-<p>http4s has special support for Cookie headers using the <code>Cookie</code> type to add
-and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cookie</code> header:</p>
-
-<pre><code class="language-scala">Ok(&quot;Ok response.&quot;).map(_.addCookie(ResponseCookie(&quot;foo&quot;, &quot;bar&quot;))).unsafeRunSync().headers
-// res5: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar)
-</code></pre>
-
-<p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
-
-<pre><code class="language-scala">val cookieResp = {
-  for {
-    resp &lt;- Ok(&quot;Ok response.&quot;)
-    now &lt;- HttpDate.current[IO]
-  } yield resp.addCookie(ResponseCookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(now), httpOnly = true, secure = true))
+//   org.typelevel.vault.Vault@351bdddb
+// )</span></code></pre>
+        
+        <h3 id="headers" class="section">Headers<a class="anchor-link right" href="#headers"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>http4s adds a minimum set of headers depending on the response, e.g:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
+</span><span class="comment">// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12)</span></code></pre>
+        <p>Extra headers can be added using <code>putHeaders</code>, for example to specify cache policies:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">`Cache-Control`</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">CacheDirective</span><span>.</span><span class="identifier">`no-cache`</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">data</span><span>.</span><span class="type-name">NonEmptyList</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>, </span><span class="identifier">`Cache-Control`</span><span>(</span><span class="type-name">NonEmptyList</span><span>(</span><span class="identifier">`no-cache`</span><span>(), </span><span class="type-name">Nil</span><span>)))
+  .</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
+</span><span class="comment">// res3: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cache-Control: no-cache, Content-Length: 12)</span></code></pre>
+        <p>http4s defines all the well known headers directly, but sometimes you need to
+        define custom headers, typically prefixed by an <code>X-</code>. In simple cases you can
+        construct a <code>Header</code> instance by hand:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>, </span><span class="string-literal">&quot;X-Auth-Token&quot;</span><span> -&gt; </span><span class="string-literal">&quot;value&quot;</span><span>)
+  .</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
+</span><span class="comment">// res4: Headers = Headers(Content-Type: text/plain; charset=UTF-8, X-Auth-Token: value, Content-Length: 12)</span></code></pre>
+        
+        <h3 id="cookies" class="section">Cookies<a class="anchor-link right" href="#cookies"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>http4s has special support for Cookie headers using the <code>Cookie</code> type to add
+        and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cookie</code> header:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">addCookie</span><span>(</span><span class="type-name">ResponseCookie</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>, </span><span class="string-literal">&quot;bar&quot;</span><span>)))
+  .</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
+</span><span class="comment">// res5: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar)</span></code></pre>
+        <p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookieResp</span><span> = {
+  </span><span class="keyword">for</span><span> {
+    </span><span class="identifier">resp</span><span> &lt;- </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>)
+    </span><span class="identifier">now</span><span> &lt;- </span><span class="type-name">HttpDate</span><span>.</span><span class="identifier">current</span><span>[</span><span class="type-name">IO</span><span>]
+  } </span><span class="keyword">yield</span><span> </span><span class="identifier">resp</span><span>.</span><span class="identifier">addCookie</span><span>(</span><span class="type-name">ResponseCookie</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>, </span><span class="string-literal">&quot;bar&quot;</span><span>, 
+    </span><span class="identifier">expires</span><span> = </span><span class="type-name">Some</span><span>(</span><span class="identifier">now</span><span>), </span><span class="identifier">httpOnly</span><span> = </span><span class="boolean-literal">true</span><span>, </span><span class="identifier">secure</span><span> = </span><span class="boolean-literal">true</span><span>))
 }
-// cookieResp: IO[Response[IO]] = Bind(
+</span><span class="comment">// cookieResp: IO[Response[IO]] = FlatMap(
 //   Pure(
 //     (
 //       Status(200),
 //       HttpVersion(1, 1),
 //       Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12),
 //       Stream(..),
-//       org.typelevel.vault.Vault@435d1f7
+//       org.typelevel.vault.Vault@44cc981e
 //     )
 //   ),
 //   &lt;function1&gt;,
-//   StackTrace(
-//     List(
-//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//       cats.effect.IO.flatMap(IO.scala:133),
-//       repl.MdocSession$App.&lt;init&gt;(dsl.md:110),
-//       repl.MdocSession$.app(dsl.md:3),
-//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
-//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//       scala.Console$.withErr(Console.scala:196),
-//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
-//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//       scala.Console$.withOut(Console.scala:167),
-//       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//       mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
-//       mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
-//     )
-//   )
+//   cats.effect.tracing.TracingEvent$StackTrace
 // )
-cookieResp.unsafeRunSync().headers
-// res6: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 27 May 2021 02:56:51 GMT; Secure; HttpOnly)
-</code></pre>
-
-<p>To request a cookie to be removed on the client, you need to set the cookie value
-to empty. http4s can do that with <code>removeCookie</code>:</p>
-
-<pre><code class="language-scala">Ok(&quot;Ok response.&quot;).map(_.removeCookie(&quot;foo&quot;)).unsafeRunSync().headers
-// res7: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT)
-</code></pre>
-
-<h3 id="responding-with-a-body">Responding with a body</h3>
-
-<h4 id="simple-bodies">Simple bodies</h4>
-
-<p>Most status codes take an argument as a body.  In http4s, <code>Request[F]</code>
-and <code>Response[F]</code> bodies are represented as a
-<code>fs2.Stream[F, Byte]</code>.  It&rsquo;s also considered good
-HTTP manners to provide a <code>Content-Type</code> and, where known in advance,
-<code>Content-Length</code> header in one&rsquo;s responses.</p>
-
-<p>All of this hassle is neatly handled by http4s&rsquo; <a href="../api/org/http4s/EntityEncoder$">EntityEncoder</a>s.
-We&rsquo;ll cover these in more depth in another tutorial.  The important point
-for now is that a response body can be generated for any type with an
-implicit <code>EntityEncoder</code> in scope.  http4s provides several out of the
-box:</p>
-
-<pre><code class="language-scala">Ok(&quot;Received request.&quot;).unsafeRunSync()
-// res8: Response[IO] = (
+</span><span class="identifier">cookieResp</span><span>.</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
+</span><span class="comment">// res6: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Sat, 23 Oct 2021 02:57:29 GMT; Secure; HttpOnly)</span></code></pre>
+        <p>To request a cookie to be removed on the client, you need to set the cookie value
+        to empty. http4s can do that with <code>removeCookie</code>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">removeCookie</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
+</span><span class="comment">// res7: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT)</span></code></pre>
+        
+        <h3 id="responding-with-a-body" class="section">Responding with a Body<a class="anchor-link right" href="#responding-with-a-body"><i class="icofont-laika">&#xef71;</i></a></h3>
+        
+        <h4 id="simple-bodies" class="section">Simple Bodies<a class="anchor-link right" href="#simple-bodies"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>Most status codes take an argument as a body.  In http4s, <code>Request[F]</code>
+        and <code>Response[F]</code> bodies are represented as a
+        <code>fs2.Stream[F, Byte]</code>.  It&#39;s also considered good
+        HTTP manners to provide a <code>Content-Type</code> and, where known in advance,
+        <code>Content-Length</code> header in one&#39;s responses.</p>
+        <p>All of this hassle is neatly handled by http4s&#39; <a href="../api/org/http4s/EntityEncoder$">EntityEncoder</a>s.
+        We&#39;ll cover these in more depth in another tutorial.  The important point
+        for now is that a response body can be generated for any type with an
+        implicit <code>EntityEncoder</code> in scope.  http4s provides several out of the
+        box:</p>
+        <pre><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Received request.&quot;</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res8: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 17),
 //   Stream(..),
-//   org.typelevel.vault.Vault@2dfe33a8
+//   org.typelevel.vault.Vault@1c82f045
 // )
-
-import java.nio.charset.StandardCharsets.UTF_8
-Ok(&quot;binary&quot;.getBytes(UTF_8)).unsafeRunSync()
-// res9: Response[IO] = (
+</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">nio</span><span>.</span><span class="identifier">charset</span><span>.</span><span class="type-name">StandardCharsets</span><span>.</span><span class="type-name">UTF_8</span><span>
+</span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;binary&quot;</span><span>.</span><span class="identifier">getBytes</span><span>(</span><span class="type-name">UTF_8</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res9: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/octet-stream, Content-Length: 6),
 //   Stream(..),
-//   org.typelevel.vault.Vault@355d998a
-// )
-</code></pre>
-
-<p>Per the HTTP specification, some status codes don&rsquo;t support a body.
-http4s prevents such nonsense at compile time:</p>
-
-<pre><code class="language-scala">NoContent(&quot;does not compile&quot;)
-// error: no arguments allowed for nullary method apply: ()(implicit F: cats.Applicative[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]] in trait EmptyResponseGenerator
+//   org.typelevel.vault.Vault@74e35a3d
+// )</span></code></pre>
+        <p>Per the HTTP specification, some status codes don&#39;t support a body.
+        http4s prevents such nonsense at compile time:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">NoContent</span><span>(</span><span class="string-literal">&quot;does not compile&quot;</span><span>)
+</span><span class="comment">// error: no arguments allowed for nullary method apply: ()(implicit F: cats.Applicative[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]] in trait EmptyResponseGenerator
 // NoContent(&quot;does not compile&quot;)
-//           ^^^^^^^^^^^^^^^^^^
-</code></pre>
-
-<h4 id="asynchronous-responses">Asynchronous responses</h4>
-
-<p>While http4s prefers <code>F[_]: Effect</code>, you may be working with libraries that
-use standard library <code>Future</code>s.  Some relevant imports:</p>
-
-<pre><code class="language-scala">import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
-</code></pre>
-
-<p>You can respond with a <code>Future</code> of any type that has an
-<code>EntityEncoder</code> by lifting it into <code>IO</code> or any <code>F[_]</code> that suspends future.
-Note: unlike <code>IO</code>, wrapping a side effect in <code>Future</code> does not
-suspend it, and the resulting expression would still be side
-effectful, unless we wrap it in <code>IO</code>:</p>
-
-<p><code>IO.fromFuture</code> requires an implicit <code>ContextShift</code>, to ensure that the
-suspended future is shifted to the correct thread pool.</p>
-
-<pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-// cs: ContextShift[IO] = cats.effect.internals.IOContextShift@68e97af7
-
-val io = Ok(IO.fromFuture(IO(Future {
-  println(&quot;I run when the future is constructed.&quot;)
-  &quot;Greetings from the future!&quot;
+//           ^^^^^^^^^^^^^^^^^^</span></code></pre>
+        
+        <h4 id="asynchronous-responses" class="section">Asynchronous Responses<a class="anchor-link right" href="#asynchronous-responses"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>While http4s prefers <code>F[_]: Async</code>, you may be working with libraries that
+        use standard library <code>Future</code>s.  Some relevant imports:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="type-name">Future</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="type-name">ExecutionContext</span><span>.</span><span class="type-name">Implicits</span><span>.</span><span class="identifier">global</span></code></pre>
+        <p>You can respond with a <code>Future</code> of any type that has an
+        <code>EntityEncoder</code> by lifting it into <code>IO</code> or any <code>F[_]</code> that suspends future.
+        Note: unlike <code>IO</code>, wrapping a side effect in <code>Future</code> does not
+        suspend it, and the resulting expression would still be side
+        effectful, unless we wrap it in <code>IO</code>:</p>
+        <p><code>IO.fromFuture</code> requires an implicit <code>ContextShift</code>, to ensure that the
+        suspended future is shifted to the correct thread pool.</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">io</span><span> = </span><span class="type-name">Ok</span><span>(</span><span class="type-name">IO</span><span>.</span><span class="identifier">fromFuture</span><span>(</span><span class="type-name">IO</span><span>(</span><span class="type-name">Future</span><span> {
+  </span><span class="identifier">println</span><span>(</span><span class="string-literal">&quot;I run when the future is constructed.&quot;</span><span>)
+  </span><span class="string-literal">&quot;Greetings from the future!&quot;</span><span>
 })))
-// io: IO[Response[IO]] = Bind(
-//   Async(
-//     cats.effect.internals.IOAsync$$$Lambda$13926/1366979360@443b7700,
-//     false,
-//     StackTrace(
-//       List(
-//         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//         cats.effect.internals.IOAsync$.apply(IOAsync.scala:30),
-//         cats.effect.internals.IOBracket$.guaranteeCase(IOBracket.scala:129),
-//         cats.effect.IO.guaranteeCase(IO.scala:672),
-//         cats.effect.IO.guarantee(IO.scala:642),
-//         cats.effect.IO$.fromFuture(IO.scala:1419),
-//         repl.MdocSession$App.&lt;init&gt;(dsl.md:162),
-//         repl.MdocSession$.app(dsl.md:3),
-//         mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
-//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//         scala.Console$.withErr(Console.scala:196),
-//         mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
-//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//         scala.Console$.withOut(Console.scala:167),
-//         mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//         mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
-//         mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
-//       )
-//     )
+</span><span class="comment">// io: IO[Response[IO]] = FlatMap(
+//   FlatMap(
+//     Delay(&lt;function0&gt;, cats.effect.tracing.TracingEvent$StackTrace),
+//     cats.effect.kernel.Async$$Lambda$21657/1837214842@51bbfef6,
+//     cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$15716/809839@44445135,
-//   StackTrace(
-//     List(
-//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//       cats.effect.IO.flatMap(IO.scala:133),
-//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
-//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
-//       org.http4s.dsl.impl.EntityResponseGenerator.apply(ResponseGenerator.scala:77),
-//       org.http4s.dsl.impl.EntityResponseGenerator.apply$(ResponseGenerator.scala:76),
-//       org.http4s.dsl.impl.Responses$OkOps.apply(Responses.scala:186),
-// ...
-io.unsafeRunSync()
-// I run when the future is constructed.
+//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$21658/627612836@4ef6610c,
+//   cats.effect.tracing.TracingEvent$StackTrace
+// )
+</span><span class="identifier">io</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// I run when the future is constructed.
 // res11: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26),
 //   Stream(..),
-//   org.typelevel.vault.Vault@2a0ffc1b
-// )
-</code></pre>
-
-<p>As good functional programmers who like to delay our side effects, we
-of course prefer to operate in <code>F</code>s:</p>
-
-<pre><code class="language-scala">val io = Ok(IO {
-  println(&quot;I run when the IO is run.&quot;)
-  &quot;Mission accomplished!&quot;
+//   org.typelevel.vault.Vault@772b6dfe
+// )</span></code></pre>
+        <p>As good functional programmers who like to delay our side effects, we
+        of course prefer to operate in <code>F</code>s:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">io</span><span> = </span><span class="type-name">Ok</span><span>(</span><span class="type-name">IO</span><span> {
+  </span><span class="identifier">println</span><span>(</span><span class="string-literal">&quot;I run when the IO is run.&quot;</span><span>)
+  </span><span class="string-literal">&quot;Mission accomplished!&quot;</span><span>
 })
-// io: IO[Response[IO]] = Bind(
-//   Delay(&lt;function0&gt;),
-//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$15716/809839@992156f,
-//   StackTrace(
-//     List(
-//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//       cats.effect.IO.flatMap(IO.scala:133),
-//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
-//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
-//       org.http4s.dsl.impl.EntityResponseGenerator.apply(ResponseGenerator.scala:77),
-//       org.http4s.dsl.impl.EntityResponseGenerator.apply$(ResponseGenerator.scala:76),
-//       org.http4s.dsl.impl.Responses$OkOps.apply(Responses.scala:186),
-//       repl.MdocSession$App.&lt;init&gt;(dsl.md:162),
-//       repl.MdocSession$.app(dsl.md:3),
-//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
-//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//       scala.Console$.withErr(Console.scala:196),
-//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
-//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
-//       scala.Console$.withOut(Console.scala:167),
-//       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
-//       mdoc.internal.markdown.MarkdownBuilder$.$anonfun$buildDocument$2(MarkdownBuilder.scala:47),
-//       mdoc.internal.markdown.MarkdownBuilder$$anon$1.run(MarkdownBuilder.scala:103)
-//     )
-//   )
+</span><span class="comment">// io: IO[Response[IO]] = FlatMap(
+//   Delay(&lt;function0&gt;, cats.effect.tracing.TracingEvent$StackTrace),
+//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$21658/627612836@18fd4240,
+//   cats.effect.tracing.TracingEvent$StackTrace
 // )
-io.unsafeRunSync()
-// I run when the IO is run.
+</span><span class="identifier">io</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// I run when the IO is run.
 // res12: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 21),
 //   Stream(..),
-//   org.typelevel.vault.Vault@160ee02a
+//   org.typelevel.vault.Vault@163f43e7
+// )</span></code></pre>
+        <p>Note that in both cases, a <code>Content-Length</code> header is calculated.
+        http4s waits for the <code>Future</code> or <code>F</code> to complete before wrapping it
+        in its HTTP envelope, and thus has what it needs to calculate a
+        <code>Content-Length</code>.</p>
+        
+        <h4 id="streaming-bodies" class="section">Streaming Bodies<a class="anchor-link right" href="#streaming-bodies"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>Streaming bodies are supported by returning a <code>fs2.Stream</code>.
+        Like <code>IO</code>, the stream may be of any type that has an
+        <code>EntityEncoder</code>.</p>
+        <p>An intro to <code>Stream</code> is out of scope, but we can glimpse the
+        power here.  This stream emits the elapsed time every 100 milliseconds
+        for one second:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="type-name">Stream</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">drip</span><span>: </span><span class="type-name">Stream</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">String</span><span>] =
+  </span><span class="type-name">Stream</span><span>.</span><span class="identifier">awakeEvery</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="number-literal">100</span><span>.</span><span class="identifier">millis</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">toString</span><span>).</span><span class="identifier">take</span><span>(</span><span class="number-literal">10</span><span>)
+</span><span class="comment">// drip: Stream[IO, String] = Stream(..)</span></code></pre>
+        <p>We can see it for ourselves in the REPL:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">dripOutIO</span><span> = </span><span class="identifier">drip</span><span>
+  .</span><span class="identifier">through</span><span>(</span><span class="identifier">fs2</span><span>.</span><span class="identifier">text</span><span>.</span><span class="identifier">lines</span><span>)
+  .</span><span class="identifier">evalMap</span><span>(</span><span class="identifier">s</span><span> =&gt; { </span><span class="type-name">IO</span><span>{</span><span class="identifier">println</span><span>(</span><span class="identifier">s</span><span>); </span><span class="identifier">s</span><span>} })
+  .</span><span class="identifier">compile</span><span>
+  .</span><span class="identifier">drain</span><span>
+</span><span class="comment">// dripOutIO: IO[Unit] = Uncancelable(
+//   cats.effect.IO$$$Lambda$20047/1676564183@6bbcae2d,
+//   cats.effect.tracing.TracingEvent$StackTrace
 // )
-</code></pre>
-
-<p>Note that in both cases, a <code>Content-Length</code> header is calculated.
-http4s waits for the <code>Future</code> or <code>F</code> to complete before wrapping it
-in its HTTP envelope, and thus has what it needs to calculate a
-<code>Content-Length</code>.</p>
-
-<h4 id="streaming-bodies">Streaming bodies</h4>
-
-<p>Streaming bodies are supported by returning a <code>fs2.Stream</code>.
-Like <code>IO</code>, the stream may be of any type that has an
-<code>EntityEncoder</code>.</p>
-
-<p>An intro to <code>Stream</code> is out of scope, but we can glimpse the
-power here.  This stream emits the elapsed time every 100 milliseconds
-for one second:</p>
-
-<pre><code class="language-scala">import fs2.Stream
-import scala.concurrent.duration._
-</code></pre>
-
-<pre><code class="language-scala">val drip: Stream[IO, String] =
-  Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
-// drip: Stream[IO, String] = Stream(..)
-</code></pre>
-
-<p>We can see it for ourselves in the REPL:</p>
-
-<pre><code class="language-scala">val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s =&gt; {IO{println(s); s}})).compile.drain
-// dripOutIO: IO[Unit] = Map(
-//   Bind(
-//     Delay(fs2.Stream$CompileOps$$Lambda$14908/1477638338@7025d627),
-//     fs2.Stream$Compiler$$anon$5$$Lambda$14918/177791621@251f031c,
-//     StackTrace(
-//       List(
-//         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
-//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
-//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
-//         cats.effect.IO.flatMap(IO.scala:133),
-//         cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
-//         cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
-//         cats.FlatMap$Ops.flatMap(FlatMap.scala:229),
-//         cats.FlatMap$Ops.flatMap$(FlatMap.scala:229),
-//         cats.FlatMap$ToFlatMapOps$$anon$2.flatMap(FlatMap.scala:243),
-//         fs2.Stream$Compiler$$anon$5.apply(Stream.scala:4228),
-//         fs2.Stream$CompileOps.foldChunks(Stream.scala:4270),
-//         fs2.Stream$CompileOps.drain(Stream.scala:4253),
-//         org.http4s.blazecore.util.EntityBodyWriter.writeEntityBody(EntityBodyWriter.scala:61),
-//         org.http4s.blazecore.util.EntityBodyWriter.writeEntityBody$(EntityBodyWriter.scala:60),
-//         org.http4s.blazecore.util.IdentityWriter.writeEntityBody(IdentityWriter.scala:30),
-//         org.http4s.blazecore.util.Http1Writer.$anonfun$write$2(Http1Writer.scala:32),
-//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:187),
-//         cats.effect.internals.IORunLoop$RestartCallback.signal(IORunLoop.scala:463),
-//         cats.effect.internals.IORunLoop$RestartCallback.apply(IORunLoop.scala:484),
-//         cats.effect.internals.IORunLoop$RestartCallback.apply(IORunLoop.scala:422),
-//         cats.effect.internals.Callback$AsyncIdempotentCallback.run(Callback.scala:131),
-//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
-//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
-//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
-//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
-//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
-//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
-//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
-// ...
-dripOutIO.unsafeRunSync()
-// 105033046 nanoseconds205391756 nanoseconds306869188 nanoseconds408344260 nanoseconds509637378 nanoseconds611525336 nanoseconds712876264 nanoseconds814610481 nanoseconds916526298 nanoseconds1017935348 nanoseconds
-</code></pre>
-
-<p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
-<code>Stream</code> as they are emitted.  Note that a stream&rsquo;s length can&rsquo;t
-generally be anticipated before it runs, so this triggers chunked
-transfer encoding:</p>
-
-<pre><code class="language-scala">Ok(drip)
-// res14: IO[Response[IO]] = Pure(
+</span><span class="identifier">dripOutIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// 107806247 nanoseconds206170991 nanoseconds306186968 nanoseconds406164711 nanoseconds506678221 nanoseconds606212341 nanoseconds705803671 nanoseconds802990951 nanoseconds906120968 nanoseconds1006582330 nanoseconds</span></code></pre>
+        <p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
+        <code>Stream</code> as they are emitted.  Note that a stream&#39;s length can&#39;t
+        generally be anticipated before it runs, so this triggers chunked
+        transfer encoding:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="identifier">drip</span><span>)
+</span><span class="comment">// res14: IO[Response[IO]] = Pure(
 //   (
 //     Status(200),
 //     HttpVersion(1, 1),
 //     Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked),
 //     Stream(..),
-//     org.typelevel.vault.Vault@3cbf53bd
+//     org.typelevel.vault.Vault@47d46a39
 //   )
-// )
-</code></pre>
-
-<h2 id="matching-and-extracting-requests">Matching and extracting requests</h2>
-
-<p>A <code>Request</code> is a regular <code>case class</code> - you can destructure it to extract its
-values. By extension, you can also <code>match/case</code> it with different possible
-destructurings. To build these different extractors, you can make use of the
-DSL.</p>
-
-<h3 id="the-object">The <code>-&gt;</code> object</h3>
-
-<p>More often, you extract the <code>Request</code> into a HTTP <code>Method</code> and path
-info via the <code>-&gt;</code> object.  On the left side is the method, and on the
-right side, the path info.  The following matches a request to <code>GET
+// )</span></code></pre>
+        
+        <h2 id="matching-and-extracting-requests" class="section">Matching and Extracting Requests<a class="anchor-link right" href="#matching-and-extracting-requests"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>A <code>Request</code> is a regular <code>case class</code> - you can destructure it to extract its
+        values. By extension, you can also <code>match/case</code> it with different possible
+        destructurings. To build these different extractors, you can make use of the
+        DSL.</p>
+        
+        <h3 id="the-object" class="section">The <code>-&gt;</code> object<a class="anchor-link right" href="#the-object"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>More often, you extract the <code>Request</code> into a HTTP <code>Method</code> and path
+        info via the <code>-&gt;</code> object.  On the left side is the method, and on the
+        right side, the path info.  The following matches a request to <code>GET
 /hello</code>:</p>
-
-<pre><code class="language-scala">HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;hello&quot; =&gt; Ok(&quot;hello&quot;)
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;hello&quot;</span><span>)
 }
-// res15: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@5dd1fbb0
-// )
-</code></pre>
+</span><span class="comment">// res15: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@35c9dfc1
+// )</span></code></pre>
+        <p>Methods such as <code>GET</code> are typically found in <code>org.http4s.Method</code>, but are imported automatically as part of the DSL. </p>
+        
+        <h3 id="path-info" class="section">Path Info<a class="anchor-link right" href="#path-info"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Path matching is done on the request&#39;s <code>pathInfo</code>.  Path info is the
+        request&#39;s URI&#39;s path after the following:</p>
+        <ul>
+          <li>the mount point of the service</li>
+          <li>the prefix, if the service is composed with a <code>Router</code></li>
+          <li>the prefix, if the service is rewritten with <code>TranslateUri</code></li>
+        </ul>
+        <p>Matching on <code>request.pathInfo</code> instead of <code>request.uri.path</code> allows
+        multiple services to be composed without rewriting all the path
+        matchers.</p>
+        
+        <h3 id="matching-paths" class="section">Matching Paths<a class="anchor-link right" href="#matching-paths"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>A request to the root of the service is matched with the <code>Root</code>
+        extractor.  <code>Root</code> consumes the leading slash of the path info.  The
+        following matches requests to <code>GET /</code>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;root&quot;</span><span>)
+}</span></code></pre>
+        <p>We usually match paths in a left-associative manner with <code>Root</code> and
+        <code>/</code>.  Each <code>&quot;/&quot;</code> after the initial slash delimits a path segment, and
+        is represented in the DSL with the &#39;/&#39; extractor.  Segments can be
+        matched as literals or made available through standard Scala pattern
+        matching.  For example, the following service responds with &quot;Hello,
+        Alice!&quot; to <code>GET /hello/Alice</code>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> / </span><span class="identifier">name</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello </span><span class="substitution">${name}</span><span class="string-literal">!&quot;</span><span>)
+}</span></code></pre>
+        <p>The above assumes only one path segment after <code>&quot;hello&quot;</code>, and would not
+        match <code>GET /hello/Alice/Bob</code>.  To match to an arbitrary depth, we need
+        a right-associative <code>/:</code> extractor.  In this case, there is no <code>Root</code>,
+        and the final pattern is a <code>Path</code> of the remaining segments.  This would
+        say <code>&quot;Hello, Alice and Bob!&quot;</code></p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="string-literal">&quot;hello&quot;</span><span> /: </span><span class="identifier">rest</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;&quot;&quot;Hello, </span><span class="substitution">${rest.segments.mkString(&quot; and &quot;)}</span><span class="string-literal">!&quot;&quot;&quot;</span><span>)
+}</span></code></pre>
+        <p>To match a file extension on a segment, use the <code>~</code> extractor:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="identifier">file</span><span> ~ </span><span class="string-literal">&quot;json&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for </span><span class="substitution">$file</span><span class="string-literal">&quot;}&quot;&quot;&quot;</span><span>)
+}</span></code></pre>
+        
+        <h3 id="handling-path-parameters" class="section">Handling Path Parameters<a class="anchor-link right" href="#handling-path-parameters"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Path params can be extracted and converted to a specific type but are
+        <code>String</code>s by default. There are numeric extractors provided in the form
+        of <code>IntVar</code> and <code>LongVar</code>, as well as <code>UUIDVar</code> extractor for <code>java.util.UUID</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">getUserName</span><span>(</span><span class="identifier">userId</span><span>: </span><span class="type-name">Int</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">String</span><span>] = ???
 
-<p>Methods such as <code>GET</code> are typically found in <code>org.http4s.Method</code>, but are imported automatically as part of the DSL.</p>
-
-<h3 id="path-info">Path info</h3>
-
-<p>Path matching is done on the request&rsquo;s <code>pathInfo</code>.  Path info is the
-request&rsquo;s URI&rsquo;s path after the following:</p>
-
-<ul>
-<li>the mount point of the service</li>
-<li>the prefix, if the service is composed with a <code>Router</code></li>
-<li>the prefix, if the service is rewritten with <code>TranslateUri</code></li>
-</ul>
-
-<p>Matching on <code>request.pathInfo</code> instead of <code>request.uri.path</code> allows
-multiple services to be composed without rewriting all the path
-matchers.</p>
-
-<h3 id="matching-paths">Matching paths</h3>
-
-<p>A request to the root of the service is matched with the <code>Root</code>
-extractor.  <code>Root</code> consumes the leading slash of the path info.  The
-following matches requests to <code>GET /</code>:</p>
-
-<pre><code class="language-scala">HttpRoutes.of[IO] {
-  case GET -&gt; Root =&gt; Ok(&quot;root&quot;)
+</span><span class="keyword">val</span><span> </span><span class="identifier">usersService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;users&quot;</span><span> / </span><span class="type-name">IntVar</span><span>(</span><span class="identifier">userId</span><span>) =&gt;
+    </span><span class="type-name">Ok</span><span>(</span><span class="identifier">getUserName</span><span>(</span><span class="identifier">userId</span><span>))
 }
-</code></pre>
-
-<p>We usually match paths in a left-associative manner with <code>Root</code> and
-<code>/</code>.  Each <code>&quot;/&quot;</code> after the initial slash delimits a path segment, and
-is represented in the DSL with the &lsquo;/&rsquo; extractor.  Segments can be
-matched as literals or made available through standard Scala pattern
-matching.  For example, the following service responds with &ldquo;Hello,
-Alice!&rdquo; to <code>GET /hello/Alice</code>:</p>
-
-<pre><code class="language-scala">HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;hello&quot; / name =&gt; Ok(s&quot;Hello, $name!&quot;)
-}
-</code></pre>
-
-<p>The above assumes only one path segment after <code>&quot;hello&quot;</code>, and would not
-match <code>GET /hello/Alice/Bob</code>.  To match to an arbitrary depth, we need
-a right-associative <code>/:</code> extractor.  In this case, there is no <code>Root</code>,
-and the final pattern is a <code>Path</code> of the remaining segments.  This would
-say <code>&quot;Hello, Alice and Bob!&quot;</code></p>
-
-<pre><code class="language-scala">HttpRoutes.of[IO] {
-  case GET -&gt; &quot;hello&quot; /: rest =&gt; Ok(s&quot;&quot;&quot;Hello, ${rest.segments.mkString(&quot; and &quot;)}!&quot;&quot;&quot;)
-}
-</code></pre>
-
-<p>To match a file extension on a segment, use the <code>~</code> extractor:</p>
-
-<pre><code class="language-scala">HttpRoutes.of[IO] {
-  case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
-}
-</code></pre>
-
-<h3 id="handling-path-parameters">Handling path parameters</h3>
-
-<p>Path params can be extracted and converted to a specific type but are
-<code>String</code>s by default. There are numeric extractors provided in the form
-of <code>IntVar</code> and <code>LongVar</code>, as well as <code>UUIDVar</code> extractor for <code>java.util.UUID</code>.</p>
-
-<pre><code class="language-scala">def getUserName(userId: Int): IO[String] = ???
-
-val usersService = HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
-    Ok(getUserName(userId))
-}
-// usersService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@39b9ac3
-// )
-</code></pre>
-
-<p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
-object which implements <code>def unapply(str: String): Option[T]</code>, similar to the way
-in which <code>IntVar</code> does it.</p>
-
-<pre><code class="language-scala">import java.time.LocalDate
-import scala.util.Try
-import org.http4s.client.dsl.io._
-</code></pre>
-
-<pre><code class="language-scala">object LocalDateVar {
-  def unapply(str: String): Option[LocalDate] = {
-    if (!str.isEmpty)
-      Try(LocalDate.parse(str)).toOption
-    else
-      None
+</span><span class="comment">// usersService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@598582e4
+// )</span></code></pre>
+        <p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
+        object which implements <code>def unapply(str: String): Option[T]</code>, similar to the way
+        in which <code>IntVar</code> does it.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">time</span><span>.</span><span class="type-name">LocalDate</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">util</span><span>.</span><span class="type-name">Try</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">LocalDateVar</span><span> {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">unapply</span><span>(</span><span class="identifier">str</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Option</span><span>[</span><span class="type-name">LocalDate</span><span>] = {
+    </span><span class="keyword">if</span><span> (!</span><span class="identifier">str</span><span>.</span><span class="identifier">isEmpty</span><span>)
+      </span><span class="type-name">Try</span><span>(</span><span class="type-name">LocalDate</span><span>.</span><span class="identifier">parse</span><span>(</span><span class="identifier">str</span><span>)).</span><span class="identifier">toOption</span><span>
+    </span><span class="keyword">else</span><span>
+      </span><span class="type-name">None</span><span>
   }
 }
 
-def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">getTemperatureForecast</span><span>(</span><span class="identifier">date</span><span>: </span><span class="type-name">LocalDate</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Double</span><span>] = </span><span class="type-name">IO</span><span>(</span><span class="number-literal">42.23</span><span>)
 
-val dailyWeatherService = HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
-    Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
+</span><span class="keyword">val</span><span> </span><span class="identifier">dailyWeatherService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;weather&quot;</span><span> / </span><span class="string-literal">&quot;temperature&quot;</span><span> / </span><span class="type-name">LocalDateVar</span><span>(</span><span class="identifier">localDate</span><span>) =&gt;
+    </span><span class="type-name">Ok</span><span>(</span><span class="identifier">getTemperatureForecast</span><span>(</span><span class="identifier">localDate</span><span>)
+      .</span><span class="identifier">map</span><span>(</span><span class="string-literal">s&quot;The temperature on </span><span class="substitution">$localDate</span><span class="string-literal"> will be: &quot;</span><span> + </span><span class="identifier">_</span><span>))
 }
-// dailyWeatherService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@5e417e4f
+</span><span class="comment">// dailyWeatherService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@5746823f
 // )
-
-val req = GET(uri&quot;/weather/temperature/2016-11-05&quot;)
-// req: Request[IO] = (
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">req</span><span> = </span><span class="type-name">GET</span><span>(</span><span class="string-literal">uri&quot;/weather/temperature/2016-11-05&quot;</span><span>)
+</span><span class="comment">// req: Request[IO] = (
 //   GET,
 //   Uri(None, None, /weather/temperature/2016-11-05, , None),
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   org.typelevel.vault.Vault@1825fc81
+//   org.typelevel.vault.Vault@33a7af4c
 // )
-dailyWeatherService.orNotFound(req).unsafeRunSync()
-// res20: Response[IO] = (
+</span><span class="identifier">dailyWeatherService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">req</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res20: Response[IO] = (
 //   Status(200),
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44),
 //   Stream(..),
-//   org.typelevel.vault.Vault@4a7b984e
-// )
-</code></pre>
+//   org.typelevel.vault.Vault@48eb492e
+// )</span></code></pre>
+        
+        <h3 id="handling-matrix-path-parameters" class="section">Handling Matrix Path Parameters<a class="anchor-link right" href="#handling-matrix-path-parameters"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p><a href="https://www.w3.org/DesignIssues/MatrixURIs.html">Matrix path parameters</a> can be extracted using <code>MatrixVar</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">impl</span><span>.</span><span class="type-name">MatrixVar</span></code></pre>
+        <p>In following example, we extract the <code>first</code> and <code>last</code> matrix path parameters. 
+        By default, matrix path parameters are extracted as <code>String</code>s.</p>
+        <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">FullNameExtractor</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">MatrixVar</span><span>(</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="type-name">List</span><span>(</span><span class="string-literal">&quot;first&quot;</span><span>, </span><span class="string-literal">&quot;last&quot;</span><span>))
 
-<h3 id="handling-query-parameters">Handling query parameters</h3>
-
-<p>A query parameter needs to have a <code>QueryParamDecoderMatcher</code> provided to
-extract it. In order for the <code>QueryParamDecoderMatcher</code> to work there needs to
-be an implicit <code>QueryParamDecoder[T]</code> in scope. <code>QueryParamDecoder</code>s for simple
-types can be found in the <code>QueryParamDecoder</code> object. There are also
-<code>QueryParamDecoderMatcher</code>s available which can be used to
-return optional or validated parameter values.</p>
-
-<p>In the example below we&rsquo;re finding query params named <code>country</code> and <code>year</code> and
-then parsing them as a <code>String</code> and <code>java.time.Year</code>.</p>
-
-<pre><code class="language-scala">import java.time.Year
-</code></pre>
-
-<pre><code class="language-scala">object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String](&quot;country&quot;)
-
-implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
-  QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@15e94e40
-
-object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
-
-def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Double] = ???
-
-val averageTemperatureService = HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
-    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
+</span><span class="keyword">val</span><span> </span><span class="identifier">greetingService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> / </span><span class="type-name">FullNameExtractor</span><span>(</span><span class="identifier">first</span><span>, </span><span class="identifier">last</span><span>) / </span><span class="string-literal">&quot;greeting&quot;</span><span> =&gt;
+    </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$first</span><span class="string-literal"> </span><span class="substitution">$last</span><span class="string-literal">.&quot;</span><span>)
 }
-// averageTemperatureService: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@408ff9b4
+</span><span class="comment">// greetingService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@3d0c7075
 // )
-</code></pre>
+</span><span>
+</span><span class="identifier">greetingService</span><span>
+  .</span><span class="identifier">orNotFound</span><span>(</span><span class="type-name">GET</span><span>(</span><span class="string-literal">uri&quot;/hello/name;first=john;last=doe/greeting&quot;</span><span>))
+  .</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res21: Response[IO] = (
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16),
+//   Stream(..),
+//   org.typelevel.vault.Vault@5e385a91
+// )</span></code></pre>
+        <p>Like standard path parameters, matrix path parameters can be extracted as numeric types using <code>IntVar</code> or <code>LongVar</code>.</p>
+        <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">FullNameAndIDExtractor</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">MatrixVar</span><span>(</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="type-name">List</span><span>(</span><span class="string-literal">&quot;first&quot;</span><span>, </span><span class="string-literal">&quot;last&quot;</span><span>, </span><span class="string-literal">&quot;id&quot;</span><span>))
 
-<p>To support a <code>QueryParamDecoderMatcher[Instant]</code>, consider <code>QueryParamCodec#instantQueryParamCodec</code>. That
-outputs a <code>QueryParamCodec[Instant]</code>, which offers both a <code>QueryParamEncoder[Instant]</code> and <code>QueryParamDecoder[Instant]</code>.</p>
+</span><span class="keyword">val</span><span> </span><span class="identifier">greetingWithIdService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> / </span><span class="type-name">FullNameAndIDExtractor</span><span>(</span><span class="identifier">first</span><span>, </span><span class="identifier">last</span><span>, </span><span class="type-name">IntVar</span><span>(</span><span class="identifier">id</span><span>)) / </span><span class="string-literal">&quot;greeting&quot;</span><span> =&gt;
+    </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$first</span><span class="string-literal"> </span><span class="substitution">$last</span><span class="string-literal">. Your User ID is </span><span class="substitution">$id</span><span class="string-literal">.&quot;</span><span>)
+}
+</span><span class="comment">// greetingWithIdService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@50eb43d5
+// )
+</span><span>
+</span><span class="identifier">greetingWithIdService</span><span>
+  .</span><span class="identifier">orNotFound</span><span>(</span><span class="type-name">GET</span><span>(</span><span class="string-literal">uri&quot;/hello/name;first=john;last=doe;id=123/greeting&quot;</span><span>))
+  .</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res22: Response[IO] = (
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 37),
+//   Stream(..),
+//   org.typelevel.vault.Vault@425bd2df
+// )</span></code></pre>
+        
+        <h3 id="handling-query-parameters" class="section">Handling Query Parameters<a class="anchor-link right" href="#handling-query-parameters"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>A query parameter needs to have a <code>QueryParamDecoderMatcher</code> provided to
+        extract it. In order for the <code>QueryParamDecoderMatcher</code> to work there needs to
+        be an implicit <code>QueryParamDecoder[T]</code> in scope. <code>QueryParamDecoder</code>s for simple
+        types can be found in the <code>QueryParamDecoder</code> object. There are also
+        <code>QueryParamDecoderMatcher</code>s available which can be used to
+        return optional or validated parameter values.</p>
+        <p>In the example below we&#39;re finding query params named <code>country</code> and <code>year</code> and
+        then parsing them as a <code>String</code> and <code>java.time.Year</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">time</span><span>.</span><span class="type-name">Year</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">CountryQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">QueryParamDecoderMatcher</span><span>[</span><span class="type-name">String</span><span>](</span><span class="string-literal">&quot;country&quot;</span><span>)
 
-<pre><code class="language-scala">import java.time.Instant
-import java.time.format.DateTimeFormatter
-</code></pre>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
+  </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>].</span><span class="identifier">map</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>)
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@1c8a8d39
+</span><span>
+</span><span class="keyword">object</span><span> </span><span class="type-name">YearQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">QueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
 
-<pre><code class="language-scala">implicit val isoInstantCodec: QueryParamCodec[Instant] =
-  QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">getAverageTemperatureForCountryAndYear</span><span>(</span><span class="identifier">country</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">year</span><span>: </span><span class="type-name">Year</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Double</span><span>] = ???
 
-object IsoInstantParamMatcher extends QueryParamDecoderMatcher[Instant](&quot;timestamp&quot;)
-</code></pre>
+</span><span class="keyword">val</span><span> </span><span class="identifier">averageTemperatureService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;weather&quot;</span><span> / </span><span class="string-literal">&quot;temperature&quot;</span><span> :? </span><span class="type-name">CountryQueryParamMatcher</span><span>(</span><span class="identifier">country</span><span>) +&amp; </span><span class="type-name">YearQueryParamMatcher</span><span>(</span><span class="identifier">year</span><span>) =&gt;
+    </span><span class="type-name">Ok</span><span>(</span><span class="identifier">getAverageTemperatureForCountryAndYear</span><span>(</span><span class="identifier">country</span><span>, </span><span class="identifier">year</span><span>)
+      .</span><span class="identifier">map</span><span>(</span><span class="string-literal">s&quot;Average temperature for </span><span class="substitution">$country</span><span class="string-literal"> in </span><span class="substitution">$year</span><span class="string-literal"> was: &quot;</span><span> + </span><span class="identifier">_</span><span>))
+}
+</span><span class="comment">// averageTemperatureService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@fab0eb
+// )</span></code></pre>
+        <p>To support a <code>QueryParamDecoderMatcher[Instant]</code>, consider <code>QueryParamCodec#instantQueryParamCodec</code>. That
+        outputs a <code>QueryParamCodec[Instant]</code>, which offers both a <code>QueryParamEncoder[Instant]</code> and <code>QueryParamDecoder[Instant]</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">isoInstantCodec</span><span>: </span><span class="type-name">QueryParamCodec</span><span>[</span><span class="type-name">Instant</span><span>] =
+  </span><span class="type-name">QueryParamCodec</span><span>.</span><span class="identifier">instantQueryParamCodec</span><span>(</span><span class="type-name">DateTimeFormatter</span><span>.</span><span class="type-name">ISO_INSTANT</span><span>)
 
-<h4 id="optional-query-parameters">Optional query parameters</h4>
+</span><span class="keyword">object</span><span> </span><span class="type-name">IsoInstantParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">QueryParamDecoderMatcher</span><span>[</span><span class="type-name">Instant</span><span>](</span><span class="string-literal">&quot;timestamp&quot;</span><span>)</span></code></pre>
+        
+        <h4 id="optional-query-parameters" class="section">Optional Query Parameters<a class="anchor-link right" href="#optional-query-parameters"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>To accept an optional query parameter a <code>OptionalQueryParamDecoderMatcher</code> can be used.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">time</span><span>.</span><span class="type-name">Year</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
+  </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>].</span><span class="identifier">map</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>)
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@a05beca
+</span><span>
+</span><span class="keyword">object</span><span> </span><span class="type-name">OptionalYearQueryParamMatcher</span><span> 
+  </span><span class="keyword">extends</span><span> </span><span class="type-name">OptionalQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
 
-<p>To accept an optional query parameter a <code>OptionalQueryParamDecoderMatcher</code> can be used.</p>
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">getAverageTemperatureForCurrentYear</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">String</span><span>] = ???
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">getAverageTemperatureForYear</span><span>(</span><span class="identifier">y</span><span>: </span><span class="type-name">Year</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">String</span><span>] = ???
 
-<pre><code class="language-scala">import java.time.Year
-import org.http4s.client.dsl.io._
-</code></pre>
-
-<pre><code class="language-scala">implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
-  QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@77f9d4d0
-
-object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Year](&quot;year&quot;)
-
-def getAverageTemperatureForCurrentYear: IO[String] = ???
-def getAverageTemperatureForYear(y: Year): IO[String] = ???
-
-val routes2 = HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;temperature&quot; :? OptionalYearQueryParamMatcher(maybeYear) =&gt;
-    maybeYear match {
-      case None =&gt;
-        Ok(getAverageTemperatureForCurrentYear)
-      case Some(year) =&gt;
-        Ok(getAverageTemperatureForYear(year))
+</span><span class="keyword">val</span><span> </span><span class="identifier">routes2</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;temperature&quot;</span><span> :? </span><span class="type-name">OptionalYearQueryParamMatcher</span><span>(</span><span class="identifier">maybeYear</span><span>) =&gt;
+    </span><span class="identifier">maybeYear</span><span> </span><span class="keyword">match</span><span> {
+      </span><span class="keyword">case</span><span> </span><span class="type-name">None</span><span> =&gt;
+        </span><span class="type-name">Ok</span><span>(</span><span class="identifier">getAverageTemperatureForCurrentYear</span><span>)
+      </span><span class="keyword">case</span><span> </span><span class="type-name">Some</span><span>(</span><span class="identifier">year</span><span>) =&gt;
+        </span><span class="type-name">Ok</span><span>(</span><span class="identifier">getAverageTemperatureForYear</span><span>(</span><span class="identifier">year</span><span>))
     }
 }
-// routes2: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@61568b89
-// )
-</code></pre>
+</span><span class="comment">// routes2: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@1654487f
+// )</span></code></pre>
+        
+        <h4 id="missing-required-query-parameters" class="section">Missing Required Query Parameters<a class="anchor-link right" href="#missing-required-query-parameters"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>A request with a missing required query parameter will fall through to the following <code>case</code> statements and may eventually return a 404. To provide contextual error handling, optional query parameters or fallback routes can be used.</p>
+        
+        <h4 id="invalid-query-parameter-handling" class="section">Invalid Query Parameter Handling<a class="anchor-link right" href="#invalid-query-parameter-handling"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>To validate query parsing you can use <code>ValidatingQueryParamDecoderMatcher</code> which returns a <code>ParseFailure</code> if the parameter cannot be decoded. Be careful not to return the raw invalid value in a <code>BadRequest</code> because it could be used for <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS">Cross Site Scripting</a>) attacks.</p>
+        <pre><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
+  </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>]
+    .</span><span class="identifier">emap</span><span>(</span><span class="identifier">i</span><span> =&gt; </span><span class="type-name">Try</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>(</span><span class="identifier">i</span><span>))
+    .</span><span class="identifier">toEither</span><span>
+    .</span><span class="identifier">leftMap</span><span>(</span><span class="identifier">t</span><span> =&gt; </span><span class="type-name">ParseFailure</span><span>(</span><span class="identifier">t</span><span>.</span><span class="identifier">getMessage</span><span>, </span><span class="identifier">t</span><span>.</span><span class="identifier">getMessage</span><span>)))
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@5effecc9
+</span><span>
+</span><span class="keyword">object</span><span> </span><span class="type-name">YearQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">ValidatingQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
 
-<h4 id="missing-required-query-parameters">Missing required query parameters</h4>
-
-<p>A request with a missing required query parameter will fall through to the following <code>case</code> statements and may eventually return a 404. To provide contextual error handling, optional query parameters or fallback routes can be used.</p>
-
-<h4 id="invalid-query-parameter-handling">Invalid query parameter handling</h4>
-
-<p>To validate query parsing you can use <code>ValidatingQueryParamDecoderMatcher</code> which returns a <code>ParseFailure</code> if the parameter cannot be decoded. Be careful not to return the raw invalid value in a <code>BadRequest</code> because it could be used for <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)">Cross Site Scripting</a> attacks.</p>
-
-<pre><code class="language-scala">implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
-  QueryParamDecoder[Int].emap(i =&gt; Try(Year.of(i)).toEither.leftMap(t =&gt; ParseFailure(t.getMessage, t.getMessage)))
-// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@3e9252ad
-
-object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year](&quot;year&quot;)
-
-val routes = HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;temperature&quot; :? YearQueryParamMatcher(yearValidated) =&gt;
-    yearValidated.fold(
-      parseFailures =&gt; BadRequest(&quot;unable to parse argument year&quot;),
-      year =&gt; Ok(getAverageTemperatureForYear(year))
+</span><span class="keyword">val</span><span> </span><span class="identifier">routes</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;temperature&quot;</span><span> :? </span><span class="type-name">YearQueryParamMatcher</span><span>(</span><span class="identifier">yearValidated</span><span>) =&gt;
+    </span><span class="identifier">yearValidated</span><span>.</span><span class="identifier">fold</span><span>(
+      </span><span class="identifier">parseFailures</span><span> =&gt; </span><span class="type-name">BadRequest</span><span>(</span><span class="string-literal">&quot;unable to parse argument year&quot;</span><span>),
+      </span><span class="identifier">year</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="identifier">getAverageTemperatureForYear</span><span>(</span><span class="identifier">year</span><span>))
     )
 }
-// routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@16f4e92
-// )
-</code></pre>
+</span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@bd77215
+// )</span></code></pre>
+        
+        <h4 id="optional-invalid-query-parameter-handling" class="section">Optional Invalid Query Parameter Handling<a class="anchor-link right" href="#optional-invalid-query-parameter-handling"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>Consider <code>OptionalValidatingQueryParamDecoderMatcher[A]</code> given the power that
+          <code>Option[cats.data.ValidatedNel[org.http4s.ParseFailure, A]]</code> provides.</p>
+        <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">LongParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">OptionalValidatingQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Long</span><span>](</span><span class="string-literal">&quot;long&quot;</span><span>)
 
-<h4 id="optional-invalid-query-parameter-handling">Optional Invalid query parameter handling</h4>
+</span><span class="keyword">val</span><span> </span><span class="identifier">routes</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;number&quot;</span><span> :? </span><span class="type-name">LongParamMatcher</span><span>(</span><span class="identifier">maybeNumber</span><span>) =&gt;
 
-<p>Consider <code>OptionalValidatingQueryParamDecoderMatcher[A]</code> given the power that
-  <code>Option[cats.data.ValidatedNel[org.http4s.ParseFailure, A]]</code> provides.</p>
+    </span><span class="keyword">val</span><span> </span><span class="identifier">_</span><span>: </span><span class="type-name">Option</span><span>[</span><span class="identifier">cats</span><span>.</span><span class="identifier">data</span><span>.</span><span class="type-name">ValidatedNel</span><span>[</span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">ParseFailure</span><span>, </span><span class="type-name">Long</span><span>]] = </span><span class="identifier">maybeNumber</span><span>
 
-<pre><code class="language-scala">object LongParamMatcher extends OptionalValidatingQueryParamDecoderMatcher[Long](&quot;long&quot;)
-
-val routes = HttpRoutes.of[IO] {
-  case GET -&gt; Root / &quot;number&quot; :? LongParamMatcher(maybeNumber) =&gt;
-
-    val _: Option[cats.data.ValidatedNel[org.http4s.ParseFailure, Long]] = maybeNumber
-
-    maybeNumber match {
-        case Some(n) =&gt;
-            n.fold(
-              parseFailures =&gt; BadRequest(&quot;unable to parse argument 'long'&quot;),
-              year =&gt; Ok(n.toString)
+    </span><span class="identifier">maybeNumber</span><span> </span><span class="keyword">match</span><span> {
+        </span><span class="keyword">case</span><span> </span><span class="type-name">Some</span><span>(</span><span class="identifier">n</span><span>) =&gt;
+            </span><span class="identifier">n</span><span>.</span><span class="identifier">fold</span><span>(
+              </span><span class="identifier">parseFailures</span><span> =&gt; </span><span class="type-name">BadRequest</span><span>(</span><span class="string-literal">&quot;unable to parse argument &#39;long&#39;&quot;</span><span>),
+              </span><span class="identifier">year</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="identifier">n</span><span>.</span><span class="identifier">toString</span><span>)
             )
-        case None =&gt; BadRequest(&quot;missing number&quot;)
+        </span><span class="keyword">case</span><span> </span><span class="type-name">None</span><span> =&gt; </span><span class="type-name">BadRequest</span><span>(</span><span class="string-literal">&quot;missing number&quot;</span><span>)
     }
 }
-// routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$13933/1572341245@3889553b
-// )
-</code></pre>
+</span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$19641/1362622506@2c836e4b
+// )</span></code></pre>
 
-        </div>
+        <!-- custom start - integrate footer, a feature not yet available in Helium -->
+        <hr style="margin-top: 30px"/>
+        <footer style="font-size: 90%; text-align: center">
+          http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+        </footer>
+        <!-- custom end -->
 
-        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
-          <ul class="nav flex-column">          
-            
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/">Quick Start</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/integrations/">Integrations</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/service/">Service</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link active" href="/v1.0/dsl/">The http4s DSL</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/middleware/">Middleware</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/auth/">Authentication</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/cors/">CORS</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/csrf/">CSRF</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/gzip/">GZip Compression</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/hsts/">HSTS</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/static/">Static Files</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/client/">HTTP Client</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/entity/">Entity handling</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/streaming/">Streaming</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/json/">JSON handling</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/testing/">Testing</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/uri/">URI handling</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/deployment/">Deployment</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v1.0/api">Scaladoc</a>
-            </li>
-            
-          </ul>
-        </div>
-      </div>
-      <hr />
-      <footer class="text-muted text-center small">
-        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
-      </footer>
+      </main>
 
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="http://127.0.0.1:4000/v1.0/js/highlight.pack.js"></script>
-<script>
-  hljs.initHighlightingOnLoad();
-  
-  $(document).ready(function () {
-    $('[data-toggle="offcanvas"]').click(function () {
-      $('.row-offcanvas').toggleClass('active')
-    });
-  });
-
-  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
-</script>
-
   </body>
 </html>
-
-

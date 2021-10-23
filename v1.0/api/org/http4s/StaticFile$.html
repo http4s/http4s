@@ -629,18 +629,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="Http$.html" title="Functions for creating Http kleislis."></a>
                         <a href="Http$.html" title="Functions for creating Http kleislis.">Http</a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4s$.html" title=""></a>
-                        <a class="trait" href="Http4s.html" title=""></a>
-                        <a href="Http4s.html" title="">Http4s</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sFunctions$.html" title=""></a>
-                        <a class="trait" href="Http4sFunctions.html" title=""></a>
-                        <a href="Http4sFunctions.html" title="">Http4sFunctions</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sInstances$.html" title=""></a>
-                        <a class="trait" href="Http4sInstances.html" title=""></a>
-                        <a href="Http4sInstances.html" title="">Http4sInstances</a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
@@ -662,8 +650,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis.">HttpRoutes</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="HttpVersion$.html" title=""></a>
-                        <a class="class" href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response."></a>
-                        <a href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response.">HttpVersion</a>
+                        <a class="class" href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point)."></a>
+                        <a href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point).">HttpVersion</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="InvalidBodyException.html" title="Exception dealing with invalid body"></a>
@@ -749,6 +737,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="ProductIdOrComment.html" title=""></a>
                         <a href="ProductIdOrComment.html" title="">ProductIdOrComment</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="Protocol$.html" title=""></a>
+                        <a class="class" href="Protocol.html" title=""></a>
+                        <a href="Protocol.html" title="">Protocol</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="QValue.html" title="A Quality Value."></a>
                         <a href="QValue.html" title="A Quality Value.">QValue</a>
@@ -809,6 +801,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="RequestPrelude$.html" title=""></a>
+                        <a class="class" href="RequestPrelude.html" title="A projection of a Request without the body."></a>
+                        <a href="RequestPrelude.html" title="A projection of a Request without the body.">RequestPrelude</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -816,6 +812,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ResponseCookie$.html" title=""></a>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ResponsePrelude$.html" title=""></a>
+                        <a class="class" href="ResponsePrelude.html" title="A projection of a Response without the body."></a>
+                        <a href="ResponsePrelude.html" title="A projection of a Response without the body.">ResponsePrelude</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SameSite$.html" title=""></a>
                         <a class="trait" href="SameSite.html" title="RFC6265 SameSite cookie attribute values."></a>
@@ -896,11 +896,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/StaticFile.scala" target="_blank">StaticFile.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/core/shared/src/main/scala/org/http4s/StaticFile.scala" target="_blank">StaticFile.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -965,7 +965,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -981,7 +981,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -997,7 +997,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1013,7 +1013,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">DefaultBufferSize</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">DefaultBufferSize</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       
@@ -1033,10 +1033,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.StaticFile#calcETag" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="calcETag[F[_]](implicitevidence$5:cats.effect.Sync[F]):java.io.File=&gt;F[String]"></a><a id="calcETag[F[_]](Sync[F]):(File)⇒F[String]"></a>
+    </li><li name="org.http4s.StaticFile#calculateETag" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="calculateETag[F[_]](implicitevidence$6:fs2.io.file.Files[F],implicitevidence$7:cats.ApplicativeThrow[F]):fs2.io.file.Path=&gt;F[String]"></a><a id="calculateETag[F[_]](Files[F],ApplicativeThrow[F]):(Path)⇒F[String]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#calcETag[F[_]](implicitevidence$5:cats.effect.Sync[F]):java.io.File=&gt;F[String]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#calculateETag[F[_]](implicitevidence$6:fs2.io.file.Files[F],implicitevidence$7:cats.ApplicativeThrow[F]):fs2.io.file.Path=&gt;F[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1045,7 +1045,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">calcETag</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.calcETag.F">F</span>]</span>)</span><span class="result">: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.calcETag.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">calculateETag</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.calculateETag.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.ApplicativeThrow">ApplicativeThrow</span>[<span class="extype" name="org.http4s.StaticFile.calculateETag.F">F</span>]</span>)</span><span class="result">: (<span class="extype" name="fs2.io.file.Path">Path</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.calculateETag.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       
@@ -1061,7 +1061,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1085,7 +1085,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1101,7 +1101,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1117,7 +1117,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1127,10 +1127,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Long,Long,Int,Blocker,Option[Request[F]],(File)⇒F[String])(Sync[F],ContextShift[F]):OptionT[F,Response[F]]"></a>
+    </li><li name="org.http4s.StaticFile#fromPath" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fromPath[F[_]](f:fs2.io.file.Path,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:fs2.io.file.Path=&gt;F[String])(implicitevidence$21:fs2.io.file.Files[F],implicitF:cats.MonadError[F,Throwable]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromPath[F[_]](Path,Long,Long,Int,Option[Request[F]],(Path)⇒F[String])(Files[F],MonadError[F,Throwable]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromPath[F[_]](f:fs2.io.file.Path,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:fs2.io.file.Path=&gt;F[String])(implicitevidence$21:fs2.io.file.Files[F],implicitF:cats.MonadError[F,Throwable]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1139,14 +1139,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="start">start: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="end">end: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="buffsize">buffsize: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="cs">cs: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromPath</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="fs2.io.file.Path">Path</span></span>, <span name="start">start: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="end">end: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="buffsize">buffsize: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="fs2.io.file.Path">Path</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]</span>, <span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]]</span>
       </span>
       
       
-    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,buffsize:Int,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$10:cats.effect.Sync[F],implicitevidence$11:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Int,Blocker,Option[Request[F]],(File)⇒F[String])(Sync[F],ContextShift[F]):OptionT[F,Response[F]]"></a>
+    </li><li name="org.http4s.StaticFile#fromPath" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fromPath[F[_]](f:fs2.io.file.Path,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:fs2.io.file.Path=&gt;F[String])(implicitevidence$18:fs2.io.file.Files[F],implicitevidence$19:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromPath[F[_]](Path,Int,Option[Request[F]],(Path)⇒F[String])(Files[F],MonadThrow[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,buffsize:Int,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$10:cats.effect.Sync[F],implicitevidence$11:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromPath[F[_]](f:fs2.io.file.Path,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:fs2.io.file.Path=&gt;F[String])(implicitevidence$18:fs2.io.file.Files[F],implicitevidence$19:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1155,14 +1155,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="buffsize">buffsize: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromPath</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="fs2.io.file.Path">Path</span></span>, <span name="buffsize">buffsize: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="fs2.io.file.Path">Path</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]]</span>
       </span>
       
       
-    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$8:cats.effect.Sync[F],implicitevidence$9:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Blocker,Option[Request[F]],(File)⇒F[String])(Sync[F],ContextShift[F]):OptionT[F,Response[F]]"></a>
+    </li><li name="org.http4s.StaticFile#fromPath" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fromPath[F[_]](f:fs2.io.file.Path,req:Option[org.http4s.Request[F]],etagCalculator:fs2.io.file.Path=&gt;F[String])(implicitevidence$14:fs2.io.file.Files[F],implicitevidence$15:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromPath[F[_]](Path,Option[Request[F]],(Path)⇒F[String])(Files[F],MonadThrow[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$8:cats.effect.Sync[F],implicitevidence$9:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromPath[F[_]](f:fs2.io.file.Path,req:Option[org.http4s.Request[F]],etagCalculator:fs2.io.file.Path=&gt;F[String])(implicitevidence$14:fs2.io.file.Files[F],implicitevidence$15:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1171,14 +1171,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromPath</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="fs2.io.file.Path">Path</span></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="fs2.io.file.Path">Path</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]]</span>
       </span>
       
       
-    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]])(implicitevidence$6:cats.effect.Sync[F],implicitevidence$7:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Blocker,Option[Request[F]])(Sync[F],ContextShift[F]):OptionT[F,Response[F]]"></a>
+    </li><li name="org.http4s.StaticFile#fromPath" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fromPath[F[_]](f:fs2.io.file.Path,req:Option[org.http4s.Request[F]])(implicitevidence$10:fs2.io.file.Files[F],implicitevidence$11:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromPath[F[_]](Path,Option[Request[F]])(Files[F],MonadThrow[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]])(implicitevidence$6:cats.effect.Sync[F],implicitevidence$7:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromPath[F[_]](f:fs2.io.file.Path,req:Option[org.http4s.Request[F]])(implicitevidence$10:fs2.io.file.Files[F],implicitevidence$11:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1187,14 +1187,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromPath</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="fs2.io.file.Path">Path</span></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromPath.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromResource" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromResource[F[_]](name:String,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],preferGzipped:Boolean,classloader:Option[ClassLoader])(implicitevidence$3:cats.effect.Sync[F],implicitevidence$4:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromResource[F[_]](String,Blocker,Option[Request[F]],Boolean,Option[ClassLoader])(Sync[F],ContextShift[F]):OptionT[F,Response[F]]"></a>
+      <a id="fromResource[F[_]](name:String,req:Option[org.http4s.Request[F]],preferGzipped:Boolean,classloader:Option[ClassLoader])(implicitevidence$3:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromResource[F[_]](String,Option[Request[F]],Boolean,Option[ClassLoader])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromResource[F[_]](name:String,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]],preferGzipped:Boolean,classloader:Option[ClassLoader])(implicitevidence$3:cats.effect.Sync[F],implicitevidence$4:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromResource[F[_]](name:String,req:Option[org.http4s.Request[F]],preferGzipped:Boolean,classloader:Option[ClassLoader])(implicitevidence$3:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1203,14 +1203,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromResource</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]] = <span class="symbol">None</span></span>, <span name="preferGzipped">preferGzipped: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="classloader">classloader: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="java.lang.ClassLoader">ClassLoader</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]]</span>
+        <span class="name">fromResource</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]] = <span class="symbol">None</span></span>, <span name="preferGzipped">preferGzipped: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="classloader">classloader: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="java.lang.ClassLoader">ClassLoader</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromString[F[_]](url:String,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]])(implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromString[F[_]](String,Blocker,Option[Request[F]])(Sync[F],ContextShift[F]):OptionT[F,Response[F]]"></a>
+      <a id="fromString[F[_]](url:String,req:Option[org.http4s.Request[F]])(implicitevidence$1:fs2.io.file.Files[F],implicitevidence$2:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromString[F[_]](String,Option[Request[F]])(Files[F],MonadThrow[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromString[F[_]](url:String,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]])(implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromString[F[_]](url:String,req:Option[org.http4s.Request[F]])(implicitevidence$1:fs2.io.file.Files[F],implicitevidence$2:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1219,14 +1219,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromString</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]]</span>
+        <span class="name">fromString</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromURL" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromURL[F[_]](url:java.net.URL,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromURL[F[_]](URL,Blocker,Option[Request[F]])(Sync[F],ContextShift[F]):OptionT[F,Response[F]]"></a>
+      <a id="fromURL[F[_]](url:java.net.URL,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromURL[F[_]](URL,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromURL[F[_]](url:java.net.URL,blocker:cats.effect.Blocker,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromURL[F[_]](url:java.net.URL,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1235,7 +1235,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromURL</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="java.net.URL">URL</span></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]</span>, <span name="cs">cs: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]]</span>
+        <span class="name">fromURL</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="java.net.URL">URL</span></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]]</span>
       </span>
       
       
@@ -1270,7 +1270,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
@@ -1289,7 +1289,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -1305,7 +1305,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1321,7 +1321,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1340,7 +1340,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1391,7 +1391,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1413,7 +1413,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1435,7 +1435,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1453,14 +1453,112 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.StaticFile#calcETag" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="calcETag[F[_]](implicitevidence$4:fs2.io.file.Files[F],implicitevidence$5:cats.Functor[F]):java.io.File=&gt;F[String]"></a><a id="calcETag[F[_]](Files[F],Functor[F]):(File)⇒F[String]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/StaticFile$.html#calcETag[F[_]](implicitevidence$4:fs2.io.file.Files[F],implicitevidence$5:cats.Functor[F]):java.io.File=&gt;F[String]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Use calculateETag">calcETag</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.calcETag.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.StaticFile.calcETag.F">F</span>]</span>)</span><span class="result">: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.calcETag.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Use calculateETag</p></dd></dl></div>
+    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$20:fs2.io.file.Files[F],implicitF:cats.MonadError[F,Throwable]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Long,Long,Int,Option[Request[F]],(File)⇒F[String])(Files[F],MonadError[F,Throwable]):OptionT[F,Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$20:fs2.io.file.Files[F],implicitF:cats.MonadError[F,Throwable]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Use fromPath">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="start">start: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="end">end: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="buffsize">buffsize: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Use fromPath</p></dd></dl></div>
+    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$16:fs2.io.file.Files[F],implicitevidence$17:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Int,Option[Request[F]],(File)⇒F[String])(Files[F],MonadThrow[F]):OptionT[F,Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$16:fs2.io.file.Files[F],implicitevidence$17:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Use fromPath">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="buffsize">buffsize: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Use fromPath</p></dd></dl></div>
+    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$12:fs2.io.file.Files[F],implicitevidence$13:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Option[Request[F]],(File)⇒F[String])(Files[F],MonadThrow[F]):OptionT[F,Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$12:fs2.io.file.Files[F],implicitevidence$13:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Use fromPath">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Use fromPath</p></dd></dl></div>
+    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$8:fs2.io.file.Files[F],implicitevidence$9:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Option[Request[F]])(Files[F],MonadThrow[F]):OptionT[F,Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$8:fs2.io.file.Files[F],implicitevidence$9:cats.MonadThrow[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Use fromPath">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="req">req: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.MonadThrow">MonadThrow</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Use fromPath</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

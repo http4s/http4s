@@ -629,18 +629,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="" title="Functions for creating Http kleislis."></a>
                         <a href="" title="Functions for creating Http kleislis.">Http</a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4s$.html" title=""></a>
-                        <a class="trait" href="Http4s.html" title=""></a>
-                        <a href="Http4s.html" title="">Http4s</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sFunctions$.html" title=""></a>
-                        <a class="trait" href="Http4sFunctions.html" title=""></a>
-                        <a href="Http4sFunctions.html" title="">Http4sFunctions</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sInstances$.html" title=""></a>
-                        <a class="trait" href="Http4sInstances.html" title=""></a>
-                        <a href="Http4sInstances.html" title="">Http4sInstances</a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
@@ -662,8 +650,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis.">HttpRoutes</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="HttpVersion$.html" title=""></a>
-                        <a class="class" href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response."></a>
-                        <a href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response.">HttpVersion</a>
+                        <a class="class" href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point)."></a>
+                        <a href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point).">HttpVersion</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="InvalidBodyException.html" title="Exception dealing with invalid body"></a>
@@ -749,6 +737,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="ProductIdOrComment.html" title=""></a>
                         <a href="ProductIdOrComment.html" title="">ProductIdOrComment</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="Protocol$.html" title=""></a>
+                        <a class="class" href="Protocol.html" title=""></a>
+                        <a href="Protocol.html" title="">Protocol</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="QValue.html" title="A Quality Value."></a>
                         <a href="QValue.html" title="A Quality Value.">QValue</a>
@@ -809,6 +801,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="RequestPrelude$.html" title=""></a>
+                        <a class="class" href="RequestPrelude.html" title="A projection of a Request without the body."></a>
+                        <a href="RequestPrelude.html" title="A projection of a Request without the body.">RequestPrelude</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -816,6 +812,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ResponseCookie$.html" title=""></a>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ResponsePrelude$.html" title=""></a>
+                        <a class="class" href="ResponsePrelude.html" title="A projection of a Response without the body."></a>
+                        <a href="ResponsePrelude.html" title="A projection of a Response without the body.">ResponsePrelude</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SameSite$.html" title=""></a>
                         <a class="trait" href="SameSite.html" title="RFC6265 SameSite cookie attribute values."></a>
@@ -896,11 +896,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Functions for creating <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> kleislis.</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/Http.scala" target="_blank">Http.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Functions for creating <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> kleislis.</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/core/shared/src/main/scala/org/http4s/Http.scala" target="_blank">Http.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -965,7 +965,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -981,7 +981,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -997,14 +997,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Http#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_],G[_]](run:org.http4s.Request[G]=&gt;F[org.http4s.Response[G]])(implicitF:cats.Defer[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]]((Request[G])⇒F[Response[G]])(Defer[F]):Http[F,G]"></a>
+      <a id="apply[F[_],G[_]](run:org.http4s.Request[G]=&gt;F[org.http4s.Response[G]])(implicitF:cats.Monad[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]]((Request[G])⇒F[Response[G]])(Monad[F]):Http[F,G]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http$.html#apply[F[_],G[_]](run:org.http4s.Request[G]=&gt;F[org.http4s.Response[G]])(implicitF:cats.Defer[F]):org.http4s.Http[F,G]" title="Permalink">
+      <a href="../../org/http4s/Http$.html#apply[F[_],G[_]](run:org.http4s.Request[G]=&gt;F[org.http4s.Response[G]])(implicitF:cats.Monad[F]):org.http4s.Http[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1013,7 +1013,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="run">run: (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Http.apply.G">G</span>]) ⇒ <span class="extype" name="org.http4s.Http.apply.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Http.apply.G">G</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Defer.html#cats.Defer" class="extype" name="cats.Defer">Defer</a>[<span class="extype" name="org.http4s.Http.apply.F">F</span>]</span>)</span><span class="result">: <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.Http.apply.F">F</span>, <span class="extype" name="org.http4s.Http.apply.G">G</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="run">run: (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Http.apply.G">G</span>]) ⇒ <span class="extype" name="org.http4s.Http.apply.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Http.apply.G">G</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.Http.apply.F">F</span>]</span>)</span><span class="result">: <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.Http.apply.F">F</span>, <span class="extype" name="org.http4s.Http.apply.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Lifts a function into an <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> kleisli.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a function into an <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> kleisli.  The application of
@@ -1048,7 +1048,7 @@ of routes via <code>SemigroupK</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1072,7 +1072,7 @@ of routes via <code>SemigroupK</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1088,7 +1088,7 @@ of routes via <code>SemigroupK</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1104,7 +1104,7 @@ of routes via <code>SemigroupK</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1145,7 +1145,7 @@ of routes via <code>SemigroupK</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
@@ -1164,7 +1164,7 @@ of routes via <code>SemigroupK</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -1186,9 +1186,9 @@ of routes via <code>SemigroupK</code>.
       <p class="shortcomment cmt">Lifts an effectful <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> into an <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> kleisli.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts an effectful <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> into an <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> kleisli.
 </p></div><dl class="paramcmts block"><dt class="tparam">F</dt><dd class="cmt"><p>the effect of the <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> returned by the <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a></p></dd><dt class="tparam">G</dt><dd class="cmt"><p>the effect of the bodies of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> and <a href="Response.html" class="extype" name="org.http4s.Response">Response</a></p></dd><dt class="param">fr</dt><dd class="cmt"><p>the effectful <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> to lift</p></dd><dt>returns</dt><dd class="cmt"><p>an <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> that always returns <code>fr</code></p></dd></dl></div>
     </li><li name="org.http4s.Http#local" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="local[F[_],G[_]](f:org.http4s.Request[G]=&gt;org.http4s.Request[G])(fa:org.http4s.Http[F,G])(implicitF:cats.Defer[F]):org.http4s.Http[F,G]"></a><a id="local[F[_],G[_]]((Request[G])⇒Request[G])(Http[F,G])(Defer[F]):Http[F,G]"></a>
+      <a id="local[F[_],G[_]](f:org.http4s.Request[G]=&gt;org.http4s.Request[G])(fa:org.http4s.Http[F,G])(implicitF:cats.Monad[F]):org.http4s.Http[F,G]"></a><a id="local[F[_],G[_]]((Request[G])⇒Request[G])(Http[F,G])(Monad[F]):Http[F,G]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http$.html#local[F[_],G[_]](f:org.http4s.Request[G]=&gt;org.http4s.Request[G])(fa:org.http4s.Http[F,G])(implicitF:cats.Defer[F]):org.http4s.Http[F,G]" title="Permalink">
+      <a href="../../org/http4s/Http$.html#local[F[_],G[_]](f:org.http4s.Request[G]=&gt;org.http4s.Request[G])(fa:org.http4s.Http[F,G])(implicitF:cats.Monad[F]):org.http4s.Http[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1197,7 +1197,7 @@ of routes via <code>SemigroupK</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">local</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Http.local.G">G</span>]) ⇒ <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Http.local.G">G</span>]</span>)</span><span class="params">(<span name="fa">fa: <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.Http.local.F">F</span>, <span class="extype" name="org.http4s.Http.local.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Defer.html#cats.Defer" class="extype" name="cats.Defer">Defer</a>[<span class="extype" name="org.http4s.Http.local.F">F</span>]</span>)</span><span class="result">: <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.Http.local.F">F</span>, <span class="extype" name="org.http4s.Http.local.G">G</span>]</span>
+        <span class="name">local</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Http.local.G">G</span>]) ⇒ <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Http.local.G">G</span>]</span>)</span><span class="params">(<span name="fa">fa: <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.Http.local.F">F</span>, <span class="extype" name="org.http4s.Http.local.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.Http.local.F">F</span>]</span>)</span><span class="result">: <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.Http.local.F">F</span>, <span class="extype" name="org.http4s.Http.local.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Transforms an <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> on its input.</p><div class="fullcomment"><div class="comment cmt"><p>Transforms an <a href="index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> on its input.  The application of the
@@ -1217,7 +1217,7 @@ being applied to <code>fa</code></p></dd></dl></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1233,7 +1233,7 @@ being applied to <code>fa</code></p></dd></dl></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1252,7 +1252,7 @@ being applied to <code>fa</code></p></dd></dl></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1320,7 +1320,7 @@ being applied to <code>fa</code></p></dd></dl></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1342,7 +1342,7 @@ being applied to <code>fa</code></p></dd></dl></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1364,7 +1364,7 @@ being applied to <code>fa</code></p></dd></dl></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1387,9 +1387,9 @@ being applied to <code>fa</code></p></dd></dl></div>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

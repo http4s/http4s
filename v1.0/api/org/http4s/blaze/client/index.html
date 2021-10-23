@@ -139,16 +139,12 @@
                         <a href="BlazeClient$.html" title="Blaze client implementation">BlazeClient</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="BlazeClientBuilder$.html" title=""></a>
-                        <a class="class" href="BlazeClientBuilder.html" title=""></a>
-                        <a href="BlazeClientBuilder.html" title="">BlazeClientBuilder</a>
-                      </li><li class="current-entities indented4">
-                        <a class="object" href="BlazeClientConfig$.html" title=""></a>
-                        <a class="class" href="BlazeClientConfig.html" title="Config object for the blaze clients"></a>
-                        <a href="BlazeClientConfig.html" title="Config object for the blaze clients">BlazeClientConfig</a>
+                        <a class="class" href="BlazeClientBuilder.html" title="Configure and obtain a BlazeClient"></a>
+                        <a href="BlazeClientBuilder.html" title="Configure and obtain a BlazeClient">BlazeClientBuilder</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="Http1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections"></a>
-                        <a href="Http1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections">Http1Client</a>
+                        <a class="trait" href="BlazeClientState.html" title=""></a>
+                        <a href="BlazeClientState.html" title="">BlazeClientState</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="NoConnectionAllowedException.html" title=""></a>
@@ -240,7 +236,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.blaze.client.BlazeClientBuilder" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.blaze.client.BlazeClientBuilder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="BlazeClientBuilder[F[_]]extendsBlazeBackendBuilder[org.http4s.client.Client[F]]withBackendBuilder[F,org.http4s.client.Client[F]]"></a><a id="BlazeClientBuilder[F[_]]:BlazeClientBuilder[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/blaze/client/BlazeClientBuilder.html" title="Permalink">
@@ -248,14 +244,30 @@
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">sealed abstract </span>
+        <span class="modifier">final </span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="BlazeClientBuilder.html"><span class="name">BlazeClientBuilder</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder">BlazeBackendBuilder</span>[<a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.blaze.client.BlazeClientBuilder.F">F</span>]] with <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.blaze.client.BlazeClientBuilder.F">F</span>, <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.blaze.client.BlazeClientBuilder.F">F</span>]]</span>
+        <a title="Configure and obtain a BlazeClient" href="BlazeClientBuilder.html"><span class="name">BlazeClientBuilder</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder">BlazeBackendBuilder</span>[<a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.blaze.client.BlazeClientBuilder.F">F</span>]] with <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.blaze.client.BlazeClientBuilder.F">F</span>, <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.blaze.client.BlazeClientBuilder.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt"></p>
+      <p class="shortcomment cmt">Configure and obtain a BlazeClient</p>
+    </li><li name="org.http4s.blaze.client.BlazeClientState" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BlazeClientState[F[_]]extendsAnyRef"></a><a id="BlazeClientState[F[_]]:BlazeClientState[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/blaze/client/BlazeClientState.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="BlazeClientState.html"><span class="name">BlazeClientState</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.blaze.client.NoConnectionAllowedException" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="NoConnectionAllowedExceptionextendsIllegalArgumentExceptionwithProductwithSerializable"></a><a id="NoConnectionAllowedException:NoConnectionAllowedException"></a>
       <span class="permalink">
@@ -268,7 +280,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="NoConnectionAllowedException.html"><span class="name">NoConnectionAllowedException</span></a><span class="params">(<span name="key">key: <a href="../../client/RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a></span>)</span><span class="result"> extends <span class="extype" name="scala.IllegalArgumentException">IllegalArgumentException</span> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="NoConnectionAllowedException.html"><span class="name">NoConnectionAllowedException</span></a><span class="params">(<span name="key">key: <a href="../../client/RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a></span>)</span><span class="result"> extends <span class="extype" name="scala.IllegalArgumentException">IllegalArgumentException</span> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -284,7 +296,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ParserMode.html"><span class="name">ParserMode</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="ParserMode.html"><span class="name">ParserMode</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -300,41 +312,10 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="WaitQueueFullFailure.html"><span class="name">WaitQueueFullFailure</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="WaitQueueFullFailure.html"><span class="name">WaitQueueFullFailure</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
-    </li><li name="org.http4s.blaze.client.BlazeClientConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="BlazeClientConfigextendsProductwithSerializable"></a><a id="BlazeClientConfig:BlazeClientConfig"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/blaze/client/BlazeClientConfig.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="Config object for the blaze clients" href="BlazeClientConfig.html"><span class="name deprecated" title="Deprecated: (Since version 0.19.0-M2) Use BlazeClientBuilder">BlazeClientConfig</span></a><span class="params">(<span name="responseHeaderTimeout">responseHeaderTimeout: <a href="https://www.scala-lang.org/api/2.12.13/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="idleTimeout">idleTimeout: <a href="https://www.scala-lang.org/api/2.12.13/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="https://www.scala-lang.org/api/2.12.13/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="userAgent">userAgent: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="maxTotalConnections">maxTotalConnections: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxWaitQueueLimit">maxWaitQueueLimit: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxConnectionsPerRequestKey">maxConnectionsPerRequestKey: (<a href="../../client/RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="sslContext">sslContext: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="checkEndpointIdentification">checkEndpointIdentification: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="chunkBufferMaxSize">chunkBufferMaxSize: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="lenientParser">lenientParser: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="bufferSize">bufferSize: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="executionContext">executionContext: <a href="https://www.scala-lang.org/api/2.12.13/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="group">group: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Config object for the blaze clients
-</p><div class="fullcomment"><div class="comment cmt"><p>Config object for the blaze clients
-</p></div><dl class="paramcmts block"><dt class="param">responseHeaderTimeout</dt><dd class="cmt"><p>duration between the submission of a
-request and the completion of the response header.  Does not
-include time to read the response body.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>duration that a connection can wait without
-traffic being read or written before timeout</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>maximum duration from the submission of a
-request through reading the body before a timeout.</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">maxTotalConnections</dt><dd class="cmt"><p>maximum connections the client will have at any specific time</p></dd><dt class="param">maxWaitQueueLimit</dt><dd class="cmt"><p>maximum number requests waiting for a connection at any specific time</p></dd><dt class="param">maxConnectionsPerRequestKey</dt><dd class="cmt"><p>Map of RequestKey to number of max connections</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace
-the default, <code>SSLContext.getDefault</code>.</p></dd><dt class="param">checkEndpointIdentification</dt><dd class="cmt"><p>require endpoint identification
-for secure requests according to RFC 2818, Section 3.1.  If the
-certificate presented does not match the hostname of the request,
-the request fails with a CertificateException.  This setting does
-not affect checking the validity of the cert via the
-<code>sslContext</code>'s trust managers.</p></dd><dt class="param">maxResponseLineSize</dt><dd class="cmt"><p>maximum length of the request line</p></dd><dt class="param">maxHeaderLength</dt><dd class="cmt"><p>maximum length of headers</p></dd><dt class="param">maxChunkSize</dt><dd class="cmt"><p>maximum size of chunked content chunks</p></dd><dt class="param">chunkBufferMaxSize</dt><dd class="cmt"><p>Size of the buffer that is used when Content-Length header is not specified.</p></dd><dt class="param">lenientParser</dt><dd class="cmt"><p>a lenient parser will accept illegal chars but replaces them with � (0xFFFD)</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>internal buffer size of the blaze client</p></dd><dt class="param">executionContext</dt><dd class="cmt"><p>custom executionContext to run async computations.</p></dd><dt class="param">group</dt><dd class="cmt"><p>custom <code>AsynchronousChannelGroup</code> to use other than the system default</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use BlazeClientBuilder</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -387,7 +368,7 @@ not affect checking the validity of the cert via the
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="ParserMode$.html"><span class="name">ParserMode</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="ParserMode$.html"><span class="name">ParserMode</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -397,48 +378,7 @@ not affect checking the validity of the cert via the
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.blaze.client.BlazeClientConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="BlazeClientConfig"></a><a id="BlazeClientConfig:BlazeClientConfig"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/blaze/client/BlazeClientConfig$.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="BlazeClientConfig$.html"><span class="name deprecated" title="Deprecated: (Since version 0.19.0-M2) Use BlazeClientBuilder">BlazeClientConfig</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use BlazeClientBuilder</p></dd></dl></div>
-    </li><li name="org.http4s.blaze.client.Http1Client" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Http1Client"></a><a id="Http1Client:Http1Client"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/blaze/client/Http1Client$.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="Create a HTTP1 client which will attempt to recycle connections" href="Http1Client$.html"><span class="name deprecated" title="Deprecated: (Since version 0.19.0-M2) Use BlazeClientBuilder">Http1Client</span></a>
-      </span>
-      
-      <p class="shortcomment cmt">Create a HTTP1 client which will attempt to recycle connections</p><div class="fullcomment"><div class="comment cmt"><p>Create a HTTP1 client which will attempt to recycle connections</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use BlazeClientBuilder</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">

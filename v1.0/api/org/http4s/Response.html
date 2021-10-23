@@ -629,18 +629,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="Http$.html" title="Functions for creating Http kleislis."></a>
                         <a href="Http$.html" title="Functions for creating Http kleislis.">Http</a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4s$.html" title=""></a>
-                        <a class="trait" href="Http4s.html" title=""></a>
-                        <a href="Http4s.html" title="">Http4s</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sFunctions$.html" title=""></a>
-                        <a class="trait" href="Http4sFunctions.html" title=""></a>
-                        <a href="Http4sFunctions.html" title="">Http4sFunctions</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sInstances$.html" title=""></a>
-                        <a class="trait" href="Http4sInstances.html" title=""></a>
-                        <a href="Http4sInstances.html" title="">Http4sInstances</a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
@@ -662,8 +650,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis.">HttpRoutes</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="HttpVersion$.html" title=""></a>
-                        <a class="class" href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response."></a>
-                        <a href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response.">HttpVersion</a>
+                        <a class="class" href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point)."></a>
+                        <a href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point).">HttpVersion</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="InvalidBodyException.html" title="Exception dealing with invalid body"></a>
@@ -749,6 +737,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="ProductIdOrComment.html" title=""></a>
                         <a href="ProductIdOrComment.html" title="">ProductIdOrComment</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="Protocol$.html" title=""></a>
+                        <a class="class" href="Protocol.html" title=""></a>
+                        <a href="Protocol.html" title="">Protocol</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="QValue.html" title="A Quality Value."></a>
                         <a href="QValue.html" title="A Quality Value.">QValue</a>
@@ -809,6 +801,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="RequestPrelude$.html" title=""></a>
+                        <a class="class" href="RequestPrelude.html" title="A projection of a Request without the body."></a>
+                        <a href="RequestPrelude.html" title="A projection of a Request without the body.">RequestPrelude</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -816,6 +812,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ResponseCookie$.html" title=""></a>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ResponsePrelude$.html" title=""></a>
+                        <a class="class" href="ResponsePrelude.html" title="A projection of a Response without the body."></a>
+                        <a href="ResponsePrelude.html" title="A projection of a Response without the body.">ResponsePrelude</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SameSite$.html" title=""></a>
                         <a class="trait" href="SameSite.html" title="RFC6265 SameSite cookie attribute values."></a>
@@ -893,17 +893,17 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Response</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Response</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/core/shared/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -1003,7 +1003,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1019,7 +1019,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1035,14 +1035,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Response#addCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate]):Response.this.Self"></a><a id="addCookie(String,String,Option[HttpDate]):Self"></a>
+      <a id="addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate]):org.http4s.Response[F]"></a><a id="addCookie(String,String,Option[HttpDate]):Response[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate]):Response.this.Self" title="Permalink">
+      <a href="../../org/http4s/Response.html#addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate]):org.http4s.Response[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1051,14 +1051,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a <a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a> header with the provided values</p>
     </li><li name="org.http4s.Response#addCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addCookie(cookie:org.http4s.ResponseCookie):Response.this.Self"></a><a id="addCookie(ResponseCookie):Self"></a>
+      <a id="addCookie(cookie:org.http4s.ResponseCookie):org.http4s.Response[F]"></a><a id="addCookie(ResponseCookie):Response[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#addCookie(cookie:org.http4s.ResponseCookie):Response.this.Self" title="Permalink">
+      <a href="../../org/http4s/Response.html#addCookie(cookie:org.http4s.ResponseCookie):org.http4s.Response[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1067,10 +1067,38 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a Set-Cookie header for the provided <a href="ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></p>
+    </li><li name="org.http4s.Message#addHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="addHeader[H](h:H)(implicitevidence$1:org.http4s.Header[H,org.http4s.Header.Recurring]):Message.this.Self"></a><a id="addHeader[H](H)(Header[H,Recurring]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Response.html#addHeader[H](h:H)(implicitevidence$1:org.http4s.Header[H,org.http4s.Header.Recurring]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">addHeader</span><span class="tparams">[<span name="H">H</span>]</span><span class="params">(<span name="h">h: <span class="extype" name="org.http4s.Message.addHeader.H">H</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>[<span class="extype" name="org.http4s.Message.addHeader.H">H</span>, <a href="Header$$Recurring.html" class="extype" name="org.http4s.Header.Recurring">Recurring</a>]</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Add a header to these headers.</p><div class="fullcomment"><div class="comment cmt"><p>Add a header to these headers.  The header should be a type with a
+recurring <code>Header</code> instance to ensure that the new value can be
+appended to any existing values.</p><pre>&gt;&gt;&gt; <span class="kw">import</span> cats.effect.IO
+&gt;&gt;&gt; <span class="kw">import</span> org.http4s.headers.Accept
+
+&gt;&gt;&gt; <span class="kw">val</span> req = Request[IO]().addHeader(Accept(MediaRange.`application<span class="cmt">/*`))
+&gt;&gt;&gt; req.headers.get[Accept]
+Some(Accept(NonEmptyList(application/*)))
+
+&gt;&gt;&gt; val req2 = req.addHeader(Accept(MediaRange.`text/*`))
+&gt;&gt;&gt; req2.headers.get[Accept]
+Some(Accept(NonEmptyList(application/*, text/*)))</span></pre><p>*/*/*/*/*/
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Media#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="as[A](implicitF:cats.MonadThrow[F],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadThrow[F],EntityDecoder[F,A]):F[A]"></a>
       <span class="permalink">
@@ -1166,7 +1194,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">bodyText</span><span class="params">(<span class="implicit">implicit </span><span name="RT">RT: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/RaiseThrowable.html#fs2.RaiseThrowable" class="extype" name="fs2.RaiseThrowable">RaiseThrowable</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.Response.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">bodyText</span><span class="params">(<span class="implicit">implicit </span><span name="RT">RT: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/3.1.5/fs2-core_2.12-3.1.5-javadoc.jar/!/fs2/RaiseThrowable.html#fs2.RaiseThrowable" class="extype" name="fs2.RaiseThrowable">RaiseThrowable</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/3.1.5/fs2-core_2.12-3.1.5-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.Response.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Media.html" class="extype" name="org.http4s.Media">Media</a></dd></dl></div>
@@ -1182,14 +1210,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">canEqual</span><span class="params">(<span name="that">that: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">canEqual</span><span class="params">(<span name="that">that: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → Equals</dd></dl></div>
     </li><li name="org.http4s.Response#change" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.typelevel.vault.Vault):Response.this.Self"></a><a id="change(HttpVersion,EntityBody[F],Headers,Vault):Self"></a>
+      <a id="change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.typelevel.vault.Vault):org.http4s.Response[F]"></a><a id="change(HttpVersion,EntityBody[F],Headers,Vault):Response[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.typelevel.vault.Vault):Response.this.Self" title="Permalink">
+      <a href="../../org/http4s/Response.html#change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.typelevel.vault.Vault):org.http4s.Response[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1198,7 +1226,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">change</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="attributes">attributes: <span class="extype" name="org.typelevel.vault.Vault">Vault</span></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">change</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="attributes">attributes: <span class="extype" name="org.typelevel.vault.Vault">Vault</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -1214,7 +1242,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">charset</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
+        <span class="name">charset</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Media.html" class="extype" name="org.http4s.Media">Media</a></dd></dl></div>
@@ -1230,7 +1258,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1254,7 +1282,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentLength</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
+        <span class="name">contentLength</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Media.html" class="extype" name="org.http4s.Media">Media</a></dd></dl></div>
@@ -1270,7 +1298,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentType</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>
+        <span class="name">contentType</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Media.html" class="extype" name="org.http4s.Media">Media</a></dd></dl></div>
@@ -1339,7 +1367,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1355,7 +1383,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1371,7 +1399,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Keep headers that satisfy the predicate
@@ -1389,7 +1417,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1430,7 +1458,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → AnyRef → Any</dd></dl></div>
@@ -1478,7 +1506,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isChunked</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isChunked</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -1494,7 +1522,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -1526,7 +1554,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1542,7 +1570,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1561,7 +1589,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1580,7 +1608,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">productArity</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">productArity</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → Product</dd></dl></div>
@@ -1596,7 +1624,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">productElement</span><span class="params">(<span name="n">n: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
+        <span class="name">productElement</span><span class="params">(<span name="n">n: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → Product</dd></dl></div>
@@ -1612,7 +1640,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">productIterator</span><span class="result">: <span class="extype" name="scala.Iterator">Iterator</span>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>
+        <span class="name">productIterator</span><span class="result">: <span class="extype" name="scala.Iterator">Iterator</span>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
@@ -1647,13 +1675,23 @@ deletion.
         <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header$$ToRaw.html" class="extype" name="org.http4s.Header.ToRaw">ToRaw</a>*</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name
-</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name
+      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those
+of the same header name</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those
+of the same header name</p><pre>&gt;&gt;&gt; <span class="kw">import</span> cats.effect.IO
+&gt;&gt;&gt; <span class="kw">import</span> org.http4s.headers.Accept
+
+&gt;&gt;&gt; <span class="kw">val</span> req = Request[IO]().putHeaders(Accept(MediaRange.`application<span class="cmt">/*`))
+&gt;&gt;&gt; req.headers.get[Accept]
+Some(Accept(NonEmptyList(application/*)))
+
+&gt;&gt;&gt; val req2 = req.putHeaders(Accept(MediaRange.`text/*`))
+&gt;&gt;&gt; req2.headers.get[Accept]
+Some(Accept(NonEmptyList(text/*)))</span></pre><p>*/*/*/*/
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Response#removeCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="removeCookie(name:String):Response.this.Self"></a><a id="removeCookie(String):Self"></a>
+      <a id="removeCookie(name:String):org.http4s.Response[F]"></a><a id="removeCookie(String):Response[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#removeCookie(name:String):Response.this.Self" title="Permalink">
+      <a href="../../org/http4s/Response.html#removeCookie(name:String):org.http4s.Response[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1662,14 +1700,14 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">removeCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a <a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a> which will remove the specified cookie from the client</p>
     </li><li name="org.http4s.Response#removeCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="removeCookie(cookie:org.http4s.ResponseCookie):Response.this.Self"></a><a id="removeCookie(ResponseCookie):Self"></a>
+      <a id="removeCookie(cookie:org.http4s.ResponseCookie):org.http4s.Response[F]"></a><a id="removeCookie(ResponseCookie):Response[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#removeCookie(cookie:org.http4s.ResponseCookie):Response.this.Self" title="Permalink">
+      <a href="../../org/http4s/Response.html#removeCookie(cookie:org.http4s.ResponseCookie):org.http4s.Response[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1678,7 +1716,7 @@ deletion.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeCookie</span><span class="params">(<span name="cookie">cookie: <a href="ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">removeCookie</span><span class="params">(<span name="cookie">cookie: <a href="ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a <a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a> which will remove the specified
@@ -1716,6 +1754,22 @@ cookie from the client
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Response#responsePrelude" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="responsePrelude:org.http4s.ResponsePrelude"></a><a id="responsePrelude:ResponsePrelude"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Response.html#responsePrelude:org.http4s.ResponsePrelude" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">responsePrelude</span><span class="result">: <a href="ResponsePrelude.html" class="extype" name="org.http4s.ResponsePrelude">ResponsePrelude</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">A projection of this response without the body.</p>
     </li><li name="org.http4s.Response#status" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="status:org.http4s.Status"></a><a id="status:Status"></a>
       <span class="permalink">
@@ -1810,7 +1864,7 @@ F might not complete until the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1832,7 +1886,7 @@ F might not complete until the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1854,7 +1908,7 @@ F might not complete until the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1949,7 +2003,7 @@ which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.Entit
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentTypeOption</span><span class="params">(<span name="contentTypeO">contentTypeO: <a href="https://www.scala-lang.org/api/2.12.13/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">withContentTypeOption</span><span class="params">(<span name="contentTypeO">contentTypeO: <a href="https://www.scala-lang.org/api/2.12.15/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -2039,9 +2093,9 @@ that make no sense with an empty body.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Response#withStatus" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withStatus(status:org.http4s.Status):Response.this.Self"></a><a id="withStatus(Status):Self"></a>
+      <a id="withStatus(status:org.http4s.Status):org.http4s.Response[F]"></a><a id="withStatus(Status):Response[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#withStatus(status:org.http4s.Status):Response.this.Self" title="Permalink">
+      <a href="../../org/http4s/Response.html#withStatus(status:org.http4s.Status):org.http4s.Response[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2050,7 +2104,7 @@ that make no sense with an empty body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withStatus</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">withStatus</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
       </span>
       
       
@@ -2127,67 +2181,26 @@ that make no sense with an empty body.
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.Message#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]"></a><a id="withBody[T](T)(Applicative[F],EntityEncoder[F,T]):F[Self]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.19) Use withEntity">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="b">b: <span class="extype" name="org.http4s.Message.withBody.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>, <span name="w">w: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.Response.F">F</span>, <span class="extype" name="org.http4s.Message.withBody.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Response.F">F</span>[<a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Use withEntity</p></dd></dl></div>
-    </li><li name="org.http4s.Message#withType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withType(t:org.http4s.MediaType)(implicitF:cats.Functor[F]):Message.this.Self"></a><a id="withType(MediaType)(Functor[F]):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#withType(t:org.http4s.MediaType)(implicitF:cats.Functor[F]):Message.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use withContentType(Content-Type(t)) instead">withType</span><span class="params">(<span name="t">t: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Functor.html#cats.Functor" class="extype" name="cats.Functor">Functor</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use withContentType(<code>Content-Type</code>(t)) instead</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
             </div><div class="parent" name="org.http4s.Message">
               <h3>Inherited from <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</h3>
             </div><div class="parent" name="org.http4s.Media">
               <h3>Inherited from <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

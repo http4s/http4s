@@ -629,18 +629,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="Http$.html" title="Functions for creating Http kleislis."></a>
                         <a href="Http$.html" title="Functions for creating Http kleislis.">Http</a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4s$.html" title=""></a>
-                        <a class="trait" href="Http4s.html" title=""></a>
-                        <a href="Http4s.html" title="">Http4s</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sFunctions$.html" title=""></a>
-                        <a class="trait" href="Http4sFunctions.html" title=""></a>
-                        <a href="Http4sFunctions.html" title="">Http4sFunctions</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sInstances$.html" title=""></a>
-                        <a class="trait" href="Http4sInstances.html" title=""></a>
-                        <a href="Http4sInstances.html" title="">Http4sInstances</a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
@@ -662,8 +650,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis.">HttpRoutes</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="HttpVersion$.html" title=""></a>
-                        <a class="class" href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response."></a>
-                        <a href="HttpVersion.html" title="An HTTP version, as seen on the start line of an HTTP request or response.">HttpVersion</a>
+                        <a class="class" href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point)."></a>
+                        <a href="HttpVersion.html" title="HTTP's version number consists of two decimal digits separated by a &quot;.&quot; (period or decimal point).">HttpVersion</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="InvalidBodyException.html" title="Exception dealing with invalid body"></a>
@@ -749,6 +737,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="ProductIdOrComment.html" title=""></a>
                         <a href="ProductIdOrComment.html" title="">ProductIdOrComment</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="Protocol$.html" title=""></a>
+                        <a class="class" href="Protocol.html" title=""></a>
+                        <a href="Protocol.html" title="">Protocol</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="QValue.html" title="A Quality Value."></a>
                         <a href="QValue.html" title="A Quality Value.">QValue</a>
@@ -809,6 +801,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="RequestPrelude$.html" title=""></a>
+                        <a class="class" href="RequestPrelude.html" title="A projection of a Request without the body."></a>
+                        <a href="RequestPrelude.html" title="A projection of a Request without the body.">RequestPrelude</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -816,6 +812,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ResponseCookie$.html" title=""></a>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ResponsePrelude$.html" title=""></a>
+                        <a class="class" href="ResponsePrelude.html" title="A projection of a Response without the body."></a>
+                        <a href="ResponsePrelude.html" title="A projection of a Response without the body.">ResponsePrelude</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="SameSite$.html" title=""></a>
                         <a class="trait" href="SameSite.html" title="RFC6265 SameSite cookie attribute values."></a>
@@ -901,11 +901,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>EntityDecoder is used to attempt to decode an <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>
 This companion object provides a way to create <code>new EntityDecoder</code>s along
 with some commonly used instances which can be resolved implicitly.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v1.0.0-M23/core/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/62b0fb20e4b3ca67dd7f487a7560b949ac05a968/core/shared/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -970,7 +970,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -986,7 +986,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1002,7 +1002,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1039,9 +1039,9 @@ with some commonly used instances which can be resolved implicitly.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.EntityDecoder#binFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="binFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="binFile[F[_]](File,Blocker)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
+      <a id="binFile[F[_]](path:fs2.io.file.Path)(implicitevidence$13:fs2.io.file.Files[F],implicitevidence$14:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,fs2.io.file.Path]"></a><a id="binFile[F[_]](Path)(Files[F],Concurrent[F]):EntityDecoder[F,Path]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#binFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#binFile[F[_]](path:fs2.io.file.Path)(implicitevidence$13:fs2.io.file.Files[F],implicitevidence$14:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,fs2.io.file.Path]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1050,14 +1050,14 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">binFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>, <span name="cs">cs: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">binFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="path">path: <span class="extype" name="fs2.io.file.Path">Path</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>, <span class="extype" name="fs2.io.file.Path">Path</span>]</span>
       </span>
       
       
     </li><li name="org.http4s.EntityDecoder#binary" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="binary[F[_]](implicitevidence$4:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binary[F[_]](Sync[F]):EntityDecoder[F,Chunk[Byte]]"></a>
+      <a id="binary[F[_]](implicitevidence$5:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binary[F[_]](Concurrent[F]):EntityDecoder[F,Chunk[Byte]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#binary[F[_]](implicitevidence$4:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#binary[F[_]](implicitevidence$5:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1066,14 +1066,14 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">binary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.binary.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binary.F">F</span>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Chunk.html#fs2.Chunk" class="extype" name="fs2.Chunk">Chunk</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+        <span class="name">binary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.binary.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binary.F">F</span>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/3.1.5/fs2-core_2.12-3.1.5-javadoc.jar/!/fs2/Chunk.html#fs2.Chunk" class="extype" name="fs2.Chunk">Chunk</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
       </span>
       
       
     </li><li name="org.http4s.EntityDecoder#byteArrayDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="byteArrayDecoder[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,Array[Byte]]"></a><a id="byteArrayDecoder[F[_]](Sync[F]):EntityDecoder[F,Array[Byte]]"></a>
+      <a id="byteArrayDecoder[F[_]](implicitevidence$6:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,Array[Byte]]"></a><a id="byteArrayDecoder[F[_]](Concurrent[F]):EntityDecoder[F,Array[Byte]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#byteArrayDecoder[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,Array[Byte]]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#byteArrayDecoder[F[_]](implicitevidence$6:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,Array[Byte]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1082,14 +1082,30 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">byteArrayDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.byteArrayDecoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.byteArrayDecoder.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+        <span class="name">byteArrayDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.byteArrayDecoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.byteArrayDecoder.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.EntityDecoder#byteVector" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="byteVector[F[_]](implicitevidence$7:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,scodec.bits.ByteVector]"></a><a id="byteVector[F[_]](Concurrent[F]):EntityDecoder[F,ByteVector]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#byteVector[F[_]](implicitevidence$7:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,scodec.bits.ByteVector]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">byteVector</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.byteVector.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.byteVector.F">F</span>, <span class="extype" name="scodec.bits.ByteVector">ByteVector</span>]</span>
       </span>
       
       
     </li><li name="org.http4s.EntityDecoder#charArrayDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="charArrayDecoder[F[_]](implicitevidence$7:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,Array[Char]]"></a><a id="charArrayDecoder[F[_]](Sync[F]):EntityDecoder[F,Array[Char]]"></a>
+      <a id="charArrayDecoder[F[_]](implicitevidence$8:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,Array[Char]]"></a><a id="charArrayDecoder[F[_]](Concurrent[F]):EntityDecoder[F,Array[Char]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#charArrayDecoder[F[_]](implicitevidence$7:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,Array[Char]]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#charArrayDecoder[F[_]](implicitevidence$8:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,Array[Char]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1098,7 +1114,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">charArrayDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.charArrayDecoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.charArrayDecoder.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]]</span>
+        <span class="name">charArrayDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.charArrayDecoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.charArrayDecoder.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]]</span>
       </span>
       
       
@@ -1114,7 +1130,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1127,9 +1143,9 @@ with some commonly used instances which can be resolved implicitly.
               
         </dd></dl></div>
     </li><li name="org.http4s.EntityDecoder#collectBinary" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="collectBinary[F[_]](m:org.http4s.Media[F])(implicitevidence$3:cats.effect.Sync[F]):org.http4s.DecodeResult[F,fs2.Chunk[Byte]]"></a><a id="collectBinary[F[_]](Media[F])(Sync[F]):DecodeResult[F,Chunk[Byte]]"></a>
+      <a id="collectBinary[F[_]](m:org.http4s.Media[F])(implicitevidence$3:cats.effect.Concurrent[F]):org.http4s.DecodeResult[F,fs2.Chunk[Byte]]"></a><a id="collectBinary[F[_]](Media[F])(Concurrent[F]):DecodeResult[F,Chunk[Byte]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#collectBinary[F[_]](m:org.http4s.Media[F])(implicitevidence$3:cats.effect.Sync[F]):org.http4s.DecodeResult[F,fs2.Chunk[Byte]]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#collectBinary[F[_]](m:org.http4s.Media[F])(implicitevidence$3:cats.effect.Concurrent[F]):org.http4s.DecodeResult[F,fs2.Chunk[Byte]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1138,7 +1154,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">collectBinary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="m">m: <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>]</span>)</span><span class="result">: <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Chunk.html#fs2.Chunk" class="extype" name="fs2.Chunk">Chunk</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+        <span class="name">collectBinary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="m">m: <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>]</span>)</span><span class="result">: <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/3.1.5/fs2-core_2.12-3.1.5-javadoc.jar/!/fs2/Chunk.html#fs2.Chunk" class="extype" name="fs2.Chunk">Chunk</a>[<a href="https://www.scala-lang.org/api/2.12.15/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
       </span>
       
       <p class="shortcomment cmt">Helper method which simply gathers the body into a single Chunk</p>
@@ -1163,9 +1179,9 @@ recoverable errors are returned as a <a href="DecodeResult$.html#failure[F[_],A]
 system errors are raised in <code>F</code>.
 </p></div></div>
     </li><li name="org.http4s.EntityDecoder#decodeText" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="decodeText[F[_]](m:org.http4s.Media[F])(implicitF:cats.effect.Sync[F],implicitdefaultCharset:org.http4s.Charset):F[String]"></a><a id="decodeText[F[_]](Media[F])(Sync[F],Charset):F[String]"></a>
+      <a id="decodeText[F[_]](m:org.http4s.Media[F])(implicitF:cats.effect.Concurrent[F],implicitdefaultCharset:org.http4s.Charset):F[String]"></a><a id="decodeText[F[_]](Media[F])(Concurrent[F],Charset):F[String]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#decodeText[F[_]](m:org.http4s.Media[F])(implicitF:cats.effect.Sync[F],implicitdefaultCharset:org.http4s.Charset):F[String]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#decodeText[F[_]](m:org.http4s.Media[F])(implicitF:cats.effect.Concurrent[F],implicitdefaultCharset:org.http4s.Charset):F[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1174,7 +1190,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decodeText</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="m">m: <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.EntityDecoder.decodeText.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.decodeText.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <span class="extype" name="org.http4s.EntityDecoder.decodeText.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">decodeText</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="m">m: <a href="Media.html" class="extype" name="org.http4s.Media">Media</a>[<span class="extype" name="org.http4s.EntityDecoder.decodeText.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.decodeText.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <span class="extype" name="org.http4s.EntityDecoder.decodeText.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Decodes a message to a String</p>
@@ -1190,7 +1206,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1206,14 +1222,14 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.EntityDecoder#error" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="error[F[_],T](t:Throwable)(implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,T]"></a><a id="error[F[_],T](Throwable)(Sync[F]):EntityDecoder[F,T]"></a>
+      <a id="error[F[_],T](t:Throwable)(implicitF:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,T]"></a><a id="error[F[_],T](Throwable)(Concurrent[F]):EntityDecoder[F,T]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#error[F[_],T](t:Throwable)(implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,T]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#error[F[_],T](t:Throwable)(implicitF:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1222,7 +1238,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">error</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="T">T</span>]</span><span class="params">(<span name="t">t: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.error.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.error.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.error.T">T</span>]</span>
+        <span class="name">error</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="T">T</span>]</span><span class="params">(<span name="t">t: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.error.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.error.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.error.T">T</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Provides a mechanism to fail decoding</p>
@@ -1238,7 +1254,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1279,7 +1295,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
@@ -1298,14 +1314,14 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.EntityDecoder#mixedMultipart" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="mixedMultipart[F[_]](blocker:cats.effect.Blocker,headerLimit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$9:cats.effect.Sync[F],implicitevidence$10:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="mixedMultipart[F[_]](Blocker,Int,Int,Int,Boolean)(Sync[F],ContextShift[F]):EntityDecoder[F,Multipart[F]]"></a>
+    </li><li name="org.http4s.EntityDecoder#mixedMultipartResource" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mixedMultipartResource[F[_]](headerLimit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean,chunkSize:Int)(implicitevidence$18:cats.effect.Concurrent[F],implicitevidence$19:fs2.io.file.Files[F]):cats.effect.Resource[F,org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]]"></a><a id="mixedMultipartResource[F[_]](Int,Int,Int,Boolean,Int)(Concurrent[F],Files[F]):Resource[F,EntityDecoder[F,Multipart[F]]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#mixedMultipart[F[_]](blocker:cats.effect.Blocker,headerLimit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$9:cats.effect.Sync[F],implicitevidence$10:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#mixedMultipartResource[F[_]](headerLimit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean,chunkSize:Int)(implicitevidence$18:cats.effect.Concurrent[F],implicitevidence$19:fs2.io.file.Files[F]):cats.effect.Resource[F,org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1314,14 +1330,29 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">mixedMultipart</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>, <span name="headerLimit">headerLimit: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">1024</span></span>, <span name="maxSizeBeforeWrite">maxSizeBeforeWrite: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">52428800</span></span>, <span name="maxParts">maxParts: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">50</span></span>, <span name="failOnLimit">failOnLimit: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>, <a href="multipart/Multipart.html" class="extype" name="org.http4s.multipart.Multipart">Multipart</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>]]</span>
+        <span class="name">mixedMultipartResource</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerLimit">headerLimit: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">1024</span></span>, <span name="maxSizeBeforeWrite">maxSizeBeforeWrite: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">52428800</span></span>, <span name="maxParts">maxParts: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">50</span></span>, <span name="failOnLimit">failOnLimit: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="chunkSize">chunkSize: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">8192</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipartResource.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipartResource.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipartResource.F">F</span>, <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipartResource.F">F</span>, <a href="multipart/Multipart.html" class="extype" name="org.http4s.multipart.Multipart">Multipart</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipartResource.F">F</span>]]]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Multipart decoder that streams all parts past a threshold
+(anything above <code>maxSizeBeforeWrite</code>) into a temporary file.</p><div class="fullcomment"><div class="comment cmt"><p>Multipart decoder that streams all parts past a threshold
+(anything above <code>maxSizeBeforeWrite</code>) into a temporary file.
+The decoder is only valid inside the <code>Resource</code> scope; once
+the <code>Resource</code> is released, all the created files are deleted.</p><p>Note that no files are deleted until the <code>Resource</code> is released.
+Thus, sharing and reusing the resulting <code>EntityDecoder</code> is not
+recommended, and can lead to disk space leaks.</p><p>The intended way to use this is as follows:</p><pre>mixedMultipartResource[F]()
+  .flatTap(request.decodeWith(_, strict = <span class="kw">true</span>))
+  .use { multipart <span class="kw">=&gt;</span>
+    <span class="cmt">// Use the decoded entity</span>
+  }</pre></div><dl class="paramcmts block"><dt class="param">headerLimit</dt><dd class="cmt"><p>the max size for the headers, in bytes. This is required as
+                   headers are strictly evaluated and parsed.</p></dd><dt class="param">maxSizeBeforeWrite</dt><dd class="cmt"><p>the maximum size of a particular part before writing to a file is triggered</p></dd><dt class="param">maxParts</dt><dd class="cmt"><p>the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
+                conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
+                be parsed correctly, despite the total body being malformed due to not conforming to the multipart
+                spec. You can control this by <code>failOnLimit</code>, by setting it to true if you want to raise
+                an error if sending too many parts to a particular endpoint</p></dd><dt class="param">failOnLimit</dt><dd class="cmt"><p>Fail if <code>maxParts</code> is exceeded _during_ multipart parsing.</p></dd><dt class="param">chunkSize</dt><dd class="cmt"><p>the size of chunks created when reading data from temporary files.</p></dd><dt>returns</dt><dd class="cmt"><p>A supervised multipart decoder.</p></dd></dl></div>
     </li><li name="org.http4s.EntityDecoder#multipart" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="multipart[F[_]](implicitevidence$8:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="multipart[F[_]](Sync[F]):EntityDecoder[F,Multipart[F]]"></a>
+      <a id="multipart[F[_]](implicitevidence$17:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="multipart[F[_]](Concurrent[F]):EntityDecoder[F,Multipart[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#multipart[F[_]](implicitevidence$8:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#multipart[F[_]](implicitevidence$17:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1330,7 +1361,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">multipart</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.multipart.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.multipart.F">F</span>, <a href="multipart/Multipart.html" class="extype" name="org.http4s.multipart.Multipart">Multipart</a>[<span class="extype" name="org.http4s.EntityDecoder.multipart.F">F</span>]]</span>
+        <span class="name">multipart</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.multipart.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.multipart.F">F</span>, <a href="multipart/Multipart.html" class="extype" name="org.http4s.multipart.Multipart">Multipart</a>[<span class="extype" name="org.http4s.EntityDecoder.multipart.F">F</span>]]</span>
       </span>
       
       
@@ -1346,7 +1377,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1362,7 +1393,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1381,7 +1412,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1421,9 +1452,9 @@ system errors are raised in <code>F</code>.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.EntityDecoder#text" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text[F[_]](implicitF:cats.effect.Sync[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]"></a><a id="text[F[_]](Sync[F],Charset):EntityDecoder[F,String]"></a>
+      <a id="text[F[_]](implicitF:cats.effect.Concurrent[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]"></a><a id="text[F[_]](Concurrent[F],Charset):EntityDecoder[F,String]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#text[F[_]](implicitF:cats.effect.Sync[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#text[F[_]](implicitF:cats.effect.Concurrent[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1432,14 +1463,14 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">text</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.text.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.text.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">text</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.text.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.text.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       
     </li><li name="org.http4s.EntityDecoder#textFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="textFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="textFile[F[_]](File,Blocker)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
+      <a id="textFile[F[_]](path:fs2.io.file.Path)(implicitevidence$15:fs2.io.file.Files[F],implicitevidence$16:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,fs2.io.file.Path]"></a><a id="textFile[F[_]](Path)(Files[F],Concurrent[F]):EntityDecoder[F,Path]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#textFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#textFile[F[_]](path:fs2.io.file.Path)(implicitevidence$15:fs2.io.file.Files[F],implicitevidence$16:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,fs2.io.file.Path]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1448,7 +1479,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">textFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>, <span name="cs">cs: <a href="https://typelevel.org/cats-effect/api/cats/effect/ContextShift.html#cats.effect.ContextShift" class="extype" name="cats.effect.ContextShift">ContextShift</a>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">textFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="path">path: <span class="extype" name="fs2.io.file.Path">Path</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>, <span class="extype" name="fs2.io.file.Path">Path</span>]</span>
       </span>
       
       
@@ -1469,9 +1500,9 @@ system errors are raised in <code>F</code>.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.EntityDecoder#void" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="void[F[_]](implicitevidence$11:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,Unit]"></a><a id="void[F[_]](Sync[F]):EntityDecoder[F,Unit]"></a>
+      <a id="void[F[_]](implicitevidence$22:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,Unit]"></a><a id="void[F[_]](Concurrent[F]):EntityDecoder[F,Unit]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#void[F[_]](implicitevidence$11:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,Unit]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#void[F[_]](implicitevidence$22:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1480,7 +1511,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">void</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.void.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.void.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">void</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.void.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.void.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <p class="shortcomment cmt">An entity decoder that ignores the content and returns unit.</p>
@@ -1496,7 +1527,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1518,7 +1549,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.13/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1540,7 +1571,7 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.13/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.13/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.15/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.15/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1560,10 +1591,10 @@ system errors are raised in <code>F</code>.
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.EntityDecoder#binaryChunk" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="binaryChunk[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binaryChunk[F[_]](Sync[F]):EntityDecoder[F,Chunk[Byte]]"></a>
+              <ol><li name="org.http4s.EntityDecoder#binFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="binFile[F[_]](file:java.io.File)(implicitevidence$9:fs2.io.file.Files[F],implicitevidence$10:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="binFile[F[_]](File)(Files[F],Concurrent[F]):EntityDecoder[F,File]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#binaryChunk[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#binFile[F[_]](file:java.io.File)(implicitevidence$9:fs2.io.file.Files[F],implicitevidence$10:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1572,22 +1603,78 @@ system errors are raised in <code>F</code>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.19.0-M2) Use binary instead">binaryChunk</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.EntityDecoder.binaryChunk.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binaryChunk.F">F</span>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.5.6/fs2-core_2.12-2.5.6-javadoc.jar/!/fs2/Chunk.html#fs2.Chunk" class="extype" name="fs2.Chunk">Chunk</a>[<a href="https://www.scala-lang.org/api/2.12.13/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Use overload with fs2.io.file.Path">binFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use <code>binary</code> instead</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Use overload with fs2.io.file.Path</p></dd></dl></div>
+    </li><li name="org.http4s.EntityDecoder#mixedMultipart" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mixedMultipart[F[_]](headerLimit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$20:cats.effect.Concurrent[F],implicitevidence$21:fs2.io.file.Files[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="mixedMultipart[F[_]](Int,Int,Int,Boolean)(Concurrent[F],Files[F]):EntityDecoder[F,Multipart[F]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#mixedMultipart[F[_]](headerLimit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$20:cats.effect.Concurrent[F],implicitevidence$21:fs2.io.file.Files[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23) Use mixedMultipartResource">mixedMultipart</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerLimit">headerLimit: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">1024</span></span>, <span name="maxSizeBeforeWrite">maxSizeBeforeWrite: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">52428800</span></span>, <span name="maxParts">maxParts: <a href="https://www.scala-lang.org/api/2.12.15/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">50</span></span>, <span name="failOnLimit">failOnLimit: <a href="https://www.scala-lang.org/api/2.12.15/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>, <a href="multipart/Multipart.html" class="extype" name="org.http4s.multipart.Multipart">Multipart</a>[<span class="extype" name="org.http4s.EntityDecoder.mixedMultipart.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Multipart decoder that streams all parts past a threshold
+(anything above maxSizeBeforeWrite) into a temporary file.</p><div class="fullcomment"><div class="comment cmt"><p>Multipart decoder that streams all parts past a threshold
+(anything above maxSizeBeforeWrite) into a temporary file.</p><p>Note: (BIG NOTE) Using this decoder for multipart decoding is good for the sake of
+not holding all information in memory, as it will never have more than
+<code>maxSizeBeforeWrite</code> in memory before writing to a temporary file. On top of this,
+you can gate the # of parts to further stop the quantity of parts you can have.
+That said, because after a threshold it writes into a temporary file, given
+bincompat reasons on 0.18.x, there is no way to make a distinction about which <code>Part[F]</code>
+is a stream reference to a file or not. Thus, consumers using this decoder
+should drain all <code>Part[F]</code> bodies if they were decoded correctly. That said,
+this decoder gives you more control about how many part bodies it parses in the first place, thus you can have
+more fine-grained control about how many parts you accept.
+</p></div><dl class="paramcmts block"><dt class="param">headerLimit</dt><dd class="cmt"><p>the max size for the headers, in bytes. This is required as
+                   headers are strictly evaluated and parsed.</p></dd><dt class="param">maxSizeBeforeWrite</dt><dd class="cmt"><p>the maximum size of a particular part before writing to a file is triggered</p></dd><dt class="param">maxParts</dt><dd class="cmt"><p>the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
+                conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
+                be parsed correctly, despite the total body being malformed due to not conforming to the multipart
+                spec. You can control this by <code>failOnLimit</code>, by setting it to true if you want to raise
+                an error if sending too many parts to a particular endpoint</p></dd><dt class="param">failOnLimit</dt><dd class="cmt"><p>Fail if <code>maxParts</code> is exceeded _during_ multipart parsing.</p></dd><dt>returns</dt><dd class="cmt"><p>A multipart/form-data encoded vector of parts with some part bodies held in
+        temporary files.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23)</i> Use mixedMultipartResource</p></dd></dl></div>
+    </li><li name="org.http4s.EntityDecoder#textFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="textFile[F[_]](file:java.io.File)(implicitevidence$11:fs2.io.file.Files[F],implicitevidence$12:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="textFile[F[_]](File)(Files[F],Concurrent[F]):EntityDecoder[F,File]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#textFile[F[_]](file:java.io.File)(implicitevidence$11:fs2.io.file.Files[F],implicitevidence$12:cats.effect.Concurrent[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.23.5) Use overload with fs2.io.file.Path">textFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="fs2.io.file.Files">Files</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.23.5)</i> Use overload with fs2.io.file.Path</p></dd></dl></div>
     </li></ol>
             </div>
         </div>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.13/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.15/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

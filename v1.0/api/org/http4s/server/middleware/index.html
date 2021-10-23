@@ -155,16 +155,24 @@
                         <a href="AutoSlash$.html" title="Removes a trailing slash from Request path">AutoSlash</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="BodyCache$.html" title="Middleware for caching the request body for multiple compilations"></a>
+                        <a href="BodyCache$.html" title="Middleware for caching the request body for multiple compilations">BodyCache</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream."></a>
                         <a href="BracketRequestResponse$.html" title="Middelwares which allow for bracketing on a Request/Response, including the completion of the Response body stream.">BracketRequestResponse</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="CORS$.html" title=""></a>
-                        <a href="CORS$.html" title="">CORS</a>
+                        <a class="object" href="CORS$.html" title="Implements the CORS protocol."></a>
+                        <a href="CORS$.html" title="Implements the CORS protocol.">CORS</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="CORSConfig$.html" title=""></a>
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="CORSPolicy$.html" title=""></a>
+                        <a class="class" href="CORSPolicy.html" title="A middleware that applies the CORS protocol to any Http value."></a>
+                        <a href="CORSPolicy.html" title="A middleware that applies the CORS protocol to any Http value.">CORSPolicy</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="CSRF$.html" title=""></a>
                         <a class="class" href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks."></a>
@@ -275,10 +283,6 @@
                         <a href="TranslateUri$.html" title="Removes the given prefix from the beginning of the path of the Request.">TranslateUri</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="URITranslation$.html" title=""></a>
-                        <a href="URITranslation$.html" title="">URITranslation</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="UrlFormLifter$.html" title="Middleware for lifting application/x-www-form-urlencoded bodies into the request query params."></a>
                         <a href="UrlFormLifter$.html" title="Middleware for lifting application/x-www-form-urlencoded bodies into the request query params.">UrlFormLifter</a>
                       </li><li class="current-entities indented4">
@@ -382,24 +386,31 @@ for serious static content serving.
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="CORSConfigextendsAnyRef"></a><a id="CORSConfig:CORSConfig"></a>
+              <ol><li name="org.http4s.server.middleware.CORSPolicy" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CORSPolicyextendsAnyRef"></a><a id="CORSPolicy:CORSPolicy"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORSConfig.html" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSPolicy.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier">sealed </span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name">CORSConfig</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="A middleware that applies the CORS protocol to any Http value." href="CORSPolicy.html"><span class="name">CORSPolicy</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
-      <p class="shortcomment cmt">CORS middleware config options.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware config options.
-You can give an instance of this class to the CORS middleware,
-to specify its behavior
+      <p class="shortcomment cmt">A middleware that applies the CORS protocol to any <code>Http</code> value.</p><div class="fullcomment"><div class="comment cmt"><p>A middleware that applies the CORS protocol to any <code>Http</code> value.
+Obtain a reference to a <code>CORSPolicy</code> via the <a href="CORS$.html" class="extype" name="org.http4s.server.middleware.CORS">CORS</a> object,
+which represents a default policy.</p><p>Requests with an Origin header will receive the appropriate CORS
+headers.  More headers are available for &quot;pre-flight&quot; requests,
+those whose method is <code>OPTIONS</code> and has an
+<code>Access-Control-Request-Method</code> header.</p><p>Requests without the required headers, or requests that fail a
+CORS origin, method, or headers check are passed through to the
+underlying Http function, but do not receive any CORS headers in
+the response.  The user agent will then block sharing the resource
+across origins according to the CORS protocol.
 </p></div></div>
     </li><li name="org.http4s.server.middleware.CSRF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CSRF[F[_],G[_]]extendsAnyRef"></a><a id="CSRF[F[_],G[_]]:CSRF[F,G]"></a>
@@ -413,7 +424,7 @@ to specify its behavior
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="Middleware to avoid Cross-site request forgery attacks." href="CSRF.html"><span class="name">CSRF</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.13/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="Middleware to avoid Cross-site request forgery attacks." href="CSRF.html"><span class="name">CSRF</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">Middleware to avoid Cross-site request forgery attacks.</p><div class="fullcomment"><div class="comment cmt"><p>Middleware to avoid Cross-site request forgery attacks.
@@ -431,6 +442,28 @@ Thus, you can provide some whitelisting capability for certain kinds of requests
 not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
 user data). Please do not use the CSRF protection from this middleware as a safety net for bad design.
 </p></div></div>
+    </li><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CORSConfigextendsAnyRef"></a><a id="CORSConfig:CORSConfig"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSConfig.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="CORS middleware config options." href="CORSConfig.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.27) Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">CORSConfig</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.15/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">CORS middleware config options.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware config options.
+You can give an instance of this class to the CORS middleware,
+to specify its behavior
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -458,6 +491,30 @@ user data). Please do not use the CSRF protection from this middleware as a safe
 this middleware will cause <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>s with uri = &quot;/foo&quot; and
 uri = &quot;/foo/&quot; to match the route.
 </p></div></div>
+    </li><li name="org.http4s.server.middleware.BodyCache" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BodyCache"></a><a id="BodyCache:BodyCache"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/BodyCache$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Middleware for caching the request body for multiple compilations" href="BodyCache$.html"><span class="name">BodyCache</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Middleware for caching the request body for multiple compilations</p><div class="fullcomment"><div class="comment cmt"><p>Middleware for caching the request body for multiple compilations</p><p>As the body of the request is the <span class="extype" name="Stream">Stream</span> of bytes,
+compiling it several times (e.g. with middlewares) is unsafe.
+This middleware forbids such behaviour, compiling the body only once.
+It does so only for the &quot;inner&quot; middlewares:</p><pre><span class="kw">val</span> route = AMiddleware(BodyCache(SomeOtherMiddleware(myRoute)))</pre><p>In this example only <code>myRoute</code> &amp; <code>SomeOtherMiddleware</code> will receive cached request body,
+while the <code>AMiddleware</code> will get the raw one.</p><p>As the entire request body will be allocated in memory,
+there is a possibility of OOM error with a large body.
+Because of that, using the <code>EntityLimiter</code> middleware is strongly advised.
+</p></div><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>This middleware has nothing to do with the HTTP caching mechanism
+      and it does not cache bodies between multiple requests.</p></span></dd></dl></div>
     </li><li name="org.http4s.server.middleware.BracketRequestResponse" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="BracketRequestResponse"></a><a id="BracketRequestResponse:BracketRequestResponse"></a>
       <span class="permalink">
@@ -480,7 +537,7 @@ reason that they exist is because due to the full termination of a
 Response being a function of the termination of the <code>fs2.Stream</code> which
 backs the response body, you can't actually use either
 <code>cats.effect.Bracket</code> or <code>fs2.Stream.bracket</code> directly.</p></div></div>
-    </li><li name="org.http4s.server.middleware.CORS" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.middleware.CORS" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CORS"></a><a id="CORS:CORS"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/CORS$.html" title="Permalink">
@@ -492,14 +549,16 @@ backs the response body, you can't actually use either
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="CORS$.html"><span class="name">CORS</span></a>
+        <a title="Implements the CORS protocol." href="CORS$.html"><span class="name">CORS</span></a>
       </span>
       
-      
-    </li><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CORSConfig"></a><a id="CORSConfig:CORSConfig"></a>
+      <p class="shortcomment cmt">Implements the CORS protocol.</p><div class="fullcomment"><div class="comment cmt"><p>Implements the CORS protocol.  The actual middleware is a <a href="CORSPolicy.html" class="extype" name="org.http4s.server.middleware.CORSPolicy">CORSPolicy</a>,
+which can be obtained via <a href="CORS$.html#policy:org.http4s.server.middleware.CORSPolicy" class="extmbr" name="org.http4s.server.middleware.CORS#policy">#policy</a>.
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="CORSPolicy.html" class="extype" name="org.http4s.server.middleware.CORSPolicy">CORSPolicy</a></p></span><span class="cmt"><p><a href="https://fetch.spec.whatwg.org/#http-cors-protocol" target="_blank">CORS protocol specification</a></p></span></dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORSPolicy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CORSPolicy"></a><a id="CORSPolicy:CORSPolicy"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORSConfig$.html" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSPolicy$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -508,7 +567,7 @@ backs the response body, you can't actually use either
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="CORSConfig$.html"><span class="name">CORSConfig</span></a>
+        <a title="" href="CORSPolicy$.html"><span class="name">CORSPolicy</span></a>
       </span>
       
       
@@ -543,7 +602,7 @@ backs the response body, you can't actually use either
         <a title="Caching contains middlewares to support caching functionality." href="Caching$.html"><span class="name">Caching</span></a>
       </span>
       
-      <p class="shortcomment cmt">Caching contains middlewares to support caching functionality.</p><div class="fullcomment"><div class="comment cmt"><p>Caching contains middlewares to support caching functionality.</p><p>Helper functions to support <a href="Caching$.html#cache[G[_],F[_]](lifetime:scala.concurrent.duration.Duration,isPublic:Either[org.http4s.CacheDirective.public.type,org.http4s.CacheDirective.private],methodToSetOn:org.http4s.Method=&gt;Boolean,statusToSetOn:org.http4s.Status=&gt;Boolean,http:org.http4s.Http[G,F])(implicitevidence$7:cats.MonadThrow[G],implicitevidence$8:cats.effect.Clock[G]):org.http4s.Http[G,F]" class="extmbr" name="org.http4s.server.middleware.Caching#cache">Caching.cache</a> can be found in
+      <p class="shortcomment cmt">Caching contains middlewares to support caching functionality.</p><div class="fullcomment"><div class="comment cmt"><p>Caching contains middlewares to support caching functionality.</p><p>Helper functions to support <a href="Caching$.html#cache[G[_],F[_]](lifetime:scala.concurrent.duration.Duration,isPublic:Either[org.http4s.CacheDirective.public.type,org.http4s.CacheDirective.private],methodToSetOn:org.http4s.Method=&gt;Boolean,statusToSetOn:org.http4s.Status=&gt;Boolean,http:org.http4s.Http[G,F])(implicitevidence$4:cats.effect.Temporal[G]):org.http4s.Http[G,F]" class="extmbr" name="org.http4s.server.middleware.Caching#cache">Caching.cache</a> can be found in
 <a href="Caching$$Helpers$.html" class="extype" name="org.http4s.server.middleware.Caching.Helpers">Caching.Helpers</a>
 </p></div></div>
     </li><li name="org.http4s.server.middleware.ChunkAggregator" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
@@ -1026,10 +1085,10 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.server.middleware.URITranslation" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="URITranslation"></a><a id="URITranslation:URITranslation"></a>
+              <ol><li name="org.http4s.server.middleware.CORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CORSConfig"></a><a id="CORSConfig:CORSConfig"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/URITranslation$.html" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSConfig$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1038,13 +1097,13 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="URITranslation$.html"><span class="name deprecated" title="Deprecated: (Since version 0.18.16) Use org.http4s.server.middleware.TranslateUri instead">URITranslation</span></a>
+        <a title="" href="CORSConfig$.html"><span class="name deprecated" title="Deprecated: (Since version 0.21.27) Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.">CORSConfig</span></a>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18.16)</i> Use org.http4s.server.middleware.TranslateUri instead</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.27)</i> Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.</p></dd></dl></div>
     </li></ol>
             </div>
         </div>
