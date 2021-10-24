@@ -25,7 +25,7 @@ trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
     inline def uri(inline args: Any*): Uri = ${LiteralsSyntax.UriLiteral('ctx, 'args)}
     inline def path(args: Any*): Uri.Path = ${LiteralsSyntax.validatePath('{ctx}, '{args})}
-    inline def scheme(args: Any*): Uri.Scheme = ${LiteralsSyntax.validateUriScheme('{ctx}, '{args})}
+    inline def scheme(inline args: Any*): Uri.Scheme = ${LiteralsSyntax.UriSchemeLiteral('ctx, 'args)}
     inline def mediaType(args: Any*): MediaType = ${LiteralsSyntax.validateMediatype('{ctx}, '{args})}
     inline def qValue(args: Any*): QValue = ${LiteralsSyntax.validateQvalue('{ctx}, '{args})}
   }
@@ -38,8 +38,6 @@ private[syntax] object LiteralsSyntax {
     def construct(s: String)(using Quotes): Expr[A]
   }
 
-  def validateUriScheme(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(urischeme, strCtxExpr, argsExpr)
   def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(uripath, strCtxExpr, argsExpr)
   def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
@@ -70,6 +68,14 @@ private[syntax] object LiteralsSyntax {
       Uri.fromString(s) match {
         case Left(parsingFailure) => Left(s"invalid URI: ${parsingFailure.details}")
         case Right(_) => Right('{Uri.unsafeFromString(${Expr(s)})})
+      }
+  }
+
+  object UriSchemeLiteral extends Literally[Uri.Scheme] {
+    def validate(s: String)(using Quotes) =
+      Uri.Scheme.fromString(s) match {
+        case Left(parsingFailure) => Left(s"invalid Scheme: ${parsingFailure.details}")
+        case Right(_) => Right('{Uri.Scheme.unsafeFromString(${Expr(s)})})
       }
   }
 
