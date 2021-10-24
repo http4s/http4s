@@ -141,7 +141,7 @@ class DecodeSpec extends Http4sSuite {
         val source = Stream.emits(bs)
         val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.foldMonoid
         // Ignoring the actual exception type
-        assertEquals(decoded.toOption, referenceResult.toOption)
+        unitToProp(assertEquals(decoded.toOption, referenceResult.toOption))
       }
     }
   }

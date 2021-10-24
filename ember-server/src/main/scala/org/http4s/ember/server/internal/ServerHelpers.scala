@@ -386,8 +386,6 @@ private[server] object ServerHelpers {
             secure = socket.isInstanceOf[TLSSocket[F]]
           )
         )
-      case _ =>
-        Vault.empty
     }
 
   private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =
