@@ -27,7 +27,7 @@ import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
 
-final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
+final case class Part[Body](headers: Headers, body: Body) extends Media[Body] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
   def filename: Option[String] =
     headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
@@ -38,7 +38,7 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Med
 object Part {
   private val ChunkSize = 8192
 
-  def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
+  def formData[Body](name: String, value: String, headers: Header.ToRaw*): Part[Body] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
       Stream.emit(value).through(utf8.encode))
@@ -47,21 +47,21 @@ object Part {
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
     fileData(name, Path.fromNioPath(file.toPath), headers: _*)
 
-  def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =
+  def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[EntityBody[F]] =
     fileData(
       name,
       path.fileName.toString,
       Files[F].readAll(path, ChunkSize, Flags.Read),
       headers: _*)
 
-  def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
+  def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[EntityBody[F]] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
 
   def fileData[F[_]](
       name: String,
       filename: String,
       entityBody: EntityBody[F],
-      headers: Header.ToRaw*): Part[F] =
+      headers: Header.ToRaw*): Part[EntityBody[F]] =
     Part(
       Headers(
         `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),

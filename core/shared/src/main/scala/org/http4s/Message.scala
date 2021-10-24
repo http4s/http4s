@@ -174,7 +174,7 @@ sealed trait Message[+ Body] extends Media[Body] { self =>
   /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
     * F might not complete until the entire body has been consumed.
     */
-  def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
+  def trailerHeaders[F[_]](implicit F: Applicative[F]): F[Headers] =
     attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
 
   // Specific header methods
@@ -215,7 +215,7 @@ sealed trait Message[+ Body] extends Media[Body] { self =>
 
   /** Lifts this Message's body to the specified effect type.
     */
-  override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
+  override def covary[Cod >: Body]: SelfF[Cod] = this.asInstanceOf[SelfF[Cod]]
 }
 
 object Message {
@@ -405,7 +405,7 @@ final class Request[+ Body] private (
 
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
-  def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
+  def remoteHost[F[_]](implicit F: Sync[F]): F[Option[Hostname]] = {
     val inetAddress = remote.map(_.host.toInetAddress)
     F.blocking(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
   }

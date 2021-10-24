@@ -50,7 +50,7 @@ sealed abstract case class Status private (code: Int) extends Ordered[Status] wi
     writer << code << ' ' << reason
 
   /** Helpers for for matching against a [[Response]] */
-  def unapply[F[_]](msg: Response[F]): Option[Response[F]] =
+  def unapply[B](msg: Response[B]): Option[Response[B]] =
     if (msg.status == this) Some(msg) else None
 }
 

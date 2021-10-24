@@ -157,16 +157,16 @@ object EntityDecoder {
     }
 
   /** Helper method which simply gathers the body into a single Chunk */
-  def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
+  def collectBinary[F[_]: Concurrent](m: Media[EntityBody[F]]): DecodeResult[F, Chunk[Byte]] =
     DecodeResult.success(m.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] =
+  private def collectByteVector[F[_]: Concurrent](m: Media[EntityBody[F]]): DecodeResult[F[ByteVector]] =
     DecodeResult.success(m.body.compile.toVector.map(ByteVector(_)))
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
-      m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
+      m: Media[EntityBody[F]])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyText.compile.string
 
   /////////////////// Instances //////////////////////////////////////////////
@@ -207,8 +207,8 @@ object EntityDecoder {
   def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     textFile(Path.fromNioPath(file.toPath())).map(_ => file)
 
-  def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+  def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[EntityBody[F], Path] =
+    EntityDecoder.decodeBy(MediaRange.`*/*`) { (msg: EntityBody[F]) =>
       val pipe = Files[F].writeAll(path)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
     }

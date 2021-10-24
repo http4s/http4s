@@ -156,7 +156,7 @@ object EntityEncoder {
     * `Transfer-Encoding: chunked` header is set, as we cannot know
     * the content length without running the stream.
     */
-  implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
+  implicit def entityBodyEncoder[F[_]]: EntityEncoder[EntityBody[F], EntityBody[F]] =
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
       Entity(body, None)
     }
@@ -223,9 +223,9 @@ object EntityEncoder {
   implicit def multipartEncoder[F[_]]: EntityEncoder[F, Multipart[F]] =
     new MultipartEncoder[F]
 
-  implicit def entityEncoderContravariant[F[_]]: Contravariant[EntityEncoder[F, *]] =
+  implicit def entityEncoderContravariant[Body]: Contravariant[EntityEncoder[Body, *]] =
     new Contravariant[EntityEncoder[F, *]] {
-      override def contramap[A, B](r: EntityEncoder[F, A])(f: (B) => A): EntityEncoder[F, B] =
+      override def contramap[Body, B](r: EntityEncoder[Body, A])(f: (B) => A): EntityEncoder[Body, B] =
         r.contramap(f)
     }
 
