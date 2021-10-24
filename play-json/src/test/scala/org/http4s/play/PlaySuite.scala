@@ -54,7 +54,7 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
 
   test("jsonOf should decode JSON from a Play decoder") {
     val result = jsonOf[IO, Foo]
-      .decode(Request[IO]().withEntity(Json.obj("bar" -> JsNumber(42)): JsValue), strict = true)
+      .decode(Request().withEntity(Json.obj("bar" -> JsNumber(42)): JsValue), strict = true)
     result.value.assertEquals(Right(Foo(42)))
   }
 

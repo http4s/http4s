@@ -57,10 +57,10 @@ object ResponseLogger {
     def logMessage(resp: Response[F]): F[Unit] =
       logBodyText match {
         case Left(bool) =>
-          Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
+          Logger.logMessage(resp)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText[F, Response[F]](resp)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBodyText(resp)(logHeaders, f, redactHeadersWhen)(log(_))
       }
 
     val logBody: Boolean = logBodyText match {

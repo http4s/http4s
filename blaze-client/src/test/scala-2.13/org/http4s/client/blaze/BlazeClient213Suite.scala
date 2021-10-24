@@ -41,7 +41,7 @@ class BlazeClient213Suite extends BlazeClientBase {
       .flatMap { _ =>
         builder(1, requestTimeout = 2.second).resource.use { client =>
           val submit =
-            client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
+            client.status(Request(uri = Uri.fromString(s"http://$name:$port/simple").yolo))
           submit *> IO.sleep(3.seconds) *> submit
         }
       }
@@ -156,9 +156,9 @@ class BlazeClient213Suite extends BlazeClientBase {
         }
         val s = Stream(
           Stream.eval(
-            client.expect[String](Request[IO](uri = uris(0)))
+            client.expect[String](Request(uri = uris(0)))
           )).repeat.take(10).parJoinUnbounded ++ Stream.eval(
-          client.expect[String](Request[IO](uri = uris(1))))
+          client.expect[String](Request(uri = uris(1))))
         s.compile.lastOrError
       }
       .assertEquals("simple path")

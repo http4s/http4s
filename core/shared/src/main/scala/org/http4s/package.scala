@@ -119,4 +119,15 @@ package object http4s {
   private[http4s] implicit class Ip4sIpAddressOps(ip: ip4s.IpAddress) {
     def toInetAddress: java.net.InetAddress = throw new UnsupportedOperationException
   }
+
+  type AnyF[A] = Any
+
+  /** The top type for [[Request]]. Any [[Request]] can be used where an [[AnyRequest]] is needed. */
+  type AnyRequest = Request[AnyF]
+
+  /** The top type for [[Response]]. Any [[Response]] can be used where an [[AnyResponse]] is needed. */
+  type AnyResponse = Response[AnyF]
+
+  /** The top type for [[Message]]. Any [[Message]] can be used where an [[Message]] is needed. */
+  type AnyMessage = Message[AnyF]
 }

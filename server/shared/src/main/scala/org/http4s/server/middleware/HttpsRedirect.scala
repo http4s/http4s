@@ -47,7 +47,7 @@ object HttpsRedirect {
           val authority = Authority(host = RegName(host.value))
           val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))
           val headers = Headers(Location(location), `Content-Type`(MediaType.text.xml))
-          val response = Response[G](status = MovedPermanently, headers = headers)
+          val response = Response(status = MovedPermanently, headers = headers)
           F.pure(response)
 
         case _ =>

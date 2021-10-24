@@ -21,13 +21,13 @@ import fs2.Stream
 import io.prometheus.client.CollectorRegistry
 import java.io.IOException
 import java.util.concurrent.{TimeUnit, TimeoutException}
-import org.http4s.{Request, Response}
+import org.http4s.{AnyRequest, Response}
 import org.http4s.dsl.io._
 import org.http4s.Method.GET
 import scala.concurrent.duration.FiniteDuration
 
 object util {
-  def stub: PartialFunction[Request[IO], IO[Response[IO]]] = {
+  def stub: PartialFunction[AnyRequest, IO[Response[IO]]] = {
     case (GET | POST | PUT | DELETE) -> Root / "ok" =>
       Ok("200 OK")
     case GET -> Root / "bad-request" =>

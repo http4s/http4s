@@ -50,15 +50,19 @@ class Http1ServerStageSpec extends Http4sSuite {
 
     private var d: Dispatcher[IO] = null
     private var shutdown: IO[Unit] = null
+
     def apply() = d
+
     override def beforeAll(): Unit = {
       val dispatcherAndShutdown = Dispatcher[IO].allocated.unsafeRunSync()
       shutdown = dispatcherAndShutdown._2
       d = dispatcherAndShutdown._1
     }
+
     override def afterAll(): Unit =
       shutdown.unsafeRunSync()
   }
+
   override def munitFixtures = List(dispatcher)
 
   def makeString(b: ByteBuffer): String = {
@@ -215,7 +219,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       .of[IO] { case _ =>
         val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
         IO.pure(
-          Response[IO](headers = headers)
+          Response(headers = headers)
             .withEntity("hello world"))
       }
       .orNotFound
@@ -240,7 +244,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       val routes: HttpApp[IO] = HttpRoutes
         .of[IO] { case _ =>
           IO.pure(
-            Response[IO](status = Status.NotModified)
+            Response(status = Status.NotModified)
               .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
               .withEntity("Foo!"))
         }
@@ -542,8 +546,8 @@ class Http1ServerStageSpec extends Http4sSuite {
     val head = runRequest(
       tw,
       List(rawReq),
-      HttpApp { req =>
-        Response[IO](Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]
+      HttpApp[IO] { req =>
+        Response(Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]
       })
     head.result.map { buff =>
       val (_, headers, _) = ResponseParser.parseBuffer(buff)
@@ -556,8 +560,8 @@ class Http1ServerStageSpec extends Http4sSuite {
     val head = runRequest(
       tw,
       List(rawReq),
-      HttpApp { req =>
-        Response[IO](Status.NoContent)
+      HttpApp[IO] { req =>
+        Response(Status.NoContent)
           .putHeaders("X-Oops" -> req.params("fieldValue"))
           .pure[IO]
       })
@@ -582,7 +586,7 @@ class Http1ServerStageSpec extends Http4sSuite {
                 IO.uncancelable { poll =>
                   poll(uncancelableCanceled.complete(())) *>
                     cancelableCanceled.get
-                }.as(Response[IO]())
+                }.as(Response())
             case _ =>
               cancelableStarted.complete(()) *> IO.never.guarantee(
                 cancelableCanceled.complete(()).void)

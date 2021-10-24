@@ -42,7 +42,7 @@ class RequestIdSuite extends Http4sSuite {
 
   test("propagate X-Request-ID header from request to response") {
     val req =
-      Request[IO](uri = uri"/request", headers = Headers("X-Request-ID" -> "123"))
+      Request(uri = uri"/request", headers = Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(testService())
       .orNotFound(req)
@@ -54,7 +54,7 @@ class RequestIdSuite extends Http4sSuite {
   }
 
   test("generate X-Request-ID header when unset") {
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     RequestId
       .httpRoutes(testService())
       .orNotFound(req)
@@ -68,7 +68,7 @@ class RequestIdSuite extends Http4sSuite {
   }
 
   test("generate different request ids on subsequent requests") {
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     val resp = RequestId.httpRoutes(testService()).orNotFound(req)
     (resp.map(requestIdFromHeaders(_)), resp.map(requestIdFromHeaders(_)))
       .parMapN(_ =!= _)
@@ -76,7 +76,7 @@ class RequestIdSuite extends Http4sSuite {
   }
 
   test("propagate custom request id header from request to response") {
-    val req = Request[IO](
+    val req = Request(
       uri = uri"/request",
       headers = Headers("X-Request-ID" -> "123", "X-Correlation-ID" -> "abc"))
     RequestId
@@ -93,7 +93,7 @@ class RequestIdSuite extends Http4sSuite {
 
   test("generate custom request id header when unset") {
     val req =
-      Request[IO](uri = uri"/request", headers = Headers("X-Request-ID" -> "123"))
+      Request(uri = uri"/request", headers = Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(ci"X-Correlation-ID")(testService(ci"X-Correlation-ID"))
       .orNotFound(req)
@@ -108,7 +108,7 @@ class RequestIdSuite extends Http4sSuite {
 
   test("generate X-Request-ID header when unset using supplied generator") {
     val uuid = UUID.fromString("00000000-0000-0000-0000-000000000000")
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     RequestId
       .httpRoutes(genReqId = IO.pure(uuid))(testService())
       .orNotFound(req)
@@ -123,7 +123,7 @@ class RequestIdSuite extends Http4sSuite {
 
   test("include requestId attribute with request and response") {
     val req =
-      Request[IO](uri = uri"/attribute", headers = Headers("X-Request-ID" -> "123"))
+      Request(uri = uri"/attribute", headers = Headers("X-Request-ID" -> "123"))
     RequestId
       .httpRoutes(testService())
       .orNotFound(req)

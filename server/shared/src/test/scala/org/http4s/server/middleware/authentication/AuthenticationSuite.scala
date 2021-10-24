@@ -59,7 +59,7 @@ class AuthenticationSuite extends Http4sSuite {
   val basicAuthMiddleware = BasicAuth(realm, validatePassword _)
 
   test("Failure to authenticate should not run unauthorized routes") {
-    val req = Request[IO](uri = uri"/launch-the-nukes")
+    val req = Request(uri = uri"/launch-the-nukes")
     var isNuked = false
     val authedValidateNukeService = basicAuthMiddleware(nukeService {
       isNuked = true
@@ -74,7 +74,7 @@ class AuthenticationSuite extends Http4sSuite {
     val basicAuthedService = basicAuthMiddleware(service)
 
     test("BasicAuthentication should respond to a request without authentication with 401") {
-      val req = Request[IO](uri = uri"/")
+      val req = Request(uri = uri"/")
       basicAuthedService.orNotFound(req).map { res =>
         assertEquals(res.status, Unauthorized)
         assertEquals(
@@ -84,7 +84,7 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test("BasicAuthentication should respond to a request with unknown username with 401") {
-      val req = Request[IO](
+      val req = Request(
         uri = uri"/",
         headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
       basicAuthedService.orNotFound(req).map { res =>
@@ -96,7 +96,7 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test("BasicAuthentication should respond to a request with wrong password with 401") {
-      val req = Request[IO](
+      val req = Request(
         uri = uri"/",
         headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
       basicAuthedService.orNotFound(req).map { res =>
@@ -108,7 +108,7 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test("BasicAuthentication should respond to a request with correct credentials") {
-      val req = Request[IO](
+      val req = Request(
         uri = uri"/",
         headers = Headers(Authorization(BasicCredentials(username, password))))
       basicAuthedService
@@ -128,7 +128,7 @@ class AuthenticationSuite extends Http4sSuite {
 
     test("DigestAuthentication should respond to a request without authentication with 401") {
       val authedService = digestAuthMiddleware(service)
-      val req = Request[IO](uri = uri"/")
+      val req = Request(uri = uri"/")
       authedService.orNotFound(req).map { res =>
         assertEquals(res.status, Unauthorized)
         val opt = res.headers.get[`WWW-Authenticate`].map(_.value)
@@ -146,7 +146,7 @@ class AuthenticationSuite extends Http4sSuite {
     // Send a request without authorization, receive challenge.
     def doDigestAuth1(digest: HttpApp[IO]): IO[Challenge] = {
       // Get auth data
-      val req = Request[IO](uri = uri"/")
+      val req = Request(uri = uri"/")
       digest(req).map { res =>
         assertEquals(res.status, Unauthorized)
         val opt = res.headers.get[`WWW-Authenticate`].map(_.value)
@@ -185,7 +185,7 @@ class AuthenticationSuite extends Http4sSuite {
           )
           val header = Authorization(Credentials.AuthParams(ci"Digest", params))
 
-          val req2 = Request[IO](uri = uri"/", headers = Headers(header))
+          val req2 = Request(uri = uri"/", headers = Headers(header))
           digest(req2).flatMap { res2 =>
             if (withReplay) digest(req2).map(res3 => (res2, res3))
             else IO.pure((res2, null))
@@ -294,7 +294,7 @@ class AuthenticationSuite extends Http4sSuite {
             val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
             val header = Authorization(
               Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*))
-            val req = Request[IO](uri = uri"/", headers = Headers(header))
+            val req = Request(uri = uri"/", headers = Headers(header))
             digestAuthService.orNotFound(req).map(_.status)
           }
 

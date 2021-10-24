@@ -62,7 +62,7 @@ object ErrorReporting {
       F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[G]]] =
     req => {
       case mf: MessageFailure =>
-        mf.toHttpResponse[G](req.httpVersion).pure[F]
+        mf.toHttpResponse(req.httpVersion).covary[G].pure[F]
       case NonFatal(_) =>
         F.pure(
           Response(

@@ -27,7 +27,7 @@ class ErrorHandlingSuite extends Http4sSuite {
       IO.raiseError(t)
     }
 
-  val request = Request[IO](GET, uri"/error")
+  val request = Request(GET, uri"/error")
 
   test("Handle errors based on the default service error handler") {
     ErrorHandling(

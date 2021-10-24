@@ -181,7 +181,7 @@ class MessageSuite extends Http4sSuite {
 
   test("toString should redact an Authorization header") {
     val request =
-      Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
+      Request(Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
     assertEquals(
       request.toString,
       "Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
@@ -189,7 +189,7 @@ class MessageSuite extends Http4sSuite {
 
   test("toString should redact Cookie Headers") {
     val request =
-      Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
+      Request(Method.GET).addCookie("token", "value").addCookie("token2", "value2")
     assertEquals(
       request.toString,
       "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
@@ -209,7 +209,7 @@ class MessageSuite extends Http4sSuite {
   }
 
   val uri = uri"http://localhost:1234/foo"
-  val request = Request[IO](Method.GET, uri)
+  val request = Request(Method.GET, uri)
 
   test("asCurl should build cURL representation with scheme and authority") {
     assertEquals(request.asCurl(), "curl -X GET 'http://localhost:1234/foo'")
@@ -256,15 +256,15 @@ class MessageSuite extends Http4sSuite {
   test(
     "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMismatch") {
     val req =
-      Request[IO](headers = Headers(`Content-Type`(MediaType.application.`octet-stream`)))
-    val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
+      Request(headers = Headers(`Content-Type`(MediaType.application.`octet-stream`)))
+    val resp = req.decodeWith(EntityDecoder.text[IO], strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)
   }
 
   test(
     "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMissing") {
-    val req = Request[IO]()
-    val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
+    val req = Request()
+    val resp = req.decodeWith(EntityDecoder.text[IO], strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)
   }
 
@@ -297,9 +297,9 @@ class MessageSuite extends Http4sSuite {
 
   test("withEntity should not duplicate Content-Type header") {
     // https://github.com/http4s/http4s/issues/5059
-    val hdrs = Request[IO]()
+    val hdrs = Request()
       .putHeaders(`Content-Type`(MediaType.text.html))
-      .withEntity[String]("foo")
+      .withEntity("foo")
       .headers
       .headers
       .filter(_.name === Header[`Content-Type`].name)

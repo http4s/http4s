@@ -29,7 +29,7 @@ class WebjarServiceFilterSuite extends Http4sSuite with StaticContentShared {
       .toRoutes
 
   test("Return a 200 Ok file") {
-    val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")
+    val req = Request(GET, uri"/test-lib/1.0.0/testresource.txt")
     val rb = runReq(req)
 
     rb.flatMap { case (b, r) =>
@@ -39,7 +39,7 @@ class WebjarServiceFilterSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Not find filtered asset") {
-    val req = Request[IO](GET, uri"/test-lib/1.0.0/sub/testresource.txt")
+    val req = Request(GET, uri"/test-lib/1.0.0/sub/testresource.txt")
     val rb = runReq(req)
 
     rb.flatMap { case (_, r) =>

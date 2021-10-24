@@ -31,7 +31,7 @@ class StaticHeadersSuite extends Http4sSuite {
   }
 
   test("add a no-cache header to a response") {
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     val resp = StaticHeaders.`no-cache`(testService).orNotFound(req)
 
     resp

@@ -32,7 +32,7 @@ class HttpsRedirectSuite extends Http4sSuite {
   }
 
   val reqHeaders = Headers("X-Forwarded-Proto" -> "http", Host("example.com"))
-  val req = Request[IO](method = GET, uri = Uri(path = Uri.Path.Root), headers = reqHeaders)
+  val req = Request(method = GET, uri = Uri(path = Uri.Path.Root), headers = reqHeaders)
 
   test("redirect to https when 'X-Forwarded-Proto' is http") {
     List(
@@ -59,7 +59,7 @@ class HttpsRedirectSuite extends Http4sSuite {
       HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
       HttpsRedirect.httpApp(innerRoutes.orNotFound)
     ).traverse { app =>
-      val noHeadersReq = Request[IO](method = GET, uri = Uri(path = Uri.Path.Root))
+      val noHeadersReq = Request(method = GET, uri = Uri(path = Uri.Path.Root))
       app(noHeadersReq).map(_.status).assertEquals(Status.Ok) *>
         app(noHeadersReq).flatMap(_.as[String]).assertEquals("pong")
     }

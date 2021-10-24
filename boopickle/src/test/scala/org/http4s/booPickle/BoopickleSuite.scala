@@ -77,7 +77,7 @@ class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
 
   test("decode a class from a boopickle decoder") {
     val result = booOf[IO, Fruit]
-      .decode(Request[IO]().withEntity(Banana(10.0): Fruit), strict = true)
+      .decode(Request().withEntity(Banana(10.0): Fruit), strict = true)
     result.value.map(assertEquals(_, Right(Banana(10.0))))
   }
 

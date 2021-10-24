@@ -96,7 +96,7 @@ object HttpMethodOverrider {
         req: Request[G],
         parseResult: ParseResult[Method]): F[Response[G]] =
       parseResult match {
-        case Left(_) => F.pure(Response[G](Status.BadRequest))
+        case Left(_) => F.pure(Response(Status.BadRequest))
         case Right(om) => http(updateRequestWithMethod(req, om)).map(updateVaryHeader)
       }
 

@@ -23,7 +23,7 @@ import cats.effect.IO
 trait JawnDecodeSupportSuite[J] extends Http4sSuite {
   def testJsonDecoder(decoder: EntityDecoder[IO, J]) = {
     test("return right when the entity is valid") {
-      val resp = Response[IO](Status.Ok).withEntity("""{"valid": true}""")
+      val resp = Response(Status.Ok).withEntity("""{"valid": true}""")
       decoder.decode(resp, strict = false).value.map(_.isRight).assert
     }
 
@@ -46,7 +46,7 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
       parseError: PartialFunction[DecodeFailure, Boolean]
   ) = {
     test("return a ParseFailure when the entity is invalid") {
-      val resp = Response[IO](Status.Ok).withEntity("""garbage""")
+      val resp = Response(Status.Ok).withEntity("""garbage""")
       decoder
         .decode(resp, strict = false)
         .value
@@ -54,7 +54,7 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
     }
 
     test("return a ParseFailure when the entity is empty") {
-      val resp = Response[IO](Status.Ok).withEntity("")
+      val resp = Response(Status.Ok).withEntity("")
       decoder
         .decode(resp, strict = false)
         .value

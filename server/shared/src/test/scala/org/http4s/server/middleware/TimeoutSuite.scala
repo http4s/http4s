@@ -39,8 +39,8 @@ class TimeoutSuite extends Http4sSuite {
 
   val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
 
-  val fastReq = Request[IO](GET, uri"/fast")
-  val neverReq = Request[IO](GET, uri"/never")
+  val fastReq = Request(GET, uri"/fast")
+  val neverReq = Request(GET, uri"/never")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
     IO.race(IO.sleep(3.seconds), resp.map(_.status)).assertEquals(Right(status))
@@ -67,7 +67,7 @@ class TimeoutSuite extends Http4sSuite {
       IO.never.guarantee(IO(canceled.set(true)))
     }
     val app = TimeoutMiddleware(1.millis)(routes).orNotFound
-    checkStatus(app(Request[IO]()), Status.ServiceUnavailable) *>
+    checkStatus(app(Request()), Status.ServiceUnavailable) *>
       // Give the losing response enough time to finish
       IO.sleep(100.milliseconds) *> IO(canceled.get)
   }

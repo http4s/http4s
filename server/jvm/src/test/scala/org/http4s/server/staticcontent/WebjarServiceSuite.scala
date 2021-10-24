@@ -46,7 +46,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       .toString
 
   test("Return a 200 Ok file") {
-    val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")
+    val req = Request(GET, uri"/test-lib/1.0.0/testresource.txt")
     val rb = runReq(req)
     rb.flatMap { case (b, r) =>
       assertEquals(r.status, Status.Ok)
@@ -55,7 +55,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Return a 200 Ok file in a subdirectory") {
-    val req = Request[IO](GET, uri"/test-lib/1.0.0/sub/testresource.txt")
+    val req = Request(GET, uri"/test-lib/1.0.0/sub/testresource.txt")
     val rb = runReq(req)
 
     rb.flatMap { case (b, r) =>
@@ -65,7 +65,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Decodes path segments") {
-    val req = Request[IO](uri = uri"/deep+purple/machine+head/space+truckin%27.txt")
+    val req = Request(uri = uri"/deep+purple/machine+head/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
@@ -74,7 +74,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assertEquals(true) *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -84,7 +84,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
     val uri = Uri.unsafeFromString("/" + relativePath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assertEquals(true) *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -94,33 +94,33 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     val file = absPath.toFile
 
     val uri = Uri.unsafeFromString("///" + absPath)
-    val req = Request[IO](uri = uri)
+    val req = Request(uri = uri)
     IO(file.exists()).assertEquals(true) *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test("Not find missing file") {
-    val req = Request[IO](uri = uri"/test-lib/1.0.0/doesnotexist.txt")
+    val req = Request(uri = uri"/test-lib/1.0.0/doesnotexist.txt")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 
   test("Not find missing library") {
-    val req = Request[IO](uri = uri"/1.0.0/doesnotexist.txt")
+    val req = Request(uri = uri"/1.0.0/doesnotexist.txt")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 
   test("Return bad request on missing version") {
-    val req = Request[IO](uri = uri"/test-lib//doesnotexist.txt")
+    val req = Request(uri = uri"/test-lib//doesnotexist.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test("Not find blank asset") {
-    val req = Request[IO](uri = uri"/test-lib/1.0.0/")
+    val req = Request(uri = uri"/test-lib/1.0.0/")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 
   test("Not match a request with POST") {
-    val req = Request[IO](POST, uri"/test-lib/1.0.0/testresource.txt")
+    val req = Request(POST, uri"/test-lib/1.0.0/testresource.txt")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 
@@ -134,7 +134,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       }
     }
 
-    val req = Request[IO](uri = uri"/deep+purple/machine+head/space+truckin%27.txt")
+    val req = Request(uri = uri"/deep+purple/machine+head/space+truckin%27.txt")
     routes(mockedClassLoader)
       .orNotFound(req)
       .map(resp => resp.status === Status.Ok && mockedClassLoaderCallCount === 1)
@@ -142,7 +142,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("respect preferredGzip parameter") {
-    val req = Request[IO](
+    val req = Request(
       GET,
       uri"/test-lib/1.0.0/testresource.txt",
       headers = Headers(`Accept-Encoding`(ContentCoding.gzip)))

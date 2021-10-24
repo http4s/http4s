@@ -27,10 +27,10 @@ object MockRoute {
   def route(): HttpRoutes[IO] =
     HttpRoutes.of {
       case req if req.uri.path === path"/ping" =>
-        Response[IO](Ok).withEntity("pong").pure[IO]
+        Response(Ok).withEntity("pong").pure[IO]
 
       case req if req.method === Method.POST && req.uri.path === path"/echo" =>
-        IO.pure(Response[IO](body = req.body))
+        IO.pure(Response(body = req.body))
 
       case req if req.uri.path === path"/withslash" =>
         IO.pure(Response(Ok))

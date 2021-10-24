@@ -32,7 +32,7 @@ class ErrorActionSuite extends Http4sSuite {
       IO.raiseError(error)
     }
 
-  val req = Request[IO](
+  val req = Request(
     GET,
     uri"/error",
     attributes = Vault.empty.insert(

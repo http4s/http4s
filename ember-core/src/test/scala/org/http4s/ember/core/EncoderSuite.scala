@@ -45,18 +45,18 @@ class EncoderSuite extends Http4sSuite {
   }
 
   test("reqToBytes should encode a no body request correctly") {
-    val req = Request[IO](Method.GET, Uri.unsafeFromString("http://www.google.com"))
+    val req = Request(Method.GET, Uri.unsafeFromString("http://www.google.com"))
     val expected =
       """GET / HTTP/1.1
       |Host: www.google.com
       |
       |""".stripMargin
 
-    Helpers.encodeRequestRig(req).assertEquals(expected)
+    Helpers.encodeRequestRig[IO](req).assertEquals(expected)
   }
 
   test("reqToBytes should encode a request with a body correctly") {
-    val req = Request[IO](Method.POST, Uri.unsafeFromString("http://www.google.com"))
+    val req = Request(Method.POST, Uri.unsafeFromString("http://www.google.com"))
       .withEntity("Hello World!")
     val expected =
       """POST / HTTP/1.1
@@ -66,11 +66,11 @@ class EncoderSuite extends Http4sSuite {
       |
       |Hello World!""".stripMargin
 
-    Helpers.encodeRequestRig(req).assertEquals(expected)
+    Helpers.encodeRequestRig[IO](req).assertEquals(expected)
   }
 
   test("reqToBytes should encode headers correctly") {
-    val req = Request[IO](
+    val req = Request(
       Method.GET,
       Uri.unsafeFromString("http://www.google.com"),
       headers = Headers("foo" -> "bar")
@@ -81,11 +81,11 @@ class EncoderSuite extends Http4sSuite {
         |foo: bar
         |
         |""".stripMargin
-    Helpers.encodeRequestRig(req).assertEquals(expected)
+    Helpers.encodeRequestRig[IO](req).assertEquals(expected)
   }
 
   test("reqToBytes strips the fragment") {
-    val req = Request[IO](
+    val req = Request(
       Method.GET,
       Uri.unsafeFromString("https://www.example.com/path?query#fragment")
     )
@@ -94,11 +94,11 @@ class EncoderSuite extends Http4sSuite {
         |Host: www.example.com
         |
         |""".stripMargin
-    Helpers.encodeRequestRig(req).assertEquals(expected)
+    Helpers.encodeRequestRig[IO](req).assertEquals(expected)
   }
 
   test("reqToBytes respects the host header") {
-    val req = Request[IO](
+    val req = Request(
       Method.GET,
       Uri.unsafeFromString("https://www.example.com/"),
       headers = Headers(headers.Host("example.org", Some(8080)))
@@ -108,11 +108,11 @@ class EncoderSuite extends Http4sSuite {
         |Host: example.org:8080
         |
         |""".stripMargin
-    Helpers.encodeRequestRig(req).assertEquals(expected)
+    Helpers.encodeRequestRig[IO](req).assertEquals(expected)
   }
 
   test("respToBytes should encode a no body response correctly") {
-    val resp = Response[IO](Status.Ok).putHeaders(`Content-Length`.zero)
+    val resp = Response(Status.Ok).putHeaders(`Content-Length`.zero)
 
     val expected =
       """HTTP/1.1 200 OK
@@ -120,21 +120,21 @@ class EncoderSuite extends Http4sSuite {
       |
       |""".stripMargin
 
-    Helpers.encodeResponseRig(resp).assertEquals(expected)
+    Helpers.encodeResponseRig[IO](resp).assertEquals(expected)
   }
 
   test("encoder a response where entity is not allowed correctly") {
-    val resp = Response[IO](Status.NoContent)
+    val resp = Response(Status.NoContent)
     val expected =
       """HTTP/1.1 204 No Content
       |
       |""".stripMargin
 
-    Helpers.encodeResponseRig(resp).assertEquals(expected)
+    Helpers.encodeResponseRig[IO](resp).assertEquals(expected)
   }
 
   test("encode a response with a body correctly") {
-    val resp = Response[IO](Status.NotFound)
+    val resp = Response(Status.NotFound)
       .withEntity("Not Found")
 
     val expected =
@@ -144,6 +144,6 @@ class EncoderSuite extends Http4sSuite {
       |
       |Not Found""".stripMargin
 
-    Helpers.encodeResponseRig(resp).assertEquals(expected)
+    Helpers.encodeResponseRig[IO](resp).assertEquals(expected)
   }
 }

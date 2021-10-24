@@ -126,7 +126,7 @@ class TWStream[F[_]: Async] {
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
   val stream: Stream[F, Unit] = {
-    val req = Request[F](Method.GET, 
+    val req = Request(Method.GET, 
                 uri"https://stream.twitter.com/1.1/statuses/sample.json")
     val s   = jsonStream("<consumerKey>", "<consumerSecret>", 
                 "<accessToken>", "<accessSecret>")(req)

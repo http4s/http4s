@@ -167,13 +167,13 @@ class ServerSentEventSpec extends Http4sSuite {
     Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString.some))
   test("EntityEncoder[ServerSentEvent] should set Content-Type to text/event-stream") {
     assertEquals(
-      Response[IO]().withEntity(eventStream).contentType,
+      Response().withEntity(eventStream).contentType,
       Some(`Content-Type`(MediaType.`text/event-stream`)))
   }
 
   test("EntityEncoder[ServerSentEvent] should decode to original event stream") {
     for {
-      r <- Response[IO]()
+      r <- Response()
         .withEntity(eventStream)
         .body
         .through(ServerSentEvent.decoder)

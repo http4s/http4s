@@ -54,7 +54,7 @@ object UrlFormLifter {
           for {
             decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode).value)
             resp <- decoded.fold(
-              mf => f(mf.toHttpResponse[G](req.httpVersion).pure[G]),
+              mf => f(mf.toHttpResponse(req.httpVersion).pure[G]),
               addUrlForm
             )
           } yield resp
@@ -63,6 +63,6 @@ object UrlFormLifter {
       }
     }
 
-  private def checkRequest[F[_]](req: Request[F]): Boolean =
+  private def checkRequest(req: AnyRequest): Boolean =
     req.method == Method.POST || req.method == Method.PUT
 }

@@ -17,7 +17,6 @@
 package org.http4s
 package dsl
 
-import cats.effect.IO
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path.{Root, Segment}
 import org.http4s.dsl.io._
@@ -59,7 +58,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   }
 
   test("Path should -> extractor /test.json") {
-    val req = Request[IO](method = Method.GET, uri = uri"/test.json")
+    val req = Request(method = Method.GET, uri = uri"/test.json")
     assert(req match {
       case GET -> Root / "test.json" => true
       case _ => false
@@ -67,7 +66,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   }
 
   test("Path should -> extractor /foo/test.json") {
-    val req = Request[IO](method = Method.GET, uri = uri"/foo/test.json")
+    val req = Request(method = Method.GET, uri = uri"/foo/test.json")
     assert(req match {
       case GET -> Root / "foo" / "test.json" => true
       case _ => false
@@ -75,7 +74,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   }
 
   test("Path should → extractor /test.json") {
-    val req = Request[IO](method = Method.GET, uri = uri"/test.json")
+    val req = Request(method = Method.GET, uri = uri"/test.json")
     assert(req match {
       case GET → (Root / "test.json") => true
       case _ => false
@@ -83,7 +82,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   }
 
   test("Path should request path info extractor for /") {
-    val req = Request[IO](method = Method.GET, uri = uri"/")
+    val req = Request(method = Method.GET, uri = uri"/")
     assert(req match {
       case _ -> Root => true
       case _ => false

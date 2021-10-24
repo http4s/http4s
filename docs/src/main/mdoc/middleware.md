@@ -69,8 +69,8 @@ val service = HttpRoutes.of[IO] {
     Ok()
 }
 
-val goodRequest = Request[IO](Method.GET, uri"/")
-val badRequest = Request[IO](Method.GET, uri"/bad")
+val goodRequest = Request(Method.GET, uri"/")
+val badRequest = Request(Method.GET, uri"/bad")
 
 service.orNotFound(goodRequest).unsafeRunSync()
 service.orNotFound(badRequest).unsafeRunSync()
@@ -132,7 +132,7 @@ val apiService = HttpRoutes.of[IO] {
 
 val aggregateService = apiService <+> MyMiddle(service, "SomeKey" -> "SomeValue")
 
-val apiRequest = Request[IO](Method.GET, uri"/api")
+val apiRequest = Request(Method.GET, uri"/api")
 
 aggregateService.orNotFound(goodRequest).unsafeRunSync()
 aggregateService.orNotFound(apiRequest).unsafeRunSync()

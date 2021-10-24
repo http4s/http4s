@@ -47,12 +47,12 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
   val respApp = ResponseLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("response should not affect a Get") {
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     respApp(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("response should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request(uri = uri"/post", method = POST).withBodyStream(body)
     respApp(req).flatMap { res =>
       res
         .as[String]
@@ -65,12 +65,12 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
   val reqApp = RequestLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("request should not affect a Get") {
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     reqApp(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("request should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request(uri = uri"/post", method = POST).withBodyStream(body)
     reqApp(req).flatMap { res =>
       res.as[String].map(_ === expectedBody && res.status === Status.Ok)
     }.assert
@@ -79,12 +79,12 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
   val loggerApp = Logger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("logger should not affect a Get") {
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     loggerApp(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("logger should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request(uri = uri"/post", method = POST).withBodyStream(body)
     loggerApp(req).flatMap { res =>
       res.as[String].map(_ === expectedBody && res.status === Status.Ok)
     }.assert

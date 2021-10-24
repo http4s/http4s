@@ -37,7 +37,7 @@ trait Http4sClientDsl[F[_]] {
 class MethodOps[F[_]](private val method: Method) extends AnyVal {
 
   /** Make a [[org.http4s.Request]] using this [[Method]] */
-  final def apply(uri: Uri, headers: Header.ToRaw*): Request[F] =
+  final def apply(uri: Uri, headers: Header.ToRaw*): Request.Pure =
     Request(method, uri, headers = Headers(headers: _*))
 
   /** Make a [[org.http4s.Request]] using this Method */

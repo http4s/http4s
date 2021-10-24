@@ -25,14 +25,14 @@ import org.http4s.syntax.all._
 class DateSuite extends Http4sSuite {
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] { case _ =>
-    Response[IO](Status.Ok).pure[IO]
+    Response(Status.Ok).pure[IO]
   }
 
   // Hack for https://github.com/typelevel/cats-effect/pull/682
   val testService = Date(service)
   val testApp = Date(service.orNotFound)
 
-  val req = Request[IO]()
+  val req = Request()
 
   test("Date should always be very shortly before the current time httpRoutes") {
     (for {
@@ -57,7 +57,7 @@ class DateSuite extends Http4sSuite {
   test("Date should not override a set date header") {
     val service = HttpRoutes
       .of[IO] { case _ =>
-        Response[IO](Status.Ok)
+        Response(Status.Ok)
           .putHeaders(HDate(HttpDate.Epoch))
           .pure[IO]
       }

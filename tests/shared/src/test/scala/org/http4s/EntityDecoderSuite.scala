@@ -43,7 +43,7 @@ class EntityDecoderSuite extends Http4sSuite {
   def strBody(body: String): Stream[IO, Byte] =
     chunk(Chunk.array(body.getBytes(StandardCharsets.UTF_8)))
 
-  val req = Response[IO](Ok).withEntity("foo").pure[IO]
+  val req = Response(Ok).withEntity("foo").pure[IO]
   test("flatMapR with success") {
     DecodeResult
       .success(req)
@@ -196,9 +196,9 @@ class EntityDecoderSuite extends Http4sSuite {
     }
 
     decoder
-      .decode(Request[IO](headers = Headers(`Content-Type`(MediaType.text.plain))), strict = true)
+      .decode(Request(headers = Headers(`Content-Type`(MediaType.text.plain))), strict = true)
       .swap
-      .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`))
+      .map(_.toHttpResponse(HttpVersion.`HTTP/1.1`))
       .map(_.status)
       .value
       .assertEquals(Right(Status.UnprocessableEntity))
@@ -266,7 +266,7 @@ class EntityDecoderSuite extends Http4sSuite {
    */
 
   test("decodeStrict should produce a MediaTypeMissing if message has no content type") {
-    val req = Request[IO]()
+    val req = Request()
     decoder1
       .decode(req, strict = true)
       .value
@@ -275,7 +275,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("decodeStrict should produce a MediaTypeMismatch if message has unsupported content type") {
     val tpe = MediaType.text.css
-    val req = Request[IO](headers = Headers(`Content-Type`(tpe)))
+    val req = Request(headers = Headers(`Content-Type`(tpe)))
     decoder1
       .decode(req, strict = true)
       .value
@@ -285,15 +285,15 @@ class EntityDecoderSuite extends Http4sSuite {
   test(
     "composing EntityDecoders with <+> A message with a MediaType that is not supported by any of the decoders will be attempted by the last decoder") {
     val reqMediaType = MediaType.application.`atom+xml`
-    val req = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
+    val req = Request(headers = Headers(`Content-Type`(reqMediaType)))
     (decoder1 <+> decoder2).decode(req, strict = false).value.assertEquals(Right(2))
   }
 
   test(
     "composing EntityDecoders with <+> A catch all decoder will always attempt to decode a message") {
     val reqSomeOtherMediaType =
-      Request[IO](headers = Headers(`Content-Type`(`text/x-h`)))
-    val reqNoMediaType = Request[IO]()
+      Request(headers = Headers(`Content-Type`(`text/x-h`)))
+    val reqNoMediaType = Request()
     val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) { _ =>
       DecodeResult.successT(3)
     }
@@ -316,7 +316,7 @@ class EntityDecoderSuite extends Http4sSuite {
     val reqMediaType = `text/x-h`
     val expectedMediaRanges = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
     val reqSomeOtherMediaType =
-      Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
+      Request(headers = Headers(`Content-Type`(reqMediaType)))
     (decoder1 <+> decoder2 <+> failDecoder)
       .decode(reqSomeOtherMediaType, strict = true)
       .value
@@ -327,7 +327,7 @@ class EntityDecoderSuite extends Http4sSuite {
         .assertEquals(Left(MediaTypeMissing(expectedMediaRanges)))
   }
 
-  val request = Request[IO]().withEntity("whatever")
+  val request = Request().withEntity("whatever")
 
   test("apply should invoke the function with the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
@@ -355,7 +355,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val server: Request[IO] => IO[Response[IO]] = { req =>
     req
-      .decode[UrlForm](form => Response[IO](Ok).withEntity(form).pure[IO])
+      .decode[UrlForm](form => Response(Ok).withEntity(form).pure[IO])
       .attempt
       .map {
         case Right(r) => r
@@ -370,7 +370,7 @@ class EntityDecoderSuite extends Http4sSuite {
         "Age" -> Chain("23"),
         "Name" -> Chain("Jonathan Doe")
       ))
-    val resp: IO[Response[IO]] = Request[IO]()
+    val resp: IO[Response[IO]] = Request()
       .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
       .pure[IO]
       .flatMap(server)
@@ -403,7 +403,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .tempFile(None, "foo", "bar", None)
       .use { tmpFile =>
         val response = mockServe(Request()) { req =>
-          req.decodeWith(EntityDecoder.textFile(tmpFile), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.textFile[IO](tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
@@ -420,7 +420,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .tempFile(None, "foo", "bar", None)
       .use { tmpFile =>
         val response = mockServe(Request()) { case req =>
-          req.decodeWith(EntityDecoder.binFile(tmpFile), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.binFile[IO](tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
@@ -437,7 +437,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   test("binary EntityDecoder should yield an empty array on a bodyless message") {
-    val msg = Request[IO]()
+    val msg = Request()
     EntityDecoder
       .binary[IO]
       .decode(msg, strict = false)
@@ -448,7 +448,7 @@ class EntityDecoderSuite extends Http4sSuite {
   test("binary EntityDecoder should concat Chunks") {
     val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
     val body = chunk(Chunk.array(d1)) ++ chunk(Chunk.array(d2))
-    val msg = Request[IO](body = body)
+    val msg = Request(body = body)
     val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
     EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
   }
@@ -459,17 +459,17 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val str = "Oekraïene"
   test("decodeText should Use an charset defined by the Content-Type header") {
-    val resp = Response[IO](Ok)
+    val resp = Response(Ok)
       .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
       .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.`UTF-8`)))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`US-ASCII`).assertEquals(str)
+    EntityDecoder.decodeText[IO](resp)(implicitly, Charset.`US-ASCII`).assertEquals(str)
   }
 
   test("decodeText should Use the default if the Content-Type header does not define one") {
-    val resp = Response[IO](Ok)
+    val resp = Response(Ok)
       .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
       .withContentType(`Content-Type`(MediaType.text.plain, None))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`UTF-8`).assertEquals(str)
+    EntityDecoder.decodeText[IO](resp)(implicitly, Charset.`UTF-8`).assertEquals(str)
   }
 
   // we want to return a specific kind of error when there is a MessageFailure

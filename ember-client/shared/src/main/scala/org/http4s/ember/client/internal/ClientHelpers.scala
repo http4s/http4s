@@ -42,7 +42,7 @@ import java.io.IOException
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: Sync](
-      request: Request[F],
+      request: AnyRequest,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       sg: SocketGroup[F],
@@ -180,8 +180,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
   }
 
   private[ember] def postProcessResponse[F[_]](
-      req: Request[F],
-      resp: Response[F],
+      req: AnyRequest,
+      resp: AnyResponse,
       drain: F[Option[Array[Byte]]],
       nextBytes: Ref[F, Array[Byte]],
       canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
@@ -209,7 +209,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
   private[client] def getValidManaged[F[_]: Sync](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
-      request: Request[F]): Resource[F, Managed[F, EmberConnection[F]]] =
+      request: AnyRequest): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
         .eval(managed.value.keySocket.socket.isOpen)
@@ -229,18 +229,16 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
 
   private[ember] object RetryLogic {
     private val retryNow = 0.seconds.some
-    def retryUntilFresh[F[_]]: RetryPolicy[F] = { (req, result, retries) =>
+    val retryUntilFresh: RetryPolicy[AnyF] = { (req, result, retries) =>
       if (emberDeadFromPoolPolicy(req, result) && retries <= 2) retryNow
       else None
     }
 
-    def emberDeadFromPoolPolicy[F[_]](
-        req: Request[F],
-        result: Either[Throwable, Response[F]]): Boolean =
+    def emberDeadFromPoolPolicy(req: AnyRequest, result: Either[Throwable, AnyResponse]): Boolean =
       (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
         isRetryableError(result)
 
-    def isRetryableError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
+    def isRetryableError(result: Either[Throwable, AnyResponse]): Boolean =
       result match {
         case Right(_) => false
         case Left(_: ClosedChannelException) => true

@@ -47,7 +47,7 @@ class UrlFormSpec extends Http4sSuite {
       PropF.forAllF { (urlForm: UrlForm) =>
         DecodeResult
           .success(
-            Request[IO]()
+            Request()
               .withEntity(urlForm)(UrlForm.entityEncoder(charset))
               .pure[IO])
           .flatMap { req =>

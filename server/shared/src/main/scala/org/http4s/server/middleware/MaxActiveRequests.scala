@@ -27,14 +27,14 @@ object MaxActiveRequests {
   @deprecated(message = "Please use forHttpApp instead.", since = "0.21.14")
   def httpApp[F[_]: Sync](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   ): F[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     forHttpApp[F](maxActive, defaultResp)
 
   @deprecated(message = "Please use forHttpApp2 instead.", since = "0.21.14")
   def inHttpApp[G[_], F[_]](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   )(implicit
       F: Sync[F],
       G: Sync[G]): G[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
@@ -42,13 +42,13 @@ object MaxActiveRequests {
 
   def forHttpApp[F[_]: Sync](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   ): F[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     forHttpApp2[F, F](maxActive, defaultResp)
 
   def forHttpApp2[G[_], F[_]](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   )(implicit
       F: Sync[F],
       G: Sync[G]): G[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
@@ -69,7 +69,7 @@ object MaxActiveRequests {
   @deprecated(message = "Please use forHttpRoutes instead.", since = "0.21.14")
   def httpRoutes[F[_]: Sync](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   ): F[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[
     OptionT[F, *],
     Request[F],
@@ -78,7 +78,7 @@ object MaxActiveRequests {
   @deprecated(message = "Please use forHttpRoutes2 instead.", since = "0.21.14")
   def inHttpRoutes[G[_], F[_]](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   )(implicit F: Sync[F], G: Sync[G]): G[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[
     OptionT[F, *],
     Request[F],
@@ -87,7 +87,7 @@ object MaxActiveRequests {
 
   def forHttpRoutes[F[_]: Sync](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   ): F[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[
     OptionT[F, *],
     Request[F],
@@ -96,7 +96,7 @@ object MaxActiveRequests {
 
   def forHttpRoutes2[G[_], F[_]](
       maxActive: Long,
-      defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
+      defaultResp: Response[F] = Response(status = Status.ServiceUnavailable)
   )(implicit F: Sync[F], G: Sync[G]): G[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[
     OptionT[F, *],
     Request[F],

@@ -38,12 +38,12 @@ object StaticFile {
 
   def fromString[F[_]: Files: MonadThrow](
       url: String,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+      req: Option[AnyRequest] = None): OptionT[F, Response[F]] =
     fromPath(Path(url), req)
 
   def fromResource[F[_]: Sync](
       name: String,
-      req: Option[Request[F]] = None,
+      req: Option[AnyRequest] = None,
       preferGzipped: Boolean = false,
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
@@ -77,7 +77,7 @@ object StaticFile {
         .flatMap(fromURL(_, req)))
   }
 
-  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit
+  def fromURL[F[_]](url: URL, req: Option[AnyRequest] = None)(implicit
       F: Sync[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
@@ -142,18 +142,18 @@ object StaticFile {
   @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+      req: Option[AnyRequest] = None): OptionT[F, Response[F]] =
     fromPath(Path.fromNioPath(f.toPath()), DefaultBufferSize, req, calculateETag[F])
 
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+      req: Option[AnyRequest] = None): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, calculateETag[F])
 
   @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromPath(
       Path.fromNioPath(f.toPath()),
@@ -163,7 +163,7 @@ object StaticFile {
 
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, etagCalculator)
 
@@ -171,7 +171,7 @@ object StaticFile {
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       buffsize: Int,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromPath(
       Path.fromNioPath(f.toPath()),
@@ -184,7 +184,7 @@ object StaticFile {
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
       buffsize: Int,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
     OptionT
       .liftF(Files[F].getBasicFileAttributes(f).map(_.size))
@@ -201,7 +201,7 @@ object StaticFile {
       start: Long,
       end: Long,
       buffsize: Int,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: File => F[String]
   )(implicit
       F: MonadError[F, Throwable]
@@ -219,7 +219,7 @@ object StaticFile {
       start: Long,
       end: Long,
       buffsize: Int,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: Path => F[String]
   )(implicit
       F: MonadError[F, Throwable]
@@ -272,7 +272,7 @@ object StaticFile {
     } yield res)
 
   private def notModified[F[_]](
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalc: ETag,
       lastModified: Option[HttpDate]): Option[Response[F]] = {
     implicit val conjunction = new Semigroup[Boolean] {
@@ -281,10 +281,10 @@ object StaticFile {
 
     List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified)).combineAll
       .filter(identity)
-      .map(_ => Response[F](NotModified))
+      .map(_ => Response(NotModified))
   }
 
-  private def etagMatch[F[_]](req: Option[Request[F]], etagCalc: ETag) =
+  private def etagMatch[F[_]](req: Option[AnyRequest], etagCalc: ETag) =
     for {
       r <- req
       etagHeader <- r.headers.get[`If-None-Match`]
@@ -293,7 +293,7 @@ object StaticFile {
         s"Matches `If-None-Match`: $etagMatch Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
     } yield etagMatch
 
-  private def notModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
+  private def notModifiedSince[F[_]](req: Option[AnyRequest], lastModified: Option[HttpDate]) =
     for {
       r <- req
       h <- r.headers.get[`If-Modified-Since`]

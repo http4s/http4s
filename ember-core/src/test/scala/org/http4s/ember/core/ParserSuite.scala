@@ -103,7 +103,7 @@ class ParsingSuite extends Http4sSuite {
       |Host: www.google.com
       |
       |""".stripMargin
-    val expected = Request[IO](
+    val expected = Request(
       Method.GET,
       Uri.unsafeFromString("www.google.com"),
       headers = Headers(org.http4s.headers.Host("www.google.com"))
@@ -121,7 +121,7 @@ class ParsingSuite extends Http4sSuite {
     for {
       r <- result
       a <- r.body.compile.toVector
-      b <- expected.body.compile.toVector
+      b = expected.body.toVector
     } yield assertEquals(a, b)
   }
 
@@ -132,7 +132,7 @@ class ParsingSuite extends Http4sSuite {
       |Content-Type: text/plain; charset=UTF-8
       |
       |Entity Here""".stripMargin
-    val expected = Request[IO](Method.POST, Uri.unsafeFromString("/foo"))
+    val expected = Request(Method.POST, Uri.unsafeFromString("/foo"))
       .withEntity("Entity Here")
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -147,7 +147,7 @@ class ParsingSuite extends Http4sSuite {
       _ <- result.map(_.headers).assertEquals(expected.headers)
       r <- result
       a <- r.body.through(fs2.text.utf8.decode).compile.string
-      b <- expected.body.through(fs2.text.utf8.decode).compile.string
+      b = expected.body.through(fs2.text.utf8.decode).compile.string
     } yield assertEquals(a, b)
   }
 
@@ -159,7 +159,7 @@ class ParsingSuite extends Http4sSuite {
         |Accept: */*
         |
         |""".stripMargin
-    val expected = Request[IO](Method.GET, Uri.unsafeFromString("/foo"))
+    val expected = Request(Method.GET, Uri.unsafeFromString("/foo"))
 
     val result = Helpers.parseRequestRig[IO](raw)
 

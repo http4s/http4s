@@ -47,7 +47,7 @@ val service = HttpRoutes.of[IO] {
     Ok()
 }
 
-val request = Request[IO](Method.GET, uri"/")
+val request = Request(Method.GET, uri"/")
 
 service.orNotFound(request).unsafeRunSync()
 ```
@@ -86,11 +86,11 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```scala mdoc
-val googleGet = Request[IO](Method.GET, uri"/", 
+val googleGet = Request(Method.GET, uri"/", 
   headers = Headers("Origin" -> "https://google.com"))
-val yahooPut = Request[IO](Method.PUT, uri"/", 
+val yahooPut = Request(Method.PUT, uri"/", 
   headers = Headers("Origin" -> "https://yahoo.com"))
-val duckPost = Request[IO](Method.POST, uri"/", 
+val duckPost = Request(Method.POST, uri"/", 
   headers = Headers("Origin" -> "https://duckduckgo.com"))
 ```
 

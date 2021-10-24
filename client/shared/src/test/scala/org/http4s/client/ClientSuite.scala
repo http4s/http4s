@@ -28,16 +28,16 @@ import org.http4s.syntax.all._
 
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   private val app = HttpApp[IO] { case r =>
-    Response[IO](Ok).withEntity(r.body).pure[IO]
+    Response(Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpApp(app)
 
   test("mock client should read body before dispose") {
-    client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
+    client.expect[String](Request(POST).withEntity("foo")).assertEquals("foo")
   }
 
   test("mock client should fail to read body after dispose") {
-    Request[IO](POST)
+    Request(POST)
       .withEntity("foo")
       .pure[IO]
       .flatMap { req =>
@@ -55,7 +55,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     })
 
     hostClient
-      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+      .expect[String](Request(GET, uri"https://http4s.org/"))
       .assertEquals("http4s.org")
   }
 
@@ -65,7 +65,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     })
 
     hostClient
-      .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
+      .expect[String](Request(GET, uri"https://http4s.org:1983/"))
       .assertEquals("http4s.org:1983")
   }
 
@@ -77,7 +77,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
 
     hostClient
-      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+      .expect[String](Request(GET, uri"https://http4s.org/"))
       .assertEquals("http4s.org")
   }
 
@@ -94,7 +94,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
         Deferred[IO, Outcome[IO, Throwable, String]]
           .flatTap { outcome =>
             cancelClient
-              .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+              .expect[String](Request(GET, uri"https://http4s.org/"))
               .guaranteeCase(oc => outcome.complete(oc).void)
               .start
               .flatTap(fiber =>

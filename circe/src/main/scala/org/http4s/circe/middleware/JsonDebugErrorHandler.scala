@@ -39,8 +39,8 @@ object JsonDebugErrorHandler {
     Kleisli { req =>
       import cats.syntax.applicative._
       import cats.syntax.applicativeError._
-      implicit def entEnc[M[_]]: EntityEncoder.Pure[JsonErrorHandlerResponse[M]] =
-        JsonErrorHandlerResponse.entEnc[M](redactWhen)
+      implicit val entEnc: EntityEncoder.Pure[JsonErrorHandlerResponse] =
+        JsonErrorHandlerResponse.entEnc(redactWhen)
 
       service
         .run(req)
@@ -49,12 +49,12 @@ object JsonDebugErrorHandler {
             messageFailureLogger.debug(mf)(
               s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                 .getOrElse("<unknown>")}""")
-            val firstResp = mf.toHttpResponse[G](req.httpVersion)
+            val firstResp = mf.toHttpResponse(req.httpVersion)
             Response[G](
               status = firstResp.status,
               httpVersion = firstResp.httpVersion,
               headers = firstResp.headers.redactSensitive(redactWhen)
-            ).withEntity(JsonErrorHandlerResponse[G](req, mf)).pure[F]
+            ).withEntity(JsonErrorHandlerResponse(req, mf)).pure[F]
           case t =>
             serviceErrorLogger.error(t)(
               s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
@@ -66,33 +66,33 @@ object JsonDebugErrorHandler {
               Headers(
                 Connection(ci"close")
               ))
-              .withEntity(JsonErrorHandlerResponse[G](req, t))
+              .withEntity(JsonErrorHandlerResponse(req, t))
               .pure[F]
         }
     }
 
-  private final case class JsonErrorHandlerResponse[F[_]](
-      req: Request[F],
+  private final case class JsonErrorHandlerResponse(
+      req: AnyRequest,
       caught: Throwable
   )
   private object JsonErrorHandlerResponse {
-    def entEnc[F[_]](
+    def entEnc(
         redactWhen: CIString => Boolean
-    ): EntityEncoder.Pure[JsonErrorHandlerResponse[F]] =
+    ): EntityEncoder.Pure[JsonErrorHandlerResponse] =
       jsonEncoderOf(
         encoder(redactWhen)
       )
-    def encoder[F[_]](
+    def encoder(
         redactWhen: CIString => Boolean
-    ): Encoder[JsonErrorHandlerResponse[F]] =
-      (a: JsonErrorHandlerResponse[F]) =>
+    ): Encoder[JsonErrorHandlerResponse] =
+      (a: JsonErrorHandlerResponse) =>
         Json.obj(
           "request" -> encodeRequest(a.req, redactWhen),
           "throwable" -> encodeThrowable(a.caught)
         )
   }
 
-  private def encodeRequest[F[_]](req: Request[F], redactWhen: CIString => Boolean): Json =
+  private def encodeRequest(req: AnyRequest, redactWhen: CIString => Boolean): Json =
     Json
       .obj(
         "method" -> req.method.name.asJson,

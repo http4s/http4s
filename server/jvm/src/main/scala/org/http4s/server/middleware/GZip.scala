@@ -35,7 +35,7 @@ object GZip {
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
-      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
+      isZippable: Response[G] => Boolean = defaultIsZippable(_: Response[G])
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
       req.headers.get[`Accept-Encoding`] match {
@@ -45,7 +45,7 @@ object GZip {
       }
     }
 
-  def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {
+  def defaultIsZippable(resp: AnyResponse): Boolean = {
     val contentType = resp.headers.get[`Content-Type`]
     resp.headers.get[`Content-Encoding`].isEmpty &&
     resp.status.isEntityAllowed &&

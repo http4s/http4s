@@ -31,15 +31,15 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val app = HttpRoutes
     .of[IO] {
       case r if r.method == GET && r.pathInfo == path"/" =>
-        Response[IO](Ok).withEntity("hello").pure[IO]
+        Response(Ok).withEntity("hello").pure[IO]
       case r if r.method == PUT && r.pathInfo == path"/put" =>
-        Response[IO](Created).withEntity(r.body).pure[IO]
+        Response(Created).withEntity(r.body).pure[IO]
       case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
         r.headers.get[Accept].fold(IO.pure(Response[IO](BadRequest))) { m =>
-          Response[IO](Ok).withEntity(m.renderString).pure[IO]
+          Response(Ok).withEntity(m.renderString).pure[IO]
         }
       case r if r.pathInfo == path"/status/500" =>
-        Response[IO](InternalServerError).withEntity("Oops").pure[IO]
+        Response(InternalServerError).withEntity("Oops").pure[IO]
     }
     .orNotFound
 
@@ -225,19 +225,19 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("Client should add Accept header on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
+      .expect[String](Request(GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
   test("Client should add Accept header on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
+      .expect[String](Request(GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
   test("Client should append Accept header to existing request headers on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
+      .expect[String](Request(GET, uri"http://www.foo.com/echoheaders")
         .putHeaders(Accept(MediaRange.`application/*`)))
       .assertEquals("Accept: application/*, text/*")
   }
@@ -245,14 +245,14 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test(
     "Client should append Accept header to existing request headers on expectOptionOr for requests") {
     client
-      .expectOptionOr[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
+      .expectOptionOr[String](Request(GET, uri"http://www.foo.com/echoheaders")
         .putHeaders(Accept(MediaRange.`application/*`)))(_ => IO.raiseError(new Exception))
       .assertEquals(Some("Accept: application/*, text/*"))
   }
 
   test("Client should append Accept header to existing request headers on fetchAs for requests") {
     client
-      .fetchAs[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
+      .fetchAs[String](Request(GET, uri"http://www.foo.com/echoheaders")
         .putHeaders(Accept(MediaRange.`application/*`)))
       .assertEquals("Accept: application/*, text/*")
   }
@@ -262,19 +262,19 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val edec =
       EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.successT("foo!"))
     client
-      .expect(Request[IO](GET, uri"http://www.foo.com/echoheaders"))(
+      .expect(Request(GET, uri"http://www.foo.com/echoheaders"))(
         EntityDecoder.text[IO].orElse(edec))
       .assertEquals("Accept: text/*, image/jpeg")
   }
 
   test("Client should return empty with expectOption and not found") {
     client
-      .expectOption[String](Request[IO](GET, uri"http://www.foo.com/random-not-found"))
+      .expectOption[String](Request(GET, uri"http://www.foo.com/random-not-found"))
       .assertEquals(Option.empty[String])
   }
   test("Client should return expected value with expectOption and a response") {
     client
-      .expectOption[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
+      .expectOption[String](Request(GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals(
         "Accept: text/*".some
       )

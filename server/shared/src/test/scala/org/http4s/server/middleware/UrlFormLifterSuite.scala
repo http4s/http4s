@@ -37,13 +37,13 @@ class UrlFormLifterSuite extends Http4sSuite {
   }).orNotFound
 
   test("Add application/x-www-form-urlencoded bodies to the query params") {
-    val req = Request[IO](method = POST).withEntity(urlForm).pure[IO]
+    val req = Request(method = POST).withEntity(urlForm).pure[IO]
     req.flatMap(app.run).map(_.status).assertEquals(Ok)
   }
 
   test("Add application/x-www-form-urlencoded bodies after query params") {
     val req =
-      Request[IO](method = Method.POST, uri = uri"/foo?foo=biz")
+      Request(method = Method.POST, uri = uri"/foo?foo=biz")
         .withEntity(urlForm)
         .pure[IO]
     req.flatMap(app.run).map(_.status).assertEquals(Ok) *>
@@ -51,7 +51,7 @@ class UrlFormLifterSuite extends Http4sSuite {
   }
 
   test("Ignore Requests that don't have application/x-www-form-urlencoded bodies") {
-    val req = Request[IO](method = Method.POST).withEntity("foo").pure[IO]
+    val req = Request(method = Method.POST).withEntity("foo").pure[IO]
     req.flatMap(app.run).map(_.status).assertEquals(BadRequest)
   }
 }

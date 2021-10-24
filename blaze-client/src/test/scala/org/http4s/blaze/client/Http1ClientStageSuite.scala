@@ -42,7 +42,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
   val trampoline = org.http4s.blaze.util.Execution.trampoline
 
   val www_foo_test = uri"http://www.foo.test"
-  val FooRequest = Request[IO](uri = www_foo_test)
+  val FooRequest = Request(uri = www_foo_test)
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
 
   val LongDuration = 30.seconds
@@ -154,7 +154,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
   dispatcher.test("Submit a request line with a query".flaky) { dispatcher =>
     val uri = "/huh?foo=bar"
     val Right(parsed) = Uri.fromString("http://www.foo.test" + uri)
-    val req = Request[IO](uri = parsed)
+    val req = Request(uri = parsed)
 
     getSubmission(req, resp, dispatcher).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
@@ -240,7 +240,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
   dispatcher.test("Allow an HTTP/1.0 request without a Host header".ignore) { dispatcher =>
     val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
 
-    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
+    val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
 
     getSubmission(req, resp, dispatcher).map { case (request, response) =>
       assert(!request.contains("Host:"))
@@ -249,7 +249,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   dispatcher.test("Support flushing the prelude") { dispatcher =>
-    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
+    val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
     /*
      * We flush the prelude first to test connection liveness in pooled
      * scenarios before we consume the body.  Make sure we can handle
@@ -283,7 +283,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
       "Foo:Bar\r\n" +
       "\r\n"
 
-    val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
+    val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
     dispatcher.test("Support trailer headers") { dispatcher =>
       val hs: IO[Headers] = bracketResponse(req, resp, dispatcher).use { (response: Response[IO]) =>

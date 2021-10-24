@@ -196,9 +196,7 @@ object CookieJar {
   private[middleware] def responseCookieToRequestCookie(r: ResponseCookie): RequestCookie =
     RequestCookie(r.name, r.content)
 
-  private[middleware] def cookieAppliesToRequest[N[_]](
-      r: Request[N],
-      c: ResponseCookie): Boolean = {
+  private[middleware] def cookieAppliesToRequest(r: AnyRequest, c: ResponseCookie): Boolean = {
     val domainApplies = c.domain.exists(s =>
       r.uri.host.forall { authority =>
         authority.renderString.contains(s)
@@ -215,8 +213,8 @@ object CookieJar {
     domainApplies && pathApplies && secureSatisfied
   }
 
-  private[middleware] def cookiesForRequest[N[_]](
-      r: Request[N],
+  private[middleware] def cookiesForRequest(
+      r: AnyRequest,
       l: List[ResponseCookie]
   ): List[RequestCookie] =
     l.foldLeft(List.empty[RequestCookie]) { case (list, cookie) =>

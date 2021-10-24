@@ -78,7 +78,7 @@ object VirtualHost {
     Kleisli { req =>
       req.headers
         .get[Host]
-        .fold(F.pure(Response[G](BadRequest).withEntity("Host header required."))) { h =>
+        .fold(F.pure(Response(BadRequest).withEntity("Host header required."))) { h =>
           // Fill in the host port if possible
           val host: Host = h.port match {
             case Some(_) => h
@@ -87,7 +87,7 @@ object VirtualHost {
           }
           (first +: rest).toVector
             .collectFirst { case HostService(s, p) if p(host) => s(req) }
-            .getOrElse(F.pure(Response[G](NotFound).withEntity(s"Host '$host' not found.")))
+            .getOrElse(F.pure(Response(NotFound).withEntity(s"Host '$host' not found.")))
         }
     }
 }

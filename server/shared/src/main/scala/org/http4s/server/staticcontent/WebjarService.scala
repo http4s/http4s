@@ -157,7 +157,7 @@ object WebjarServiceBuilder {
   private def serveWebjarAsset[F[_]](
       cacheStrategy: CacheStrategy[F],
       classLoader: Option[ClassLoader],
-      request: Request[F],
+      request: AnyRequest,
       preferGzipped: Boolean)(webjarAsset: WebjarAsset)(implicit
       F: Async[F]): OptionT[F, Response[F]] =
     StaticFile
@@ -257,7 +257,7 @@ object WebjarService {
     * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset[F[_]: Async](config: Config[F], request: Request[F])(
+  private def serveWebjarAsset[F[_]: Async](config: Config[F], request: AnyRequest)(
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(webjarAsset.pathInJar, Some(request))

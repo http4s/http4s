@@ -16,16 +16,15 @@
 
 package org.http4s
 
-import cats.effect.IO
 import org.http4s.Charset._
 import org.http4s.headers._
 import org.typelevel.ci._
 
 class ResponderSpec extends Http4sSuite {
-  val resp = Response[IO](Status.Ok)
+  val resp = Response(Status.Ok)
 
   test("Responder should Change status") {
-    val resp = Response[IO](Status.Ok)
+    val resp = Response(Status.Ok)
 
     assertEquals(resp.status, Status.Ok)
 

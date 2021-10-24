@@ -47,7 +47,7 @@ class GZipSuite extends Http4sSuite {
   }
 
   test("Client Gzip should not decompress when the response body is empty") {
-    val request = Request[IO](method = Method.HEAD, uri = uri"/gziptest")
+    val request = Request(method = Method.HEAD, uri = uri"/gziptest")
     gzipClient
       .run(request)
       .use { response =>

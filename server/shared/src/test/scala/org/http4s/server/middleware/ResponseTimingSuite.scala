@@ -39,7 +39,7 @@ class ResponseTimingSuite extends Http4sSuite {
   }
 
   test("add a custom header with timing info") {
-    val req = Request[IO](uri = uri"/request")
+    val req = Request(uri = uri"/request")
     val app = ResponseTiming(thisService)
     val res = app(req)
 

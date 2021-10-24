@@ -117,7 +117,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     test(s"$name Execute GET $path") {
       serverClient().flatMap { case (server, client) =>
         val address = server().addresses.head
-        val req = Request[IO](uri = Uri.fromString(s"http://$address$path").yolo)
+        val req = Request(uri = Uri.fromString(s"http://$address$path").yolo)
         client()
           .run(req)
           .use(resp => expected.flatMap(checkResponse(resp, _)))
@@ -146,7 +146,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       val address = server().addresses.head
       val name = address.host
       val port = address.port.value
-      val req = Request[IO](uri = Uri(
+      val req = Request(uri = Uri(
         authority =
           Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
         path = path"/request-splitting"))
@@ -157,7 +157,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   test("Mitigates request splitting attack in field name") {
     serverClient().flatMap { case (server, client) =>
       val address = server().addresses.head
-      val req = Request[IO](uri = Uri.fromString(s"http://$address/request-splitting").yolo)
+      val req = Request(uri = Uri.fromString(s"http://$address/request-splitting").yolo)
         .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
       client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
     }
@@ -166,7 +166,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   test("Mitigates request splitting attack in field value") {
     serverClient().flatMap { case (server, client) =>
       val address = server().addresses.head
-      val req = Request[IO](uri = Uri.fromString(s"http://$address/request-splitting").yolo)
+      val req = Request(uri = Uri.fromString(s"http://$address/request-splitting").yolo)
         .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
       client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
     }

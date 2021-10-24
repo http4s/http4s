@@ -63,19 +63,19 @@ class RouterSuite extends Http4sSuite {
 
   test("translate mount prefixes") {
     service
-      .orNotFound(Request[IO](GET, uri"/numbers/1"))
+      .orNotFound(Request(GET, uri"/numbers/1"))
       .flatMap(_.as[String])
       .assertEquals("one") *>
       service
-        .orNotFound(Request[IO](GET, uri"/numb/1"))
+        .orNotFound(Request(GET, uri"/numb/1"))
         .flatMap(_.as[String])
         .assertEquals("two") *>
-      service.orNotFound(Request[IO](GET, uri"/numbe?block")).map(_.status).assertEquals(NotFound)
+      service.orNotFound(Request(GET, uri"/numbe?block")).map(_.status).assertEquals(NotFound)
   }
 
   test("require the correct prefix") {
     service
-      .orNotFound(Request[IO](GET, uri"/letters/1"))
+      .orNotFound(Request(GET, uri"/letters/1"))
       .flatMap { res =>
         res.as[String].map { b =>
           b =!= "bee" && b =!= "one" && res.status === NotFound
@@ -85,30 +85,30 @@ class RouterSuite extends Http4sSuite {
   }
 
   test("support root mappings") {
-    service.orNotFound(Request[IO](GET, uri"/about")).flatMap(_.as[String]).assertEquals("about")
+    service.orNotFound(Request(GET, uri"/about")).flatMap(_.as[String]).assertEquals("about")
   }
 
   test("match longer prefixes first") {
     service
-      .orNotFound(Request[IO](GET, uri"/shadow/shadowed"))
+      .orNotFound(Request(GET, uri"/shadow/shadowed"))
       .flatMap(_.as[String])
       .assertEquals("visible")
   }
 
   test("404 on unknown prefixes") {
-    service.orNotFound(Request[IO](GET, uri"/symbols/~")).map(_.status).assertEquals(NotFound)
+    service.orNotFound(Request(GET, uri"/symbols/~")).map(_.status).assertEquals(NotFound)
   }
 
   test("Allow passing through of routes with identical prefixes") {
     Router[IO]("" -> letters, "" -> numbers)
-      .orNotFound(Request[IO](GET, uri"/1"))
+      .orNotFound(Request(GET, uri"/1"))
       .flatMap(_.as[String])
       .assertEquals("one")
   }
 
   test("Serve custom NotFound responses") {
     Router[IO]("/foo" -> notFound)
-      .orNotFound(Request[IO](uri = uri"/foo/bar"))
+      .orNotFound(Request(uri = uri"/foo/bar"))
       .flatMap {
         _.as[String]
       }
@@ -117,7 +117,7 @@ class RouterSuite extends Http4sSuite {
 
   test("Return the fallthrough response if no route is found") {
     val router = Router[IO]("/foo" -> notFound)
-    router(Request[IO](uri = uri"/bar")).value
+    router(Request(uri = uri"/bar")).value
       .map(_ == Option.empty[Response[IO]])
       .assert
   }
