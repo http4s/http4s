@@ -26,7 +26,7 @@ trait LiteralsSyntax {
     inline def uri(inline args: Any*): Uri = ${LiteralsSyntax.UriLiteral('ctx, 'args)}
     inline def path(inline args: Any*): Uri.Path = ${LiteralsSyntax.UriPathLiteral('ctx, 'args)}
     inline def scheme(inline args: Any*): Uri.Scheme = ${LiteralsSyntax.UriSchemeLiteral('ctx, 'args)}
-    inline def mediaType(args: Any*): MediaType = ${LiteralsSyntax.validateMediatype('{ctx}, '{args})}
+    inline def mediaType(inline args: Any*): MediaType = ${LiteralsSyntax.MediaTypeLiteral('ctx, 'args)}
     inline def qValue(args: Any*): QValue = ${LiteralsSyntax.validateQvalue('{ctx}, '{args})}
   }
 }
@@ -38,8 +38,6 @@ private[syntax] object LiteralsSyntax {
     def construct(s: String)(using Quotes): Expr[A]
   }
 
-  def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(mediatype, strCtxExpr, argsExpr)
   def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(qvalue, strCtxExpr, argsExpr)
 
@@ -85,11 +83,12 @@ private[syntax] object LiteralsSyntax {
       }
   }
 
-  object mediatype extends Validator[MediaType] {
-    override def validate(literal: String): Option[ParseFailure] = MediaType.parse(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[MediaType] =
-      '{MediaType.unsafeParse(${Expr(literal)})}
+  object MediaTypeLiteral extends Literally[MediaType] {
+    def validate(s: String)(using Quotes) =
+      MediaType.parse(s) match {
+        case Left(parsingFailure) => Left(s"invalid MediaType: ${parsingFailure.details}")
+        case Right(_) => Right('{MediaType.unsafeParse(${Expr(s)})})
+      }
   }
 
   object qvalue extends Validator[QValue] {
