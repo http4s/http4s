@@ -100,6 +100,9 @@ final case class WebSocketBuilder[F[_]: Applicative](
 
 }
 
+@deprecated(
+  "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
+  "0.23.5")
 object WebSocketBuilder {
   @deprecated(
     "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",

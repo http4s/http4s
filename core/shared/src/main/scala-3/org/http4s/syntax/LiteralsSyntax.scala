@@ -49,7 +49,7 @@ private[syntax] object LiteralsSyntax {
     validate(qvalue, strCtxExpr, argsExpr)
 
   def validate[A](validator: Validator[A], strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Type[A])(using Quotes): Expr[A] = {
-    val sc = strCtxExpr.valueOrError
+    val sc = strCtxExpr.valueOrAbort
     validate(validator, sc.parts, argsExpr)
   }
 
@@ -58,11 +58,11 @@ private[syntax] object LiteralsSyntax {
       val literal = parts.head
       validator.validate(literal) match {
         case Some(err) =>
-          quotes.reflect.report.throwError(err.message)
+          quotes.reflect.report.errorAndAbort(err.message)
         case None => validator.construct(literal)
       }
     } else {
-      quotes.reflect.report.throwError("interpolation not supported", argsExpr)
+      quotes.reflect.report.errorAndAbort("interpolation not supported", argsExpr)
     }
   }
 
