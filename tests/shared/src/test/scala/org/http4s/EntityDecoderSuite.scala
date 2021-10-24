@@ -20,11 +20,13 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.Stream._
-import java.io.{File, FileInputStream, InputStreamReader}
+import fs2.io.file.Files
 import java.nio.charset.StandardCharsets
 import cats.data.Chain
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+import java.util.Arrays
+import fs2.io.file.Path
 
 class EntityDecoderSuite extends Http4sSuite {
   val `application/excel`: MediaType =
@@ -387,22 +389,52 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val binData: Array[Byte] = "Bytes 10111".getBytes
 
-  def readFile(in: File): IO[Array[Byte]] = IO.blocking {
-    val os = new FileInputStream(in)
-    val data = new Array[Byte](in.length.asInstanceOf[Int])
-    os.read(data)
-    data
-  }
+  def readFile(in: Path): IO[Array[Byte]] =
+    Files[IO].readAll(in).chunks.compile.foldMonoid.map(_.toArray)
 
-  def readTextFile(in: File): IO[String] = IO.blocking {
-    val os = new InputStreamReader(new FileInputStream(in))
-    val data = new Array[Char](in.length.asInstanceOf[Int])
-    os.read(data, 0, in.length.asInstanceOf[Int])
-    data.foldLeft("")(_ + _)
-  }
+  def readTextFile(in: Path): IO[String] =
+    Files[IO].readAll(in).through(fs2.text.utf8.decode).compile.foldMonoid
 
   def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
     route(req.withBodyStream(chunk(Chunk.array(binData))))
+
+  test("A File EntityDecoder should write a text file from a byte string") {
+    Files[IO]
+      .tempFile(None, "foo", "bar", None)
+      .use { tmpFile =>
+        val response = mockServe(Request()) { req =>
+          req.decodeWith(EntityDecoder.textFile(tmpFile), strict = false) { _ =>
+            Response[IO](Ok).withEntity("Hello").pure[IO]
+          }
+        }
+        response.flatMap { response =>
+          assertEquals(response.status, Status.Ok)
+          readTextFile(tmpFile).assertEquals(new String(binData)) *>
+            response.as[String].assertEquals("Hello")
+        }
+      }
+  }
+
+  test("A File EntityDecoder should write a binary file from a byte string") {
+    Files[IO]
+      .tempFile(None, "foo", "bar", None)
+      .use { tmpFile =>
+        val response = mockServe(Request()) { case req =>
+          req.decodeWith(EntityDecoder.binFile(tmpFile), strict = false) { _ =>
+            Response[IO](Ok).withEntity("Hello").pure[IO]
+          }
+        }
+
+        response.flatMap { response =>
+          assertEquals(response.status, Status.Ok)
+          response.body.compile.toVector
+            .map(_.toArray)
+            .map(Arrays.equals(_, "Hello".getBytes))
+            .assert *>
+            readFile(tmpFile).map(Arrays.equals(_, binData)).assert
+        }
+      }
+  }
 
   test("binary EntityDecoder should yield an empty array on a bodyless message") {
     val msg = Request()

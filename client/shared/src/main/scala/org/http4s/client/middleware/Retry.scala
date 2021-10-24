@@ -68,31 +68,32 @@ object Retry {
         req: Request[F],
         attempts: Int,
         hotswap: Hotswap[F, Either[Throwable, Response[F]]]): F[Response[F]] =
-      hotswap.swap(client.run(req).attempt).flatMap {
-        case Right(response) =>
-          policy(req, Right(response), attempts) match {
-            case Some(duration) =>
-              logger.info(
-                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
-              nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
-            case None =>
-              F.pure(response)
-          }
+      hotswap.clear *> // Release the prior connection before allocating the next, or we can deadlock the pool
+        hotswap.swap(client.run(req).attempt).flatMap {
+          case Right(response) =>
+            policy(req, Right(response), attempts) match {
+              case Some(duration) =>
+                logger.info(
+                  s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
+              case None =>
+                F.pure(response)
+            }
 
-        case Left(e) =>
-          policy(req, Left(e), attempts) match {
-            case Some(duration) =>
-              // info instead of error(e), because e is not discarded
-              logger.info(e)(
-                s"Request threw an exception on attempt #$attempts. Retrying after $duration")
-              nextAttempt(req, attempts, duration, None, hotswap)
-            case None =>
-              logger.info(e)(
-                s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
-              )
-              F.raiseError(e)
-          }
-      }
+          case Left(e) =>
+            policy(req, Left(e), attempts) match {
+              case Some(duration) =>
+                // info instead of error(e), because e is not discarded
+                logger.info(e)(
+                  s"Request threw an exception on attempt #$attempts. Retrying after $duration")
+                nextAttempt(req, attempts, duration, None, hotswap)
+              case None =>
+                logger.info(e)(
+                  s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
+                )
+                F.raiseError(e)
+            }
+        }
 
     Client { req =>
       Hotswap.create[F, Either[Throwable, Response[F]]].flatMap { hotswap =>

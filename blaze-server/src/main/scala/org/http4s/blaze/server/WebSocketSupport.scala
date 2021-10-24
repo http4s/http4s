@@ -31,17 +31,23 @@ import org.typelevel.ci._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import cats.effect.std.{Dispatcher, Semaphore}
+import org.typelevel.vault.Key
+import org.http4s.websocket.WebSocketContext
 
 private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit val F: Async[F]
 
+  protected def webSocketKey: Key[WebSocketContext[F]]
+
   implicit val dispatcher: Dispatcher[F]
+
+  protected def maxBufferSize: Option[Int]
 
   override protected def renderResponse(
       req: Request[F],
       resp: Response[F],
       cleanup: () => Future[ByteBuffer]): Unit = {
-    val ws = resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F])
+    val ws = resp.attributes.lookup(webSocketKey)
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
     ws match {
@@ -104,7 +110,7 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                       )
                     ) // TODO: there is a constructor
                       .prepend(new WSFrameAggregator)
-                      .prepend(new WebSocketDecoder)
+                      .prepend(new WebSocketDecoder(maxBufferSize.getOrElse(0)))
 
                   this.replaceTail(segment, true)
 

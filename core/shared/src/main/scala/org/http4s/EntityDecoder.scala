@@ -20,10 +20,13 @@ import cats.{Applicative, Functor, Monad, SemigroupK}
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2._
-import org.http4s.multipart.Multipart
-import org.http4s.multipart.MultipartDecoder
-import scala.annotation.implicitNotFound
+import fs2.io.file.{Files, Path}
+import java.io.File
+import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scodec.bits.ByteVector
+
+import scala.annotation.implicitNotFound
+import cats.effect.Resource
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -129,7 +132,7 @@ trait EntityDecoder[F[_], T] { self =>
   * This companion object provides a way to create `new EntityDecoder`s along
   * with some commonly used instances which can be resolved implicitly.
   */
-object EntityDecoder extends EntityDecoderCompanionPlatform {
+object EntityDecoder {
   // This is not a real media type but will still be matched by `*/*`
   private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
 
@@ -229,8 +232,108 @@ object EntityDecoder extends EntityDecoderCompanionPlatform {
   implicit def charArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
 
+  // File operations
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
+  def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
+    binFile(Path.fromNioPath(file.toPath())).map(_ => file)
+
+  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
+  def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
+    textFile(Path.fromNioPath(file.toPath())).map(_ => file)
+
+  def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+      val pipe = Files[F].writeAll(path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+    }
+
+  def textFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
+      val pipe = Files[F].writeAll(path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+    }
+
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
+
+  /** Multipart decoder that streams all parts past a threshold
+    * (anything above `maxSizeBeforeWrite`) into a temporary file.
+    * The decoder is only valid inside the `Resource` scope; once
+    * the `Resource` is released, all the created files are deleted.
+    *
+    * Note that no files are deleted until the `Resource` is released.
+    * Thus, sharing and reusing the resulting `EntityDecoder` is not
+    * recommended, and can lead to disk space leaks.
+    *
+    * The intended way to use this is as follows:
+    *
+    * {{{
+    * mixedMultipartResource[F]()
+    *   .flatTap(request.decodeWith(_, strict = true))
+    *   .use { multipart =>
+    *     // Use the decoded entity
+    *   }
+    * }}}
+    *
+    * @param headerLimit the max size for the headers, in bytes. This is required as
+    *                    headers are strictly evaluated and parsed.
+    * @param maxSizeBeforeWrite the maximum size of a particular part before writing to a file is triggered
+    * @param maxParts the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
+    *                 conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
+    *                 be parsed correctly, despite the total body being malformed due to not conforming to the multipart
+    *                 spec. You can control this by `failOnLimit`, by setting it to true if you want to raise
+    *                 an error if sending too many parts to a particular endpoint
+    * @param failOnLimit Fail if `maxParts` is exceeded _during_ multipart parsing.
+    * @param chunkSize the size of chunks created when reading data from temporary files.
+    * @return A supervised multipart decoder.
+    */
+  def mixedMultipartResource[F[_]: Concurrent: Files](
+      headerLimit: Int = 1024,
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 50,
+      failOnLimit: Boolean = false,
+      chunkSize: Int = 8192
+  ): Resource[F, EntityDecoder[F, Multipart[F]]] =
+    MultipartDecoder.mixedMultipartResource(
+      headerLimit,
+      maxSizeBeforeWrite,
+      maxParts,
+      failOnLimit,
+      chunkSize)
+
+  /** Multipart decoder that streams all parts past a threshold
+    * (anything above maxSizeBeforeWrite) into a temporary file.
+    *
+    * Note: (BIG NOTE) Using this decoder for multipart decoding is good for the sake of
+    * not holding all information in memory, as it will never have more than
+    * `maxSizeBeforeWrite` in memory before writing to a temporary file. On top of this,
+    * you can gate the # of parts to further stop the quantity of parts you can have.
+    * That said, because after a threshold it writes into a temporary file, given
+    * bincompat reasons on 0.18.x, there is no way to make a distinction about which `Part[F]`
+    * is a stream reference to a file or not. Thus, consumers using this decoder
+    * should drain all `Part[F]` bodies if they were decoded correctly. That said,
+    * this decoder gives you more control about how many part bodies it parses in the first place, thus you can have
+    * more fine-grained control about how many parts you accept.
+    *
+    * @param headerLimit the max size for the headers, in bytes. This is required as
+    *                    headers are strictly evaluated and parsed.
+    * @param maxSizeBeforeWrite the maximum size of a particular part before writing to a file is triggered
+    * @param maxParts the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
+    *                 conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
+    *                 be parsed correctly, despite the total body being malformed due to not conforming to the multipart
+    *                 spec. You can control this by `failOnLimit`, by setting it to true if you want to raise
+    *                 an error if sending too many parts to a particular endpoint
+    * @param failOnLimit Fail if `maxParts` is exceeded _during_ multipart parsing.
+    * @return A multipart/form-data encoded vector of parts with some part bodies held in
+    *         temporary files.
+    */
+  @deprecated("Use mixedMultipartResource", "0.23")
+  def mixedMultipart[F[_]: Concurrent: Files](
+      headerLimit: Int = 1024,
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 50,
+      failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+    MultipartDecoder.mixedMultipart(headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =

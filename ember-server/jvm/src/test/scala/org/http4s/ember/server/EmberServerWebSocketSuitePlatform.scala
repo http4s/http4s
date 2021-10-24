@@ -20,11 +20,12 @@ import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.effect.std.Queue
 import org.http4s.server.Server
+
+import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
-import org.java_websocket.handshake.ServerHandshake
 
 import java.net.URI
 import java.nio.ByteBuffer

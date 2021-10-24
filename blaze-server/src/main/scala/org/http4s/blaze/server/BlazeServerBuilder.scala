@@ -39,7 +39,7 @@ import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.server.BlazeServerBuilder._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
-import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.blazecore.{BlazeBackendBuilder, ExecutionContextConfig, tickWheelResource}
 import org.http4s.internal.threads.threadFactory
 import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -50,6 +50,8 @@ import scala.collection.immutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
+import org.http4s.websocket.WebSocketContext
+import org.http4s.server.websocket.WebSocketBuilder
 
 /** BlazeServerBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
@@ -67,7 +69,6 @@ import scodec.bits.ByteVector
   * @param isNio2: Whether or not to use NIO2 or NIO1 Socket Server Group
   * @param connectorPoolSize: Number of worker threads for the new Socket Server Group
   * @param bufferSize: Buffer size to use for IO operations
-  * @param enableWebsockets: Enables Websocket Support
   * @param sslBits: If defined enables secure communication to the server using the
   *    sslContext
   * @param isHttp2Enabled: Whether or not to enable Http2 Server Features
@@ -83,6 +84,7 @@ import scodec.bits.ByteVector
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   * @param maxConnections: The maximum number of client connections that may be active at any time.
+  * @param maxWebSocketBufferSize: The maximum Websocket buffer length. 'None' means unbounded.
   */
 class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
@@ -92,17 +94,17 @@ class BlazeServerBuilder[F[_]] private (
     connectorPoolSize: Int,
     bufferSize: Int,
     selectorThreadFactory: ThreadFactory,
-    enableWebSockets: Boolean,
     sslConfig: SslConfig[F],
     isHttp2Enabled: Boolean,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
     chunkBufferMaxSize: Int,
-    httpApp: HttpApp[F],
+    httpApp: WebSocketBuilder[F] => HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     maxConnections: Int,
-    val channelOptions: ChannelOptions
+    val channelOptions: ChannelOptions,
+    maxWebSocketBufferSize: Option[Int]
 )(implicit protected val F: Async[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
@@ -118,17 +120,17 @@ class BlazeServerBuilder[F[_]] private (
       connectorPoolSize: Int = connectorPoolSize,
       bufferSize: Int = bufferSize,
       selectorThreadFactory: ThreadFactory = selectorThreadFactory,
-      enableWebSockets: Boolean = enableWebSockets,
       sslConfig: SslConfig[F] = sslConfig,
       http2Support: Boolean = isHttp2Enabled,
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
       chunkBufferMaxSize: Int = chunkBufferMaxSize,
-      httpApp: HttpApp[F] = httpApp,
+      httpApp: WebSocketBuilder[F] => HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
       maxConnections: Int = maxConnections,
-      channelOptions: ChannelOptions = channelOptions
+      channelOptions: ChannelOptions = channelOptions,
+      maxWebSocketBufferSize: Option[Int] = maxWebSocketBufferSize
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
@@ -138,7 +140,6 @@ class BlazeServerBuilder[F[_]] private (
       connectorPoolSize,
       bufferSize,
       selectorThreadFactory,
-      enableWebSockets,
       sslConfig,
       http2Support,
       maxRequestLineLen,
@@ -148,7 +149,8 @@ class BlazeServerBuilder[F[_]] private (
       serviceErrorHandler,
       banner,
       maxConnections,
-      channelOptions
+      channelOptions,
+      maxWebSocketBufferSize
     )
 
   /** Configure HTTP parser length limits
@@ -216,13 +218,17 @@ class BlazeServerBuilder[F[_]] private (
   def withSelectorThreadFactory(selectorThreadFactory: ThreadFactory): Self =
     copy(selectorThreadFactory = selectorThreadFactory)
 
+  @deprecated("This operation is a no-op. WebSockets are always enabled.", "0.23")
   def withWebSockets(enableWebsockets: Boolean): Self =
-    copy(enableWebSockets = enableWebsockets)
+    this
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
   def withHttpApp(httpApp: HttpApp[F]): Self =
-    copy(httpApp = httpApp)
+    copy(httpApp = _ => httpApp)
+
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): Self =
+    copy(httpApp = f)
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
@@ -244,6 +250,9 @@ class BlazeServerBuilder[F[_]] private (
 
   def withMaxConnections(maxConnections: Int): BlazeServerBuilder[F] =
     copy(maxConnections = maxConnections)
+
+  def withMaxWebSocketBufferSize(maxWebSocketBufferSize: Option[Int]): BlazeServerBuilder[F] =
+    copy(maxWebSocketBufferSize = maxWebSocketBufferSize)
 
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
@@ -287,12 +296,16 @@ class BlazeServerBuilder[F[_]] private (
           () => Vault.empty
       }
 
-    def http1Stage(executionContext: ExecutionContext, secure: Boolean, engine: Option[SSLEngine]) =
+    def http1Stage(
+        executionContext: ExecutionContext,
+        secure: Boolean,
+        engine: Option[SSLEngine],
+        webSocketKey: Key[WebSocketContext[F]]) =
       Http1ServerStage(
-        httpApp,
+        httpApp(WebSocketBuilder(webSocketKey)),
         requestAttributes(secure = secure, engine),
         executionContext,
-        enableWebSockets,
+        webSocketKey,
         maxRequestLineLen,
         maxHeadersLen,
         chunkBufferMaxSize,
@@ -300,13 +313,17 @@ class BlazeServerBuilder[F[_]] private (
         responseHeaderTimeout,
         idleTimeout,
         scheduler,
-        dispatcher
+        dispatcher,
+        maxWebSocketBufferSize
       )
 
-    def http2Stage(executionContext: ExecutionContext, engine: SSLEngine): ALPNServerSelector =
+    def http2Stage(
+        executionContext: ExecutionContext,
+        engine: SSLEngine,
+        webSocketKey: Key[WebSocketContext[F]]): ALPNServerSelector =
       ProtocolSelector(
         engine,
-        httpApp,
+        httpApp(WebSocketBuilder(webSocketKey)),
         maxRequestLineLen,
         maxHeadersLen,
         chunkBufferMaxSize,
@@ -316,26 +333,30 @@ class BlazeServerBuilder[F[_]] private (
         responseHeaderTimeout,
         idleTimeout,
         scheduler,
-        dispatcher
+        dispatcher,
+        webSocketKey,
+        maxWebSocketBufferSize
       )
 
     dispatcher.unsafeToFuture {
-      executionContextConfig.getExecutionContext[F].map { executionContext =>
-        engineConfig match {
-          case Some((ctx, configure)) =>
-            val engine = ctx.createSSLEngine()
-            engine.setUseClientMode(false)
-            configure(engine)
+      Key.newKey[F, WebSocketContext[F]].flatMap { wsKey =>
+        executionContextConfig.getExecutionContext[F].map { executionContext =>
+          engineConfig match {
+            case Some((ctx, configure)) =>
+              val engine = ctx.createSSLEngine()
+              engine.setUseClientMode(false)
+              configure(engine)
 
-            LeafBuilder(
-              if (isHttp2Enabled) http2Stage(executionContext, engine)
-              else http1Stage(executionContext, secure = true, engine.some)
-            ).prepend(new SSLStage(engine))
+              LeafBuilder(
+                if (isHttp2Enabled) http2Stage(executionContext, engine, wsKey)
+                else http1Stage(executionContext, secure = true, engine.some, wsKey)
+              ).prepend(new SSLStage(engine))
 
-          case None =>
-            if (isHttp2Enabled)
-              logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-            LeafBuilder(http1Stage(executionContext, secure = false, None))
+            case None =>
+              if (isHttp2Enabled)
+                logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
+              LeafBuilder(http1Stage(executionContext, secure = false, None, wsKey))
+          }
         }
       }
     }
@@ -415,6 +436,10 @@ class BlazeServerBuilder[F[_]] private (
 }
 
 object BlazeServerBuilder {
+  @deprecated(
+    "Most users should use the default execution context provided. " +
+      "If you have a specific reason to use a custom one, use `.withExecutionContext`",
+    "0.23.5")
   def apply[F[_]](executionContext: ExecutionContext)(implicit F: Async[F]): BlazeServerBuilder[F] =
     apply[F].withExecutionContext(executionContext)
 
@@ -427,17 +452,17 @@ object BlazeServerBuilder {
       connectorPoolSize = DefaultPoolSize,
       bufferSize = 64 * 1024,
       selectorThreadFactory = defaultThreadSelectorFactory,
-      enableWebSockets = true,
       sslConfig = new NoSsl[F](),
       isHttp2Enabled = false,
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = defaults.MaxHeadersSize,
       chunkBufferMaxSize = 1024 * 1024,
-      httpApp = defaultApp[F],
+      httpApp = _ => defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,
       maxConnections = defaults.MaxConnections,
-      channelOptions = ChannelOptions(Vector.empty)
+      channelOptions = ChannelOptions(Vector.empty),
+      maxWebSocketBufferSize = None
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =
@@ -538,17 +563,4 @@ object BlazeServerBuilder {
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
     }
-
-  private sealed trait ExecutionContextConfig extends Product with Serializable {
-    def getExecutionContext[F[_]: Async]: F[ExecutionContext] = this match {
-      case ExecutionContextConfig.DefaultContext => Async[F].executionContext
-      case ExecutionContextConfig.ExplicitContext(ec) => ec.pure[F]
-    }
-  }
-
-  private object ExecutionContextConfig {
-    case object DefaultContext extends ExecutionContextConfig
-    final case class ExplicitContext(executionContext: ExecutionContext)
-        extends ExecutionContextConfig
-  }
 }

@@ -32,7 +32,7 @@ class BlazeClient213Suite extends BlazeClientBase {
 
   test("reset request timeout".flaky) {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
 
@@ -49,7 +49,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should behave and not deadlock") {
-    val addresses = server().addresses
+    val addresses = server().addresses.map(_.toInetSocketAddress)
     val hosts = addresses.map { address =>
       val name = address.getHostName
       val port = address.getPort
@@ -69,7 +69,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("behave and not deadlock on failures with parTraverse") {
-    val addresses = server().addresses
+    val addresses = server().addresses.map(_.toInetSocketAddress)
     builder(3).resource
       .use { client =>
         val failedHosts = addresses.map { address =>
@@ -108,7 +108,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should behave and not deadlock on failures with parSequence".flaky) {
-    val addresses = server().addresses
+    val addresses = server().addresses.map(_.toInetSocketAddress)
     builder(3).resource
       .use { client =>
         val failedHosts = addresses.map { address =>
@@ -145,7 +145,7 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("call a second host after reusing connections on a first") {
-    val addresses = server().addresses
+    val addresses = server().addresses.map(_.toInetSocketAddress)
     // https://github.com/http4s/http4s/pull/2546
     builder(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5).resource
       .use { client =>

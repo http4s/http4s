@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.websocket
+package org.http4s
+package websocket
 
-import org.http4s.ProtocolException
+import fs2.io.net.ProtocolException
 
 final class ReservedOpcodeException(opcode: Int)
     extends ProtocolException(s"Opcode $opcode is reserved for future use as per RFC 6455")

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.http4s.blaze
+package org.http4s
+package blaze
 package client
 
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
+import fs2.io.net.Network
+import java.net.SocketException
 import java.util.concurrent.TimeoutException
-import org.http4s._
 import org.http4s.client.{ConnectionFailure, RequestKey}
 import org.http4s.syntax.all._
 import scala.concurrent.duration._
@@ -30,7 +32,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test(
     "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key") {
-    val sslAddress = secureServer().addresses.head
+    val sslAddress = secureServer().addresses.head.toInetSocketAddress
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -39,7 +41,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should make simple https requests") {
-    val sslAddress = secureServer().addresses.head
+    val sslAddress = secureServer().addresses.head.toInetSocketAddress
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -48,7 +50,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should reject https requests when no SSLContext is configured") {
-    val sslAddress = secureServer().addresses.head
+    val sslAddress = secureServer().addresses.head.toInetSocketAddress
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -65,7 +67,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should obey response header timeout") {
     val addresses = server().addresses
-    val address = addresses(0)
+    val address = addresses(0).toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, responseHeaderTimeout = 100.millis).resource
@@ -78,7 +80,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should unblock waiting connections") {
     val addresses = server().addresses
-    val address = addresses(0)
+    val address = addresses(0).toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, responseHeaderTimeout = 20.seconds).resource
@@ -95,7 +97,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should drain waiting connections after shutdown") {
     val addresses = server().addresses
-    val address = addresses(0)
+    val address = addresses(0).toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
 
@@ -123,7 +125,7 @@ class BlazeClientSuite extends BlazeClientBase {
     "Blaze Http1Client should stop sending data when the server sends response and closes connection") {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     Deferred[IO, Unit]
@@ -146,7 +148,7 @@ class BlazeClientSuite extends BlazeClientBase {
     // Receiving a response with and without body exercises different execution path in blaze client.
 
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     Deferred[IO, Unit]
@@ -166,7 +168,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test(
     "Blaze Http1Client should fail with request timeout if the request body takes too long to send") {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, requestTimeout = 500.millis, responseHeaderTimeout = Duration.Inf).resource
@@ -189,7 +191,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test(
     "Blaze Http1Client should fail with response header timeout if the request body takes too long to send") {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     builder(1, requestTimeout = Duration.Inf, responseHeaderTimeout = 500.millis).resource
@@ -211,7 +213,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should doesn't leak connection on timeout") {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
     val uri = Uri.fromString(s"http://$name:$port/simple").yolo
@@ -240,12 +242,32 @@ class BlazeClientSuite extends BlazeClientBase {
         "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
   }
 
+  test("Blaze HTTP/1 client should raise a ResponseException when it receives an unexpected EOF") {
+    Network[IO]
+      .serverResource(address = None, port = None, options = Nil)
+      .map { case (addr, sockets) =>
+        val uri = Uri.fromString(s"http://[${addr.host}]:${addr.port}/eof").yolo
+        val req = Request[IO](uri = uri)
+        (req, sockets)
+      }
+      .use { case (req, sockets) =>
+        Stream
+          .eval(builder(1).resource.use { client =>
+            interceptMessageIO[SocketException](
+              s"HTTP connection closed: ${RequestKey.fromRequest(req)}")(client.expect[String](req))
+          })
+          .concurrently(sockets.evalMap(s => s.endOfInput *> s.endOfOutput))
+          .compile
+          .drain
+      }
+  }
+
   test("Keeps stats".flaky) {
     val addresses = server().addresses
-    val address = addresses.head
+    val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
     val port = address.getPort
-    val uri = Uri.fromString(s"http://$name:$port/simple").yolo
+    val uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
     builder(1, requestTimeout = 2.seconds).resourceWithState.use { case (client, state) =>
       for {
         // We're not thoroughly exercising the pool stats.  We're doing a rudimentary check.

@@ -27,6 +27,7 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.http4s.headers._
 import org.typelevel.ci._
+import scala.concurrent.duration._
 
 class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   private val loopCounter = new AtomicInteger(0)
@@ -169,5 +170,21 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
         IO.pure(FollowRedirect.getRedirectUris(resp))
       }
       .assertEquals(List.empty[Uri])
+  }
+
+  test("does not use more than one connection") {
+    // https://github.com/http4s/http4s/issues/5180
+    Semaphore[IO](1)
+      .flatMap { semaphore =>
+        val pooled = Client[IO] { req =>
+          Resource.make(semaphore.tryAcquire.flatMap {
+            case true => IO.unit
+            case false => IO.raiseError(new IllegalStateException("Allocated a second connection"))
+          })(_ => IO.sleep(10.millis) *> semaphore.release) *> defaultClient.run(req)
+        }
+        val follower = FollowRedirect(3)(pooled)
+        follower.status(Request[IO](uri = uri"http://localhost/loop/0"))
+      }
+      .assertEquals(Status.Ok)
   }
 }

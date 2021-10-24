@@ -21,7 +21,7 @@ import java.util.Locale
 import cats.Hash
 import cats.syntax.all._
 import cats.kernel.laws.discipline._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen
 import org.scalacheck.Prop.{forAll, forAllNoShrink, propBoolean}
 

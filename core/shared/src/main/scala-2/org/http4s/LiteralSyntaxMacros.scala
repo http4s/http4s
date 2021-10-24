@@ -24,7 +24,7 @@ object LiteralSyntaxMacros {
     def validate(c: Context)(s: String): Either[String, c.Expr[Uri]] = {
       import c.universe._
       Uri.fromString(s) match {
-        case Right(_) => Right(c.Expr(q"org.http4s.Uri.fromString($s).toOption.get"))
+        case Right(_) => Right(c.Expr(q"org.http4s.Uri.unsafeFromString($s)"))
         case Left(parseError) => Left(s"invalid URI: ${parseError.details}")
       }
     }

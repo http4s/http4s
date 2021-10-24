@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.MonadThrow
 import fs2.{RaiseThrowable, Stream}
-import fs2.text.utf8
+import fs2.text.decodeWithCharset
 import org.http4s.headers._
 
 trait Media[+F[_]] {
@@ -28,14 +28,10 @@ trait Media[+F[_]] {
 
   final def bodyText[F1[x] >: F[x]](implicit
       RT: RaiseThrowable[F1],
-      defaultCharset: Charset = DefaultCharset): Stream[F1, String] =
-    charset.getOrElse(defaultCharset) match {
-      case Charset.`UTF-8` =>
-        // suspect this one is more efficient, though this is superstition
-        body.through(utf8.decode)
-      case cs =>
-        body.through(internal.decode(cs))
-    }
+      defaultCharset: Charset = DefaultCharset): Stream[F1, String] = {
+    val cs = charset.getOrElse(defaultCharset).nioCharset
+    body.through(decodeWithCharset(cs))
+  }
 
   final def contentType: Option[`Content-Type`] =
     headers.get[`Content-Type`]

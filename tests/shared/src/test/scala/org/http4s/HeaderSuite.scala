@@ -19,7 +19,7 @@ package org.http4s
 import cats.kernel.laws.discipline.OrderTests
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.headers._
-import org.http4s.laws.discipline.ArbitraryInstances._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop._
 
 class HeaderSuite extends munit.DisciplineSuite {

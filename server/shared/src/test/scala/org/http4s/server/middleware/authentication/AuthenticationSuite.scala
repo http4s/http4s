@@ -275,7 +275,7 @@ class AuthenticationSuite extends Http4sSuite {
 
       DigestUtil
         .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
-        .flatMap { response =>
+        .map { response =>
           val params = NonEmptyList.of(
             "username" -> username,
             "realm" -> realm,

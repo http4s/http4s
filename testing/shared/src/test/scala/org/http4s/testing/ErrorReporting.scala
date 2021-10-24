@@ -33,7 +33,28 @@ import org.http4s.headers.{Connection, `Content-Length`}
 import org.typelevel.ci._
 import scala.util.control.NonFatal
 
-object ErrorReporting extends ErrorReportingPlatform {
+object ErrorReporting {
+
+  /** Silences System.out and System.err streams for the duration of thunk.
+    * Restores the original streams before exiting.
+    */
+  def silenceOutputStreams[R](thunk: => R): R =
+    synchronized {
+      val originalOut = System.out
+      val originalErr = System.err
+
+      // Redirect output to dummy stream
+      val fakeOutStream = new PrintStream(NullOutStream)
+      val fakeErrStream = new PrintStream(NullOutStream)
+      System.setOut(fakeOutStream)
+      System.setErr(fakeErrStream)
+      try thunk
+      finally {
+        // Set back the original streams
+        System.setOut(originalOut)
+        System.setErr(originalErr)
+      }
+    }
 
   /** Returns an ErrorHandler that does not log
     */

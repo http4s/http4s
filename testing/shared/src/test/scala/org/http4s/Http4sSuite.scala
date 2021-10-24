@@ -16,24 +16,22 @@
 
 package org.http4s
 
-import cats.effect.IO
+import cats.effect.{IO, Resource}
+import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8
 import munit._
-import cats.effect.unsafe.IORuntime
-import cats.effect.Resource
-import cats.effect.kernel.Deferred
 
 /** Common stack for http4s' munit based tests
   */
 trait Http4sSuite
     extends CatsEffectSuite
-    with Http4sSuitePlatform
     with DisciplineSuite
-    with munit.ScalaCheckEffectSuite {
+    with munit.ScalaCheckEffectSuite
+    with Http4sSuitePlatform {
 
-  override implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
+  implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
 
   private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
 
@@ -44,8 +42,8 @@ trait Http4sSuite
     fixture
   }
 
-  // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.get("CI").isDefined
+  def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]) =
+    registerSuiteFixture(UnsafeResourceSuiteLocalDeferredFixture(name, resource))
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -62,28 +60,6 @@ trait Http4sSuite
       .last
       .map(_.getOrElse(""))
 
-  def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]) =
-    registerSuiteFixture(ResourceSuiteLocalDeferredFixture(name, resource))
-
-  // TODO Pending https://github.com/typelevel/munit-cats-effect/pull/104
-  object ResourceSuiteLocalDeferredFixture {
-
-    def apply[T](name: String, resource: Resource[IO, T]): Fixture[IO[T]] =
-      new Fixture[IO[T]](name) {
-        val value: Deferred[IO, (T, IO[Unit])] = Deferred.unsafe
-
-        def apply(): IO[T] = value.get.map(_._1)
-
-        override def beforeAll(): Unit = {
-          val resourceEffect = resource.allocated.flatMap(value.complete)
-          resourceEffect.unsafeRunAndForget()
-        }
-
-        override def afterAll(): Unit =
-          value.get.flatMap(_._2).unsafeRunAndForget()
-      }
-  }
-
 }
 
-object Http4sSuite extends Http4sSuiteSingletonPlatform
+object Http4sSuite extends Http4sSuiteCompanionPlatform

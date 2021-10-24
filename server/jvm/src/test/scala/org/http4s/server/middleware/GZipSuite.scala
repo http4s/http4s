@@ -27,6 +27,8 @@ import java.util.zip.GZIPInputStream
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 import org.scalacheck.effect.PropF
 
 class GZipSuite extends Http4sSuite {
@@ -81,7 +83,12 @@ class GZipSuite extends Http4sSuite {
   }
 
   test("encoding") {
-    PropF.forAllF { (vector: Vector[Array[Byte]]) =>
+    val genByteArray =
+      Gen.poisson(10).flatMap(n => Gen.buildableOfN[Array[Byte], Byte](n, arbitrary[Byte]))
+    val genVector = Gen
+      .poisson(10)
+      .flatMap(n => Gen.buildableOfN[Vector[Array[Byte]], Array[Byte]](n, genByteArray))
+    PropF.forAllF(genVector) { (vector: Vector[Array[Byte]]) =>
       val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
         Ok(Stream.emits(vector).covary[IO])
       }

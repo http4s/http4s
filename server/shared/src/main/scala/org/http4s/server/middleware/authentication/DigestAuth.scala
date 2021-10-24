@@ -19,9 +19,13 @@ package server
 package middleware
 package authentication
 
+import org.http4s.crypto.Hash
+import org.http4s.crypto.unsafe.SecureRandom
 import cats.data.{Kleisli, NonEmptyList}
+import cats.Monad
 import cats.effect.Sync
 import cats.syntax.all._
+import java.math.BigInteger
 import java.util.Date
 import org.http4s.headers._
 import scala.concurrent.duration._
@@ -85,11 +89,11 @@ object DigestAuth {
       }
     }
 
-  private def checkAuth[F[_], A](
+  private def checkAuth[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
-      req: AnyRequest)(implicit F: Async[F]): F[AuthReply[A]] =
+      req: AnyRequest)(implicit F: Monad[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
@@ -110,12 +114,12 @@ object DigestAuth {
         m
     }
 
-  private def checkAuthParams[F[_], A](
+  private def checkAuthParams[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
       req: AnyRequest,
-      paramsNel: NonEmptyList[(String, String)])(implicit F: Async[F]): F[AuthReply[A]] = {
+      paramsNel: NonEmptyList[(String, String)])(implicit F: Monad[F]): F[AuthReply[A]] = {
     val params = paramsNel.toList.toMap
     if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet))
       return F.pure(BadParameters)
@@ -136,7 +140,7 @@ object DigestAuth {
           case None => F.pure(UserUnknown)
           case Some((authInfo, password)) =>
             DigestUtil
-              .computeResponse[F](
+              .computeResponse(
                 method,
                 params("username"),
                 realm,
@@ -157,6 +161,10 @@ object DigestAuth {
 
 private[authentication] class Nonce(val created: Date, var nc: Int, val data: String)
 
-private[authentication] object Nonce extends NoncePlatform {
+private[authentication] object Nonce {
+  val random = new SecureRandom()
+
+  private def getRandomData(bits: Int): String = new BigInteger(bits, random).toString(16)
+
   def gen(bits: Int): Nonce = new Nonce(new Date(), 0, getRandomData(bits))
 }

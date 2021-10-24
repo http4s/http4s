@@ -1,123 +1,33 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.ScaladocApiMapping
-import org.openqa.selenium.WebDriver
-import org.openqa.selenium.remote.server.DriverFactory
-import org.openqa.selenium.remote.server.DriverProvider
-import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
-import org.openqa.selenium.firefox.FirefoxOptions
-import org.openqa.selenium.firefox.FirefoxProfile
-import org.scalajs.jsenv.selenium.SeleniumJSEnv
-import sbtcrossproject.{CrossProject, CrossType, Platform}
-import java.util.concurrent.TimeUnit
-import scala.xml.transform.{RewriteRule, RuleTransformer}
+import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
-import JSEnv._
+Global / excludeLintKeys += laikaDescribe
 
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
 ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
-ThisBuild / publishFullName := "Ross A. Baker"
+ThisBuild / publishFullName   := "Ross A. Baker"
 
-ThisBuild / githubWorkflowUseSbtThinClient := false
-ThisBuild / githubWorkflowBuildPreamble ++=
-  Seq(
-    WorkflowStep.Use(
-      UseRef.Public("actions", "setup-node", "v2.4.0"),
-      name = Some("Setup NodeJS v16"),
-      params = Map("node-version" -> "16"),
-      cond = Some("matrix.ci == 'ciNodeJS'")),
-    WorkflowStep.Run(
-      List("./scripts/scaffold_server.js &", "./scripts/static_server.py &"),
-      name = Some("Start scaffold server and static file server"))
-  )
+ThisBuild / githubWorkflowBuildPreamble +=
+  WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v2.4.0"), name = Some("Setup NodeJS v16"), params = Map("node-version" -> "16"), cond = Some("matrix.ci == 'ciNodeJS'"))
 ThisBuild / githubWorkflowBuild := Seq(
-  // todo remove once salafmt properly supports scala3
-  WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "scalafmtCheckAll"),
-    name = Some("Check formatting"),
-    cond = Some(s"matrix.scala != '$scala_3'")),
-  WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"),
-    name = Some("Check headers")),
-  WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
-  WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "fastOptJS", "test:fastOptJS"),
-    name = Some("FastOptJS"),
-    cond = Some("matrix.ci != 'ciJVM'")),
-  WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "mimaReportBinaryIssues"),
-    name = Some("Check binary compatibility"),
-    cond = Some("matrix.ci == 'ciJVM'")),
-  // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
-  // WorkflowStep.Sbt(
-  // List("unusedCompileDependenciesTest"),
-  // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
-  WorkflowStep.Sbt(List("${{ matrix.ci }}", "test"), name = Some("Run tests")),
-  WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "doc"),
-    name = Some("Build docs"),
-    cond = Some("matrix.ci == 'ciJVM'"))
-)
-
-val ciVariants = List("ciJVM", "ciNodeJS", "ciFirefox", "ciChrome")
-val jsCiVariants = ciVariants.tail
-ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
-
-val ScalaJSJava = "adopt@1.8"
-ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  jsCiVariants.flatMap { ci =>
-    val javaFilters =
-      (ThisBuild / githubWorkflowJavaVersions).value.filterNot(Set(ScalaJSJava)).map { java =>
-        MatrixExclude(Map("ci" -> ci, "java" -> java))
-      }
-
-    javaFilters
-  }
-}
-
-lazy val useJSEnv =
-  settingKey[JSEnv]("Use Node.js or a headless browser for running Scala.js tests")
-Global / useJSEnv := NodeJS
-
-ThisBuild / Test / jsEnv := {
-  val old = (Test / jsEnv).value
-
-  val config = SeleniumJSEnv
-    .Config()
-    .withMaterializeInServer("target/selenium", "http://localhost:8889/target/selenium/")
-
-  useJSEnv.value match {
-    case NodeJS => old
-    case Firefox =>
-      val profile = new FirefoxProfile()
-      profile.setPreference("devtools.serviceWorkers.testing.enabled", true)
-      val options = new FirefoxOptions()
-      options.setProfile(profile)
-      options.addArguments("-headless")
-      new SeleniumJSEnv(options, config)
-    case Chrome =>
-      val options = new ChromeOptions()
-      options.setHeadless(true)
-      options.addArguments("--allow-file-access-from-files")
-      val factory = new DriverFactory {
-        val defaultFactory = SeleniumJSEnv.Config().driverFactory
-        def newInstance(capabilities: org.openqa.selenium.Capabilities): WebDriver = {
-          val driver = defaultFactory.newInstance(capabilities).asInstanceOf[ChromeDriver]
-          driver.manage().timeouts().pageLoadTimeout(1, TimeUnit.HOURS)
-          driver.manage().timeouts().setScriptTimeout(1, TimeUnit.HOURS)
-          driver
-        }
-        def registerDriverProvider(provider: DriverProvider): Unit =
-          defaultFactory.registerDriverProvider(provider)
-      }
-      new SeleniumJSEnv(options, config.withDriverFactory(factory))
-  }
-}
+      // todo remove once salafmt properly supports scala3
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"), name = Some("Check headers")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+      // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
+      // WorkflowStep.Sbt(
+        // List("unusedCompileDependenciesTest"),
+        // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "fastOptJS", "test:fastOptJS"), name = Some("FastOptJS"), cond = Some("matrix.ci != 'ciJVM'")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "test"), name = Some("Run tests")),
+      WorkflowStep.Sbt(List("${{ matrix.ci }}", "doc"), name = Some("Build docs"), cond = Some("matrix.ci == 'ciJVM'"))
+    )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
@@ -130,55 +40,55 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
         cond = Some(s"matrix.scala == '$scala_213'")
       )
     ),
-    scalas = crossScalaVersions.value.toList
+    scalas = crossScalaVersions.value.toList,
+    javas = List("adoptium@8"),
   ))
 
+val ciVariants = List("ciJVM", "ciNodeJS")
+ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
+
+ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
+  (ThisBuild / githubWorkflowJavaVersions).value.tail.map { java =>
+    MatrixExclude(Map("ci" -> "ciNodeJS", "java" -> java))
+  }
+}
+
 addCommandAlias("ciJVM", "; project rootJVM")
-addCommandAlias("ciNodeJS", "; set parallelExecution := false; project rootNodeJS")
-addCommandAlias(
-  "ciFirefox",
-  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Firefox; project rootDom")
-addCommandAlias(
-  "ciChrome",
-  "; set parallelExecution := false; set Global / useJSEnv := JSEnv.Chrome; project rootBrowser")
+addCommandAlias("ciNodeJS", "; project rootJS")
 
 enablePlugins(SonatypeCiReleasePlugin)
 
 versionIntroduced.withRank(KeyRanks.Invisible) := Map(
-  scala_3 -> "0.22.0"
+  scala_3 -> "0.22.0",
 )
 
-lazy val crossModules: List[CrossProject] = List(
-  core,
-  laws,
-  testing,
-  tests,
-  server,
-  serverTesting,
+lazy val modules: List[ProjectReference] = jvmModules ++ jsModules
+
+lazy val jvmModules: List[ProjectReference] = List(
+  core.jvm,
+  laws.jvm,
+  testing.jvm,
+  tests.jvm,
+  server.jvm,
   prometheusMetrics,
-  client,
+  client.jvm,
   dropwizardMetrics,
-  emberCore,
-  emberServer,
-  emberClient,
+  emberCore.jvm,
+  emberServer.jvm,
+  emberClient.jvm,
   blazeCore,
   blazeServer,
   blazeClient,
   asyncHttpClient,
-  domCore,
-  domFetchClient,
-  domServiceWorker,
-  domServiceWorkerTests,
   jettyServer,
   jettyClient,
-  nodeServerless,
   okHttpClient,
   servlet,
   tomcatServer,
-  theDsl,
-  jawn,
-  boopickle,
-  circe,
+  theDsl.jvm,
+  jawn.jvm,
+  boopickle.jvm,
+  circe.jvm,
   playJson,
   scalaXml,
   twirl,
@@ -193,72 +103,45 @@ lazy val crossModules: List[CrossProject] = List(
   examplesWar
 )
 
-lazy val modules: List[ProjectReference] =
-  crossModules.flatMap(_.componentProjects).map(x => x: ProjectReference)
+lazy val jsModules: List[ProjectReference] = List(
+  core.js,
+  laws.js,
+  testing.js,
+  tests.js,
+  server.js,
+  client.js,
+  emberCore.js,
+  emberServer.js,
+  emberClient.js,
+  nodeServerless,
+  theDsl.js,
+  jawn.js,
+  boopickle.js,
+  circe.js,
+)
 
-lazy val jsModules: List[ProjectReference] =
-  crossModules.flatMap(_.projects.get(JSPlatform)).map(x => x: ProjectReference)
-
-lazy val root = project
-  .in(file("."))
+lazy val root = project.in(file("."))
   .enablePlugins(NoPublishPlugin)
   .settings(
     // Root project
     name := "http4s",
     description := "A minimal, Scala-idiomatic library for HTTP",
-    startYear := Some(2013)
+    startYear := Some(2013),
   )
   .aggregate(modules: _*)
 
 lazy val rootJVM = project
   .enablePlugins(NoPublishPlugin)
-  .aggregate(crossModules.flatMap(_.projects.get(JVMPlatform)).map(x => x: ProjectReference): _*)
+  .aggregate(jvmModules: _*)
 
 lazy val rootJS = project
   .enablePlugins(NoPublishPlugin)
   .aggregate(jsModules: _*)
 
-lazy val rootNodeJS = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(
-    jsModules.filterNot(
-      Set[ProjectReference](
-        domCore.js,
-        domFetchClient.js,
-        domServiceWorker.js,
-        domServiceWorkerTests.js)): _*)
-
-lazy val rootBrowser = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(
-    core.js,
-    laws.js,
-    testing.js,
-    tests.js,
-    client.js,
-    theDsl.js,
-    boopickle.js,
-    jawn.js,
-    circe.js,
-    domCore.js,
-    domFetchClient.js,
-    domServiceWorker.js,
-    domServiceWorkerTests.js
-  )
-
-lazy val rootDom = project
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(
-    domCore.js,
-    domFetchClient.js,
-    domServiceWorker.js,
-    domServiceWorkerTests.js
-  )
-
-lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val core = libraryCrossProject("core")
   .enablePlugins(
     BuildInfoPlugin,
-    MimeLoaderPlugin
+    MimeLoaderPlugin,
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -274,37 +157,48 @@ lazy val core = libraryProject("core", CrossType.Full, List(JVMPlatform, JSPlatf
       catsCore.value,
       catsEffectStd.value,
       catsParse.value.exclude("org.typelevel", "cats-core_2.13"),
+      crypto.value,
       fs2Core.value,
+      fs2Io.value,
       ip4sCore.value,
       literally.value,
       log4s.value,
       munit.value % Test,
       scodecBits.value,
-      slf4jApi, // residual dependency from macros
-      vault.value
+      vault.value,
     ),
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
-      else
-        Seq(
-          scalaReflect(scalaVersion.value) % Provided
-        )
+      else Seq(
+        scalaReflect(scalaVersion.value) % Provided
+      )
     },
-    unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect")
+    unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
   .jvmSettings(
-    libraryDependencies += fs2Io.value
+    libraryDependencies ++= Seq(
+      slf4jApi, // residual dependency from macros
+    )
   )
   .jsSettings(
     libraryDependencies ++= Seq(
       scalaJavaLocalesEnUS.value,
       scalaJavaTime.value,
-    ),
-    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") }
+    )
   )
-  .jsConfigure(_.disablePlugins(DoctestPlugin))
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      slf4jApi, // residual dependency from macros
+    )
+  )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      scalaJavaLocalesEnUS.value,
+      scalaJavaTime.value,
+    )
+  )
 
-lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatform))
+lazy val laws = libraryCrossProject("laws", CrossType.Pure)
   .settings(
     description := "Instances and laws for testing http4s code",
     startYear := Some(2019),
@@ -314,72 +208,60 @@ lazy val laws = libraryProject("laws", CrossType.Pure, List(JVMPlatform, JSPlatf
       catsEffectTestkit.value,
       catsLaws.value,
       disciplineCore.value,
+      ip4sTestKit.value,
       scalacheck.value,
       scalacheckEffectMunit.value,
-      munitCatsEffect.value
+      munitCatsEffect.value,
     ),
-    unusedCompileDependenciesFilter -= moduleFilter(
-      organization = "org.typelevel",
-      name = "scalacheck-effect-munit")
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this") // private
+    )
   )
   .dependsOn(core)
 
-lazy val testing = libraryProject("testing", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val testing = libraryCrossProject("testing", CrossType.Full)
   .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Internal utilities for http4s tests",
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       catsEffectLaws.value,
-      munit.value,
       munitCatsEffect.value,
       munitDiscipline.value,
       scalacheck.value,
       scalacheckEffect.value,
-      scalacheckEffectMunit.value
-    ).map(_ % Test)
+      scalacheckEffectMunit.value,
+    ).map(_ % Test),
   )
   .jsSettings(
     libraryDependencies ++= Seq(
-      scalaJavaTimeTzdb.value,
+      scalaJavaTimeTzdb.value
     ).map(_ % Test)
   )
   .dependsOn(laws)
 
 // Defined outside core/src/test so it can depend on published testing
-lazy val tests = libraryProject("tests", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val tests = libraryCrossProject("tests")
   .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Tests for core project",
-    startYear := Some(2013)
+    startYear := Some(2013),
   )
-  .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
-lazy val server = libraryProject("server", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val server = libraryCrossProject("server")
   .settings(
     description := "Base library for building http4s servers",
-    startYear := Some(2014)
+    startYear := Some(2014),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
-    buildInfoPackage := "org.http4s.server.test"
+    buildInfoPackage := "org.http4s.server.test",
   )
-  .jsSettings(Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
-
-// Defined outside server to avoid circular dependency with client
-lazy val serverTesting =
-  libraryProject("server-testing", CrossType.Pure, List(JVMPlatform, JSPlatform))
-    .enablePlugins(NoPublishPlugin)
-    .settings(
-      description := "Tests for server project",
-      startYear := Some(2021)
-    )
-    .jsConfigure(_.disablePlugins(DoctestPlugin))
-    .dependsOn(server, testing % "test->test", client % "test->test")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -388,24 +270,28 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusCommon,
-      prometheusHotspot
-    )
+      prometheusHotspot,
+    ),
   )
   .dependsOn(
-    core % "compile->compile",
-    theDsl % "test->compile",
-    testing % "test->test",
-    server % "test->compile",
-    client % "test->compile"
+    core.jvm % "compile->compile",
+    theDsl.jvm % "test->compile",
+    testing.jvm % "test->test",
+    server.jvm % "test->compile",
+    client.jvm % "test->compile"
   )
 
-lazy val client = libraryProject("client", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
-    libraryDependencies += munit.value % Test
   )
-  .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
+  .dependsOn(
+    core,
+    testing % "test->test",
+    server % "test->compile",
+    theDsl % "test->compile")
+  .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
@@ -413,68 +299,72 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     startYear := Some(2018),
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
-      dropwizardMetricsJson
+      dropwizardMetricsJson,
     ))
   .dependsOn(
-    core % "compile->compile",
-    testing % "test->test",
-    theDsl % "test->compile",
-    client % "test->compile",
-    server % "test->compile"
+    core.jvm % "compile->compile",
+    testing.jvm % "test->test",
+    theDsl.jvm % "test->compile",
+    client.jvm % "test->compile",
+    server.jvm % "test->compile"
   )
 
-lazy val emberCore = libraryProject("ember-core", CrossType.Pure, List(JVMPlatform, JSPlatform))
+lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
   .settings(
     description := "Base library for ember http4s clients and servers",
     startYear := Some(2019),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
-      fs2Io.value,
-      log4catsTesting.value % Test
-    )
-  )
-  .jsSettings(
-    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+      log4catsTesting.value % Test,
+    ),
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val emberServer = libraryProject("ember-server", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val emberServer = libraryCrossProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
-    startYear := Some(2019)
+    startYear := Some(2019),
+    Test / parallelExecution := false,
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      log4catsSlf4j.value,
-      javaWebSocket % Test
+      log4catsSlf4j,
+      javaWebSocket % Test,
+      jnrUnixSocket % Test, // Necessary for jdk < 16
     ),
-    Test / parallelExecution := false
   )
   .jsSettings(
-    libraryDependencies += log4catsNoop.value,
+    libraryDependencies ++= Seq(
+      log4catsNoop.value,
+    ),
     Test / npmDependencies += "ws" -> "8.2.2",
     useYarn := true,
     yarnExtraArgs += "--frozen-lockfile",
-    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
-  .dependsOn(
-    emberCore % "compile;test->test",
-    server % "compile;test->test",
-    serverTesting % "test->test",
-    emberClient % "test->compile")
+  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
   .jsEnablePlugins(ScalaJSBundlerPlugin)
 
-lazy val emberClient = libraryProject("ember-client", CrossType.Full, List(JVMPlatform, JSPlatform))
+lazy val emberClient = libraryCrossProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
-    libraryDependencies += keypool.value,
+    libraryDependencies ++= Seq(
+      keypool.value,
+      log4catsSlf4j,
+    ),
+    mimaBinaryIssueFilters := Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
+    )
   )
-  .jvmSettings(libraryDependencies += log4catsSlf4j.value)
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      log4catsSlf4j,
+    ),
+  )
   .jsSettings(
-    libraryDependencies += log4catsNoop.value,
-    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
-    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+    libraryDependencies ++= Seq(
+      log4catsNoop.value,
+    ),
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -483,24 +373,24 @@ lazy val blazeCore = libraryProject("blaze-core")
     description := "Base library for binding blaze to http4s clients and servers",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      blazeHttp.value
+      blazeHttp,
     )
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
-    startYear := Some(2014)
+    startYear := Some(2014),
   )
-  .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
   )
-  .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
@@ -508,56 +398,14 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
-      fs2ReactiveStreams.value,
+      fs2ReactiveStreams,
       nettyBuffer,
       nettyCodecHttp,
-      reactiveStreams
+      reactiveStreams,
     ),
     Test / parallelExecution := false
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
-
-lazy val domCore = libraryProject("dom-core", CrossType.Pure, List(JSPlatform))
-  .settings(
-    description := "Base library for dom http4s client and apps",
-    startYear := Some(2021),
-    libraryDependencies ++= Seq(
-      scalaJsDom.value.cross(CrossVersion.for3Use2_13),
-      munit.value % Test
-    )
-  )
-  .dependsOn(core, testing % "test->test")
-
-lazy val domFetchClient = libraryProject("dom-fetch-client", CrossType.Pure, List(JSPlatform))
-  .settings(
-    description := "browser fetch implementation for http4s clients",
-    startYear := Some(2021)
-  )
-  .dependsOn(domCore, testing % "test->test", client % "compile;test->test")
-
-lazy val domServiceWorker = libraryProject("dom-service-worker", CrossType.Pure, List(JSPlatform))
-  .settings(
-    description := "browser service worker implementation for http4s apps",
-    startYear := Some(2021),
-    libraryDependencies += catsEffect.value
-  )
-  .dependsOn(domCore)
-
-// These
-lazy val domServiceWorkerTests =
-  libraryProject("dom-service-worker-tests", CrossType.Pure, List(JSPlatform))
-    .enablePlugins(BuildInfoPlugin, NoPublishPlugin)
-    .settings(
-      scalaJSUseMainModuleInitializer := true,
-      (Test / test) := (Test / test).dependsOn(Compile / fastOptJS).value,
-      buildInfoKeys := Seq[BuildInfoKey](scalaVersion),
-      buildInfoPackage := "org.http4s.dom"
-    )
-    .dependsOn(
-      domServiceWorker,
-      testing % "test->test",
-      serverTesting % "compile->test",
-      domFetchClient % Test)
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -565,23 +413,18 @@ lazy val jettyClient = libraryProject("jetty-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
-      jettyUtil
-    )
+      jettyUtil,
+    ),
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
-lazy val nodeServerless = libraryProject("node-serverless", CrossType.Pure, List(JSPlatform))
+lazy val nodeServerless = libraryProject("node-serverless")
+  .enablePlugins(ScalaJSPlugin)
   .settings(
     description := "Node.js serverless wrapper for http4s apps",
     startYear := Some(2021),
-    libraryDependencies ++= Seq(
-      fs2Io.value,
-      munit.value % Test
-    ),
-    scalacOptions ~= { _.filterNot(_ == "-Xfatal-warnings") },
-    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
-  .dependsOn(core, testing % "test->test", serverTesting % "test->test", emberClient % Test)
+  .dependsOn(core.js)
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
@@ -589,10 +432,10 @@ lazy val okHttpClient = libraryProject("okhttp-client")
     startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp,
-      okio
-    )
+      okio,
+    ),
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -603,9 +446,9 @@ lazy val servlet = libraryProject("servlet")
       Http4sPlugin.jettyServer % Test,
       jettyServlet % Test,
       Http4sPlugin.asyncHttpClient % Test
-    )
+    ),
   )
-  .dependsOn(server % "compile;test->test")
+  .dependsOn(server.jvm % "compile;test->test")
 
 lazy val jettyServer = libraryProject("jetty-server")
   .settings(
@@ -615,10 +458,10 @@ lazy val jettyServer = libraryProject("jetty-server")
       jettyHttp2Server,
       Http4sPlugin.jettyServer,
       jettyServlet,
-      jettyUtil
+      jettyUtil,
     )
   )
-  .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
+  .dependsOn(servlet % "compile;test->test", theDsl.jvm % "test->test")
 
 lazy val tomcatServer = libraryProject("tomcat-server")
   .settings(
@@ -627,81 +470,75 @@ lazy val tomcatServer = libraryProject("tomcat-server")
     libraryDependencies ++= Seq(
       tomcatCatalina,
       tomcatCoyote,
-      tomcatUtilScan
+      tomcatUtilScan,
     )
   )
   .dependsOn(servlet % "compile;test->test")
 
 // `dsl` name conflicts with modern SBT
-lazy val theDsl = libraryProject("dsl", CrossType.Pure, List(JVMPlatform, JSPlatform))
+lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
-    libraryDependencies += munit.value % Test
   )
-  .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
-lazy val jawn = libraryProject("jawn", CrossType.Pure, List(JVMPlatform, JSPlatform))
+lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       jawnFs2.value,
-      jawnParser.value
+      jawnParser.value,
     )
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val boopickle = libraryProject("boopickle", CrossType.Pure, List(JVMPlatform, JSPlatform))
+lazy val boopickle = libraryCrossProject("boopickle", CrossType.Pure)
   .settings(
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.value,
-      munit.value % Test
-    )
+      Http4sPlugin.boopickle.value
+    ),
   )
-  .jsConfigure(_.disablePlugins(DoctestPlugin))
   .dependsOn(core, testing % "test->test")
 
-lazy val circe = libraryProject("circe", CrossType.Pure, List(JVMPlatform, JSPlatform))
+lazy val circe = libraryCrossProject("circe", CrossType.Pure)
   .settings(
     description := "Provides Circe codecs for http4s",
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
       circeJawn.value,
-      circeTesting.value % Test,
-      munit.value % Test
+      circeTesting.value % Test
     )
   )
-  .dependsOn(core, jawn % "compile;test->test", testing % "test->test")
+  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val playJson = libraryProject("play-json")
   .settings(
     description := "Provides Play json codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.playJson.value.cross(CrossVersion.for3Use2_13)
+      Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
     ),
     publish / skip := isDotty.value,
     compile / skip := isDotty.value
   )
-  .dependsOn(jawn % "compile;test->test")
+  .dependsOn(jawn.jvm % "compile;test->test")
 
 lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      Http4sPlugin.scalaXml.value
-    )
+      Http4sPlugin.scalaXml,
+    ),
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test")
 
-// Full cross helps workaround issues with twirl directories
-lazy val twirl = http4sProject("twirl", CrossType.Full, List(JVMPlatform))
+lazy val twirl = http4sProject("twirl")
   .settings(
     description := "Twirl template support for http4s",
     startYear := Some(2014),
@@ -716,18 +553,18 @@ lazy val twirl = http4sProject("twirl", CrossType.Full, List(JVMPlatform))
     publish / skip := isDotty.value
   )
   .enablePlugins(SbtTwirl)
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test")
 
 lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      scalatagsApi.value.cross(CrossVersion.for3Use2_13)
+      scalatagsApi.cross(CrossVersion.for3Use2_13)
     ),
     publish / skip := isDotty.value
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
@@ -735,27 +572,26 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     startYear := Some(2015),
-    libraryDependencies += circeParser.value,
+    libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {}
+    unusedCompileDependenciesTest := {},
   )
-  .dependsOn(core, circe, emberCore)
+  .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
-// Workaround via full cross
-lazy val docs = http4sProject("docs", CrossType.Full, List(JVMPlatform))
+lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
-    HugoPlugin,
     NoPublishPlugin,
     ScalaUnidocPlugin,
-    MdocPlugin
+    MdocPlugin,
+    LaikaPlugin
   )
   .settings(docsProjectSettings)
   .settings(
     libraryDependencies ++= Seq(
-      circeGeneric.value,
-      circeLiteral.value,
-      cryptobits.value
+      circeGeneric,
+      circeLiteral,
+      cryptobits
     ),
     description := "Documentation for http4s",
     startYear := Some(2013),
@@ -763,26 +599,30 @@ lazy val docs = http4sProject("docs", CrossType.Full, List(JVMPlatform))
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         (List[ProjectReference](
-          bench.jvm,
-          examples.jvm,
-          examplesBlaze.jvm,
-          examplesDocker.jvm,
-          examplesJetty.jvm,
-          examplesTomcat.jvm,
-          examplesWar.jvm) ++ jsModules): _*),
+          bench,
+          examples,
+          examplesBlaze,
+          examplesDocker,
+          examplesJetty,
+          examplesTomcat,
+          examplesWar,
+        ) ++ jsModules): _*
+      ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
-    Hugo / baseURL := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
-    },
-    siteMappings := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
-    },
-    siteMappings ++= {
+
+    laikaExtensions := SiteConfig.extensions,
+    laikaConfig     := SiteConfig.config(versioned = true).value,
+    laikaTheme      := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.v1_0,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = false
+    ),
+    laikaDescribe   := "<disabled>",
+    Laika / sourceDirectories := Seq(mdocOut.value),
+
+    ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
       for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
         yield (f, s"$docsPrefix/api/$d")
@@ -790,43 +630,40 @@ lazy val docs = http4sProject("docs", CrossType.Full, List(JVMPlatform))
     ghpagesCleanSite / includeFilter := {
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
-        def accept(f: File) =
-          f.getCanonicalPath.startsWith(
-            (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
+        def accept(f: File): Boolean = f.getCanonicalPath.startsWith(
+          (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath
+        )
       }
     },
     apiMappings ++= {
       ScaladocApiMapping.mappings(
-        (ScalaUnidoc / unidoc / unidocAllClasspaths).value,
-        scalaBinaryVersion.value
+        (ScalaUnidoc / unidoc / unidocAllClasspaths).value, scalaBinaryVersion.value
       )
     }
   )
-  .dependsOn(
-    client,
-    core,
-    theDsl,
-    blazeServer,
-    blazeClient,
-    circe,
-    dropwizardMetrics,
-    prometheusMetrics)
+  .dependsOn(client.jvm, core.jvm, theDsl.jvm, blazeServer, blazeClient, circe.jvm, dropwizardMetrics, prometheusMetrics)
 
-// Workaround via full cross
-lazy val website = http4sProject("website", CrossType.Full, List(JVMPlatform))
-  .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
+lazy val website = http4sProject("website")
+  .enablePlugins(GhpagesPlugin, LaikaPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
     description := "Common area of http4s.org",
     startYear := Some(2013),
-    Hugo / baseURL := {
-      if (isCi.value) new URI(s"https://http4s.org")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
-    },
-    makeSite := makeSite.dependsOn(http4sBuildData).value,
-    // all .md|markdown files go into `content` dir for hugo processing
+
+    laikaExtensions := SiteConfig.extensions,
+    laikaConfig     := SiteConfig.config(versioned = false).value,
+    laikaTheme      := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.v1_0,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = true
+    ),
+    laikaDescribe   := "<disabled>",
+    Laika / sourceDirectories := Seq(baseDirectory.value / "src" / "hugo" / "content", baseDirectory.value / "src" / "hugo" / "static"),
+
     ghpagesNoJekyll := true,
-    ghpagesCleanSite / excludeFilter :=
+    ghpagesPrivateMappings := (laikaSite / mappings).value,
+    ghpagesCleanSite / excludeFilter  :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
         def accept(f: File) =
@@ -841,13 +678,13 @@ lazy val examples = http4sProject("examples")
     description := "Common code for http4s examples",
     startYear := Some(2013),
     libraryDependencies ++= Seq(
-      circeGeneric.value % Runtime,
+      circeGeneric % Runtime,
       logbackClassic % Runtime
-    )
+    ),
     // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml /*, twirl*/ )
-// todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
+  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml/*, twirl*/)
+  // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(Revolver.settings)
@@ -856,8 +693,8 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     startYear := Some(2013),
     fork := true,
     libraryDependencies ++= Seq(
-      circeGeneric.value
-    )
+      circeGeneric,
+    ),
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -866,9 +703,9 @@ lazy val examplesEmber = exampleProject("examples-ember")
   .settings(
     description := "Examples of http4s server and clients on blaze",
     startYear := Some(2020),
-    fork := true
+    fork := true,
   )
-  .dependsOn(emberServer, emberClient)
+  .dependsOn(emberServer.jvm, emberClient.jvm)
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
@@ -879,9 +716,9 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / packageName := "http4s/blaze-server",
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
-    dockerExposedPorts := List(8080)
+    dockerExposedPorts := List(8080),
   )
-  .dependsOn(blazeServer, theDsl)
+  .dependsOn(blazeServer, theDsl.jvm)
 
 lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)
@@ -889,7 +726,7 @@ lazy val examplesJetty = exampleProject("examples-jetty")
     description := "Example of http4s server on Jetty",
     startYear := Some(2014),
     fork := true,
-    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample")
+    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
   )
   .dependsOn(jettyServer)
 
@@ -899,7 +736,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
     description := "Example of http4s server on Tomcat",
     startYear := Some(2014),
     fork := true,
-    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample")
+    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
   )
   .dependsOn(tomcatServer)
 
@@ -911,30 +748,35 @@ lazy val examplesWar = exampleProject("examples-war")
     startYear := Some(2014),
     fork := true,
     libraryDependencies += javaxServletApi % Provided,
-    Jetty / containerLibs := List(jettyRunner)
+    Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)
 
-def http4sProject(
-    name: String,
-    crossType: CrossType = CrossType.Pure,
-    platforms: Seq[Platform] = List(JVMPlatform)) =
-  CrossProject(name, file(name))(platforms: _*)
+def http4sProject(name: String) =
+  Project(name, file(name))
+    .settings(commonSettings)
+    .settings(
+      moduleName := s"http4s-$name",
+    )
+    .enablePlugins(Http4sPlugin)
+
+def http4sCrossProject(name: String, crossType: CrossType) =
+  sbtcrossproject.CrossProject(name, file(name))(JVMPlatform, JSPlatform)
     .withoutSuffixFor(JVMPlatform)
     .crossType(crossType)
     .settings(commonSettings)
     .settings(
       moduleName := s"http4s-$name",
-      testFrameworks += new TestFramework("munit.Framework"),
-      Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "-b"),
-      initCommands()
+    )
+    .jsSettings(
+      Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
     )
     .enablePlugins(Http4sPlugin)
+    .jsConfigure(_.disablePlugins(DoctestPlugin))
 
-def libraryProject(
-    name: String,
-    crossType: CrossType = CrossType.Pure,
-    platforms: Seq[Platform] = List(JVMPlatform)) = http4sProject(name, crossType, platforms)
+def libraryProject(name: String) = http4sProject(name)
+def libraryCrossProject(name: String, crossType: CrossType = CrossType.Full) =
+  http4sCrossProject(name, crossType)
 
 def exampleProject(name: String) =
   http4sProject(name)
@@ -948,9 +790,11 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     catsLaws.value,
     logbackClassic,
-    scalacheck.value
+    scalacheck.value,
   ).map(_ % Test),
-  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api"))
+  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
+  testFrameworks += new TestFramework("munit.Framework"),
+  initCommands(),
 )
 
 def initCommands(additionalImports: String*) =
