@@ -506,27 +506,23 @@ object MultipartParser {
     _.through(
       parseEvents[F](boundary, limit)
     ).through(
-      limitParts[F](maxParts, failOnLimit)
+      limitParts(maxParts, failOnLimit)
     ).through(pullParts)
   }
 
-  private[this] def limitParts[F[_]: RaiseThrowable](
+  private[this] def limitParts[F[_]: RaiseThrowable, A](
       maxParts: Int,
-      failOnLimit: Boolean): Pipe[F, Event, Event] = {
-    def go(st: Stream[F, Event], partsCounter: Int): Pull[F, Event, Unit] =
-      st.pull.uncons1.flatMap {
-        case Some((event: PartStart, rest)) =>
-          if (partsCounter < maxParts) {
-            Pull.output1(event) >> go(rest, partsCounter + 1)
-          } else if (failOnLimit) {
-            Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
-          } else Pull.pure(())
-        case Some((event, rest)) =>
-          Pull.output1(event) >> go(rest, partsCounter)
-        case None => Pull.pure(())
-      }
+      failOnLimit: Boolean): Pipe[F, A, A] = {
+    def afterPrefix(tail: Option[Stream[F, A]]): Pull[F, A, Unit] = tail match {
+      case Some(tt) if failOnLimit =>
+        tail.pull.uncons.flatMap {
+          case None => Pull.done
+          case Some(_) => Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
+        }
+      case _ => Pull.done
+    }
 
-    go(_, 0).stream
+    _.pull.take(maxParts.toLong).flatMap(afterPrefix).stream
   }
 
   // Consume `PartChunk`s until the first `PartEnd`, produce a stream with all the consumed data.
