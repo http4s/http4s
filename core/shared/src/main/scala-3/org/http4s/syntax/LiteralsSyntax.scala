@@ -19,10 +19,11 @@ package syntax
 
 import scala.quoted._
 import scala.language.`3.0`
+import org.typelevel.literally.Literally
 
 trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
-    inline def uri(args: Any*): Uri = ${LiteralsSyntax.validateUri('{ctx}, '{args})}
+    inline def uri(inline args: Any*): Uri = ${LiteralsSyntax.UriLiteral('ctx, 'args)}
     inline def path(args: Any*): Uri.Path = ${LiteralsSyntax.validatePath('{ctx}, '{args})}
     inline def scheme(args: Any*): Uri.Scheme = ${LiteralsSyntax.validateUriScheme('{ctx}, '{args})}
     inline def mediaType(args: Any*): MediaType = ${LiteralsSyntax.validateMediatype('{ctx}, '{args})}
@@ -37,8 +38,6 @@ private[syntax] object LiteralsSyntax {
     def construct(s: String)(using Quotes): Expr[A]
   }
 
-  def validateUri(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(uri, strCtxExpr, argsExpr)
   def validateUriScheme(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(urischeme, strCtxExpr, argsExpr)
   def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
@@ -66,11 +65,12 @@ private[syntax] object LiteralsSyntax {
     }
   }
 
-  object uri extends Validator[Uri] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri] =
-      '{Uri.unsafeFromString(${Expr(literal)})}
+  object UriLiteral extends Literally[Uri] {
+    def validate(s: String)(using Quotes) =
+      Uri.fromString(s) match {
+        case Left(parsingFailure) => Left(s"invalid URI: ${parsingFailure.details}")
+        case Right(_) => Right('{Uri.unsafeFromString(${Expr(s)})})
+      }
   }
 
   object urischeme extends Validator[Uri.Scheme] {
