@@ -17,9 +17,9 @@
 package org.http4s
 package syntax
 
-import scala.quoted._
-import scala.language.`3.0`
 import org.typelevel.literally.Literally
+
+import scala.language.`3.0`
 
 trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
@@ -27,38 +27,11 @@ trait LiteralsSyntax {
     inline def path(inline args: Any*): Uri.Path = ${LiteralsSyntax.UriPathLiteral('ctx, 'args)}
     inline def scheme(inline args: Any*): Uri.Scheme = ${LiteralsSyntax.UriSchemeLiteral('ctx, 'args)}
     inline def mediaType(inline args: Any*): MediaType = ${LiteralsSyntax.MediaTypeLiteral('ctx, 'args)}
-    inline def qValue(args: Any*): QValue = ${LiteralsSyntax.validateQvalue('{ctx}, '{args})}
+    inline def qValue(inline args: Any*): QValue = ${LiteralsSyntax.QValueLiteral('ctx, 'args)}
   }
 }
 
 private[syntax] object LiteralsSyntax {
-
-  trait Validator[A] {
-    def validate(s: String): Option[ParseFailure]
-    def construct(s: String)(using Quotes): Expr[A]
-  }
-
-  def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(qvalue, strCtxExpr, argsExpr)
-
-  def validate[A](validator: Validator[A], strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Type[A])(using Quotes): Expr[A] = {
-    val sc = strCtxExpr.valueOrAbort
-    validate(validator, sc.parts, argsExpr)
-  }
-
-  private def validate[A](validator: Validator[A], parts: Seq[String], argsExpr: Expr[Seq[Any]])(using Type[A])(using Quotes): Expr[A] = {
-    if (parts.size == 1) {
-      val literal = parts.head
-      validator.validate(literal) match {
-        case Some(err) =>
-          quotes.reflect.report.errorAndAbort(err.message)
-        case None => validator.construct(literal)
-      }
-    } else {
-      quotes.reflect.report.errorAndAbort("interpolation not supported", argsExpr)
-    }
-  }
-
   object UriLiteral extends Literally[Uri] {
     def validate(s: String)(using Quotes) =
       Uri.fromString(s) match {
@@ -91,10 +64,11 @@ private[syntax] object LiteralsSyntax {
       }
   }
 
-  object qvalue extends Validator[QValue] {
-    override def validate(literal: String): Option[ParseFailure] = QValue.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[QValue] =
-      '{QValue.unsafeFromString(${Expr(literal)})}
+  object QValueLiteral extends Literally[QValue] {
+    def validate(s: String)(using Quotes) =
+      QValue.fromString(s) match {
+        case Left(parsingFailure) => Left(s"invalid QValue: ${parsingFailure.details}")
+        case Right(_) => Right('{QValue.unsafeFromString(${Expr(s)})})
+      }
   }
 }
