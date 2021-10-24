@@ -22,6 +22,7 @@ import cats.syntax.all._
 import fs2._
 import fs2.text.utf8
 import munit._
+import org.scalacheck.Prop
 
 /** Common stack for http4s' munit based tests
   */
@@ -36,6 +37,12 @@ trait Http4sSuite
   private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
 
   override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
+
+  // Override to remove implicit modifier
+  override def unitToProp = super.unitToProp
+
+  // Scala 3 likes this better
+  implicit def saneUnitToProp(unit: Unit): Prop = unitToProp(unit)
 
   def registerSuiteFixture[A](fixture: Fixture[A]) = {
     suiteFixtures += fixture

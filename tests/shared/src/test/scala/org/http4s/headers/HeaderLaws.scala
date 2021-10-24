@@ -42,7 +42,7 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
         noise.nonEmpty ==> {
           val malformedName = a.name.toString + noise
           val properValue = a.value
-          unitToProp(assert(Headers((malformedName, properValue)).get[A].isEmpty))
+          assert(Headers((malformedName, properValue)).get[A].isEmpty)
         }
       }
     )
