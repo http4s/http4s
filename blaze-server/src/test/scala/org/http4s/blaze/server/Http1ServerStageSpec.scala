@@ -546,7 +546,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     val head = runRequest(
       tw,
       List(rawReq),
-      HttpApp { req =>
+      HttpApp[IO] { req =>
         Response(Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]
       })
     head.result.map { buff =>
@@ -560,7 +560,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     val head = runRequest(
       tw,
       List(rawReq),
-      HttpApp { req =>
+      HttpApp[IO] { req =>
         Response(Status.NoContent)
           .putHeaders("X-Oops" -> req.params("fieldValue"))
           .pure[IO]

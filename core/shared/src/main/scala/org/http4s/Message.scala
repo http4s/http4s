@@ -406,11 +406,6 @@ final class Request[+F[_]] private (
 
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
-  def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
-    val inetAddress = remote.map(_.host.toInetAddress)
-    F.blocking(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
-  }
-
   def remotePort: Option[Port] = remote.map(_.port)
 
   def remoteUser: Option[String] = None
@@ -494,6 +489,11 @@ object Request {
         F: Monad[F],
         decoder: EntityDecoder[F, A]): F[Response[F]] =
       decodeWith(decoder, strict = false)(f)
+
+    def remoteHost(implicit F: Sync[F]): F[Option[Hostname]] = {
+      val inetAddress = remote.map(_.host.toInetAddress)
+      F.blocking(inetAddress.map(_.getHostName)).map(_.flatMap(Hostname.fromString))
+    }
   }
 
   /** Representation of an incoming HTTP message

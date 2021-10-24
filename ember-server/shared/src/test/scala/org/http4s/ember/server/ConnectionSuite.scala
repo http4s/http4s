@@ -118,7 +118,7 @@ class ConnectionSuite extends Http4sSuite {
     .test("read timeout during header terminates connection with no response") { client =>
       val request = GET(uri"http://localhost:9000/close")
       for {
-        _ <- client.writes(Encoder.reqToBytes(request).take(10))
+        _ <- client.writes(Encoder.reqToBytes[IO](request).take(10))
         chunk <- client.readChunk
       } yield assertEquals(chunk, None)
     }
@@ -142,7 +142,7 @@ class ConnectionSuite extends Http4sSuite {
     client =>
       val request = GET(uri"http://localhost:9000/close")
       for {
-        _ <- client.writes(Encoder.reqToBytes(request).take(10))
+        _ <- client.writes(Encoder.reqToBytes[IO](request).take(10))
         chunk <- client.readChunk
       } yield assertEquals(chunk, None)
   }

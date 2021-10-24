@@ -147,7 +147,7 @@ object StaticFile {
 
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+      req: Option[AnyRequest] = None): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, calculateETag[F])
 
   @deprecated("Use fromPath", "0.23.5")
@@ -163,7 +163,7 @@ object StaticFile {
 
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, etagCalculator)
 
@@ -184,7 +184,7 @@ object StaticFile {
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
       buffsize: Int,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: Path => F[String]): OptionT[F, Response[F]] =
     OptionT
       .liftF(Files[F].getBasicFileAttributes(f).map(_.size))
@@ -219,7 +219,7 @@ object StaticFile {
       start: Long,
       end: Long,
       buffsize: Int,
-      req: Option[Request[F]],
+      req: Option[AnyRequest],
       etagCalculator: Path => F[String]
   )(implicit
       F: MonadError[F, Throwable]
