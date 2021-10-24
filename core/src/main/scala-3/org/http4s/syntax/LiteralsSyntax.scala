@@ -24,7 +24,7 @@ import org.typelevel.literally.Literally
 trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
     inline def uri(inline args: Any*): Uri = ${LiteralsSyntax.UriLiteral('ctx, 'args)}
-    inline def path(args: Any*): Uri.Path = ${LiteralsSyntax.validatePath('{ctx}, '{args})}
+    inline def path(inline args: Any*): Uri.Path = ${LiteralsSyntax.UriPathLiteral('ctx, 'args)}
     inline def scheme(inline args: Any*): Uri.Scheme = ${LiteralsSyntax.UriSchemeLiteral('ctx, 'args)}
     inline def mediaType(args: Any*): MediaType = ${LiteralsSyntax.validateMediatype('{ctx}, '{args})}
     inline def qValue(args: Any*): QValue = ${LiteralsSyntax.validateQvalue('{ctx}, '{args})}
@@ -38,8 +38,6 @@ private[syntax] object LiteralsSyntax {
     def construct(s: String)(using Quotes): Expr[A]
   }
 
-  def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(uripath, strCtxExpr, argsExpr)
   def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(mediatype, strCtxExpr, argsExpr)
   def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
@@ -79,18 +77,12 @@ private[syntax] object LiteralsSyntax {
       }
   }
 
-  object urischeme extends Validator[Uri.Scheme] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.Scheme.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri.Scheme] =
-      '{Uri.Scheme.unsafeFromString(${Expr(literal)})}
-  }
-
-  object uripath extends Validator[Uri.Path] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.fromString(literal).map(_.path).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri.Path] =
-      '{Uri.unsafeFromString(${Expr(literal)}).path}
+  object UriPathLiteral extends Literally[Uri.Path] {
+    def validate(s: String)(using Quotes) =
+      Uri.fromString(s).map(_.path) match {
+        case Left(parsingFailure) => Left(s"invalid Path: ${parsingFailure.details}")
+        case Right(_) => Right('{Uri.Path.unsafeFromString(${Expr(s)})})
+      }
   }
 
   object mediatype extends Validator[MediaType] {
