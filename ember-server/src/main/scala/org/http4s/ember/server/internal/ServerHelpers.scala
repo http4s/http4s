@@ -376,16 +376,15 @@ private[server] object ServerHelpers {
     (mkConnectionInfo(socket), mkSecureSession(socket)).mapN(_ ++ _)
 
   private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =
-    (socket.localAddress, socket.remoteAddress).mapN {
-      case (local, remote) =>
-        Vault.empty.insert(
-          Request.Keys.ConnectionInfo,
-          Request.Connection(
-            local = local,
-            remote = remote,
-            secure = socket.isInstanceOf[TLSSocket[F]]
-          )
+    (socket.localAddress, socket.remoteAddress).mapN { case (local, remote) =>
+      Vault.empty.insert(
+        Request.Keys.ConnectionInfo,
+        Request.Connection(
+          local = local,
+          remote = remote,
+          secure = socket.isInstanceOf[TLSSocket[F]]
         )
+      )
     }
 
   private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =
