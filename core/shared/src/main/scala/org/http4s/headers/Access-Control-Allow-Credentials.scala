@@ -20,11 +20,10 @@ package headers
 import cats.parse.Parser
 import org.typelevel.ci._
 
-
 // https://fetch.spec.whatwg.org/#http-access-control-allow-credentials
 // This Header can only take the true value
 case object `Access-Control-Allow-Credentials` {
-val value: String = "true"
+  val value: String = "true"
 
   def parse(s: String): ParseResult[`Access-Control-Allow-Credentials`] =
     ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Credentials header")(s)
