@@ -289,6 +289,12 @@ lazy val client = libraryCrossProject("client")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.*.generateHMAC"), // private[oauth1]
     )
   )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      nettyBuffer % Test,
+      nettyCodecHttp % Test
+    )
+  )
   .dependsOn(
     core,
     testing % "test->test",
