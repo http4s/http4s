@@ -101,8 +101,9 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   override def toString: String =
     this.show
 }
+
 object Headers {
-  val empty = Headers(List.empty[Header.Raw])
+  val empty: Headers = Headers(List.empty[Header.Raw])
 
   /** Creates a new Headers collection.
     * The [[Header.ToRaw]] machinery allows the creation of Headers with
@@ -132,14 +133,14 @@ object Headers {
 
   private val PayloadHeaderKeys = Set(
     `Content-Length`.name,
-    ci"Content-Range",
+    `Content-Range`.name,
     ci"Trailer",
     `Transfer-Encoding`.name
   )
 
   val SensitiveHeaders: Set[CIString] = Set(
-    ci"Authorization",
-    ci"Cookie",
+    Authorization.name,
+    Cookie.name,
     `Set-Cookie`.name
   )
 }
