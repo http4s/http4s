@@ -26,22 +26,22 @@ import org.http4s.internal.parsing.Rfc7230
 sealed trait Vary {
   def ++(that: Vary): Vary = (this, that) match {
     case (Vary.`*`, _) | (_, Vary.`*`) => Vary.`*`
-    case (Vary.HeaderList(these), Vary.HeaderList(those)) => Vary.HeaderList(these ++ those.toList)
+    case (Vary.Headers(these), Vary.Headers(those)) => Vary.Headers(these ++ those.toList)
   }
 }
 
 object Vary extends HeaderCompanion[Vary]("Vary") {
-  def apply(headers: NonEmptyList[CIString]): Vary = HeaderList(headers)
-  def apply(head: CIString, tail: CIString*): Vary = HeaderList(NonEmptyList.of(head, tail: _*))
+  def apply(headers: NonEmptyList[CIString]): Vary = Headers(headers)
+  def apply(head: CIString, tail: CIString*): Vary = Headers(NonEmptyList.of(head, tail: _*))
 
   case object `*` extends Vary
-  final case class HeaderList(headers: NonEmptyList[CIString]) extends Vary
+  final case class Headers(values: NonEmptyList[CIString]) extends Vary
 
   override private[http4s] val parser: Parser[Vary] =
     Parser.char('*').as(`*`).orElse(Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(apply))
 
   override implicit val headerInstance: Header[Vary, Header.Single] = createRendered {
-    case HeaderList(values) => values
+    case Headers(values) => values
     case `*` => NonEmptyList.one(ci"*")
   }
 
