@@ -78,6 +78,8 @@ object `Content-Range` {
       parse
     )
 
+  @inline
+  final val name: CIString = headerInstance.name
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])
