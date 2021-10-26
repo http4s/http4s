@@ -41,6 +41,12 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     javas = List("adoptium@8"),
   ))
 
+ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
+  for {
+    scala <- (ThisBuild / crossScalaVersions).value.tail
+    java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
+  } yield MatrixExclude(Map("scala" -> scala, "java" -> java))
+}
 
 enablePlugins(SonatypeCiReleasePlugin)
 

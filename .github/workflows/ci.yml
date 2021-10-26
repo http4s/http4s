@@ -30,6 +30,15 @@ jobs:
         os: [ubuntu-latest]
         scala: [2.13.6, 2.12.15, 3.0.2]
         java: [adoptium@8, adoptium@11, adoptium@17]
+        exclude:
+          - scala: 2.12.15
+            java: adoptium@11
+          - scala: 2.12.15
+            java: adoptium@17
+          - scala: 3.0.2
+            java: adoptium@11
+          - scala: 3.0.2
+            java: adoptium@17
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
