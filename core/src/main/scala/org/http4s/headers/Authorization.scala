@@ -39,6 +39,9 @@ object Authorization {
       _.credentials,
       parse
     )
+
+  @inline
+  final val name: CIString = headerInstance.name
 }
 
 final case class Authorization(credentials: Credentials)
