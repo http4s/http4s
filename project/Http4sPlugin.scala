@@ -23,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.6"
   val scala_212 = "2.12.15"
-  val scala_3 = "3.0.2"
+  val scala_3 = "3.1.0"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.get("CI").isDefined
@@ -199,10 +199,10 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.15.0-M1"
     val crypto = "0.2.0"
     val cryptobits = "1.3"
-    val disciplineCore = "1.2.0"
+    val disciplineCore = "1.3.0"
     val dropwizardMetrics = "4.2.4"
-    val fs2 = "3.1.6"
-    val ip4s = "3.0.4"
+    val fs2 = "3.2.1"
+    val ip4s = "3.1.0"
     val javaWebSocket = "1.5.2"
     val jawn = "1.2.0"
     val jawnFs2 = "2.1.0"

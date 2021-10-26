@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.2]
+        scala: [2.13.6, 2.12.15, 3.1.0]
         java: [adoptium@8, adoptium@11, adoptium@17]
         ci: [ciJVM, ciNodeJS]
         exclude:
@@ -70,7 +70,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        if: matrix.scala != '3.0.2'
+        if: matrix.scala != '3.1.0'
         run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll
 
       - name: Check headers
@@ -198,7 +198,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.2]
+        scala: [2.13.6, 2.12.15, 3.1.0]
         java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:

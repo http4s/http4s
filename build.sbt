@@ -787,6 +787,13 @@ def exampleProject(name: String) =
 
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
+  scalacOptions ++= {
+    // Enables fatal warnings for Scala 3 in CI
+    if (isDotty.value && githubIsWorkflowBuild.value)
+      Seq("-Xfatal-warnings")
+    else
+      Seq.empty
+  },
   libraryDependencies ++= Seq(
     catsLaws.value,
     logbackClassic,
