@@ -22,7 +22,7 @@ import org.typelevel.ci._
 
 // https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-site-header
 
-sealed abstract class `Sec-Fetch-Site`(val value: String)
+abstract class `Sec-Fetch-Site` private[headers] (val value: String)
 
 object `Sec-Fetch-Site` {
   case object `cross-site` extends `Sec-Fetch-Site`("cross-site")

@@ -22,7 +22,7 @@ import org.typelevel.ci._
 
 // https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-dest-header
 
-sealed abstract class `Sec-Fetch-Dest`(val value: String)
+abstract class `Sec-Fetch-Dest` private[headers] (val value: String)
 
 object `Sec-Fetch-Dest` {
   case object audio extends `Sec-Fetch-Dest`("audio")

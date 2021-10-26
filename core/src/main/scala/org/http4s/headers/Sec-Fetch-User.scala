@@ -22,7 +22,7 @@ import org.typelevel.ci._
 
 // https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-user-header
 
-sealed abstract class `Sec-Fetch-User`(val value: String)
+abstract class `Sec-Fetch-User` private[headers] (val value: String)
 
 object `Sec-Fetch-User` {
   case object `?1` extends `Sec-Fetch-User`("?1")

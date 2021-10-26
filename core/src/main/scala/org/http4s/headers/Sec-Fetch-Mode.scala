@@ -22,7 +22,7 @@ import org.typelevel.ci._
 
 // https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-mode-header
 
-sealed abstract class `Sec-Fetch-Mode`(val value: String)
+abstract class `Sec-Fetch-Mode` private[headers] (val value: String)
 
 object `Sec-Fetch-Mode` {
   case object cors extends `Sec-Fetch-Mode`("cors")
