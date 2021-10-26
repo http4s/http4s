@@ -1039,4 +1039,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val http4sTestingArbitraryForSecFetchDest: Arbitrary[`Sec-Fetch-Dest`] =
     Arbitrary(Gen.oneOf(`Sec-Fetch-Dest`.types.values))
+
+  implicit val http4sTestingArbitraryForSecFetchMode: Arbitrary[`Sec-Fetch-Mode`] =
+    Arbitrary(Gen.oneOf(`Sec-Fetch-Mode`.types.values))
 }
