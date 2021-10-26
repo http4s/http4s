@@ -6,7 +6,7 @@ classpathTypes += "maven-plugin"
 addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.31")
 addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.2.4")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.10.0")
-addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.3")
+addSbtPlugin("com.github.sbt"               %  "sbt-unidoc"                % "0.5.0")
 addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.9")
 addSbtPlugin("org.http4s"                 %  "sbt-http4s-org"            % "0.8.3")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.6.0")
