@@ -581,7 +581,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         Gen.const(headers.Vary.`*`),
         for {
           values <- nonEmptyListOf(genToken.map(CIString(_)))
-        } yield headers.Vary.HeaderList(NonEmptyList.of(values.head, values.tail: _*))
+        } yield headers.Vary.Headers(NonEmptyList.of(values.head, values.tail: _*))
       )
     }
 
