@@ -211,7 +211,7 @@ class BlazeClientSuite extends BlazeClientBase {
       .assert
   }
 
-  test("Blaze Http1Client should doesn't leak connection on timeout") {
+  test("Blaze Http1Client should doesn't leak connection on timeout".flaky) {
     val addresses = server().addresses
     val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
