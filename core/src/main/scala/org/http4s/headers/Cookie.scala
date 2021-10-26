@@ -57,6 +57,9 @@ object Cookie {
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
     (a, b) => Cookie(a.values.concatNel(b.values))
+
+  @inline
+  final val name: CIString = headerInstance.name
 }
 
 final case class Cookie(values: NonEmptyList[RequestCookie])
