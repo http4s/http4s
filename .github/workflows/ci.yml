@@ -68,7 +68,7 @@ jobs:
 
       - name: Check formatting
         if: matrix.scala != '3.0.2'
-        run: sbt ++${{ matrix.scala }} scalafmtCheckAll
+        run: sbt ++${{ matrix.scala }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
         run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
