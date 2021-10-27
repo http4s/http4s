@@ -7,22 +7,23 @@ import io.netty.channel._
 import io.netty.handler.codec.http._
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import cats.effect.{Ref, Resource}
-import java.net.{InetSocketAddress, InetAddress}
 import org.log4s.getLogger
 import javax.net.ssl.SSLContext
 import io.netty.handler.ssl.SslHandler
 import cats.effect.kernel.Async
 import cats.implicits._
+import com.comcast.ip4s.{SocketAddress, IpAddress}
+import java.net.InetAddress
 
 trait TestServer[F[_]] {
-  def localAddress: InetSocketAddress
+  def localAddress: SocketAddress[IpAddress]
   def establishedConnections: F[Long]
   def resetEstablishedConnections: F[Unit]
 }
 
 class NettyTestServer[F[_]](
     establishedConnectionsRef: Ref[F, Long],
-    val localAddress: InetSocketAddress
+    val localAddress: SocketAddress[IpAddress]
     ) extends TestServer[F] {
   def establishedConnections: F[Long] = establishedConnectionsRef.get
   def resetEstablishedConnections: F[Unit] = establishedConnectionsRef.set(0L)
@@ -58,10 +59,11 @@ object NettyTestServer {
         }
       })
     channel <- server[F](bootstrap, port)
-  } yield new NettyTestServer(
-    establishedConnections,
-    channel.localAddress().asInstanceOf[InetSocketAddress]
-  )
+    address <- Resource.eval(
+      SocketAddress.fromStringIp(channel.localAddress().toString())
+        .liftTo[F](new Exception("invalid address"))
+    )
+  } yield new NettyTestServer(establishedConnections, address)
 
   private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
     Resource.make[F, NioEventLoopGroup](F.delay(new NioEventLoopGroup()))(el =>

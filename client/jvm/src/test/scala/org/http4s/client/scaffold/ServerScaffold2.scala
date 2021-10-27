@@ -21,13 +21,13 @@ import cats.effect.syntax.all._
 import cats.effect.{Async, Resource, Sync}
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
-import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.{IpAddress, SocketAddress}
 import org.http4s.HttpRoutes
 import io.netty.channel.ChannelInboundHandler
 import io.netty.handler.codec.http.HttpMethod
 
 class ServerScaffold2[F[_]] private (val servers: Vector[TestServer[F]]) {
-  def addresses: Vector[IpAddress] = servers.map(_.localAddress)
+  def addresses: Vector[SocketAddress[IpAddress]] = servers.map(_.localAddress)
 }
 
 object ServerScaffold2 {
