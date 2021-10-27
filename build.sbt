@@ -795,4 +795,4 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
-addCommandAlias("lint", ";scalafixEnable ;scalafixAll RemoveUnused ;scalafmtAll; scalafmtSbt")
+addCommandAlias("lint", ";scalafixEnable ;scalafixAll ;scalafmtAll; scalafmtSbt")
