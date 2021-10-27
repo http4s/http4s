@@ -14,7 +14,7 @@ ThisBuild / publishFullName   := "Ross A. Baker"
 
 ThisBuild / githubWorkflowBuild := Seq(
       // todo remove once salafmt properly supports scala3
-      WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
+      WorkflowStep.Sbt(List("scalafmtCheckAll", "scalafmtSbtCheck"), name = Some("Check formatting"), cond = Some(s"matrix.scala != '$scala_3'")),
       WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
       WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
       WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
@@ -741,3 +741,5 @@ def initCommands(additionalImports: String*) =
 // Everything is driven through release steps and the http4s* variables
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
+
+addCommandAlias("lint", ";scalafixEnable ;scalafixAll RemoveUnused ;scalafmtAll; scalafmtSbt")
