@@ -44,9 +44,12 @@ object Cookie {
     cookieString <* char(';').?
   }
 
+  @inline
+  final val name: CIString = ci"Cookie"
+
   implicit val headerInstance: Header[Cookie, Header.Recurring] =
     Header.createRendered(
-      ci"Cookie",
+      name,
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =
@@ -57,9 +60,6 @@ object Cookie {
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
     (a, b) => Cookie(a.values.concatNel(b.values))
-
-  @inline
-  final val name: CIString = headerInstance.name
 }
 
 final case class Cookie(values: NonEmptyList[RequestCookie])
