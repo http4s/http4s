@@ -96,6 +96,8 @@ trait BlazeClientBase extends Http4sSuite {
             while (result != -1)
               result = req.getInputStream.read()
             resp.setStatus(Status.Ok.code)
+          case _ =>
+            resp.sendError(404)
         }
 
     }
