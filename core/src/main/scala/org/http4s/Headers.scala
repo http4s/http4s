@@ -16,16 +16,17 @@
 
 package org.http4s
 
-import cats.data.Ior
-import cats.data.NonEmptyList
 import cats.Monoid
 import cats.Order
 import cats.Show
+import cats.data.Ior
+import cats.data.NonEmptyList
 import cats.syntax.all._
-import headers._
 import org.typelevel.ci._
 
 import scala.collection.mutable
+
+import headers._
 
 /** A collection of HTTP Headers */
 final class Headers(val headers: List[Header.Raw]) extends AnyVal {
