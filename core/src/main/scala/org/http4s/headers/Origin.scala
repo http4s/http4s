@@ -61,7 +61,7 @@ object Origin {
       .map(Uri.Scheme.unsafeFromString)
     val stringHost = until(char(':').orElse(`end`)).map(RegName.apply)
     val bracketedIpv6 = char('[') *> Uri.Parser.ipv6Address <* char(']')
-    val host = List(bracketedIpv6, Uri.Parser.ipv4Address.backtrack, stringHost).reduceLeft(_ orElse _)
+    val host = List(bracketedIpv6, Uri.Parser.ipv4Address, stringHost).reduceLeft(_ orElse _)
     val port = char(':') *> digit.rep.string.map(_.toInt)
     val nullHost = (string("null") *> `end`).as(Origin.Null)
 
