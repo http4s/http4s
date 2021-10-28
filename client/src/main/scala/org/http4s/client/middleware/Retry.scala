@@ -35,6 +35,12 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
+      client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] =
+    create[F](policy, redactHeaderWhen)(client)
+
+  def create[F[_]](
+      policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logRetries: Boolean = true)(
       client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
