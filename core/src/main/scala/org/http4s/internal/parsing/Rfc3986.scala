@@ -80,7 +80,9 @@ private[http4s] object Rfc3986 {
   }
 
   val ipv4Address: Parser[Ipv4Address] =
-    ipv4Bytes.map { case (a, b, c, d) => Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt) }
+    ipv4Bytes.map { case (a, b, c, d) =>
+      Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt)
+    }.backtrack
 
   val ipv6Address: Parser[Ipv6Address] = {
     import cats.parse.{Parser => P}
