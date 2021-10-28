@@ -18,8 +18,9 @@ package org.http4s
 
 import cats.ApplicativeThrow
 import fs2._
-import java.nio.charset.StandardCharsets
 import org.typelevel.ci.CIString
+
+import java.nio.charset.StandardCharsets
 
 package object util {
 

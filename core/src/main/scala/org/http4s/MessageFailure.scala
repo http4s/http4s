@@ -16,11 +16,14 @@
 
 package org.http4s
 
-import cats.{Eq, MonadError}
-import cats.syntax.all._
+import cats.Eq
+import cats.MonadError
 import cats.instances.either._
 import cats.parse.Parser0
-import scala.util.control.{NoStackTrace, NonFatal}
+import cats.syntax.all._
+
+import scala.util.control.NoStackTrace
+import scala.util.control.NonFatal
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 trait MessageFailure extends RuntimeException {

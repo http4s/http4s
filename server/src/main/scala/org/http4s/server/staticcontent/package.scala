@@ -17,7 +17,9 @@
 package org.http4s
 package server
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s

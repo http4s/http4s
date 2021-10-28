@@ -17,10 +17,11 @@
 package org.http4s.blaze
 package client
 
-import java.nio.channels.AsynchronousChannelGroup
-import javax.net.ssl.SSLContext
 import org.http4s.client.RequestKey
 import org.http4s.headers.`User-Agent`
+
+import java.nio.channels.AsynchronousChannelGroup
+import javax.net.ssl.SSLContext
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

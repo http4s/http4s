@@ -16,15 +16,18 @@
 
 package org.http4s
 
+import cats.data.Chain
 import cats.effect._
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
-import java.io.{File, FileInputStream, InputStreamReader}
-import java.nio.charset.StandardCharsets
-import cats.data.Chain
+import fs2._
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 import java.util.Arrays
 
 class EntityDecoderSuite extends Http4sSuite {

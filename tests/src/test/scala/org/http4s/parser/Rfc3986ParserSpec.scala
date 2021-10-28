@@ -17,8 +17,9 @@
 package org.http4s
 package parser
 
+import org.http4s.Uri.Ipv4Address
+import org.http4s.Uri.Ipv6Address
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.Uri.{Ipv4Address, Ipv6Address}
 import org.scalacheck.Prop
 
 class Rfc3986ParserSpec extends Http4sSuite {

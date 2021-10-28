@@ -17,15 +17,19 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import fs2.Stream
-import fs2.io.readInputStream
 import fs2.io.file.readAll
+import fs2.io.readInputStream
 import fs2.text.utf8Encode
-import java.io.{File, InputStream}
-import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
+
+import java.io.File
+import java.io.InputStream
+import java.net.URL
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))

@@ -18,14 +18,18 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.{Kleisli, NonEmptyList}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.NonEmptyList
 import cats.syntax.all._
-import cats.{Applicative, Functor, Monad}
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci._
+
 import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.util.hashing.MurmurHash3

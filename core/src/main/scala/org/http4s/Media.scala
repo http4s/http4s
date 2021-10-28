@@ -17,7 +17,8 @@
 package org.http4s
 
 import cats.MonadThrow
-import fs2.{RaiseThrowable, Stream}
+import fs2.RaiseThrowable
+import fs2.Stream
 import fs2.text.utf8Decode
 import org.http4s.headers._
 

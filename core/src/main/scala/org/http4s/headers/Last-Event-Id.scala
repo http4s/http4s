@@ -18,8 +18,8 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.internal.CharPredicate
 import org.http4s.ServerSentEvent._
+import org.http4s.internal.CharPredicate
 import org.typelevel.ci._
 
 final case class `Last-Event-Id`(id: EventId)

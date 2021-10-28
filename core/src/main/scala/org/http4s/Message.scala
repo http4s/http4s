@@ -16,20 +16,30 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, ~>}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
 import cats.data.NonEmptyList
+import cats.effect.IO
+import cats.effect.Sync
 import cats.syntax.all._
-import cats.effect.{IO, Sync}
-import com.comcast.ip4s.{Hostname, IpAddress, Port, SocketAddress}
-import fs2.{Pure, Stream}
+import cats.~>
+import com.comcast.ip4s.Hostname
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
+import fs2.Pure
+import fs2.Stream
 import fs2.text.utf8Encode
-import java.io.File
 import org.http4s.headers._
-import org.http4s.syntax.{KleisliSyntax, KleisliSyntaxBinCompat0, KleisliSyntaxBinCompat1}
+import org.http4s.syntax.KleisliSyntax
+import org.http4s.syntax.KleisliSyntaxBinCompat0
+import org.http4s.syntax.KleisliSyntaxBinCompat1
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
+import java.io.File
 import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.

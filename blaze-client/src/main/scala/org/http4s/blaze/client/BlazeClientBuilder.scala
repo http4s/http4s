@@ -20,16 +20,22 @@ package client
 
 import cats.effect._
 import cats.syntax.all._
+import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.BlazeBackendBuilder
+import org.http4s.blazecore.tickWheelResource
+import org.http4s.client.Client
+import org.http4s.client.ConnectionBuilder
+import org.http4s.client.RequestKey
+import org.http4s.client.defaults
+import org.http4s.headers.`User-Agent`
+import org.http4s.internal.BackendBuilder
+import org.http4s.internal.SSLContextOption
+import org.log4s.getLogger
+
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
-import org.http4s.blaze.channel.ChannelOptions
-import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
-import org.http4s.client.{Client, ConnectionBuilder, RequestKey, defaults}
-import org.http4s.headers.`User-Agent`
-import org.http4s.internal.{BackendBuilder, SSLContextOption}
-import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

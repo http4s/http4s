@@ -16,22 +16,22 @@
 
 package org.http4s.ember.server
 
-import fs2.Stream
-import org.http4s._
-import org.http4s.headers._
+import _root_.fs2.Chunk
 import cats.effect._
+import fs2.Stream
+import fs2.io.tcp.Socket
+import fs2.io.tcp.SocketGroup
+import org.http4s._
+import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
+import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.server.Server
 import org.typelevel.ci._
 
-import scala.concurrent.duration._
-import fs2.io.tcp.SocketGroup
 import java.net.InetSocketAddress
-import fs2.io.tcp.Socket
-import org.http4s.ember.core.Parser
-import org.http4s.ember.core.Encoder
-import org.http4s.ember.core.EmberException
-import _root_.fs2.Chunk
+import scala.concurrent.duration._
 
 class ConnectionSuite extends Http4sSuite {
 

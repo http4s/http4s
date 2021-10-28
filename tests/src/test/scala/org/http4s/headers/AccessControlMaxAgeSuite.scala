@@ -16,8 +16,11 @@
 
 package org.http4s.headers
 
+import org.http4s.Http4sSuite
+import org.http4s.ParseFailure
+import org.http4s.ParseResult
 import org.http4s.implicits.http4sSelectSyntaxOne
-import org.http4s.{Http4sSuite, ParseFailure, ParseResult}
+
 import scala.concurrent.duration.DurationInt
 
 class AccessControlMaxAgeSuite extends Http4sSuite {

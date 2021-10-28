@@ -21,8 +21,10 @@ package client
 import cats.effect._
 import fs2.Stream
 import org.http4s.blaze.channel.ChannelOptions
-import org.http4s.client.{Client, ConnectionBuilder}
+import org.http4s.client.Client
+import org.http4s.client.ConnectionBuilder
 import org.http4s.internal.SSLContextOption
+
 import scala.concurrent.duration.Duration
 
 /** Create a HTTP1 client which will attempt to recycle connections */

@@ -20,9 +20,12 @@ package dsl
 import cats.Monad
 import cats.effect.IO
 import cats.syntax.all._
-import org.http4s.dsl.io._
 import org.http4s.MediaType
-import org.http4s.headers.{Accept, Location, `Content-Length`, `Content-Type`}
+import org.http4s.dsl.io._
+import org.http4s.headers.Accept
+import org.http4s.headers.Location
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Content-Type`
 
 class ResponseGeneratorSuite extends Http4sSuite {
   test("Add the EntityEncoder headers along with a content-length header") {

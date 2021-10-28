@@ -17,6 +17,7 @@
 package org.http4s
 package circe.test // Get out of circe package so we can import custom instances
 
+import cats.data.EitherT
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
@@ -26,15 +27,15 @@ import io.circe._
 import io.circe.jawn.CirceSupportParser
 import io.circe.syntax._
 import io.circe.testing.instances._
-import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.circe._
-import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
-import cats.data.EitherT
+import org.http4s.syntax.all._
 import org.typelevel.jawn.ParseException
+
+import java.nio.charset.StandardCharsets
 
 class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()

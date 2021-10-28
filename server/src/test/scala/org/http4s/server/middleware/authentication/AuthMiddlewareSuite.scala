@@ -16,13 +16,14 @@
 
 package org.http4s.server.middleware.authentication
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.server.AuthMiddleware
+import org.http4s.syntax.all._
 
 class AuthMiddlewareSuite extends Http4sSuite {
   type User = Long

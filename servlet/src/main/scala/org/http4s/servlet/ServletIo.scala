@@ -20,12 +20,15 @@ package servlet
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import java.util.concurrent.atomic.AtomicReference
-import javax.servlet.{ReadListener, WriteListener}
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import org.http4s.internal.bug
 import org.http4s.internal.Trampoline
+import org.http4s.internal.bug
 import org.log4s.getLogger
+
+import java.util.concurrent.atomic.AtomicReference
+import javax.servlet.ReadListener
+import javax.servlet.WriteListener
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import scala.annotation.tailrec
 
 /** Determines the mode of I/O used for reading request bodies and writing response bodies.

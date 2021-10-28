@@ -17,9 +17,10 @@
 package org.http4s.ember.client
 
 import cats._
-import cats.effect.{Concurrent, Resource}
-import cats.syntax.all._
+import cats.effect.Concurrent
+import cats.effect.Resource
 import cats.effect.concurrent.Ref
+import cats.syntax.all._
 
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],

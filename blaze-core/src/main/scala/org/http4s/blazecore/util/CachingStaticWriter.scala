@@ -20,11 +20,13 @@ package util
 
 import cats.effect._
 import fs2._
-import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
+
+import java.nio.ByteBuffer
 import scala.collection.mutable.Buffer
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 private[http4s] class CachingStaticWriter[F[_]](
     out: TailStage[ByteBuffer],

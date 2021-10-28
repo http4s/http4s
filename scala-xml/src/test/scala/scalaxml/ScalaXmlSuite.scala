@@ -19,16 +19,18 @@ package scalaxml
 
 import cats.effect._
 import cats.syntax.all._
+import fs2.Chunk
 import fs2.Stream
-import fs2.text.{utf8Decode, utf8Encode}
+import fs2.text.utf8Decode
+import fs2.text.utf8Encode
+import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.Status.Ok
 import org.scalacheck.Prop._
 import org.typelevel.ci._
-import scala.xml.Elem
-import fs2.Chunk
+
 import java.nio.charset.StandardCharsets
+import scala.xml.Elem
 
 class ScalaXmlSuite extends Http4sSuite {
   def getBody(body: EntityBody[IO]): IO[String] =

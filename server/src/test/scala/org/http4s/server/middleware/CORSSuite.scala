@@ -21,10 +21,10 @@ package middleware
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
+import org.http4s.Http4sSuite
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
-import org.http4s.Http4sSuite
 import org.typelevel.ci._
 
 import scala.concurrent.duration._

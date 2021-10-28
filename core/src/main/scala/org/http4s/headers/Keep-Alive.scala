@@ -18,15 +18,17 @@ package org.http4s
 package headers
 
 import cats.implicits._
+import cats.kernel.Semigroup
 import cats.parse._
-import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
-import scala.concurrent.duration.FiniteDuration
+
 import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ListBuffer
-import cats.kernel.Semigroup
+import scala.concurrent.duration.FiniteDuration
 
 object `Keep-Alive` {
 

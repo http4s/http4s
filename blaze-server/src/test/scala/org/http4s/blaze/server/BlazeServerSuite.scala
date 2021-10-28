@@ -20,13 +20,15 @@ package server
 
 import cats.effect._
 import cats.syntax.all._
-import java.net.{HttpURLConnection, URL}
-import java.nio.charset.StandardCharsets
 import munit.TestOptions
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
 import org.http4s.multipart.Multipart
 import org.http4s.server.Server
+
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 import scala.io.Source

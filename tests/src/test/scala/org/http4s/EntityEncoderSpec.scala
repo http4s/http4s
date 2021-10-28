@@ -18,16 +18,19 @@ package org.http4s
 
 import cats.Eq
 import cats.effect.IO
-import cats.syntax.all._
-import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
-import cats.laws.discipline.eq._
+import cats.laws.discipline.ContravariantTests
+import cats.laws.discipline.ExhaustiveCheck
+import cats.laws.discipline.MiniInt
 import cats.laws.discipline.arbitrary._
+import cats.laws.discipline.eq._
+import cats.syntax.all._
 import fs2._
+import org.http4s.headers._
+import org.http4s.laws.discipline.arbitrary._
+
 import java.io._
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
-import org.http4s.headers._
-import org.http4s.laws.discipline.arbitrary._
 import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSuite {

@@ -16,11 +16,13 @@
 
 package org.http4s.blaze.server
 
+import org.http4s.blaze.pipeline.stages.ByteToObjectStage
+import org.http4s.websocket.FrameTranscoder
+import org.http4s.websocket.FrameTranscoder.TranscodeError
+import org.http4s.websocket.WebSocketFrame
+
 import java.net.ProtocolException
 import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.stages.ByteToObjectStage
-import org.http4s.websocket.FrameTranscoder.TranscodeError
-import org.http4s.websocket.{FrameTranscoder, WebSocketFrame}
 
 private class WebSocketDecoder(val maxBufferSize: Int = 0) // unbounded
     extends FrameTranscoder(isClient = false)

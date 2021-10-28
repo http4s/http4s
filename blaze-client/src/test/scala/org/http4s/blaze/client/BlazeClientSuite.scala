@@ -23,10 +23,13 @@ import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.tcp.SocketGroup
-import java.net.{InetSocketAddress, SocketException}
-import java.util.concurrent.TimeoutException
-import org.http4s.client.{ConnectionFailure, RequestKey}
+import org.http4s.client.ConnectionFailure
+import org.http4s.client.RequestKey
 import org.http4s.syntax.all._
+
+import java.net.InetSocketAddress
+import java.net.SocketException
+import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class BlazeClientSuite extends BlazeClientBase {

@@ -16,10 +16,14 @@
 
 package org.http4s
 
-import cats.{Monoid, Order, Show}
-import cats.data.{Ior, NonEmptyList}
+import cats.Monoid
+import cats.Order
+import cats.Show
+import cats.data.Ior
+import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci._
+
 import scala.collection.mutable
 
 /** A collection of HTTP Headers */

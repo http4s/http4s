@@ -16,11 +16,13 @@
 
 package com.example.http4s.blaze.demo.server.endpoints
 
-import cats.effect.{Async, Timer}
+import cats.effect.Async
+import cats.effect.Timer
 import cats.syntax.all._
-import java.util.concurrent.TimeUnit
-import org.http4s.{ApiVersion => _, _}
 import org.http4s.dsl.Http4sDsl
+import org.http4s.{ApiVersion => _, _}
+
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 

@@ -16,18 +16,24 @@
 
 package org.http4s
 
-import cats.{Contravariant, Show}
+import cats.Contravariant
+import cats.Show
 import cats.data.NonEmptyList
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import fs2.Chunk
+import fs2.Stream
 import fs2.io.file.readAll
 import fs2.io.readInputStream
+import org.http4s.headers._
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.MultipartEncoder
+
 import java.io._
 import java.nio.CharBuffer
 import java.nio.file.Path
-import org.http4s.headers._
-import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(

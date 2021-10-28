@@ -20,7 +20,8 @@ package parser
 import cats.syntax.show._
 import org.http4s.MediaRange._
 import org.http4s.MediaType._
-import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.headers.Accept
+import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.syntax.all._
 
 class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {

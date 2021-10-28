@@ -25,19 +25,26 @@ import com.comcast.ip4s.SocketAddress
 import fs2.Stream
 import fs2.io.tcp._
 import fs2.io.tls._
-import java.net.InetSocketAddress
 import org.http4s._
+import org.http4s.ember.core.Drain
+import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
+import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
-import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
+import org.http4s.headers.Connection
 import org.http4s.headers.Date
-import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
-import org.http4s.server.{SecureSession, ServerRequestKeys}
+import org.http4s.internal.tls.deduceKeyLength
+import org.http4s.internal.tls.getCertChain
+import org.http4s.server.SecureSession
+import org.http4s.server.ServerRequestKeys
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
-import scala.concurrent.duration._
 import scodec.bits.ByteVector
-import org.http4s.headers.Connection
+
+import java.net.InetSocketAddress
 import java.nio.channels.InterruptedByTimeoutException
+import scala.concurrent.duration._
 
 private[server] object ServerHelpers {
 
