@@ -17,10 +17,12 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Rfc5234
 import org.http4s.util.Renderable._
-import scala.concurrent.duration.FiniteDuration
 import org.typelevel.ci._
+
+import scala.concurrent.duration.FiniteDuration
 
 object `Retry-After` {
   private class RetryAfterImpl(retry: Either[HttpDate, Long]) extends `Retry-After`(retry)

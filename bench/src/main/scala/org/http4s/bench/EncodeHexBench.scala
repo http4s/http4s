@@ -17,9 +17,9 @@
 package org.http4s
 package bench
 
-import java.util.concurrent.TimeUnit
-
 import org.openjdk.jmh.annotations._
+
+import java.util.concurrent.TimeUnit
 
 // sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.EncodeHexBench"
 @BenchmarkMode(Array(Mode.AverageTime))

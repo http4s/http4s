@@ -20,8 +20,9 @@ package middleware
 
 import cats.effect._
 import fs2.io.readInputStream
-import org.http4s.syntax.all._
 import org.http4s.dsl.io._
+import org.http4s.syntax.all._
+
 import scala.io.Source
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger

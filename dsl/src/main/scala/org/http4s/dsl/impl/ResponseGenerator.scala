@@ -18,11 +18,13 @@ package org.http4s
 package dsl
 package impl
 
-import cats.{Applicative, Monad}
-import org.http4s.headers._
-import ResponseGenerator.addEntityLength
+import cats.Applicative
+import cats.Monad
 import cats.arrow.FunctionK
 import cats.syntax.all._
+import org.http4s.headers._
+
+import ResponseGenerator.addEntityLength
 
 trait ResponseGenerator extends Any {
   def status: Status

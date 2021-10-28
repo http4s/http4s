@@ -16,9 +16,10 @@
 
 package org.http4s.internal
 
+import org.http4s.internal.CharPredicate.AlphaNum
+
 import java.nio.CharBuffer
 import java.nio.charset.{Charset => JCharset}
-import org.http4s.internal.CharPredicate.AlphaNum
 
 /* Exists to work around circular dependencies */
 private[http4s] object UriCoding {

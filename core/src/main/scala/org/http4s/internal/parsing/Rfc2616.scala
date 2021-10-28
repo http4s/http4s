@@ -17,8 +17,11 @@
 package org.http4s.internal.parsing
 
 import cats.parse.Parser
-import cats.parse.Parser.{char, charIn, string}
-import cats.parse.Rfc5234.{digit, sp}
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Parser.string
+import cats.parse.Rfc5234.digit
+import cats.parse.Rfc5234.sp
 
 /** Common rules defined in RFC2616.  This RFC is now obsolete,
   * but some other active ones still refer to it.

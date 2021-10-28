@@ -17,10 +17,12 @@
 package org.http4s
 package ember.core
 
-import cats.effect.{Concurrent, IO}
+import cats.effect.Concurrent
+import cats.effect.IO
 import cats.implicits._
 import org.http4s.implicits._
 import org.typelevel.ci._
+
 import scala.annotation.nowarn
 
 class ResponseSplittingSuite extends Http4sSuite {

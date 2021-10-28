@@ -17,8 +17,11 @@
 package org.http4s
 package blazecore
 
-import java.net.{SocketOption, StandardSocketOptions}
-import org.http4s.blaze.channel.{ChannelOptions, OptionValue}
+import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blaze.channel.OptionValue
+
+import java.net.SocketOption
+import java.net.StandardSocketOptions
 
 private[http4s] trait BlazeBackendBuilder[B] {
   type Self

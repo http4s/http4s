@@ -16,9 +16,11 @@
 
 package org.http4s.internal
 
-import java.nio.charset.{Charset, StandardCharsets}
 import fs2.Chunk
 import org.http4s.util.Writer
+
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import scala.collection.mutable.Buffer
 
 /** [[Writer]] that will result in a `Chunk`

@@ -22,8 +22,8 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2._
-import org.log4s.getLogger
 import org.http4s.internal.{Logger => InternalLogger}
+import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Simple Middleware for Logging Requests As They Are Processed

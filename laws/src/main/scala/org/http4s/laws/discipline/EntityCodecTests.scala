@@ -20,7 +20,8 @@ package discipline
 
 import cats.Eq
 import cats.effect._
-import org.scalacheck.{Arbitrary, Shrink}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Shrink
 import org.scalacheck.effect.PropF
 
 trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {

@@ -16,11 +16,13 @@
 
 package org.http4s.ember.server.internal
 
-import cats.syntax.all._
 import cats.effect.Concurrent
 import cats.effect.concurrent.Semaphore
-import fs2.{INothing, Stream}
-import fs2.concurrent.{Signal, SignallingRef}
+import cats.syntax.all._
+import fs2.INothing
+import fs2.Stream
+import fs2.concurrent.Signal
+import fs2.concurrent.SignallingRef
 
 private[internal] object StreamForking {
 

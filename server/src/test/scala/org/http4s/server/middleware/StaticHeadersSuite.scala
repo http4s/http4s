@@ -18,9 +18,9 @@ package org.http4s.server.middleware
 
 import cats.effect._
 import org.http4s._
+import org.http4s.dsl.io._
 import org.http4s.headers.`Cache-Control`
 import org.http4s.syntax.all._
-import org.http4s.dsl.io._
 
 class StaticHeadersSuite extends Http4sSuite {
   val testService = HttpRoutes.of[IO] {

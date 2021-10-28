@@ -16,8 +16,8 @@
 
 package org.http4s.play
 
-import play.api.libs.json.Writes
 import org.http4s.EntityEncoder
+import play.api.libs.json.Writes
 
 /** Derive [[EntityEncoder]] if implicit [[play.api.libs.json.Writes]] is in
   * the scope without need to explicitly call `jsonEncoderOf`.

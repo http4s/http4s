@@ -17,8 +17,8 @@
 package org.http4s.server.staticcontent
 
 import cats.effect.IO
-import org.http4s._
 import org.http4s.Method.GET
+import org.http4s._
 import org.http4s.syntax.all._
 
 class WebjarServiceFilterSuite extends Http4sSuite with StaticContentShared {

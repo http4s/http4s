@@ -20,7 +20,8 @@ package middleware
 
 import cats.Applicative
 import cats.data.Kleisli
-import org.http4s.Status.{BadRequest, NotFound}
+import org.http4s.Status.BadRequest
+import org.http4s.Status.NotFound
 import org.http4s.headers.Host
 
 /** Middleware for virtual host mapping

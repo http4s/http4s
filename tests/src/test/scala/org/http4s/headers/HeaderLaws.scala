@@ -17,10 +17,10 @@
 package org.http4s
 package headers
 
+import org.http4s.syntax.header._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
 import org.typelevel.discipline.Laws
-import org.http4s.syntax.header._
 
 trait HeaderLaws extends munit.DisciplineSuite with Laws {
   def headerLaws[A](implicit

@@ -20,16 +20,15 @@ package staticcontent
 
 import cats.effect.IO
 import cats.syntax.all._
-import java.nio.file.Paths
 import fs2._
-import org.http4s.headers.{
-  `Accept-Encoding`,
-  `Content-Encoding`,
-  `Content-Type`,
-  `If-Modified-Since`
-}
+import org.http4s.headers.`Accept-Encoding`
+import org.http4s.headers.`Content-Encoding`
+import org.http4s.headers.`Content-Type`
+import org.http4s.headers.`If-Modified-Since`
 import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
+
+import java.nio.file.Paths
 
 class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   // val config =

@@ -17,13 +17,17 @@
 package org.http4s.server.middleware
 
 import cats.data.Kleisli
-import cats.effect.{Clock, ExitCase, Sync}
+import cats.effect.Clock
+import cats.effect.ExitCase
+import cats.effect.Sync
 import cats.syntax.all._
-import java.util.concurrent.TimeUnit
-
 import org.http4s._
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
+import org.http4s.metrics.TerminationType.Abnormal
+import org.http4s.metrics.TerminationType.Canceled
+import org.http4s.metrics.TerminationType.Error
+
+import java.util.concurrent.TimeUnit
 
 /** Server middleware to record metrics for the http4s server.
   *

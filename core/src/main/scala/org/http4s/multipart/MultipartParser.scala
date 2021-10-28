@@ -17,12 +17,22 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, Pure, Stream}
-import fs2.io.file.{readAll, writeAll}
-import java.nio.file.{Files, Path, StandardOpenOption}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Pure
+import fs2.Stream
+import fs2.io.file.readAll
+import fs2.io.file.writeAll
 import org.typelevel.ci.CIString
+
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {

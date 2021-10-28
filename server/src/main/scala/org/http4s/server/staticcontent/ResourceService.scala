@@ -18,14 +18,20 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data.{Kleisli, OptionT}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.data.Kleisli
+import cats.data.OptionT
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import cats.syntax.all._
-import java.nio.file.Paths
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
+
+import java.nio.file.Paths
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import scala.util.control.NoStackTrace
-import scala.util.{Failure, Success, Try}
 
 /** [[org.http4s.server.staticcontent.ResourceServiceBuilder]] builder
   *

@@ -17,9 +17,10 @@
 package org.http4s
 package server
 
-import cats.syntax.all._
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
+import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 

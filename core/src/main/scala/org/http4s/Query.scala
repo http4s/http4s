@@ -16,16 +16,22 @@
 
 package org.http4s
 
+import cats.Eval
+import cats.Foldable
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.parse.Parser0
 import cats.syntax.all._
-import cats.{Eval, Foldable, Hash, Order, Show}
-import java.nio.charset.StandardCharsets
 import org.http4s.Query._
-import org.http4s.internal.{CollectionCompat, UriCoding}
+import org.http4s.internal.CollectionCompat
+import org.http4s.internal.UriCoding
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.QueryParser
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
+import java.nio.charset.StandardCharsets
 import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer

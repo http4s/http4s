@@ -16,13 +16,16 @@
 
 package org.http4s
 
-import java.net.URLEncoder
-import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
+import org.http4s.Uri.{Fragment => _, Path => _, apply => _, unapply => _, _}
 import org.http4s.UriTemplate._
 import org.http4s.util.StringWriter
+
+import java.net.URLEncoder
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /** Simple representation of a URI Template that can be rendered as RFC6570
   * conform string.

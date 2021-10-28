@@ -18,18 +18,29 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import cats.syntax.all._
-import java.io.File
-import java.nio.file.{Files, LinkOption, NoSuchFileException, Path, Paths}
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import org.typelevel.ci._
+
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.NoSuchFileException
+import java.nio.file.Path
+import java.nio.file.Paths
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 import scala.util.control.NoStackTrace
-import scala.util.{Failure, Success, Try}
 
 object FileService {
   private[this] val logger = getLogger

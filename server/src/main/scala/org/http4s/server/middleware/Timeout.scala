@@ -19,8 +19,10 @@ package server
 package middleware
 
 import cats.data.Kleisli
-import cats.effect.{Concurrent, Timer}
+import cats.effect.Concurrent
+import cats.effect.Timer
 import cats.syntax.applicative._
+
 import scala.concurrent.duration.FiniteDuration
 
 object Timeout {

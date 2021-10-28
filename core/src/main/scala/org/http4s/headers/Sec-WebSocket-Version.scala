@@ -17,8 +17,8 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci._
 import org.http4s.parser.AdditionalRules
+import org.typelevel.ci._
 
 object `Sec-WebSocket-Version` {
 

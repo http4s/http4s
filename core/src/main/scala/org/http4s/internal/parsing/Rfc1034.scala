@@ -16,8 +16,9 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser.{char, charIn}
 import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
 import org.typelevel.ci.CIString
 
 /** Common rules defined in RFC1034, as amended by RFC1123.

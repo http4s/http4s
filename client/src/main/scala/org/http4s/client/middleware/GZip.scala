@@ -19,10 +19,15 @@ package client
 package middleware
 
 import cats.data.NonEmptyList
-import cats.effect.{BracketThrow, Sync}
-import fs2.{Pipe, Pull, Stream}
-import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
+import cats.effect.BracketThrow
+import cats.effect.Sync
+import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
+import org.http4s.headers.`Accept-Encoding`
+import org.http4s.headers.`Content-Encoding`
 import org.typelevel.ci._
+
 import scala.util.control.NoStackTrace
 
 /** Client middleware for enabling gzip.

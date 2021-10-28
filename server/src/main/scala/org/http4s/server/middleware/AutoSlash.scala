@@ -18,7 +18,8 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Monad, MonoidK}
+import cats.Monad
+import cats.MonoidK
 import cats.data.Kleisli
 import cats.syntax.all._
 

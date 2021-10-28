@@ -20,9 +20,10 @@ package middleware
 
 import cats.data.OptionT
 import cats.effect._
-import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
+
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration._
 
 class TimeoutSuite extends Http4sSuite {

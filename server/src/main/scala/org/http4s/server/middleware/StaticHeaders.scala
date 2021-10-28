@@ -18,7 +18,8 @@ package org.http4s
 package server.middleware
 
 import cats.Functor
-import cats.data.{Kleisli, NonEmptyList}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.headers.`Cache-Control`
 

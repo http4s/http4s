@@ -16,30 +16,35 @@
 
 package org.http4s.ember.client.internal
 
-import org.http4s.ember.client._
-import fs2.io.tcp._
+import _root_.fs2.io.tcp.SocketGroup
+import _root_.fs2.io.tls._
+import _root_.org.http4s.ember.core.Encoder
+import _root_.org.http4s.ember.core.Parser
+import _root_.org.http4s.ember.core.Util._
 import cats._
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.implicits._
 import cats.effect.concurrent._
+import cats.effect.implicits._
 import cats.syntax.all._
-import scala.concurrent.duration._
-import java.net.InetSocketAddress
+import fs2.io.tcp._
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
+import org.http4s.ember.client._
 import org.http4s.ember.core.EmberException
+import org.http4s.headers.Connection
+import org.http4s.headers.Date
+import org.http4s.headers.`Idempotency-Key`
+import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
-import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.fs2.io.tcp.SocketGroup
-import _root_.fs2.io.tls._
 import org.typelevel.keypool._
-import javax.net.ssl.SNIHostName
-import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
-import _root_.org.http4s.ember.core.Util._
-import java.nio.channels.ClosedChannelException
+
 import java.io.IOException
+import java.net.InetSocketAddress
+import java.nio.channels.ClosedChannelException
+import javax.net.ssl.SNIHostName
+import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
 

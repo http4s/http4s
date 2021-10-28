@@ -16,9 +16,9 @@
 
 package org.http4s.websocket
 
+import cats.effect.SyncIO
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
-import cats.effect.SyncIO
 import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets._

@@ -18,13 +18,19 @@ package org.http4s.metrics.prometheus
 
 import cats.effect._
 import io.prometheus.client.CollectorRegistry
-import java.io.IOException
-import java.util.concurrent.TimeoutException
-import org.http4s.{Http4sSuite, HttpApp, Request, Status, Uri}
-import org.http4s.client.{Client, UnexpectedStatus}
+import org.http4s.Http4sSuite
+import org.http4s.HttpApp
+import org.http4s.Request
+import org.http4s.Status
+import org.http4s.Uri
+import org.http4s.client.Client
+import org.http4s.client.UnexpectedStatus
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
 import org.http4s.metrics.prometheus.util._
+
+import java.io.IOException
+import java.util.concurrent.TimeoutException
 
 class PrometheusClientMetricsSuite extends Http4sSuite {
   val client: Client[IO] = Client.fromHttpApp[IO](HttpApp[IO](stub))

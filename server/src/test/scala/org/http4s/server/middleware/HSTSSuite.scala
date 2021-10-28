@@ -23,6 +23,7 @@ import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
+
 import scala.concurrent.duration._
 
 class HSTSSuite extends Http4sSuite {

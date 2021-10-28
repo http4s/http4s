@@ -21,12 +21,13 @@ package staticcontent
 import cats.effect.IO
 import cats.syntax.all._
 import fs2._
+import org.http4s.headers.Range.SubRange
+import org.http4s.headers.`Content-Range`
+import org.http4s.server.middleware.TranslateUri
+import org.http4s.syntax.all._
+
 import java.io.File
 import java.nio.file._
-import org.http4s.syntax.all._
-import org.http4s.headers.`Content-Range`
-import org.http4s.headers.Range.SubRange
-import org.http4s.server.middleware.TranslateUri
 
 class FileServiceSuite extends Http4sSuite with StaticContentShared {
   val defaultSystemPath = org.http4s.server.test.BuildInfo.test_resourceDirectory.getAbsolutePath

@@ -17,9 +17,10 @@
 package org.http4s.headers
 
 import org.http4s.ParseFailure
-import org.http4s.syntax.header._
-import scala.concurrent.duration._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.header._
+
+import scala.concurrent.duration._
 
 class StrictTransportSecuritySuite extends HeaderLaws {
   checkAll("StrictTransportSecurity", headerLaws[`Strict-Transport-Security`])
