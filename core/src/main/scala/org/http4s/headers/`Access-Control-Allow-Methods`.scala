@@ -22,7 +22,7 @@ import org.http4s.{Header, Method, ParseResult}
 import org.typelevel.ci.{CIString, CIStringSyntax}
 
 /** The `Access-Control-Allow-Methods` header. */
-final case class `Access-Control-Allow-Methods`(methods: List[Method])
+final case class `Access-Control-Allow-Methods`(methods: Set[Method])
 
 object `Access-Control-Allow-Methods` {
 
@@ -33,7 +33,7 @@ object `Access-Control-Allow-Methods` {
         val parsedMethodList = list.traverse { ciMethod =>
           Method.fromString(ciMethod.toString).toOption
         }
-        parsedMethodList.map(`Access-Control-Allow-Methods`.apply)
+        parsedMethodList.map(list => `Access-Control-Allow-Methods`.apply(list.toSet))
       }
 
   def parse(s: String): ParseResult[`Access-Control-Allow-Methods`] =
@@ -46,6 +46,7 @@ object `Access-Control-Allow-Methods` {
       parse
     )
 
-  // TODO Add the semigroup
+  implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Methods`] =
+    (a, b) => `Access-Control-Allow-Methods`(a.methods ++ b.methods)
 
 }
