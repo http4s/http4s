@@ -36,6 +36,11 @@ object `Referrer-Policy` {
       writer.append(value)
   }
 
+  object Directive {
+    def fromString(s: String): ParseResult[Directive] =
+      ParseResult.fromParser(directiveParser, "Invalid Referrer-Policy directive")(s)
+  }
+
   case object `no-referrer` extends Directive("no-referrer")
   case object `no-referrer-when-downgrade` extends Directive("no-referrer-when-downgrade")
   case object origin extends Directive("origin")

@@ -88,4 +88,19 @@ class ReferrerPolicySuite extends HeaderLaws {
   test("parse should fail when some directives are invalid") {
     assert(`Referrer-Policy`.parse("origin, abc-012, unsafe-url").isLeft)
   }
+
+  test("Directive.fromString should parse all known directives") {
+    Prop.forAll { (a: Directive) =>
+      Directive.fromString(a.value) == Right(a)
+    }
+  }
+
+  test("Directive.fromString should parse unknown directives") {
+    val unknown = UnknownPolicy.unsafeFromString("unknown-policy")
+    Directive.fromString(unknown.value) == Right(unknown)
+  }
+
+  test("Directive.fromString should fail with invalid directives") {
+    assert(Directive.fromString("abc-012").isLeft)
+  }
 }
