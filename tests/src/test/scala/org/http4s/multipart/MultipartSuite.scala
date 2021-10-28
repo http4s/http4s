@@ -21,11 +21,12 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import java.io.File
+import org.http4s.EntityEncoder._
 import org.http4s.headers._
 import org.http4s.syntax.literals._
-import org.http4s.EntityEncoder._
 import org.typelevel.ci._
+
+import java.io.File
 
 class MultipartSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift

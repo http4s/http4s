@@ -19,9 +19,11 @@ package blaze
 package client
 
 import cats.effect.IO
-import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
+import org.http4s.blaze.pipeline.HeadStage
+import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.client.ConnectionBuilder
+
+import java.nio.ByteBuffer
 
 private[client] object MockClientBuilder {
   def builder(

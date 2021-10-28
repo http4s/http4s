@@ -19,11 +19,13 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse._
-import java.util.concurrent.TimeUnit
 import org.http4s.CacheDirective._
-import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
-import org.http4s.parser.{AdditionalRules}
+import org.http4s.internal.parsing.Rfc2616
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.parser.AdditionalRules
 import org.typelevel.ci._
+
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 object `Cache-Control` extends HeaderCompanion[`Cache-Control`]("Cache-Control") {

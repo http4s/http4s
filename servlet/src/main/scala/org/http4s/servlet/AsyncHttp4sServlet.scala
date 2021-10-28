@@ -20,10 +20,12 @@ package servlet
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.syntax.all._
-import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.internal.loggingAsyncCallback
 import org.http4s.server._
+
+import javax.servlet._
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import scala.concurrent.duration.Duration
 
 class AsyncHttp4sServlet[F[_]](

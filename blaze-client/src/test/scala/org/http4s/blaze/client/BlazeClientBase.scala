@@ -18,13 +18,16 @@ package org.http4s.blaze
 package client
 
 import cats.effect._
-import javax.net.ssl.SSLContext
-import javax.servlet.ServletOutputStream
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.client.JettyScaffold
 import org.http4s.client.testroutes.GetRoutes
+
+import javax.net.ssl.SSLContext
+import javax.servlet.ServletOutputStream
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import scala.concurrent.duration._
 
 trait BlazeClientBase extends Http4sSuite {

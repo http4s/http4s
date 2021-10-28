@@ -16,9 +16,12 @@
 
 package org.http4s
 
-import cats.data.Validated.{Invalid, Valid}
-import cats.data.{Chain, NonEmptyList}
+import cats.data.Chain
+import cats.data.NonEmptyList
+import cats.data.Validated.Invalid
+import cats.data.Validated.Valid
 import cats.syntax.all._
+
 import FormDataDecoder._
 
 class FormDataDecoderSpec extends Http4sSuite {

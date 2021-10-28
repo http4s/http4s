@@ -20,13 +20,14 @@ package middleware
 
 import cats.effect._
 import cats.implicits._
-import fs2._
 import fs2.Stream._
-import java.nio.charset.StandardCharsets
+import fs2._
 import org.http4s.Method._
 import org.http4s.Status._
-import org.http4s.syntax.all._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
+import org.http4s.syntax.all._
+
+import java.nio.charset.StandardCharsets
 
 class EntityLimiterSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {

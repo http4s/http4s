@@ -17,10 +17,11 @@
 package org.http4s.blaze.client
 
 import cats.syntax.all._
-import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.blaze.http.parser.Http1ClientParser
 import org.typelevel.ci.CIString
+
+import java.nio.ByteBuffer
 import scala.collection.mutable.ListBuffer
 
 private[blaze] final class BlazeHttp1ClientParser(

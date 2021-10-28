@@ -17,6 +17,7 @@
 package org.http4s.blazecore.websocket
 
 import org.http4s.blaze.pipeline.MidStage
+
 import scala.concurrent.Future
 
 private final class SerializingStage[I] extends PassThrough[I] with Serializer[I] {

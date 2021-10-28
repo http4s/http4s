@@ -17,13 +17,17 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
+import cats.parse.Parser0
+import org.http4s.Header
 import org.http4s._
-import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token}
+import org.http4s.internal.parsing.Rfc7230.headerRep1
+import org.http4s.internal.parsing.Rfc7230.ows
+import org.http4s.internal.parsing.Rfc7230.quotedString
+import org.http4s.internal.parsing.Rfc7230.token
+import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
-import org.http4s.Header
-import org.typelevel.ci._
 
 object Link {
 

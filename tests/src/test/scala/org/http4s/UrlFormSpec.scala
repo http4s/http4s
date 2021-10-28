@@ -19,8 +19,8 @@ package org.http4s
 import cats.Monoid
 import cats.data._
 import cats.effect.IO
-import cats.syntax.all.{catsSyntaxEq => _, _}
 import cats.kernel.laws.discipline.MonoidTests
+import cats.syntax.all.{catsSyntaxEq => _, _}
 import org.http4s.internal.CollectionCompat
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop

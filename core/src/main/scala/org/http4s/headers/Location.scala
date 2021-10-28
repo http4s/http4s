@@ -17,8 +17,9 @@
 package org.http4s
 package headers
 
-import java.nio.charset.StandardCharsets
 import org.typelevel.ci._
+
+import java.nio.charset.StandardCharsets
 
 object Location {
 

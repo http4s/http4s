@@ -18,15 +18,20 @@ package org.http4s
 package blaze
 package server
 
-import cats.effect.{ConcurrentEffect, Timer}
-import java.nio.ByteBuffer
-import javax.net.ssl.SSLEngine
-import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
-import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
-import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import cats.effect.ConcurrentEffect
+import cats.effect.Timer
+import org.http4s.blaze.http.http2.DefaultFlowStrategy
+import org.http4s.blaze.http.http2.Http2Settings
+import org.http4s.blaze.http.http2.server.ALPNServerSelector
+import org.http4s.blaze.http.http2.server.ServerPriorKnowledgeHandshaker
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.server.ServiceErrorHandler
 import org.typelevel.vault._
+
+import java.nio.ByteBuffer
+import javax.net.ssl.SSLEngine
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 

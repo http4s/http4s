@@ -16,14 +16,14 @@
 
 package org.http4s.server.middleware
 
-import cats.implicits._
 import cats.effect.IO
+import cats.implicits._
 import cats.~>
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.server.Router
 import org.http4s.server.middleware.HttpMethodOverrider._
+import org.http4s.syntax.all._
 import org.typelevel.ci.CIString
 
 class HttpMethodOverriderSuite extends Http4sSuite {

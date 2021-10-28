@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor}
+import cats.Applicative
+import cats.Functor
 import cats.data.EitherT
 
 object DecodeResult {

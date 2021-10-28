@@ -23,9 +23,10 @@ import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
 import fs2.compression._
-import java.util.zip.Deflater
 import org.http4s.headers._
 import org.log4s.getLogger
+
+import java.util.zip.Deflater
 
 object GZip {
   private[this] val logger = getLogger

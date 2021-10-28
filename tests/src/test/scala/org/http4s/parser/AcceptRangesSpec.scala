@@ -18,8 +18,8 @@ package org.http4s
 package parser
 
 import org.http4s.RangeUnit
-import org.http4s.syntax.header._
 import org.http4s.headers.`Accept-Ranges`
+import org.http4s.syntax.header._
 
 class AcceptRangesSpec extends Http4sSuite {
   def parse(value: String): ParseResult[`Accept-Ranges`] = `Accept-Ranges`.parse(value)

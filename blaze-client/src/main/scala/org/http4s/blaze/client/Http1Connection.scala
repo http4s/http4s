@@ -22,22 +22,30 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.util.Http1Writer
+import org.http4s.client.RequestKey
+import org.http4s.headers.Connection
+import org.http4s.headers.Host
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`User-Agent`
+import org.http4s.internal.CharPredicate
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
+import org.typelevel.vault._
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-import org.http4s.Uri.{Authority, RegName}
-import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
-import org.http4s.blazecore.util.Http1Writer
-import org.http4s.client.RequestKey
-import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
-import org.http4s.internal.CharPredicate
-import org.http4s.util.{StringWriter, Writer}
-import org.typelevel.vault._
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
 
 private final class Http1Connection[F[_]](
     val requestKey: RequestKey,

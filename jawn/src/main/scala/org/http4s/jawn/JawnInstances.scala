@@ -20,8 +20,10 @@ package jawn
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import org.typelevel.jawn.{AsyncParser, Facade, ParseException}
 import jawnfs2._
+import org.typelevel.jawn.AsyncParser
+import org.typelevel.jawn.Facade
+import org.typelevel.jawn.ParseException
 
 trait JawnInstances {
   def jawnDecoder[F[_]: Sync, J: Facade]: EntityDecoder[F, J] =

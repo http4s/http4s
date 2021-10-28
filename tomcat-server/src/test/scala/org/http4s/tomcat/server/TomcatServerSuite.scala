@@ -18,17 +18,21 @@ package org.http4s
 package tomcat
 package server
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.ContextShift
+import cats.effect.IO
+import cats.effect.Timer
 import cats.syntax.all._
-import java.io.IOException
-import java.net.{HttpURLConnection, URL}
-import java.nio.charset.StandardCharsets
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 import org.http4s.dsl.io._
 import org.http4s.server.Server
+
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.util.logging.LogManager
 import scala.concurrent.duration._
 import scala.io.Source
-import java.util.logging.LogManager
 
 class TomcatServerSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift

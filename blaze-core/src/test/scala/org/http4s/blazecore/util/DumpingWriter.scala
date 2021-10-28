@@ -18,11 +18,14 @@ package org.http4s
 package blazecore
 package util
 
-import cats.effect.{Effect, IO}
+import cats.effect.Effect
+import cats.effect.IO
 import fs2._
 import org.http4s.blaze.util.Execution
+
 import scala.collection.mutable.Buffer
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 object DumpingWriter {
   def dump(p: EntityBody[IO]): IO[Array[Byte]] = {

@@ -16,18 +16,18 @@
 
 package org.http4s.ember.core
 
-import cats.effect._
-import fs2.concurrent.Queue
-import org.http4s._
-import org.http4s.implicits._
-import scodec.bits.ByteVector
-import fs2._
-import cats.effect.concurrent._
 import cats.data.OptionT
+import cats.effect._
+import cats.effect.concurrent._
 import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
+import fs2._
+import fs2.concurrent.Queue
+import org.http4s._
 import org.http4s.headers.Expires
+import org.http4s.implicits._
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 class ParsingSuite extends Http4sSuite {
   object Helpers {

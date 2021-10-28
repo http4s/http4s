@@ -17,11 +17,13 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
+import cats.parse.Parser0
+import org.http4s.Header
 import org.http4s.internal.parsing.Rfc7230.ows
 import org.http4s.parser.AdditionalRules
-import org.http4s.util.{Renderable, Writer}
-import org.http4s.Header
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 import scala.concurrent.duration.FiniteDuration

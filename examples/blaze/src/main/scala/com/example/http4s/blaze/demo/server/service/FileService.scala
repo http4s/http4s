@@ -16,12 +16,15 @@
 
 package com.example.http4s.blaze.demo.server.service
 
-import java.io.File
-import java.nio.file.Paths
-import cats.effect.{Blocker, ContextShift, Effect}
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Effect
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import org.http4s.multipart.Part
+
+import java.io.File
+import java.nio.file.Paths
 
 class FileService[F[_]: ContextShift](blocker: Blocker)(implicit F: Effect[F], S: StreamUtils[F]) {
   def homeDirectories(depth: Option[Int]): Stream[F, String] =

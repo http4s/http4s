@@ -18,12 +18,14 @@ package org.http4s
 package server
 package middleware
 
-import cats.implicits._
 import cats.effect._
+import cats.implicits._
 import org.http4s.Method._
-import org.http4s.Status.{BadRequest, NotFound, Ok}
-import org.http4s.syntax.all._
+import org.http4s.Status.BadRequest
+import org.http4s.Status.NotFound
+import org.http4s.Status.Ok
 import org.http4s.headers.Host
+import org.http4s.syntax.all._
 
 class VirtualHostSuite extends Http4sSuite {
   val default = HttpRoutes.of[IO] { case _ =>

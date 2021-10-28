@@ -19,8 +19,9 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object Cookie {

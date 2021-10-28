@@ -68,13 +68,17 @@ jobs:
 
       - name: Check formatting
         if: matrix.scala != '3.0.2'
-        run: sbt ++${{ matrix.scala }} scalafmtCheckAll
+        run: sbt ++${{ matrix.scala }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
         run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
 
       - name: Compile
         run: 'sbt ++${{ matrix.scala }} test:compile'
+
+      - name: Check Scalafix rules
+        if: matrix.scala != '3.0.2'
+        run: sbt ++${{ matrix.scala }} 'scalafixAll --check'
 
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues

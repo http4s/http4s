@@ -17,7 +17,8 @@
 package org.http4s.client.oauth1
 
 import cats.data.NonEmptyList
-import cats.effect.{IO, Timer}
+import cats.effect.IO
+import cats.effect.Timer
 import org.http4s.Credentials.AuthParams
 import org.http4s._
 import org.http4s.client.oauth1

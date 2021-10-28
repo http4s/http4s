@@ -17,10 +17,15 @@
 package com.example.http4s
 package war
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp}
-import javax.servlet.annotation.WebListener
-import javax.servlet.{ServletContextEvent, ServletContextListener}
+import cats.effect.Blocker
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import org.http4s.servlet.syntax._
+
+import javax.servlet.ServletContextEvent
+import javax.servlet.ServletContextListener
+import javax.servlet.annotation.WebListener
 import scala.concurrent.ExecutionContext
 
 @WebListener

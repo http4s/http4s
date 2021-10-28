@@ -16,15 +16,20 @@
 
 package org.http4s
 
-import cats.{Applicative, Monad}
-import cats.data.{Kleisli, OptionT}
-import cats.syntax.all._
+import cats.Applicative
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.IO
-import org.typelevel.vault._
-import java.net.{InetAddress, InetSocketAddress}
-import org.http4s.headers.{Connection, `Content-Length`}
+import cats.syntax.all._
+import org.http4s.headers.Connection
+import org.http4s.headers.`Content-Length`
 import org.log4s.getLogger
 import org.typelevel.ci._
+import org.typelevel.vault._
+
+import java.net.InetAddress
+import java.net.InetSocketAddress
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
