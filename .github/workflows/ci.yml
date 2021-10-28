@@ -33,8 +33,16 @@ jobs:
         ci: [ciJVM, ciNodeJS]
         exclude:
           - ci: ciNodeJS
+            scala: 2.12.15
             java: adoptium@11
           - ci: ciNodeJS
+            scala: 2.12.15
+            java: adoptium@17
+          - ci: ciNodeJS
+            scala: 3.1.0
+            java: adoptium@11
+          - ci: ciNodeJS
+            scala: 3.1.0
             java: adoptium@17
     runs-on: ${{ matrix.os }}
     steps:
@@ -65,27 +73,27 @@ jobs:
 
       - name: Check formatting
         if: matrix.scala != '3.1.0'
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll
+        run: sbt ++${{ matrix.scala }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
-        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' headerCheck test:headerCheck'
+        run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
 
       - name: Compile
-        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
+        run: 'sbt ++${{ matrix.scala }} test:compile'
 
       - name: Check binary compatibility
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
+        run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
       - name: FastOptJS
         if: matrix.ci != 'ciJVM'
-        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' fastOptJS test:fastOptJS'
+        run: 'sbt ++${{ matrix.scala }} fastOptJS test:fastOptJS'
 
       - name: Run tests
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' test
+        run: sbt ++${{ matrix.scala }} test
 
       - name: Build docs
         if: matrix.ci == 'ciJVM'
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' doc
+        run: sbt ++${{ matrix.scala }} doc
 
   publish:
     name: Publish Artifacts
