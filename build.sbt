@@ -807,4 +807,4 @@ addCommandAlias("quicklint", s";scalafixAll ;scalafmtAll ;scalafmtSbt")
 
 addCommandAlias(
   "lint",
-  s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafmtAll ;scalafmtSbt")
+  s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues")
