@@ -51,11 +51,19 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 val ciVariants = List("ciJVM", "ciNodeJS")
 ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 
+// Only one Java version necessary for the Node builds
+ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
+  for {
+    java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
+  } yield MatrixExclude(Map("ci" -> "ciNodeJS", "java" -> java))
+}
+
+// On the JVM Build all Javas for one Scala, and all Scalas for one Java
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   for {
     scala <- (ThisBuild / crossScalaVersions).value.tail
     java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("ci" -> "ciNodeJS", "scala" -> scala, "java" -> java))
+  } yield MatrixExclude(Map("ci" -> "ciJVM", "scala" -> scala, "java" -> java))
 }
 
 addCommandAlias("ciJVM", "; project rootJVM")

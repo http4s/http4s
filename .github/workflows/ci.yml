@@ -33,15 +33,19 @@ jobs:
         ci: [ciJVM, ciNodeJS]
         exclude:
           - ci: ciNodeJS
-            scala: 2.12.15
             java: adoptium@11
           - ci: ciNodeJS
+            java: adoptium@17
+          - ci: ciJVM
+            scala: 2.12.15
+            java: adoptium@11
+          - ci: ciJVM
             scala: 2.12.15
             java: adoptium@17
-          - ci: ciNodeJS
+          - ci: ciJVM
             scala: 3.1.0
             java: adoptium@11
-          - ci: ciNodeJS
+          - ci: ciJVM
             scala: 3.1.0
             java: adoptium@17
     runs-on: ${{ matrix.os }}
