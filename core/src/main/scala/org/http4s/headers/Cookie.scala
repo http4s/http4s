@@ -44,8 +44,7 @@ object Cookie {
     cookieString <* char(';').?
   }
 
-  @inline
-  final val name: CIString = ci"Cookie"
+  val name: CIString = ci"Cookie"
 
   implicit val headerInstance: Header[Cookie, Header.Recurring] =
     Header.createRendered(

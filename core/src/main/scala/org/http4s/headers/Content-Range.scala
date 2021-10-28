@@ -62,8 +62,7 @@ object `Content-Range` {
     byteContentRange
   }
 
-  @inline
-  final val name: CIString = ci"Content-Range"
+  val name: CIString = ci"Content-Range"
 
   implicit val headerInstance: Header[`Content-Range`, Header.Single] =
     Header.createRendered(
