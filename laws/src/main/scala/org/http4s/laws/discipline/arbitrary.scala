@@ -514,7 +514,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingArbitraryForAceesContrlolAllowedCredentials
       : Arbitrary[headers.`Access-Control-Allow-Credentials`] =
     Arbitrary {
-      Gen.const(`Access-Control-Allow-Credentials`())
+      Gen.const(`Access-Control-Allow-Credentials`)
     }
 
   implicit val http4sTestingArbitraryForAcceptHeader: Arbitrary[headers.Accept] =

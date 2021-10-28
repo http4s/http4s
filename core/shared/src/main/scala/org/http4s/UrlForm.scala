@@ -97,10 +97,9 @@ object UrlForm {
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
 
-  implicit def entityEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
-    EntityEncoder
-      .stringEncoder[F]
+  implicit def entityEncoder(implicit
+      charset: Charset = DefaultCharset): EntityEncoder.Pure[UrlForm] =
+    EntityEncoder.stringEncoder
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
