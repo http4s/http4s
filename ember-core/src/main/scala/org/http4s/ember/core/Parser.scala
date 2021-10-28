@@ -27,7 +27,7 @@ import scala.annotation.switch
 import scala.collection.mutable
 import cats.data.EitherT
 
-private[ember] object Parser {
+private[http4s] object Parser {
 
   object MessageP {
 

@@ -104,4 +104,20 @@ object ResponsePrelude {
 
   implicit def stdLibOrdering: Ordering[ResponsePrelude] =
     catsHashAndOrderForResponsePrelude.toOrdering
+ 
+  val http1Codec: Http1Encoder[ResponsePrelude] = {
+    import Http1Encoder._
+    (
+      HttpVersion.http1Codec.suffix(const(byte, ' '.toByte)),
+      Status.http1Codec.suffix(const(ascii, "\r\n")),
+      Http1Encoder
+        .seq(Header.Raw.http1Codec.suffix(const(ascii, "\r\n")))
+        .suffix(const(ascii, "\r\n"))
+    ).contramapN(r =>
+      (
+        r.httpVersion,
+        r.status,
+        r.headers.headers
+      ))
+  }
 }

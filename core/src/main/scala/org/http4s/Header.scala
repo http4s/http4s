@@ -67,6 +67,18 @@ object Header {
         writer.sanitize(_ << h.value)
       }
     }
+
+    val http1Codec: Http1Encoder[Header.Raw] = {
+      import Http1Encoder._
+      (
+        ascii.suffix(const(ascii, ": ")),
+        ascii
+      ).contramapN(h =>
+        (
+          h.name.toString,
+          h.value
+        ))
+    }
   }
 
   /** Classifies modelled headers into `Single` headers, which can only

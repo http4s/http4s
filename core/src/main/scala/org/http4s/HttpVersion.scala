@@ -164,7 +164,7 @@ object HttpVersion {
         ParseResult.fromParser(parser, "HTTP version")(s)
     }
 
-  private val parser: P[HttpVersion] = {
+  private[http4s] val parser: P[HttpVersion] = {
     // HTTP-name = %x48.54.54.50 ; HTTP
     // HTTP-version = HTTP-name "/" DIGIT "." DIGIT
     val httpVersion = P.string("HTTP/") *> digit ~ (P.char('.') *> digit)
@@ -227,4 +227,19 @@ object HttpVersion {
     override def minBound: HttpVersion = HttpVersion(0, 0)
     override def maxBound: HttpVersion = HttpVersion(9, 9)
   }
+
+  implicit val http1Codec: Http1Encoder[HttpVersion] = {
+    import Http1Encoder._
+    (
+      int.prefix(const(ascii, "HTTP/")).suffix(const(byte, '.'.toByte)),
+      int
+    ).contramapN(v =>
+      (
+        v.major,
+        v.minor
+      ))
+  }
+
+  implicit val http1Decoder: Http1Decoder[HttpVersion] =
+    Http1Decoder.catsParse(parser, "Invalid HTTP version")
 }
