@@ -803,6 +803,8 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
+addCommandAlias("quicklint", s";scalafixAll ;scalafmtAll ;scalafmtSbt")
+
 addCommandAlias(
   "lint",
   s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafmtAll ;scalafmtSbt")
