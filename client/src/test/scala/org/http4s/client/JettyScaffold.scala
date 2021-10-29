@@ -16,14 +16,19 @@
 
 package org.http4s.client
 
-import cats.effect.{Resource, Sync}
-import java.net.{InetSocketAddress}
-import java.security.{KeyStore, Security}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
-import javax.servlet.http.HttpServlet
+import cats.effect.Resource
+import cats.effect.Sync
 import org.eclipse.jetty.server.{Server => JServer, _}
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.ssl.SslContextFactory
+
+import java.net.InetSocketAddress
+import java.security.KeyStore
+import java.security.Security
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.servlet.http.HttpServlet
 
 object JettyScaffold {
   def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(implicit

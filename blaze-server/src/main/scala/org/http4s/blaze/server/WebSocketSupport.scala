@@ -19,9 +19,6 @@ package org.http4s.blaze.server
 import cats.effect._
 import cats.syntax.all._
 import fs2.concurrent.SignallingRef
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets._
-import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
@@ -29,11 +26,18 @@ import org.http4s.headers._
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.WebSocketHandshake
 import org.typelevel.ci._
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets._
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.Failure
+import scala.util.Success
 
 private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit val F: ConcurrentEffect[F]
+
+  protected def maxBufferSize: Option[Int]
 
   override protected def renderResponse(
       req: Request[F],
@@ -88,7 +92,7 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                   val segment =
                     LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal))
                       .prepend(new WSFrameAggregator)
-                      .prepend(new WebSocketDecoder)
+                      .prepend(new WebSocketDecoder(maxBufferSize.getOrElse(0)))
 
                   this.replaceTail(segment, true)
 

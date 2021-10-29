@@ -6,7 +6,8 @@
 
 package org.http4s.play
 
-import org.typelevel.jawn.{Facade, SupportParser}
+import org.typelevel.jawn.Facade
+import org.typelevel.jawn.SupportParser
 import play.api.libs.json._
 
 private[play] object Parser extends SupportParser[JsValue] {

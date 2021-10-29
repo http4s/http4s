@@ -17,8 +17,8 @@
 package org.http4s.jetty.server
 
 import cats._
-import org.eclipse.jetty.util.thread.ThreadPool
 import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.eclipse.jetty.util.thread.ThreadPool
 
 /** A lazy [[org.eclipse.jetty.util.thread.ThreadPool]]. The pool will not be
   * started until one of the methods on it is invoked.

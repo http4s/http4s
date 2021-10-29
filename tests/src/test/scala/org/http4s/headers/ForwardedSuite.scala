@@ -16,14 +16,16 @@
 
 package org.http4s.headers
 
-import java.nio.charset.StandardCharsets
-
 import cats.instances.string._
 import cats.syntax.option._
+import org.http4s.ParseFailure
+import org.http4s.Uri
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.{ParseFailure, Uri}
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 import org.scalacheck.Prop._
+
+import java.nio.charset.StandardCharsets
 
 class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenerators {
 

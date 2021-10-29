@@ -16,15 +16,19 @@
 
 package com.example.http4s.blaze
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp}
-import java.net.URL
-import org.http4s._
+import cats.effect.Blocker
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import org.http4s.Uri._
-import org.http4s.client.Client
+import org.http4s._
 import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
+
+import java.net.URL
 import scala.concurrent.ExecutionContext.global
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {

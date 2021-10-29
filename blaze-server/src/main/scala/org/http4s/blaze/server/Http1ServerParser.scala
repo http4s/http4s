@@ -19,9 +19,10 @@ package blaze.server
 
 import cats.effect._
 import cats.syntax.all._
-import java.nio.ByteBuffer
 import org.log4s.Logger
 import org.typelevel.vault._
+
+import java.nio.ByteBuffer
 import scala.collection.mutable.ListBuffer
 import scala.util.Either
 

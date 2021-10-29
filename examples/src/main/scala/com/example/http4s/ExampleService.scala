@@ -20,19 +20,18 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import io.circe.Json
+import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
 import org.http4s.scalaxml._
 import org.http4s.server._
-import org.http4s.syntax.all._
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
-// disabled until twirl supports dotty
-// import org.http4s.twirl._
-import org.http4s._
+import org.http4s.syntax.all._
+
 import scala.concurrent.duration._
 
 class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F])

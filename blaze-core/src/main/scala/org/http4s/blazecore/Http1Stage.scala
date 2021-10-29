@@ -19,22 +19,26 @@ package blazecore
 
 import cats.effect.Effect
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
-import java.nio.ByteBuffer
-import java.time.Instant
-
+import fs2._
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
-import org.http4s.blaze.pipeline.{Command, TailStage}
+import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blazecore.util._
 import org.http4s.headers._
 import org.http4s.syntax.header._
-import org.http4s.util.{Renderer, StringWriter, Writer}
+import org.http4s.util.Renderer
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import java.nio.ByteBuffer
+import java.time.Instant
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
 
 /** Utility bits for dealing with the HTTP 1.x protocol */
 private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>

@@ -17,7 +17,8 @@
 package org.http4s.servlet
 
 import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /** Mainly a convenience for our servlet examples, but, hey, why not.
   */

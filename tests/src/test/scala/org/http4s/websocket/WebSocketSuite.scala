@@ -17,14 +17,15 @@
 package org.http4s.websocket
 
 import cats.syntax.all._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.UTF_8
+import org.http4s.Http4sSuite
 import org.http4s.websocket.WebSocketFrame._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
-import org.http4s.Http4sSuite
 import scodec.bits.ByteVector
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.UTF_8
 
 class WebSocketSuite extends Http4sSuite {
   def helloTxtMasked =

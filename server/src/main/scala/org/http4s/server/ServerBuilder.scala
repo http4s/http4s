@@ -17,13 +17,16 @@
 package org.http4s
 package server
 
-import cats.syntax.all._
 import cats.effect._
 import cats.effect.concurrent.Ref
+import cats.syntax.all._
 import fs2._
-import fs2.concurrent.{Signal, SignallingRef}
-import java.net.{InetAddress, InetSocketAddress}
+import fs2.concurrent.Signal
+import fs2.concurrent.SignallingRef
 import org.http4s.internal.BackendBuilder
+
+import java.net.InetAddress
+import java.net.InetSocketAddress
 import scala.collection.immutable
 
 trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {

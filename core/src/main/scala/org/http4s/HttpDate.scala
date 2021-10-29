@@ -17,12 +17,19 @@
 package org.http4s
 
 import cats.Functor
-import cats.{Hash, Order}
+import cats.Hash
+import cats.Order
 import cats.effect.Clock
 import cats.implicits._
-import cats.parse.{Parser, Rfc5234}
-import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser
+import cats.parse.Rfc5234
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
+import java.time.DateTimeException
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import scala.concurrent.duration.SECONDS
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal

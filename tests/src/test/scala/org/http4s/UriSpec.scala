@@ -13,14 +13,15 @@ package org.http4s
 import cats.kernel.laws.discipline._
 import cats.syntax.all._
 import com.comcast.ip4s._
-import java.nio.file.Paths
+import org.http4s.Uri._
 import org.http4s.internal.CharPredicate
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.Uri._
 import org.http4s.syntax.all._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.typelevel.ci._
+
+import java.nio.file.Paths
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSuite {

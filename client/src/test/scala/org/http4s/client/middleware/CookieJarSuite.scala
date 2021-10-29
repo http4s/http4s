@@ -16,14 +16,14 @@
 
 package org.http4s.client.middleware
 
-import cats.syntax.all._
 import cats.effect._
-import org.http4s._
-import org.http4s.implicits._
-import org.http4s.client._
+import cats.syntax.all._
 import org.http4s.ResponseCookie
+import org.http4s._
+import org.http4s.client._
 import org.http4s.dsl.io._
 import org.http4s.headers.Cookie
+import org.http4s.implicits._
 
 class CookieJarSuite extends Http4sSuite {
   val epoch: HttpDate = HttpDate.Epoch

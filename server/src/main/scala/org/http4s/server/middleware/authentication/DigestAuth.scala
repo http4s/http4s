@@ -19,15 +19,17 @@ package server
 package middleware
 package authentication
 
-import org.http4s.crypto.Hash
-import org.http4s.crypto.unsafe.SecureRandom
-import cats.data.{Kleisli, NonEmptyList}
 import cats.Monad
+import cats.data.Kleisli
+import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.all._
+import org.http4s.crypto.Hash
+import org.http4s.crypto.unsafe.SecureRandom
+import org.http4s.headers._
+
 import java.math.BigInteger
 import java.util.Date
-import org.http4s.headers._
 import scala.concurrent.duration._
 
 /** Provides Digest Authentication from RFC 2617.

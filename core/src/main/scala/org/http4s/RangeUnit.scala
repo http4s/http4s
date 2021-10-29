@@ -10,7 +10,8 @@
 
 package org.http4s
 
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 object RangeUnit {
   val Bytes = RangeUnit("bytes") // The only range-unit defined in rfc7233

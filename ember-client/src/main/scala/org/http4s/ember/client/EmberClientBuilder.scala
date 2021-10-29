@@ -16,25 +16,24 @@
 
 package org.http4s.ember.client
 
-import org.typelevel.keypool._
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats._
-import cats.syntax.all._
 import cats.effect._
-
-import scala.concurrent.duration._
-import org.http4s.ProductId
-import org.http4s.client._
+import cats.syntax.all._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
+import org.http4s.ProductId
+import org.http4s.client._
+import org.http4s.client.middleware.Retry
+import org.http4s.client.middleware.RetryPolicy
+import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.headers.`User-Agent`
+import org.typelevel.keypool._
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{`User-Agent`}
-import org.http4s.ember.client.internal.ClientHelpers
-import org.http4s.client.middleware.RetryPolicy
-import org.http4s.client.middleware.Retry
+import scala.concurrent.duration._
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val blockerOpt: Option[Blocker],

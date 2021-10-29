@@ -18,18 +18,17 @@ package org.http4s
 package blaze
 package server
 
+import cats.Alternative
+import cats.Applicative
 import cats.data.Kleisli
-import cats.effect.{ConcurrentEffect, Resource, Sync, Timer}
+import cats.effect.ConcurrentEffect
+import cats.effect.Resource
+import cats.effect.Sync
+import cats.effect.Timer
 import cats.syntax.all._
-import cats.{Alternative, Applicative}
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
-import java.io.FileInputStream
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import java.security.{KeyStore, Security}
-import java.util.concurrent.ThreadFactory
-import javax.net.ssl._
-import org.http4s.{BuildInfo => Http4sBuildInfo}
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
 import org.http4s.blaze.channel._
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
@@ -38,17 +37,29 @@ import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.server.BlazeServerBuilder._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
-import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.blazecore.BlazeBackendBuilder
+import org.http4s.blazecore.tickWheelResource
 import org.http4s.internal.threads.threadFactory
-import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
+import org.http4s.internal.tls.deduceKeyLength
+import org.http4s.internal.tls.getCertChain
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server._
+import org.http4s.{BuildInfo => Http4sBuildInfo}
 import org.log4s.getLogger
 import org.typelevel.vault._
-import scala.collection.immutable
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
+
+import java.io.FileInputStream
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.security.KeyStore
+import java.security.Security
+import java.util.concurrent.ThreadFactory
+import javax.net.ssl._
+import scala.collection.immutable
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /** BlazeBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
@@ -82,6 +93,7 @@ import scodec.bits.ByteVector
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   * @param maxConnections: The maximum number of client connections that may be active at any time.
+  * @param maxWebSocketBufferSize: The maximum Websocket buffer length. 'None' means unbounded.
   */
 class BlazeServerBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
@@ -101,7 +113,8 @@ class BlazeServerBuilder[F[_]] private (
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     maxConnections: Int,
-    val channelOptions: ChannelOptions
+    val channelOptions: ChannelOptions,
+    maxWebSocketBufferSize: Option[Int]
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
@@ -127,7 +140,8 @@ class BlazeServerBuilder[F[_]] private (
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
       maxConnections: Int = maxConnections,
-      channelOptions: ChannelOptions = channelOptions
+      channelOptions: ChannelOptions = channelOptions,
+      maxWebSocketBufferSize: Option[Int] = maxWebSocketBufferSize
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
@@ -147,7 +161,8 @@ class BlazeServerBuilder[F[_]] private (
       serviceErrorHandler,
       banner,
       maxConnections,
-      channelOptions
+      channelOptions,
+      maxWebSocketBufferSize
     )
 
   /** Configure HTTP parser length limits
@@ -244,6 +259,9 @@ class BlazeServerBuilder[F[_]] private (
   def withMaxConnections(maxConnections: Int): BlazeServerBuilder[F] =
     copy(maxConnections = maxConnections)
 
+  def withMaxWebSocketBufferSize(maxWebSocketBufferSize: Option[Int]): BlazeServerBuilder[F] =
+    copy(maxWebSocketBufferSize = maxWebSocketBufferSize)
+
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
       engineConfig: Option[(SSLContext, SSLEngine => Unit)]
@@ -297,7 +315,8 @@ class BlazeServerBuilder[F[_]] private (
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        maxWebSocketBufferSize
       )
 
     def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -312,7 +331,8 @@ class BlazeServerBuilder[F[_]] private (
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        maxWebSocketBufferSize
       )
 
     Future.successful {
@@ -425,7 +445,8 @@ object BlazeServerBuilder {
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,
       maxConnections = defaults.MaxConnections,
-      channelOptions = ChannelOptions(Vector.empty)
+      channelOptions = ChannelOptions(Vector.empty),
+      maxWebSocketBufferSize = None
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =

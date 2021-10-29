@@ -17,20 +17,22 @@
 package org.http4s.blazecore
 package websocket
 
-import fs2.Stream
-import fs2.concurrent.{Queue, SignallingRef}
 import cats.effect.IO
 import cats.syntax.all._
-import java.util.concurrent.atomic.AtomicBoolean
+import fs2.Stream
+import fs2.concurrent.Queue
+import fs2.concurrent.SignallingRef
 import org.http4s.Http4sSuite
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.websocket.{WebSocketFrame, WebSocketSeparatePipe}
-import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
+import org.http4s.websocket.WebSocketSeparatePipe
+import scodec.bits.ByteVector
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scodec.bits.ByteVector
 
 class Http4sWSStageSpec extends Http4sSuite {
   implicit val testExecutionContext: ExecutionContext =

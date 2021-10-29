@@ -18,20 +18,24 @@ package org.http4s
 package asynchttpclient
 package client
 
+import _root_.io.netty.buffer.Unpooled
+import _root_.io.netty.handler.codec.http.DefaultHttpHeaders
+import _root_.io.netty.handler.codec.http.HttpHeaders
 import cats.effect._
 import cats.effect.concurrent._
-import cats.syntax.all._
 import cats.effect.implicits._
+import cats.syntax.all._
 import fs2.Stream._
 import fs2._
-import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
-import _root_.io.netty.handler.codec.http.{DefaultHttpHeaders, HttpHeaders}
-import _root_.io.netty.buffer.Unpooled
+import fs2.interop.reactivestreams.StreamSubscriber
+import fs2.interop.reactivestreams.StreamUnicastPublisher
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
-import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
+import org.asynchttpclient.request.body.generator.BodyGenerator
+import org.asynchttpclient.request.body.generator.ReactiveStreamsBodyGenerator
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
-import org.http4s.client.{Client, defaults}
+import org.http4s.client.Client
+import org.http4s.client.defaults
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._

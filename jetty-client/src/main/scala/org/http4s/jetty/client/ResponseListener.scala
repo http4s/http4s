@@ -21,17 +21,21 @@ package client
 import cats.effect._
 import cats.effect.implicits._
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.concurrent.Queue
-import java.nio.ByteBuffer
-import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
-import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
+import org.eclipse.jetty.client.api.Result
+import org.eclipse.jetty.client.api.{Response => JettyResponse}
+import org.eclipse.jetty.http.HttpFields
+import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
-import org.http4s.jetty.client.ResponseListener.Item
-import org.http4s.internal.{invokeCallback, loggingAsyncCallback}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.http4s.internal.invokeCallback
+import org.http4s.internal.loggingAsyncCallback
+import org.http4s.jetty.client.ResponseListener.Item
 import org.log4s.getLogger
+
+import java.nio.ByteBuffer
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Item],

@@ -18,8 +18,8 @@ package org.http4s.jetty.server
 
 import cats.effect._
 import org.eclipse.jetty.util.component.LifeCycle
-import org.eclipse.jetty.util.thread.ThreadPool
 import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.eclipse.jetty.util.thread.ThreadPool
 
 object JettyThreadPools {
 

@@ -16,9 +16,10 @@
 
 package org.http4s
 package headers
-import cats.parse.{Parser, Parser0 => P0}
-import org.http4s.internal.parsing.Rfc7230
+import cats.parse.Parser
+import cats.parse.{Parser0 => P0}
 import cats.syntax.all._
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderer
 import org.typelevel.ci._
 

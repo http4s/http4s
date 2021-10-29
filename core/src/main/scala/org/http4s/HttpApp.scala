@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.{Applicative, Defer}
+import cats.Applicative
+import cats.Defer
 import cats.data.Kleisli
 
 /** Functions for creating [[HttpApp]] kleislis. */

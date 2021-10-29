@@ -17,8 +17,11 @@
 package org.http4s
 package server
 
-import java.net.{Inet4Address, Inet6Address, InetSocketAddress}
 import org.log4s.getLogger
+
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetSocketAddress
 
 abstract class Server {
   private[this] val logger = getLogger

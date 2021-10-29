@@ -21,8 +21,12 @@ package util
 import cats.effect._
 import fs2._
 import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http2.{DataFrame, HeadersFrame, Priority, StreamFrame}
+import org.http4s.blaze.http.http2.DataFrame
+import org.http4s.blaze.http.http2.HeadersFrame
+import org.http4s.blaze.http.http2.Priority
+import org.http4s.blaze.http.http2.StreamFrame
 import org.http4s.blaze.pipeline.TailStage
+
 import scala.concurrent._
 
 private[http4s] class Http2Writer[F[_]](

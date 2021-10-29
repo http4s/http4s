@@ -16,14 +16,19 @@
 
 package org.http4s.metrics.dropwizard
 
-import cats.effect.{Clock, IO, Sync}
+import cats.effect.Clock
+import cats.effect.IO
+import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
 import fs2.Stream
-import java.io.IOException
-import java.util.concurrent.{TimeUnit, TimeoutException}
-import org.http4s.{Request, Response}
-import org.http4s.dsl.io._
 import org.http4s.Method.GET
+import org.http4s.Request
+import org.http4s.Response
+import org.http4s.dsl.io._
+
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import scala.concurrent.duration.TimeUnit
 
 object util {

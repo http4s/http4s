@@ -10,11 +10,14 @@
 package org.http4s
 package testing
 
-import java.io.{ByteArrayOutputStream, PrintStream}
-import cats.syntax.all._
 import cats.Monad
-import org.http4s.headers.{Connection, `Content-Length`}
+import cats.syntax.all._
+import org.http4s.headers.Connection
+import org.http4s.headers.`Content-Length`
 import org.typelevel.ci._
+
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import scala.util.control.NonFatal
 
 object ErrorReporting {

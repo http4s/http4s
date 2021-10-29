@@ -17,7 +17,9 @@
 package org.http4s
 package headers
 
-import java.time.{Month, ZoneOffset, ZonedDateTime}
+import java.time.Month
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 class LastModifiedSuite extends Http4sSuite {
   val rfc7232Example = HttpDate.unsafeFromZonedDateTime(

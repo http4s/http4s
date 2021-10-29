@@ -16,14 +16,15 @@
 
 package org.http4s.ember.core
 
-import scala.concurrent.duration._
-import org.http4s.HttpVersion
-import org.http4s.Headers
+import cats.data.NonEmptyList
 import org.http4s.Header
+import org.http4s.Headers
+import org.http4s.HttpVersion
 import org.http4s.headers.Connection
 import org.typelevel.ci._
-import cats.data.NonEmptyList
+
 import java.util.Locale
+import scala.concurrent.duration._
 
 private[ember] object Util {
 
