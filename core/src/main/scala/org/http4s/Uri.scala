@@ -72,11 +72,24 @@ final case class Uri(
     * @param newSegment the segment to add.
     * @return a new uri with the segment added to the path
     */
-  def addSegment(newSegment: String): Uri = copy(path = toSegment(path, newSegment))
+  def addSegment(newSegment: String): Uri = addSegment[String](newSegment)
+
+  /** Urlencodes and adds a path segment to the Uri
+    *
+    * @tparam Type to be encoded to a Uri Segment
+    * @param newSegment the segment to add.
+    * @return a new uri with the segment added to the path
+    */
+  def addSegment[A: Uri.Path.SegmentEncoder](newSegment: A): Uri =
+    copy(path = path / newSegment)
 
   /** This is an alias to [[#addSegment]]
     */
-  def /(newSegment: String): Uri = addSegment(newSegment)
+  def /(newSegment: String): Uri = addSegment[String](newSegment)
+
+  /** This is an alias to [[#addSegment]]
+    */
+  def /[A: Uri.Path.SegmentEncoder](newSegment: A): Uri = addSegment[A](newSegment)
 
   /** Splits the path segments and adds each of them to the path url-encoded.
     * A segment is delimited by /
@@ -84,7 +97,7 @@ final case class Uri(
     * @return a new uri with the segments added to the path
     */
   def addPath(morePath: String): Uri =
-    copy(path = morePath.split("/").foldLeft(path)((p, segment) => toSegment(p, segment)))
+    copy(path = morePath.split("/").foldLeft(path)((p, segment) => p.addSegment(segment)))
 
   def host: Option[Uri.Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
@@ -167,9 +180,6 @@ final case class Uri(
   override protected def self: Self = this
 
   override protected def replaceQuery(query: Query): Self = copy(query = query)
-
-  private def toSegment(path: Uri.Path, newSegment: String): Uri.Path =
-    path / Uri.Path.Segment(newSegment)
 
   /** Converts this request to origin-form, which is the absolute path and optional
     * query.  If the path is relative, it is assumed to be relative to the root.
@@ -327,9 +337,18 @@ object Uri extends UriPlatform {
     override val renderString: String = super.renderString
     override def toString: String = renderString
 
+    /** This is an alias to [[#addSegment]]
+      */
     def /(segment: Path.Segment): Path = addSegment(segment)
-    def addSegment(segment: Path.Segment): Path =
-      addSegments(List(segment))
+
+    /** This is an alias to [[#addSegment]]
+      */
+    def /[A: Path.SegmentEncoder](segment: A): Path = addSegment[A](segment)
+
+    def addSegment(segment: Path.Segment): Path = addSegments(List(segment))
+    def addSegment[A](segment: A)(implicit encoder: Path.SegmentEncoder[A]): Path =
+      addSegments(List(encoder.toSegment(segment)))
+
     def addSegments(value: Seq[Path.Segment]): Path =
       Path(this.segments ++ value, absolute = absolute || this.segments.isEmpty)
 
@@ -416,6 +435,21 @@ object Uri extends UriPlatform {
           def compare(x: Segment, y: Segment): Int =
             x.encoded.compare(y.encoded)
         }
+    }
+
+    trait SegmentEncoder[A] {
+      def toSegment(a: A): Segment
+    }
+    object SegmentEncoder {
+      implicit def apply[A](implicit segmentEncoder: SegmentEncoder[A]): SegmentEncoder[A] =
+        segmentEncoder
+
+      def instance[A](f: A => Segment): SegmentEncoder[A] = new SegmentEncoder[A] {
+        override def toSegment(a: A): Segment = f(a)
+      }
+
+      implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply
+      implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity
     }
 
     /** This constructor allows you to construct the path directly.
