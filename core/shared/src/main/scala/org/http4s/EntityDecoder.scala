@@ -28,13 +28,13 @@ import scodec.bits.ByteVector
 import scala.annotation.implicitNotFound
 import cats.effect.Resource
 
-/** A type that can be used to decode a [[Message]]
-  * EntityDecoder is used to attempt to decode a [[Message]] returning the
-  * entire resulting A. If an error occurs it will result in a failed effect.
-  * The default decoders provided here are not streaming, but one could implement
-  * a streaming decoder by having the value of A be some kind of streaming construct.
+/** A type that can be used to decode a [[Message]] EntityDecoder is used to attempt to decode a
+  * [[Message]] returning the entire resulting A. If an error occurs it will result in a failed
+  * effect. The default decoders provided here are not streaming, but one could implement a
+  * streaming decoder by having the value of A be some kind of streaming construct.
   *
-  * @tparam T result type produced by the decoder
+  * @tparam T
+  *   result type produced by the decoder
   */
 @implicitNotFound(
   "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
@@ -112,10 +112,11 @@ trait EntityDecoder[F[_], T] { self =>
 
   /** Combine two [[EntityDecoder]]'s
     *
-    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
-    * and if not, defer to the second [[EntityDecoder]]
+    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode, and if
+    * not, defer to the second [[EntityDecoder]]
     *
-    * @param other backup [[EntityDecoder]]
+    * @param other
+    *   backup [[EntityDecoder]]
     */
   def orElse[T2 >: T](other: EntityDecoder[F, T2])(implicit F: Functor[F]): EntityDecoder[F, T2] =
     widen[T2] <+> other
@@ -128,9 +129,9 @@ trait EntityDecoder[F[_], T] { self =>
     this.asInstanceOf[EntityDecoder[F, T2]]
 }
 
-/** EntityDecoder is used to attempt to decode an [[EntityBody]]
-  * This companion object provides a way to create `new EntityDecoder`s along
-  * with some commonly used instances which can be resolved implicitly.
+/** EntityDecoder is used to attempt to decode an [[EntityBody]] This companion object provides a
+  * way to create `new EntityDecoder`s along with some commonly used instances which can be resolved
+  * implicitly.
   */
 object EntityDecoder {
   // This is not a real media type but will still be matched by `*/*`
@@ -166,12 +167,11 @@ object EntityDecoder {
 
   /** Create a new [[EntityDecoder]]
     *
-    * The new [[EntityDecoder]] will attempt to decode messages of type `T`
-    * only if the [[Message]] satisfies the provided [[MediaRange]].
+    * The new [[EntityDecoder]] will attempt to decode messages of type `T` only if the [[Message]]
+    * satisfies the provided [[MediaRange]].
     *
-    * Exceptions thrown by `f` are not caught.  Care should be taken that
-    * recoverable errors are returned as a [[DecodeResult#failure]], or that
-    * system errors are raised in `F`.
+    * Exceptions thrown by `f` are not caught. Care should be taken that recoverable errors are
+    * returned as a [[DecodeResult#failure]], or that system errors are raised in `F`.
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
       f: Media[F] => DecodeResult[F, T]): EntityDecoder[F, T] =
@@ -203,7 +203,7 @@ object EntityDecoder {
       m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyText.compile.string
 
-  /////////////////// Instances //////////////////////////////////////////////
+  // ///////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Concurrent[F]): EntityDecoder[F, T] =
@@ -256,14 +256,12 @@ object EntityDecoder {
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
-  /** Multipart decoder that streams all parts past a threshold
-    * (anything above `maxSizeBeforeWrite`) into a temporary file.
-    * The decoder is only valid inside the `Resource` scope; once
-    * the `Resource` is released, all the created files are deleted.
+  /** Multipart decoder that streams all parts past a threshold (anything above
+    * `maxSizeBeforeWrite`) into a temporary file. The decoder is only valid inside the `Resource`
+    * scope; once the `Resource` is released, all the created files are deleted.
     *
-    * Note that no files are deleted until the `Resource` is released.
-    * Thus, sharing and reusing the resulting `EntityDecoder` is not
-    * recommended, and can lead to disk space leaks.
+    * Note that no files are deleted until the `Resource` is released. Thus, sharing and reusing the
+    * resulting `EntityDecoder` is not recommended, and can lead to disk space leaks.
     *
     * The intended way to use this is as follows:
     *
@@ -275,17 +273,23 @@ object EntityDecoder {
     *   }
     * }}}
     *
-    * @param headerLimit the max size for the headers, in bytes. This is required as
-    *                    headers are strictly evaluated and parsed.
-    * @param maxSizeBeforeWrite the maximum size of a particular part before writing to a file is triggered
-    * @param maxParts the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
-    *                 conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
-    *                 be parsed correctly, despite the total body being malformed due to not conforming to the multipart
-    *                 spec. You can control this by `failOnLimit`, by setting it to true if you want to raise
-    *                 an error if sending too many parts to a particular endpoint
-    * @param failOnLimit Fail if `maxParts` is exceeded _during_ multipart parsing.
-    * @param chunkSize the size of chunks created when reading data from temporary files.
-    * @return A supervised multipart decoder.
+    * @param headerLimit
+    *   the max size for the headers, in bytes. This is required as headers are strictly evaluated
+    *   and parsed.
+    * @param maxSizeBeforeWrite
+    *   the maximum size of a particular part before writing to a file is triggered
+    * @param maxParts
+    *   the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that
+    *   doesn't conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts
+    *   might be parsed correctly, despite the total body being malformed due to not conforming to
+    *   the multipart spec. You can control this by `failOnLimit`, by setting it to true if you want
+    *   to raise an error if sending too many parts to a particular endpoint
+    * @param failOnLimit
+    *   Fail if `maxParts` is exceeded _during_ multipart parsing.
+    * @param chunkSize
+    *   the size of chunks created when reading data from temporary files.
+    * @return
+    *   A supervised multipart decoder.
     */
   def mixedMultipartResource[F[_]: Concurrent: Files](
       headerLimit: Int = 1024,
@@ -301,31 +305,34 @@ object EntityDecoder {
       failOnLimit,
       chunkSize)
 
-  /** Multipart decoder that streams all parts past a threshold
-    * (anything above maxSizeBeforeWrite) into a temporary file.
+  /** Multipart decoder that streams all parts past a threshold (anything above maxSizeBeforeWrite)
+    * into a temporary file.
     *
-    * Note: (BIG NOTE) Using this decoder for multipart decoding is good for the sake of
-    * not holding all information in memory, as it will never have more than
-    * `maxSizeBeforeWrite` in memory before writing to a temporary file. On top of this,
-    * you can gate the # of parts to further stop the quantity of parts you can have.
-    * That said, because after a threshold it writes into a temporary file, given
-    * bincompat reasons on 0.18.x, there is no way to make a distinction about which `Part[F]`
-    * is a stream reference to a file or not. Thus, consumers using this decoder
-    * should drain all `Part[F]` bodies if they were decoded correctly. That said,
-    * this decoder gives you more control about how many part bodies it parses in the first place, thus you can have
-    * more fine-grained control about how many parts you accept.
+    * Note: (BIG NOTE) Using this decoder for multipart decoding is good for the sake of not holding
+    * all information in memory, as it will never have more than `maxSizeBeforeWrite` in memory
+    * before writing to a temporary file. On top of this, you can gate the # of parts to further
+    * stop the quantity of parts you can have. That said, because after a threshold it writes into a
+    * temporary file, given bincompat reasons on 0.18.x, there is no way to make a distinction about
+    * which `Part[F]` is a stream reference to a file or not. Thus, consumers using this decoder
+    * should drain all `Part[F]` bodies if they were decoded correctly. That said, this decoder
+    * gives you more control about how many part bodies it parses in the first place, thus you can
+    * have more fine-grained control about how many parts you accept.
     *
-    * @param headerLimit the max size for the headers, in bytes. This is required as
-    *                    headers are strictly evaluated and parsed.
-    * @param maxSizeBeforeWrite the maximum size of a particular part before writing to a file is triggered
-    * @param maxParts the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
-    *                 conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
-    *                 be parsed correctly, despite the total body being malformed due to not conforming to the multipart
-    *                 spec. You can control this by `failOnLimit`, by setting it to true if you want to raise
-    *                 an error if sending too many parts to a particular endpoint
-    * @param failOnLimit Fail if `maxParts` is exceeded _during_ multipart parsing.
-    * @return A multipart/form-data encoded vector of parts with some part bodies held in
-    *         temporary files.
+    * @param headerLimit
+    *   the max size for the headers, in bytes. This is required as headers are strictly evaluated
+    *   and parsed.
+    * @param maxSizeBeforeWrite
+    *   the maximum size of a particular part before writing to a file is triggered
+    * @param maxParts
+    *   the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that
+    *   doesn't conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts
+    *   might be parsed correctly, despite the total body being malformed due to not conforming to
+    *   the multipart spec. You can control this by `failOnLimit`, by setting it to true if you want
+    *   to raise an error if sending too many parts to a particular endpoint
+    * @param failOnLimit
+    *   Fail if `maxParts` is exceeded _during_ multipart parsing.
+    * @return
+    *   A multipart/form-data encoded vector of parts with some part bodies held in temporary files.
     */
   @deprecated("Use mixedMultipartResource", "0.23")
   def mixedMultipart[F[_]: Concurrent: Files](

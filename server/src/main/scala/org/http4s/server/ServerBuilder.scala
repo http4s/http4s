@@ -39,20 +39,19 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
 
   final def bindAny(host: String = defaults.IPv4Host): Self = bindHttp(0, host)
 
-  /** Sets the handler for errors thrown invoking the service.  Is not
-    * guaranteed to be invoked on errors on the server backend, such as
-    * parsing a request or handling a context timeout.
+  /** Sets the handler for errors thrown invoking the service. Is not guaranteed to be invoked on
+    * errors on the server backend, such as parsing a request or handling a context timeout.
     */
   def withServiceErrorHandler(
       serviceErrorHandler: Request[F] => PartialFunction[Throwable, F[Response[F]]]): Self
 
-  /** Returns a Server resource.  The resource is not acquired until the
-    * server is started and ready to accept requests.
+  /** Returns a Server resource. The resource is not acquired until the server is started and ready
+    * to accept requests.
     */
   def resource: Resource[F, Server]
 
-  /** Runs the server as a process that never emits.  Useful for a server
-    * that runs for the rest of the JVM's life.
+  /** Runs the server as a process that never emits. Useful for a server that runs for the rest of
+    * the JVM's life.
     */
   final def serve: Stream[F, ExitCode] =
     for {
@@ -61,8 +60,8 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
       serve <- serveWhile(signal, exitCode)
     } yield serve
 
-  /** Runs the server as a Stream that emits only when the terminated signal becomes true.
-    * Useful for servers with associated lifetime behaviors.
+  /** Runs the server as a Stream that emits only when the terminated signal becomes true. Useful
+    * for servers with associated lifetime behaviors.
     */
   final def serveWhile(
       terminateWhenTrue: Signal[F, Boolean],

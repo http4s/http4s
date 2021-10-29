@@ -20,6 +20,6 @@ import java.io.OutputStream
 
 object NullOutStream extends OutputStream {
   override def write(b: Int): Unit = {
-    //do nothing
+    // do nothing
   }
 }

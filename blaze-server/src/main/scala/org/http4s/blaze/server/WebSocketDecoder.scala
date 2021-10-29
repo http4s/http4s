@@ -29,16 +29,20 @@ private class WebSocketDecoder(val maxBufferSize: Int = 0) // unbounded
   val name = "Websocket Decoder"
 
   /** Encode objects to buffers
-    * @param in object to decode
-    * @return sequence of ByteBuffers to pass to the head
+    * @param in
+    *   object to decode
+    * @return
+    *   sequence of ByteBuffers to pass to the head
     */
   @throws[TranscodeError]
   def messageToBuffer(in: WebSocketFrame): collection.Seq[ByteBuffer] = frameToBuffer(in)
 
   /** Method that decodes ByteBuffers to objects. None reflects not enough data to decode a message
     * Any unused data in the ByteBuffer will be recycled and available for the next read
-    * @param in ByteBuffer of immediately available data
-    * @return optional message if enough data was available
+    * @param in
+    *   ByteBuffer of immediately available data
+    * @return
+    *   optional message if enough data was available
     */
   @throws[TranscodeError]
   @throws[ProtocolException]

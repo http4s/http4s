@@ -26,8 +26,8 @@ import org.log4s.getLogger
 
 /** [[CacheStrategy]] that will cache __all__ [[Response]] bodies in local memory
   *
-  * This is useful when serving a very limited amount of static content and want
-  * to avoid disk access.
+  * This is useful when serving a very limited amount of static content and want to avoid disk
+  * access.
   */
 class MemoryCache[F[_]] extends CacheStrategy[F] {
   private[this] val logger = getLogger
@@ -47,7 +47,7 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
       }
     else F.pure(resp)
 
-  ////////////// private methods //////////////////////////////////////////////
+  // //////////// private methods //////////////////////////////////////////////
 
   private def collectResource(path: Uri.Path, resp: Response[F])(implicit
       F: Concurrent[F]): F[Response[F]] =

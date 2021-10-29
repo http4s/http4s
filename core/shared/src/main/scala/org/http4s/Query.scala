@@ -32,12 +32,11 @@ import scala.collection.mutable.ListBuffer
 
 /** Collection representation of a query string
   *
-  * It is a indexed sequence of key and maybe a value pairs which maps
-  * precisely to a query string, modulo
-  * [[https://datatracker.ietf.org/doc/html/rfc3986#section-2.1 percent-encoding]].
+  * It is a indexed sequence of key and maybe a value pairs which maps precisely to a query string,
+  * modulo [[https://datatracker.ietf.org/doc/html/rfc3986#section-2.1 percent-encoding]].
   *
-  * When rendered, the resulting `String` will have the pairs separated
-  * by '&' while the key is separated from the value with '='
+  * When rendered, the resulting `String` will have the pairs separated by '&' while the key is
+  * separated from the value with '='
   */
 final class Query private (value: Either[Vector[KeyValue], String])
     extends QueryOps
@@ -134,8 +133,8 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   /** Map[String, String] representation of the [[Query]]
     *
-    * If multiple values exist for a key, the first is returned. If
-    * none exist, the empty `String` "" is returned.
+    * If multiple values exist for a key, the first is returned. If none exist, the empty `String`
+    * "" is returned.
     */
   lazy val params: Map[String, String] =
     CollectionCompat.mapValues(multiParams)(_.headOption.getOrElse(""))
@@ -163,12 +162,12 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   override def hashCode: Int = 31 + toVector.##
 
-  /////////////////////// QueryOps methods and types /////////////////////////
+  // ///////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
   override protected val query: Query = this
   override protected def self: Self = this
   override protected def replaceQuery(query: Query): Self = query
-  ////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////
 }
 
 object Query {

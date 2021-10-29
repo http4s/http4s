@@ -23,7 +23,7 @@ import fs2._
 import org.http4s.internal.ChunkWriter
 
 private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
-  //TODO: Refactor encoders to create headers dependent on value.
+  // TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
   def toEntity(mp: Multipart[F]): Entity[F] =

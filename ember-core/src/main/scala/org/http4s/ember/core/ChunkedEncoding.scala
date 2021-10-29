@@ -38,9 +38,9 @@ import scala.util.control.NonFatal
 
 private[ember] object ChunkedEncoding {
 
-  /** From fs2-http
-    * decodes from the HTTP chunked encoding. After last chunk this terminates. Allows to specify max header size, after which this terminates
-    * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
+  /** From fs2-http decodes from the HTTP chunked encoding. After last chunk this terminates. Allows
+    * to specify max header size, after which this terminates Please see
+    * https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
     */
   def decode[F[_]](
       head: Array[Byte],
@@ -68,7 +68,7 @@ private[ember] object ChunkedEncoding {
                 go(
                   expect,
                   nh.drop(`\r\n`.size).toArray
-                ) //strip any leading crlf on header, as this starts with /r/n
+                ) // strip any leading crlf on header, as this starts with /r/n
               else if (endOfHeader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](EmberException.ChunkedEncodingError(
                   s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"))
@@ -149,7 +149,9 @@ private[ember] object ChunkedEncoding {
     } ++ Stream.chunk(lastChunk)
   }
 
-  /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */
+  /** yields to size of header in case the chunked header was succesfully parsed, else yields to
+    * None
+    */
   private def readChunkedHeader(hdr: ByteVector): Option[Long] =
     hdr.decodeUtf8.toOption.flatMap { s =>
       val parts = s.split(';') // lets ignore any extensions
