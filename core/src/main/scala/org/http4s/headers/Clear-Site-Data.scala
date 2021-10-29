@@ -20,10 +20,11 @@ package headers
 import cats.Semigroup
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.typelevel.ci._
 import org.http4s.Header
-import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+import org.typelevel.ci._
 
 // https://w3c.github.io/webappsec-clear-site-data/#header
 
