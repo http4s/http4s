@@ -38,10 +38,10 @@ object MimeLoaderPlugin extends AutoPlugin {
   )
 }
 
-/** MimeLoader is able to generate a scala file with a database of MediaTypes.
-  * The list of MediaTypes is produced from the list published by `mime-db` in json format.
-  * This json file is parsed, converted to a list of MediaTypes grouped by main type and
-  * converted to a Treehugger syntax tree which is later printed as a scala source file
+/** MimeLoader is able to generate a scala file with a database of MediaTypes. The list of
+  * MediaTypes is produced from the list published by `mime-db` in json format. This json file is
+  * parsed, converted to a list of MediaTypes grouped by main type and converted to a Treehugger
+  * syntax tree which is later printed as a scala source file
   */
 object MimeLoader {
   implicit val MimeDescrDecoder: Decoder[MimeDescr] = deriveDecoder[MimeDescr]

@@ -46,8 +46,8 @@ trait EntityEncoder[F[_], A] { self =>
 
   /** Headers that may be added to a [[Message]]
     *
-    * Examples of such headers would be Content-Type.
-    * __NOTE:__ The Content-Length header will be generated from the resulting Entity and thus should not be added.
+    * Examples of such headers would be Content-Type. __NOTE:__ The Content-Length header will be
+    * generated from the resulting Entity and thus should not be added.
     */
   def headers: Headers
 
@@ -58,7 +58,9 @@ trait EntityEncoder[F[_], A] { self =>
       override def headers: Headers = self.headers
     }
 
-  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if
+    * defined the headers
+    */
   def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
@@ -93,7 +95,8 @@ object EntityEncoder {
 
   /** Create a new [[EntityEncoder]]
     *
-    * This constructor is a helper for types that can be serialized synchronously, for example a String.
+    * This constructor is a helper for types that can be serialized synchronously, for example a
+    * String.
     */
   def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
@@ -115,9 +118,9 @@ object EntityEncoder {
       def headers: Headers = Headers.empty
     }
 
-  /** A stream encoder is intended for streaming, and does not calculate its
-    * bodies in advance.  As such, it does not calculate the Content-Length in
-    * advance.  This is for use with chunked transfer encoding.
+  /** A stream encoder is intended for streaming, and does not calculate its bodies in advance. As
+    * such, it does not calculate the Content-Length in advance. This is for use with chunked
+    * transfer encoding.
     */
   implicit def streamEncoder[F[_], A](implicit
       W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
@@ -153,9 +156,8 @@ object EntityEncoder {
   implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
     chunkEncoder[F].contramap(Chunk.bytes)
 
-  /** Encodes an entity body.  Chunking of the stream is preserved.  A
-    * `Transfer-Encoding: chunked` header is set, as we cannot know
-    * the content length without running the stream.
+  /** Encodes an entity body. Chunking of the stream is preserved. A `Transfer-Encoding: chunked`
+    * header is set, as we cannot know the content length without running the stream.
     */
   implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
@@ -171,7 +173,7 @@ object EntityEncoder {
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
-      Entity(readAll[F](p, blocker, 4096)) //2 KB :P
+      Entity(readAll[F](p, blocker, 4096)) // 2 KB :P
     }
 
   // TODO parameterize chunk size

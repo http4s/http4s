@@ -657,7 +657,10 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
   private implicit def http4sTestingSemigroupForGen[T: Semigroup]: Semigroup[Gen[T]] =
     new Semigroup[Gen[T]] {
-      def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for { t1 <- g1; t2 <- g2 } yield t1 |+| t2
+      def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for {
+        t1 <- g1
+        t2 <- g2
+      } yield t1 |+| t2
     }
 
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =
@@ -1021,7 +1024,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
     val genExtension = for {
       extName <- genToken
       quotedStringEquivWithoutQuotes =
-        genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
+        genQDText // The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
       extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
     } yield (extName -> extValue)
 
@@ -1029,7 +1032,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
       max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
       l <- Gen.listOf(genExtension)
-      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
+      if timeout.isDefined || max.isDefined || l.nonEmpty // One of these fields is necessary to be valid.
     } yield `Keep-Alive`.unsafeApply(timeout, max, l)
   }
 

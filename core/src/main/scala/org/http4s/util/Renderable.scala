@@ -30,14 +30,18 @@ import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
 
 /** A type class that describes how to efficiently render a type
-  * @tparam T the type which will be rendered
+  * @tparam T
+  *   the type which will be rendered
   */
 trait Renderer[T] {
 
   /** Renders the object to the writer
-    * @param writer [[Writer]] to render to
-    * @param t object to render
-    * @return the same [[Writer]] provided
+    * @param writer
+    *   [[Writer]] to render to
+    * @param t
+    *   object to render
+    * @return
+    *   the same [[Writer]] provided
     */
   def render(writer: Writer, t: T): writer.type
 }
@@ -172,7 +176,7 @@ trait Writer { self =>
     go(0)
     this << '"'
   }
-  //Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
+  // Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
   def eligibleOnly(s: String, keep: CharPredicate, placeholder: Char): this.type = {
     @tailrec def rec(ix: Int = 0): this.type =
       if (ix < s.length) {
@@ -263,7 +267,8 @@ trait Writer { self =>
 }
 
 /** [[Writer]] that will result in a `String`
-  * @param size initial buffer size of the underlying `StringBuilder`
+  * @param size
+  *   initial buffer size of the underlying `StringBuilder`
   */
 class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer { self =>
   private val sb = new java.lang.StringBuilder(size)

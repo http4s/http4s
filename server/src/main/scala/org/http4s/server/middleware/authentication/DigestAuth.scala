@@ -36,9 +36,8 @@ import scala.concurrent.duration._
   */
 object DigestAuth {
 
-  /** A function mapping username to a user object and password, or
-    * None if no user exists.  Requires that the server can recover
-    * the password in clear text, which is _strongly_ discouraged.
+  /** A function mapping username to a user object and password, or None if no user exists. Requires
+    * that the server can recover the password in clear text, which is _strongly_ discouraged.
     */
   type AuthenticationStore[F[_], A] = String => F[Option[(A, String)]]
 
@@ -52,15 +51,17 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  /** @param realm The realm used for authentication purposes.
-    * @param store A partial function mapping (realm, user) to the
-    *              appropriate password.
-    * @param nonceCleanupInterval Interval (in milliseconds) at which stale
-    *                             nonces should be cleaned up.
-    * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
-    *                       is considered stale (i.e. not used for authentication
-    *                       purposes anymore).
-    * @param nonceBits The number of random bits a nonce should consist of.
+  /** @param realm
+    *   The realm used for authentication purposes.
+    * @param store
+    *   A partial function mapping (realm, user) to the appropriate password.
+    * @param nonceCleanupInterval
+    *   Interval (in milliseconds) at which stale nonces should be cleaned up.
+    * @param nonceStaleTime
+    *   Amount of time (in milliseconds) after which a nonce is considered stale (i.e. not used for
+    *   authentication purposes anymore).
+    * @param nonceBits
+    *   The number of random bits a nonce should consist of.
     */
   def apply[F[_]: Sync, A](
       realm: String,
@@ -74,8 +75,8 @@ object DigestAuth {
     challenged(challenge(realm, store, nonceKeeper))
   }
 
-  /** Side-effect of running the returned task: If req contains a valid
-    * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
+  /** Side-effect of running the returned task: If req contains a valid AuthorizationHeader, the
+    * corresponding nonce counter (nc) is increased.
     */
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
       implicit F: Sync[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =

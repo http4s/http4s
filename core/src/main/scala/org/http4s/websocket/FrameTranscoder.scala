@@ -147,8 +147,10 @@ class FrameTranscoder(val isClient: Boolean) {
   /** Method that decodes ByteBuffers to objects. None reflects not enough data to decode a message
     * Any unused data in the ByteBuffer will be recycled and available for the next read
     *
-    * @param in ByteBuffer of immediately available data
-    * @return optional message if enough data was available
+    * @param in
+    *   ByteBuffer of immediately available data
+    * @return
+    *   optional message if enough data was available
     */
   def bufferToFrame(in: ByteBuffer): WebSocketFrame =
     if (in.remaining < 2 || FrameTranscoder.getMsgLength(in) < 0)

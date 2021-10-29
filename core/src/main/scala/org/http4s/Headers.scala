@@ -36,15 +36,18 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
   /** Attempt to get a (potentially repeating) header from this collection of headers.
     *
-    * @return a scala.Option possibly containing the resulting (potentially repeating) header.
+    * @return
+    *   a scala.Option possibly containing the resulting (potentially repeating) header.
     */
   def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
     ev.from(headers).flatMap(_.toOption)
 
-  /** Attempt to get a (potentially repeating) header and/or any parse errors from this collection of headers.
+  /** Attempt to get a (potentially repeating) header and/or any parse errors from this collection
+    * of headers.
     *
-    * @return a scala.Option possibly containing the resulting (potentially repeating) header
-    *         and/or any parse errors.
+    * @return
+    *   a scala.Option possibly containing the resulting (potentially repeating) header and/or any
+    *   parse errors.
     */
   def getWithWarnings[A](implicit
       ev: Header.Select[A]): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
@@ -52,16 +55,21 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
   /** Attempt to get headers by key from this collection of headers.
     *
-    * @param key name of the headers to find.
-    * @return a scala.Option possibly containing the resulting collection
-    *         [[cats.data.NonEmptyList]] of [[org.http4s.Header.Raw]].
+    * @param key
+    *   name of the headers to find.
+    * @return
+    *   a scala.Option possibly containing the resulting collection [[cats.data.NonEmptyList]] of
+    *   [[org.http4s.Header.Raw]].
     */
   def get(key: CIString): Option[NonEmptyList[Header.Raw]] = headers.filter(_.name == key).toNel
 
   /** Make a new collection adding the specified headers, replacing existing `Single` headers.
     *
-    * @param in multiple heteregenous headers [[Header]] to append to the new collection, see [[Header.ToRaw]]
-    * @return a new [[Headers]] containing the sum of the initial and input headers
+    * @param in
+    *   multiple heteregenous headers [[Header]] to append to the new collection, see
+    *   [[Header.ToRaw]]
+    * @return
+    *   a new [[Headers]] containing the sum of the initial and input headers
     */
   def put(in: Header.ToRaw*): Headers =
     this ++ Headers(in.values)
@@ -78,10 +86,9 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def add[H: Header[*, Header.Recurring]](h: H): Headers =
     Headers(this.headers ++ Header.ToRaw.modelledHeadersToRaw(h).values)
 
-  /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
-    * `Transfer-Encoding` headers.
+  /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and `Transfer-Encoding` headers.
     *
-    *  https://tools.ietf.org/html/rfc7231#section-3.3
+    * https://tools.ietf.org/html/rfc7231#section-3.3
     */
   def removePayloadHeaders: Headers =
     transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
@@ -104,13 +111,12 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 object Headers {
   val empty: Headers = Headers(List.empty[Header.Raw])
 
-  /** Creates a new Headers collection.
-    * The [[Header.ToRaw]] machinery allows the creation of Headers with
-    * variadic and heteregenous arguments, provided they are either:
-    * - A value of type `A`  which has a `Header[A]` in scope
-    * - A (name, value) pair of `String`
-    * - A `Header.Raw`
-    * - A `Foldable` (`List`, `Option`, etc) of the above.
+  /** Creates a new Headers collection. The [[Header.ToRaw]] machinery allows the creation of
+    * Headers with variadic and heteregenous arguments, provided they are either:
+    *   - A value of type `A` which has a `Header[A]` in scope
+    *   - A (name, value) pair of `String`
+    *   - A `Header.Raw`
+    *   - A `Foldable` (`List`, `Option`, etc) of the above.
     */
   def apply(headers: Header.ToRaw*): Headers =
     new Headers(headers.values)

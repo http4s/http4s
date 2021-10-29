@@ -22,9 +22,9 @@ import java.time.DateTimeException
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
-/** @param extension The extension attributes of the cookie.  If there is more
-  * than one, they are joined by semi-colon, which must not appear in an
-  * attribute value.
+/** @param extension
+  *   The extension attributes of the cookie. If there is more than one, they are joined by
+  *   semi-colon, which must not appear in an attribute value.
   */
 final case class ResponseCookie(
     name: String,

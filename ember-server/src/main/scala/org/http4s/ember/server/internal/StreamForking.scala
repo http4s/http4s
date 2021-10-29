@@ -26,18 +26,16 @@ import fs2.concurrent.SignallingRef
 
 private[internal] object StreamForking {
 
-  /** forking has similar semantics to parJoin, but there are two key differences.
-    * The first is that inner stream outputs are not shuffled to the forked stream.
-    * The second is that the outer stream may terminate and finalize before inner
-    * streams complete. This is generally unsafe, because inner streams are lexically
-    * scoped within the outer stream and accordingly has resources bound to the outer
-    * stream available in scope. However, network servers built on top of fs2.io can
-    * safely utilize this because inner streams are created fresh from socket Resources
-    * that don't close over any resources from the outer stream.
+  /** forking has similar semantics to parJoin, but there are two key differences. The first is that
+    * inner stream outputs are not shuffled to the forked stream. The second is that the outer
+    * stream may terminate and finalize before inner streams complete. This is generally unsafe,
+    * because inner streams are lexically scoped within the outer stream and accordingly has
+    * resources bound to the outer stream available in scope. However, network servers built on top
+    * of fs2.io can safely utilize this because inner streams are created fresh from socket
+    * Resources that don't close over any resources from the outer stream.
     *
-    * One important semantic that the previous prefetch trick didn't have was backpressuring
-    * the outer stream from continuing if the max concurrency is reached, which has been
-    * recovered here.
+    * One important semantic that the previous prefetch trick didn't have was backpressuring the
+    * outer stream from continuing if the max concurrency is reached, which has been recovered here.
     */
   def forking[F[_], O](streams: Stream[F, Stream[F, O]], maxConcurrency: Int = Int.MaxValue)(
       implicit F: Concurrent[F]): Stream[F, INothing] = {

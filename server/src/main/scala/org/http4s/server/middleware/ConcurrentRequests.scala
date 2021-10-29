@@ -25,26 +25,25 @@ import org.http4s.server._
 
 /** Middlewares for tracking the quantity of concurrent requests.
   *
-  * These are generalized middlewares and can be used to implement metrics,
-  * logging, max concurrent requests, etc.
+  * These are generalized middlewares and can be used to implement metrics, logging, max concurrent
+  * requests, etc.
   *
-  * @note The concurrent request count is decremented on the completion of the
-  *       Response body, or in the event of any error, and is guaranteed to
-  *       only occur once.
+  * @note
+  *   The concurrent request count is decremented on the completion of the Response body, or in the
+  *   event of any error, and is guaranteed to only occur once.
   */
 object ConcurrentRequests {
 
-  /** Run a side effect each time the concurrent request count increments and
-    * decrements.
+  /** Run a side effect each time the concurrent request count increments and decrements.
     *
-    * @note Each side effect is given the current number of concurrent
-    *       requests as an argument.
+    * @note
+    *   Each side effect is given the current number of concurrent requests as an argument.
     *
-    * @note `onIncrement` should never be < 1 and `onDecrement` should never
-    *       be value < 0.
+    * @note
+    *   `onIncrement` should never be < 1 and `onDecrement` should never be value < 0.
     *
-    * @note This is the same as [[#route]], but allows for the inner and outer
-    *       effect types to differ.
+    * @note
+    *   This is the same as [[#route]], but allows for the inner and outer effect types to differ.
     */
   def route2[F[_]: Sync, G[_]: Sync](
       onIncrement: Long => G[Unit],
@@ -57,14 +56,13 @@ object ConcurrentRequests {
           ref.updateAndGet(_ + 1L).flatTap(onIncrement)
         )(Function.const(ref.updateAndGet(_ - 1L).flatMap(onDecrement))))
 
-  /** Run a side effect each time the concurrent request count increments and
-    * decrements.
+  /** Run a side effect each time the concurrent request count increments and decrements.
     *
-    * @note Each side effect is given the current number of concurrent
-    *       requests as an argument.
+    * @note
+    *   Each side effect is given the current number of concurrent requests as an argument.
     *
-    * @note `onIncrement` should never be < 1 and `onDecrement` should never
-    *       be value < 0.
+    * @note
+    *   `onIncrement` should never be < 1 and `onDecrement` should never be value < 0.
     */
   def route[F[_]: Sync](
       onIncrement: Long => F[Unit],
@@ -72,21 +70,22 @@ object ConcurrentRequests {
   ): F[ContextMiddleware[F, Long]] =
     route2[F, F](onIncrement, onDecrement)
 
-  /** As [[#route]], but runs the same effect on increment and decrement of the concurrent request count. */
+  /** As [[#route]], but runs the same effect on increment and decrement of the concurrent request
+    * count.
+    */
   def onChangeRoute[F[_]: Sync](onChange: Long => F[Unit]): F[ContextMiddleware[F, Long]] =
     route[F](onChange, onChange)
 
-  /** Run a side effect each time the concurrent request count increments and
-    * decrements.
+  /** Run a side effect each time the concurrent request count increments and decrements.
     *
-    * @note Each side effect is given the current number of concurrent
-    *       requests as an argument.
+    * @note
+    *   Each side effect is given the current number of concurrent requests as an argument.
     *
-    * @note `onIncrement` should never be < 1 and `onDecrement` should never
-    *       be value < 0.
+    * @note
+    *   `onIncrement` should never be < 1 and `onDecrement` should never be value < 0.
     *
-    * @note This is the same as [[#app]], but allows for the inner and outer
-    *       effect types to differ.
+    * @note
+    *   This is the same as [[#app]], but allows for the inner and outer effect types to differ.
     */
   def app2[F[_]: Sync, G[_]: Sync](
       onIncrement: Long => G[Unit],
@@ -99,14 +98,13 @@ object ConcurrentRequests {
           ref.updateAndGet(_ + 1L).flatTap(onIncrement)
         )(Function.const(ref.updateAndGet(_ - 1L).flatMap(onDecrement))))
 
-  /** Run a side effect each time the concurrent request count increments and
-    * decrements.
+  /** Run a side effect each time the concurrent request count increments and decrements.
     *
-    * @note Each side effect is given the current number of concurrent
-    *       requests as an argument.
+    * @note
+    *   Each side effect is given the current number of concurrent requests as an argument.
     *
-    * @note `onIncrement` should never be < 1 and `onDecrement` should never
-    *       be value < 0.
+    * @note
+    *   `onIncrement` should never be < 1 and `onDecrement` should never be value < 0.
     */
   def app[F[_]: Sync](
       onIncrement: Long => F[Unit],
@@ -114,7 +112,9 @@ object ConcurrentRequests {
   ): F[Kleisli[F, ContextRequest[F, Long], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     app2[F, F](onIncrement, onDecrement)
 
-  /** As [[#app]], but runs the same effect on increment and decrement of the concurrent request count. */
+  /** As [[#app]], but runs the same effect on increment and decrement of the concurrent request
+    * count.
+    */
   def onChangeApp[F[_]: Sync](onChange: Long => F[Unit])
       : F[Kleisli[F, ContextRequest[F, Long], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     app[F](onChange, onChange)

@@ -22,8 +22,8 @@ import scala.collection.immutable.NumericRange
 sealed abstract class CharPredicate extends (Char => Boolean) {
   import CharPredicate._
 
-  /** Determines wether this CharPredicate is an instance of the high-performance,
-    * constant-time `CharPredicate.MaskBased` implementation.
+  /** Determines wether this CharPredicate is an instance of the high-performance, constant-time
+    * `CharPredicate.MaskBased` implementation.
     */
   def isMaskBased: Boolean = this.isInstanceOf[MaskBased]
 
@@ -143,7 +143,7 @@ object CharPredicate {
       }
   }
 
-  ///////////////////////// PRIVATE ////////////////////////////
+  // /////////////////////// PRIVATE ////////////////////////////
 
   private def unmaskable(c: Char) = c >= 128
 

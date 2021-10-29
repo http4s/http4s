@@ -78,13 +78,15 @@ object HttpMethodOverrider {
 
   /** Simple middleware for HTTP Method Override.
     *
-    * This middleware lets you use  HTTP verbs such as PUT or DELETE in places where the client
-    * doesn't support it. Camouflage your request with another HTTP verb(usually POST) and sneak
-    * the desired one using a custom header or request parameter. The middleware will '''override'''
-    * the original verb with the new one for you, allowing the request the be dispatched properly.
+    * This middleware lets you use HTTP verbs such as PUT or DELETE in places where the client
+    * doesn't support it. Camouflage your request with another HTTP verb(usually POST) and sneak the
+    * desired one using a custom header or request parameter. The middleware will '''override''' the
+    * original verb with the new one for you, allowing the request the be dispatched properly.
     *
-    * @param http [[Http]] to transform
-    * @param config http method overrider config
+    * @param http
+    *   [[Http]] to transform
+    * @param config
+    *   http method overrider config
     */
   def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig[F, G])(implicit
       F: Monad[F],

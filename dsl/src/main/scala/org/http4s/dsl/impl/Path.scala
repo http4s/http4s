@@ -30,9 +30,8 @@ object :? {
 /** File extension extractor */
 object ~ {
 
-  /** File extension extractor for Path:
-    *   Path("example.json") match {
-    *     case Root / "example" ~ "json" => ...
+  /** File extension extractor for Path: Path("example.json") match { case Root / "example" ~ "json"
+    * => ...
     */
   def unapply(path: Path): Option[(Path, String)] =
     path match {
@@ -46,7 +45,7 @@ object ~ {
   /** File extension matcher for String:
     * {{{
     *   "example.json" match {
-    *      case => "example" ~ "json" => ...
+    *       case => "example" ~ "json" => ...
     * }}}
     */
   def unapply(fileName: String): Option[(String, String)] =
@@ -96,7 +95,8 @@ object ->> {
     *       case Method.POST => ...
     * }}}
     *
-    * Returns an error response if the method is not matched, in accordance with [[https://datatracker.ietf.org/doc/html/rfc7231#section-4.1 RFC7231]]
+    * Returns an error response if the method is not matched, in accordance with
+    * [[https://datatracker.ietf.org/doc/html/rfc7231#section-4.1 RFC7231]]
     */
   def unapply[F[_]: Applicative](
       req: Request[F]): Some[(PartialFunction[Method, F[Response[F]]] => F[Response[F]], Path)] =
@@ -123,10 +123,10 @@ class MethodConcat(val methods: Set[Method]) {
 
   /** HttpMethod 'or' extractor:
     * {{{
-    *  val request: Request = ???
-    *  request match {
-    *    case (Method.GET | Method.POST) -> Root / "123" => ???
-    *  }
+    *   val request: Request = ???
+    *   request match {
+    *     case (Method.GET | Method.POST) -> Root / "123" => ???
+    *   }
     * }}}
     */
   def unapply(method: Method): Option[Method] =
@@ -158,7 +158,7 @@ protected class PathVar[A](cast: String => Try[A]) {
 /** Integer extractor of a path variable:
   * {{{
   *   Path("/user/123") match {
-  *      case Root / "user" / IntVar(userId) => ...
+  *       case Root / "user" / IntVar(userId) => ...
   * }}}
   */
 object IntVar extends PathVar(str => Try(str.toInt))
@@ -166,7 +166,7 @@ object IntVar extends PathVar(str => Try(str.toInt))
 /** Long extractor of a path variable:
   * {{{
   *   Path("/user/123") match {
-  *      case Root / "user" / LongVar(userId) => ...
+  *       case Root / "user" / LongVar(userId) => ...
   * }}}
   */
 object LongVar extends PathVar(str => Try(str.toLong))
@@ -174,21 +174,21 @@ object LongVar extends PathVar(str => Try(str.toLong))
 /** UUID extractor of a path variable:
   * {{{
   *   Path("/user/13251d88-7a73-4fcf-b935-54dfae9f023e") match {
-  *      case Root / "user" / UUIDVar(userId) => ...
+  *       case Root / "user" / UUIDVar(userId) => ...
   * }}}
   */
 object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
 
-/** Matrix path variable extractor
-  * For an example see [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]]
-  * This is useful for representing a resource that may be addressed in multiple dimensions where order is unimportant
+/** Matrix path variable extractor For an example see
+  * [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]] This is useful for representing a
+  * resource that may be addressed in multiple dimensions where order is unimportant
   *
   * {{{
   *
-  *    object BoardVar extends MatrixVar("square", List("x", "y"))
-  *    Path("/board/square;x=5;y=3") match {
-  *      case Root / "board" / BoardVar(IntVar(x), IntVar(y)) => ...
-  *    }
+  *     object BoardVar extends MatrixVar("square", List("x", "y"))
+  *     Path("/board/square;x=5;y=3") match {
+  *       case Root / "board" / BoardVar(IntVar(x), IntVar(y)) => ...
+  *     }
   * }}}
   */
 abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
@@ -349,20 +349,20 @@ abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name:
 abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
     extends OptionalQueryParamDecoderMatcher[T](QueryParam[T].key.value)
 
-/**  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will return a
-  *  [[ParseFailure]] if the parameter cannot be decoded.
+/** param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will return a
+  * [[ParseFailure]] if the parameter cannot be decoded.
   *
   * {{{
-  *  case class Foo(i: Int)
-  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   case class Foo(i: Int)
+  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
   *
-  *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
-  *  val routes: HttpRoutes.of = {
-  *    case GET -> Root / "closest" :? FooMatcher(fooValue) =>
-  *      fooValue.fold(
-  *        nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
-  *        foo  => { ... }
-  *      )
+  *   object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
+  *   val routes: HttpRoutes.of = {
+  *     case GET -> Root / "closest" :? FooMatcher(fooValue) =>
+  *       fooValue.fold(
+  *         nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
+  *         foo  => { ... }
+  *       )
   * }}}
   */
 abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
@@ -372,27 +372,27 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
     }
 }
 
-/**  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will _always_ match, but will return
-  *  an Option possibly containing the result of the conversion to T
+/** param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will _always_ match, but
+  * will return an Option possibly containing the result of the conversion to T
   *
   * {{{
-  *  case class Foo(i: Int)
-  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   case class Foo(i: Int)
+  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
   *
-  *  case class Bar(i: Int)
-  *  implicit val barDecoder: QueryParamDecoder[Bar] = ...
+  *   case class Bar(i: Int)
+  *   implicit val barDecoder: QueryParamDecoder[Bar] = ...
   *
-  *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
-  *  object BarMatcher extends OptionalValidatingQueryParamDecoderMatcher[Bar]("bar")
+  *   object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
+  *   object BarMatcher extends OptionalValidatingQueryParamDecoderMatcher[Bar]("bar")
   *
-  *  val routes = HttpRoutes.of {
-  *    case GET -> Root / "closest" :? FooMatcher(fooValue) +& BarMatcher(barValue) =>
-  *      ^(fooValue, barValue getOrElse 42.right) { (foo, bar) =>
-  *        ...
-  *      }.fold(
-  *        nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
-  *        baz  => { ... }
-  *      )
+  *   val routes = HttpRoutes.of {
+  *     case GET -> Root / "closest" :? FooMatcher(fooValue) +& BarMatcher(barValue) =>
+  *       ^(fooValue, barValue getOrElse 42.right) { (foo, bar) =>
+  *         ...
+  *       }.fold(
+  *         nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
+  *         baz  => { ... }
+  *       )
   * }}}
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {

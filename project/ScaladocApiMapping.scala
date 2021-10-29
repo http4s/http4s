@@ -6,30 +6,28 @@ import sbt.Keys._
 import sbtunidoc.BaseUnidocPlugin.autoImport._
 import sbt.librarymanagement._
 
-/** Provides API File -> URL mappings for dependencies which don't expose an
-  * `apiURL` in their POM or if they do, they are doing so incorrectly and
-  * SBT/Scaladoc can't reconstruct the mapping automatically.
+/** Provides API File -> URL mappings for dependencies which don't expose an `apiURL` in their POM
+  * or if they do, they are doing so incorrectly and SBT/Scaladoc can't reconstruct the mapping
+  * automatically.
   *
-  * If the project for which we are providing a mapping provides a specific
-  * Scaladoc link, we prefer that one. Otherwise we use [[https://javadoc.io]]
-  * to fill in the gaps.
+  * If the project for which we are providing a mapping provides a specific Scaladoc link, we prefer
+  * that one. Otherwise we use [[https://javadoc.io]] to fill in the gaps.
   *
-  * There is a bit of fuzzy logic in here. Scaladoc requires a File -> URL
-  * mapping for the linking to work. SBT does not seem to expose a ModuleId ->
-  * File mapping in any API, which is what would be ideal to solve this
-  * problem. What we do have is the classpath constructed by the Unidoc
-  * plugin. Because we are lacking a full ModuleID construct here, we use some
-  * regular expressions on the `File` in the classpath as a heuristic to match
-  * the given `File` to a dependency module.
+  * There is a bit of fuzzy logic in here. Scaladoc requires a File -> URL mapping for the linking
+  * to work. SBT does not seem to expose a ModuleId -> File mapping in any API, which is what would
+  * be ideal to solve this problem. What we do have is the classpath constructed by the Unidoc
+  * plugin. Because we are lacking a full ModuleID construct here, we use some regular expressions
+  * on the `File` in the classpath as a heuristic to match the given `File` to a dependency module.
   */
 object ScaladocApiMapping {
 
   /** Construct mappings for dependencies for which SBT/Scaladoc can not do so automatically.
     *
-    * @param classpaths In practice this will need to be the ScalaUnidoc
-    *        classpath, which is the aggregation of all classpaths.
-    * @param scalaBinaryVersion The current scala binary version,
-    *        e.g. `scalaBinaryVersion.value`.
+    * @param classpaths
+    *   In practice this will need to be the ScalaUnidoc classpath, which is the aggregation of all
+    *   classpaths.
+    * @param scalaBinaryVersion
+    *   The current scala binary version, e.g. `scalaBinaryVersion.value`.
     */
   def mappings(classpaths: Seq[Classpath], scalaBinaryVersion: String): Map[File, URL] =
     classpaths.flatten.foldLeft(Map.empty[File, URL]) { case (acc, value) =>

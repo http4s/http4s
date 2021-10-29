@@ -35,9 +35,9 @@ class CSRFSuite extends Http4sSuite {
 
   /** Create a clock that always ticks forward once per millis() call.
     *
-    * This is to emulate scenarios where we want to mitigate BREACH where, in
-    * a real world service, a huge number of requests wouldn't be processed
-    * before the clock at least traverses a millisecond.
+    * This is to emulate scenarios where we want to mitigate BREACH where, in a real world service,
+    * a huge number of requests wouldn't be processed before the clock at least traverses a
+    * millisecond.
     */
   private val testClock: Clock = new Clock { self =>
     private lazy val clockTick = new AtomicLong(Instant.now().toEpochMilli)
@@ -93,7 +93,7 @@ class CSRFSuite extends Http4sSuite {
         )
         .build)
 
-  ///
+  // /
 
   test("pass through and embed a new token for a safe, fresh request if set") {
     for {
@@ -123,7 +123,7 @@ class CSRFSuite extends Http4sSuite {
       t <- csrf.generateToken[IO]
       req = csrf.embedInRequestCookie(dummyRequest, t)
       newToken <- csrf.refreshedToken[IO](req).valueOrF(IO.raiseError)
-      //Checks whether it was properly signed
+      // Checks whether it was properly signed
     } yield assert(csrf.extractRaw(unlift(newToken)).isRight)
   }
 
@@ -166,7 +166,7 @@ class CSRFSuite extends Http4sSuite {
         .validate()(dummyRoutes)(passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
     } yield {
       assertEquals(response.status, Status.Forbidden) // Must fail
-      assert(!response.cookies.exists(_.name == cookieName)) //Must not embed a new token
+      assert(!response.cookies.exists(_.name == cookieName)) // Must not embed a new token
     }
   }
 

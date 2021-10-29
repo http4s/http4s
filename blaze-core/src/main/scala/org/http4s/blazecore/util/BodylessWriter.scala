@@ -29,9 +29,12 @@ import scala.concurrent._
 
 /** Discards the body, killing it so as to clean up resources
   *
-  * @param headers ByteBuffer representation of [[Headers]] to send
-  * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
-  * @param ec an ExecutionContext which will be used to complete operations
+  * @param headers
+  *   ByteBuffer representation of [[Headers]] to send
+  * @param pipe
+  *   the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
+  * @param ec
+  *   an ExecutionContext which will be used to complete operations
   */
 private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(implicit
     protected val F: Effect[F],
@@ -42,8 +45,10 @@ private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: B
 
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
     *
-    * @param p an entity body that will be killed
-    * @return the F which, when run, will send the headers and kill the entity body
+    * @param p
+    *   an entity body that will be killed
+    * @return
+    *   the F which, when run, will send the headers and kill the entity body
     */
   override def writeEntityBody(p: EntityBody[F]): F[Boolean] =
     p.drain.compile.drain.map(_ => close)

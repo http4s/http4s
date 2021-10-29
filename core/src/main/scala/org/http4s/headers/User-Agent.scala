@@ -65,7 +65,6 @@ object `User-Agent` {
 
 }
 
-/** User-Agent header
-  * [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
+/** User-Agent header [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
   */
 final case class `User-Agent`(product: ProductId, rest: List[ProductIdOrComment])

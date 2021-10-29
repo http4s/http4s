@@ -34,13 +34,13 @@ import scodec.bits.ByteVector
 import java.io.File
 import scala.annotation.implicitNotFound
 
-/** A type that can be used to decode a [[Message]]
-  * EntityDecoder is used to attempt to decode a [[Message]] returning the
-  * entire resulting A. If an error occurs it will result in a failed effect.
-  * The default decoders provided here are not streaming, but one could implement
-  * a streaming decoder by having the value of A be some kind of streaming construct.
+/** A type that can be used to decode a [[Message]] EntityDecoder is used to attempt to decode a
+  * [[Message]] returning the entire resulting A. If an error occurs it will result in a failed
+  * effect. The default decoders provided here are not streaming, but one could implement a
+  * streaming decoder by having the value of A be some kind of streaming construct.
   *
-  * @tparam T result type produced by the decoder
+  * @tparam T
+  *   result type produced by the decoder
   */
 @implicitNotFound(
   "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
@@ -118,10 +118,11 @@ trait EntityDecoder[F[_], T] { self =>
 
   /** Combine two [[EntityDecoder]]'s
     *
-    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
-    * and if not, defer to the second [[EntityDecoder]]
+    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode, and if
+    * not, defer to the second [[EntityDecoder]]
     *
-    * @param other backup [[EntityDecoder]]
+    * @param other
+    *   backup [[EntityDecoder]]
     */
   def orElse[T2 >: T](other: EntityDecoder[F, T2])(implicit F: Functor[F]): EntityDecoder[F, T2] =
     widen[T2] <+> other
@@ -134,9 +135,9 @@ trait EntityDecoder[F[_], T] { self =>
     this.asInstanceOf[EntityDecoder[F, T2]]
 }
 
-/** EntityDecoder is used to attempt to decode an [[EntityBody]]
-  * This companion object provides a way to create `new EntityDecoder`s along
-  * with some commonly used instances which can be resolved implicitly.
+/** EntityDecoder is used to attempt to decode an [[EntityBody]] This companion object provides a
+  * way to create `new EntityDecoder`s along with some commonly used instances which can be resolved
+  * implicitly.
   */
 object EntityDecoder {
   // This is not a real media type but will still be matched by `*/*`
@@ -172,12 +173,11 @@ object EntityDecoder {
 
   /** Create a new [[EntityDecoder]]
     *
-    * The new [[EntityDecoder]] will attempt to decode messages of type `T`
-    * only if the [[Message]] satisfies the provided [[MediaRange]].
+    * The new [[EntityDecoder]] will attempt to decode messages of type `T` only if the [[Message]]
+    * satisfies the provided [[MediaRange]].
     *
-    * Exceptions thrown by `f` are not caught.  Care should be taken that
-    * recoverable errors are returned as a [[DecodeResult#failure]], or that
-    * system errors are raised in `F`.
+    * Exceptions thrown by `f` are not caught. Care should be taken that recoverable errors are
+    * returned as a [[DecodeResult#failure]], or that system errors are raised in `F`.
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
       f: Media[F] => DecodeResult[F, T]): EntityDecoder[F, T] =
@@ -209,7 +209,7 @@ object EntityDecoder {
       m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = `UTF-8`): F[String] =
     m.bodyText.compile.string
 
-  /////////////////// Instances //////////////////////////////////////////////
+  // ///////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =

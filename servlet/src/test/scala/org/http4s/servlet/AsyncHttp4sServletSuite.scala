@@ -66,7 +66,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
   servletServer.test("AsyncHttp4sServlet handle POST requests") { server =>
     val contents = (1 to 14).map { i =>
       val number =
-        scala.math.pow(2, i.toDouble).toInt - 1 //-1 for the end-of-line to make awk play nice
+        scala.math.pow(2, i.toDouble).toInt - 1 // -1 for the end-of-line to make awk play nice
       s"$i $number ${"*".*(number)}\n"
     }.toList
 

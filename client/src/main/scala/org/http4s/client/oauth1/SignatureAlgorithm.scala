@@ -49,8 +49,10 @@ object SignatureAlgorithm {
 
   /** Map a [[SignatureMethod]] protocol parameter to a [[SignatureAlgorithm]] implementation
     *
-    * @param method The signature method protocol parameter
-    * @return The implementation, or an [[IllegalArgumentException]] if none was found
+    * @param method
+    *   The signature method protocol parameter
+    * @return
+    *   The implementation, or an [[IllegalArgumentException]] if none was found
     */
   private[oauth1] def unsafeFromMethod(method: SignatureMethod): SignatureAlgorithm =
     AllMethods
@@ -64,15 +66,19 @@ object SignatureAlgorithm {
   */
 trait SignatureAlgorithm {
 
-  /** @return The signature method name per the oauth1.0 spec
+  /** @return
+    *   The signature method name per the oauth1.0 spec
     */
   def name: String
 
   /** Apply the implementation's algorithm to the input
     *
-    * @param input The input value
-    * @param secretKey The secret key
-    * @return The base64-encoded output
+    * @param input
+    *   The input value
+    * @param secretKey
+    *   The secret key
+    * @return
+    *   The base64-encoded output
     */
   def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
     MonadThrow[F].catchNonFatal(generate(input, secretKey): @nowarn("cat=deprecation"))
@@ -120,8 +126,8 @@ object HmacSha256 extends SignatureAlgorithm {
 
 /** An implementation of the `HMAC-SHA512` oauth signature method.
   *
-  * WARNING - This uses the `HmacSHA512` implementation which is *not* required to be present by the Java spec.
-  * (However, most modern Java runtimes tend to have it)
+  * WARNING - This uses the `HmacSHA512` implementation which is *not* required to be present by the
+  * Java spec. (However, most modern Java runtimes tend to have it)
   */
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`

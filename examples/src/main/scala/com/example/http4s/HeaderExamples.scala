@@ -25,7 +25,7 @@ import org.typelevel.ci._
 // TODO migrate to a proper mdoc. This is to keep it compiling.
 
 object HeaderExamples {
-  ///// test for construction
+  // /// test for construction
   case class Foo(v: String)
   object Foo {
     implicit def headerFoo: Header[Foo, Header.Single] = new Header[Foo, Header.Single] {
@@ -42,7 +42,7 @@ object HeaderExamples {
     "my" -> "header",
     baz
   )
-  ////// test for selection
+  // //// test for selection
   case class Bar(v: NonEmptyList[String])
   object Bar {
     implicit val headerBar: Header[Bar, Header.Recurring] with Semigroup[Bar] =

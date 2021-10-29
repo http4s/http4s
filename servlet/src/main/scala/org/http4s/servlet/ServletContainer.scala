@@ -30,18 +30,18 @@ abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
 
   /** Mounts a servlet to the server.
     *
-    * The http4s way is to create [[HttpRoutes]], which runs not just on servlet containers,
-    * but all supported backends.  This method is good for legacy scenarios, or for reusing parts
-    * of the servlet ecosystem for an app that is committed to running on a servlet container.
+    * The http4s way is to create [[HttpRoutes]], which runs not just on servlet containers, but all
+    * supported backends. This method is good for legacy scenarios, or for reusing parts of the
+    * servlet ecosystem for an app that is committed to running on a servlet container.
     */
   def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): Self
 
   /** Mounts a filter to the server.
     *
     * The http4s way is to create a middleware around an [[HttpRoutes]], which runs not just on
-    * servlet containers, but all supported backends.  This method is good for legacy scenarios,
-    * or for reusing parts of the servlet ecosystem for an app that is committed to running on
-    * a servlet container.
+    * servlet containers, but all supported backends. This method is good for legacy scenarios, or
+    * for reusing parts of the servlet ecosystem for an app that is committed to running on a
+    * servlet container.
     */
   def mountFilter(
       filter: Filter,
@@ -53,10 +53,11 @@ abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
         DispatcherType.INCLUDE,
         DispatcherType.ASYNC)): Self
 
-  /** Sets the servlet I/O mode for reads and writes within the servlet.
-    * Not to be confused with the server connectors.
+  /** Sets the servlet I/O mode for reads and writes within the servlet. Not to be confused with the
+    * server connectors.
     *
-    * @see [[org.http4s.servlet.ServletIo]]
+    * @see
+    *   [[org.http4s.servlet.ServletIo]]
     */
   def withServletIo(servletIo: ServletIo[F]): Self
 }
@@ -64,7 +65,7 @@ abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
 object ServletContainer {
   def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
-  /** Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
+  /** Trims an optional trailing slash and then appends "/\u002b'. Translates an argument to
     * mountService into a standard servlet prefix mapping.
     */
   def prefixMapping(prefix: String): String = prefix.replaceAll("/?$", "") + "/*"

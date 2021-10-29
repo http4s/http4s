@@ -23,11 +23,13 @@ import cats.kernel.BoundedEnumerable
 import cats.parse.Parser0
 import org.http4s.util.Writer
 
-/** A Quality Value.  Represented as thousandths for an exact representation rounded to three
-  * decimal places.
+/** A Quality Value. Represented as thousandths for an exact representation rounded to three decimal
+  * places.
   *
-  * @param thousandths between 0 (for q=0) and 1000 (for q=1)
-  * @see [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.9 RFC 2616, Section 3.9, Quality Values]]
+  * @param thousandths
+  *   between 0 (for q=0) and 1000 (for q=1)
+  * @see
+  *   [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.9 RFC 2616, Section 3.9, Quality Values]]
   */
 final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QValue] {
   def toDouble: Double = 0.001 * thousandths

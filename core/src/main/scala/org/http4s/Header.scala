@@ -14,10 +14,8 @@ import org.http4s.util.StringWriter
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
-/** Typeclass representing an HTTP header, which all the http4s
-  * default headers satisfy.
-  * You can add modelled headers by providing an implicit instance of
-  * `Header[YourModelledHeader]`
+/** Typeclass representing an HTTP header, which all the http4s default headers satisfy. You can add
+  * modelled headers by providing an implicit instance of `Header[YourModelledHeader]`
   */
 trait Header[A, T <: Header.Type] {
 
@@ -25,14 +23,13 @@ trait Header[A, T <: Header.Type] {
     */
   def name: CIString
 
-  /** Value of the header, which is represented as a String.
-    * Will be a comma separated String for headers with multiple values.
+  /** Value of the header, which is represented as a String. Will be a comma separated String for
+    * headers with multiple values.
     */
   def value(a: A): String
 
-  /** Parses the header from its String representation.
-    * Could be a comma separated String in case of a Header with
-    * multiple values.
+  /** Parses the header from its String representation. Could be a comma separated String in case of
+    * a Header with multiple values.
     */
   def parse(headerValue: String): Either[ParseFailure, A]
 }
@@ -41,8 +38,8 @@ object Header {
   final case class Raw(name: CIString, value: String) {
     override def toString: String = s"${name}: ${value}"
 
-    /** True if [[name]] is a valid field-name per RFC7230.  Where it
-      * is not, the header may be dropped by the backend.
+    /** True if [[name]] is a valid field-name per RFC7230. Where it is not, the header may be
+      * dropped by the backend.
       */
     def isNameValid: Boolean =
       name.toString.nonEmpty && name.toString.forall(FieldNamePredicate)
@@ -75,9 +72,8 @@ object Header {
     }
   }
 
-  /** Classifies modelled headers into `Single` headers, which can only
-    * appear once, and `Recurring` headers, which can appear multiple
-    * times.
+  /** Classifies modelled headers into `Single` headers, which can only appear once, and `Recurring`
+    * headers, which can appear multiple times.
     */
   sealed trait Type
   case class Single() extends Type
@@ -106,18 +102,18 @@ object Header {
     def parse(s: String) = parse_(s)
   }
 
-  /** Target for implicit conversions to Header.Raw from modelled
-    * headers and key-value pairs.
+  /** Target for implicit conversions to Header.Raw from modelled headers and key-value pairs.
     *
-    * A method taking variadic `ToRaw` arguments will allow taking
-    * heteregenous arguments, provided they are either:
+    * A method taking variadic `ToRaw` arguments will allow taking heteregenous arguments, provided
+    * they are either:
     *
-    * - A value of type `A`  which has a `Header[A]` in scope
-    * - A (name, value) pair of `String`, which is treated as a `Recurring` header
-    * - A `Header.Raw`
-    * - A `Foldable` (`List`, `Option`, etc) of the above.
+    *   - A value of type `A` which has a `Header[A]` in scope
+    *   - A (name, value) pair of `String`, which is treated as a `Recurring` header
+    *   - A `Header.Raw`
+    *   - A `Foldable` (`List`, `Option`, etc) of the above.
     *
-    * @see [[org.http4s.Headers$.apply]]
+    * @see
+    *   [[org.http4s.Headers$.apply]]
     */
   sealed trait ToRaw {
     def values: List[Header.Raw]

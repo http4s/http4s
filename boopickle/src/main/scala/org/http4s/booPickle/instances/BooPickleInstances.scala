@@ -30,8 +30,8 @@ import java.nio.ByteBuffer
 import scala.util.Failure
 import scala.util.Success
 
-/** Generic factories for http4s encoders/decoders for boopickle
-  * Note that the media type is set for application/octet-stream
+/** Generic factories for http4s encoders/decoders for boopickle Note that the media type is set for
+  * application/octet-stream
   */
 trait BooPickleInstances {
   private def booDecoderByteBuffer[F[_]: Sync, A](m: Media[F])(implicit

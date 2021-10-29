@@ -26,13 +26,14 @@ import org.http4s.Uri
 object ContextRouter {
 
   /** Defines an [[ContextRoutes]] based on list of mappings.
-    * @see define
+    * @see
+    *   define
     */
   def apply[F[_]: Sync, A](mappings: (String, ContextRoutes[A, F])*): ContextRoutes[A, F] =
     define(mappings: _*)(ContextRoutes.empty[A, F])
 
-  /** Defines an [[ContextRoutes]] based on list of mappings and
-    * a default Service to be used when none in the list match incoming requests.
+  /** Defines an [[ContextRoutes]] based on list of mappings and a default Service to be used when
+    * none in the list match incoming requests.
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */

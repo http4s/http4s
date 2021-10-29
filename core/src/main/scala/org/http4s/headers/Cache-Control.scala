@@ -59,10 +59,10 @@ object `Cache-Control` extends HeaderCompanion[`Cache-Control`]("Cache-Control")
         Parser.ignoreCase("stale-if-error=") *> DeltaSeconds.map(s => `stale-if-error`(s)) ::
         Parser.ignoreCase("stale-while-revalidate=") *> DeltaSeconds.map(s =>
           `stale-while-revalidate`(s)) ::
-        (Rfc2616.token ~ (Parser.string("=") *> (Rfc2616.token | Rfc7230.quotedString)).?).map({
+        (Rfc2616.token ~ (Parser.string("=") *> (Rfc2616.token | Rfc7230.quotedString)).?).map {
           case (name: String, arg: Option[String]) =>
             org.http4s.CacheDirective(CIString(name), arg)
-        }) :: Nil
+        } :: Nil
     )
 
   private[http4s] val parser: Parser[`Cache-Control`] =

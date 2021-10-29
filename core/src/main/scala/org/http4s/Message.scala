@@ -82,10 +82,14 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   /** Replace the body of this message with a new body
     *
-    * @param b body to attach to this method
-    * @param w [[EntityEncoder]] with which to convert the body to an [[EntityBody]]
-    * @tparam T type of the Body
-    * @return a new message with the new body
+    * @param b
+    *   body to attach to this method
+    * @param w
+    *   [[EntityEncoder]] with which to convert the body to an [[EntityBody]]
+    * @tparam T
+    *   type of the Body
+    * @return
+    *   a new message with the new body
     */
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
     val entity = w.toEntity(b)
@@ -105,15 +109,15 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     change(body = entity.body, headers = headers ++ hs)
   }
 
-  /** Sets the entity body without affecting headers such as `Transfer-Encoding`
-    * or `Content-Length`. Most use cases are better served by [[withEntity]],
-    * which uses an [[EntityEncoder]] to maintain the headers.
+  /** Sets the entity body without affecting headers such as `Transfer-Encoding` or
+    * `Content-Length`. Most use cases are better served by [[withEntity]], which uses an
+    * [[EntityEncoder]] to maintain the headers.
     */
   def withBodyStream(body: EntityBody[F]): Self =
     change(body = body)
 
-  /** Set an empty entity body on this message, and remove all payload headers
-    * that make no sense with an empty body.
+  /** Set an empty entity body on this message, and remove all payload headers that make no sense
+    * with an empty body.
     */
   def withEmptyBody: Self =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
@@ -125,8 +129,10 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   /** Keep headers that satisfy the predicate
     *
-    * @param f predicate
-    * @return a new message object which has only headers that satisfy the predicate
+    * @param f
+    *   predicate
+    * @return
+    *   a new message object which has only headers that satisfy the predicate
     */
   def filterHeaders(f: Header.Raw => Boolean): Self =
     transformHeaders(_.transform(_.filter(f)))
@@ -137,8 +143,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def removeHeader[A](implicit h: Header[A, _]): Self =
     removeHeader(h.name)
 
-  /** Add the provided headers to the existing headers, replacing those
-    * of the same header name
+  /** Add the provided headers to the existing headers, replacing those of the same header name
     *
     * {{{
     * >>> import cats.effect.IO
@@ -157,9 +162,8 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def putHeaders(headers: Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
 
-  /** Add a header to these headers.  The header should be a type with a
-    * recurring `Header` instance to ensure that the new value can be
-    * appended to any existing values.
+  /** Add a header to these headers. The header should be a type with a recurring `Header` instance
+    * to ensure that the new value can be appended to any existing values.
     *
     * {{{
     * >>> import cats.effect.IO
@@ -184,8 +188,8 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withoutTrailerHeaders: Self =
     withoutAttribute(Message.Keys.TrailerHeaders[F])
 
-  /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
-    * F might not complete until the entire body has been consumed.
+  /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting F might not
+    * complete until the entire body has been consumed.
     */
   def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
     attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
@@ -210,22 +214,27 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   // Attribute methods
 
-  /** Generates a new message object with the specified key/value pair appended
-    * to the [[#attributes]].
+  /** Generates a new message object with the specified key/value pair appended to the
+    * [[#attributes]].
     *
-    * @param key [[io.chrisdavenport.vault.Key]] with which to associate the value
-    * @param value value associated with the key
-    * @tparam A type of the value to store
-    * @return a new message object with the key/value pair appended
+    * @param key
+    *   [[io.chrisdavenport.vault.Key]] with which to associate the value
+    * @param value
+    *   value associated with the key
+    * @tparam A
+    *   type of the value to store
+    * @return
+    *   a new message object with the key/value pair appended
     */
   def withAttribute[A](key: Key[A], value: A): Self =
     change(attributes = attributes.insert(key, value))
 
-  /** Returns a new message object without the specified key in the
-    * [[#attributes]].
+  /** Returns a new message object without the specified key in the [[#attributes]].
     *
-    * @param key [[io.chrisdavenport.vault.Key]] to remove
-    * @return a new message object without the key
+    * @param key
+    *   [[io.chrisdavenport.vault.Key]] to remove
+    * @return
+    *   a new message object without the key
     */
   def withoutAttribute(key: Key[_]): Self =
     change(attributes = attributes.delete(key))
@@ -245,15 +254,21 @@ object Message {
 
 /** Representation of an incoming HTTP message
   *
-  * A Request encapsulates the entirety of the incoming HTTP request including the
-  * status line, headers, and a possible request body.
+  * A Request encapsulates the entirety of the incoming HTTP request including the status line,
+  * headers, and a possible request body.
   *
-  * @param method [[Method.GET]], [[Method.POST]], etc.
-  * @param uri representation of the request URI
-  * @param httpVersion the HTTP version
-  * @param headers collection of [[Header]]s
-  * @param body fs2.Stream[F, Byte] defining the body of the request
-  * @param attributes Immutable Map used for carrying additional information in a type safe fashion
+  * @param method
+  *   [[Method.GET]], [[Method.POST]], etc.
+  * @param uri
+  *   representation of the request URI
+  * @param httpVersion
+  *   the HTTP version
+  * @param headers
+  *   collection of [[Header]]s
+  * @param body
+  *   fs2.Stream[F, Byte] defining the body of the request
+  * @param attributes
+  *   Immutable Map used for carrying additional information in a type safe fashion
   */
 final class Request[F[_]] private (
     val method: Method,
@@ -359,22 +374,20 @@ final class Request[F[_]] private (
 
   /** Representation of the query string as a map
     *
-    * In case a parameter is available in query string but no value is there the
-    * sequence will be empty. If the value is empty the the sequence contains an
-    * empty string.
+    * In case a parameter is available in query string but no value is there the sequence will be
+    * empty. If the value is empty the the sequence contains an empty string.
     *
     * =====Examples=====
-    * <table>
-    * <tr><th>Query String</th><th>Map</th></tr>
+    * <table> <tr><th>Query String</th><th>Map</th></tr>
     * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
     * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
     * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
     * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
-    * </table>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" ->
+    * Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr> </table>
     *
-    * The query string is lazily parsed. If an error occurs during parsing
-    * an empty `Map` is returned.
+    * The query string is lazily parsed. If an error occurs during parsing an empty `Map` is
+    * returned.
     */
   def multiParams: Map[String, Seq[String]] = uri.multiParams
 
@@ -382,13 +395,14 @@ final class Request[F[_]] private (
     *
     * In case a parameter has no value the map returns an empty string.
     *
-    * @see multiParams
+    * @see
+    *   multiParams
     */
   def params: Map[String, String] = uri.params
 
-  /** Parses all available [[org.http4s.headers.Cookie]] headers into a list of
-    * [[RequestCookie]] objects. This implementation is compatible with cookie
-    * headers formatted per HTTP/1 and HTTP/2, or even both at the same time.
+  /** Parses all available [[org.http4s.headers.Cookie]] headers into a list of [[RequestCookie]]
+    * objects. This implementation is compatible with cookie headers formatted per HTTP/1 and
+    * HTTP/2, or even both at the same time.
     */
   def cookies: List[RequestCookie] =
     headers.get[Cookie].fold(List.empty[RequestCookie])(_.values.toList)
@@ -461,8 +475,8 @@ final class Request[F[_]] private (
 
   /** Helper method for decoding [[Request]]s
     *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a
+    * [[Response]]. If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
   def decode[A](
       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
@@ -470,9 +484,10 @@ final class Request[F[_]] private (
 
   /** Helper method for decoding [[Request]]s
     *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
-    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a
+    * [[Response]]. If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the
+    * decoder does not support the [[MediaType]] of the [[Request]], a `UnsupportedMediaType`
+    * [[Response]] is generated instead.
     */
   def decodeStrict[A](
       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
@@ -510,15 +525,21 @@ object Request {
 
   /** Representation of an incoming HTTP message
     *
-    * A Request encapsulates the entirety of the incoming HTTP request including the
-    * status line, headers, and a possible request body.
+    * A Request encapsulates the entirety of the incoming HTTP request including the status line,
+    * headers, and a possible request body.
     *
-    * @param method [[Method.GET]], [[Method.POST]], etc.
-    * @param uri representation of the request URI
-    * @param httpVersion the HTTP version
-    * @param headers collection of [[Header]]s
-    * @param body fs2.Stream[F, Byte] defining the body of the request
-    * @param attributes Immutable Map used for carrying additional information in a type safe fashion
+    * @param method
+    *   [[Method.GET]], [[Method.POST]], etc.
+    * @param uri
+    *   representation of the request URI
+    * @param httpVersion
+    *   the HTTP version
+    * @param headers
+    *   collection of [[Header]]s
+    * @param body
+    *   fs2.Stream[F, Byte] defining the body of the request
+    * @param attributes
+    *   Immutable Map used for carrying additional information in a type safe fashion
     */
   def apply[F[_]](
       method: Method = Method.GET,
@@ -563,12 +584,15 @@ object Request {
 
 /** Representation of the HTTP response to send back to the client
   *
-  * @param status [[Status]] code and message
-  * @param headers [[Headers]] containing all response headers
-  * @param body EntityBody[F] representing the possible body of the response
-  * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
-  *                   parameters which may be used by the http4s backend for
-  *                   additional processing such as java.io.File object
+  * @param status
+  *   [[Status]] code and message
+  * @param headers
+  *   [[Headers]] containing all response headers
+  * @param body
+  *   EntityBody[F] representing the possible body of the response
+  * @param attributes
+  *   [[io.chrisdavenport.vault.Vault]] containing additional parameters which may be used by the
+  *   http4s backend for additional processing such as java.io.File object
   */
 final class Response[F[_]] private (
     val status: Status,
@@ -614,19 +638,18 @@ final class Response[F[_]] private (
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
     addCookie(ResponseCookie(name, content, expires))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
-    * cookie from the client
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Response[F] =
     addCookie(cookie.clearCookie)
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client
+    */
   def removeCookie(name: String): Response[F] =
     addCookie(ResponseCookie(name, "").clearCookie)
 
-  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
-    * headers. Includes expired cookies, such as those that represent cookie
-    * deletion.
+  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]] headers. Includes expired
+    * cookies, such as those that represent cookie deletion.
     */
   def cookies: List[ResponseCookie] =
     headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
@@ -678,12 +701,15 @@ object Response extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliS
 
   /** Representation of the HTTP response to send back to the client
     *
-    * @param status [[Status]] code and message
-    * @param headers [[Headers]] containing all response headers
-    * @param body EntityBody[F] representing the possible body of the response
-    * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
-    *                   parameters which may be used by the http4s backend for
-    *                   additional processing such as java.io.File object
+    * @param status
+    *   [[Status]] code and message
+    * @param headers
+    *   [[Headers]] containing all response headers
+    * @param body
+    *   EntityBody[F] representing the possible body of the response
+    * @param attributes
+    *   [[io.chrisdavenport.vault.Vault]] containing additional parameters which may be used by the
+    *   http4s backend for additional processing such as java.io.File object
     */
   def apply[F[_]](
       status: Status = Status.Ok,

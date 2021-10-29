@@ -33,8 +33,8 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
 
   /** Alias for `->`.
     *
-    * Note: Due to infix operation precedence, `→` has a lower priority than `/`. So you have to use parentheses in
-    * pattern matching when using this operator.
+    * Note: Due to infix operation precedence, `→` has a lower priority than `/`. So you have to use
+    * parentheses in pattern matching when using this operator.
     *
     * For example:
     * {{{

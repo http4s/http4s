@@ -28,13 +28,12 @@ import scala.concurrent.duration._
 
 /** Caching contains middlewares to support caching functionality.
   *
-  * Helper functions to support [[Caching.cache]] can be found in
-  * [[Caching.Helpers]]
+  * Helper functions to support [[Caching.cache]] can be found in [[Caching.Helpers]]
   */
 object Caching {
 
-  /** Middleware that implies responses should NOT be cached.
-    * This is a best attempt, many implementors of caching have done so differently.
+  /** Middleware that implies responses should NOT be cached. This is a best attempt, many
+    * implementors of caching have done so differently.
     */
   def `no-store`[G[_]: Monad: Clock, F[_], A](
       http: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
@@ -66,9 +65,8 @@ object Caching {
     Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
   )
 
-  /** Helpers Contains the default arguments used to help construct middleware
-    * with caching. They serve to support the default arguments for
-    * [[publicCache]] and [[privateCache]].
+  /** Helpers Contains the default arguments used to help construct middleware with caching. They
+    * serve to support the default arguments for [[publicCache]] and [[privateCache]].
     */
   object Helpers {
     def defaultStatusToSetOn(s: Status): Boolean =
@@ -87,8 +85,7 @@ object Caching {
 
   /** Sets headers for response to be publicly cached for the specified duration.
     *
-    * Note: If set to Duration.Inf, lifetime falls back to
-    * 10 years for support of Http1 caches.
+    * Note: If set to Duration.Inf, lifetime falls back to 10 years for support of Http1 caches.
     */
   def publicCache[G[_]: MonadThrow: Clock, F[_]](lifetime: Duration, http: Http[G, F]): Http[G, F] =
     cache(
@@ -100,16 +97,14 @@ object Caching {
 
   /** Publicly Cache a Response for the given lifetime.
     *
-    * Note: If set to Duration.Inf, lifetime falls back to
-    * 10 years for support of Http1 caches.
+    * Note: If set to Duration.Inf, lifetime falls back to 10 years for support of Http1 caches.
     */
   def publicCacheResponse[G[_]](lifetime: Duration): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.left(CacheDirective.public))
 
   /** Sets headers for response to be privately cached for the specified duration.
     *
-    * Note: If set to Duration.Inf, lifetime falls back to
-    * 10 years for support of Http1 caches.
+    * Note: If set to Duration.Inf, lifetime falls back to 10 years for support of Http1 caches.
     */
   def privateCache[G[_]: MonadThrow: Clock, F[_]](
       lifetime: Duration,
@@ -124,8 +119,7 @@ object Caching {
 
   /** Privately Caches A Response for the given lifetime.
     *
-    * Note: If set to Duration.Inf, lifetime falls back to
-    * 10 years for support of Http1 caches.
+    * Note: If set to Duration.Inf, lifetime falls back to 10 years for support of Http1 caches.
     */
   def privateCacheResponse[G[_]](
       lifetime: Duration,
@@ -137,8 +131,7 @@ object Caching {
     *
     * Helper functions for methodToSetOn and statusToSetOn can be found in [[Helpers]].
     *
-    * Note: If set to Duration.Inf, lifetime falls back to
-    * 10 years for support of Http1 caches.
+    * Note: If set to Duration.Inf, lifetime falls back to 10 years for support of Http1 caches.
     */
   def cache[G[_]: MonadThrow: Clock, F[_]](
       lifetime: Duration,
@@ -161,11 +154,9 @@ object Caching {
   // in cacheResponse #TeamStatic
   private val tenYearDuration: FiniteDuration = 315360000.seconds
 
-  /**  Method in order to turn a generated Response into one that
-    * will be appropriately cached.
+  /** Method in order to turn a generated Response into one that will be appropriately cached.
     *
-    *  Note: If set to Duration.Inf, lifetime falls back to
-    * 10 years for support of Http1 caches.
+    * Note: If set to Duration.Inf, lifetime falls back to 10 years for support of Http1 caches.
     */
   def cacheResponse[G[_]](
       lifetime: Duration,

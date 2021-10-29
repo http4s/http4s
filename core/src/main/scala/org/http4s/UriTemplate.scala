@@ -27,16 +27,14 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-/** Simple representation of a URI Template that can be rendered as RFC6570
-  * conform string.
+/** Simple representation of a URI Template that can be rendered as RFC6570 conform string.
   *
   * This model reflects only a subset of RFC6570.
   *
-  * Level 1 and Level 2 are completely modeled and
-  * Level 3 features are limited to:
-  *  - Path segments, slash-prefixed
-  *  - Form-style query, ampersand-separated
-  *  - Fragment expansion
+  * Level 1 and Level 2 are completely modeled and Level 3 features are limited to:
+  *   - Path segments, slash-prefixed
+  *   - Form-style query, ampersand-separated
+  *   - Fragment expansion
   */
 final case class UriTemplate(
     scheme: Option[Scheme] = None,
@@ -45,49 +43,45 @@ final case class UriTemplate(
     query: UriTemplate.Query = Nil,
     fragment: Fragment = Nil) {
 
-  /** Replaces any expansion type that matches the given `name`. If no matching
-    * `expansion` could be found the same instance will be returned.
+  /** Replaces any expansion type that matches the given `name`. If no matching `expansion` could be
+    * found the same instance will be returned.
     */
   def expandAny[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     expandPath(name, value).expandQuery(name, value).expandFragment(name, value)
 
-  /** Replaces any expansion type in `fragment` that matches the given `name`.
-    * If no matching `expansion` could be found the same instance will be
-    * returned.
+  /** Replaces any expansion type in `fragment` that matches the given `name`. If no matching
+    * `expansion` could be found the same instance will be returned.
     */
   def expandFragment[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     if (fragment.isEmpty) this
     else copy(fragment = expandFragmentN(fragment, name, QueryParamEncoder[T].encode(value).value))
 
-  /** Replaces any expansion type in `path` that matches the given `name`. If no
-    * matching `expansion` could be found the same instance will be returned.
+  /** Replaces any expansion type in `path` that matches the given `name`. If no matching
+    * `expansion` could be found the same instance will be returned.
     */
   def expandPath[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate =
     copy(path = expandPathN(path, name, values.map(QueryParamEncoder[T].encode)))
 
-  /** Replaces any expansion type in `path` that matches the given `name`. If no
-    * matching `expansion` could be found the same instance will be returned.
+  /** Replaces any expansion type in `path` that matches the given `name`. If no matching
+    * `expansion` could be found the same instance will be returned.
     */
   def expandPath[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     copy(path = expandPathN(path, name, QueryParamEncoder[T].encode(value) :: Nil))
 
-  /** Replaces any expansion type in `query` that matches the specified `name`.
-    * If no matching `expansion` could be found the same instance will be
-    * returned.
+  /** Replaces any expansion type in `query` that matches the specified `name`. If no matching
+    * `expansion` could be found the same instance will be returned.
     */
   def expandQuery[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate =
     if (query.isEmpty) this
     else copy(query = expandQueryN(query, name, values.map(QueryParamEncoder[T].encode(_).value)))
 
-  /** Replaces any expansion type in `query` that matches the specified `name`.
-    * If no matching `expansion` could be found the same instance will be
-    * returned.
+  /** Replaces any expansion type in `query` that matches the specified `name`. If no matching
+    * `expansion` could be found the same instance will be returned.
     */
   def expandQuery(name: String): UriTemplate = expandQuery(name, List[String]())
 
-  /** Replaces any expansion type in `query` that matches the specified `name`.
-    * If no matching `expansion` could be found the same instance will be
-    * returned.
+  /** Replaces any expansion type in `query` that matches the specified `name`. If no matching
+    * `expansion` could be found the same instance will be returned.
     */
   def expandQuery[T: QueryParamEncoder](name: String, values: T*): UriTemplate =
     expandQuery(name, values.toList)
@@ -95,8 +89,8 @@ final case class UriTemplate(
   override lazy val toString =
     renderUriTemplate(this)
 
-  /** If no expansion is available an `Uri` will be created otherwise the
-    * current instance of `UriTemplate` will be returned.
+  /** If no expansion is available an `Uri` will be created otherwise the current instance of
+    * `UriTemplate` will be returned.
     */
   def toUriIfPossible: Try[Uri] =
     if (containsExpansions(this))
@@ -455,25 +449,23 @@ object UriTemplate {
       new ParamReservedExp(name, variables.toList)
   }
 
-  /** URI Templates are similar to a macro language with a fixed set of macro
-    * definitions: the expression type determines the expansion process.
+  /** URI Templates are similar to a macro language with a fixed set of macro definitions: the
+    * expression type determines the expansion process.
     *
-    * The default expression type is simple string expansion (Level 1), wherein a
-    * single named variable is replaced by its value as a string after
-    * pct-encoding any characters not in the set of unreserved URI characters
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>).
+    * The default expression type is simple string expansion (Level 1), wherein a single named
+    * variable is replaced by its value as a string after pct-encoding any characters not in the set
+    * of unreserved URI characters (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section
+    * 1.5</a>).
     *
-    * Level 2 templates add the plus ("+") operator, for expansion of values that
-    * are allowed to include reserved URI characters
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>),
-    * and the crosshatch ("#") operator for expansion of fragment identifiers.
+    * Level 2 templates add the plus ("+") operator, for expansion of values that are allowed to
+    * include reserved URI characters (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>), and the crosshatch
+    * ("#") operator for expansion of fragment identifiers.
     *
-    * Level 3 templates allow multiple variables per expression, each
-    * separated by a comma, and add more complex operators for dot-prefixed
-    * labels, slash-prefixed path segments, semicolon-prefixed path
-    * parameters, and the form-style construction of a query syntax
-    * consisting of name=value pairs that are separated by an ampersand
-    * character.
+    * Level 3 templates allow multiple variables per expression, each separated by a comma, and add
+    * more complex operators for dot-prefixed labels, slash-prefixed path segments,
+    * semicolon-prefixed path parameters, and the form-style construction of a query syntax
+    * consisting of name=value pairs that are separated by an ampersand character.
     */
   sealed trait ExpansionType
 
@@ -482,19 +474,19 @@ object UriTemplate {
   /** Static fragment element */
   final case class FragmentElm(value: String) extends FragmentDef
 
-  /** Fragment expansion, crosshatch-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+  /** Fragment expansion, crosshatch-prefixed (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
     */
   final case class SimpleFragmentExp(name: String) extends FragmentDef {
     require(name.nonEmpty, "at least one character must be set")
     require(isUnreserved(name), "name must consist of unreserved characters")
   }
 
-  /** Level 1 allows string expansion
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+  /** Level 1 allows string expansion (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
     *
-    * Level 3 allows string expansion with multiple variables
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+    * Level 3 allows string expansion with multiple variables (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
     */
   final case class VarExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -504,11 +496,11 @@ object UriTemplate {
     def apply(names: String*): VarExp = new VarExp(names.toList)
   }
 
-  /** Level 2 allows reserved string expansion
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+  /** Level 2 allows reserved string expansion (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
     *
-    * Level 3 allows reserved expansion with multiple variables
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+    * Level 3 allows reserved expansion with multiple variables (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
     */
   final case class ReservedExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -518,8 +510,8 @@ object UriTemplate {
     def apply(names: String*): ReservedExp = new ReservedExp(names.toList)
   }
 
-  /** Fragment expansion with multiple variables, crosshatch-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+  /** Fragment expansion with multiple variables, crosshatch-prefixed (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
     */
   final case class MultiFragmentExp(names: List[String]) extends FragmentDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -529,8 +521,8 @@ object UriTemplate {
     def apply(names: String*): MultiFragmentExp = new MultiFragmentExp(names.toList)
   }
 
-  /** Path segments, slash-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
+  /** Path segments, slash-prefixed (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
     */
   final case class PathExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -540,8 +532,8 @@ object UriTemplate {
     def apply(names: String*): PathExp = new PathExp(names.toList)
   }
 
-  /** Form-style query, ampersand-separated
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
+  /** Form-style query, ampersand-separated (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
     */
   final case class ParamExp(names: List[String]) extends QueryExp {
     require(names.nonEmpty, "at least one name must be set")
@@ -553,8 +545,8 @@ object UriTemplate {
     def apply(names: String*): ParamExp = new ParamExp(names.toList)
   }
 
-  /** Form-style query continuation
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
+  /** Form-style query continuation (<a
+    * href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
     */
   final case class ParamContExp(names: List[String]) extends QueryExp {
     require(names.nonEmpty, "at least one name must be set")

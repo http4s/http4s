@@ -41,9 +41,12 @@ object BlazeClient {
 
   /** Construct a new [[Client]] using blaze components
     *
-    * @param manager source for acquiring and releasing connections. Not owned by the returned client.
-    * @param config blaze client configuration.
-    * @param onShutdown arbitrary tasks that will be executed when this client is shutdown
+    * @param manager
+    *   source for acquiring and releasing connections. Not owned by the returned client.
+    * @param config
+    *   blaze client configuration.
+    * @param onShutdown
+    *   arbitrary tasks that will be executed when this client is shutdown
     */
   @deprecated("Use BlazeClientBuilder", "0.19.0-M2")
   def apply[F[_], A <: BlazeConnection[F]](

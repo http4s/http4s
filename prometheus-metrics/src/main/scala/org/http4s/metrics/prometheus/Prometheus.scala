@@ -32,8 +32,8 @@ import org.http4s.metrics.TerminationType.Timeout
 
 /** [[MetricsOps]] algebra capable of recording Prometheus metrics
   *
-  * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a [[org.http4s.server.middleware.Metrics]]
-  * that records metrics to a given metric registry.
+  * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a
+  * [[org.http4s.server.middleware.Metrics]] that records metrics to a given metric registry.
   * {{{
   * import cats.effect.{Resource, IO}
   * import org.http4s.server.middleware.Metrics
@@ -43,8 +43,9 @@ import org.http4s.metrics.TerminationType.Timeout
   *   Prometheus.metricsOps[IO](registry, "server").map(ops => Metrics[IO](ops)(testRoutes))
   * }}}
   *
-  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.middleware.Metrics]]
-  * that records metrics to a given metric registry, classifying the metrics by HTTP method.
+  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a
+  * [[org.http4s.client.middleware.Metrics]] that records metrics to a given metric registry,
+  * classifying the metrics by HTTP method.
   * {{{
   * import cats.effect.{Resource, IO}
   * import org.http4s.client.middleware.Metrics
@@ -67,26 +68,20 @@ import org.http4s.metrics.TerminationType.Timeout
   *
   * Labels --
   *
-  * method: Enumeration
-  * values: get, put, post, head, move, options, trace, connect, delete, other
+  * method: Enumeration values: get, put, post, head, move, options, trace, connect, delete, other
   *
-  * phase: Enumeration
-  * values: headers, body
+  * phase: Enumeration values: headers, body
   *
-  * code: Enumeration
-  * values:  1xx, 2xx, 3xx, 4xx, 5xx
+  * code: Enumeration values: 1xx, 2xx, 3xx, 4xx, 5xx
   *
-  * termination_type: Enumeration
-  * values: abnormal, error, timeout
+  * termination_type: Enumeration values: abnormal, error, timeout
   */
 object Prometheus {
   def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
     Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
 
-  /** Creates a  [[MetricsOps]] that supports Prometheus metrics
-    * *
-    * * @param registry a metrics collector registry
-    * * @param prefix a prefix that will be added to all metrics
+  /** Creates a [[MetricsOps]] that supports Prometheus metrics * * @param registry a metrics
+    * collector registry * @param prefix a prefix that will be added to all metrics
     */
   def metricsOps[F[_]: Sync](
       registry: CollectorRegistry,

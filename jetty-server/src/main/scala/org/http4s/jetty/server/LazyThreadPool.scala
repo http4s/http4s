@@ -20,15 +20,14 @@ import cats._
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
 
-/** A lazy [[org.eclipse.jetty.util.thread.ThreadPool]]. The pool will not be
-  * started until one of the methods on it is invoked.
+/** A lazy [[org.eclipse.jetty.util.thread.ThreadPool]]. The pool will not be started until one of
+  * the methods on it is invoked.
   *
-  * @note This is only provided to as a safety mechanism for the legacy
-  *       methods in [[JettyBuilder]] which operated directly on a
-  *       [[org.eclipse.jetty.util.thread.ThreadPool]]. If you are not using
-  *       the default [[org.eclipse.jetty.util.thread.ThreadPool]] you should
-  *       be using [[JettyThreadPools]] to build a [[cats.effect.Resource]]
-  *       for the pool.
+  * @note
+  *   This is only provided to as a safety mechanism for the legacy methods in [[JettyBuilder]]
+  *   which operated directly on a [[org.eclipse.jetty.util.thread.ThreadPool]]. If you are not
+  *   using the default [[org.eclipse.jetty.util.thread.ThreadPool]] you should be using
+  *   [[JettyThreadPools]] to build a [[cats.effect.Resource]] for the pool.
   */
 private[jetty] object LazyThreadPool {
 

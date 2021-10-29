@@ -28,28 +28,26 @@ import org.typelevel.vault._
 /** Client middleware to follow redirect responses.
   *
   * A 301 or 302 response is followed by:
-  * - a GET if the request was GET or POST
-  * - a HEAD if the request was a HEAD
-  * - the original request method and body if the body had no effects
-  * - the redirect is not followed otherwise
+  *   - a GET if the request was GET or POST
+  *   - a HEAD if the request was a HEAD
+  *   - the original request method and body if the body had no effects
+  *   - the redirect is not followed otherwise
   *
   * A 303 response is followed by:
-  * - a HEAD if the request was a HEAD
-  * - a GET for all other methods
+  *   - a HEAD if the request was a HEAD
+  *   - a GET for all other methods
   *
   * A 307 or 308 response is followed by:
-  * - the original request method and body, if the body had no effects
-  * - the redirect is not followed otherwise
+  *   - the original request method and body, if the body had no effects
+  *   - the redirect is not followed otherwise
   *
-  * Whenever we follow with a GET or HEAD, an empty body is sent, and
-  * all payload headers defined in https://tools.ietf.org/html/rfc7231#section-3.3
-  * are stripped.
+  * Whenever we follow with a GET or HEAD, an empty body is sent, and all payload headers defined in
+  * https://tools.ietf.org/html/rfc7231#section-3.3 are stripped.
   *
-  * If the response does not contain a valid Location header, the redirect is
-  * not followed.
+  * If the response does not contain a valid Location header, the redirect is not followed.
   *
-  * Headers whose names match `sensitiveHeaderFilter` are not exposed when
-  * redirecting to a different authority.
+  * Headers whose names match `sensitiveHeaderFilter` are not exposed when redirecting to a
+  * different authority.
   */
 object FollowRedirect {
   def apply[F[_]](
@@ -163,8 +161,7 @@ object FollowRedirect {
 
   private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync()
 
-  /** Get the redirection URIs for a `response`.
-    * Excludes the initial request URI
+  /** Get the redirection URIs for a `response`. Excludes the initial request URI
     */
   def getRedirectUris[F[_]](response: Response[F]): List[Uri] =
     response.attributes.lookup(redirectUrisKey).getOrElse(Nil)

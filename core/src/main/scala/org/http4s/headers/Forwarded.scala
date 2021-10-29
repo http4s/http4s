@@ -103,9 +103,11 @@ object Forwarded extends ForwardedRenderers {
 
     /** Opaque type for obfuscated identifiers.
       *
-      * @param value obfuscated identifier with leading '_' (underscore) symbol.
+      * @param value
+      *   obfuscated identifier with leading '_' (underscore) symbol.
       *
-      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
+      * @see
+      *   [[https://tools.ietf.org/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
       */
     sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
@@ -168,19 +170,19 @@ object Forwarded extends ForwardedRenderers {
   object Host {
     private[this] def apply(host: Uri.Host, port: Option[Int]) = new Host(host, port) {}
 
-    /** Creates [[Host]] from [[Uri.Host]].
-      * Assumes that the latter is always valid so no further validation is necessary.
+    /** Creates [[Host]] from [[Uri.Host]]. Assumes that the latter is always valid so no further
+      * validation is necessary.
       */
     def ofHost(uriHost: Uri.Host): Host = apply(uriHost, None)
 
-    /** Creates [[Host]] from [[Uri.Host]] and port number.
-      * Validates the latter and returns [[ParseFailure]] if it is invalid.
+    /** Creates [[Host]] from [[Uri.Host]] and port number. Validates the latter and returns
+      * [[ParseFailure]] if it is invalid.
       */
     def fromHostAndPort(uriHost: Uri.Host, port: Int): ParseResult[Host] =
       checkPortNum(port).toLeft(apply(uriHost, Some(port)))
 
-    /** Creates [[Host]] from [[Uri.Host]] and optional port number.
-      * For internal use in parsers in generators only.
+    /** Creates [[Host]] from [[Uri.Host]] and optional port number. For internal use in parsers in
+      * generators only.
       */
     private[http4s] def fromHostAndMaybePort(
         uriHost: Uri.Host,

@@ -29,10 +29,10 @@ import org.http4s.Method.HEAD
 
 /** Handles HEAD requests as a GET without a body.
   *
-  * If the service returns the fallthrough response, the request is resubmitted
-  * as a GET.  The resulting response's body is killed, but all headers are
-  * preserved.  This is a naive, but correct, implementation of HEAD.  Routes
-  * requiring more optimization should implement their own HEAD handler.
+  * If the service returns the fallthrough response, the request is resubmitted as a GET. The
+  * resulting response's body is killed, but all headers are preserved. This is a naive, but
+  * correct, implementation of HEAD. Routes requiring more optimization should implement their own
+  * HEAD handler.
   */
 object DefaultHead {
   def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
