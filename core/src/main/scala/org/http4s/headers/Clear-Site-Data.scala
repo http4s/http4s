@@ -37,6 +37,11 @@ object `Clear-Site-Data` {
       writer.append(s""""$value"""")
   }
 
+  object Directive {
+    def fromString(s: String): ParseResult[Directive] =
+      ParseResult.fromParser(directiveParser, "Invalid Clear-Site-Data directive")(s)
+  }
+
   case object `*` extends Directive("*")
   case object cache extends Directive("cache")
   case object cookies extends Directive("cookies")

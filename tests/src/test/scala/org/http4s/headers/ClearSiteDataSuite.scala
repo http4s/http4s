@@ -97,4 +97,19 @@ class ClearSiteDataSuite extends HeaderLaws {
   test("parse should fail when some directives are invalid (not quoted)") {
     assert(`Clear-Site-Data`.parse(""""cache", cookies, "storage", "executionContexts"""").isLeft)
   }
+
+  test("Directive.fromString should parse all known directives") {
+    Prop.forAll { (a: Directive) =>
+      Directive.fromString(s""""${a.value}"""") == Right(a)
+    }
+  }
+
+  test("Directive.fromString should parse unknown directives") {
+    val unknown = UnknownType.unsafeFromString("unknown")
+    assert(Directive.fromString(s""""${unknown.value}"""") == Right(unknown))
+  }
+
+  test("Directive.fromString should fail with invalid directives (not quoted)") {
+    assert(Directive.fromString("cookies").isLeft)
+  }
 }
