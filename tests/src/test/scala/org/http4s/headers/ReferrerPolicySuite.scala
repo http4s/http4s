@@ -18,10 +18,10 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.typelevel.ci._
-import org.http4s.syntax.header._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.header._
 import org.scalacheck.Prop
+import org.typelevel.ci._
 
 class ReferrerPolicySuite extends HeaderLaws {
   checkAll("ReferrerPolicy", headerLaws[`Referrer-Policy`])
