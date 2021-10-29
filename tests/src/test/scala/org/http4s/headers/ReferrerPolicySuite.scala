@@ -18,6 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import org.typelevel.ci._
 import org.http4s.syntax.header._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop
@@ -29,13 +30,13 @@ class ReferrerPolicySuite extends HeaderLaws {
 
   test("render should render a single directive") {
     Prop.forAll { (a: Directive) =>
-      `Referrer-Policy`(a).renderString == s"Referrer-Policy: ${a.value}"
+      `Referrer-Policy`(a).renderString == ci"Referrer-Policy: ${a.value}".toString
     }
   }
 
   test("render should render multiple directives") {
     Prop.forAll { (a: Directive, b: Directive, c: Directive) =>
-      val expected = s"Referrer-Policy: ${a.value}, ${b.value}, ${c.value}"
+      val expected = ci"Referrer-Policy: ${a.value}, ${b.value}, ${c.value}".toString
       `Referrer-Policy`(a, b, c).renderString == expected
     }
   }
@@ -52,14 +53,14 @@ class ReferrerPolicySuite extends HeaderLaws {
 
   test("parse should parse a single directive") {
     Prop.forAll { (a: Directive) =>
-      `Referrer-Policy`.parse(s"${a.value}").map(_.values) == Right(NonEmptyList.one(a))
+      `Referrer-Policy`.parse(ci"${a.value}".toString).map(_.values) == Right(NonEmptyList.one(a))
     }
   }
 
   test("parse should parse multiple directives") {
     Prop.forAll { (a: Directive, b: Directive, c: Directive) =>
       `Referrer-Policy`
-        .parse(s"${a.value}, ${b.value}, ${c.value}")
+        .parse(ci"${a.value}, ${b.value}, ${c.value}".toString)
         .map(_.values) == Right(NonEmptyList.of(a, b, c))
     }
   }
@@ -67,8 +68,8 @@ class ReferrerPolicySuite extends HeaderLaws {
   test("parse should parse directives in any letter case") {
     Prop.forAll { (a: Directive) =>
       val expected = Right(NonEmptyList.one(a))
-      (`Referrer-Policy`.parse(s"${a.value.toLowerCase}").map(_.values) == expected) &&
-      (`Referrer-Policy`.parse(s"${a.value.toUpperCase}").map(_.values) == expected)
+      (`Referrer-Policy`.parse(a.value.toString.toLowerCase).map(_.values) == expected) &&
+      (`Referrer-Policy`.parse(a.value.toString.toUpperCase).map(_.values) == expected)
     }
   }
 
@@ -91,13 +92,13 @@ class ReferrerPolicySuite extends HeaderLaws {
 
   test("Directive.fromString should parse all known directives") {
     Prop.forAll { (a: Directive) =>
-      Directive.fromString(a.value) == Right(a)
+      Directive.fromString(a.value.toString) == Right(a)
     }
   }
 
   test("Directive.fromString should parse unknown directives") {
     val unknown = UnknownPolicy.unsafeFromString("unknown-policy")
-    Directive.fromString(unknown.value) == Right(unknown)
+    Directive.fromString(unknown.value.toString) == Right(unknown)
   }
 
   test("Directive.fromString should fail with invalid directives") {

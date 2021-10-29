@@ -31,9 +31,9 @@ final case class `Referrer-Policy`(values: NonEmptyList[`Referrer-Policy`.Direct
 
 object `Referrer-Policy` {
 
-  sealed abstract class Directive(val value: String) extends Renderable {
+  sealed abstract class Directive(val value: CIString) extends Renderable {
     override def render(writer: Writer): writer.type =
-      writer.append(value)
+      writer.append(value.toString)
   }
 
   object Directive {
@@ -41,23 +41,24 @@ object `Referrer-Policy` {
       ParseResult.fromParser(directiveParser, "Invalid Referrer-Policy directive")(s)
   }
 
-  case object `no-referrer` extends Directive("no-referrer")
-  case object `no-referrer-when-downgrade` extends Directive("no-referrer-when-downgrade")
-  case object origin extends Directive("origin")
-  case object `origin-when-cross-origin` extends Directive("origin-when-cross-origin")
-  case object `same-origin` extends Directive("same-origin")
-  case object `strict-origin` extends Directive("strict-origin")
-  case object `strict-origin-when-cross-origin` extends Directive("strict-origin-when-cross-origin")
-  case object `unsafe-url` extends Directive("unsafe-url")
+  case object `no-referrer` extends Directive(ci"no-referrer")
+  case object `no-referrer-when-downgrade` extends Directive(ci"no-referrer-when-downgrade")
+  case object origin extends Directive(ci"origin")
+  case object `origin-when-cross-origin` extends Directive(ci"origin-when-cross-origin")
+  case object `same-origin` extends Directive(ci"same-origin")
+  case object `strict-origin` extends Directive(ci"strict-origin")
+  case object `strict-origin-when-cross-origin`
+      extends Directive(ci"strict-origin-when-cross-origin")
+  case object `unsafe-url` extends Directive(ci"unsafe-url")
 
-  sealed abstract case class UnknownPolicy(name: String) extends Directive(name)
+  sealed abstract case class UnknownPolicy(name: CIString) extends Directive(name)
 
   object UnknownPolicy {
     private[http4s] def unsafeFromString(s: String): UnknownPolicy =
-      new UnknownPolicy(s) {}
+      new UnknownPolicy(CIString(s)) {}
   }
 
-  private[http4s] val types: Map[String, Directive] =
+  private[http4s] val types: Map[CIString, Directive] =
     List(
       `no-referrer`,
       `no-referrer-when-downgrade`,
@@ -68,12 +69,12 @@ object `Referrer-Policy` {
       `strict-origin-when-cross-origin`,
       `unsafe-url`
     )
-      .map(i => (i.value.toLowerCase, i))
+      .map(i => (i.value, i))
       .toMap
 
   private val directiveParser: Parser[Directive] =
     Rfc5234.alpha.orElse(Parser.char('-')).rep.string.map { s =>
-      types.getOrElse(s.toLowerCase, new UnknownPolicy(s) {})
+      types.getOrElse(CIString(s), new UnknownPolicy(CIString(s)) {})
     }
 
   private val parser: Parser[`Referrer-Policy`] =
