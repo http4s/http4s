@@ -22,12 +22,17 @@ import org.http4s.util.Renderable
 
 /** Representation of the HTTP response code and reason
   *
-  * '''Note: ''' the reason is not important to the protocol and is not considered in equality checks.
+  * '''Note: ''' the reason is not important to the protocol and is not considered in equality
+  * checks.
   *
-  * @param code HTTP status code
-  * @param reason reason for the response. eg, OK
-  * @see [[http://tools.ietf.org/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
-  * @see [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
+  * @param code
+  *   HTTP status code
+  * @param reason
+  *   reason for the response. eg, OK
+  * @see
+  *   [[http://tools.ietf.org/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
+  * @see
+  *   [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
   */
 sealed abstract case class Status private (code: Int) extends Ordered[Status] with Renderable {
 
@@ -128,7 +133,8 @@ object Status {
     def all: List[Status] = registry.collect { case Right(status) => status }.toList
   }
 
-  /** Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
+  /** Status code list taken from
+    * http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
     */
   // scalastyle:off magic.number
   val Continue: Status = register(trust(100, "Continue", isEntityAllowed = false))

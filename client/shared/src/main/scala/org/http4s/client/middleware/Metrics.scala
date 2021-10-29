@@ -29,22 +29,26 @@ import scala.concurrent.TimeoutException
 /** Client middleware to record metrics for the http4s client.
   *
   * This middleware will record:
-  * - Number of active requests
-  * - Time duration to receive the response headers
-  * - Time duration to process the whole response body
-  * - Time duration of errors, timeouts and other abnormal terminations
+  *   - Number of active requests
+  *   - Time duration to receive the response headers
+  *   - Time duration to process the whole response body
+  *   - Time duration of errors, timeouts and other abnormal terminations
   *
-  * This middleware can be extended to support any metrics ecosystem by
-  * implementing the [[org.http4s.metrics.MetricsOps]] type
+  * This middleware can be extended to support any metrics ecosystem by implementing the
+  * [[org.http4s.metrics.MetricsOps]] type
   */
 object Metrics {
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
-    * @param ops a algebra describing the metrics operations
-    * @param classifierF a function that allows to add a classifier that can be customized per request
-    * @param client the [[Client]] to gather metrics from
-    * @return the metrics middleware wrapping the [[Client]]
+    * @param ops
+    *   a algebra describing the metrics operations
+    * @param classifierF
+    *   a function that allows to add a classifier that can be customized per request
+    * @param client
+    *   the [[Client]] to gather metrics from
+    * @return
+    *   the metrics middleware wrapping the [[Client]]
     */
   def apply[F[_]](
       ops: MetricsOps[F],
@@ -55,15 +59,22 @@ object Metrics {
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
-    * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects or examining the body.
-    * Failed attempt to classify the request (e.g. failing with `F.raiseError`) leads to not recording metrics for that request.
+    * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects or
+    * examining the body. Failed attempt to classify the request (e.g. failing with `F.raiseError`)
+    * leads to not recording metrics for that request.
     *
-    * @note Compiling the request body in `classifierF` is unsafe, unless you are using some caching middleware.
+    * @note
+    *   Compiling the request body in `classifierF` is unsafe, unless you are using some caching
+    *   middleware.
     *
-    * @param ops a algebra describing the metrics operations
-    * @param classifierF a function that allows to add a classifier that can be customized per request
-    * @param client the [[Client]] to gather metrics from
-    * @return the metrics middleware wrapping the [[Client]]
+    * @param ops
+    *   a algebra describing the metrics operations
+    * @param classifierF
+    *   a function that allows to add a classifier that can be customized per request
+    * @param client
+    *   the [[Client]] to gather metrics from
+    * @return
+    *   the metrics middleware wrapping the [[Client]]
     */
   def effect[F[_]](ops: MetricsOps[F], classifierF: Request[F] => F[Option[String]])(
       client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =

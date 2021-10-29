@@ -24,9 +24,8 @@ import cats.syntax.all._
 
 /** Removes a trailing slash from [[Request]] path
   *
-  * If a route exists with a file style [[Uri]], eg "/foo",
-  * this middleware will cause [[Request]]s with uri = "/foo" and
-  * uri = "/foo/" to match the route.
+  * If a route exists with a file style [[Uri]], eg "/foo", this middleware will cause [[Request]]s
+  * with uri = "/foo" and uri = "/foo/" to match the route.
   */
 object AutoSlash {
   def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(implicit

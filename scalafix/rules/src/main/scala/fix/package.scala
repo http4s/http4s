@@ -64,7 +64,8 @@ package object fix {
 
     /** Tries to infer a result SemanticType of a particular Stat.
       *
-      * @note Not all possible cases are handled.
+      * @note
+      *   Not all possible cases are handled.
       */
     def unapply(stat: Stat)(implicit doc: SemanticDocument): Option[SemanticType] =
       PartialFunction.condOpt(stat) {

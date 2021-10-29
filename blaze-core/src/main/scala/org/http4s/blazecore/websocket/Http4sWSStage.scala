@@ -52,7 +52,7 @@ private[http4s] class Http4sWSStage[F[_]](
 
   def name: String = "Http4s WebSocket Stage"
 
-  //////////////////////// Source and Sink generators ////////////////////////
+  // ////////////////////// Source and Sink generators ////////////////////////
   val isClosed: F[Boolean] = F.delay(sentClose.get())
   val setClosed: F[Boolean] = F.delay(sentClose.compareAndSet(false, true))
 
@@ -85,15 +85,17 @@ private[http4s] class Http4sWSStage[F[_]](
     *
     * To stay faithful to the RFC, the following must hold:
     *
-    * - If we receive a ping frame, we MUST reply with a pong frame
-    * - If we receive a pong frame, we don't need to forward it.
-    * - If we receive a close frame, it means either one of two things:
-    *   - We sent a close frame prior, meaning we do not need to reply with one. Just end the stream
-    *   - We are the first to receive a close frame, so we try to atomically check a boolean flag,
-    *     to prevent sending two close frames. Regardless, we set the signal for termination of
-    *     the stream afterwards
+    *   - If we receive a ping frame, we MUST reply with a pong frame
+    *   - If we receive a pong frame, we don't need to forward it.
+    *   - If we receive a close frame, it means either one of two things:
+    *     - We sent a close frame prior, meaning we do not need to reply with one. Just end the
+    *       stream
+    *     - We are the first to receive a close frame, so we try to atomically check a boolean flag,
+    *       to prevent sending two close frames. Regardless, we set the signal for termination of
+    *       the stream afterwards
     *
-    * @return A websocket frame, or a possible IO error.
+    * @return
+    *   A websocket frame, or a possible IO error.
     */
   private[this] def handleRead(): F[WebSocketFrame] = {
     def maybeSendClose(c: Close): F[Unit] =
@@ -117,11 +119,11 @@ private[http4s] class Http4sWSStage[F[_]](
         case c: Close =>
           for {
             s <- F.delay(sentClose.get())
-            //If we sent a close signal, we don't need to reply with one
+            // If we sent a close signal, we don't need to reply with one
             _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
           } yield c
         case p @ Ping(d) =>
-          //Reply to ping frame immediately
+          // Reply to ping frame immediately
           writeFrame(Pong(d), trampoline) >> F.pure(p)
         case rest =>
           F.pure(rest)
@@ -130,15 +132,15 @@ private[http4s] class Http4sWSStage[F[_]](
 
   /** The websocket input stream
     *
-    * Note: On receiving a close, we MUST send a close back, as stated in section
-    * 5.5.1 of the websocket spec: https://tools.ietf.org/html/rfc6455#section-5.5.1
+    * Note: On receiving a close, we MUST send a close back, as stated in section 5.5.1 of the
+    * websocket spec: https://tools.ietf.org/html/rfc6455#section-5.5.1
     *
     * @return
     */
   def inputstream: Stream[F, WebSocketFrame] =
     Stream.repeatEval(handleRead())
 
-  //////////////////////// Startup and Shutdown ////////////////////////
+  // ////////////////////// Startup and Shutdown ////////////////////////
 
   override protected def stageStartup(): Unit = {
     super.stageStartup()
@@ -149,7 +151,7 @@ private[http4s] class Http4sWSStage[F[_]](
     val receiveSent: Stream[F, WebSocketFrame] =
       ws match {
         case WebSocketSeparatePipe(send, receive, _) =>
-          //We don't need to terminate if the send stream terminates.
+          // We don't need to terminate if the send stream terminates.
           send.concurrently(receive(inputstream))
         case WebSocketCombinedPipe(receiveSend, _) =>
           receiveSend(inputstream)
@@ -162,7 +164,7 @@ private[http4s] class Http4sWSStage[F[_]](
         .interruptWhen(deadSignal)
         .onFinalizeWeak(
           ws.onClose.attempt.void
-        ) //Doing it this way ensures `sendClose` is sent no matter what
+        ) // Doing it this way ensures `sendClose` is sent no matter what
         .onFinalizeWeak(sendClose)
         .compile
         .drain

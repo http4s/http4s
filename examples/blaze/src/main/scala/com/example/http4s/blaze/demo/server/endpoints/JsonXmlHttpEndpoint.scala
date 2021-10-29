@@ -31,10 +31,7 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
 
   /** XML Example for Person:
     *
-    * <person>
-    *   <name>gvolpe</name>
-    *   <age>30</age>
-    * </person>
+    * <person> <name>gvolpe</name> <age>30</age> </person>
     */
   object Person {
     def fromXml(elem: Elem): Person = {

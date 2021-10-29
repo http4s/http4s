@@ -22,8 +22,7 @@ import cats.effect.kernel._
 import org.http4s._
 import org.http4s.client.Client
 
-/** Algebra for Interfacing with the Cookie Jar.
-  * Allows manual intervention and eviction.
+/** Algebra for Interfacing with the Cookie Jar. Allows manual intervention and eviction.
   */
 trait CookieJar[F[_]] {
 
@@ -49,9 +48,8 @@ trait CookieJar[F[_]] {
   def enrichRequest[G[_]](r: Request[G]): F[Request[G]]
 }
 
-/** Cookie Jar Companion Object
-  * Contains constructors for client middleware or raw
-  * jar creation, as well as the middleware
+/** Cookie Jar Companion Object Contains constructors for client middleware or raw jar creation, as
+  * well as the middleware
   */
 object CookieJar {
 
@@ -75,14 +73,13 @@ object CookieJar {
       } yield out
     }
 
-  /** Constructor which builds a non-exposed CookieJar
-    * and applies it to the client.
+  /** Constructor which builds a non-exposed CookieJar and applies it to the client.
     */
   def impl[F[_]: Sync](c: Client[F]): F[Client[F]] =
     in[F, F](c)
 
-  /** Like [[impl]] except it allows the creation of the middleware in a
-    * different HKT than the client is in.
+  /** Like [[impl]] except it allows the creation of the middleware in a different HKT than the
+    * client is in.
     */
   def in[F[_]: Sync, G[_]: Sync](c: Client[F]): G[Client[F]] =
     jarIn[F, G].map(apply(_)(c))
@@ -92,8 +89,8 @@ object CookieJar {
   def jarImpl[F[_]: Sync]: F[CookieJar[F]] =
     jarIn[F, F]
 
-  /** Like [[jarImpl]] except it allows the creation of the CookieJar in a
-    * different HKT than the client is in.
+  /** Like [[jarImpl]] except it allows the creation of the CookieJar in a different HKT than the
+    * client is in.
     */
   def jarIn[F[_]: Sync, G[_]: Sync]: G[CookieJar[F]] =
     Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>

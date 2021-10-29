@@ -40,9 +40,11 @@ trait ElemInstances {
 
   /** Handles a message body as XML.
     *
-    * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
+    * TODO Not an ideal implementation. Would be much better with an asynchronous XML parser, such
+    * as Aalto.
     *
-    * @return an XML element
+    * @return
+    *   an XML element
     */
   implicit def xml[F[_]](implicit F: Concurrent[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._

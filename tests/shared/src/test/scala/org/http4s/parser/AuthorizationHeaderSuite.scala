@@ -61,7 +61,7 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
         Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
     )
     assertEquals(
-      //quoted-pair
+      // quoted-pair
       hparse("foo abc = \"\\123\""),
       Right(
         Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))))

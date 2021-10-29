@@ -659,8 +659,8 @@ class MultipartParserSuite extends Http4sSuite {
     }
 
     test(s"$testNamePrefix: parse parts lazily") {
-      //Intentionally mangle the end, which would fail if we consume the whole thing,
-      //but not if we only take one part, as each part should parse lazily
+      // Intentionally mangle the end, which would fail if we consume the whole thing,
+      // but not if we only take one part, as each part should parse lazily
       val unprocessedInput =
         """
           |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0

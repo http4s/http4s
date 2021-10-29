@@ -107,13 +107,12 @@ class ResponseGeneratorSuite extends Http4sSuite {
 
   test("EntityResponseGenerator() generates Content-Length: 0") {
 
-    /** Aside from the cases defined above, in the absence of Transfer-Encoding,
-      * an origin server SHOULD send a Content-Length header field when the
-      * payload body size is known prior to sending the complete header section.
+    /** Aside from the cases defined above, in the absence of Transfer-Encoding, an origin server
+      * SHOULD send a Content-Length header field when the payload body size is known prior to
+      * sending the complete header section.
       * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
       *
-      * Until someone sets a body, we have an empty body and we'll set the
-      * Content-Length.
+      * Until someone sets a body, we have an empty body and we'll set the Content-Length.
       */
     val resp = Ok()
     resp.map(_.contentLength).assertEquals(Some(0L))

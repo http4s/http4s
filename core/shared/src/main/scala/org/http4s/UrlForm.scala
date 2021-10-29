@@ -45,27 +45,42 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
     UrlForm(values.updated(kv._1, newValues))
   }
 
-  /** @param key name of the field
-    * @param value value of the field
-    * @param ev evidence of the existence of `QueryParamEncoder[T]`
-    * @return `UrlForm` updated with `key` and `value` pair if key does not exist in `values`. Otherwise `value` will be added to the existing entry.
+  /** @param key
+    *   name of the field
+    * @param value
+    *   value of the field
+    * @param ev
+    *   evidence of the existence of `QueryParamEncoder[T]`
+    * @return
+    *   `UrlForm` updated with `key` and `value` pair if key does not exist in `values`. Otherwise
+    *   `value` will be added to the existing entry.
     */
   def updateFormField[T](key: String, value: T)(implicit ev: QueryParamEncoder[T]): UrlForm =
     this + (key -> ev.encode(value).value)
 
-  /** @param key name of the field
-    * @param value optional value of the field
-    * @param ev evidence of the existence of `QueryParamEncoder[T]`
-    * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
+  /** @param key
+    *   name of the field
+    * @param value
+    *   optional value of the field
+    * @param ev
+    *   evidence of the existence of `QueryParamEncoder[T]`
+    * @return
+    *   `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`,
+    *   otherwise it is unaltered
     */
   def updateFormField[T](key: String, value: Option[T])(implicit
       ev: QueryParamEncoder[T]): UrlForm =
     value.fold(this)(updateFormField(key, _))
 
-  /** @param key name of the field
-    * @param vals a Chain of values for the field
-    * @param ev evidence of the existence of `QueryParamEncoder[T]`
-    * @return `UrlForm` updated with `key` and `vals` if key does not exist in `values`, otherwise `vals` will be appended to the existing entry. If `vals` is empty, `UrlForm` will remain as is
+  /** @param key
+    *   name of the field
+    * @param vals
+    *   a Chain of values for the field
+    * @param ev
+    *   evidence of the existence of `QueryParamEncoder[T]`
+    * @return
+    *   `UrlForm` updated with `key` and `vals` if key does not exist in `values`, otherwise `vals`
+    *   will be appended to the existing entry. If `vals` is empty, `UrlForm` will remain as is
     */
   def updateFormFields[T](key: String, vals: Chain[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
     vals.foldLeft(this)(_.updateFormField(key, _)(ev))
