@@ -16,15 +16,21 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, SemigroupK}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
+import cats.SemigroupK
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import fs2.io.file.writeAll
-import java.io.File
-import org.http4s.multipart.{Multipart, MultipartDecoder}
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.MultipartDecoder
 import scodec.bits.ByteVector
 
+import java.io.File
 import scala.annotation.implicitNotFound
 
 /** A type that can be used to decode a [[Message]]

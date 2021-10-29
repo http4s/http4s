@@ -53,7 +53,14 @@ trait QueryOps {
   def +?[K: QueryParamKeyLike](name: K): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(name), Nil)
 
-  /** alias for withQueryParam */
+  /** alias for withQueryParam
+    *
+    * {{{
+    * scala> import org.http4s.implicits._
+    * scala> uri"www.scala.com".++?("key" -> List("value1", "value2", "value3"))
+    * res1: Uri = www.scala.com?key=value1&key=value2&key=value3
+    * }}}
+    */
   def ++?[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, collection.Seq[T])): Self =
     _withQueryParam(
       QueryParamKeyLike[K].getKey(param._1),

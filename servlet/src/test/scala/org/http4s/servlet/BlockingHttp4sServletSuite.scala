@@ -17,20 +17,25 @@
 package org.http4s
 package servlet
 
+import cats.effect.IO
+import cats.effect.Resource
+import cats.effect.Timer
 import cats.syntax.all._
-import cats.effect.{IO, Resource, Timer}
-import java.net.{HttpURLConnection, URL}
-import java.nio.charset.StandardCharsets
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
-import org.eclipse.jetty.server.{Server => EclipseServer}
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.server.{Server => EclipseServer}
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.server.DefaultServiceErrorHandler
-import scala.io.Source
+import org.http4s.syntax.all._
+
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
+import scala.io.Source
 
 class BlockingHttp4sServletSuite extends Http4sSuite {
   lazy val service = HttpRoutes

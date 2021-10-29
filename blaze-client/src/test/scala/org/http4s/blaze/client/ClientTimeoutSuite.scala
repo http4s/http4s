@@ -23,16 +23,20 @@ import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
+import org.http4s.blaze.pipeline.HeadStage
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.QueueTestHead
+import org.http4s.blazecore.SeqTestHead
+import org.http4s.blazecore.SlowTestHead
+import org.http4s.client.Client
+import org.http4s.client.RequestKey
+import org.http4s.syntax.all._
 
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
-import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{IdleTimeoutStage, QueueTestHead, SeqTestHead, SlowTestHead}
-import org.http4s.client.{Client, RequestKey}
-import org.http4s.syntax.all._
-
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
@@ -134,7 +138,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     } yield s).intercept[TimeoutException]
   }
 
-  tickWheelFixture.test("Not timeout on only marginally slow POST body") { tickWheel =>
+  tickWheelFixture.test("Not timeout on only marginally slow POST body".flaky) { tickWheel =>
     def dataStream(n: Int): EntityBody[IO] = {
       val interval = 100.millis
       Stream
@@ -153,7 +157,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     c.fetchAs[String](req).assertEquals("done")
   }
 
-  tickWheelFixture.test("Request timeout on slow response body") { tickWheel =>
+  tickWheelFixture.test("Request timeout on slow response body".flaky) { tickWheel =>
     val tail = mkConnection(FooRequestKey, tickWheel, idleTimeout = 10.second)
     val (f, b) = resp.splitAt(resp.length - 1)
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
@@ -186,7 +190,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     } yield s).intercept[TimeoutException]
   }
 
-  tickWheelFixture.test("No Response head timeout on fast header") { tickWheel =>
+  tickWheelFixture.test("No Response head timeout on fast header".flaky) { tickWheel =>
     val tail = mkConnection(FooRequestKey, tickWheel)
     val (f, b) = resp.splitAt(resp.indexOf("\r\n\r\n" + 4))
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 125.millis, tickWheel)

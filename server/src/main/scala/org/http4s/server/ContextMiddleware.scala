@@ -18,8 +18,9 @@ package org.http4s
 package server
 
 import cats.Monad
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
-import cats.data.{Kleisli, OptionT}
 
 object ContextMiddleware {
   def apply[F[_]: Monad, T](

@@ -10,9 +10,10 @@
 
 package org.http4s
 
+import cats.Order
+import cats.Show
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import cats.{Order, Show}
 import org.http4s.internal.hashLower
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util._

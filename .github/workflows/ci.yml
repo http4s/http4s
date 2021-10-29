@@ -28,8 +28,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.1]
+        scala: [2.13.6, 2.12.15, 3.0.2]
         java: [adoptium@8, adoptium@11, adoptium@17]
+        exclude:
+          - scala: 2.12.15
+            java: adoptium@11
+          - scala: 2.12.15
+            java: adoptium@17
+          - scala: 3.0.2
+            java: adoptium@11
+          - scala: 3.0.2
+            java: adoptium@17
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -58,14 +67,18 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        if: matrix.scala != '3.0.1'
-        run: sbt ++${{ matrix.scala }} scalafmtCheckAll
+        if: matrix.scala != '3.0.2'
+        run: sbt ++${{ matrix.scala }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
         run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
 
       - name: Compile
         run: 'sbt ++${{ matrix.scala }} test:compile'
+
+      - name: Check Scalafix rules
+        if: matrix.scala != '3.0.2'
+        run: sbt ++${{ matrix.scala }} 'scalafixAll --check'
 
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
@@ -215,7 +228,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.1]
+        scala: [2.13.6, 2.12.15, 3.0.2]
         java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:

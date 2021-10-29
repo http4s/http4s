@@ -16,7 +16,9 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.kernel.BoundedEnumerable
 import cats.parse.Parser0
 import org.http4s.util.Writer

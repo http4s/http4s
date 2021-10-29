@@ -16,17 +16,20 @@
 
 package org.http4s.server.middleware
 
-import java.time.{Clock, Instant, ZoneId}
-import java.util.concurrent.atomic.AtomicLong
-
 import cats.arrow.FunctionK
 import cats.effect.IO
 import org.http4s._
-import org.http4s.syntax.all._
 import org.http4s.dsl.io._
-import org.http4s.headers.{Location, Referer}
+import org.http4s.headers.Location
+import org.http4s.headers.Referer
 import org.http4s.server.middleware.CSRF.unlift
+import org.http4s.syntax.all._
 import org.typelevel.ci._
+
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.util.concurrent.atomic.AtomicLong
 
 class CSRFSuite extends Http4sSuite {
 

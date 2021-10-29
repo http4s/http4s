@@ -18,9 +18,12 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser0, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Parser0
+import cats.parse.Rfc5234
 import org.http4s.Uri.RegName
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 sealed abstract class Origin

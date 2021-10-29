@@ -17,17 +17,19 @@
 package org.http4s
 package circe
 
-import java.nio.ByteBuffer
-
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.either._
-import fs2.{Chunk, Pull, Stream}
+import fs2.Chunk
+import fs2.Pull
+import fs2.Stream
 import io.circe._
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
+
+import java.nio.ByteBuffer
 
 trait CirceInstances extends JawnInstances {
   protected val circeSupportParser =

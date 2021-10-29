@@ -17,8 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.syntax.header._
 import cats.data.NonEmptyList
+import org.http4s.syntax.header._
 
 class AcceptPatchSpec extends Http4sSuite {
   {

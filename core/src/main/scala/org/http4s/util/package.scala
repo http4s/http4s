@@ -18,6 +18,8 @@ package org.http4s
 
 import cats.ApplicativeThrow
 import fs2._
+import org.typelevel.ci.CIString
+
 import java.nio.charset.StandardCharsets
 
 package object util {
@@ -42,4 +44,10 @@ package object util {
 
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
+
+  @deprecated("use org.typelevel.ci.CIString", "0.22")
+  type CaseInsensitiveString = CIString
+
+  @deprecated("use org.typelevel.ci.CIString", "0.22")
+  val CaseInsensitiveString = CIString
 }

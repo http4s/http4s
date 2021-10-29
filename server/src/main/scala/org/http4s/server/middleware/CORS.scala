@@ -18,14 +18,18 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.{Kleisli, NonEmptyList}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.NonEmptyList
 import cats.syntax.all._
-import cats.{Applicative, Functor, Monad}
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci._
+
 import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.util.hashing.MurmurHash3
@@ -347,17 +351,6 @@ sealed class CORSPolicy(
             .some
       }
 
-    val someAllowHeadersSpecificHeader =
-      allowHeaders match {
-        case AllowHeaders.All | AllowHeaders.Reflect => None
-        case AllowHeaders.In(headers) =>
-          Header
-            .Raw(
-              Header[`Access-Control-Allow-Headers`].name,
-              headers.map(_.toString).mkString(", "))
-            .some
-      }
-
     val maxAgeHeader =
       maxAge match {
         case MaxAge.Some(deltaSeconds) =>
@@ -386,7 +379,7 @@ sealed class CORSPolicy(
         case AllowMethods.In(_) => List(Header[`Access-Control-Request-Method`].name)
       }
       def headers = allowHeaders match {
-        case AllowHeaders.All => Nil
+        case AllowHeaders.All | AllowHeaders.Static(_) => Nil
         case AllowHeaders.In(_) | AllowHeaders.Reflect =>
           List(ci"Access-Control-Request-Headers")
       }
@@ -478,20 +471,27 @@ sealed class CORSPolicy(
             None
       }
 
-    def allowHeadersHeader(headers: Set[CIString]) =
+    def someAllowHeadersHeader(headers: Set[CIString]) =
+      Header
+        .Raw(Header[`Access-Control-Allow-Headers`].name, headers.map(_.toString).mkString(", "))
+        .some
+
+    def allowHeadersHeader(requestHeaders: Set[CIString]) =
       allowHeaders match {
         case AllowHeaders.All =>
-          if (allowCredentials == AllowCredentials.Deny || headers === wildcardHeadersSet)
+          if (allowCredentials == AllowCredentials.Deny || requestHeaders === wildcardHeadersSet)
             CommonHeaders.someAllowHeadersWildcard
           else
             None
+        case AllowHeaders.Static(allowedHeaders) =>
+          someAllowHeadersHeader(allowedHeaders)
         case AllowHeaders.In(allowedHeaders) =>
-          if ((headers -- allowedHeaders).isEmpty)
-            someAllowHeadersSpecificHeader
+          if ((requestHeaders -- allowedHeaders).isEmpty)
+            someAllowHeadersHeader(allowedHeaders)
           else
             None
         case AllowHeaders.Reflect =>
-          Header.Raw(Header[`Access-Control-Allow-Headers`].name, headers.mkString(", ")).some
+          someAllowHeadersHeader(requestHeaders)
       }
 
     // Working around the poor model in 0.21.  If we just add a Vary
@@ -684,6 +684,15 @@ sealed class CORSPolicy(
   def withAllowHeadersReflect: CORSPolicy =
     copy(allowHeaders = AllowHeaders.Reflect)
 
+  /** Returns a static value in `Access-Control-Allow-Headers` on
+    * preflight requests consisting of the supplied headers.
+    *
+    * Sends an `Access-Control-Allow-Headers` header with the
+    * specified headers on valid CORS preflight requests.
+    */
+  def withAllowHeadersStatic(headers: Set[CIString]): CORSPolicy =
+    copy(allowHeaders = AllowHeaders.Static(headers))
+
   /** Sets the duration the results can be cached.  The duration is
     * truncated to seconds.  A negative value results in a cache
     * duration of zero.
@@ -761,6 +770,7 @@ object CORSPolicy {
     case object All extends AllowHeaders
     case class In(names: Set[CIString]) extends AllowHeaders
     case object Reflect extends AllowHeaders
+    case class Static(names: Set[CIString]) extends AllowHeaders
   }
 
   private[middleware] sealed trait MaxAge

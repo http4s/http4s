@@ -18,14 +18,18 @@ package org.http4s
 package server
 package middleware
 
+import cats.FlatMap
 import cats.arrow.FunctionK
-import cats.{FlatMap, ~>}
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.Sync
 import cats.syntax.all._
+import cats.~>
 import fs2._
 import org.http4s.headers._
 import org.typelevel.ci._
+
 import scala.collection.mutable.ListBuffer
 
 object ChunkAggregator {

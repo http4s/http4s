@@ -16,9 +16,10 @@
 
 package org.http4s.websocket
 
+import scodec.bits.ByteVector
+
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.util.hashing.MurmurHash3
-import scodec.bits.ByteVector
 
 abstract class WebSocketFrame {
   def opcode: Int

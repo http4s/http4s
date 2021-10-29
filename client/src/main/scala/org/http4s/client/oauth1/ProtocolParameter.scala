@@ -16,10 +16,11 @@
 
 package org.http4s.client.oauth1
 
+import cats.Functor
+import cats.Show
 import cats.effect.Clock
 import cats.kernel.Order
 import cats.syntax.all._
-import cats.{Functor, Show}
 import org.http4s.client.oauth1.SignatureAlgorithm.Names.`HMAC-SHA1`
 
 import java.util.concurrent.TimeUnit

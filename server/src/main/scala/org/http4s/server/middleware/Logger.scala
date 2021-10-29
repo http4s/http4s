@@ -18,12 +18,14 @@ package org.http4s
 package server
 package middleware
 
-import cats.~>
 import cats.arrow.FunctionK
-import cats.syntax.all._
 import cats.data.OptionT
-import cats.effect.{BracketThrow, Concurrent, Sync}
+import cats.effect.BracketThrow
+import cats.effect.Concurrent
+import cats.effect.Sync
 import cats.effect.Sync._
+import cats.syntax.all._
+import cats.~>
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString

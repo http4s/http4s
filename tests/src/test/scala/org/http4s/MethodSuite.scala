@@ -16,14 +16,16 @@
 
 package org.http4s
 
-import java.util.Locale
-
 import cats.Hash
-import cats.syntax.all._
 import cats.kernel.laws.discipline._
+import cats.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen
-import org.scalacheck.Prop.{forAll, forAllNoShrink, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.forAllNoShrink
+import org.scalacheck.Prop.propBoolean
+
+import java.util.Locale
 
 class MethodSuite extends Http4sSuite {
   import Method._

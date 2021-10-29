@@ -17,7 +17,8 @@
 package org.http4s
 
 import org.http4s.SameSite._
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 /** RFC6265 SameSite cookie attribute values.
   */

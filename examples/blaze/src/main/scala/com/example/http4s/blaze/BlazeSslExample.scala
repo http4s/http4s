@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
+
 import scala.concurrent.ExecutionContext.global
 
 object BlazeSslExample extends IOApp {

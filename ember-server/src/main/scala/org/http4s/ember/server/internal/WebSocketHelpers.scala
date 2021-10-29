@@ -16,29 +16,37 @@
 
 package org.http4s.ember.server.internal
 
-import cats.effect.{Concurrent, Sync}
-import cats.syntax.all._
 import cats.data.NonEmptyList
-import fs2.{Chunk, Pipe, Pull, Stream}
+import cats.effect.Concurrent
+import cats.effect.Sync
+import cats.effect.concurrent.Ref
+import cats.syntax.all._
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
+import fs2.concurrent.SignallingRef
 import fs2.io.tcp._
-import org.http4s.syntax.all._
 import org.http4s._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
-import org.http4s.websocket.{FrameTranscoder, WebSocketContext}
-import org.http4s.headers._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.durationToFinite
 import org.http4s.headers.Connection
-import org.http4s.websocket.{Rfc6455, WebSocketCombinedPipe, WebSocketFrame, WebSocketSeparatePipe}
+import org.http4s.headers._
+import org.http4s.syntax.all._
+import org.http4s.websocket.FrameTranscoder
+import org.http4s.websocket.Rfc6455
+import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketContext
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
+import org.typelevel.log4cats.Logger
 import scodec.bits.ByteVector
 
-import scala.concurrent.duration.Duration
 import java.nio.ByteBuffer
-import org.typelevel.log4cats.Logger
-import fs2.concurrent.SignallingRef
-import cats.effect.concurrent.Ref
+import scala.concurrent.duration.Duration
 
 object WebSocketHelpers {
 

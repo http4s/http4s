@@ -19,34 +19,36 @@ package laws
 package discipline
 
 import cats._
-import cats.data.{Chain, NonEmptyList}
-import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
-import cats.effect.{Effect, IO}
+import cats.data.Chain
+import cats.data.NonEmptyList
+import cats.effect.Effect
+import cats.effect.IO
 import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
-import cats.syntax.all._
 import cats.instances.order._
+import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
+import cats.syntax.all._
 import com.comcast.ip4s
 import com.comcast.ip4s.Arbitraries._
-import fs2.{Pure, Stream}
-
-import java.nio.charset.{Charset => NioCharset}
-import java.time._
-import java.util.Locale
+import fs2.Pure
+import fs2.Stream
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.syntax.literals._
-import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
 import org.scalacheck.Gen._
+import org.scalacheck._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
 
+import java.nio.charset.{Charset => NioCharset}
+import java.time._
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.annotation.nowarn
-import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.util.Try
 
 object arbitrary extends ArbitraryInstancesBinCompat0
@@ -98,9 +100,15 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
   val genQDText: Gen[String] = nonEmptyListOf(oneOf(allowedQDText)).map(_.mkString)
 
+  @deprecated(
+    "Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.",
+    "0.22.5")
   val genQuotedPair: Gen[String] =
     genChar.map(c => s"\\$c")
 
+  @deprecated(
+    "Generates encoded values instead of the expected unencoded values that arbitraries should.  Use genQDText instead.",
+    "0.22.5")
   val genQuotedString: Gen[String] = oneOf(genQDText, genQuotedPair).map(s => s"""\"$s\"""")
 
   private val tchars =
@@ -301,9 +309,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
 
   // MediaRange exepects the quoted pair without quotes
-  val http4sGenUnquotedPair = genQuotedPair.map { c =>
-    c.substring(1, c.length - 1)
-  }
+  val http4sGenUnquotedPair = genQDText
 
   val http4sGenMediaRangeExtension: Gen[(String, String)] =
     for {
@@ -1010,6 +1016,23 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
   implicit val http4sTestingCogenForResponsePrelude: Cogen[ResponsePrelude] =
     Cogen[(Headers, HttpVersion, Status)].contramap(value =>
       (value.headers, value.httpVersion, value.status))
+
+  implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
+    val genExtension = for {
+      extName <- genToken
+      quotedStringEquivWithoutQuotes =
+        genQDText //The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
+      extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
+    } yield (extName -> extValue)
+
+    for {
+      timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
+      l <- Gen.listOf(genExtension)
+      if timeout.isDefined || max.isDefined || l.nonEmpty //One of these fields is necessary to be valid.
+    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
+  }
+
   val genCustomStatusReason: Gen[String] = {
     val word = poisson(5).flatMap(stringOfN(_, alphaChar))
     val normal = poisson(3).flatMap(listOfN(_, word)).map(_.mkString(" "))

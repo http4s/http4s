@@ -17,13 +17,14 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci._
-import java.util.Base64
 import cats.parse.Parser
 import cats.parse.Parser.charIn
-import cats.parse.Rfc5234.{alpha, digit}
+import cats.parse.Rfc5234.alpha
+import cats.parse.Rfc5234.digit
+import org.typelevel.ci._
 import scodec.bits.ByteVector
 
+import java.util.Base64
 import scala.util.Try
 
 final class `Sec-WebSocket-Accept`(hashBytes: ByteVector) {

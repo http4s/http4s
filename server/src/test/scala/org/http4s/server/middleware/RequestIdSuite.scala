@@ -22,6 +22,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
+
 import java.util.UUID
 
 class RequestIdSuite extends Http4sSuite {

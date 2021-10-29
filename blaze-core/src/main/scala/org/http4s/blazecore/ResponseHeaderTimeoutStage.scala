@@ -17,12 +17,15 @@
 package org.http4s
 package blazecore
 
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.{AtomicReference}
 import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
+import org.http4s.blaze.util.Cancelable
+import org.http4s.blaze.util.TickWheelExecutor
+
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
 final private[http4s] class ResponseHeaderTimeoutStage[A](

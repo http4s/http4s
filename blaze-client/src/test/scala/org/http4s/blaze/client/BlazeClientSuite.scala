@@ -23,10 +23,13 @@ import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.tcp.SocketGroup
-import java.net.{InetSocketAddress, SocketException}
-import java.util.concurrent.TimeoutException
-import org.http4s.client.{ConnectionFailure, RequestKey}
+import org.http4s.client.ConnectionFailure
+import org.http4s.client.RequestKey
 import org.http4s.syntax.all._
+
+import java.net.InetSocketAddress
+import java.net.SocketException
+import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class BlazeClientSuite extends BlazeClientBase {
@@ -211,7 +214,7 @@ class BlazeClientSuite extends BlazeClientBase {
       .assert
   }
 
-  test("Blaze Http1Client should doesn't leak connection on timeout") {
+  test("Blaze Http1Client should doesn't leak connection on timeout".flaky) {
     val addresses = jettyServer().addresses
     val address = addresses.head
     val name = address.getHostName
@@ -274,7 +277,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
-    val uri = Uri.fromString(s"http://$name:$port/simple").yolo
+    val uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
     builder(1, requestTimeout = 2.seconds).resourceWithState.use { case (client, state) =>
       for {
         // We're not thoroughly exercising the pool stats.  We're doing a rudimentary check.

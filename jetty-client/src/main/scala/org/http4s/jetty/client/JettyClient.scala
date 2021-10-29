@@ -26,7 +26,8 @@ import org.eclipse.jetty.client.api.{Request => JettyRequest}
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.http4s.client.Client
-import org.log4s.{Logger, getLogger}
+import org.log4s.Logger
+import org.log4s.getLogger
 
 object JettyClient {
   private val logger: Logger = getLogger

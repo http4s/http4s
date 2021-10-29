@@ -16,15 +16,16 @@
 
 package org.http4s.server.middleware
 
-import cats.data.{NonEmptyList, OptionT}
+import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.testing.fs2Arbitraries._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.testing.fs2Arbitraries._
 import org.scalacheck._
 import org.scalacheck.effect.PropF
 

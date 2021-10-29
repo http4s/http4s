@@ -17,8 +17,9 @@
 package org.http4s
 package parser
 
-import java.nio.CharBuffer
 import org.http4s.internal.CollectionCompat
+
+import java.nio.CharBuffer
 import scala.io.Codec
 
 class QueryParserSpec extends Http4sSuite {

@@ -16,11 +16,14 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
-import org.http4s.laws.discipline.arbitrary._
+import cats.kernel.laws.discipline.BoundedEnumerableTests
+import cats.kernel.laws.discipline.HashTests
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.laws.discipline.HttpCodecTests
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
 
 class QValueSuite extends Http4sSuite {
   import QValue._
