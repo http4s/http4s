@@ -53,7 +53,7 @@ class ReferrerPolicySuite extends HeaderLaws {
 
   test("parse should parse a single directive") {
     Prop.forAll { (a: Directive) =>
-      `Referrer-Policy`.parse(ci"${a.value}".toString).map(_.values) == Right(NonEmptyList.one(a))
+      `Referrer-Policy`.parse(a.value.toString).map(_.values) == Right(NonEmptyList.one(a))
     }
   }
 
