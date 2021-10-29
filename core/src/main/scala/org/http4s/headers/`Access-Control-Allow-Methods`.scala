@@ -33,7 +33,7 @@ object `Access-Control-Allow-Methods` {
         val parsedMethodList = list.traverse { ciMethod =>
           Method.fromString(ciMethod.toString).toOption
         }
-        parsedMethodList.map(list => `Access-Control-Allow-Methods`.apply(list.toSet))
+        parsedMethodList.map(list => apply(list.toSet))
       }
 
   def parse(s: String): ParseResult[`Access-Control-Allow-Methods`] =

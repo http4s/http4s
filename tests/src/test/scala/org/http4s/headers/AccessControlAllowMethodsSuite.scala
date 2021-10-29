@@ -16,35 +16,8 @@
 
 package org.http4s.headers
 
-import cats.data.NonEmptyList
-import org.http4s.Method
-import org.http4s.headers.`Access-Control-Allow-Methods`.{AllMethods, Methods, parse}
+import org.http4s.laws.discipline.arbitrary._
 
 class AccessControlAllowMethodsSuite extends HeaderLaws {
-
-  test("Access-Control-Allow-Methods should not parse an empty string") {
-    val parseResult = parse("")
-    assert(parseResult.isLeft)
-  }
-
-  test("Access-Control-Allow-Methods should parse the wildcard string") {
-    val parseResult = parse("*")
-    assertEquals(parseResult, Right(AllMethods))
-  }
-
-  test(
-    "Access-Control-Allow-Methods should not parse the wildcard if present with any other method") {
-    val parseResult = parse("*, POST")
-    assert(parseResult.isLeft)
-  }
-
-  test("Access-Control-Allow-Methods should parse a string with a single method") {
-    val parseResult = parse("POST")
-    assertEquals(parseResult, Right(Methods(NonEmptyList.one(Method.POST))))
-  }
-
-  test("Access-Control-Allow-Methods should parse a string representing a list of method") {
-    val parseResult = parse("POST, GET, PUT")
-    assertEquals(parseResult, Right(Methods(NonEmptyList.of(Method.POST, Method.GET, Method.PUT))))
-  }
+  checkAll("Access-Control-Allow-Methods", headerLaws[`Access-Control-Allow-Methods`])
 }
