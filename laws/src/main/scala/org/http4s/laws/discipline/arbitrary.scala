@@ -575,7 +575,8 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield headers.Age.unsafeFromDuration(age)
     }
 
-  implicit val http4sTestingArbitraryForAccessControlAllowMethodsHeader: Arbitrary[headers.`Access-Control-Allow-Methods`] =
+  implicit val http4sTestingArbitraryForAccessControlAllowMethodsHeader
+      : Arbitrary[headers.`Access-Control-Allow-Methods`] =
     Arbitrary {
       for {
         methods <- containerOf[Set, Method](getArbitrary[Method])
