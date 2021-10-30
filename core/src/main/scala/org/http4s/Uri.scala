@@ -10,6 +10,7 @@
 
 package org.http4s
 
+import cats.Contravariant
 import cats.Eval
 import cats.Hash
 import cats.Order
@@ -437,7 +438,7 @@ object Uri extends UriPlatform {
         }
     }
 
-    trait SegmentEncoder[A] {
+    trait SegmentEncoder[A] extends Serializable {
       def toSegment(a: A): Segment
     }
     object SegmentEncoder {
@@ -448,8 +449,18 @@ object Uri extends UriPlatform {
         override def toSegment(a: A): Segment = f(a)
       }
 
+      def fromToString[A]: SegmentEncoder[A] = instance(a => Segment(a.toString))
+      def fromShow[A](implicit show: Show[A]): SegmentEncoder[A] =
+        instance(a => Segment(show.show(a)))
+
       implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply
       implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity
+
+      implicit val contravariantInstance: Contravariant[SegmentEncoder] =
+        new Contravariant[SegmentEncoder] {
+          override def contramap[A, B](fa: SegmentEncoder[A])(f: B => A): SegmentEncoder[B] =
+            instance(b => fa.toSegment(f(b)))
+        }
     }
 
     /** This constructor allows you to construct the path directly.
