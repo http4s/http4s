@@ -22,7 +22,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.Header
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.Renderable
+import org.http4s.util.Renderer
 import org.http4s.util.Writer
 import org.typelevel.ci._
 
@@ -32,14 +32,17 @@ final case class `Clear-Site-Data`(values: NonEmptyList[`Clear-Site-Data`.Direct
 
 object `Clear-Site-Data` {
 
-  sealed abstract class Directive(val value: String) extends Renderable {
-    override def render(writer: Writer): writer.type =
-      writer.append(s""""$value"""")
-  }
+  sealed abstract class Directive(val value: String)
 
   object Directive {
     def fromString(s: String): ParseResult[Directive] =
       ParseResult.fromParser(directiveParser, "Invalid Clear-Site-Data directive")(s)
+
+    implicit val rendererInstance: Renderer[Directive] =
+      new Renderer[Directive] {
+        def render(writer: Writer, dir: Directive): writer.type =
+          writer << s""""${dir.value}""""
+      }
   }
 
   case object `*` extends Directive("*")
