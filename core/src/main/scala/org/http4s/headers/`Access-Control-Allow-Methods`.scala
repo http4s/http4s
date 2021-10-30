@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s.headers
+package org.http4s
+package headers
 
 import cats.syntax.traverse._
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.{Header, Method, ParseResult}
 import org.typelevel.ci.{CIString, CIStringSyntax}
-
-/** The `Access-Control-Allow-Methods` header. */
-final case class `Access-Control-Allow-Methods`(methods: Set[Method])
 
 object `Access-Control-Allow-Methods` {
 
@@ -48,5 +46,7 @@ object `Access-Control-Allow-Methods` {
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Methods`] =
     (a, b) => `Access-Control-Allow-Methods`(a.methods ++ b.methods)
-
 }
+
+/** The `Access-Control-Allow-Methods` header. */
+final case class `Access-Control-Allow-Methods`(methods: Set[Method])
