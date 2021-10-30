@@ -18,9 +18,12 @@ package org.http4s
 package headers
 
 import cats.syntax.traverse._
+import org.http4s.Header
+import org.http4s.Method
+import org.http4s.ParseResult
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.{Header, Method, ParseResult}
-import org.typelevel.ci.{CIString, CIStringSyntax}
+import org.typelevel.ci.CIString
+import org.typelevel.ci.CIStringSyntax
 
 object `Access-Control-Allow-Methods` {
 
