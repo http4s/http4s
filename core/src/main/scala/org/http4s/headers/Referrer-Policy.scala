@@ -35,7 +35,7 @@ object `Referrer-Policy` {
 
   sealed abstract class Directive(val value: CIString) extends Renderable {
     override def render(writer: Writer): writer.type =
-      writer.append(value.toString)
+      writer.append(value)
   }
 
   object Directive {
