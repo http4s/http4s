@@ -23,7 +23,7 @@ import cats.parse.Parser
 import cats.parse.Rfc5234
 import org.http4s.Header
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.Renderable
+import org.http4s.util.Renderer
 import org.http4s.util.Writer
 import org.typelevel.ci._
 
@@ -33,14 +33,17 @@ final case class `Referrer-Policy`(values: NonEmptyList[`Referrer-Policy`.Direct
 
 object `Referrer-Policy` {
 
-  sealed abstract class Directive(val value: CIString) extends Renderable {
-    override def render(writer: Writer): writer.type =
-      writer.append(value)
-  }
+  sealed abstract class Directive(val value: CIString)
 
   object Directive {
     def fromString(s: String): ParseResult[Directive] =
       ParseResult.fromParser(directiveParser, "Invalid Referrer-Policy directive")(s)
+
+    implicit val rendererInstance: Renderer[Directive] =
+      new Renderer[Directive] {
+        def render(writer: Writer, dir: Directive): writer.type =
+          writer << dir.value
+      }
   }
 
   case object `no-referrer` extends Directive(ci"no-referrer")
