@@ -75,8 +75,8 @@ object `Referrer-Policy` {
       .toMap
 
   private val directiveParser: Parser[Directive] =
-    Rfc5234.alpha.orElse(Parser.char('-')).rep.string.map { s =>
-      types.getOrElse(CIString(s), new UnknownPolicy(CIString(s)) {})
+    Rfc5234.alpha.orElse(Parser.char('-')).rep.string.map(CIString(_)).map { s =>
+      types.getOrElse(s, new UnknownPolicy(s) {})
     }
 
   private val parser: Parser[`Referrer-Policy`] =
