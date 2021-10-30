@@ -17,11 +17,20 @@
 package org.http4s.internal.parsing
 
 import cats.data.NonEmptyList
-import cats.parse.Parser.{char, charIn}
-import cats.parse.{Parser, Parser0}
-import cats.parse.Rfc5234.{alpha, digit, sp}
-import org.http4s.{Challenge, Credentials}
-import org.http4s.internal.parsing.Rfc7230.{bws, headerRep1, ows, quotedString, token}
+import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Parser0
+import cats.parse.Rfc5234.alpha
+import cats.parse.Rfc5234.digit
+import cats.parse.Rfc5234.sp
+import org.http4s.Challenge
+import org.http4s.Credentials
+import org.http4s.internal.parsing.Rfc7230.bws
+import org.http4s.internal.parsing.Rfc7230.headerRep1
+import org.http4s.internal.parsing.Rfc7230.ows
+import org.http4s.internal.parsing.Rfc7230.quotedString
+import org.http4s.internal.parsing.Rfc7230.token
 import org.typelevel.ci.CIString
 
 private[http4s] object Rfc7235 {

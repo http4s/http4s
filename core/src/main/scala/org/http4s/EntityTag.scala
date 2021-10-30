@@ -17,8 +17,10 @@
 package org.http4s
 
 import cats.Show
-import cats.parse.{Parser, Rfc5234}
-import org.http4s.EntityTag.{Strong, Weakness}
+import cats.parse.Parser
+import cats.parse.Rfc5234
+import org.http4s.EntityTag.Strong
+import org.http4s.EntityTag.Weakness
 import org.http4s.internal.parsing.Rfc7230
 
 final case class EntityTag(tag: String, weakness: Weakness = Strong) {

@@ -12,6 +12,10 @@ ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
+
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
@@ -20,6 +24,10 @@ ThisBuild / githubWorkflowBuild := Seq(
     cond = Some(s"matrix.scala != '$scala_3'")),
   WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
   WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
+  WorkflowStep.Sbt(
+    List("scalafixAll --check"),
+    name = Some("Check Scalafix rules"),
+    cond = Some(s"matrix.scala != '$scala_3'")),
   WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
   // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
   // WorkflowStep.Sbt(
@@ -795,4 +803,8 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
-addCommandAlias("lint", ";scalafixEnable ;scalafixAll ;scalafmtAll; scalafmtSbt")
+addCommandAlias("quicklint", s";scalafixAll ;scalafmtAll ;scalafmtSbt")
+
+addCommandAlias(
+  "lint",
+  s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues")

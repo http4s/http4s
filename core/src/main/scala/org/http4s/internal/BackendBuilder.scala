@@ -16,7 +16,8 @@
 
 package org.http4s.internal
 
-import cats.effect.{BracketThrow, Resource}
+import cats.effect.BracketThrow
+import cats.effect.Resource
 import fs2.Stream
 
 private[http4s] trait BackendBuilder[F[_], A] {

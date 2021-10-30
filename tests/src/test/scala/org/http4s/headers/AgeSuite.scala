@@ -16,10 +16,12 @@
 
 package org.http4s.headers
 
-import org.http4s.{ParseFailure, ParseResult}
-import org.http4s.syntax.header._
+import org.http4s.ParseFailure
+import org.http4s.ParseResult
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.header._
 import org.scalacheck.Prop._
+
 import scala.concurrent.duration._
 
 class AgeSuite extends HeaderLaws {

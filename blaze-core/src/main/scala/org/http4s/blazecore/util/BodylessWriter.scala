@@ -21,9 +21,10 @@ package util
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline._
 import org.http4s.util.StringWriter
+
+import java.nio.ByteBuffer
 import scala.concurrent._
 
 /** Discards the body, killing it so as to clean up resources

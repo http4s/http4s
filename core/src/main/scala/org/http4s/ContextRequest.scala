@@ -17,8 +17,8 @@
 package org.http4s
 
 import cats._
-import cats.syntax.all._
 import cats.data.Kleisli
+import cats.syntax.all._
 
 final case class ContextRequest[F[_], A](context: A, req: Request[F]) {
   def mapK[G[_]](fk: F ~> G): ContextRequest[G, A] =

@@ -19,13 +19,18 @@ package blaze
 package client
 
 import cats.effect._
-import cats.effect.concurrent.{Ref, Semaphore}
+import cats.effect.concurrent.Ref
+import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import com.comcast.ip4s._
 import fs2.Stream
-import java.net.InetSocketAddress
-import org.http4s.client.{Connection, ConnectionBuilder, ConnectionFailure, RequestKey}
+import org.http4s.client.Connection
+import org.http4s.client.ConnectionBuilder
+import org.http4s.client.ConnectionFailure
+import org.http4s.client.RequestKey
 import org.http4s.syntax.AllSyntax
+
+import java.net.InetSocketAddress
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

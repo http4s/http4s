@@ -17,7 +17,7 @@
 package org.http4s.internal.parsing
 
 import cats.parse.Parser
-import cats.parse.Parser.{charIn}
+import cats.parse.Parser.charIn
 
 /** Common rules defined in RFC2234.
   *

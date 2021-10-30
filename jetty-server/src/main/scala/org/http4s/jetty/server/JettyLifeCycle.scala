@@ -16,11 +16,11 @@
 
 package org.http4s.jetty.server
 
-import cats.syntax.all._
-import org.eclipse.jetty.util.component.LifeCycle
-import org.eclipse.jetty.util.component.Destroyable
 import cats.effect._
+import cats.syntax.all._
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
+import org.eclipse.jetty.util.component.Destroyable
+import org.eclipse.jetty.util.component.LifeCycle
 
 private[jetty] object JettyLifeCycle {
 

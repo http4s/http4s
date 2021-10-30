@@ -16,24 +16,25 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
-import fs2.{Pipe, Stream}
-import org.http4s._
-import org.http4s.server.Server
-import org.http4s.implicits._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.websocket.WebSocketFrame
-import org.http4s.server.websocket.WebSocketBuilder
-
-import org.java_websocket.client.WebSocketClient
-import java.net.URI
 import cats.effect.concurrent.Deferred
-import org.java_websocket.handshake.ServerHandshake
+import cats.syntax.all._
+import fs2.Pipe
+import fs2.Stream
 import fs2.concurrent.Queue
+import org.http4s._
+import org.http4s.dsl.Http4sDsl
+import org.http4s.implicits._
+import org.http4s.server.Server
+import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.websocket.WebSocketFrame
 import org.java_websocket.WebSocket
+import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
+import org.java_websocket.handshake.ServerHandshake
+
+import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 

@@ -18,16 +18,17 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.implicits._
-import fs2.io.tls.{TLSContext, TLSParameters}
+import fs2.io.tls.TLSContext
+import fs2.io.tls.TLSParameters
+import org.http4s._
+import org.http4s.dsl.Http4sDsl
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.implicits._
+import org.http4s.server.ServerRequestKeys
 
 import java.io.IOException
 import java.security.KeyStore
 import javax.net.ssl._
-import org.http4s._
-import org.http4s.implicits._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.server.ServerRequestKeys
 
 /** Test cases for mTLS support in Ember Server.
   */

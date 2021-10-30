@@ -18,8 +18,9 @@ package org.http4s.multipart
 
 import cats.Eq
 import fs2.Chunk
-import java.nio.charset.StandardCharsets
 import org.http4s.internal.CollectionCompat
+
+import java.nio.charset.StandardCharsets
 import scala.util.Random
 
 final case class Boundary(value: String) extends AnyVal {

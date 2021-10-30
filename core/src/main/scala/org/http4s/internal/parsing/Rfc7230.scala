@@ -17,9 +17,16 @@
 package org.http4s.internal.parsing
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser0}
-import cats.parse.Parser.{char, charIn}
-import cats.parse.Rfc5234.{alpha, digit, dquote, htab, sp, vchar}
+import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Parser0
+import cats.parse.Rfc5234.alpha
+import cats.parse.Rfc5234.digit
+import cats.parse.Rfc5234.dquote
+import cats.parse.Rfc5234.htab
+import cats.parse.Rfc5234.sp
+import cats.parse.Rfc5234.vchar
 
 /** Common rules defined in RFC7230
   *

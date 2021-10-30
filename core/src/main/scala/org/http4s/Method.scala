@@ -16,11 +16,15 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
 import scala.util.hashing.MurmurHash3
 
 /** An HTTP method.

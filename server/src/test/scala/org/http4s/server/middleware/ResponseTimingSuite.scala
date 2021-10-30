@@ -16,13 +16,13 @@
 
 package org.http4s.server.middleware
 
-import cats.syntax.all._
 import cats.effect._
 import cats.effect.concurrent.Ref
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.dsl.io._
-import org.typelevel.ci._
 import org.http4s.syntax.all._
+import org.typelevel.ci._
 
 import scala.concurrent.duration.TimeUnit
 

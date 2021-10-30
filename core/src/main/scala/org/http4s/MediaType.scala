@@ -10,11 +10,14 @@
 
 package org.http4s
 
+import cats.Eq
+import cats.Order
+import cats.Show
 import cats.implicits.{catsSyntaxEither => _, _}
 import cats.parse.Parser
-import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
-import org.http4s.util.{StringWriter, Writer}
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
 
 import scala.util.hashing.MurmurHash3
 

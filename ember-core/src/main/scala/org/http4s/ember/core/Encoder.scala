@@ -19,8 +19,11 @@ package org.http4s.ember.core
 import cats.ApplicativeThrow
 import fs2._
 import org.http4s._
-import org.http4s.headers.{Host, `Content-Length`}
-import org.http4s.internal.{CharPredicate, appendSanitized}
+import org.http4s.headers.Host
+import org.http4s.headers.`Content-Length`
+import org.http4s.internal.CharPredicate
+import org.http4s.internal.appendSanitized
+
 import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {

@@ -10,20 +10,31 @@
 
 package org.http4s
 
-import cats.{Eval, Hash, Order, Show}
+import cats.Eval
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.data.NonEmptyList
 import cats.kernel.Semigroup
-import cats.parse.{Parser0, Parser => P}
+import cats.parse.Parser0
+import cats.parse.{Parser => P}
 import cats.syntax.all._
 import com.comcast.ip4s
-import java.net.{Inet4Address, Inet6Address}
-import java.nio.{ByteBuffer, CharBuffer}
-import java.nio.charset.{Charset => JCharset}
-import java.nio.charset.StandardCharsets
-import org.http4s.internal.{UriCoding, compareField, hashLower, reduceComparisons}
+import org.http4s.internal.UriCoding
+import org.http4s.internal.compareField
+import org.http4s.internal.hashLower
 import org.http4s.internal.parsing.Rfc3986
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.internal.reduceComparisons
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci.CIString
+
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
+import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset => JCharset}
 import scala.collection.immutable
 import scala.math.Ordered
 

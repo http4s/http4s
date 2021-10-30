@@ -20,6 +20,7 @@ package blaze
 import cats.effect._
 import fs2._
 import org.http4s.blaze.server.BlazeServerBuilder
+
 import scala.concurrent.ExecutionContext.global
 
 object BlazeSslExampleWithRedirect extends IOApp {

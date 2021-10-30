@@ -21,15 +21,18 @@ package util
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.compression.deflate
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 import org.typelevel.ci._
-import scala.concurrent.{ExecutionContext, Future}
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class Http1WriterSpec extends Http4sSuite {
   implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext

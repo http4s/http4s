@@ -18,10 +18,9 @@ package org.http4s.servlet
 
 import cats.effect._
 import cats.syntax.all._
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
-import java.security.cert.X509Certificate
-import javax.servlet.ServletConfig
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
 import org.http4s._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
@@ -29,6 +28,13 @@ import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
+
+import java.security.cert.X509Certificate
+import javax.servlet.ServletConfig
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpSession
 
 abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
     F: Effect[F])

@@ -17,7 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 object Server extends HeaderCompanion[Server]("Server") {
 

@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.Status._
+
 import scala.concurrent.duration._
 
 object GetRoutes {

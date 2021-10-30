@@ -20,7 +20,8 @@ package middleware
 
 import cats.effect.IO
 import org.http4s.dsl.io._
-import org.http4s.headers.{`Content-Encoding`, `Content-Length`}
+import org.http4s.headers.`Content-Encoding`
+import org.http4s.headers.`Content-Length`
 
 class GZipSuite extends Http4sSuite {
   private val service = server.middleware.GZip(HttpApp[IO] {
