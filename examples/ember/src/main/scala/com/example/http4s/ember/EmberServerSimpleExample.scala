@@ -73,7 +73,7 @@ object EmberServerSimpleExample extends IOApp {
           Ok(body).map(_.withContentType(headers.`Content-Type`(MediaType.text.plain)))
         case GET -> Root / "ws" =>
           val send: Stream[F, WebSocketFrame] =
-            Stream.awakeEvery[F](1.seconds).as(WebSocketFrame.Text("text"))
+            Stream.awakeEvery[F](1.seconds).map(_ => WebSocketFrame.Text("text"))
           val receive: Pipe[F, WebSocketFrame, Unit] = _.evalMap {
             case WebSocketFrame.Text(text, _) => Sync[F].delay(println(text))
             case other => Sync[F].delay(println(other))

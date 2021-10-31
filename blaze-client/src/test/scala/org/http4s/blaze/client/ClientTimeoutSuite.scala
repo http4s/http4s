@@ -124,7 +124,7 @@ class ClientTimeoutSuite extends Http4sSuite {
       body =
         Stream
           .awakeEvery[IO](2.seconds)
-          .as("1".toByte)
+          .map(_ => "1".toByte)
           .take(4)
           .onFinalizeWeak[IO](d.complete(()).void)
       req = Request(method = Method.POST, uri = www_foo_com, body = body)
@@ -143,7 +143,7 @@ class ClientTimeoutSuite extends Http4sSuite {
       val interval = 100.millis
       Stream
         .awakeEvery[IO](interval)
-        .as("1".toByte)
+        .map(_ => "1".toByte)
         .take(n.toLong)
     }
 
