@@ -774,14 +774,14 @@ lazy val scalafixInternalInput = project
   .in(file("scalafix-internal/input"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter)
+  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
   .dependsOn(core)
 
 lazy val scalafixInternalOutput = project
   .in(file("scalafix-internal/output"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter)
+  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
   .dependsOn(core)
 
 lazy val scalafixInternalTests = project
