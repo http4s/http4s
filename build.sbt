@@ -617,7 +617,11 @@ lazy val docs = http4sProject("docs")
         examplesDocker,
         examplesJetty,
         examplesTomcat,
-        examplesWar
+        examplesWar,
+        scalafixInternalInput,
+        scalafixInternalOutput,
+        scalafixInternalRules,
+        scalafixInternalTests
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
