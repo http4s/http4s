@@ -39,7 +39,7 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
     doc.tree.collect {
       case c @ Defn.Class(mods, _, _, _, _)
           if mods.exists(_.is[Mod.Case]) && !mods.exists(mod =>
-            mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private]) =>
+            (mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private])) && !c.isDescendentOf[Defn.Def] && !c.isDescendentOf[Defn.Val] =>
         Patch.lint(CaseClassWithoutAccessModifier(c))
     }.asPatch
 
