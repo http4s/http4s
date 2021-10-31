@@ -29,7 +29,7 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
         mods.collectFirst { case f: Mod.Final =>
           val finalToken = f.tokens.head
           val tokensToDelete = // we want to delete trailing whitespace after `final`
-            finalToken :: o.tokens.dropWhile(_ != finalToken).tail.takeWhile(_.text.isBlank).toList
+            finalToken :: o.tokens.dropWhile(_ != finalToken).tail.takeWhile(_.text.forall(_.isWhitespace)).toList
           Patch.removeTokens(tokensToDelete)
         }.asPatch
     }.asPatch
