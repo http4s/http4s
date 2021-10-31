@@ -19,8 +19,7 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 
 ThisBuild / scalafixAll / skip := isScala3.value
 ThisBuild / scalafmtAll / skip := isScala3.value
-
-ThisBuild / ScalafixConfig / skip := scalaVersion.value.startsWith("3")
+ThisBuild / ScalafixConfig / skip := isScala3.value
 
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
