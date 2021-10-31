@@ -28,13 +28,6 @@ class Simplify extends SemanticRule("Simplify") {
             List(
               f @ Term.Function(List(Term.Param(List(), Name.Anonymous(), None, None)), result))) =>
         Patch.replaceTree(map, "as") + Patch.replaceTree(f, result.syntax)
-      case o @ Defn.Object(mods :: Mod.Case() :: Nil, _, _) =>
-        mods.collect { case f: Mod.Final =>
-          val finalToken = f.tokens.head
-          val tokensToDelete =
-            finalToken :: o.tokens.dropWhile(_ != finalToken).tail.takeWhile(_.text.isBlank).toList
-          Patch.removeTokens(tokensToDelete)
-        }.asPatch
     }.asPatch
 
   val Stream_map_M = SymbolMatcher.exact("fs2/Stream#map().")
