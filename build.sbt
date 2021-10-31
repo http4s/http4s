@@ -17,6 +17,9 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
+ThisBuild / scalafixAll / skip := isScala3.value
+ThisBuild / scalafmtAll / skip := isScala3.value
+
 ThisBuild / ScalafixConfig / skip := scalaVersion.value.startsWith("3")
 
 ThisBuild / githubWorkflowBuild := Seq(
@@ -862,10 +865,10 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
-// scalafix needs to run twice to clean up after itself
-addCommandAlias("quicklint", s";scalafixAll ;scalafixAll ;scalafmtAll ;scalafmtSbt")
+// OrganizeImports needs to run separately to clean up after the other rules
+addCommandAlias("quicklint", s";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt")
 
 addCommandAlias(
   "lint",
-  s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafixAll ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues"
+  s";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues"
 )
