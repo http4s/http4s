@@ -21,15 +21,31 @@ import scalafix.v1._
 import scala.meta._
 
 class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
-  override def fix(implicit doc: SemanticDocument): Patch = noNonFinalCaseObject
+  override def fix(implicit doc: SemanticDocument): Patch = noFinalCaseObject + noNonFinalCaseClass
 
-  def noNonFinalCaseObject(implicit doc: SemanticDocument) =
-    doc.tree.collect { case o @ Defn.Object(mods :: Mod.Case() :: Nil, _, _) =>
-      mods.collect { case f: Mod.Final =>
-        val finalToken = f.tokens.head
-        val tokensToDelete = // we want to delete trailing whitespace after `final`
-          finalToken :: o.tokens.dropWhile(_ != finalToken).tail.takeWhile(_.text.isBlank).toList
-        Patch.removeTokens(tokensToDelete)
-      }.asPatch
+  def noFinalCaseObject(implicit doc: SemanticDocument) =
+    doc.tree.collect {
+      case o @ Defn.Object(mods, _, _) if mods.exists(_.is[Mod.Case]) =>
+        mods.collectFirst { case f: Mod.Final =>
+          val finalToken = f.tokens.head
+          val tokensToDelete = // we want to delete trailing whitespace after `final`
+            finalToken :: o.tokens.dropWhile(_ != finalToken).tail.takeWhile(_.text.isBlank).toList
+          Patch.removeTokens(tokensToDelete)
+        }.asPatch
     }.asPatch
+
+  def noNonFinalCaseClass(implicit doc: SemanticDocument) =
+    doc.tree.collect {
+      case c @ Defn.Class(mods, _, _, _, _)
+          if mods.exists(_.is[Mod.Case]) && !mods.exists(mod =>
+            mod.is[Mod.Final] | mod.is[Mod.Abstract]) =>
+        Patch.lint(NonFinalCaseClass(c))
+    }.asPatch
+
+}
+
+final case class NonFinalCaseClass(c: Defn.Class) extends Diagnostic {
+  override def message: String = "Case classes must be final or abstract"
+
+  override def position: Position = c.pos
 }
