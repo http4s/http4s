@@ -20,7 +20,7 @@ import scalafix.v1._
 
 import scala.meta._
 
-class Simplify extends SemanticRule("Simplify") {
+class UpstreamLibs extends SemanticRule("Http4sUpstreamLibs") {
   override def fix(implicit doc: SemanticDocument): Patch =
     doc.tree.collect {
       case t @ Term.Apply(
