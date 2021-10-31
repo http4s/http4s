@@ -764,7 +764,7 @@ lazy val examplesWar = exampleProject("examples-war")
   .dependsOn(servlet)
 
 lazy val scalafixInternalRules = project
-  .in(file("./scalafix/internal/rules"))
+  .in(file("scalafix-internal/rules"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
     .disablePlugins(AutomateHeaderPlugin)
@@ -773,7 +773,7 @@ lazy val scalafixInternalRules = project
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion)
 
 lazy val scalafixInternalInput = project
-  .in(file("./scalafix/internal/input"))
+  .in(file("scalafix-internal/input"))
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(Http4sPlugin)
   .disablePlugins(AutomateHeaderPlugin)
@@ -782,7 +782,7 @@ lazy val scalafixInternalInput = project
   .dependsOn(core)
 
 lazy val scalafixInternalOutput = project
-  .in(file("./scalafix/internal/output"))
+  .in(file("scalafix-internal/output"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(AutomateHeaderPlugin)
   .disablePlugins(ScalafixPlugin)
@@ -790,7 +790,7 @@ lazy val scalafixInternalOutput = project
   .dependsOn(core)
 
 lazy val scalafixInternalTests = project
-  .in(file("./scalafix/internal/tests"))
+  .in(file("scalafix-internal/tests"))
   .enablePlugins(NoPublishPlugin)
     .disablePlugins(AutomateHeaderPlugin)
 
