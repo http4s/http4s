@@ -337,7 +337,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
     libraryDependencies ++= Seq(
       log4catsNoop.value,
     ),
-    Test / npmDependencies += "ws" -> "8.2.2",
+    Test / npmDevDependencies += "ws" -> "8.2.2",
     useYarn := true,
     yarnExtraArgs += "--frozen-lockfile",
   )
