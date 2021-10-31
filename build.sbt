@@ -866,9 +866,11 @@ def initCommands(additionalImports: String*) =
 addCommandAlias("ci", ";clean ;release with-defaults")
 
 // OrganizeImports needs to run separately to clean up after the other rules
-addCommandAlias("quicklint", s";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt")
+addCommandAlias(
+  "quicklint",
+  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt")
 
 addCommandAlias(
   "lint",
-  s";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues"
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues"
 )
