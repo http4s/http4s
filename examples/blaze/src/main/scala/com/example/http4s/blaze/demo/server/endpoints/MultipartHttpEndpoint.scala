@@ -37,7 +37,7 @@ class MultipartHttpEndpoint[F[_]](fileService: FileService[F])(implicit F: Sync[
 
         val stream = response.parts.filter(filterFileTypes).traverse(fileService.store)
 
-        Ok(stream.map(_ => s"Multipart file parsed successfully > ${response.parts}"))
+        Ok(stream.as(s"Multipart file parsed successfully > ${response.parts}"))
       }
   }
 }

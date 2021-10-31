@@ -22,12 +22,12 @@ import org.http4s.Http4sSuite
 import org.http4s.HttpApp
 import org.http4s.Request
 import org.http4s.Status
-import org.http4s.Uri
 import org.http4s.client.Client
 import org.http4s.client.UnexpectedStatus
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
 import org.http4s.metrics.prometheus.util._
+import org.http4s.syntax.literals._
 
 import java.io.IOException
 import java.util.concurrent.TimeoutException
@@ -93,7 +93,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a POST request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](POST, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](POST, uri"/ok")).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "post"), 1.0)
@@ -106,7 +106,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a PUT request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](PUT, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](PUT, uri"/ok")).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "put"), 1.0)
@@ -119,7 +119,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a DELETE request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](DELETE, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](DELETE, uri"/ok")).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "delete"), 1.0)
