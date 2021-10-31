@@ -849,8 +849,9 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
-addCommandAlias("quicklint", s";scalafixAll ;scalafmtAll ;scalafmtSbt")
+// scalafix needs to run twice to clean up after itself
+addCommandAlias("quicklint", s";scalafixAll ;scalafixAll ;scalafmtAll ;scalafmtSbt")
 
 addCommandAlias(
   "lint",
-  s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues")
+  s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafixAll ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues")
