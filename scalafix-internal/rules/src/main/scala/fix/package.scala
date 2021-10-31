@@ -84,6 +84,7 @@ package object fix {
     println("Tree.structure: " + tree.structure)
     println("Tree.structureLabeled: " + tree.structureLabeled)
     println("Tree.symbol: " + tree.symbol)
+    println()
     Patch.empty
   }
 }
