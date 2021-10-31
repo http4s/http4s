@@ -17,6 +17,8 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
+ThisBuild / ScalafixConfig / skip := scalaVersion.value.startsWith("3")
+
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
@@ -773,7 +775,10 @@ lazy val scalafixInternalRules = project
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
   .settings(
-    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion)
+    libraryDependencies ++= Seq(
+      "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion).filter(
+      _ => !isScala3.value)
+  )
 
 lazy val scalafixInternalInput = project
   .in(file("scalafix-internal/input"))
@@ -794,8 +799,9 @@ lazy val scalafixInternalTests = project
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(ScalafixTestkitPlugin)
   .settings(
-    libraryDependencies += ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
-      .cross(CrossVersion.full),
+    libraryDependencies ++= Seq(
+      ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
+        .cross(CrossVersion.full)).filter(_ => !isScala3.value),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -840,6 +846,8 @@ lazy val commonSettings = Seq(
   ).map(_ % Test),
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api"))
 )
+
+val isScala3 = Def.setting(scalaVersion.value.startsWith("3"))
 
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
