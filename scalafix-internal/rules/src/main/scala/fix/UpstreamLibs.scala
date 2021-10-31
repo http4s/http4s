@@ -23,7 +23,7 @@ import scala.meta._
 class UpstreamLibs extends SemanticRule("Http4sUpstreamLibs") {
   override def fix(implicit doc: SemanticDocument): Patch =
     doc.tree.collect {
-      case t @ Term.Apply(
+      case Term.Apply(
             Stream_map_M(Term.Select(_, map)),
             List(
               f @ Term.Function(List(Term.Param(List(), Name.Anonymous(), None, None)), result))) =>
