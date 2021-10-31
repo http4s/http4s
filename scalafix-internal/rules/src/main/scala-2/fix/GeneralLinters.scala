@@ -19,6 +19,7 @@ package fix
 import scalafix.v1._
 
 import scala.meta._
+import scalafix.lint.LintSeverity
 
 class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
   override def fix(implicit doc: SemanticDocument): Patch = noFinalCaseObject + noNonFinalCaseClass
@@ -38,14 +39,19 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
     doc.tree.collect {
       case c @ Defn.Class(mods, _, _, _, _)
           if mods.exists(_.is[Mod.Case]) && !mods.exists(mod =>
-            mod.is[Mod.Final] | mod.is[Mod.Abstract]) =>
-        Patch.lint(NonFinalCaseClass(c))
+            mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private]) =>
+        Patch.lint(CaseClassWithoutAccessModifier(c))
     }.asPatch
 
 }
 
-final case class NonFinalCaseClass(c: Defn.Class) extends Diagnostic {
-  override def message: String = "Case classes must be final or abstract"
+final case class CaseClassWithoutAccessModifier(c: Defn.Class) extends Diagnostic {
+  override def message: String = "Case classes should be final, sealed, or private"
 
   override def position: Position = c.pos
+
+  // TODO: fix or exculde existing cases and change this to Error
+  override def severity: LintSeverity = LintSeverity.Warning
+
+  override def categoryID: String = "noCaseClassWithoutAccessModifier"
 }
