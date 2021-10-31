@@ -767,33 +767,26 @@ lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-    .disablePlugins(AutomateHeaderPlugin)
   .settings(
-    scalafix / skip := true,
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion)
 
 lazy val scalafixInternalInput = project
   .in(file("scalafix-internal/input"))
   .enablePlugins(NoPublishPlugin)
-  .enablePlugins(Http4sPlugin)
-  .disablePlugins(AutomateHeaderPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(scalafix / skip := true)
+  .settings(headerSources / excludeFilter := AllPassFilter)
   .dependsOn(core)
 
 lazy val scalafixInternalOutput = project
   .in(file("scalafix-internal/output"))
   .enablePlugins(NoPublishPlugin)
-  .disablePlugins(AutomateHeaderPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(scalafix / skip := true)
+  .settings(headerSources / excludeFilter := AllPassFilter)
   .dependsOn(core)
 
 lazy val scalafixInternalTests = project
   .in(file("scalafix-internal/tests"))
   .enablePlugins(NoPublishPlugin)
-    .disablePlugins(AutomateHeaderPlugin)
-
   .enablePlugins(ScalafixTestkitPlugin)
   .settings(
     libraryDependencies += ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
@@ -809,9 +802,9 @@ lazy val scalafixInternalTests = project
     scalafixTestkitInputScalacOptions := (scalafixInternalInput / Compile / scalacOptions).value,
     scalacOptions += "-Yrangepos"
   )
+  .settings(headerSources / excludeFilter := AllPassFilter)
   .disablePlugins(ScalafixPlugin)
   .dependsOn(scalafixInternalRules)
-  .enablePlugins(Http4sPlugin)
 
 def http4sProject(name: String) =
   Project(name, file(name))
