@@ -101,7 +101,8 @@ lazy val modules: List[ProjectReference] = List(
   examplesEmber,
   examplesJetty,
   examplesTomcat,
-  examplesWar
+  examplesWar,
+  scalafixInternalTests
 )
 
 lazy val root = project
@@ -114,6 +115,7 @@ lazy val root = project
     startYear := Some(2013)
   )
   .aggregate(modules: _*)
+  .dependsOn(scalafixInternalRules % ScalafixConfig)
 
 lazy val core = libraryProject("core")
   .enablePlugins(
@@ -761,6 +763,56 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
+lazy val scalafixInternalRules = project
+  .in(file("./scalafix/internal/rules"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
+    .disablePlugins(AutomateHeaderPlugin)
+  .settings(
+    scalafix / skip := true,
+    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion)
+
+lazy val scalafixInternalInput = project
+  .in(file("./scalafix/internal/input"))
+  .enablePlugins(NoPublishPlugin)
+  .enablePlugins(Http4sPlugin)
+  .disablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(scalafix / skip := true)
+  .dependsOn(core)
+
+lazy val scalafixInternalOutput = project
+  .in(file("./scalafix/internal/output"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(scalafix / skip := true)
+  .dependsOn(core)
+
+lazy val scalafixInternalTests = project
+  .in(file("./scalafix/internal/tests"))
+  .enablePlugins(NoPublishPlugin)
+    .disablePlugins(AutomateHeaderPlugin)
+
+  .enablePlugins(ScalafixTestkitPlugin)
+  .settings(
+    libraryDependencies += ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
+      .cross(CrossVersion.full),
+    Compile / compile :=
+      (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
+    scalafixTestkitOutputSourceDirectories :=
+      (scalafixInternalOutput / Compile / sourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (scalafixInternalInput / Compile / sourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (scalafixInternalInput / Compile / fullClasspath).value,
+    scalafixTestkitInputScalacOptions := (scalafixInternalInput / Compile / scalacOptions).value,
+    scalacOptions += "-Yrangepos"
+  )
+  .disablePlugins(ScalafixPlugin)
+  .dependsOn(scalafixInternalRules)
+  .enablePlugins(Http4sPlugin)
+
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
@@ -770,6 +822,7 @@ def http4sProject(name: String) =
       initCommands()
     )
     .enablePlugins(Http4sPlugin)
+    .dependsOn(scalafixInternalRules % ScalafixConfig)
 
 def libraryProject(name: String) = http4sProject(name)
 
