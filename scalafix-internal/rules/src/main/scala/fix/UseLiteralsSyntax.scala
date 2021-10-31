@@ -28,9 +28,16 @@ class UseLiteralsSyntax extends SemanticRule("Http4sUseLiteralsSyntax") {
             List(lit @ Lit.String(_))
           ) =>
         Patch.replaceTree(t, s"uri$lit") + importLiteralsIfNeeded
+      case t @ Term.Apply(
+            Path_unsafeFromString_M(_),
+            List(lit @ Lit.String(_))
+          ) =>
+        Patch.replaceTree(t, s"path$lit") + importLiteralsIfNeeded
+      case t if t.syntax == """Uri.Path.unsafeFromString("foo/bar")""" => show(t)
     }.asPatch
 
   val Uri_unsafeFromString_M = SymbolMatcher.exact("org/http4s/Uri.unsafeFromString().")
+  val Path_unsafeFromString_M = SymbolMatcher.exact("org/http4s/Uri.Path.unsafeFromString().")
 
   def importLiteralsIfNeeded(implicit doc: SemanticDocument) =
     if (!hasLiteralsImport) Patch.addGlobalImport(importer"org.http4s.syntax.literals._")

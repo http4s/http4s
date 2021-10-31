@@ -11,4 +11,6 @@ object LiteralsSyntaxTests {
   Uri.unsafeFromString("foo" + ".com")
   Uri.unsafeFromString(s)
   Uri.unsafeFromString(s"http://$s")
+
+  path"foo/bar"
 }
