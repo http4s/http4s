@@ -117,7 +117,8 @@ lazy val root = project
     // Root project
     name := "http4s",
     description := "A minimal, Scala-idiomatic library for HTTP",
-    startYear := Some(2013)
+    startYear := Some(2013),
+    endYear := Some(2021)
   )
   .aggregate(modules: _*)
   .dependsOn(scalafixInternalRules % ScalafixConfig)
@@ -130,6 +131,7 @@ lazy val core = libraryProject("core")
   .settings(
     description := "Core http4s library for servers and clients",
     startYear := Some(2013),
+    endYear := Some(2021),
     buildInfoKeys := Seq[BuildInfoKey](
       version,
       scalaVersion,
@@ -173,6 +175,7 @@ lazy val laws = libraryProject("laws")
   .settings(
     description := "Instances and laws for testing http4s code",
     startYear := Some(2019),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
       catsEffectLaws,
@@ -199,6 +202,7 @@ lazy val testing = libraryProject("testing")
   .settings(
     description := "Internal utilities for http4s tests",
     startYear := Some(2016),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       catsEffectLaws,
       scalacheck,
@@ -215,7 +219,8 @@ lazy val tests = libraryProject("tests")
   .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Tests for core project",
-    startYear := Some(2013)
+    startYear := Some(2013),
+    endYear := Some(2021)
   )
   .dependsOn(core, testing % "test->test")
 
@@ -223,6 +228,7 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    endYear := Some(2021),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.server.middleware.CSRF.this"
@@ -253,6 +259,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
     description := "Support for Prometheus Metrics",
     startYear := Some(2018),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusCommon,
@@ -271,6 +278,7 @@ lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       jettyServlet % Test
     ),
@@ -291,6 +299,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
     description := "Support for Dropwizard Metrics",
     startYear := Some(2018),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
       dropwizardMetricsJson
@@ -307,6 +316,7 @@ lazy val emberCore = libraryProject("ember-core")
   .settings(
     description := "Base library for ember http4s clients and servers",
     startYear := Some(2019),
+    endYear := Some(2021),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
       log4catsTesting % Test
@@ -352,6 +362,7 @@ lazy val emberServer = libraryProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       log4catsSlf4j,
       javaWebSocket % Test
@@ -375,6 +386,7 @@ lazy val emberClient = libraryProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       keypool,
       log4catsSlf4j
@@ -390,6 +402,7 @@ lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
     startYear := Some(2014),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       blazeHttp
     )
@@ -400,6 +413,7 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
+    endYear := Some(2021),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.blaze.server.BlazeServerBuilder.this"),
@@ -413,6 +427,7 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
+    endYear := Some(2021),
     mimaBinaryIssueFilters ++= Seq()
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
@@ -421,6 +436,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
     startYear := Some(2016),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
       fs2ReactiveStreams,
@@ -436,6 +452,7 @@ lazy val jettyClient = libraryProject("jetty-client")
   .settings(
     description := "jetty implementation for http4s clients",
     startYear := Some(2018),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
@@ -448,6 +465,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
     description := "okhttp implementation for http4s clients",
     startYear := Some(2018),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp,
       okio
@@ -459,6 +477,7 @@ lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
     startYear := Some(2013),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       javaxServletApi % Provided,
       Http4sPlugin.jettyServer % Test,
@@ -472,6 +491,7 @@ lazy val jettyServer = libraryProject("jetty-server")
   .settings(
     description := "Jetty implementation for http4s servers",
     startYear := Some(2014),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       jettyHttp2Server,
       Http4sPlugin.jettyServer,
@@ -485,6 +505,7 @@ lazy val tomcatServer = libraryProject("tomcat-server")
   .settings(
     description := "Tomcat implementation for http4s servers",
     startYear := Some(2014),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       tomcatCatalina,
       tomcatCoyote,
@@ -497,7 +518,8 @@ lazy val tomcatServer = libraryProject("tomcat-server")
 lazy val theDsl = libraryProject("dsl")
   .settings(
     description := "Simple DSL for writing http4s services",
-    startYear := Some(2013)
+    startYear := Some(2013),
+    endYear := Some(2021)
   )
   .dependsOn(core, testing % "test->test")
 
@@ -505,6 +527,7 @@ lazy val jawn = libraryProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
     startYear := Some(2014),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       jawnFs2,
       jawnParser
@@ -516,6 +539,7 @@ lazy val boopickle = libraryProject("boopickle")
   .settings(
     description := "Provides Boopickle codecs for http4s",
     startYear := Some(2018),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle
     )
@@ -526,6 +550,7 @@ lazy val circe = libraryProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
     startYear := Some(2015),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
@@ -538,6 +563,7 @@ lazy val playJson = libraryProject("play-json")
   .settings(
     description := "Provides Play json codecs for http4s",
     startYear := Some(2018),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
     ),
@@ -550,6 +576,7 @@ lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
     startYear := Some(2014),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       Http4sPlugin.scalaXml
     )
@@ -560,6 +587,7 @@ lazy val twirl = http4sProject("twirl")
   .settings(
     description := "Twirl template support for http4s",
     startYear := Some(2014),
+    endYear := Some(2021),
     TwirlKeys.templateImports := Nil,
     libraryDependencies := {
       libraryDependencies.value.map {
@@ -577,6 +605,7 @@ lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       scalatagsApi.cross(CrossVersion.for3Use2_13)
     ),
@@ -590,6 +619,7 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     startYear := Some(2015),
+    endYear := Some(2021),
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {}
@@ -613,6 +643,7 @@ lazy val docs = http4sProject("docs")
     ),
     description := "Documentation for http4s",
     startYear := Some(2013),
+    endYear := Some(2021),
     autoAPIMappings := true,
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
@@ -676,6 +707,7 @@ lazy val website = http4sProject("website")
   .settings(
     description := "Common area of http4s.org",
     startYear := Some(2013),
+    endYear := Some(2021),
     Hugo / baseURL := {
       if (isCi.value) new URI(s"https://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
@@ -697,6 +729,7 @@ lazy val examples = http4sProject("examples")
   .settings(
     description := "Common code for http4s examples",
     startYear := Some(2013),
+    endYear := Some(2021),
     libraryDependencies ++= Seq(
       circeGeneric % Runtime,
       logbackClassic % Runtime
@@ -711,6 +744,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(
     description := "Examples of http4s server and clients on blaze",
     startYear := Some(2013),
+    endYear := Some(2021),
     fork := true,
     libraryDependencies ++= Seq(
       circeGeneric
@@ -723,6 +757,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
   .settings(
     description := "Examples of http4s server and clients on blaze",
     startYear := Some(2020),
+    endYear := Some(2021),
     fork := true
   )
   .dependsOn(emberServer, emberClient)
@@ -733,6 +768,7 @@ lazy val examplesDocker = http4sProject("examples-docker")
   .settings(
     description := "Builds a docker image for a blaze-server",
     startYear := Some(2017),
+    endYear := Some(2021),
     Docker / packageName := "http4s/blaze-server",
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
@@ -745,6 +781,7 @@ lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(
     description := "Example of http4s server on Jetty",
     startYear := Some(2014),
+    endYear := Some(2021),
     fork := true,
     reStart / mainClass := Some("com.example.http4s.jetty.JettyExample")
   )
@@ -755,6 +792,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(
     description := "Example of http4s server on Tomcat",
     startYear := Some(2014),
+    endYear := Some(2021),
     fork := true,
     reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample")
   )
@@ -766,6 +804,7 @@ lazy val examplesWar = exampleProject("examples-war")
   .settings(
     description := "Example of a WAR deployment of an http4s service",
     startYear := Some(2014),
+    endYear := Some(2021),
     fork := true,
     libraryDependencies += javaxServletApi % Provided,
     Jetty / containerLibs := List(jettyRunner)
