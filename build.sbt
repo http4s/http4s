@@ -18,9 +18,13 @@ ThisBuild / githubWorkflowBuild := Seq(
     List("${{ matrix.ci }}", "scalafmtCheckAll", "scalafmtSbtCheck"),
     name = Some("Check formatting"),
     cond = Some(s"matrix.scala != '$scala_3'")),
-  WorkflowStep.Sbt(List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"), name = Some("Check headers")),
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"),
+    name = Some("Check headers")),
   WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
-  WorkflowStep.Sbt(List("${{ matrix.ci }}", "mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "mimaReportBinaryIssues"),
+    name = Some("Check binary compatibility")),
   // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
   // WorkflowStep.Sbt(
   // List("${{ matrix.ci }}", "unusedCompileDependenciesTest"),
@@ -30,7 +34,10 @@ ThisBuild / githubWorkflowBuild := Seq(
     name = Some("FastOptJS"),
     cond = Some("matrix.ci != 'ciJVM'")),
   WorkflowStep.Sbt(List("${{ matrix.ci }}", "test"), name = Some("Run tests")),
-  WorkflowStep.Sbt(List("${{ matrix.ci }}", "doc"), name = Some("Build docs"), cond = Some("matrix.ci == 'ciJVM'"))
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "doc"),
+    name = Some("Build docs"),
+    cond = Some("matrix.ci == 'ciJVM'"))
 )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
