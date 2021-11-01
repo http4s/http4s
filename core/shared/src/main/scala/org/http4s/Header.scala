@@ -48,7 +48,7 @@ trait Header[A, T <: Header.Type] {
 }
 
 object Header {
-  final case class Raw(val name: CIString, val value: String) {
+  final case class Raw(name: CIString, value: String) {
     override def toString: String = s"${name}: ${value}"
 
     /** True if [[name]] is a valid field-name per RFC7230.  Where it

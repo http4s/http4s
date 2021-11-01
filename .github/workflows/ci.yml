@@ -36,6 +36,18 @@ jobs:
             java: adoptium@11
           - ci: ciNodeJS
             java: adoptium@17
+          - ci: ciJVM
+            scala: 2.12.15
+            java: adoptium@11
+          - ci: ciJVM
+            scala: 2.12.15
+            java: adoptium@17
+          - ci: ciJVM
+            scala: 3.1.0
+            java: adoptium@11
+          - ci: ciJVM
+            scala: 3.1.0
+            java: adoptium@17
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -65,7 +77,7 @@ jobs:
 
       - name: Check formatting
         if: matrix.scala != '3.1.0'
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' headerCheck test:headerCheck'
