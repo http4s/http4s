@@ -14,7 +14,12 @@ ThisBuild / publishFullName := "Ross A. Baker"
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
+ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
+
+ThisBuild / scalafixAll / skip := isScala3.value
+ThisBuild / scalafmtAll / skip := isScala3.value
+ThisBuild / ScalafixConfig / skip := isScala3.value
 
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
@@ -101,7 +106,8 @@ lazy val modules: List[ProjectReference] = List(
   examplesEmber,
   examplesJetty,
   examplesTomcat,
-  examplesWar
+  examplesWar,
+  scalafixInternalTests
 )
 
 lazy val root = project
@@ -114,6 +120,7 @@ lazy val root = project
     startYear := Some(2013)
   )
   .aggregate(modules: _*)
+  .dependsOn(scalafixInternalRules % ScalafixConfig)
 
 lazy val core = libraryProject("core")
   .enablePlugins(
@@ -615,7 +622,11 @@ lazy val docs = http4sProject("docs")
         examplesDocker,
         examplesJetty,
         examplesTomcat,
-        examplesWar
+        examplesWar,
+        scalafixInternalInput,
+        scalafixInternalOutput,
+        scalafixInternalRules,
+        scalafixInternalTests
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
@@ -761,6 +772,53 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
+lazy val scalafixInternalRules = project
+  .in(file("scalafix-internal/rules"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(
+    libraryDependencies ++= Seq(
+      "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion).filter(
+      _ => !isScala3.value)
+  )
+
+lazy val scalafixInternalInput = project
+  .in(file("scalafix-internal/input"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .dependsOn(core)
+
+lazy val scalafixInternalOutput = project
+  .in(file("scalafix-internal/output"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .dependsOn(core)
+
+lazy val scalafixInternalTests = project
+  .in(file("scalafix-internal/tests"))
+  .enablePlugins(NoPublishPlugin)
+  .enablePlugins(ScalafixTestkitPlugin)
+  .settings(
+    libraryDependencies ++= Seq(
+      ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
+        .cross(CrossVersion.full)).filter(_ => !isScala3.value),
+    Compile / compile :=
+      (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
+    scalafixTestkitOutputSourceDirectories :=
+      (scalafixInternalOutput / Compile / sourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (scalafixInternalInput / Compile / sourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (scalafixInternalInput / Compile / fullClasspath).value,
+    scalafixTestkitInputScalacOptions := (scalafixInternalInput / Compile / scalacOptions).value,
+    scalacOptions += "-Yrangepos"
+  )
+  .settings(headerSources / excludeFilter := AllPassFilter)
+  .disablePlugins(ScalafixPlugin)
+  .dependsOn(scalafixInternalRules)
+
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
@@ -770,6 +828,7 @@ def http4sProject(name: String) =
       initCommands()
     )
     .enablePlugins(Http4sPlugin)
+    .dependsOn(scalafixInternalRules % ScalafixConfig)
 
 def libraryProject(name: String) = http4sProject(name)
 
@@ -790,6 +849,8 @@ lazy val commonSettings = Seq(
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api"))
 )
 
+val isScala3 = Def.setting(scalaVersion.value.startsWith("3"))
+
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
     "fs2._",
@@ -803,8 +864,12 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
-addCommandAlias("quicklint", s";scalafixAll ;scalafmtAll ;scalafmtSbt")
+// OrganizeImports needs to run separately to clean up after the other rules
+addCommandAlias(
+  "quicklint",
+  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt")
 
 addCommandAlias(
   "lint",
-  s";clean ;+test:compile ;++$scala_213 ;scalafixAll ;scalafmtAll ;++$scala_212 ;scalafixAll ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues")
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues"
+)
