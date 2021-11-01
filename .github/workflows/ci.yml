@@ -77,27 +77,27 @@ jobs:
 
       - name: Check formatting
         if: matrix.scala != '3.1.0'
-        run: sbt ++${{ matrix.scala }} scalafmtCheckAll scalafmtSbtCheck
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
-        run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' headerCheck test:headerCheck'
 
       - name: Compile
-        run: 'sbt ++${{ matrix.scala }} test:compile'
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
 
       - name: Check binary compatibility
-        run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci ]}' mimaReportBinaryIssues
 
       - name: FastOptJS
         if: matrix.ci != 'ciJVM'
-        run: 'sbt ++${{ matrix.scala }} fastOptJS test:fastOptJS'
+        run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' fastOptJS test:fastOptJS'
 
       - name: Run tests
-        run: sbt ++${{ matrix.scala }} test
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' test
 
       - name: Build docs
         if: matrix.ci == 'ciJVM'
-        run: sbt ++${{ matrix.scala }} doc
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' doc
 
   publish:
     name: Publish Artifacts
