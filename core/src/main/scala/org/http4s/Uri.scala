@@ -440,25 +440,29 @@ object Uri extends UriPlatform {
 
     trait SegmentEncoder[A] extends Serializable {
       def toSegment(a: A): Segment
+
+      final def contramap[B](f: B => A): SegmentEncoder[B] =
+        b => this.toSegment(f(b))
     }
     object SegmentEncoder {
       implicit def apply[A](implicit segmentEncoder: SegmentEncoder[A]): SegmentEncoder[A] =
         segmentEncoder
 
-      def instance[A](f: A => Segment): SegmentEncoder[A] = new SegmentEncoder[A] {
-        override def toSegment(a: A): Segment = f(a)
-      }
+      def instance[A](f: A => Segment): SegmentEncoder[A] = f.apply
 
-      def fromToString[A]: SegmentEncoder[A] = instance(a => Segment(a.toString))
+      def fromToString[A]: SegmentEncoder[A] = v => Segment(v.toString())
       def fromShow[A](implicit show: Show[A]): SegmentEncoder[A] =
-        instance(a => Segment(show.show(a)))
+        v => Segment(show.show(v))
 
       implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity
+
+      implicit val charSegmentEncoder: SegmentEncoder[Char] = v => Segment(v.toString())
       implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply
 
       implicit val booleanSegmentEncoder: SegmentEncoder[Boolean] = v => Segment(v.toString())
 
       implicit val byteSegmentEncoder: SegmentEncoder[Byte] = v => Segment(v.toString())
+      implicit val shortSegmentEncoder: SegmentEncoder[Short] = v => Segment(v.toString())
       implicit val intSegmentEncoder: SegmentEncoder[Int] = v => Segment(v.toString())
       implicit val longSegmentEncoder: SegmentEncoder[Long] = v => Segment(v.toString())
       implicit val bigIntSegmentEncoder: SegmentEncoder[BigInt] = v => Segment(v.toString())
@@ -469,10 +473,13 @@ object Uri extends UriPlatform {
 
       implicit val uuidSegmentEncoder: SegmentEncoder[java.util.UUID] = v => Segment(v.toString())
 
+      implicit val durationSegmentEncoder: SegmentEncoder[scala.concurrent.duration.Duration] =
+        v => Segment(v.toString())
+
       implicit val contravariantInstance: Contravariant[SegmentEncoder] =
         new Contravariant[SegmentEncoder] {
           override def contramap[A, B](fa: SegmentEncoder[A])(f: B => A): SegmentEncoder[B] =
-            instance(b => fa.toSegment(f(b)))
+            fa.contramap(f)
         }
     }
 
