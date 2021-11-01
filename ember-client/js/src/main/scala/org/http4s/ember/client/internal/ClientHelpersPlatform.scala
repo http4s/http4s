@@ -28,7 +28,7 @@ import scala.annotation.nowarn
 
 private[internal] trait ClientHelpersPlatform {
 
-  @nowarn("cat=unused")
+  @nowarn("msg=never used")
   private[internal] def mkTLSParameters(
       address: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean): TLSParameters =
