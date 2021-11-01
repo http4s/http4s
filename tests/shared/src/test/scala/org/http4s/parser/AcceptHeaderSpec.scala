@@ -22,13 +22,14 @@ import org.http4s.MediaRange._
 import org.http4s.MediaType._
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.syntax.all._
+import org.typelevel.ci._
 
 class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
 
   val `audio/mod`: MediaType =
-    new MediaType("audio", "mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))
+    new MediaType(ci"audio", ci"mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))
 
-  def ext = Map("foo" -> "bar", "baz" -> "whatever")
+  def ext = List(ci"foo" -> "bar", ci"baz" -> "whatever")
 
   test("Accept-Header parser should Parse all registered MediaRanges") {
     // Parse a single one
@@ -107,7 +108,7 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
       Accept(
         `text/*`.withQValue(qValue"0.3"),
         MediaType.text.html.withQValue(qValue"0.7"),
-        MediaType.text.html.withExtensions(Map("level" -> "1"))
+        MediaType.text.html.withExtensions(List(ci"level" -> "1"))
       )
     )
 

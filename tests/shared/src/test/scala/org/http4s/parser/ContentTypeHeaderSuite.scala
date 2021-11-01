@@ -19,6 +19,7 @@ package parser
 
 import org.http4s.headers.`Content-Type`
 import org.http4s.syntax.header._
+import org.typelevel.ci._
 
 class ContentTypeHeaderSuite extends Http4sSuite {
   def parse(value: String): ParseResult[`Content-Type`] =
@@ -26,12 +27,12 @@ class ContentTypeHeaderSuite extends Http4sSuite {
 
   def simple = `Content-Type`(MediaType.text.html)
   def charset = `Content-Type`(MediaType.text.html, Charset.`UTF-8`)
-  def extensions = `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")))
+  def extensions = `Content-Type`(MediaType.text.html.withExtensions(List(ci"foo" -> "bar")))
   def extensionsandset =
-    `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")), Charset.`UTF-8`)
+    `Content-Type`(MediaType.text.html.withExtensions(List(ci"foo" -> "bar")), Charset.`UTF-8`)
   def multipart =
     `Content-Type`(
-      MediaType.multipart.`form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
+      MediaType.multipart.`form-data`.withExtensions(List(ci"boundary" -> "aLotOfMoose")),
       Charset.`UTF-8`)
 
   {

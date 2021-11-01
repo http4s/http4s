@@ -18,11 +18,12 @@ package org.http4s
 package multipart
 
 import org.http4s.headers._
+import org.typelevel.ci._
 
 final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Boundary.create) {
   def headers: Headers =
     Headers(
       `Transfer-Encoding`(TransferCoding.chunked),
-      `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value)))
+      `Content-Type`(MediaType.multipartType(ci"form-data", Some(boundary.value)))
     )
 }

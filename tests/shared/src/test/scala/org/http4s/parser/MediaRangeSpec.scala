@@ -19,19 +19,20 @@ package parser
 
 import org.http4s.MediaRange._
 import org.http4s.MediaType
+import org.typelevel.ci._
 
 class MediaRangeSpec extends Http4sSuite {
   val `text/asp`: MediaType =
-    new MediaType("text", "asp", MediaType.Compressible, MediaType.NotBinary, List("asp"))
+    new MediaType(ci"text", ci"asp", MediaType.Compressible, MediaType.NotBinary, List("asp"))
   val `audio/aiff`: MediaType =
     new MediaType(
-      "audio",
-      "aiff",
+      ci"audio",
+      ci"aiff",
       MediaType.Compressible,
       MediaType.Binary,
       List("aif", "aiff", "aifc"))
 
-  def ext = Map("foo" -> "bar")
+  def ext = List(ci"foo" -> "bar")
 
   test("MediaRanges should Perform equality correctly") {
     assertEquals(`text/*`, `text/*`)
