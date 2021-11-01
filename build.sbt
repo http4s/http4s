@@ -303,7 +303,8 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
       dropwizardMetricsJson
-    ))
+    )
+  )
   .dependsOn(
     core % "compile->compile",
     testing % "test->test",
