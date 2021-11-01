@@ -86,7 +86,7 @@ jobs:
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
 
       - name: Check binary compatibility
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci ]}' mimaReportBinaryIssues
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
 
       - name: FastOptJS
         if: matrix.ci != 'ciJVM'
