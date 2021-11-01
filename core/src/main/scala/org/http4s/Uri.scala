@@ -453,8 +453,21 @@ object Uri extends UriPlatform {
       def fromShow[A](implicit show: Show[A]): SegmentEncoder[A] =
         instance(a => Segment(show.show(a)))
 
-      implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply
       implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity
+      implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply
+
+      implicit val booleanSegmentEncoder: SegmentEncoder[Boolean] = v => Segment(v.toString())
+
+      implicit val byteSegmentEncoder: SegmentEncoder[Byte] = v => Segment(v.toString())
+      implicit val intSegmentEncoder: SegmentEncoder[Int] = v => Segment(v.toString())
+      implicit val longSegmentEncoder: SegmentEncoder[Long] = v => Segment(v.toString())
+      implicit val bigIntSegmentEncoder: SegmentEncoder[BigInt] = v => Segment(v.toString())
+
+      implicit val floatSegmentEncoder: SegmentEncoder[Float] = v => Segment(v.toString())
+      implicit val doubleSegmentEncoder: SegmentEncoder[Double] = v => Segment(v.toString())
+      implicit val bigDecimalSegmentEncoder: SegmentEncoder[BigDecimal] = v => Segment(v.toString())
+
+      implicit val uuidSegmentEncoder: SegmentEncoder[java.util.UUID] = v => Segment(v.toString())
 
       implicit val contravariantInstance: Contravariant[SegmentEncoder] =
         new Contravariant[SegmentEncoder] {
