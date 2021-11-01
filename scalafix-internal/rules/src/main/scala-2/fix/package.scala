@@ -17,6 +17,8 @@
 import scalafix.v1._
 
 import scala.meta._
+import scala.meta.classifiers._
+import scala.annotation.tailrec
 
 package object fix {
 
@@ -27,5 +29,16 @@ package object fix {
     println("Tree.symbol: " + tree.symbol)
     println()
     Patch.empty
+  }
+
+  implicit class TreeOps(private val self: Tree) extends AnyVal {
+    @tailrec
+    final def isDescendentOf[U](implicit classifier: Classifier[Tree, U]): Boolean =
+      self.is[U] || {
+        self.parent match {
+          case None => false
+          case Some(parent) => parent.isDescendentOf[U]
+        }
+      }
   }
 }
