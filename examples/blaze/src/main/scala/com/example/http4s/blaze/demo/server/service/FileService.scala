@@ -18,7 +18,7 @@ package com.example.http4s.blaze.demo.server.service
 
 import cats.effect.Blocker
 import cats.effect.ContextShift
-import cats.effect.Effect
+import cats.effect.Sync
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import org.http4s.multipart.Part
@@ -26,7 +26,7 @@ import org.http4s.multipart.Part
 import java.io.File
 import java.nio.file.Paths
 
-class FileService[F[_]: ContextShift](blocker: Blocker)(implicit F: Effect[F], S: StreamUtils[F]) {
+class FileService[F[_]: ContextShift](blocker: Blocker)(implicit F: Sync[F], S: StreamUtils[F]) {
   def homeDirectories(depth: Option[Int]): Stream[F, String] =
     S.env("HOME").flatMap { maybePath =>
       val ifEmpty = S.error("HOME environment variable not found!")
