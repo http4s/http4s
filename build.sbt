@@ -155,6 +155,7 @@ lazy val jsModules: List[ProjectReference] = List(
 lazy val root = project
   .in(file("."))
   .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
   .settings(
     // Root project
     name := "http4s",
@@ -162,14 +163,15 @@ lazy val root = project
     startYear := Some(2013)
   )
   .aggregate(modules: _*)
-  .dependsOn(scalafixInternalRules % ScalafixConfig)
 
 lazy val rootJVM = project
   .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
   .aggregate(jvmModules: _*)
 
 lazy val rootJS = project
   .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
   .aggregate(jsModules: _*)
 
 lazy val core = libraryCrossProject("core")
