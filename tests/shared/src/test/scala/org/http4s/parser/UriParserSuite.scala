@@ -17,9 +17,9 @@
 package org.http4s.parser
 
 import com.comcast.ip4s._
-import org.http4s._
-import org.http4s.Uri._
 import org.http4s.Uri.Scheme.https
+import org.http4s.Uri._
+import org.http4s._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 
@@ -110,7 +110,7 @@ class UriParserSuite extends Http4sSuite {
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "mailto:John.Doe@example.com",
-          Uri(Some(scheme"mailto"), path = Uri.Path.unsafeFromString("John.Doe@example.com")))
+          Uri(Some(scheme"mailto"), path = path"John.Doe@example.com"))
       )
 
       check(absoluteUris)
@@ -191,7 +191,7 @@ class UriParserSuite extends Http4sSuite {
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "mailto:John.Doe@example.com",
-          Uri(Some(scheme"mailto"), path = Uri.Path.unsafeFromString("John.Doe@example.com")))
+          Uri(Some(scheme"mailto"), path = path"John.Doe@example.com"))
       )
 
       check(absoluteUris)

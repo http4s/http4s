@@ -17,9 +17,9 @@
 package org.http4s
 package websocket
 
-import cats.{~>}
 import cats.Functor
 import cats.syntax.all._
+import cats.~>
 
 final case class WebSocketContext[F[_]](
     webSocket: WebSocket[F],

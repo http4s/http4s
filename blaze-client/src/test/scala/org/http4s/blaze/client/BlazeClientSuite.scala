@@ -22,10 +22,12 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.net.Network
+import org.http4s.client.ConnectionFailure
+import org.http4s.client.RequestKey
+import org.http4s.syntax.all._
+
 import java.net.SocketException
 import java.util.concurrent.TimeoutException
-import org.http4s.client.{ConnectionFailure, RequestKey}
-import org.http4s.syntax.all._
 import scala.concurrent.duration._
 
 class BlazeClientSuite extends BlazeClientBase {

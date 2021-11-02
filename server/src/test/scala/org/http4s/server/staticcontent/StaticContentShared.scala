@@ -20,9 +20,11 @@ package staticcontent
 
 import cats.effect.IO
 import fs2._
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
 import org.http4s.syntax.all._
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
 
 private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   def routes: HttpRoutes[IO]

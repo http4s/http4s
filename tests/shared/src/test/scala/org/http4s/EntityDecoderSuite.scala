@@ -16,17 +16,18 @@
 
 package org.http4s
 
+import cats.data.Chain
 import cats.effect._
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.io.file.Files
-import java.nio.charset.StandardCharsets
-import cats.data.Chain
+import fs2.io.file.Path
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+
+import java.nio.charset.StandardCharsets
 import java.util.Arrays
-import fs2.io.file.Path
 
 class EntityDecoderSuite extends Http4sSuite {
   val `application/excel`: MediaType =

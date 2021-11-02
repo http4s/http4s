@@ -17,7 +17,9 @@
 package org.http4s.metrics
 
 import cats.Foldable
-import org.http4s.{Method, Request, Status}
+import org.http4s.Method
+import org.http4s.Request
+import org.http4s.Status
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */

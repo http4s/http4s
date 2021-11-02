@@ -16,17 +16,17 @@
 
 package org.http4s
 
+import cats.data.Nested
 import cats.effect.IO
 import cats.syntax.all._
-import java.net.URL
-
+import fs2.Chunk
+import fs2.io.file.Files
+import fs2.io.file.Path
 import org.http4s.Status._
 import org.http4s.headers._
-import cats.data.Nested
+
+import java.net.URL
 import java.net.UnknownHostException
-import fs2.io.file.Path
-import fs2.io.file.Files
-import fs2.Chunk
 
 class StaticFileSuite extends Http4sSuite {
   test("Determine the media-type based on the files extension") {

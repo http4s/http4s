@@ -19,7 +19,8 @@ package server.websocket
 
 import cats.Applicative
 import cats.syntax.all._
-import fs2.{Pipe, Stream}
+import fs2.Pipe
+import fs2.Stream
 import org.http4s.websocket.WebSocketFrame
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the

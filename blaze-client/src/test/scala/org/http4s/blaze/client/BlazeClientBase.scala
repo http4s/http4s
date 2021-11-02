@@ -21,11 +21,12 @@ import cats.effect._
 import cats.syntax.all._
 import com.sun.net.httpserver.HttpHandler
 import fs2.Stream
-import javax.net.ssl.SSLContext
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.client.ServerScaffold
 import org.http4s.client.testroutes.GetRoutes
+
+import javax.net.ssl.SSLContext
 import scala.concurrent.duration._
 
 trait BlazeClientBase extends Http4sSuite {

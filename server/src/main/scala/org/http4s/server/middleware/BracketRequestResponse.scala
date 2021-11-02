@@ -16,14 +16,14 @@
 
 package org.http4s.server.middleware
 
+import cats.Applicative
 import cats.data._
 import cats.effect._
+import cats.effect.kernel.Resource.ExitCase
 import cats.effect.syntax.all._
 import cats.implicits._
 import org.http4s._
 import org.http4s.server._
-import cats.effect.kernel.Resource.ExitCase
-import cats.Applicative
 
 /** Middelwares which allow for bracketing on a Request/Response, including
   * the completion of the Response body stream.

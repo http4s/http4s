@@ -18,19 +18,17 @@ package org.http4s
 package blaze
 package server
 
-import cats.{Alternative, Applicative}
+import cats.Alternative
+import cats.Applicative
 import cats.data.Kleisli
-import cats.effect.{Async, Resource, Sync}
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
-import java.io.FileInputStream
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import java.security.{KeyStore, Security}
-import java.util.concurrent.ThreadFactory
-import javax.net.ssl._
-import org.http4s.{BuildInfo => Http4sBuildInfo}
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
 import org.http4s.blaze.channel._
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
@@ -39,19 +37,32 @@ import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.server.BlazeServerBuilder._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
-import org.http4s.blazecore.{BlazeBackendBuilder, ExecutionContextConfig, tickWheelResource}
+import org.http4s.blazecore.BlazeBackendBuilder
+import org.http4s.blazecore.ExecutionContextConfig
+import org.http4s.blazecore.tickWheelResource
 import org.http4s.internal.threads.threadFactory
-import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
+import org.http4s.internal.tls.deduceKeyLength
+import org.http4s.internal.tls.getCertChain
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server._
+import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.websocket.WebSocketContext
+import org.http4s.{BuildInfo => Http4sBuildInfo}
 import org.log4s.getLogger
 import org.typelevel.vault._
-import scala.collection.immutable
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
-import org.http4s.websocket.WebSocketContext
-import org.http4s.server.websocket.WebSocketBuilder2
+
+import java.io.FileInputStream
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.security.KeyStore
+import java.security.Security
+import java.util.concurrent.ThreadFactory
+import javax.net.ssl._
+import scala.collection.immutable
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /** BlazeServerBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.

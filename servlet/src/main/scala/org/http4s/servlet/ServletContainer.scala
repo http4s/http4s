@@ -18,10 +18,12 @@ package org.http4s
 package servlet
 
 import cats.effect._
-import java.util
-import javax.servlet.{DispatcherType, Filter}
-import javax.servlet.http.HttpServlet
 import org.http4s.server.ServerBuilder
+
+import java.util
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.http.HttpServlet
 
 abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
   type Self <: ServletContainer[F]

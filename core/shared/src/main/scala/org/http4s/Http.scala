@@ -17,8 +17,8 @@
 package org.http4s
 
 import cats._
-import cats.syntax.all._
 import cats.data.Kleisli
+import cats.syntax.all._
 
 /** Functions for creating [[Http]] kleislis. */
 object Http {

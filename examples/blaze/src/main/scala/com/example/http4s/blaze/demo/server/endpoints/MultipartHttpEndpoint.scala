@@ -20,9 +20,9 @@ import cats.effect.Concurrent
 import cats.syntax.all._
 import com.example.http4s.blaze.demo.server.service.FileService
 import org.http4s.EntityDecoder.multipart
-import org.http4s.{ApiVersion => _, _}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.multipart.Part
+import org.http4s.{ApiVersion => _, _}
 
 class MultipartHttpEndpoint[F[_]: Concurrent](fileService: FileService[F]) extends Http4sDsl[F] {
   val service: HttpRoutes[F] = HttpRoutes.of {

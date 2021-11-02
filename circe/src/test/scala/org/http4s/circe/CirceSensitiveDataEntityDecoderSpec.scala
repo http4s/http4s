@@ -18,9 +18,15 @@ package org.http4s.circe
 
 import cats.data.EitherT
 import cats.effect.IO
-import io.circe.{Decoder, HCursor, Json}
+import io.circe.Decoder
+import io.circe.HCursor
+import io.circe.Json
 import io.circe.syntax._
-import org.http4s.{DecodeFailure, Http4sSuite, InvalidMessageBodyFailure, Response, Status}
+import org.http4s.DecodeFailure
+import org.http4s.Http4sSuite
+import org.http4s.InvalidMessageBodyFailure
+import org.http4s.Response
+import org.http4s.Status
 
 object CirceSensitiveDataEntityDecoderSpec {
 

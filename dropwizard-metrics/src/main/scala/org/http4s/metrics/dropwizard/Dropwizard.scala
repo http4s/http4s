@@ -18,12 +18,16 @@ package org.http4s.metrics.dropwizard
 
 import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
-import java.util.concurrent.TimeUnit
-
-import org.http4s.{Method, Status}
+import org.http4s.Method
+import org.http4s.Status
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
-import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
+import org.http4s.metrics.TerminationType.Abnormal
+import org.http4s.metrics.TerminationType.Canceled
+import org.http4s.metrics.TerminationType.Error
+import org.http4s.metrics.TerminationType.Timeout
+
+import java.util.concurrent.TimeUnit
 
 /** [[MetricsOps]] algebra capable of recording Dropwizard metrics
   *

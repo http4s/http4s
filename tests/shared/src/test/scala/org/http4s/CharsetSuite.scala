@@ -17,8 +17,9 @@
 package org.http4s
 
 import cats.kernel.laws.discipline._
-import org.scalacheck.Prop.forAll
 import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.Prop.forAll
+
 import java.nio.charset.{Charset => NioCharset}
 import java.util.Locale
 

@@ -18,16 +18,20 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative, Monad}
-import cats.data.NonEmptyList
+import cats.Applicative
+import cats.Monad
 import cats.data.Kleisli
+import cats.data.NonEmptyList
 import org.http4s.Status.MovedPermanently
-import org.http4s.Uri.{Authority, RegName, Scheme}
-import org.http4s.headers.{Host, Location, `Content-Type`}
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.Uri.Scheme
+import org.http4s.headers.Host
+import org.http4s.headers.Location
+import org.http4s.headers.`Content-Type`
 import org.http4s.syntax.header._
-import org.typelevel.ci._
-
 import org.log4s.getLogger
+import org.typelevel.ci._
 
 /** [[Middleware]] to redirect http traffic to https.
   * Inspects `X-Forwarded-Proto` header and if it is set to `http`,

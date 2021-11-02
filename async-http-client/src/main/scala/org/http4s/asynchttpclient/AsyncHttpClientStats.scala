@@ -19,7 +19,9 @@ package asynchttpclient
 package client
 
 import cats.effect.Sync
-import org.asynchttpclient.{ClientStats, HostStats, Response => _}
+import org.asynchttpclient.ClientStats
+import org.asynchttpclient.HostStats
+import org.asynchttpclient.{Response => _}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 
 class AsyncHttpClientStats[F[_]](private val underlying: ClientStats)(implicit F: Sync[F]) {

@@ -18,14 +18,17 @@ package org.http4s
 package blaze
 package client
 
-import cats.syntax.all._
 import cats.effect._
-import cats.effect.syntax.all._
 import cats.effect.std.Semaphore
-import java.time.Instant
-import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
+import cats.effect.syntax.all._
+import cats.syntax.all._
+import org.http4s.client.Connection
+import org.http4s.client.ConnectionBuilder
+import org.http4s.client.RequestKey
 import org.http4s.internal.CollectionCompat
 import org.log4s.getLogger
+
+import java.time.Instant
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

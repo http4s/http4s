@@ -20,10 +20,15 @@ package middleware
 
 import cats.data.NonEmptyList
 import cats.effect.Async
-import fs2.{Pipe, Pull, Stream}
-import fs2.compression.{Compression, DeflateParams}
-import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
+import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
+import fs2.compression.Compression
+import fs2.compression.DeflateParams
+import org.http4s.headers.`Accept-Encoding`
+import org.http4s.headers.`Content-Encoding`
 import org.typelevel.ci._
+
 import scala.util.control.NoStackTrace
 
 /** Client middleware for enabling gzip.

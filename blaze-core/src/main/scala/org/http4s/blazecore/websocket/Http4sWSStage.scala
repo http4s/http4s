@@ -19,27 +19,30 @@ package blazecore
 package websocket
 
 import cats.effect._
-import cats.effect.std.{Dispatcher, Semaphore}
+import cats.effect.std.Dispatcher
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import fs2._
 import fs2.concurrent.SignallingRef
-import java.util.concurrent.atomic.AtomicBoolean
-import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blaze.util.Execution.{directec, trampoline}
-import org.http4s.websocket.{
-  ReservedOpcodeException,
-  UnknownOpcodeException,
-  WebSocket,
-  WebSocketCombinedPipe,
-  WebSocketFrame,
-  WebSocketSeparatePipe
-}
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.TailStage
+import org.http4s.blaze.pipeline.TrunkBuilder
+import org.http4s.blaze.util.Execution.directec
+import org.http4s.blaze.util.Execution.trampoline
+import org.http4s.websocket.ReservedOpcodeException
+import org.http4s.websocket.UnknownOpcodeException
+import org.http4s.websocket.WebSocket
+import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
+import org.http4s.websocket.WebSocketSeparatePipe
 
-import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
 import java.net.ProtocolException
+import java.util.concurrent.atomic.AtomicBoolean
+import scala.concurrent.ExecutionContext
+import scala.util.Failure
+import scala.util.Success
 
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],

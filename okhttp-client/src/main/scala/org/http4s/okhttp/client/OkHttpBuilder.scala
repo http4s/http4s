@@ -17,29 +17,28 @@
 package org.http4s
 package okhttp.client
 
-import java.io.IOException
-
 import cats.effect._
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2.io._
-import okhttp3.{
-  Call,
-  Callback,
-  OkHttpClient,
-  Protocol,
-  RequestBody,
-  Headers => OKHeaders,
-  MediaType => OKMediaType,
-  Request => OKRequest,
-  Response => OKResponse
-}
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.RequestBody
+import okhttp3.{Headers => OKHeaders}
+import okhttp3.{MediaType => OKMediaType}
+import okhttp3.{Request => OKRequest}
+import okhttp3.{Response => OKResponse}
 import okio.BufferedSink
 import org.http4s.client.Client
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
+
+import java.io.IOException
 import scala.util.control.NonFatal
-import cats.effect.std.Dispatcher
+
 import OkHttpBuilder._
 
 /** A builder for [[org.http4s.client.Client]] with an OkHttp backend.

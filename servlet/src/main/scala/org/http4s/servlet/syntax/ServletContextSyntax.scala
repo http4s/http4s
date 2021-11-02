@@ -19,11 +19,13 @@ package servlet
 package syntax
 
 import cats.effect._
-import javax.servlet.{ServletContext, ServletRegistration}
+import cats.effect.std.Dispatcher
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.server.defaults
 import org.http4s.syntax.all._
-import cats.effect.std.Dispatcher
+
+import javax.servlet.ServletContext
+import javax.servlet.ServletRegistration
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps =

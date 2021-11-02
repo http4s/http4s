@@ -19,10 +19,14 @@ package metrics
 
 import cats.effect.IO
 import cats.syntax.all._
-import java.util.UUID
-import org.http4s.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.{Arbitrary, Gen, Prop}
+import org.http4s.syntax.all._
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
+import org.scalacheck.Prop
+
+import java.util.UUID
+
 import MetricsOps.classifierFMethodWithOptionallyExcludedPath
 
 object MetricsOpsSpec {

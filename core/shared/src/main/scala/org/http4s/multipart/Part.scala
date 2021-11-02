@@ -19,13 +19,17 @@ package multipart
 
 import cats.effect.Sync
 import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Flags
+import fs2.io.file.Path
 import fs2.io.readInputStream
-import fs2.io.file.{Files, Flags, Path}
 import fs2.text.utf8
-import java.io.{File, InputStream}
-import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
+
+import java.io.File
+import java.io.InputStream
+import java.net.URL
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))

@@ -19,10 +19,11 @@ package blazecore
 package util
 
 import cats.syntax.all._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {

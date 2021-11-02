@@ -33,9 +33,11 @@ object Authorization {
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
 
+  val name: CIString = ci"Authorization"
+
   implicit val headerInstance: Header[Authorization, Header.Single] =
     Header.createRendered(
-      ci"Authorization",
+      name,
       _.credentials,
       parse
     )

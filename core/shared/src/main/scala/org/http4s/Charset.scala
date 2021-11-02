@@ -27,10 +27,13 @@
 package org.http4s
 
 import cats._
-import java.nio.charset.{StandardCharsets, Charset => NioCharset}
-import java.util.{HashMap, Locale}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.util._
+
+import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset => NioCharset}
+import java.util.HashMap
+import java.util.Locale
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)

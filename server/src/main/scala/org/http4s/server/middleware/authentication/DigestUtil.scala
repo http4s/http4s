@@ -19,10 +19,10 @@ package server
 package middleware
 package authentication
 
-import org.http4s.crypto.Hash
-import org.http4s.crypto.HashAlgorithm
 import cats.Monad
 import cats.syntax.all._
+import org.http4s.crypto.Hash
+import org.http4s.crypto.HashAlgorithm
 import scodec.bits.ByteVector
 
 private[authentication] object DigestUtil {

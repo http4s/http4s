@@ -17,7 +17,8 @@
 package org.http4s.ember.server.internal
 
 import cats.effect.IO
-import cats.effect.kernel.{Deferred, Ref}
+import cats.effect.kernel.Deferred
+import cats.effect.kernel.Ref
 import fs2.Stream
 import munit._
 

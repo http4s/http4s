@@ -16,10 +16,18 @@
 
 package org.http4s
 
-import cats.effect.{IO, Resource}
-import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
-import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
-import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
+import cats.effect.IO
+import cats.effect.Resource
+import cats.effect.unsafe.IORuntime
+import cats.effect.unsafe.IORuntimeConfig
+import cats.effect.unsafe.Scheduler
+import org.http4s.internal.threads.newBlockingPool
+import org.http4s.internal.threads.newDaemonPool
+import org.http4s.internal.threads.threadFactory
+
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext
 
 trait Http4sSuitePlatform { this: Http4sSuite =>

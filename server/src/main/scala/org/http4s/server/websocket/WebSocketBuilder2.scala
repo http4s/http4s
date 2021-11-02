@@ -17,16 +17,16 @@
 package org.http4s
 package server.websocket
 
-import cats.{Applicative, ~>}
+import cats.Applicative
 import cats.syntax.all._
-import fs2.{Pipe, Stream}
-import org.http4s.websocket.{
-  WebSocket,
-  WebSocketCombinedPipe,
-  WebSocketContext,
-  WebSocketFrame,
-  WebSocketSeparatePipe
-}
+import cats.~>
+import fs2.Pipe
+import fs2.Stream
+import org.http4s.websocket.WebSocket
+import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketContext
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.vault.Key
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the

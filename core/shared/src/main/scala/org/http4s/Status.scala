@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.{Order, Show}
+import cats.Order
+import cats.Show
 import org.http4s.Status.ResponseClass
 import org.http4s.internal.CharPredicate
 import org.http4s.util.Renderable

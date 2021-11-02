@@ -16,11 +16,17 @@
 
 package org.http4s
 
-import cats.{Monoid, Order, Show}
-import cats.data.{Ior, NonEmptyList}
+import cats.Monoid
+import cats.Order
+import cats.Show
+import cats.data.Ior
+import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci._
+
 import scala.collection.mutable
+
+import headers._
 
 /** A collection of HTTP Headers */
 final class Headers(val headers: List[Header.Raw]) extends AnyVal {
@@ -94,8 +100,9 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   override def toString: String =
     this.show
 }
+
 object Headers {
-  val empty = Headers(List.empty[Header.Raw])
+  val empty: Headers = Headers(List.empty[Header.Raw])
 
   /** Creates a new Headers collection.
     * The [[Header.ToRaw]] machinery allows the creation of Headers with
@@ -124,15 +131,15 @@ object Headers {
   }
 
   private val PayloadHeaderKeys = Set(
-    ci"Content-Length",
-    ci"Content-Range",
+    `Content-Length`.name,
+    `Content-Range`.name,
     ci"Trailer",
-    ci"Transfer-Encoding"
+    `Transfer-Encoding`.name
   )
 
-  val SensitiveHeaders = Set(
-    ci"Authorization",
-    ci"Cookie",
-    ci"Set-Cookie"
+  val SensitiveHeaders: Set[CIString] = Set(
+    Authorization.name,
+    Cookie.name,
+    `Set-Cookie`.name
   )
 }

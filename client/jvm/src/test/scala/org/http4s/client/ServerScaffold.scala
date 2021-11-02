@@ -16,22 +16,26 @@
 
 package org.http4s.client
 
-import cats.syntax.all._
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
+import cats.effect.std.Dispatcher
 import cats.effect.syntax.all._
-import cats.effect.{Async, Resource, Sync}
-import com.sun.net.httpserver._
-import java.net.InetSocketAddress
-import java.security.{KeyStore, Security}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
-import com.comcast.ip4s.SocketAddress
+import cats.syntax.all._
 import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.SocketAddress
+import com.sun.net.httpserver._
+import org.http4s
 import org.http4s.HttpRoutes
 import org.http4s.Method
-import org.http4s
-import scala.collection.JavaConverters._
-import cats.effect.std.Dispatcher
 
+import java.net.InetSocketAddress
+import java.security.KeyStore
+import java.security.Security
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
 import scala.annotation.nowarn
+import scala.collection.JavaConverters._
 
 object ServerScaffold {
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit

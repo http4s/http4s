@@ -19,14 +19,13 @@ package blazecore
 package util
 
 import cats.effect._
-import fs2._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
-
 import cats.effect.std.Dispatcher
+import fs2._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import scala.collection.mutable.Buffer
 import scala.concurrent._
 
