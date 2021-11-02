@@ -961,7 +961,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .enablePlugins(Http4sPlugin)
     .jsConfigure(_.disablePlugins(DoctestPlugin))
-    .transform(_.dependsOn(scalafixInternalRules % ScalafixConfig))
+    .configure(_.dependsOn(scalafixInternalRules % ScalafixConfig))
 
 def libraryProject(name: String) = http4sProject(name)
 def libraryCrossProject(name: String, crossType: CrossType = CrossType.Full) =
