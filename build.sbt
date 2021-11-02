@@ -745,7 +745,7 @@ lazy val docs = http4sProject("docs")
           scalafixInternalInput,
           scalafixInternalOutput,
           scalafixInternalRules,
-          scalafixInternalTests          
+          scalafixInternalTests
         ) ++ jsModules): _*),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
@@ -961,6 +961,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .enablePlugins(Http4sPlugin)
     .jsConfigure(_.disablePlugins(DoctestPlugin))
+    .transform(_.dependsOn(scalafixInternalRules % ScalafixConfig))
 
 def libraryProject(name: String) = http4sProject(name)
 def libraryCrossProject(name: String, crossType: CrossType = CrossType.Full) =
@@ -1008,9 +1009,9 @@ addCommandAlias("ci", ";clean ;release with-defaults")
 // OrganizeImports needs to run separately to clean up after the other rules
 addCommandAlias(
   "quicklint",
-  ";rootJVM/scalafixAll --triggered ;rootJVM/scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt")
+  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt")
 
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+rootJVM/scalafixAll --triggered ;+rootJVM/scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues"
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues"
 )
