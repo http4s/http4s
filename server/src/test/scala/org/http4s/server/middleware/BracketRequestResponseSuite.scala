@@ -16,9 +16,9 @@
 
 package org.http4s.server.middleware
 
-import fs2.Stream
 import cats.data._
 import cats.effect._
+import fs2.Stream
 import org.http4s._
 import org.http4s.server._
 

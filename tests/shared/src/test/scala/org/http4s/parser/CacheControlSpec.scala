@@ -17,9 +17,10 @@
 package org.http4s
 package parser
 
-import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective._
+import org.http4s.headers.`Cache-Control`
 import org.typelevel.ci._
+
 import scala.concurrent.duration._
 
 class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Control`] {

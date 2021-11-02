@@ -21,11 +21,11 @@ import cats.data._
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-
+import org.http4s.EntityEncoder._
 import org.http4s.headers._
 import org.http4s.syntax.literals._
-import org.http4s.EntityEncoder._
 import org.typelevel.ci._
+
 import scala.annotation.nowarn
 
 class MultipartSuite extends Http4sSuite {

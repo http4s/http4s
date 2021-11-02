@@ -16,11 +16,15 @@
 
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{Async, ExitCode, IO, IOApp}
+import cats.effect.Async
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import com.example.http4s.blaze.demo.StreamUtils
 import io.circe.Json
+import org.http4s.Request
+import org.http4s.Uri
 import org.http4s.blaze.client.BlazeClientBuilder
-import org.http4s.{Request, Uri}
 import org.typelevel.jawn.Facade
 
 object StreamClient extends IOApp {

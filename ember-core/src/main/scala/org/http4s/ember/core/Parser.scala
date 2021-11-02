@@ -16,15 +16,18 @@
 
 package org.http4s.ember.core
 import cats._
-import cats.effect.kernel.{Concurrent, Deferred, Ref}
+import cats.data.EitherT
+import cats.effect.kernel.Concurrent
+import cats.effect.kernel.Deferred
+import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
+
 import scala.annotation.switch
 import scala.collection.mutable
-import scodec.bits.ByteVector
-import cats.data.EitherT
 
 private[ember] object Parser {
 

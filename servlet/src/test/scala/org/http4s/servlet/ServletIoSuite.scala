@@ -17,11 +17,11 @@
 package org.http4s
 package servlet
 
+import cats.effect.IO
+
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import javax.servlet._
-
-import cats.effect.IO
 
 class ServletIoSuite extends Http4sSuite {
 

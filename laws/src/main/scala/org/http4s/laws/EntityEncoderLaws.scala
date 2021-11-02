@@ -17,10 +17,11 @@
 package org.http4s
 package laws
 
-import cats.syntax.all._
 import cats.effect._
 import cats.laws._
-import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}
+import cats.syntax.all._
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Transfer-Encoding`
 
 trait EntityEncoderLaws[F[_], A] {
   implicit def F: Concurrent[F]

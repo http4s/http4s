@@ -16,8 +16,14 @@
 
 package org.http4s
 
-import cats.{Contravariant, Functor, Hash, MonoidK, Order, Show}
-import cats.data.{Validated, ValidatedNel}
+import cats.Contravariant
+import cats.Functor
+import cats.Hash
+import cats.MonoidK
+import cats.Order
+import cats.Show
+import cats.data.Validated
+import cats.data.ValidatedNel
 import cats.syntax.all._
 
 import java.time._

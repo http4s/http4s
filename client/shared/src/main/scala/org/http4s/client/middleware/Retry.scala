@@ -18,18 +18,22 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.kernel.{Resource, Temporal}
+import cats.effect.kernel.Resource
+import cats.effect.kernel.Temporal
+import cats.effect.std.Hotswap
 import cats.syntax.all._
 import org.http4s.Status._
-import org.http4s.headers.{`Idempotency-Key`, `Retry-After`}
+import org.http4s.headers.`Idempotency-Key`
+import org.http4s.headers.`Retry-After`
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
-import scala.math.{min, pow, random}
-import cats.effect.std.Hotswap
+import scala.math.min
+import scala.math.pow
+import scala.math.random
 
 object Retry {
   private[this] val logger = getLogger

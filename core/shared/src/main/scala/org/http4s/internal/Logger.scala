@@ -20,7 +20,12 @@ import cats.Monad
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
-import org.http4s.{Charset, Headers, MediaType, Message, Request, Response}
+import org.http4s.Charset
+import org.http4s.Headers
+import org.http4s.MediaType
+import org.http4s.Message
+import org.http4s.Request
+import org.http4s.Response
 import org.typelevel.ci.CIString
 
 object Logger {

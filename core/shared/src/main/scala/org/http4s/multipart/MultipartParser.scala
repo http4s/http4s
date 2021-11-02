@@ -18,14 +18,20 @@ package org.http4s
 package multipart
 
 import cats.effect.Concurrent
-import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, Pure, Stream}
-import fs2.io.file.{Files, Flags, Path}
-import org.typelevel.ci.CIString
-import fs2.RaiseThrowable
-import org.http4s.internal.bug
-import cats.effect.std.Supervisor
 import cats.effect.Resource
+import cats.effect.std.Supervisor
+import cats.syntax.all._
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Pure
+import fs2.RaiseThrowable
+import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Flags
+import fs2.io.file.Path
+import org.http4s.internal.bug
+import org.typelevel.ci.CIString
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {

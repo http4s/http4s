@@ -19,20 +19,26 @@ package blaze
 package server
 
 import cats.effect._
-import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
+import cats.effect.unsafe.IORuntime
+import cats.effect.unsafe.IORuntimeConfig
+import cats.effect.unsafe.Scheduler
 import cats.syntax.all._
-import java.net.{HttpURLConnection, URL}
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
+import munit.TestOptions
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
 import org.http4s.internal.threads._
-import scala.concurrent.duration._
-import scala.io.Source
 import org.http4s.multipart.Multipart
 import org.http4s.server.Server
+
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext
-import munit.TestOptions
+import scala.concurrent.duration._
+import scala.io.Source
 
 class BlazeServerSuite extends Http4sSuite {
 

@@ -26,10 +26,17 @@
 
 package org.http4s
 
-import cats.parse.{Parser, Rfc5234}
-import java.time.{DateTimeException, ZoneOffset, ZonedDateTime}
-import org.http4s.internal.parsing.{Rfc1034, Rfc2616, Rfc6265}
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser
+import cats.parse.Rfc5234
+import org.http4s.internal.parsing.Rfc1034
+import org.http4s.internal.parsing.Rfc2616
+import org.http4s.internal.parsing.Rfc6265
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
+import java.time.DateTimeException
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 /** @param extension The extension attributes of the cookie.  If there is more
   * than one, they are joined by semi-colon, which must not appear in an

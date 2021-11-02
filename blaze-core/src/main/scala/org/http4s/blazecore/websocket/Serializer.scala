@@ -16,14 +16,18 @@
 
 package org.http4s.blazecore.websocket
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.Execution._
-import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration.Duration
+
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable.ArrayBuffer
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.concurrent.duration.Duration
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /** Combined [[WriteSerializer]] and [[ReadSerializer]] */
 private trait Serializer[I] extends WriteSerializer[I] with ReadSerializer[I]

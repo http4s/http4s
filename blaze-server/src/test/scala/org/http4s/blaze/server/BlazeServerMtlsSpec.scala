@@ -16,16 +16,20 @@
 
 package org.http4s.blaze.server
 
-import cats.effect.{IO, Resource}
+import cats.effect.IO
+import cats.effect.Resource
 import fs2.io.net.tls.TLSParameters
+import org.http4s.Http4sSuite
+import org.http4s.HttpApp
+import org.http4s.dsl.io._
+import org.http4s.server.Server
+import org.http4s.server.ServerRequestKeys
+import org.http4s.testing.ErrorReporting
+
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
 import javax.net.ssl._
-import org.http4s.dsl.io._
-import org.http4s.server.{Server, ServerRequestKeys}
-import org.http4s.testing.ErrorReporting
-import org.http4s.{Http4sSuite, HttpApp}
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try

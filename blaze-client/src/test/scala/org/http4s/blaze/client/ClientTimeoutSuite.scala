@@ -20,20 +20,25 @@ package client
 
 import cats.effect._
 import cats.effect.kernel.Deferred
-import cats.effect.std.{Dispatcher, Queue}
+import cats.effect.std.Dispatcher
+import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2.Stream
+import org.http4s.blaze.pipeline.HeadStage
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.QueueTestHead
+import org.http4s.blazecore.SeqTestHead
+import org.http4s.blazecore.SlowTestHead
+import org.http4s.client.Client
+import org.http4s.client.RequestKey
+import org.http4s.syntax.all._
+import org.http4s.testing.DispatcherIOFixture
 
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
-import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{IdleTimeoutStage, QueueTestHead, SeqTestHead, SlowTestHead}
-import org.http4s.client.{Client, RequestKey}
-import org.http4s.syntax.all._
-import org.http4s.testing.DispatcherIOFixture
-
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 

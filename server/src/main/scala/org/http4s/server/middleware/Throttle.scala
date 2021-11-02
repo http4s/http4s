@@ -17,11 +17,14 @@
 package org.http4s.server.middleware
 
 import cats._
-import org.http4s.{Http, Response, Status}
 import cats.data.Kleisli
 import cats.effect.kernel.Temporal
-import scala.concurrent.duration.FiniteDuration
 import cats.implicits._
+import org.http4s.Http
+import org.http4s.Response
+import org.http4s.Status
+
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 
 /** Transform a service to reject any calls the go over a given rate.

@@ -16,11 +16,14 @@
 
 package org.http4s.blaze.client
 
+import org.http4s.BuildInfo
+import org.http4s.ProductId
+import org.http4s.headers.`User-Agent`
+
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import javax.net.ssl.{SSLContext, X509TrustManager}
-import org.http4s.{BuildInfo, ProductId}
-import org.http4s.headers.`User-Agent`
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 import scala.concurrent.duration._
 
 private[http4s] object bits {

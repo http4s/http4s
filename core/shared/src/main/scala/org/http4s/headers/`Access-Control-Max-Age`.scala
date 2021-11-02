@@ -19,7 +19,9 @@ package headers
 
 import org.http4s.parser.AdditionalRules
 import org.typelevel.ci.CIStringSyntax
-import scala.concurrent.duration.{DurationLong, FiniteDuration}
+
+import scala.concurrent.duration.DurationLong
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 /** The `Access-Control-Max-Age` header. */

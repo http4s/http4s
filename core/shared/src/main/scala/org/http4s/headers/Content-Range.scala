@@ -17,10 +17,12 @@
 package org.http4s
 package headers
 
-import cats.parse.{Numbers, Parser => P}
+import cats.parse.Numbers
+import cats.parse.{Parser => P}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `Content-Range` {

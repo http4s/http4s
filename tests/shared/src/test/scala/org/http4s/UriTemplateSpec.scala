@@ -17,7 +17,10 @@
 package org.http4s
 
 import com.comcast.ip4s._
-import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.Uri.Scheme
+import org.http4s.Uri.UserInfo
 import org.http4s.UriTemplate._
 import org.typelevel.ci._
 

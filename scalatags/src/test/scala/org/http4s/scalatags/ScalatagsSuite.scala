@@ -17,10 +17,10 @@
 package org.http4s
 package scalatags
 
-import cats.effect.IO
-import org.http4s.Status.Ok
 import _root_.scalatags.Text
 import cats.data.NonEmptyList
+import cats.effect.IO
+import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
 
 class ScalatagsSuite extends Http4sSuite {

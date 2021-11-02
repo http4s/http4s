@@ -85,6 +85,10 @@ jobs:
       - name: Compile
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
 
+      - name: Check Scalafix rules
+        if: matrix.scala != '3.0.2'
+        run: sbt ++${{ matrix.scala }} 'scalafixAll --check'
+
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
 

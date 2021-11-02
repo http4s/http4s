@@ -16,10 +16,9 @@
 
 package org.http4s.server.middleware
 
-import cats.syntax.all._
 import cats.data._
 import cats.effect._
-
+import cats.syntax.all._
 import org.http4s._
 
 object MaxActiveRequests {

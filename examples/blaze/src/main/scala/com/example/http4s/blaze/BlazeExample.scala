@@ -20,7 +20,8 @@ import cats.effect._
 import com.example.http4s.ExampleService
 import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
-import org.http4s.server.{Router, Server}
+import org.http4s.server.Router
+import org.http4s.server.Server
 
 object BlazeExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =

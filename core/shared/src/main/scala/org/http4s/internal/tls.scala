@@ -17,10 +17,9 @@
 package org.http4s.internal
 
 import java.io.ByteArrayInputStream
-import java.security.cert.{CertificateFactory, X509Certificate}
-
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 import javax.net.ssl.SSLSession
-
 import scala.util.Try
 
 /** Based on SSLContextFactory from jetty. */

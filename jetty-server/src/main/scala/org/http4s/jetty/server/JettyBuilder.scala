@@ -22,35 +22,38 @@ import cats.effect._
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import java.net.InetSocketAddress
-import java.util
-import javax.net.ssl.{SSLContext, SSLParameters}
-import javax.servlet.{DispatcherType, Filter}
-import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory
-import org.eclipse.jetty.server.{
-  ServerConnector,
-  HttpConfiguration,
-  HttpConnectionFactory,
-  Server => JServer
-}
+import org.eclipse.jetty.server.HttpConfiguration
+import org.eclipse.jetty.server.HttpConnectionFactory
+import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.StatisticsHandler
-import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.server.{Server => JServer}
+import org.eclipse.jetty.servlet.FilterHolder
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.ThreadPool
-import org.http4s.server.{
-  DefaultServiceErrorHandler,
-  SSLClientAuthMode,
-  Server,
-  ServerBuilder,
-  ServiceErrorHandler,
-  defaults
-}
-import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.jetty.server.JettyBuilder._
-import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
+import org.http4s.server.DefaultServiceErrorHandler
+import org.http4s.server.SSLClientAuthMode
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.Server
+import org.http4s.server.ServerBuilder
+import org.http4s.server.ServiceErrorHandler
+import org.http4s.server.defaults
+import org.http4s.servlet.AsyncHttp4sServlet
+import org.http4s.servlet.ServletContainer
+import org.http4s.servlet.ServletIo
 import org.http4s.syntax.all._
 import org.log4s.getLogger
+
+import java.net.InetSocketAddress
+import java.util
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLParameters
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.http.HttpServlet
 import scala.collection.immutable
 import scala.concurrent.duration._
 

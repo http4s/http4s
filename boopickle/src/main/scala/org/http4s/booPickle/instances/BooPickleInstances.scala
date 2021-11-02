@@ -22,11 +22,13 @@ import boopickle.Default._
 import boopickle.Pickler
 import cats.effect.Concurrent
 import fs2.Chunk
-import java.nio.ByteBuffer
-import org.http4s._
 import org.http4s.EntityEncoder.chunkEncoder
+import org.http4s._
 import org.http4s.headers.`Content-Type`
-import scala.util.{Failure, Success}
+
+import java.nio.ByteBuffer
+import scala.util.Failure
+import scala.util.Success
 
 /** Generic factories for http4s encoders/decoders for boopickle
   * Note that the media type is set for application/octet-stream

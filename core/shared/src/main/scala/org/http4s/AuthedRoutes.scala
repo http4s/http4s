@@ -16,8 +16,10 @@
 
 package org.http4s
 
-import cats.{Applicative, Monad}
-import cats.data.{Kleisli, OptionT}
+import cats.Applicative
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
 
 object AuthedRoutes {

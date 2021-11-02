@@ -16,13 +16,18 @@
 
 package org.http4s.metrics.dropwizard
 
-import cats.effect.{Clock, IO}
-import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
+import cats.effect.Clock
+import cats.effect.IO
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.SharedMetricRegistries
+import org.http4s.Http4sSuite
+import org.http4s.HttpRoutes
+import org.http4s.Request
+import org.http4s.Status
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.metrics.dropwizard.util._
 import org.http4s.server.middleware.Metrics
-import org.http4s.{Http4sSuite, HttpRoutes, Request, Status}
+import org.http4s.syntax.all._
 
 import java.util.Arrays
 

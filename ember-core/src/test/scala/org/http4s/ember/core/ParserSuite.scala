@@ -16,16 +16,16 @@
 
 package org.http4s.ember.core
 
-import cats.effect.std.Queue
-import org.http4s._
-import org.http4s.implicits._
-import scodec.bits.ByteVector
-import fs2._
-import cats.effect._
 import cats.data.OptionT
+import cats.effect._
+import cats.effect.std.Queue
 import cats.syntax.all._
+import fs2._
+import org.http4s._
 import org.http4s.headers.Expires
+import org.http4s.implicits._
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 class ParsingSuite extends Http4sSuite {
   object Helpers {

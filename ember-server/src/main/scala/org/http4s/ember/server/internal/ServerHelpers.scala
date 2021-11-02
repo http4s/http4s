@@ -24,21 +24,30 @@ import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
+import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
+import org.http4s.ember.core.Drain
+import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
+import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
-import java.net.InetSocketAddress
-import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
-import org.http4s.headers.{Connection, Date}
-import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
-import org.http4s.server.{SecureSession, ServerRequestKeys}
+import org.http4s.headers.Connection
+import org.http4s.headers.Date
+import org.http4s.internal.tls.deduceKeyLength
+import org.http4s.internal.tls.getCertChain
+import org.http4s.server.SecureSession
+import org.http4s.server.ServerRequestKeys
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
-import org.typelevel.vault.{Key, Vault}
-
-import scala.concurrent.duration._
+import org.typelevel.vault.Key
+import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
+
+import java.net.InetSocketAddress
 import java.util.concurrent.TimeoutException
+import scala.concurrent.duration._
 
 private[server] object ServerHelpers {
 

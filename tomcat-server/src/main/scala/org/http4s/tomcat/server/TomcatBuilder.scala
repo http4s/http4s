@@ -20,33 +20,34 @@ package server
 
 import cats.effect._
 import cats.effect.std.Dispatcher
-
-import java.net.InetSocketAddress
-import java.util
-import java.util.concurrent.Executor
-import javax.servlet.http.HttpServlet
-import javax.servlet.{DispatcherType, Filter}
 import org.apache.catalina.Context
 import org.apache.catalina.connector.Connector
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
-import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
+import org.apache.tomcat.util.descriptor.web.FilterDef
+import org.apache.tomcat.util.descriptor.web.FilterMap
 import org.http4s.internal.CollectionCompat.CollectionConverters._
-import org.http4s.server.{
-  DefaultServiceErrorHandler,
-  SSLClientAuthMode,
-  Server,
-  ServerBuilder,
-  ServiceErrorHandler
-}
+import org.http4s.server.DefaultServiceErrorHandler
+import org.http4s.server.SSLClientAuthMode
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.Server
+import org.http4s.server.ServerBuilder
+import org.http4s.server.ServiceErrorHandler
 import org.http4s.server.defaults
-import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
+import org.http4s.servlet.AsyncHttp4sServlet
+import org.http4s.servlet.ServletContainer
+import org.http4s.servlet.ServletIo
 import org.http4s.syntax.all._
 import org.http4s.tomcat.server.TomcatBuilder._
 import org.log4s.getLogger
 
+import java.net.InetSocketAddress
+import java.util
+import java.util.concurrent.Executor
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.http.HttpServlet
 import scala.collection.immutable
 import scala.concurrent.duration._
 

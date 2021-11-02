@@ -18,13 +18,16 @@ package org.http4s
 package jetty
 package server
 
-import cats.effect.{IO, Temporal}
+import cats.effect.IO
+import cats.effect.Temporal
 import cats.syntax.all._
-import java.net.{HttpURLConnection, URL}
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
 import org.http4s.server.Server
+
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 import scala.io.Source
 

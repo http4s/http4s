@@ -16,13 +16,15 @@
 
 package org.http4s
 
-import cats.{Eq, Monoid}
+import cats.Eq
+import cats.Monoid
 import cats.data.Chain
 import cats.effect.Concurrent
 import cats.syntax.all._
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
+
 import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {

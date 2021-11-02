@@ -17,8 +17,9 @@
 package org.http4s
 
 import cats.Applicative
+import cats.data.Chain
 import cats.data.Validated.Valid
-import cats.data.{Chain, ValidatedNel}
+import cats.data.ValidatedNel
 import cats.effect.Concurrent
 import cats.syntax.all._
 

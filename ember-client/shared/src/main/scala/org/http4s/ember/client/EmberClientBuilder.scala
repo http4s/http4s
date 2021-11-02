@@ -17,26 +17,26 @@
 package org.http4s.ember.client
 
 import cats._
-import cats.syntax.all._
 import cats.effect._
-
-import scala.concurrent.duration._
-import org.http4s.ProductId
-import org.http4s.client._
-import org.typelevel.keypool._
-import org.typelevel.log4cats.Logger
+import cats.syntax.all._
+import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
-import fs2.io.net.Network
+import fs2.io.net.unixsocket._
+import org.http4s.ProductId
+import org.http4s.Request
+import org.http4s.Response
+import org.http4s.client._
+import org.http4s.client.middleware.Retry
+import org.http4s.client.middleware.RetryPolicy
+import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.headers.`User-Agent`
+import org.typelevel.keypool._
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{`User-Agent`}
-import org.http4s.ember.client.internal.ClientHelpers
-import org.http4s.client.middleware.RetryPolicy
-import org.http4s.client.middleware.Retry
-import org.http4s.{Request, Response}
-import fs2.io.net.unixsocket._
+import scala.concurrent.duration._
 
 final class EmberClientBuilder[F[_]: Async] private (
     private val tlsContextOpt: Option[TLSContext[F]],

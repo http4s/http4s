@@ -17,9 +17,12 @@
 package org.http4s
 package syntax
 
-import cats.{Functor, Monad, ~>}
+import cats.Functor
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.functor._
-import cats.data.{Kleisli, OptionT}
+import cats.~>
 
 trait KleisliSyntax {
   implicit def http4sKleisliResponseSyntaxOptionT[F[_]: Functor, A](

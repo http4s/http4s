@@ -17,6 +17,7 @@
 package org.http4s.blaze.client
 
 import org.http4s.client.RequestKey
+
 import scala.collection.immutable
 
 trait BlazeClientState[F[_]] {

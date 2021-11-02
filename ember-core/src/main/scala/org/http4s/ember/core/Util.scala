@@ -19,15 +19,17 @@ package ember.core
 
 import cats._
 import cats.data.NonEmptyList
-import cats.effect.kernel.{Clock, Temporal}
+import cats.effect.kernel.Clock
+import cats.effect.kernel.Temporal
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
-import java.util.Locale
 import org.http4s.headers.Connection
 import org.typelevel.ci._
-import scala.concurrent.duration._
+
 import java.time.Instant
+import java.util.Locale
+import scala.concurrent.duration._
 
 private[ember] object Util {
 

@@ -17,22 +17,25 @@
 package org.http4s.blaze.server
 
 import cats.effect._
+import cats.effect.std.Dispatcher
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import fs2.concurrent.SignallingRef
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets._
-import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
+import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketHandshake
 import org.typelevel.ci._
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
-import cats.effect.std.{Dispatcher, Semaphore}
 import org.typelevel.vault.Key
-import org.http4s.websocket.WebSocketContext
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets._
+import java.util.concurrent.atomic.AtomicBoolean
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
 
 private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit val F: Async[F]

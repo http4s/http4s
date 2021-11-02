@@ -16,17 +16,22 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, SemigroupK}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
+import cats.SemigroupK
 import cats.effect.Concurrent
+import cats.effect.Resource
 import cats.syntax.all._
 import fs2._
-import fs2.io.file.{Files, Path}
-import java.io.File
-import org.http4s.multipart.{Multipart, MultipartDecoder}
+import fs2.io.file.Files
+import fs2.io.file.Path
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.MultipartDecoder
 import scodec.bits.ByteVector
 
+import java.io.File
 import scala.annotation.implicitNotFound
-import cats.effect.Resource
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
