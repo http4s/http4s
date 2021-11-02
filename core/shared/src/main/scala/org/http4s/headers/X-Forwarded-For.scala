@@ -20,9 +20,11 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse._
 import com.comcast.ip4s.IpAddress
-import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
-import org.http4s.util.{Renderable, Writer}
 import org.http4s.Header
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `X-Forwarded-For` {

@@ -21,8 +21,8 @@ import cats.data.Validated._
 import cats.effect.IO
 import cats.syntax.all._
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.headers.Allow
+import org.http4s.syntax.all._
 
 final case class Limit(l: Long)
 

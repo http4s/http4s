@@ -20,9 +20,11 @@ package staticcontent
 
 import cats.effect.Concurrent
 import cats.syntax.functor._
-import fs2.{Chunk, Stream}
-import java.util.concurrent.ConcurrentHashMap
+import fs2.Chunk
+import fs2.Stream
 import org.log4s.getLogger
+
+import java.util.concurrent.ConcurrentHashMap
 
 /** [[CacheStrategy]] that will cache __all__ [[Response]] bodies in local memory
   *

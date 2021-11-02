@@ -21,15 +21,16 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import fs2._
-import java.io.ByteArrayInputStream
-import java.util.Arrays
-import java.util.zip.GZIPInputStream
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF
+
+import java.io.ByteArrayInputStream
+import java.util.Arrays
+import java.util.zip.GZIPInputStream
 
 class GZipSuite extends Http4sSuite {
   test("fall through if the route doesn't match") {

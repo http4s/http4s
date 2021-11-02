@@ -17,9 +17,9 @@
 package org.http4s.parser
 
 import com.comcast.ip4s._
-import org.http4s._
-import org.http4s.Uri._
 import org.http4s.Uri.Scheme.https
+import org.http4s.Uri._
+import org.http4s._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 

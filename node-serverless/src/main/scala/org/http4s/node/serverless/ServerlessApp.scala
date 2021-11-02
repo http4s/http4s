@@ -22,8 +22,8 @@ import cats.effect.kernel.Async
 import cats.effect.kernel.Deferred
 import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
-import fs2.io
 import fs2.Stream
+import fs2.io
 
 import scala.annotation.nowarn
 import scala.scalajs.js

@@ -21,7 +21,10 @@ package client
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
-import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
+import org.http4s.client.Connection
+import org.http4s.client.ConnectionBuilder
+import org.http4s.client.RequestKey
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 

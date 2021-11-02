@@ -17,11 +17,13 @@
 package org.http4s.server.middleware
 
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.Concurrent
 import cats.implicits._
 import cats.~>
-import fs2.{Chunk, Stream}
+import fs2.Chunk
+import fs2.Stream
 import org.http4s._
 import scodec.bits.ByteVector
 

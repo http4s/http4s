@@ -42,13 +42,12 @@ import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
+import org.typelevel.log4cats.Logger
 import scodec.bits.ByteVector
 
-import scala.concurrent.duration.Duration
-import java.nio.ByteBuffer
-import org.typelevel.log4cats.Logger
-
 import java.io.IOException
+import java.nio.ByteBuffer
+import scala.concurrent.duration.Duration
 
 object WebSocketHelpers {
 

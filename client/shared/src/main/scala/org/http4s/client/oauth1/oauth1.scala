@@ -17,25 +17,26 @@
 package org.http4s
 package client
 
-import cats.{Monad, MonadThrow, Show}
+import cats.Monad
+import cats.MonadThrow
+import cats.Show
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.effect.Async
 import cats.instances.order._
-import org.http4s.client.oauth1.ProtocolParameter.{
-  Callback,
-  Custom,
-  Nonce,
-  Realm,
-  SignatureMethod,
-  Timestamp,
-  Verifier,
-  Version
-}
+import cats.syntax.all._
+import org.http4s.client.oauth1.ProtocolParameter.Callback
+import org.http4s.client.oauth1.ProtocolParameter.Custom
+import org.http4s.client.oauth1.ProtocolParameter.Nonce
+import org.http4s.client.oauth1.ProtocolParameter.Realm
+import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
+import org.http4s.client.oauth1.ProtocolParameter.Timestamp
+import org.http4s.client.oauth1.ProtocolParameter.Verifier
+import org.http4s.client.oauth1.ProtocolParameter.Version
 import org.http4s.headers.Authorization
 import org.typelevel.ci._
+
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
-import cats.effect.Async
 
 /** Basic OAuth1 message signing support
   *

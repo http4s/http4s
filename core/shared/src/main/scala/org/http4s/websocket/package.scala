@@ -16,10 +16,10 @@
 
 package org.http4s
 
-import scala.annotation.switch
+import fs2.io.net.ProtocolException
 import scodec.bits.ByteVector
 
-import fs2.io.net.ProtocolException
+import scala.annotation.switch
 
 package object websocket {
   // Masks for extracting fields

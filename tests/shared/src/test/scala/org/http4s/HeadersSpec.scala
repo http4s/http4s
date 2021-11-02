@@ -17,7 +17,8 @@
 package org.http4s
 
 import cats.data.NonEmptyList
-import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
+import cats.kernel.laws.discipline.MonoidTests
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._

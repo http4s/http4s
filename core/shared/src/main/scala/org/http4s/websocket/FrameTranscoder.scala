@@ -16,8 +16,9 @@
 
 package org.http4s.websocket
 
-import java.nio.ByteBuffer
 import scodec.bits.ByteVector
+
+import java.nio.ByteBuffer
 
 private[http4s] object FrameTranscoder {
   final class TranscodeError(val message: String) extends Exception(message)

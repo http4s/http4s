@@ -18,7 +18,8 @@ package org.http4s
 
 import cats.parse.Parser
 import org.http4s.internal.parsing.RelaxedCookies
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 // see http://tools.ietf.org/html/rfc6265
 final case class RequestCookie(name: String, content: String) extends Renderable {

@@ -20,17 +20,21 @@ package server
 
 import cats.effect.Async
 import cats.effect.std.Dispatcher
-import java.nio.ByteBuffer
-import javax.net.ssl.SSLEngine
-import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
-import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
-import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.blaze.http.http2.DefaultFlowStrategy
+import org.http4s.blaze.http.http2.Http2Settings
+import org.http4s.blaze.http.http2.server.ALPNServerSelector
+import org.http4s.blaze.http.http2.server.ServerPriorKnowledgeHandshaker
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.server.ServiceErrorHandler
+import org.http4s.websocket.WebSocketContext
 import org.typelevel.vault._
+
+import java.nio.ByteBuffer
+import javax.net.ssl.SSLEngine
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-import org.http4s.websocket.WebSocketContext
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private[http4s] object ProtocolSelector {

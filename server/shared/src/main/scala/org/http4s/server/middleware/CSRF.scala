@@ -18,28 +18,36 @@ package org.http4s
 package server
 package middleware
 
+import cats.Applicative
+import cats.data.EitherT
+import cats.data.Kleisli
+import cats.effect.Async
+import cats.effect.Concurrent
+import cats.effect.Sync
+import cats.effect.SyncIO
+import cats.syntax.all._
+import cats.~>
+import org.http4s.Uri.Scheme
 import org.http4s.crypto.Hmac
-import org.http4s.crypto.HmacKeyGen
 import org.http4s.crypto.HmacAlgorithm
+import org.http4s.crypto.HmacKeyGen
 import org.http4s.crypto.SecretKey
 import org.http4s.crypto.SecretKeySpec
 import org.http4s.crypto.SecureEq
 import org.http4s.crypto.unsafe.SecureRandom
-import cats.~>
-import cats.Applicative
-import cats.data.{EitherT, Kleisli}
-import cats.effect.{Concurrent, Sync, SyncIO}
-import cats.syntax.all._
+import org.http4s.headers.Host
+import org.http4s.headers.Referer
+import org.http4s.headers.`Content-Type`
+import org.http4s.headers.`X-Forwarded-For`
+import org.http4s.headers.{Cookie => HCookie}
+import org.http4s.internal.decodeHexString
+import org.http4s.internal.encodeHexString
+import org.typelevel.ci._
+import scodec.bits.ByteVector
+
 import java.nio.charset.StandardCharsets
 import java.time.Clock
-import org.http4s.headers.{Cookie => HCookie}
-import org.http4s.headers.{Host, Referer, `Content-Type`, `X-Forwarded-For`}
-import org.http4s.internal.{decodeHexString, encodeHexString}
-import org.http4s.Uri.Scheme
-import org.typelevel.ci._
 import scala.util.control.NoStackTrace
-import cats.effect.Async
-import scodec.bits.ByteVector
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)

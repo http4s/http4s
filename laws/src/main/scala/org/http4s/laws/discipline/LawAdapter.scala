@@ -16,14 +16,14 @@
 
 package org.http4s.laws.discipline
 
-import cats.{Eq, MonadThrow}
+import cats.Eq
+import cats.MonadThrow
 import cats.laws.IsEq
 import cats.syntax.all._
+import munit.CatsEffectAssertions._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Shrink
 import org.scalacheck.effect.PropF
-
-import munit.CatsEffectAssertions._
 
 trait LawAdapter {
 

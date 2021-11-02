@@ -21,25 +21,40 @@ package server
 import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
-import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
+import org.http4s.blaze.http.parser.BaseExceptions.BadMessage
+import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.pipeline.TailStage
+import org.http4s.blaze.pipeline.{Command => Cmd}
+import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
-import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
-import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
-import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
-import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.util.BodylessWriter
+import org.http4s.blazecore.util.Http1Writer
+import org.http4s.headers.Connection
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.ci._
 import org.typelevel.vault._
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Either, Failure, Left, Right, Success, Try}
+
+import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Either
+import scala.util.Failure
+import scala.util.Left
+import scala.util.Right
+import scala.util.Success
+import scala.util.Try
 
 private[http4s] object Http1ServerStage {
   def apply[F[_]](

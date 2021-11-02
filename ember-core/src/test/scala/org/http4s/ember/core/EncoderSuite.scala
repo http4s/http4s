@@ -17,8 +17,9 @@
 package org.http4s
 package ember.core
 
+import cats.effect.IO
+import cats.effect.Sync
 import cats.syntax.all._
-import cats.effect.{IO, Sync}
 import org.http4s.headers.`Content-Length`
 
 class EncoderSuite extends Http4sSuite {

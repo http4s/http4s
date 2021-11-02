@@ -17,17 +17,26 @@
 package org.http4s
 package client
 
-import cats.effect.{Async, Resource, Sync}
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.{readInputStream, writeOutputStream}
-import java.io.IOException
-import java.net.{HttpURLConnection, Proxy, URL}
-import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
+import fs2.io.readInputStream
+import fs2.io.writeOutputStream
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.typelevel.ci.CIString
-import scala.concurrent.duration.{Duration, FiniteDuration}
+
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.Proxy
+import java.net.URL
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLSocketFactory
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *

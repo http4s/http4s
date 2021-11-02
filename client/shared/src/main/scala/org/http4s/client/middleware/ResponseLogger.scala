@@ -18,13 +18,13 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect._
 import cats.effect.Ref
+import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
-import org.typelevel.ci.CIString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 
 /** Simple middleware for logging responses as they are processed
   */

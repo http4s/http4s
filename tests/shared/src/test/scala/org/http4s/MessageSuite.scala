@@ -21,7 +21,10 @@ import cats.effect.IO
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Pure
-import org.http4s.headers.{Authorization, Cookie, `Content-Type`, `X-Forwarded-For`}
+import org.http4s.headers.Authorization
+import org.http4s.headers.Cookie
+import org.http4s.headers.`Content-Type`
+import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 import org.typelevel.vault._

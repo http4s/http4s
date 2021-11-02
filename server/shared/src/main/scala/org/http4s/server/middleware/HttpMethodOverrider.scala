@@ -18,13 +18,14 @@ package org.http4s
 package server
 package middleware
 
+import cats.Monad
 import cats.data.Kleisli
 import cats.effect._
 import cats.instances.option._
-import cats.syntax.functor._
-import cats.syntax.flatMap._
 import cats.syntax.alternative._
-import cats.{Monad, ~>}
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+import cats.~>
 import org.http4s.Http
 import org.typelevel.ci._
 import org.typelevel.vault.Key

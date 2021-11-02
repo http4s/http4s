@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.{Applicative, Monad}
+import cats.Applicative
+import cats.Monad
 import cats.data.Kleisli
 
 /** Functions for creating [[HttpApp]] kleislis. */

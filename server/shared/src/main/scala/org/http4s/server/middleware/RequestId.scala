@@ -19,13 +19,18 @@ package org.http4s
 package server
 package middleware
 
-import cats.{FlatMap, ~>}
+import cats.FlatMap
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{Sync, SyncIO}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
+import cats.effect.Sync
+import cats.effect.SyncIO
 import cats.syntax.all._
+import cats.~>
 import org.typelevel.ci._
 import org.typelevel.vault.Key
+
 import java.util.UUID
 
 /** Propagate a `X-Request-Id` header to the response, generate a UUID

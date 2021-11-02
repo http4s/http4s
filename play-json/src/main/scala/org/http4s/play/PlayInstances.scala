@@ -18,17 +18,15 @@ package org.http4s.play
 
 import cats.effect.Concurrent
 import fs2.Chunk
+import org.http4s.DecodeResult
+import org.http4s.EntityDecoder
+import org.http4s.EntityEncoder
+import org.http4s.InvalidMessageBodyFailure
+import org.http4s.MediaType
+import org.http4s.Message
+import org.http4s.Uri
 import org.http4s.headers.`Content-Type`
-import org.http4s.{
-  DecodeResult,
-  EntityDecoder,
-  EntityEncoder,
-  InvalidMessageBodyFailure,
-  MediaType,
-  Message,
-  Uri,
-  jawn
-}
+import org.http4s.jawn
 import org.http4s.play.Parser.facade
 import play.api.libs.json._
 

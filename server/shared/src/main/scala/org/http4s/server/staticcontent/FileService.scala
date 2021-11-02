@@ -18,16 +18,21 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.kernel.Async
 import cats.syntax.all._
-import fs2.io.file.{Files, NoSuchFileException, Path}
-import java.io.File
+import fs2.io.file.Files
+import fs2.io.file.NoSuchFileException
+import fs2.io.file.Path
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import org.typelevel.ci._
+
+import java.io.File
 import scala.util.control.NoStackTrace
 
 object FileService {

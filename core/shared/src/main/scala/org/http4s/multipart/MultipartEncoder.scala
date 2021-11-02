@@ -17,10 +17,10 @@
 package org.http4s
 package multipart
 
-import java.nio.charset.StandardCharsets
-
 import fs2._
 import org.http4s.internal.ChunkWriter
+
+import java.nio.charset.StandardCharsets
 
 private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
   //TODO: Refactor encoders to create headers dependent on value.

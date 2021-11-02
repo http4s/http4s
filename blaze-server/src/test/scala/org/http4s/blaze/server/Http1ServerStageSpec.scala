@@ -19,23 +19,28 @@ package blaze
 package server
 
 import cats.data.Kleisli
-import cats.syntax.all._
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.effect.std.Dispatcher
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.Command.{Connected, Disconnected}
+import cats.syntax.all._
+import org.http4s.blaze.pipeline.Command.Connected
+import org.http4s.blaze.pipeline.Command.Disconnected
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{ResponseParser, SeqTestHead}
+import org.http4s.blazecore.ResponseParser
+import org.http4s.blazecore.SeqTestHead
 import org.http4s.dsl.io._
-import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.headers.Date
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
 import org.http4s.websocket.WebSocketContext
 import org.http4s.{headers => H}
 import org.typelevel.ci._
 import org.typelevel.vault._
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

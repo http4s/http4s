@@ -23,13 +23,16 @@ import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
-import fs2.compression.{Compression, DeflateParams}
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import fs2.compression.Compression
+import fs2.compression.DeflateParams
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.TailStage
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.util.StringWriter
 import org.typelevel.ci._
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import scala.concurrent.Future
 
 class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {

@@ -18,8 +18,8 @@ package org.http4s.dsl
 
 import cats.arrow.FunctionK
 import org.http4s.Method
-import org.http4s.dsl.impl._
 import org.http4s.Uri
+import org.http4s.dsl.impl._
 
 trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, G] {
   val Path: Uri.Path.type = Uri.Path

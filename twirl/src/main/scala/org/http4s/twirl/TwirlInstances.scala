@@ -17,9 +17,9 @@
 package org.http4s
 package twirl
 
-import org.http4s.headers.`Content-Type`
-import org.http4s.MediaType
 import _root_.play.twirl.api._
+import org.http4s.MediaType
+import org.http4s.headers.`Content-Type`
 
 trait TwirlInstances {
   implicit def htmlContentEncoder(implicit

@@ -19,12 +19,12 @@ package org.http4s
 import cats.data.Chain
 import fs2._
 import fs2.text.utf8
-
-import java.util.regex.Pattern
 import org.http4s.ServerSentEvent._
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 

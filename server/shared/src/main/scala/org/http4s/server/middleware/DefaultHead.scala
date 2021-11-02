@@ -18,12 +18,14 @@ package org.http4s
 package server
 package middleware
 
-import org.http4s.Method.{GET, HEAD}
-import cats.{Functor, MonoidK}
+import cats.Functor
+import cats.MonoidK
 import cats.data.Kleisli
+import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
-import cats.effect.Concurrent
+import org.http4s.Method.GET
+import org.http4s.Method.HEAD
 
 /** Handles HEAD requests as a GET without a body.
   *

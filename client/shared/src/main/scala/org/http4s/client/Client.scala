@@ -17,14 +17,15 @@
 package org.http4s
 package client
 
-import cats.~>
 import cats.data.Kleisli
-import cats.effect._
 import cats.effect.Ref
+import cats.effect._
 import cats.syntax.all._
+import cats.~>
 import fs2._
-import java.io.IOException
 import org.http4s.headers.Host
+
+import java.io.IOException
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */

@@ -17,8 +17,8 @@
 package org.http4s
 package client
 
-import cats.effect.kernel.Deferred
 import cats.effect._
+import cats.effect.kernel.Deferred
 import cats.syntax.all._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host

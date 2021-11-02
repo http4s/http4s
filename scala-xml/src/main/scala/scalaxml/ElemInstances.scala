@@ -18,13 +18,16 @@ package org.http4s
 package scalaxml
 
 import cats.effect.Concurrent
-import java.io.{ByteArrayInputStream, StringWriter}
-import javax.xml.parsers.SAXParserFactory
-
 import org.http4s.headers.`Content-Type`
 
+import java.io.ByteArrayInputStream
+import java.io.StringWriter
+import javax.xml.parsers.SAXParserFactory
 import scala.util.control.NonFatal
-import scala.xml.{Elem, InputSource, SAXParseException, XML}
+import scala.xml.Elem
+import scala.xml.InputSource
+import scala.xml.SAXParseException
+import scala.xml.XML
 
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory

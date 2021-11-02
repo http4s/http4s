@@ -21,10 +21,9 @@ import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
 import org.http4s.util.Renderer
-
-import org.scalacheck.rng.Seed
 import org.scalacheck.Prop._
 import org.scalacheck.Test
+import org.scalacheck.rng.Seed
 
 class ContentCodingSuite extends Http4sSuite {
 

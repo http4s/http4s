@@ -16,12 +16,15 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
-import cats.syntax.all._
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.kernel.BoundedEnumerable
-import cats.parse.{Parser => P}
 import cats.parse.Rfc5234.digit
+import cats.parse.{Parser => P}
+import cats.syntax.all._
 import org.http4s.util._
+
 import scala.annotation.nowarn
 
 /** HTTP's version number consists of two decimal digits separated by

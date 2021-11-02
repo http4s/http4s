@@ -19,9 +19,10 @@ package parser
 
 import cats.data.NonEmptyList
 import com.comcast.ip4s._
+import org.http4s.EntityTag.Strong
+import org.http4s.EntityTag.Weak
 import org.http4s.headers._
 import org.http4s.syntax.header._
-import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci._
 
 class SimpleHeadersSpec extends Http4sSuite {

@@ -19,7 +19,8 @@ package dsl
 
 import cats.effect.IO
 import org.http4s.Uri.Path
-import org.http4s.Uri.Path.{Root, Segment}
+import org.http4s.Uri.Path.Root
+import org.http4s.Uri.Path.Segment
 import org.http4s.dsl.io._
 import org.http4s.syntax.AllSyntax
 import org.scalacheck.Arbitrary.arbitrary

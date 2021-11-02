@@ -16,12 +16,13 @@
 
 package org.http4s.server.middleware
 
-import cats.syntax.all._
-import cats.effect._
 import cats.data._
+import cats.effect._
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.headers.{Date => HDate, _}
 import org.typelevel.ci.CIString
+
 import scala.concurrent.duration._
 
 /** Caching contains middlewares to support caching functionality.
