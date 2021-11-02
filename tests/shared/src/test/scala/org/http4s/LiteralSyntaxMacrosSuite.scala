@@ -30,7 +30,7 @@ class LiteralSyntaxMacrosSuite extends Http4sSuite {
     )
   }
   test("'path' macro works for valid input") {
-    assertEquals(path"/foo/bar", Uri.Path.unsafeFromString("/foo/bar"))
+    assertEquals(path"/foo/bar", path"/foo/bar")
   }
   test("'scheme' macro works for valid input") {
     assertEquals(scheme"https", Uri.Scheme.unsafeFromString("https"))

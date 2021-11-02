@@ -34,7 +34,7 @@ import org.http4s.syntax.all._
 
 import scala.concurrent.duration._
 
-class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
+class ExampleService[F[_]](implicit F: Async[F], C: Clock[F]) extends Http4sDsl[F] {
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
   def routes: HttpRoutes[F] =

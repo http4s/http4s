@@ -64,9 +64,11 @@ object `Content-Range` {
     byteContentRange
   }
 
+  val name: CIString = ci"Content-Range"
+
   implicit val headerInstance: Header[`Content-Range`, Header.Single] =
     Header.createRendered(
-      ci"Content-Range",
+      name,
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {
@@ -79,7 +81,6 @@ object `Content-Range` {
         },
       parse
     )
-
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])

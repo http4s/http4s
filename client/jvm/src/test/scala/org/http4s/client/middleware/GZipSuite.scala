@@ -22,7 +22,7 @@ import cats.effect.IO
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Encoding`
 import org.http4s.headers.`Content-Length`
-import org.http4s.syntax.all._
+import org.http4s.syntax.literals._
 
 class GZipSuite extends Http4sSuite {
   private val service = server.middleware.GZip(HttpApp[IO] {

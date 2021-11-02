@@ -26,6 +26,7 @@ import cats.syntax.all._
 import fs2._
 import fs2.io.file.Files
 import fs2.io.file.Path
+import org.http4s.Charset.`UTF-8`
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartDecoder
 import scodec.bits.ByteVector
@@ -205,7 +206,7 @@ object EntityDecoder {
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
-      m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
+      m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = `UTF-8`): F[String] =
     m.bodyText.compile.string
 
   /////////////////// Instances //////////////////////////////////////////////
@@ -229,7 +230,7 @@ object EntityDecoder {
 
   implicit def text[F[_]](implicit
       F: Concurrent[F],
-      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
+      defaultCharset: Charset = `UTF-8`): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(chunk =>
         new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))

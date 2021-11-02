@@ -18,6 +18,7 @@ package org.http4s
 package scalaxml
 
 import cats.effect.Concurrent
+import org.http4s.Charset.`UTF-8`
 import org.http4s.headers.`Content-Type`
 
 import java.io.ByteArrayInputStream
@@ -32,8 +33,7 @@ import scala.xml.XML
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
 
-  implicit def xmlEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
+  implicit def xmlEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, Elem] =
     EntityEncoder
       .stringEncoder[F]
       .contramap[Elem] { node =>

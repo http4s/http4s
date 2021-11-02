@@ -209,7 +209,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
           UnexpectedStatus(
             Status.InternalServerError,
             Method.GET,
-            Uri.unsafeFromString("http://www.foo.com/status/500"))))
+            uri"http://www.foo.com/status/500")))
   }
 
   test("Client should handle an unexpected status when calling a URI with expectOr") {
