@@ -88,7 +88,7 @@ private[http4s] final class Http1ServerParser[F[_]](
     false
   }
 
-  /////////////////// Stateful methods for the HTTP parser ///////////////////
+  // ///////////////// Stateful methods for the HTTP parser ///////////////////
   override protected def headerComplete(name: String, value: String): Boolean = {
     logger.trace(s"Received header '$name: $value'")
     headers += name -> value

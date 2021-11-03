@@ -217,7 +217,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
         response <-
           if (CSRF.isEqual(raw1, raw2)) respAction
           else F.raiseError[Response[G]](CSRFCheckFailed)
-        newToken <- signToken[F](raw1) //Generate a new token to guard against BREACH.
+        newToken <- signToken[F](raw1) // Generate a new token to guard against BREACH.
       } yield response.addCookie(createResponseCookie(newToken)))
         .recover { case CSRFCheckFailed =>
           onFailure
@@ -309,7 +309,7 @@ object CSRF {
   ): F[CSRFBuilder[F, G]] =
     buildSigningKey(keyBytes).map(k => apply(k, headerCheck))
 
-  ///
+  // /
 
   class CSRFBuilder[F[_], G[_]] private[middleware] (
       headerName: CIString,
@@ -391,7 +391,7 @@ object CSRF {
       extension: Option[String] = None
   )
 
-  ///
+  // /
 
   type CSRFCheck[F[_], G[_]] = (Request[G], F[Response[G]]) => F[Response[G]]
 
@@ -422,9 +422,9 @@ object CSRF {
     } yield tok
   }
 
-  ///
+  // /
 
-  //Newtype hax. Remove when we have a better story for newtypes
+  // Newtype hax. Remove when we have a better story for newtypes
   type CSRFToken
   private[CSRF] def lift(s: String): CSRFToken = s.asInstanceOf[CSRFToken]
   def unlift(s: CSRFToken): String = s.asInstanceOf[String]
@@ -449,7 +449,7 @@ object CSRF {
     r.headers
       .get(ci"Origin")
       .flatMap(o =>
-        //Hack to get around 2.11 compat
+        // Hack to get around 2.11 compat
         Uri.fromString(o.head.value) match {
           case Right(uri) => Some(uri)
           case Left(_) => None
@@ -463,7 +463,7 @@ object CSRF {
   def proxyOriginCheck[F[_]](r: Request[F], host: Host, xff: `X-Forwarded-For`): Boolean =
     r.headers.get[Host].contains(host) || r.headers.get[`X-Forwarded-For`].contains(xff)
 
-  ///
+  // /
 
   private val SigningAlgorithm = HmacAlgorithm.SHA1
   val SigningAlgo: String = "HmacSHA1"

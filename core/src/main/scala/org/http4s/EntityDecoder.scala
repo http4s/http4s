@@ -209,7 +209,7 @@ object EntityDecoder {
       m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = `UTF-8`): F[String] =
     m.bodyText.compile.string
 
-  /////////////////// Instances //////////////////////////////////////////////
+  // ///////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =

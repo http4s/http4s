@@ -169,12 +169,12 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   override def hashCode: Int = 31 + toVector.##
 
-  /////////////////////// QueryOps methods and types /////////////////////////
+  // ///////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
   override protected val query: Query = this
   override protected def self: Self = this
   override protected def replaceQuery(query: Query): Self = query
-  ////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////
 }
 
 object Query {

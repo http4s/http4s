@@ -117,16 +117,16 @@ object MultipartParser {
     if (middleChunked)
       (
         sti,
-        //Emit the partial match as well
+        // Emit the partial match as well
         acc ++ carry ++ Stream.chunk(c.take(i - sti)),
         Stream.chunk(c.drop(i))
-      ) //Emit after the match
+      ) // Emit after the match
     else
       (
         sti,
-        acc, //block completes partial match, so do not emit carry
+        acc, // block completes partial match, so do not emit carry
         Stream.chunk(c.drop(i))
-      ) //Emit everything after the match
+      ) // Emit everything after the match
 
   /** Split a chunk in the case of a partial match:
     *
@@ -181,10 +181,10 @@ object MultipartParser {
         currState = 0
       i += 1
     }
-    //It will only be zero if
-    //the chunk matches from the very beginning,
-    //since currstate can never be greater than
-    //(i + state).
+    // It will only be zero if
+    // the chunk matches from the very beginning,
+    // since currstate can never be greater than
+    // (i + state).
     val middleChunked = i + state - currState > 0
 
     if (currState == 0)
@@ -242,10 +242,10 @@ object MultipartParser {
     val expectedBytes = ExpectedBytesN(boundary)
 
     splitOrFinish[F](values, s, limit).flatMap { case (l, r) =>
-      //We can abuse reference equality here for efficiency
-      //Since `splitOrFinish` returns `empty` on a capped stream
-      //However, we must have at least one part, so `splitOrFinish` on this function
-      //Indicates an error
+      // We can abuse reference equality here for efficiency
+      // Since `splitOrFinish` returns `empty` on a capped stream
+      // However, we must have at least one part, so `splitOrFinish` on this function
+      // Indicates an error
       if (r == streamEmpty)
         Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
       else
@@ -263,14 +263,14 @@ object MultipartParser {
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
         splitHalf(expectedBytes, rest).flatMap { case (l, r) =>
-          //We hit a boundary, but the rest of the stream is empty
-          //and thus it's not a properly capped multipart body
+          // We hit a boundary, but the rest of the stream is empty
+          // and thus it's not a properly capped multipart body
           if (r == streamEmpty)
             Pull.raiseError[F](MalformedMessageBodyFailure("Part not terminated properly"))
           else
             Pull.output1(Part[F](hdrs, l)) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
               case (hdrStream, remaining) =>
-                if (hdrStream == streamEmpty) //Empty returned if it worked fine
+                if (hdrStream == streamEmpty) // Empty returned if it worked fine
                   Pull.done
                 else
                   tailrecParts[F](b, hdrStream, remaining, expectedBytes, limit)
@@ -289,11 +289,11 @@ object MultipartParser {
       values: Array[Byte],
       stream: Stream[F, Byte],
       limit: Int): SplitStream[F] = {
-    //Check if a particular chunk a final chunk, that is,
-    //whether it's the boundary plus an extra "--", indicating it's
-    //the last boundary
+    // Check if a particular chunk a final chunk, that is,
+    // whether it's the boundary plus an extra "--", indicating it's
+    // the last boundary
     def checkIfLast(c: Chunk[Byte], rest: Stream[F, Byte]): SplitStream[F] = {
-      //Elide empty chunks until nonemptychunk is found
+      // Elide empty chunks until nonemptychunk is found
       def elideEmptyChunks(str: Stream[F, Byte]): Pull[F, Nothing, (Chunk[Byte], Stream[F, Byte])] =
         str.pull.uncons.flatMap {
           case Some((chnk, r)) =>
@@ -305,7 +305,7 @@ object MultipartParser {
             Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
         }
 
-      //precond: both c1 and c2 are nonempty chunks
+      // precond: both c1 and c2 are nonempty chunks
       def checkTwoNonEmpty(
           c1: Chunk[Byte],
           c2: Chunk[Byte],
@@ -430,7 +430,7 @@ object MultipartParser {
             val (ix, l, r) = splitOnChunk[F](values, state, chnk, lacc, racc)
             go(str, ix, l, r)
           case None =>
-            //We got to the end, and matched on nothing.
+            // We got to the end, and matched on nothing.
             Pull.pure((lacc ++ racc, streamEmpty))
         }
 
@@ -467,16 +467,16 @@ object MultipartParser {
     if (middleChunked)
       (
         sti,
-        //Emit the partial match as well
+        // Emit the partial match as well
         acc ++ carry ++ Stream.chunk(c.take(i - sti)),
-        //Emit after the match
+        // Emit after the match
         Stream.chunk(c.drop(i)),
         state + i - sti)
     else
       (
         sti,
-        acc, //block completes partial match, so do not emit carry
-        Stream.chunk(c.drop(i)), //Emit everything after the match
+        acc, // block completes partial match, so do not emit carry
+        Stream.chunk(c.drop(i)), // Emit everything after the match
         0)
 
   /** Split a chunk in the case of a partial match:
@@ -507,11 +507,11 @@ object MultipartParser {
       val (lchunk, rchunk) = c.splitAt(ixx)
       (
         currState,
-        acc ++ carry ++ Stream.chunk(lchunk), //Emit previous carry
+        acc ++ carry ++ Stream.chunk(lchunk), // Emit previous carry
         Stream.chunk(rchunk),
         state + ixx)
     } else
-      //Whole thing is partial match
+      // Whole thing is partial match
       (currState, acc, carry ++ Stream.chunk(c), 0)
   }
 
@@ -534,10 +534,10 @@ object MultipartParser {
       i += 1
     }
 
-    //It will only be zero if
-    //the chunk matches from the very beginning,
-    //since currstate can never be greater than
-    //(i + state).
+    // It will only be zero if
+    // the chunk matches from the very beginning,
+    // since currstate can never be greater than
+    // (i + state).
     val middleChunked = i + state - currState > 0
 
     if (currState == 0)
@@ -548,9 +548,9 @@ object MultipartParser {
       splitPartialLimited(state, middleChunked, currState, i, acc, carry, c)
   }
 
-  ////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////
   // File writing encoder
-  ///////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
 
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
@@ -653,10 +653,10 @@ object MultipartParser {
     val expectedBytes = ExpectedBytesN(boundary)
 
     splitOrFinish[F](values, s, limit).flatMap { case (l, r) =>
-      //We can abuse reference equality here for efficiency
-      //Since `splitOrFinish` returns `empty` on a capped stream
-      //However, we must have at least one part, so `splitOrFinish` on this function
-      //Indicates an error
+      // We can abuse reference equality here for efficiency
+      // Since `splitOrFinish` returns `empty` on a capped stream
+      // However, we must have at least one part, so `splitOrFinish` on this function
+      // Indicates an error
       if (r == streamEmpty)
         Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
       else
@@ -682,14 +682,14 @@ object MultipartParser {
         Pull.eval(cleanupFile(path))
 
       case None =>
-        PullUnit //Todo: Move to fs2
+        PullUnit // Todo: Move to fs2
     }
 
   private[this] def cleanupFile[F[_]](path: Path)(implicit F: Sync[F]): F[Unit] =
     F.delay(Files.delete(path))
       .handleErrorWith { err =>
         logger.error(err)("Caught error during file cleanup for multipart")
-        //Swallow and report io exceptions in case
+        // Swallow and report io exceptions in case
         F.unit
       }
 
@@ -709,8 +709,8 @@ object MultipartParser {
       .flatMap { hdrs =>
         splitWithFileStream(expectedBytes, rest, maxBeforeWrite, blocker).flatMap {
           case (partBody, rest, fileRef) =>
-            //We hit a boundary, but the rest of the stream is empty
-            //and thus it's not a properly capped multipart body
+            // We hit a boundary, but the rest of the stream is empty
+            // and thus it's not a properly capped multipart body
             if (rest == streamEmpty)
               cleanupFileOption[F](fileRef) >> Pull.raiseError[F](
                 MalformedMessageBodyFailure("Part not terminated properly"))
@@ -720,7 +720,7 @@ object MultipartParser {
                 rest,
                 headerLimit)
                 .flatMap { case (hdrStream, remaining) =>
-                  if (hdrStream == streamEmpty) //Empty returned if it worked fine
+                  if (hdrStream == streamEmpty) // Empty returned if it worked fine
                     Pull.done
                   else if (partsCounter >= partsLimit)
                     if (failOnLimit)

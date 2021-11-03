@@ -193,9 +193,9 @@ class ParsingSuite extends Http4sSuite {
           .parser[IO](defaultMaxHeaderLength)(
             Array.emptyByteArray,
             take
-            //Helpers.forceScopedParsing[IO](raw) // Cuts off `}` in current test. Why?
+            // Helpers.forceScopedParsing[IO](raw) // Cuts off `}` in current test. Why?
             // I don't follow what the rig is testing vs this.
-          ) //(logger)
+          ) // (logger)
           .flatMap { case (resp, _) =>
             resp.body.through(text.utf8Decode).compile.string
           }

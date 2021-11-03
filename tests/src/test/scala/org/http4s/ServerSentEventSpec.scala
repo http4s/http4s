@@ -76,7 +76,7 @@ class ServerSentEventSpec extends Http4sSuite {
       |
       |data:  third event
       |""".stripMargin('|'))
-    //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
+    // test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
     stream
       .through(ServerSentEvent.decoder)
       .compile
@@ -100,7 +100,7 @@ class ServerSentEventSpec extends Http4sSuite {
       |
       |data:
       |""".stripMargin('|'))
-    //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
+    // test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
     stream
       .through(ServerSentEvent.decoder)
       .compile
@@ -119,7 +119,7 @@ class ServerSentEventSpec extends Http4sSuite {
       |
       |data: test
       |""".stripMargin('|'))
-    //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
+    // test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
     stream
       .through(ServerSentEvent.decoder)
       .compile

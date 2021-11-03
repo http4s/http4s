@@ -161,7 +161,7 @@ final case class Uri(
     writer
   }
 
-  /////////// Query Operations ///////////////
+  // ///////// Query Operations ///////////////
   override protected type Self = Uri
 
   override protected def self: Self = this
@@ -1237,9 +1237,9 @@ object Uri extends UriPlatform {
       import cats.parse.Parser.string
 
       P.oneOf0(
-        ((string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
+        (string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
           (Some(a), p)
-        }) :: (pathAbsolute.map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map(
+        } :: (pathAbsolute.map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map(
           (None, _))) :: Nil)
     }
 

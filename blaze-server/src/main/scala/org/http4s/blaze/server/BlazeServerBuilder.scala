@@ -285,8 +285,8 @@ class BlazeServerBuilder[F[_]] private (
               )
               .insert(
                 ServerRequestKeys.SecureSession,
-                //Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
-                //condition is checked inside a "flatMap" to handle possible "null" values
+                // Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
+                // condition is checked inside a "flatMap" to handle possible "null" values
                 Alternative[Option]
                   .guard(secure)
                   .flatMap(_ => optionalSslEngine)

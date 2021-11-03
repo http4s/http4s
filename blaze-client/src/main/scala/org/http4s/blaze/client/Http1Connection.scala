@@ -401,7 +401,7 @@ private final class Http1Connection[F[_]](
         cb(Left(t))
     }
 
-  ///////////////////////// Private helpers /////////////////////////
+  // /////////////////////// Private helpers /////////////////////////
 
   /** Validates the request, attempting to fix it if possible,
     * returning an Exception if invalid, None otherwise

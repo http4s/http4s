@@ -310,7 +310,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     for {
-      _ <- tail.runRequest(FooRequest) //the first request succeeds
+      _ <- tail.runRequest(FooRequest) // the first request succeeds
       _ <- IO.sleep(200.millis) // then the server closes the connection
       isClosed <- IO(
         tail.isClosed

@@ -171,7 +171,7 @@ object EntityEncoder {
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
-      Entity(readAll[F](p, blocker, 4096)) //2 KB :P
+      Entity(readAll[F](p, blocker, 4096)) // 2 KB :P
     }
 
   // TODO parameterize chunk size

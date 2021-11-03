@@ -90,14 +90,14 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     import Rfc7230.{headerRep1, quotedString, token}
     import Numbers.digits
 
-    //"timeout" "=" delta-seconds
+    // "timeout" "=" delta-seconds
     val timeout: Parser[Timeout] =
       Parser.string("timeout=") *> digits.mapFilter(s => safeToLong(s).map(Timeout))
 
-    //"max" "=" 1*DIGIT
+    // "max" "=" 1*DIGIT
     val max: Parser[Max] = Parser.string("max=") *> digits.mapFilter(s => safeToLong(s).map(Max))
 
-    //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
+    // keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     val keepAliveExtension: Parser[Extension] =
       (token ~ (Parser.char('=') *> token.orElse(quotedString)).?).map(Extension)
 
@@ -154,7 +154,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
                   writer.quote(
                     qts
                   )
-                } //All tokens are valid if we quote them as if they were quoted-string
+                } // All tokens are valid if we quote them as if they were quoted-string
               }
               writer
           }
