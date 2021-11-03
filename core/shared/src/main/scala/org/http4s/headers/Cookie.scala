@@ -45,9 +45,11 @@ object Cookie {
     cookieString <* char(';').?
   }
 
+  val name: CIString = ci"Cookie"
+
   implicit val headerInstance: Header[Cookie, Header.Recurring] =
     Header.createRendered(
-      ci"Cookie",
+      name,
       h =>
         new Renderable {
           def render(writer: Writer): writer.type =

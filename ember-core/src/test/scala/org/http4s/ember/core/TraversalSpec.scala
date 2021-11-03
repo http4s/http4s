@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core
 
+import org.http4s.syntax.literals._
 class TraversalSpecItsNotYouItsMe
 
 import org.scalacheck.effect.PropF
@@ -53,7 +54,7 @@ class TraversalSpec extends Http4sSuite {
     PropF.forAllF { (req: Request[IO]) =>
       // val logger = TestingLogger.impl[IO]()
       val newReq = req
-        .withUri(Uri.unsafeFromString("http://www.google.com"))
+        .withUri(uri"http://www.google.com")
 
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](newReq))
@@ -82,7 +83,7 @@ class TraversalSpec extends Http4sSuite {
     PropF.forAllF { (req: Request[IO], s: String) =>
       // val logger = TestingLogger.impl[IO]()
       val newReq = req
-        .withUri(Uri.unsafeFromString("http://www.google.com"))
+        .withUri(uri"http://www.google.com")
         .withEntity(s)
 
       val res = for {

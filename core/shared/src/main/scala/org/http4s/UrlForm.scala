@@ -21,6 +21,7 @@ import cats.Monoid
 import cats.data.Chain
 import cats.effect.Concurrent
 import cats.syntax.all._
+import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
@@ -99,15 +100,14 @@ object UrlForm {
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
 
-  implicit def entityEncoder(implicit
-      charset: Charset = DefaultCharset): EntityEncoder.Pure[UrlForm] =
+  implicit def entityEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[UrlForm] =
     EntityEncoder.stringEncoder
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
   implicit def entityDecoder[F[_]](implicit
       F: Concurrent[F],
-      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
+      defaultCharset: Charset = `UTF-8`): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder

@@ -25,6 +25,7 @@ import fs2.Chunk
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.readInputStream
+import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartEncoder
@@ -104,9 +105,7 @@ object EntityEncoder {
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-  def showEncoder[A](implicit
-      charset: Charset = DefaultCharset,
-      show: Show[A]): EntityEncoder.Pure[A] = {
+  def showEncoder[A](implicit charset: Charset = `UTF-8`, show: Show[A]): EntityEncoder.Pure[A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple[A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
   }
@@ -139,14 +138,13 @@ object EntityEncoder {
   implicit val unitEncoder: EntityEncoder.Pure[Unit] =
     emptyEncoder[Unit]
 
-  implicit def stringEncoder(implicit
-      charset: Charset = DefaultCharset): EntityEncoder.Pure[String] = {
+  implicit def stringEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.array(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder(implicit
-      charset: Charset = DefaultCharset): EntityEncoder.Pure[Array[Char]] =
+      charset: Charset = `UTF-8`): EntityEncoder.Pure[Array[Char]] =
     stringEncoder.contramap(new String(_))
 
   implicit val chunkEncoder: EntityEncoder.Pure[Chunk[Byte]] =
@@ -188,7 +186,7 @@ object EntityEncoder {
   // TODO parameterize chunk size
   implicit def readerEncoder[F[_], R <: Reader](implicit
       F: Sync[F],
-      charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
+      charset: Charset = `UTF-8`): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)

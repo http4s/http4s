@@ -36,15 +36,15 @@ class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
     def color: String
   }
 
-  case class Banana(weight: Double) extends Fruit {
+  private case class Banana(weight: Double) extends Fruit {
     def color = "yellow"
   }
 
-  case class Kiwi(weight: Double) extends Fruit {
+  private case class Kiwi(weight: Double) extends Fruit {
     def color = "brown"
   }
 
-  case class Carambola(weight: Double) extends Fruit {
+  private case class Carambola(weight: Double) extends Fruit {
     def color = "yellow"
   }
 

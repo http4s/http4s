@@ -67,7 +67,7 @@ class FormDataDecoderSpec extends Http4sSuite {
   }
 
   {
-    case class Foo(a: String, b: Boolean)
+    final case class Foo(a: String, b: Boolean)
 
     implicit val fooMapper: FormDataDecoder[Foo] =
       (field[String]("a"), field[Boolean]("b")).mapN(Foo.apply)
@@ -92,7 +92,7 @@ class FormDataDecoderSpec extends Http4sSuite {
       )
     }
 
-    case class FooStrings(a: List[String])
+    final case class FooStrings(a: List[String])
 
     implicit val fooStringMapper: FormDataDecoder[FooStrings] =
       listOf[String]("a").map(FooStrings.apply)
@@ -113,7 +113,7 @@ class FormDataDecoderSpec extends Http4sSuite {
         ))
     }
 
-    case class FooNested(f: Foo, c: String)
+    final case class FooNested(f: Foo, c: String)
 
     val fooNestedMapper: FormDataDecoder[FooNested] = (
       nested[Foo]("f"),
@@ -132,7 +132,7 @@ class FormDataDecoderSpec extends Http4sSuite {
         Valid(FooNested(Foo("bar", true), "ccc")))
     }
 
-    case class FooNestedOptional(f: Option[Foo], c: Option[String])
+    final case class FooNestedOptional(f: Option[Foo], c: Option[String])
 
     val fooNestedOptionalMapper = (
       nestedOptional[Foo]("f"),
@@ -161,7 +161,7 @@ class FormDataDecoderSpec extends Http4sSuite {
       )
     }
 
-    case class FooList(fs: List[Foo], d: Boolean)
+    final case class FooList(fs: List[Foo], d: Boolean)
 
     val fooListMapper: FormDataDecoder[FooList] = (
       list[Foo]("fs"),

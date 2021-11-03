@@ -147,7 +147,7 @@ object IdleTimeoutStage {
 
   sealed trait State
   case object Disabled extends State
-  case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
+  final case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
   case object ShutDown extends State
 
 }

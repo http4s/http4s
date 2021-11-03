@@ -53,8 +53,8 @@ object Forwarded extends ForwardedRenderers {
     sealed trait Name { self: Product => }
 
     object Name {
-      case class Ipv4(address: Ipv4Address) extends Name
-      case class Ipv6(address: Ipv6Address) extends Name
+      final case class Ipv4(address: Ipv4Address) extends Name
+      final case class Ipv6(address: Ipv6Address) extends Name
       case object Unknown extends Name
 
       @deprecated("Use Name.Ipv4(Ipv4Address.fromInet4Address(address))", "0.23.5")

@@ -59,8 +59,8 @@ object util {
   def valuesOf(registry: MetricRegistry, timer: Timer): Option[Array[Long]] =
     Option(registry.getTimers().get(timer.value)).map(_.getSnapshot.getValues)
 
-  case class Counter(value: String)
-  case class Timer(value: String)
+  final case class Counter(value: String)
+  final case class Timer(value: String)
 
   object FakeClock {
     def apply[F[_]: Sync] =

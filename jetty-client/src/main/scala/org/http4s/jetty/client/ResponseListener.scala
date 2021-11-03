@@ -124,8 +124,8 @@ private[jetty] object ResponseListener {
   sealed trait Item
   object Item {
     case object Done extends Item
-    case class Raise(t: Throwable) extends Item
-    case class Buf(b: ByteBuffer) extends Item
+    final case class Raise(t: Throwable) extends Item
+    final case class Buf(b: ByteBuffer) extends Item
   }
 
   private val logger = getLogger

@@ -18,17 +18,22 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect.kernel.{Async, Deferred, Resource}
 import cats.effect.implicits._
+import cats.effect.kernel.Async
+import cats.effect.kernel.Deferred
+import cats.effect.kernel.Resource
 import cats.syntax.all._
-import java.net.SocketException
-import java.nio.ByteBuffer
-import java.util.concurrent.{CancellationException, TimeoutException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
-import org.http4s.client.{Client, RequestKey}
+import org.http4s.client.Client
+import org.http4s.client.RequestKey
 import org.log4s.getLogger
+
+import java.net.SocketException
+import java.nio.ByteBuffer
+import java.util.concurrent.CancellationException
+import java.util.concurrent.TimeoutException
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

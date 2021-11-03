@@ -26,7 +26,6 @@ import org.http4s.Http4sSuite
 import org.http4s.HttpApp
 import org.http4s.Request
 import org.http4s.Status
-import org.http4s.Uri
 import org.http4s.client.Client
 import org.http4s.client.UnexpectedStatus
 import org.http4s.client.middleware.Metrics
@@ -270,7 +269,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
   val clientRunResource = meteredClient
-    .run(Request[IO](uri = Uri.unsafeFromString("/ok")))
+    .run(Request[IO](uri = uri"/ok"))
 
   ResourceFixture(clientRunResource).test(
     "A http client with a dropwizard metrics middleware should only record total time and decr active requests after client.run releases") {

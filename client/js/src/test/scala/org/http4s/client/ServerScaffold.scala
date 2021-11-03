@@ -60,4 +60,4 @@ object ServerScaffold {
   }
 }
 
-case class ServerScaffold(addresses: List[SocketAddress[IpAddress]])
+final case class ServerScaffold(addresses: List[SocketAddress[IpAddress]])

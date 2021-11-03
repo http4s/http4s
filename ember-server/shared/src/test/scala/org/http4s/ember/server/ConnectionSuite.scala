@@ -63,7 +63,7 @@ class ConnectionSuite extends Http4sSuite {
       .withRequestHeaderReceiveTimeout(headerTimeout)
       .build
 
-  case class TestClient(client: Socket[IO]) {
+  class TestClient(val client: Socket[IO]) {
     val clientChunkSize = 32 * 1024
     def request(req: Request[IO]): IO[Unit] =
       client.writes(Encoder.reqToBytes(req)).compile.drain
@@ -82,7 +82,7 @@ class ConnectionSuite extends Http4sSuite {
   def clientResource(host: ip4s.SocketAddress[ip4s.Host]): Resource[IO, TestClient] =
     for {
       socket <- Network[IO].client(host)
-    } yield TestClient(socket)
+    } yield new TestClient(socket)
 
   def fixture(
       idleTimeout: FiniteDuration = 60.seconds,

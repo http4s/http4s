@@ -388,7 +388,7 @@ private[ember] object Parser {
           RespPrelude(httpVersion, status, idx).asRight.pure[F]
       }
 
-      case class RespPreludeError(message: String, cause: Option[Throwable])
+      final case class RespPreludeError(message: String, cause: Option[Throwable])
           extends Exception(
             s"Received Error while parsing prelude - Message: $message - ${cause.map(_.getMessage)}",
             cause.orNull)

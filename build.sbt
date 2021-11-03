@@ -27,6 +27,7 @@ ThisBuild / githubWorkflowBuildPreamble +=
     name = Some("Setup NodeJS v16"),
     params = Map("node-version" -> "16"),
     cond = Some("matrix.ci == 'ciNodeJS'"))
+
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
@@ -37,6 +38,10 @@ ThisBuild / githubWorkflowBuild := Seq(
     List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"),
     name = Some("Check headers")),
   WorkflowStep.Sbt(List("${{ matrix.ci }}", "test:compile"), name = Some("Compile")),
+  WorkflowStep.Sbt(
+    List("${{ matrix.ci }}", "scalafixAll --check"),
+    name = Some("Check Scalafix rules"),
+    cond = Some(s"matrix.scala != '$scala_3'")),
   WorkflowStep.Sbt(
     List("${{ matrix.ci }}", "mimaReportBinaryIssues"),
     name = Some("Check binary compatibility")),
@@ -135,7 +140,8 @@ lazy val jvmModules: List[ProjectReference] = List(
   examplesEmber,
   examplesJetty,
   examplesTomcat,
-  examplesWar
+  examplesWar,
+  scalafixInternalTests
 )
 
 lazy val jsModules: List[ProjectReference] = List(
@@ -639,7 +645,11 @@ lazy val docs = http4sProject("docs")
           examplesDocker,
           examplesJetty,
           examplesTomcat,
-          examplesWar
+          examplesWar,
+          scalafixInternalInput,
+          scalafixInternalOutput,
+          scalafixInternalRules,
+          scalafixInternalTests
         ) ++ jsModules): _*),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     fatalWarningsInCI := false,
@@ -792,6 +802,53 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
+lazy val scalafixInternalRules = project
+  .in(file("scalafix-internal/rules"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(
+    libraryDependencies ++= Seq(
+      "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion).filter(
+      _ => !isScala3.value)
+  )
+
+lazy val scalafixInternalInput = project
+  .in(file("scalafix-internal/input"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .dependsOn(core.jvm)
+
+lazy val scalafixInternalOutput = project
+  .in(file("scalafix-internal/output"))
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafixPlugin)
+  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .dependsOn(core.jvm)
+
+lazy val scalafixInternalTests = project
+  .in(file("scalafix-internal/tests"))
+  .enablePlugins(NoPublishPlugin)
+  .enablePlugins(ScalafixTestkitPlugin)
+  .settings(
+    libraryDependencies ++= Seq(
+      ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
+        .cross(CrossVersion.full)).filter(_ => !isScala3.value),
+    Compile / compile :=
+      (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
+    scalafixTestkitOutputSourceDirectories :=
+      (scalafixInternalOutput / Compile / sourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (scalafixInternalInput / Compile / sourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (scalafixInternalInput / Compile / fullClasspath).value,
+    scalafixTestkitInputScalacOptions := (scalafixInternalInput / Compile / scalacOptions).value,
+    scalacOptions += "-Yrangepos"
+  )
+  .settings(headerSources / excludeFilter := AllPassFilter)
+  .disablePlugins(ScalafixPlugin)
+  .dependsOn(scalafixInternalRules)
+
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
@@ -799,6 +856,7 @@ def http4sProject(name: String) =
       moduleName := s"http4s-$name"
     )
     .enablePlugins(Http4sPlugin)
+    .dependsOn(scalafixInternalRules % ScalafixConfig)
 
 def http4sCrossProject(name: String, crossType: CrossType) =
   sbtcrossproject
@@ -814,6 +872,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .enablePlugins(Http4sPlugin)
     .jsConfigure(_.disablePlugins(DoctestPlugin))
+    .configure(_.dependsOn(scalafixInternalRules % ScalafixConfig))
 
 def libraryProject(name: String) = http4sProject(name)
 def libraryCrossProject(name: String, crossType: CrossType = CrossType.Full) =

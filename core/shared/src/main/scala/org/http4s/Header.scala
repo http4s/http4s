@@ -96,8 +96,8 @@ object Header {
     * times.
     */
   sealed trait Type
-  case class Single() extends Type
-  case class Recurring() extends Type
+  final case class Single() extends Type
+  final case class Recurring() extends Type
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
 

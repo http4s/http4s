@@ -18,11 +18,12 @@ package com.example.http4s.blaze
 
 import cats.effect._
 import io.circe.generic.auto._
-import org.http4s.Status.{NotFound, Successful}
-import org.http4s.circe._
-import org.http4s.syntax.all._
-import org.http4s.client.Client
+import org.http4s.Status.NotFound
+import org.http4s.Status.Successful
 import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.circe._
+import org.http4s.client.Client
+import org.http4s.syntax.all._
 
 object ClientExample extends IOApp {
   def printGooglePage(client: Client[IO]): IO[Unit] = {
