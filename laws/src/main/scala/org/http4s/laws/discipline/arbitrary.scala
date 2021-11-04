@@ -590,6 +590,16 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield headers.Age.unsafeFromDuration(age)
     }
 
+  implicit val http4sTestingArbitraryForVary: Arbitrary[headers.Vary] =
+    Arbitrary {
+      Gen.oneOf(
+        Gen.const(headers.Vary.`*`),
+        for {
+          values <- nonEmptyListOf(genToken.map(CIString(_)))
+        } yield headers.Vary.Headers(NonEmptyList.of(values.head, values.tail: _*))
+      )
+    }
+
   implicit val http4sTestingArbitraryForSTS: Arbitrary[headers.`Strict-Transport-Security`] =
     Arbitrary {
       for {

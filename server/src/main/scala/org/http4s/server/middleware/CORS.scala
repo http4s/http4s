@@ -379,7 +379,7 @@ sealed class CORSPolicy(
     val varyHeaderNonOptions =
       allowOrigin match {
         case AllowOrigin.Match(_) =>
-          Header.Raw(ci"Vary", Header[Origin].name.toString).some
+          Vary(Header[Origin].name).some
         case _ =>
           None
       }
@@ -398,12 +398,7 @@ sealed class CORSPolicy(
         case AllowHeaders.In(_) | AllowHeaders.Reflect =>
           List(ci"Access-Control-Request-Headers")
       }
-      (origin ++ methods ++ headers) match {
-        case Nil =>
-          None
-        case nonEmpty =>
-          Header.Raw(ci"Vary", nonEmpty.map(_.toString).mkString(", ")).some
-      }
+      NonEmptyList.fromList(origin ++ methods ++ headers).map(Vary(_))
     }
 
     def dispatch(req: Request[G]) =
@@ -517,18 +512,10 @@ sealed class CORSPolicy(
       (method match {
         case Method.OPTIONS => varyHeaderOptions
         case _ => varyHeaderNonOptions
-      }) match {
-        case Some(vary) =>
-          resp.putHeaders(
-            resp.headers.get(ci"Vary") match {
-              case None =>
-                vary
-              case Some(oldVary) =>
-                Header.Raw(ci"Vary", oldVary.map(_.value).toList.mkString(", ") + ", " + vary.value)
-            }
-          )
-        case None =>
-          resp
+      }).fold(resp) { vary =>
+        resp.putHeaders(
+          resp.headers.get[Vary].fold(vary)(_ ++ vary)
+        )
       }
 
     if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
