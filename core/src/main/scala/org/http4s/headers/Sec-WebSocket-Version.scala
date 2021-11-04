@@ -28,7 +28,8 @@ object `Sec-WebSocket-Version` {
     else
       ParseResult.fail(
         "Invalid version value",
-        s"Version $version must be greater than or equal to 0")
+        s"Version $version must be greater than or equal to 0",
+      )
 
   def unsafeFromLong(version: Long): `Sec-WebSocket-Version` =
     fromLong(version).fold(throw _, identity)
@@ -42,7 +43,7 @@ object `Sec-WebSocket-Version` {
     Header.createRendered(
       ci"Sec-WebSocket-Version",
       _.version,
-      parse
+      parse,
     )
 
 }

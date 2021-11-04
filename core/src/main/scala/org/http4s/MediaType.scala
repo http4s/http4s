@@ -23,7 +23,8 @@ import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
     val mainType: String,
-    val extensions: Map[String, String] = Map.empty) {
+    val extensions: Map[String, String] = Map.empty,
+) {
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
@@ -83,7 +84,8 @@ object MediaRange {
       `message/*`,
       `multipart/*`,
       `text/*`,
-      `video/*`).map(x => (x.mainType, x)).toMap
+      `video/*`,
+    ).map(x => (x.mainType, x)).toMap
 
   /** Parse a MediaRange
     */
@@ -150,7 +152,8 @@ object MediaRange {
     else
       MediaType.all.getOrElse(
         (mainType.toLowerCase, subType.toLowerCase),
-        new MediaType(mainType.toLowerCase, subType.toLowerCase))
+        new MediaType(mainType.toLowerCase, subType.toLowerCase),
+      )
 
   implicit val http4sShowForMediaRange: Show[MediaRange] =
     Show.show(s => s"${s.mainType}/*${MediaRange.extensionsToString(s)}")
@@ -186,8 +189,8 @@ sealed class MediaType(
     val compressible: Boolean = false,
     val binary: Boolean = false,
     val fileExtensions: List[String] = Nil,
-    extensions: Map[String, String] = Map.empty)
-    extends MediaRange(mainType, extensions) {
+    extensions: Map[String, String] = Map.empty,
+) extends MediaRange(mainType, extensions) {
   override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible, binary, fileExtensions, ext)
 
@@ -222,7 +225,10 @@ sealed class MediaType(
           subType.##,
           MurmurHash3.mix(
             compressible.##,
-            MurmurHash3.mix(binary.##, MurmurHash3.mix(fileExtensions.##, extensions.##)))))
+            MurmurHash3.mix(binary.##, MurmurHash3.mix(fileExtensions.##, extensions.##)),
+          ),
+        ),
+      )
     hash
   }
 
@@ -277,7 +283,8 @@ object MediaType extends MimeDB {
   private[http4s] def getMediaType(mainType: String, subType: String): MediaType =
     MediaType.all.getOrElse(
       (mainType.toLowerCase, subType.toLowerCase),
-      new MediaType(mainType.toLowerCase, subType.toLowerCase))
+      new MediaType(mainType.toLowerCase, subType.toLowerCase),
+    )
 
   implicit val http4sEqForMediaType: Eq[MediaType] =
     Eq.fromUniversalEquals

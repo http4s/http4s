@@ -89,7 +89,7 @@ class ParsingSuite extends Http4sSuite {
             case SecondChunk =>
               closed.get.ifM(
                 noneChunk, // simulates stream closing before we've read the entire body
-                Option((Chunk.array(secondChunk.getBytes()), Completed: StreamState)).pure[F]
+                Option((Chunk.array(secondChunk.getBytes()), Completed: StreamState)).pure[F],
               )
             case Completed => noneChunk
           }
@@ -108,7 +108,7 @@ class ParsingSuite extends Http4sSuite {
     val expected = Request[IO](
       Method.GET,
       uri"www.google.com",
-      headers = Headers(org.http4s.headers.Host("www.google.com"))
+      headers = Headers(org.http4s.headers.Host("www.google.com")),
     )
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -192,10 +192,10 @@ class ParsingSuite extends Http4sSuite {
         Parser.Response
           .parser[IO](defaultMaxHeaderLength)(
             Array.emptyByteArray,
-            take
-            //Helpers.forceScopedParsing[IO](raw) // Cuts off `}` in current test. Why?
+            take,
+            // Helpers.forceScopedParsing[IO](raw) // Cuts off `}` in current test. Why?
             // I don't follow what the rig is testing vs this.
-          ) //(logger)
+          ) // (logger)
           .flatMap { case (resp, _) =>
             resp.body.through(text.utf8Decode).compile.string
           }
@@ -203,7 +203,8 @@ class ParsingSuite extends Http4sSuite {
   }
 
   test(
-    "Parser.Request.parser should parse a request with Content-Length and return the rest of the stream") {
+    "Parser.Request.parser should parse a request with Content-Length and return the rest of the stream"
+  ) {
     val raw =
       """POST /foo HTTP/1.1
           |Host: localhost:8080
@@ -240,11 +241,12 @@ class ParsingSuite extends Http4sSuite {
       Stream(
         "GET /foo HTTP/1.1\r\n",
         "Accept: text/plain\r\n\r\nGET /foo HTTP/1.1\r\n",
-        "Accept: text/plain\r\n\r\n"
+        "Accept: text/plain\r\n\r\n",
       )
     val byteStream: Stream[IO, Byte] = reqS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)))
+      )
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -283,12 +285,13 @@ class ParsingSuite extends Http4sSuite {
         "7\r\n",
         "Network\r\n",
         "0\r\n",
-        "\r\n"
+        "\r\n",
         // "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n\r\n"
       )
     val byteStream: Stream[IO, Byte] = respS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)))
+      )
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -313,13 +316,14 @@ class ParsingSuite extends Http4sSuite {
         "7\r\n",
         "Network\r\n",
         "0\r\n",
-        "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n\r\n"
+        "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n\r\n",
         // "\r\n"
       )
 
     val byteStream: Stream[IO, Byte] = respS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+      )
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -331,7 +335,8 @@ class ParsingSuite extends Http4sSuite {
   }
 
   test(
-    "Parser.Response.parser should parse a response with Content-Length and return the rest of the stream") {
+    "Parser.Response.parser should parse a response with Content-Length and return the rest of the stream"
+  ) {
     val defaultMaxHeaderLength = 4096
     val raw =
       """HTTP/1.1 200 OK
@@ -375,7 +380,8 @@ class ParsingSuite extends Http4sSuite {
         assert(
           headerP.headers.headers == List(
             Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
-            Header.Raw(ci"Content-Length", "11"))
+            Header.Raw(ci"Content-Length", "11"),
+          )
         )
         assert(!headerP.chunked)
         assert(headerP.contentLength == Some(11L))
@@ -391,11 +397,12 @@ class ParsingSuite extends Http4sSuite {
         "Content-Type: text/plain\r\n",
         "Transfer-Encoding: chunked\r\n",
         "Trailer: Expires\r\n",
-        "\r\n"
+        "\r\n",
       )
     val byteStream: Stream[IO, Byte] = respS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+      )
 
     val result = for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -411,8 +418,9 @@ class ParsingSuite extends Http4sSuite {
           Headers(
             "Content-Type" -> "text/plain",
             "Transfer-Encoding" -> "chunked",
-            "Trailer" -> "Expires"
-          ))
+            "Trailer" -> "Expires",
+          ),
+        )
 
       }
   }
@@ -456,11 +464,12 @@ class ParsingSuite extends Http4sSuite {
         "Content-Length: 5\r\n\r\n",
         "helloHTTP/1.1 200 OK\r\n", // this is the crucial part
         "Content-Type: text/plain\r\n",
-        "Content-Length: 5\r\n\r\nworld"
+        "Content-Length: 5\r\n\r\nworld",
       )
     val byteStream: Stream[IO, Byte] = respS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)))
+      )
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -479,7 +488,8 @@ class ParsingSuite extends Http4sSuite {
     val bodyS = Stream("hello ", "world!")
     val byteStream: Stream[IO, Byte] = bodyS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+      )
 
     for {
       take <- Helpers.taking(byteStream)
@@ -496,7 +506,8 @@ class ParsingSuite extends Http4sSuite {
     val bodyS = Stream("hello ", "world!")
     val byteStream: Stream[IO, Byte] = bodyS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+      )
 
     for {
       take <- Helpers.taking(byteStream)
@@ -513,14 +524,16 @@ class ParsingSuite extends Http4sSuite {
     val bodyS = Stream("world!")
     val byteStream: Stream[IO, Byte] = bodyS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+      )
 
     for {
       take <- Helpers.taking(byteStream)
       body <- Parser.Body.parseFixedBody(
         12L,
         "hello ".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
-        take)
+        take,
+      )
       bodyString <- body._1.through(fs2.text.utf8Decode).compile.string
       drained <- body._2
     } yield {
@@ -534,7 +547,8 @@ class ParsingSuite extends Http4sSuite {
     val bodyS = Stream("hello world!")
     val byteStream: Stream[IO, Byte] = bodyS
       .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+      )
 
     for {
       take <- Helpers.taking(byteStream)

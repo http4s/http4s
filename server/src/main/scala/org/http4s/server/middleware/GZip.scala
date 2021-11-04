@@ -37,7 +37,7 @@ object GZip {
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
-      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
+      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G]),
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
       req.headers.get[`Accept-Encoding`] match {
@@ -57,13 +57,15 @@ object GZip {
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
-      ContentCoding.`x-gzip`)
+      ContentCoding.`x-gzip`
+    )
 
   private def zipOrPass[F[_]: Sync](
       response: Response[F],
       bufferSize: Int,
       level: Int,
-      isZippable: Response[F] => Boolean): Response[F] =
+      isZippable: Response[F] => Boolean,
+  ): Response[F] =
     response match {
       case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
       case resp => resp // Don't touch it, Content-Encoding already set
@@ -72,15 +74,19 @@ object GZip {
   private def zipResponse[F[_]: Sync](
       bufferSize: Int,
       level: Int,
-      resp: Response[F]): Response[F] = {
+      resp: Response[F],
+  ): Response[F] = {
     logger.trace("GZip middleware encoding content")
     resp
       .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-      .copy(body = resp.body.through(
-        gzip(
-          bufferSize = bufferSize,
-          deflateLevel = Some(level)
-        )))
+      .copy(body =
+        resp.body.through(
+          gzip(
+            bufferSize = bufferSize,
+            deflateLevel = Some(level),
+          )
+        )
+      )
   }
 }

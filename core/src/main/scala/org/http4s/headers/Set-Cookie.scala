@@ -34,7 +34,7 @@ object `Set-Cookie` {
     Header.createRendered(
       name,
       _.cookie,
-      parse
+      parse,
     )
 
 }

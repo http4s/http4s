@@ -102,7 +102,8 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
               .guaranteeCase(exitCase.complete)
               .start
               .flatTap(fiber =>
-                cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
+                cancelSignal.get >> fiber.cancel
+              ) // don't cancel until the returned resource is in use
           }
           .flatMap(_.get)
       }

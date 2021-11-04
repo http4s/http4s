@@ -29,8 +29,9 @@ object HeaderEcho {
     * @param echoHeadersWhen the function that selects which headers to echo on the response
     * @param http [[Http]] to transform
     */
-  def apply[F[_]: Functor, G[_]](echoHeadersWhen: CIString => Boolean)(
-      http: Http[F, G]): Http[F, G] =
+  def apply[F[_]: Functor, G[_]](
+      echoHeadersWhen: CIString => Boolean
+  )(http: Http[F, G]): Http[F, G] =
     Kleisli { (req: Request[G]) =>
       val headersToEcho = Headers(req.headers.headers.filter(h => echoHeadersWhen(h.name)))
 
@@ -38,10 +39,12 @@ object HeaderEcho {
     }
 
   def httpRoutes[F[_]: Functor](echoHeadersWhen: CIString => Boolean)(
-      httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+      httpRoutes: HttpRoutes[F]
+  ): HttpRoutes[F] =
     apply(echoHeadersWhen)(httpRoutes)
 
   def httpApp[F[_]: Functor](echoHeadersWhen: CIString => Boolean)(
-      httpApp: HttpApp[F]): HttpApp[F] =
+      httpApp: HttpApp[F]
+  ): HttpApp[F] =
     apply(echoHeadersWhen)(httpApp)
 }

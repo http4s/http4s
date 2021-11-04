@@ -40,17 +40,19 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
         case Right((response, dispose)) =>
           policy(req, Right(response), attempts) match {
             case Some(duration) =>
               logger.info(
-                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
+              )
               dispose >> F.pure(
-                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`]))
+                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`])
+              )
             case None =>
               F.pure(Resource.make(F.pure(response))(_ => dispose))
           }
@@ -60,7 +62,8 @@ object Retry {
             case Some(duration) =>
               // info instead of error(e), because e is not discarded
               logger.info(e)(
-                s"Request threw an exception on attempt #$attempts. Retrying after $duration")
+                s"Request threw an exception on attempt #$attempts. Retrying after $duration"
+              )
               F.pure(nextAttempt(req, attempts, duration, None))
             case None =>
               logger.info(e)(
@@ -81,7 +84,8 @@ object Retry {
         req: Request[F],
         attempts: Int,
         duration: FiniteDuration,
-        retryHeader: Option[`Retry-After`]): Resource[F, Response[F]] = {
+        retryHeader: Option[`Retry-After`],
+    ): Resource[F, Response[F]] = {
       val headerDuration =
         retryHeader
           .map { h =>
@@ -115,7 +119,7 @@ object RetryPolicy {
     */
   def apply[F[_]](
       backoff: Int => Option[FiniteDuration],
-      retriable: (Request[F], Either[Throwable, Response[F]]) => Boolean = defaultRetriable[F] _
+      retriable: (Request[F], Either[Throwable, Response[F]]) => Boolean = defaultRetriable[F] _,
   ): RetryPolicy[F] = { (req, result, retries) =>
     if (retriable(req, result)) backoff(retries)
     else None
@@ -128,7 +132,7 @@ object RetryPolicy {
     InternalServerError,
     ServiceUnavailable,
     BadGateway,
-    GatewayTimeout
+    GatewayTimeout,
   )
 
   /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)

@@ -66,6 +66,7 @@ object Http {
     * being applied to `fa`
     */
   def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(implicit
-      F: Defer[F]): Http[F, G] =
+      F: Defer[F]
+  ): Http[F, G] =
     Kleisli(req => F.defer(fa.run(f(req))))
 }

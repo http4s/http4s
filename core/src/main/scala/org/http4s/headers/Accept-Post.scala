@@ -35,7 +35,7 @@ object `Accept-Post` {
     Header.createRendered(
       ci"Accept-Post",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Monoid[`Accept-Post`] =

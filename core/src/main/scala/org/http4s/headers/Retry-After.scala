@@ -34,7 +34,8 @@ object `Retry-After` {
     else
       ParseResult.fail(
         "Invalid retry value",
-        s"Retry param $retry must be more or equal than 0 seconds")
+        s"Retry param $retry must be more or equal than 0 seconds",
+      )
 
   def unsafeFromLong(retry: Long): `Retry-After` =
     fromLong(retry).fold(throw _, identity)
@@ -61,7 +62,7 @@ object `Retry-After` {
     Header.createRendered(
       ci"Retry-After",
       _.retry,
-      parse
+      parse,
     )
 
 }

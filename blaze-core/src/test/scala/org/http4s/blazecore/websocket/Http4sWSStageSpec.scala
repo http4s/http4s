@@ -42,7 +42,8 @@ class Http4sWSStageSpec extends Http4sSuite {
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
       closeHook: AtomicBoolean,
-      backendInQ: Queue[IO, WebSocketFrame]) {
+      backendInQ: Queue[IO, WebSocketFrame],
+  ) {
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
         .emits(w)
@@ -105,7 +106,8 @@ class Http4sWSStageSpec extends Http4sSuite {
   }
 
   test(
-    "Http4sWSStage should send a close frame back and call the on close handler upon receiving a close frame") {
+    "Http4sWSStage should send a close frame back and call the on close handler upon receiving a close frame"
+  ) {
     for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Close())

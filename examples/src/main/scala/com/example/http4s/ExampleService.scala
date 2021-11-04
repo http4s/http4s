@@ -41,7 +41,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShi
   def routes(implicit timer: Timer[F]): HttpRoutes[F] =
     Router[F](
       "" -> rootRoutes,
-      "/auth" -> authRoutes
+      "/auth" -> authRoutes,
     )
 
   def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =
@@ -83,8 +83,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShi
         // See also org.http4s.server.staticcontent to create a mountable service for static content
         StaticFile.fromResource(path.toString, blocker, Some(req)).getOrElseF(NotFound())
 
-      ///////////////////////////////////////////////////////////////
-      //////////////// Dealing with the message body ////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////// Dealing with the message body ////////////////
       case req @ POST -> Root / "echo" =>
         // The body can be used in the response
         Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.plain)))
@@ -124,8 +124,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShi
         // Ok(html.submissionForm("sum"))
         Ok("Hello World")
 
-      ///////////////////////////////////////////////////////////////
-      ////////////////////// Blaze examples /////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // //////////////////// Blaze examples /////////////////////////
 
       // You can use the same service for GET and HEAD. For HEAD request,
       // only the Content-Length is sent (if static content)
@@ -148,8 +148,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShi
       case GET -> Root / "overflow" =>
         Ok("foo", `Content-Length`.unsafeFromLong(2))
 
-      ///////////////////////////////////////////////////////////////
-      //////////////// Form encoding example ////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////// Form encoding example ////////////////////////
       case GET -> Root / "form-encoded" =>
         // disabled until twirl supports dotty
         // Ok(html.formEncoded())
@@ -162,8 +162,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShi
           Ok(s"Form Encoded Data\n$s")
         }
 
-      ///////////////////////////////////////////////////////////////
-      //////////////////////// Server Push //////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////////////// Server Push //////////////////////////
       case req @ GET -> Root / "push" =>
         // http4s intends to be a forward looking library made with http2.0 in mind
         val data = <html><body><img src="image.jpg"/></body></html>
@@ -176,8 +176,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShi
           .fromResource("/nasa_blackhole_image.jpg", blocker, Some(req))
           .getOrElseF(NotFound())
 
-      ///////////////////////////////////////////////////////////////
-      //////////////////////// Multi Part //////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////////////// Multi Part //////////////////////////
       case GET -> Root / "form" =>
         // disabled until twirl supports dotty
         // Ok(html.form())

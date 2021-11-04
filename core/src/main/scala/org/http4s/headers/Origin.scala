@@ -96,7 +96,7 @@ object Origin {
             }
 
         },
-      parse
+      parse,
     )
 
 }

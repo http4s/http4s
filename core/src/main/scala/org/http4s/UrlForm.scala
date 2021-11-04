@@ -62,7 +62,8 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
     * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
     */
   def updateFormField[T](key: String, value: Option[T])(implicit
-      ev: QueryParamEncoder[T]): UrlForm =
+      ev: QueryParamEncoder[T]
+  ): UrlForm =
     value.fold(this)(updateFormField(key, _))
 
   /** @param key name of the field
@@ -108,7 +109,8 @@ object UrlForm {
 
   implicit def entityDecoder[F[_]](implicit
       F: Sync[F],
-      defaultCharset: Charset = `UTF-8`): EntityDecoder[F, UrlForm] =
+      defaultCharset: Charset = `UTF-8`,
+  ): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder
@@ -129,8 +131,9 @@ object UrlForm {
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(
-      urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
+  def decodeString(
+      charset: Charset
+  )(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(CollectionCompat.mapValues(q.multiParams)(Chain.fromSeq)))

@@ -48,7 +48,7 @@ sealed abstract class ResponsePrelude extends Product with Serializable {
   final def mapStatus(f: Status => Status): ResponsePrelude =
     withStatus(f(status))
 
-  final override def toString: String =
+  override final def toString: String =
     s"ResponsePrelude(headers = ${headers.redactSensitive()}, httpVersion = ${httpVersion}, status = ${status})"
 }
 
@@ -56,7 +56,7 @@ object ResponsePrelude {
   private[this] final case class ResponsePreludeImpl(
       override final val headers: Headers,
       override final val httpVersion: HttpVersion,
-      override final val status: Status
+      override final val status: Status,
   ) extends ResponsePrelude {
     override final def withHeaders(value: Headers): ResponsePrelude =
       this.copy(headers = value)
@@ -71,19 +71,19 @@ object ResponsePrelude {
   def apply(
       headers: Headers,
       httpVersion: HttpVersion,
-      status: Status
+      status: Status,
   ): ResponsePrelude =
     ResponsePreludeImpl(
       headers,
       httpVersion,
-      status
+      status,
     )
 
   def fromResponse[F[_]](value: Response[F]): ResponsePrelude =
     ResponsePreludeImpl(
       value.headers,
       value.httpVersion,
-      value.status
+      value.status,
     )
 
   implicit val catsHashAndOrderForResponsePrelude
@@ -95,7 +95,7 @@ object ResponsePrelude {
         reduceComparisons(
           x.headers.compare(y.headers),
           Eval.later(x.httpVersion.compare(y.httpVersion)),
-          Eval.later(x.status.compare(y.status))
+          Eval.later(x.status.compare(y.status)),
         )
     }
 

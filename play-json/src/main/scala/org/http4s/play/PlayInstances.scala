@@ -38,7 +38,7 @@ trait PlayInstances {
         .fold(
           _ =>
             DecodeResult.failureT(InvalidMessageBodyFailure(s"Could not decode JSON: $json", None)),
-          DecodeResult.successT(_)
+          DecodeResult.successT(_),
         )
     }
 
@@ -65,7 +65,7 @@ trait PlayInstances {
         .fromString(str)
         .fold(
           _ => Reads(_ => JsError("Invalid uri")),
-          Reads.pure(_)
+          Reads.pure(_),
         )
     }
 

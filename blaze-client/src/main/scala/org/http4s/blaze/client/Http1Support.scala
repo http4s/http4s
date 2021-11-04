@@ -46,7 +46,7 @@ import scala.util.Success
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support[F[_]](
+private final class Http1Support[F[_]](
     sslContextOption: SSLContextOption,
     bufferSize: Int,
     asynchronousChannelGroup: Option[AsynchronousChannelGroup],
@@ -62,14 +62,14 @@ final private class Http1Support[F[_]](
     channelOptions: ChannelOptions,
     connectTimeout: Duration,
     idleTimeout: Duration,
-    getAddress: RequestKey => Either[Throwable, InetSocketAddress]
+    getAddress: RequestKey => Either[Throwable, InetSocketAddress],
 )(implicit F: ConcurrentEffect[F]) {
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
     asynchronousChannelGroup,
     channelOptions,
     scheduler,
-    connectTimeout
+    connectTimeout,
   )
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
@@ -80,7 +80,8 @@ final private class Http1Support[F[_]](
 
   private def buildPipeline(
       requestKey: RequestKey,
-      addr: InetSocketAddress): Future[BlazeConnection[F]] =
+      addr: InetSocketAddress,
+  ): Future[BlazeConnection[F]] =
     connectionManager
       .connect(addr)
       .transformWith {
@@ -99,7 +100,8 @@ final private class Http1Support[F[_]](
 
   private def buildStages(
       requestKey: RequestKey,
-      head: HeadStage[ByteBuffer]): Either[IllegalStateException, BlazeConnection[F]] = {
+      head: HeadStage[ByteBuffer],
+  ): Either[IllegalStateException, BlazeConnection[F]] = {
 
     val idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]] = makeIdleTimeoutStage()
     val ssl: Either[IllegalStateException, Option[SSLStage]] = makeSslStage(requestKey)
@@ -113,7 +115,7 @@ final private class Http1Support[F[_]](
       chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
       userAgent = userAgent,
-      idleTimeoutStage = idleTimeoutStage
+      idleTimeoutStage = idleTimeoutStage,
     )
 
     ssl.map { sslStage =>
@@ -134,7 +136,8 @@ final private class Http1Support[F[_]](
     }
 
   private def makeSslStage(
-      requestKey: RequestKey): Either[IllegalStateException, Option[SSLStage]] =
+      requestKey: RequestKey
+  ): Either[IllegalStateException, Option[SSLStage]] =
     requestKey match {
       case RequestKey(Uri.Scheme.https, auth) =>
         val maybeSSLContext: Option[SSLContext] =
@@ -154,8 +157,11 @@ final private class Http1Support[F[_]](
             Right(Some(new SSLStage(eng)))
 
           case None =>
-            Left(new IllegalStateException(
-              "No SSLContext configured for this client. Try `withSslContext` on the `BlazeClientBuilder`, or do not make https calls."))
+            Left(
+              new IllegalStateException(
+                "No SSLContext configured for this client. Try `withSslContext` on the `BlazeClientBuilder`, or do not make https calls."
+              )
+            )
         }
 
       case _ =>

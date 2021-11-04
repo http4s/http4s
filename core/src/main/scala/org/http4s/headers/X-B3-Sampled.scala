@@ -34,7 +34,7 @@ object `X-B3-Sampled` {
     Header.create(
       ci"X-B3-Sampled",
       v => if (v.sampled) "1" else "0",
-      parse
+      parse,
     )
 
 }
