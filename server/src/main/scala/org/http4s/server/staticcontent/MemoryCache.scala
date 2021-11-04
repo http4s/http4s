@@ -51,7 +51,8 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
   // //////////// private methods //////////////////////////////////////////////
 
   private def collectResource(path: Uri.Path, resp: Response[F])(implicit
-      F: Sync[F]): F[Response[F]] =
+      F: Sync[F]
+  ): F[Response[F]] =
     resp
       .as[Chunk[Byte]]
       .map { chunk =>

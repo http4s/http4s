@@ -29,7 +29,8 @@ trait HeaderSyntax {
     new SelectOpsOne(a)
 
   implicit def http4sSelectSyntaxMultiple[A, H[_]](a: H[A])(implicit
-      select: Header.Select.Aux[A, H]): SelectOpsMultiple[A, H] =
+      select: Header.Select.Aux[A, H]
+  ): SelectOpsMultiple[A, H] =
     new SelectOpsMultiple[A, H](a)
 }
 

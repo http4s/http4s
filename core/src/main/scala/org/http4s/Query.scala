@@ -117,7 +117,8 @@ final class Query private (value: Either[Vector[KeyValue], String])
           s,
           spaceIsPlus = false,
           charset = StandardCharsets.UTF_8,
-          toSkip = UriCoding.QueryNoEncode)
+          toSkip = UriCoding.QueryNoEncode,
+        )
 
       pairs.foreach {
         case (n, None) =>
@@ -135,7 +136,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
       }
       writer
     },
-    raw => writer.append(raw)
+    raw => writer.append(raw),
   )
 
   /** Map[String, String] representation of the [[Query]]

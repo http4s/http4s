@@ -57,7 +57,8 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
       Source
         .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
         .getLines()
-        .mkString)
+        .mkString
+    )
 
   servletServer.test("AsyncHttp4sServlet handle GET requests") { server =>
     get(server, "simple").assertEquals("simple")
@@ -109,7 +110,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
   lazy val servlet = new AsyncHttp4sServlet[IO](
     service = service,
     servletIo = NonBlockingServletIo[IO](4096),
-    serviceErrorHandler = DefaultServiceErrorHandler[IO]
+    serviceErrorHandler = DefaultServiceErrorHandler[IO],
   )
 
   lazy val serverPortR = Resource

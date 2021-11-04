@@ -121,12 +121,15 @@ Content-Type: application/pdf
       """.replace("\n", "\r\n")
       val header = Headers(
         `Content-Type`(
-          MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
+          MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))
+        )
+      )
       val request = Request[IO](
         method = Method.POST,
         uri = url,
         body = Stream.emit(body).covary[IO].through(text.utf8Encode),
-        headers = header)
+        headers = header,
+      )
 
       val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
       val result = decoded.value.map(_.isRight)
@@ -149,12 +152,15 @@ I am a big moose
       """.replace("\n", "\r\n")
       val header = Headers(
         `Content-Type`(
-          MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
+          MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))
+        )
+      )
       val request = Request[IO](
         method = Method.POST,
         uri = url,
         body = Stream.emit(body).through(text.utf8Encode),
-        headers = header)
+        headers = header,
+      )
       val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
       val result = decoded.value.map(_.isRight)
 
@@ -164,21 +170,24 @@ I am a big moose
     test(s"Multipart form data $name should extract name properly if it is present") {
       val part = Part(
         Headers(`Content-Disposition`("form-data", Map(ci"name" -> "Rich Homie Quan"))),
-        Stream.empty.covary[IO])
+        Stream.empty.covary[IO],
+      )
       assertEquals(part.name, Some("Rich Homie Quan"))
     }
 
     test(s"Multipart form data $name should extract filename property if it is present") {
       val part = Part(
         Headers(
-          `Content-Disposition`("form-data", Map(ci"name" -> "file", ci"filename" -> "file.txt"))),
-        Stream.empty.covary[IO]
+          `Content-Disposition`("form-data", Map(ci"name" -> "file", ci"filename" -> "file.txt"))
+        ),
+        Stream.empty.covary[IO],
       )
       assertEquals(part.filename, Some("file.txt"))
     }
 
     test(
-      s"Multipart form data $name should include chunked transfer encoding header so that body is streamed by client") {
+      s"Multipart form data $name should include chunked transfer encoding header so that body is streamed by client"
+    ) {
       val multipart = Multipart(Vector())
       val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
       assert(request.isChunked)

@@ -60,7 +60,8 @@ object Forwarded extends ForwardedRenderers {
       def ofInet4Address(address: Inet4Address): Name =
         Ipv4(Ipv4Address.fromInet4Address(address))
       def ofIpv4Address(a: Byte, b: Byte, c: Byte, d: Byte): Name = Ipv4(
-        Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
+        Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt)
+      )
 
       def ofInet6Address(address: Inet6Address): Name =
         Ipv6(Ipv6Address.fromInet6Address(address))
@@ -73,7 +74,8 @@ object Forwarded extends ForwardedRenderers {
           e: Short,
           f: Short,
           g: Short,
-          h: Short): Name = {
+          h: Short,
+      ): Name = {
         val bb = ByteBuffer.allocate(16)
         bb.putShort(a)
         bb.putShort(b)
@@ -153,7 +155,7 @@ object Forwarded extends ForwardedRenderers {
               .between(P.char('['), P.char(']'))
               .map(Node.Name.Ipv6.apply),
             P.string("unknown").as(Node.Name.Unknown),
-            Obfuscated.parser
+            Obfuscated.parser,
           )
         )
 
@@ -184,7 +186,8 @@ object Forwarded extends ForwardedRenderers {
       */
     private[http4s] def fromHostAndMaybePort(
         uriHost: Uri.Host,
-        port: Option[Int]): ParseResult[Host] =
+        port: Option[Int],
+    ): ParseResult[Host] =
       port.fold(ofHost(uriHost).asRight[ParseFailure])(fromHostAndPort(uriHost, _))
 
     /** Creates [[Host]] from [[Uri.host]] and [[Uri.port]] parts of the given [[Uri]].
@@ -257,8 +260,8 @@ object Forwarded extends ForwardedRenderers {
         maybeBy: Option[Node] = None,
         maybeFor: Option[Node] = None,
         maybeHost: Option[Host] = None,
-        maybeProto: Option[Proto] = None)
-        extends Element {
+        maybeProto: Option[Proto] = None,
+    ) extends Element {
 
       def withBy(value: Node): Element = copy(maybeBy = Some(value))
       def withFor(value: Node): Element = copy(maybeFor = Some(value))
@@ -317,7 +320,8 @@ object Forwarded extends ForwardedRenderers {
         .orElse(Rfc7230.quotedString)
         .flatMap(str =>
           p.parseAll(str)
-            .fold(_ => P.fail[A], P.pure)) // this looks not very good
+            .fold(_ => P.fail[A], P.pure)
+        ) // this looks not very good
 
     // forwarded-pair = token "=" value
     // The syntax of a "by" value, after potential quoted-string unescaping
@@ -350,7 +354,8 @@ object Forwarded extends ForwardedRenderers {
                 P.char('=') *> quoted(proto).map(p => Pair(Element.fromProto(p), _.withProto(p)))
               case other =>
                 P.failWith(s"expected parameters: 'by', 'for', 'host' or 'proto', but got '$other'")
-            })
+            }
+          )
       )
     )
 
@@ -371,7 +376,7 @@ object Forwarded extends ForwardedRenderers {
     Header.createRendered(
       name,
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =

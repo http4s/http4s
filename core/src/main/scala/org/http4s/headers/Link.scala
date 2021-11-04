@@ -68,7 +68,8 @@ object Link {
 
       val typeParser = {
         val mediaRange = string("type=") *> MediaRange.parser.orElse(
-          string("\"") *> MediaRange.parser <* string("\""))
+          string("\"") *> MediaRange.parser <* string("\"")
+        )
         mediaRange.map(tpe => Type(tpe))
       }
 
@@ -96,7 +97,7 @@ object Link {
     Header.createRendered(
       ci"Link",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Link] =

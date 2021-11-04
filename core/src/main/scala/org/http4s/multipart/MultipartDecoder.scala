@@ -33,7 +33,8 @@ private[http4s] object MultipartDecoder {
               .compile
               .toVector
               .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
+                Right(Multipart(parts, Boundary(boundary)))
+              )
               .handleError {
                 case e: InvalidMessageBodyFailure => Left(e)
                 case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
@@ -41,7 +42,8 @@ private[http4s] object MultipartDecoder {
           }
         case None =>
           DecodeResult.failureT(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
+            InvalidMessageBodyFailure("Missing boundary extension to Content-Type")
+          )
       }
     }
 
@@ -76,7 +78,8 @@ private[http4s] object MultipartDecoder {
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
-      failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+      failOnLimit: Boolean = false,
+  ): EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
@@ -89,11 +92,14 @@ private[http4s] object MultipartDecoder {
                   headerLimit,
                   maxSizeBeforeWrite,
                   maxParts,
-                  failOnLimit))
+                  failOnLimit,
+                )
+              )
               .compile
               .toVector
               .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
+                Right(Multipart(parts, Boundary(boundary)))
+              )
               .handleError {
                 case e: InvalidMessageBodyFailure => Left(e)
                 case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
@@ -101,7 +107,8 @@ private[http4s] object MultipartDecoder {
           }
         case None =>
           DecodeResult.failureT(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
+            InvalidMessageBodyFailure("Missing boundary extension to Content-Type")
+          )
       }
     }
 }

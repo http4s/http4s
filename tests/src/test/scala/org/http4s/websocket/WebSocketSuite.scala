@@ -109,7 +109,8 @@ class WebSocketSuite extends Http4sSuite {
   }
 
   test(
-    "WebSocket decoder should refuse to encode a close message with a reason that is too large") {
+    "WebSocket decoder should refuse to encode a close message with a reason that is too large"
+  ) {
     val validCloseCode = 1000
 
     forAll { (reason: String) =>

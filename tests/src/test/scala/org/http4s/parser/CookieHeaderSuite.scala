@@ -37,7 +37,8 @@ class CookieHeaderSuite extends munit.FunSuite {
     assertEquals(
       parse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);").values,
       NonEmptyList.one(
-        RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)"))
+        RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")
+      ),
     )
   }
 }

@@ -36,7 +36,7 @@ object `Last-Event-Id` {
     Header.create(
       ci"Last-Event-Id",
       _.id.value,
-      parse
+      parse,
     )
 
 }

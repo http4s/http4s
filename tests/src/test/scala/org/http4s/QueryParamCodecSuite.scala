@@ -77,11 +77,13 @@ class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   // Law checks for instances.
   checkAll(
     "Functor[QueryParamDecoder]",
-    FunctorTests[QueryParamDecoder].functor[Int, String, Boolean])
+    FunctorTests[QueryParamDecoder].functor[Int, String, Boolean],
+  )
   checkAll("MonoidK[QueryParamDecoder]", MonoidKTests[QueryParamDecoder].monoidK[Int])
   checkAll(
     "Contravariant[QueryParamEncoder]",
-    ContravariantTests[QueryParamEncoder].contravariant[Int, String, Boolean])
+    ContravariantTests[QueryParamEncoder].contravariant[Int, String, Boolean],
+  )
 
   // The PlusEmpty check above validates fail() but we need an explicit test for success().
   test("success(a) always succeeds") {
@@ -176,14 +178,16 @@ trait QueryParamCodecInstances {
     QueryParamCodec.monthDay(DateTimeFormatter.ofPattern("--MM-dd"))
 
   implicit val yearQueryParamCodec: QueryParamCodec[Year] = QueryParamCodec.year(
-    new DateTimeFormatterBuilder().appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD).toFormatter)
+    new DateTimeFormatterBuilder().appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD).toFormatter
+  )
 
   implicit val yearMonthQueryParamCodec: QueryParamCodec[YearMonth] = QueryParamCodec.yearMonth(
     new DateTimeFormatterBuilder()
       .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
       .appendLiteral('-')
       .appendValue(MONTH_OF_YEAR, 2)
-      .toFormatter)
+      .toFormatter
+  )
 
   implicit val zoneOffsetQueryParamCodec: QueryParamCodec[ZoneOffset] =
     QueryParamCodec.zoneOffset(DateTimeFormatter.ofPattern("XXXXX"))

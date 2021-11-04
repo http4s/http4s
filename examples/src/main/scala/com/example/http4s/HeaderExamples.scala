@@ -40,7 +40,7 @@ object HeaderExamples {
   val myHeaders = Headers(
     Foo("hello"),
     "my" -> "header",
-    baz
+    baz,
   )
   // //// test for selection
   case class Bar(v: NonEmptyList[String])
@@ -73,7 +73,7 @@ object HeaderExamples {
     Foo("two"),
     SetCookie("cookie1", "a cookie"),
     Bar(NonEmptyList.one("three")),
-    SetCookie("cookie2", "another cookie")
+    SetCookie("cookie2", "another cookie"),
   )
 
   val a = hs.get[Foo]
@@ -98,7 +98,7 @@ object HeaderExamples {
     "a" -> "b",
     Option("a" -> "c"),
     List("a" -> "c"),
-    List(SetCookie("cookie3", "cookie three"))
+    List(SetCookie("cookie3", "cookie three")),
     // ,
     // Option(List("a" -> "c")) // correctly fails to compile
   )

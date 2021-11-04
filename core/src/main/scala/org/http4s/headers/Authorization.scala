@@ -39,7 +39,7 @@ object Authorization {
     Header.createRendered(
       name,
       _.credentials,
-      parse
+      parse,
     )
 }
 

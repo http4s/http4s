@@ -56,14 +56,15 @@ object Metrics {
       ops: MetricsOps[F],
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
-      })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
+      },
+  )(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF))
 
   private def withMetrics[F[_]](
       client: Client[F],
       ops: MetricsOps[F],
-      classifierF: Request[F] => Option[String])(
-      req: Request[F])(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
+      classifierF: Request[F] => Option[String],
+  )(req: Request[F])(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
     for {
       statusRef <- Resource.eval(Ref.of[F, Option[Status]](None))
       start <- Resource.eval(clock.monotonic(TimeUnit.NANOSECONDS))
@@ -73,7 +74,7 @@ object Metrics {
         classifierF,
         req,
         statusRef,
-        start
+        start,
       )
     } yield resp
 
@@ -83,18 +84,22 @@ object Metrics {
       classifierF: Request[F] => Option[String],
       req: Request[F],
       statusRef: Ref[F, Option[Status]],
-      start: Long
+      start: Long,
   )(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
     (for {
       _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
-        ops.decreaseActiveRequests(classifierF(req)))
+        ops.decreaseActiveRequests(classifierF(req))
+      )
       _ <- Resource.make(F.unit) { _ =>
         clock
           .monotonic(TimeUnit.NANOSECONDS)
           .flatMap(now =>
             statusRef.get.flatMap(oStatus =>
               oStatus.traverse_(status =>
-                ops.recordTotalTime(req.method, status, now - start, classifierF(req)))))
+                ops.recordTotalTime(req.method, status, now - start, classifierF(req))
+              )
+            )
+          )
       }
       resp <- client.run(req)
       _ <- Resource.eval(statusRef.set(Some(resp.status)))
@@ -105,7 +110,8 @@ object Metrics {
     }
 
   private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(
-      e: Throwable)(implicit F: Sync[F], clock: Clock[F]): F[Unit] =
+      e: Throwable
+  )(implicit F: Sync[F], clock: Clock[F]): F[Unit] =
     clock
       .monotonic(TimeUnit.NANOSECONDS)
       .flatMap { now =>

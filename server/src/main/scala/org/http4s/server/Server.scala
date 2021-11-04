@@ -44,8 +44,9 @@ abstract class Server {
               logger.warn(s"Unexpected address type ${weird.getClass}: $weird")
               Uri.RegName(weird.getHostAddress)
           },
-          port = Some(address.getPort)
-        )),
-      path = Uri.Path.Root
+          port = Some(address.getPort),
+        )
+      ),
+      path = Uri.Path.Root,
     )
 }

@@ -41,7 +41,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShi
   def routes(implicit timer: Timer[F]): HttpRoutes[F] =
     Router[F](
       "" -> rootRoutes,
-      "/auth" -> authRoutes
+      "/auth" -> authRoutes,
     )
 
   def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =

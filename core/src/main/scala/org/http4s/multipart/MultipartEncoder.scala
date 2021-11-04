@@ -79,7 +79,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
         .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
           acc ++
             renderPart(
-              Chunk.bytes(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(
-              part)
+              Chunk.bytes(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8))
+            )(part)
         } ++ Stream.chunk(end(boundary))
 }

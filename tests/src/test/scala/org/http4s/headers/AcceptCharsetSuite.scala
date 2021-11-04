@@ -57,7 +57,8 @@ class AcceptCharsetSuite extends HeaderLaws {
   test("AcceptCharset rejects charset matching splat with q=0") {
     val acceptCharset = `Accept-Charset`(
       CharsetRange.*.withQValue(QValue.Zero),
-      CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
+      CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"),
+    )
     assertEquals(acceptCharset.qValue(Charset.`UTF-8`), QValue.Zero)
   }
 

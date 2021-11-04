@@ -80,7 +80,8 @@ class CSRFSuite extends Http4sSuite {
       _.withClock(testClock)
         .withCookieName(cookieName)
         .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](headerName.toString, FunctionK.id))
-        .build)
+        .build
+    )
 
   private val csrfCatchFailureIO: IO[CSRF[IO, IO]] = CSRF
     .withGeneratedKey[IO, IO](defaultOriginCheck)
@@ -91,7 +92,8 @@ class CSRFSuite extends Http4sSuite {
           Response[IO](status = Status.SeeOther, headers = Headers(Location(uri"/")))
             .removeCookie(cookieName)
         )
-        .build)
+        .build
+    )
 
   // /
 
@@ -218,7 +220,8 @@ class CSRFSuite extends Http4sSuite {
         csrf.embedInRequestCookie(
           Request[IO](POST)
             .putHeaders(headerName.toString -> unlift(token), Referer(uri"http://localhost/lol")),
-          token)
+          token,
+        )
       )
     } yield assertEquals(res.status, Status.Ok)
   }
@@ -241,7 +244,8 @@ class CSRFSuite extends Http4sSuite {
           .putHeaders(
             headerName.toString -> unlift(token),
             "Origin" -> "http://example.com",
-            Referer(uri"http://example.com/lol"))
+            Referer(uri"http://example.com/lol"),
+          )
           .addCookie(cookieName, unlift(token))
       )
     } yield assertEquals(res.status, Status.Forbidden)
@@ -337,7 +341,8 @@ class CSRFSuite extends Http4sSuite {
       for {
         csrfCatchFailure <- csrfCatchFailureIO
         response <- csrfCatchFailure.validate()(dummyRoutes)(
-          passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
+          passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE"))
+        )
       } yield {
         assertEquals(response.status, Status.SeeOther)
         assert(response.cookies.exists(_.name == cookieName))
@@ -351,7 +356,8 @@ class CSRFSuite extends Http4sSuite {
         oldToken <- csrfCatchFailure.generateToken[IO]
         oldRaw <- IO.fromEither(csrfCatchFailure.extractRaw(unlift(oldToken)))
         response <- csrfCatchFailure.validate()(dummyRoutes)(
-          csrf.embedInRequestCookie(passThroughRequest, oldToken))
+          csrf.embedInRequestCookie(passThroughRequest, oldToken)
+        )
         newCookie =
           response.cookies
             .find(_.name == cookieName)
@@ -390,7 +396,8 @@ class CSRFSuite extends Http4sSuite {
             .putHeaders(
               headerName.toString -> unlift(token),
               "Origin" -> "http://example.com",
-              Referer(uri"http://example.com/lol"))
+              Referer(uri"http://example.com/lol"),
+            )
             .addCookie(cookieName, unlift(token))
         )
       } yield assertEquals(res.status, Status.SeeOther)

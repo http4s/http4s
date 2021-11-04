@@ -29,8 +29,8 @@ import scala.concurrent._
 private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
     implicit
     protected val F: Effect[F],
-    protected val ec: ExecutionContext)
-    extends Http1Writer[F] {
+    protected val ec: ExecutionContext,
+) extends Http1Writer[F] {
   import ChunkWriter._
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
@@ -47,5 +47,6 @@ private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], tra
   override def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     // It may be a while before we get another chunk, so we flush now
     pipe.channelWrite(
-      List(Http1Writer.headersToByteBuffer(headerWriter.result), TransferEncodingChunked))
+      List(Http1Writer.headersToByteBuffer(headerWriter.result), TransferEncodingChunked)
+    )
 }

@@ -135,7 +135,7 @@ trait ReadSerializer[I] extends TailStage[I] {
       .onComplete { t =>
         serializerReadRef.compareAndSet(
           p.future,
-          null
+          null,
         ) // don't hold our reference if the queue is idle
         p.complete(t)
       }(directec)

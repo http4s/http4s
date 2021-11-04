@@ -30,7 +30,8 @@ private[http4s] object UriCoding {
       toEncode: String,
       charset: JCharset,
       spaceIsPlus: Boolean,
-      toSkip: Char => Boolean): String = {
+      toSkip: Char => Boolean,
+  ): String = {
     val in = charset.encode(toEncode)
     val out = CharBuffer.allocate((in.remaining() * 3).toInt)
     while (in.hasRemaining) {

@@ -43,7 +43,7 @@ object `Proxy-Authorization` {
     Header.createRendered(
       ci"Proxy-Authorization",
       _.credentials,
-      parse
+      parse,
     )
 
 }

@@ -72,7 +72,8 @@ class BlazeServerSuite extends Http4sSuite {
     ResourceFixture[Server](
       serverR,
       (_: TestOptions, _: Server) => IO.unit,
-      (_: Server) => IO.sleep(100.milliseconds) *> IO.unit)
+      (_: Server) => IO.sleep(100.milliseconds) *> IO.unit,
+    )
 
   // This should be in IO and shifted but I'm tired of fighting this.
   def get(server: Server, path: String): IO[String] = IO {
@@ -109,7 +110,8 @@ class BlazeServerSuite extends Http4sSuite {
       server: Server,
       path: String,
       boundary: String,
-      body: String): IO[String] =
+      body: String,
+  ): IO[String] =
     IO {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
@@ -178,7 +180,8 @@ class BlazeServerSuite extends Http4sSuite {
         .withSocketSendBufferSize(8192)
         .withDefaultSocketSendBufferSize
         .socketSendBufferSize,
-      None)
+      None,
+    )
   }
   blazeServer.test("ChannelOptions should unset socket receive buffer size") { _ =>
     assertEquals(
@@ -186,7 +189,8 @@ class BlazeServerSuite extends Http4sSuite {
         .withSocketReceiveBufferSize(8192)
         .withDefaultSocketReceiveBufferSize
         .socketReceiveBufferSize,
-      None)
+      None,
+    )
   }
   blazeServer.test("ChannelOptions should unset socket keepalive") { _ =>
     assertEquals(builder.withSocketKeepAlive(true).withDefaultSocketKeepAlive.socketKeepAlive, None)
@@ -197,7 +201,8 @@ class BlazeServerSuite extends Http4sSuite {
         .withSocketReuseAddress(true)
         .withDefaultSocketReuseAddress
         .socketReuseAddress,
-      None)
+      None,
+    )
   }
   blazeServer.test("ChannelOptions should unset TCP nodelay") { _ =>
     assertEquals(builder.withTcpNoDelay(true).withDefaultTcpNoDelay.tcpNoDelay, None)
@@ -208,6 +213,7 @@ class BlazeServerSuite extends Http4sSuite {
         .withSocketSendBufferSize(8192)
         .withSocketSendBufferSize(4096)
         .socketSendBufferSize,
-      Some(4096))
+      Some(4096),
+    )
   }
 }

@@ -45,7 +45,7 @@ object Age {
     Header.createRendered(
       ci"Age",
       _.age,
-      parse
+      parse,
     )
 }
 

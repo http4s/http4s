@@ -32,6 +32,6 @@ object `X-Forwarded-Proto` {
     Header.createRendered(
       ci"X-Forwarded-Proto",
       _.scheme,
-      parse
+      parse,
     )
 }

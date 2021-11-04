@@ -57,13 +57,18 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
     val scheme = "foo"
     assertEquals(
       hparse("foo abc = \"123 yeah\tyeah yeah\""),
-      Right(Authorization(
-        Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
+      Right(
+        Authorization(
+          Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))
+        )
+      ),
     )
     assertEquals(
       // quoted-pair
       hparse("foo abc = \"\\123\""),
       Right(
-        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))))
+        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))
+      ),
+    )
   }
 }

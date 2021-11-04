@@ -30,7 +30,8 @@ trait Media[F[_]] {
 
   final def bodyText(implicit
       RT: RaiseThrowable[F],
-      defaultCharset: Charset = `UTF-8`): Stream[F, String] =
+      defaultCharset: Charset = `UTF-8`,
+  ): Stream[F, String] =
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition

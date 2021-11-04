@@ -48,7 +48,8 @@ class ServerSentEventSpec extends Http4sSuite {
       .assertEquals(
         Vector(
           ServerSentEvent(data = "YHOO\n+2\n10".some)
-        ))
+        )
+      )
   }
 
   test("a lone comment is a valid event") {
@@ -62,7 +63,8 @@ class ServerSentEventSpec extends Http4sSuite {
       .assertEquals(
         Vector(
           ServerSentEvent(comment = "hello".some)
-        ))
+        )
+      )
   }
 
   test("decode should decode test stream") {
@@ -81,14 +83,17 @@ class ServerSentEventSpec extends Http4sSuite {
       .through(ServerSentEvent.decoder)
       .compile
       .toVector
-      .assertEquals(Vector(
-        ServerSentEvent(
-          data = "first event".some,
-          id = Some(EventId("1")),
-          comment = Some("test stream")),
-        ServerSentEvent(data = "second event".some, id = Some(EventId.reset)),
-        ServerSentEvent(data = " third event".some, id = None)
-      ))
+      .assertEquals(
+        Vector(
+          ServerSentEvent(
+            data = "first event".some,
+            id = Some(EventId("1")),
+            comment = Some("test stream"),
+          ),
+          ServerSentEvent(data = "second event".some, id = Some(EventId.reset)),
+          ServerSentEvent(data = " third event".some, id = None),
+        )
+      )
   }
 
   test("decode should fire empty events") {
@@ -109,8 +114,9 @@ class ServerSentEventSpec extends Http4sSuite {
         Vector(
           ServerSentEvent(data = "".some),
           ServerSentEvent(data = "\n".some),
-          ServerSentEvent(data = "".some)
-        ))
+          ServerSentEvent(data = "".some),
+        )
+      )
   }
 
   test("decode should ignore single space after colon") {
@@ -127,8 +133,9 @@ class ServerSentEventSpec extends Http4sSuite {
       .assertEquals(
         Vector(
           ServerSentEvent(data = "test".some),
-          ServerSentEvent(data = "test".some)
-        ))
+          ServerSentEvent(data = "test".some),
+        )
+      )
   }
 
   test("encode should be consistent with decode") {
@@ -151,7 +158,8 @@ class ServerSentEventSpec extends Http4sSuite {
       " a".some,
       Some(" b"),
       Some(EventId(" c")),
-      Some(FiniteDuration(1, TimeUnit.MILLISECONDS)))
+      Some(FiniteDuration(1, TimeUnit.MILLISECONDS)),
+    )
     Stream
       .emit(sse)
       .covary[IO]
@@ -168,7 +176,8 @@ class ServerSentEventSpec extends Http4sSuite {
   test("EntityEncoder[ServerSentEvent] should set Content-Type to text/event-stream") {
     assertEquals(
       Response[IO]().withEntity(eventStream).contentType,
-      Some(`Content-Type`(MediaType.`text/event-stream`)))
+      Some(`Content-Type`(MediaType.`text/event-stream`)),
+    )
   }
 
   test("EntityEncoder[ServerSentEvent] should decode to original event stream") {

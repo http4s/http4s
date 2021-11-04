@@ -55,7 +55,8 @@ object Credentials {
     def apply(
         authScheme: AuthScheme,
         param: (String, String),
-        params: (String, String)*): AuthParams =
+        params: (String, String)*
+    ): AuthParams =
       apply(authScheme, NonEmptyList(param, params.toList))
   }
 }
@@ -63,7 +64,8 @@ object Credentials {
 final case class BasicCredentials(
     username: String,
     password: String,
-    charset: JavaCharset = StandardCharsets.UTF_8) {
+    charset: JavaCharset = StandardCharsets.UTF_8,
+) {
   lazy val token = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(charset)

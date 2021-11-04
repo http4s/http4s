@@ -39,8 +39,9 @@ class Http1WriterSpec extends Http4sSuite {
 
   case object Failed extends RuntimeException
 
-  final def writeEntityBody(p: EntityBody[IO])(
-      builder: TailStage[ByteBuffer] => Http1Writer[IO]): IO[String] = {
+  final def writeEntityBody(
+      p: EntityBody[IO]
+  )(builder: TailStage[ByteBuffer] => Http1Writer[IO]): IO[String] = {
     val tail = new TailStage[ByteBuffer] {
       override def name: String = "TestTail"
     }
@@ -116,7 +117,8 @@ class Http1WriterSpec extends Http4sSuite {
         }
       }
       val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[IO]) ++ chunk(
-        Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
+        Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1))
+      )
       writeEntityBody(p)(builder)
         .assertEquals("Content-Type: text/plain\r\nContent-Length: 9\r\n\r\n" + "foofoobar")
     }
@@ -124,11 +126,13 @@ class Http1WriterSpec extends Http4sSuite {
 
   runNonChunkedTests(
     "CachingChunkWriter",
-    tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false))
+    tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false),
+  )
 
   runNonChunkedTests(
     "CachingStaticWriter",
-    tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false))
+    tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false),
+  )
 
   def builder(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
     new FlushingChunkWriter[IO](tail, IO.pure(Headers.empty))
@@ -231,7 +235,8 @@ class Http1WriterSpec extends Http4sSuite {
             |Hello world!
             |0
             |
-            |""".stripMargin.replace("\n", "\r\n"))
+            |""".stripMargin.replace("\n", "\r\n")
+      )
       c <- clean.get
       _ <- clean.set(false)
       p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalizeWeak(clean.set(true))
@@ -287,7 +292,8 @@ class Http1WriterSpec extends Http4sSuite {
   }
 
   test(
-    "FlushingChunkWriter should Execute cleanup on a failing Http1Writer with a failing process") {
+    "FlushingChunkWriter should Execute cleanup on a failing Http1Writer with a failing process"
+  ) {
     (for {
       clean <- Ref.of[IO, Boolean](false)
       p = eval(IO.raiseError(Failed)).onFinalizeWeak(clean.set(true))
@@ -300,7 +306,8 @@ class Http1WriterSpec extends Http4sSuite {
     def builderWithTrailer(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
       new FlushingChunkWriter[IO](
         tail,
-        IO.pure(Headers(Header.Raw(ci"X-Trailer", "trailer header value"))))
+        IO.pure(Headers(Header.Raw(ci"X-Trailer", "trailer header value"))),
+      )
 
     val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
 

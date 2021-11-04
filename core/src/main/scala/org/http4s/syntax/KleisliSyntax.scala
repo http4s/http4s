@@ -26,7 +26,8 @@ import cats.~>
 
 trait KleisliSyntax {
   implicit def http4sKleisliResponseSyntaxOptionT[F[_]: Functor, A](
-      kleisli: Kleisli[OptionT[F, *], A, Response[F]]): KleisliResponseOps[F, A] =
+      kleisli: Kleisli[OptionT[F, *], A, Response[F]]
+  ): KleisliResponseOps[F, A] =
     new KleisliResponseOps[F, A](kleisli)
 }
 
@@ -40,7 +41,8 @@ trait KleisliSyntaxBinCompat0 {
 
 trait KleisliSyntaxBinCompat1 {
   implicit def http4sKleisliAuthedRoutesSyntax[F[_], A](
-      authedRoutes: AuthedRoutes[A, F]): KleisliAuthedRoutesOps[F, A] =
+      authedRoutes: AuthedRoutes[A, F]
+  ): KleisliAuthedRoutesOps[F, A] =
     new KleisliAuthedRoutesOps[F, A](authedRoutes)
 }
 

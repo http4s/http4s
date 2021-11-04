@@ -28,8 +28,8 @@ object LanguageTag {
 final case class LanguageTag(
     primaryTag: String,
     q: QValue = QValue.One,
-    subTags: List[String] = Nil)
-    extends Renderable {
+    subTags: List[String] = Nil,
+) extends Renderable {
   @deprecated("Use languageTag.withQValue", "0.16.1")
   def withQuality(q: QValue): LanguageTag = LanguageTag(primaryTag, q, subTags)
 
