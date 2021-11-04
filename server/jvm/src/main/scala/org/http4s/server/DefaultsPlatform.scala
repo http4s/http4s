@@ -16,7 +16,8 @@
 
 package org.http4s.server
 
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.InetAddress
+import java.net.InetSocketAddress
 
 private[server] trait DefaultsPlatform { self: defaults.type =>
 

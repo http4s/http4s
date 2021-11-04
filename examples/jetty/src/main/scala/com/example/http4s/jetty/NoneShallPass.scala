@@ -16,9 +16,11 @@
 
 package com.example.http4s.jetty
 
-import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.servlet.DefaultFilter
+
+import javax.servlet._
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 object NoneShallPass extends DefaultFilter {
   override def doHttpFilter(

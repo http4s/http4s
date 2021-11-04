@@ -16,13 +16,19 @@
 
 package org.http4s
 
-import cats.{Foldable, Hash, Order, Semigroup, Show}
+import cats.Foldable
+import cats.Hash
+import cats.Order
+import cats.Semigroup
+import cats.Show
+import cats.data.Ior
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.typelevel.ci.CIString
 import org.http4s.internal.CharPredicate
-import org.http4s.util.{Renderer, StringWriter, Writer}
-import cats.data.Ior
+import org.http4s.util.Renderer
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 /** Typeclass representing an HTTP header, which all the http4s
   * default headers satisfy.
@@ -48,7 +54,7 @@ trait Header[A, T <: Header.Type] {
 }
 
 object Header {
-  final case class Raw(val name: CIString, val value: String) {
+  final case class Raw(name: CIString, value: String) {
     override def toString: String = s"${name}: ${value}"
 
     /** True if [[name]] is a valid field-name per RFC7230.  Where it
@@ -90,8 +96,8 @@ object Header {
     * times.
     */
   sealed trait Type
-  case class Single() extends Type
-  case class Recurring() extends Type
+  final case class Single() extends Type
+  final case class Recurring() extends Type
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
 

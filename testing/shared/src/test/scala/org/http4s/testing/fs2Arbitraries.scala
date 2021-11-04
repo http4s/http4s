@@ -17,8 +17,9 @@
 package org.http4s.testing
 
 import fs2.Chunk
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 
 /** Arbitraries for fs2 types that aren't ours to publish. */
 object fs2Arbitraries {

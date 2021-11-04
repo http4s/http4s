@@ -16,29 +16,39 @@
 
 package org.http4s.ember.client.internal
 
-import org.http4s.ember.client._
-import fs2.io.net._
+import _root_.fs2.io.net.SocketGroup
+import _root_.fs2.io.net.tls._
+import _root_.org.http4s.ember.core.Encoder
+import _root_.org.http4s.ember.core.Parser
+import _root_.org.http4s.ember.core.Util._
 import cats._
 import cats.data.NonEmptyList
-import cats.effect.kernel.{Async, Clock, Concurrent, Ref, Resource, Sync}
+import cats.effect.kernel.Async
+import cats.effect.kernel.Clock
+import cats.effect.kernel.Concurrent
+import cats.effect.kernel.Ref
+import cats.effect.kernel.Resource
+import cats.effect.kernel.Sync
 import cats.syntax.all._
-
-import scala.concurrent.duration._
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
+import fs2.io.ClosedChannelException
+import fs2.io.net._
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
+import org.http4s.ember.client._
 import org.http4s.ember.core.EmberException
+import org.http4s.headers.Connection
+import org.http4s.headers.Date
+import org.http4s.headers.`Idempotency-Key`
+import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
-import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.fs2.io.net.SocketGroup
-import _root_.fs2.io.net.tls._
 import org.typelevel.keypool._
 
-import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
-import _root_.org.http4s.ember.core.Util._
-import com.comcast.ip4s.{Host, Port, SocketAddress}
-import fs2.io.ClosedChannelException
 import java.io.IOException
+import scala.concurrent.duration._
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: Sync](

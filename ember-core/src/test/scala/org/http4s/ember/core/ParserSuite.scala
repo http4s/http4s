@@ -16,16 +16,16 @@
 
 package org.http4s.ember.core
 
-import cats.effect.std.Queue
-import org.http4s._
-import org.http4s.implicits._
-import scodec.bits.ByteVector
-import fs2._
-import cats.effect._
 import cats.data.OptionT
+import cats.effect._
+import cats.effect.std.Queue
 import cats.syntax.all._
+import fs2._
+import org.http4s._
 import org.http4s.headers.Expires
+import org.http4s.implicits._
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 class ParsingSuite extends Http4sSuite {
   object Helpers {
@@ -105,7 +105,7 @@ class ParsingSuite extends Http4sSuite {
       |""".stripMargin
     val expected = Request[IO](
       Method.GET,
-      Uri.unsafeFromString("www.google.com"),
+      uri"www.google.com",
       headers = Headers(org.http4s.headers.Host("www.google.com"))
     )
 
@@ -132,7 +132,7 @@ class ParsingSuite extends Http4sSuite {
       |Content-Type: text/plain; charset=UTF-8
       |
       |Entity Here""".stripMargin
-    val expected = Request[IO](Method.POST, Uri.unsafeFromString("/foo"))
+    val expected = Request[IO](Method.POST, uri"/foo")
       .withEntity("Entity Here")
 
     val result = Helpers.parseRequestRig[IO](raw)
@@ -159,7 +159,7 @@ class ParsingSuite extends Http4sSuite {
         |Accept: */*
         |
         |""".stripMargin
-    val expected = Request[IO](Method.GET, Uri.unsafeFromString("/foo"))
+    val expected = Request[IO](Method.GET, uri"/foo")
 
     val result = Helpers.parseRequestRig[IO](raw)
 

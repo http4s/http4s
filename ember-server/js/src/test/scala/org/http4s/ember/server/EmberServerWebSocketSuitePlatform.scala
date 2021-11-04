@@ -33,13 +33,13 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
 
   val ws = js.Dynamic.global.require("ws")
 
-  case class Client(
-      waitOpen: Deferred[IO, Unit],
-      waitClose: Deferred[IO, Unit],
-      error: Deferred[IO, Throwable],
-      messages: Queue[IO, String],
-      pongs: Queue[IO, String],
-      client: js.Dynamic) {
+  class Client(
+      val waitOpen: Deferred[IO, Unit],
+      val waitClose: Deferred[IO, Unit],
+      val error: Deferred[IO, Throwable],
+      val messages: Queue[IO, String],
+      val pongs: Queue[IO, String],
+      val client: js.Dynamic) {
     def connect: IO[Unit] = error.get.race(waitOpen.get).rethrow
     def close: IO[Unit] = IO(client.close(1000)) >> error.get.race(waitClose.get).rethrow
     def send(msg: String): IO[Unit] =
@@ -71,6 +71,6 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
           (buffer: js.Dynamic) =>
             dispatcher.unsafeRunAndForget(pongQueue.offer(buffer.toString.asInstanceOf[String])))
       }
-    } yield Client(waitOpen, waitClose, error, queue, pongQueue, client)
+    } yield new Client(waitOpen, waitClose, error, queue, pongQueue, client)
 
 }

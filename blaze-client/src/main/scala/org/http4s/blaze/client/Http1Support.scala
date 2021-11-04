@@ -18,29 +18,34 @@ package org.http4s
 package blaze
 package client
 
-import cats.syntax.all._
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
+import cats.syntax.all._
+import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blaze.channel.nio2.ClientChannelFactory
+import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.HeadStage
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.ExecutionContextConfig
+import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.util.fromFutureNoShift
+import org.http4s.client.ConnectionFailure
+import org.http4s.client.RequestKey
+import org.http4s.headers.`User-Agent`
+import org.http4s.internal.SSLContextOption
+
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
-import org.http4s.blaze.channel.ChannelOptions
-import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.blaze.pipeline.stages.SSLStage
-import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder}
-import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.util.fromFutureNoShift
-import org.http4s.blazecore.IdleTimeoutStage
-import org.http4s.blazecore.ExecutionContextConfig
-
-import org.http4s.client.{ConnectionFailure, RequestKey}
-import org.http4s.headers.`User-Agent`
-import org.http4s.internal.SSLContextOption
-
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Failure
+import scala.util.Success
 
 /** Provides basic HTTP1 pipeline building
   */

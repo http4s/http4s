@@ -16,13 +16,18 @@
 
 package org.http4s.client.middleware
 
+import cats.effect.Clock
 import cats.effect.Concurrent
-import cats.effect.{Clock, Ref, Resource}
+import cats.effect.Ref
+import cats.effect.Resource
 import cats.syntax.all._
-import org.http4s.{Request, Response, Status}
+import org.http4s.Request
+import org.http4s.Response
+import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.TerminationType.{Error, Timeout}
+import org.http4s.metrics.TerminationType.Error
+import org.http4s.metrics.TerminationType.Timeout
 
 import scala.concurrent.TimeoutException
 

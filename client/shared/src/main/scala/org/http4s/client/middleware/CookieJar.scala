@@ -17,8 +17,8 @@
 package org.http4s.client.middleware
 
 import cats._
-import cats.syntax.all._
 import cats.effect.kernel._
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client
 

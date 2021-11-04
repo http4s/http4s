@@ -20,7 +20,9 @@ package jawn
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import org.typelevel.jawn.{AsyncParser, Facade, ParseException}
+import org.typelevel.jawn.AsyncParser
+import org.typelevel.jawn.Facade
+import org.typelevel.jawn.ParseException
 import org.typelevel.jawn.fs2._
 
 trait JawnInstances {

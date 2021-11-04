@@ -16,6 +16,8 @@
 
 package org.http4s.websocket
 
+import cats.effect.Async
+import cats.syntax.all._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import scodec.bits.ByteVector
@@ -23,8 +25,6 @@ import scodec.bits.ByteVector
 import java.nio.charset.StandardCharsets._
 import java.util.Base64
 import scala.util.Random
-import cats.effect.Async
-import cats.syntax.all._
 
 private[http4s] object WebSocketHandshake {
 

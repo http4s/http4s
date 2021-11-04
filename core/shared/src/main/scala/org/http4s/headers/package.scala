@@ -16,8 +16,9 @@
 
 package org.http4s
 
-import java.lang.{Long => JLong}
 import org.http4s.util.Writer
+
+import java.lang.{Long => JLong}
 
 package object headers {
   private val XB3Id64BitCharLength: Int = 16

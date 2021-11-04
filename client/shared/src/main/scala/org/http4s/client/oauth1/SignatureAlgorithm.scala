@@ -16,15 +16,15 @@
 
 package org.http4s.client.oauth1
 
-import org.http4s.crypto.HmacAlgorithm
-import org.http4s.crypto.Hmac
 import cats.MonadThrow
-import cats.syntax.all._
-import org.http4s.client.oauth1.SignatureAlgorithm.Names._
-import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
-import scodec.bits.ByteVector
-import org.http4s.crypto.SecretKeySpec
 import cats.effect.kernel.Async
+import cats.syntax.all._
+import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
+import org.http4s.client.oauth1.SignatureAlgorithm.Names._
+import org.http4s.crypto.Hmac
+import org.http4s.crypto.HmacAlgorithm
+import org.http4s.crypto.SecretKeySpec
+import scodec.bits.ByteVector
 
 object SignatureAlgorithm {
 

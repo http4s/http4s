@@ -18,7 +18,8 @@ package org.http4s
 package dsl
 package impl
 
-import cats.{Applicative, ~>}
+import cats.Applicative
+import cats.~>
 import org.http4s.Status._
 import org.http4s.headers.`Content-Length`
 

@@ -19,7 +19,8 @@ package com.example.http4s.blaze.demo.server.service
 import cats.effect.Async
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
-import fs2.io.file.{Files, Path}
+import fs2.io.file.Files
+import fs2.io.file.Path
 import org.http4s.multipart.Part
 
 import java.io.File

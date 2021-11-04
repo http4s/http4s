@@ -18,17 +18,19 @@ package org.http4s
 package client
 package middleware
 
+import cats.effect.IO
+import cats.effect.Resource
 import cats.effect.kernel.Ref
 import cats.effect.std.Semaphore
-import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.dsl.io._
 import org.http4s.headers.`Idempotency-Key`
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
-import org.scalacheck.effect.PropF
 import org.scalacheck.Gen
+import org.scalacheck.effect.PropF
+
 import scala.concurrent.duration._
 
 class RetrySuite extends Http4sSuite {

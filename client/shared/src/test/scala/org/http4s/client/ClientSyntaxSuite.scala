@@ -22,10 +22,13 @@ import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s.Method._
-import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
-import org.http4s.syntax.all._
+import org.http4s.Status.BadRequest
+import org.http4s.Status.Created
+import org.http4s.Status.InternalServerError
+import org.http4s.Status.Ok
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
+import org.http4s.syntax.all._
 
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val app = HttpRoutes
@@ -206,11 +209,11 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
           UnexpectedStatus(
             Status.InternalServerError,
             Method.GET,
-            Uri.unsafeFromString("http://www.foo.com/status/500"))))
+            uri"http://www.foo.com/status/500")))
   }
 
   test("Client should handle an unexpected status when calling a URI with expectOr") {
-    case class Boom(status: Status, body: String) extends Exception
+    final case class Boom(status: Status, body: String) extends Exception
     client
       .expectOr[String](uri"http://www.foo.com/status/500") { resp =>
         resp.as[String].map(Boom(resp.status, _))

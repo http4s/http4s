@@ -19,9 +19,10 @@ package jetty
 
 import cats.effect._
 import com.codahale.metrics.MetricRegistry
-import org.http4s.metrics.dropwizard._
-import org.http4s.server.{HttpMiddleware, Server}
 import org.http4s.jetty.server.JettyBuilder
+import org.http4s.metrics.dropwizard._
+import org.http4s.server.HttpMiddleware
+import org.http4s.server.Server
 import org.http4s.server.middleware.Metrics
 
 object JettyExample extends IOApp {

@@ -16,13 +16,14 @@
 
 package org.http4s.client.oauth1
 
+import cats.Applicative
 import cats.Show
 import cats.effect.Clock
 import cats.kernel.Order
 import cats.syntax.all._
 import org.http4s.client.oauth1.SignatureAlgorithm.Names.`HMAC-SHA1`
+
 import java.util.concurrent.TimeUnit
-import cats.Applicative
 
 sealed trait ProtocolParameter {
   val headerName: String
@@ -32,26 +33,28 @@ sealed trait ProtocolParameter {
 }
 
 object ProtocolParameter {
-  case class Consumer(override val headerValue: String, secret: String) extends ProtocolParameter {
+  final case class Consumer(override val headerValue: String, secret: String)
+      extends ProtocolParameter {
     override val headerName: String = "oauth_consumer_key"
   }
 
-  case class Token(override val headerValue: String, secret: String) extends ProtocolParameter {
+  final case class Token(override val headerValue: String, secret: String)
+      extends ProtocolParameter {
     override val headerName: String = "oauth_token"
   }
 
-  case class Realm(override val headerValue: String) extends ProtocolParameter {
+  final case class Realm(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "realm"
   }
 
-  case class Custom(headerName: String, headerValue: String) extends ProtocolParameter
+  final case class Custom(headerName: String, headerValue: String) extends ProtocolParameter
 
-  case class SignatureMethod(override val headerValue: String = `HMAC-SHA1`)
+  final case class SignatureMethod(override val headerValue: String = `HMAC-SHA1`)
       extends ProtocolParameter {
     override val headerName: String = "oauth_signature_method"
   }
 
-  case class Timestamp(override val headerValue: String) extends ProtocolParameter {
+  final case class Timestamp(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_timestamp"
   }
 
@@ -62,7 +65,7 @@ object ProtocolParameter {
     }
   }
 
-  case class Nonce(override val headerValue: String) extends ProtocolParameter {
+  final case class Nonce(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_nonce"
   }
 
@@ -73,15 +76,15 @@ object ProtocolParameter {
     }
   }
 
-  case class Version(override val headerValue: String = "1.0") extends ProtocolParameter {
+  final case class Version(override val headerValue: String = "1.0") extends ProtocolParameter {
     override val headerName: String = "oauth_version"
   }
 
-  case class Callback(override val headerValue: String) extends ProtocolParameter {
+  final case class Callback(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_callback"
   }
 
-  case class Verifier(override val headerValue: String) extends ProtocolParameter {
+  final case class Verifier(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_verifier"
   }
 

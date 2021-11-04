@@ -21,6 +21,7 @@ package middleware
 import cats.data.Kleisli
 import cats.effect.kernel.Temporal
 import cats.syntax.applicative._
+
 import scala.concurrent.duration.FiniteDuration
 
 object Timeout {

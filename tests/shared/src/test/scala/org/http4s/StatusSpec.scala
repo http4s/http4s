@@ -16,12 +16,14 @@
 
 package org.http4s
 
-import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline.OrderTests
-import java.nio.charset.StandardCharsets
 import org.http4s.Status._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
+
+import java.nio.charset.StandardCharsets
 
 class StatusSpec extends Http4sSuite {
   checkAll("Status", OrderTests[Status].order)

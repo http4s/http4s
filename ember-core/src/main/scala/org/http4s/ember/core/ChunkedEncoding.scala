@@ -28,13 +28,15 @@ package org.http4s
 package ember.core
 
 import cats._
+import cats.effect.kernel.Deferred
+import cats.effect.kernel.Ref
 import cats.syntax.all._
-import cats.effect.kernel.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
-import Shared._
 
 import scala.util.control.NonFatal
+
+import Shared._
 
 private[ember] object ChunkedEncoding {
 

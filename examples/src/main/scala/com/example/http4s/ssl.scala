@@ -18,14 +18,20 @@ package com.example.http4s
 
 import cats.effect.Sync
 import cats.syntax.all._
-import java.nio.file.Paths
-import java.security.{KeyStore, Security}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import org.http4s.HttpApp
-import org.http4s.Uri.{Authority, RegName, Scheme}
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.Uri.Scheme
 import org.http4s.dsl.Http4sDsl
-import org.http4s.headers.{Host, Location}
+import org.http4s.headers.Host
+import org.http4s.headers.Location
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.Security
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
 
 object ssl {
   val keystorePassword: String = "password"

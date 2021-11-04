@@ -17,18 +17,26 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser0, Rfc5234, Parser => P}
+import cats.parse.Numbers
+import cats.parse.Parser0
+import cats.parse.Rfc5234
+import cats.parse.{Parser => P}
 import cats.syntax.either._
-import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
-import java.net.{Inet4Address, Inet6Address}
+import com.comcast.ip4s.Ipv4Address
+import com.comcast.ip4s.Ipv6Address
+import org.http4s.Header
+import org.http4s._
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+import org.typelevel.ci._
+
+import java.net.Inet4Address
+import java.net.Inet6Address
 import java.nio.ByteBuffer
 import java.util.Locale
-import org.http4s._
-import org.http4s.util.{Renderable, Writer}
-import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
-import org.http4s.Header
 import scala.util.Try
-import org.typelevel.ci._
 
 object Forwarded extends ForwardedRenderers {
 
@@ -45,8 +53,8 @@ object Forwarded extends ForwardedRenderers {
     sealed trait Name { self: Product => }
 
     object Name {
-      case class Ipv4(address: Ipv4Address) extends Name
-      case class Ipv6(address: Ipv6Address) extends Name
+      final case class Ipv4(address: Ipv4Address) extends Name
+      final case class Ipv6(address: Ipv6Address) extends Name
       case object Unknown extends Name
 
       @deprecated("Use Name.Ipv4(Ipv4Address.fromInet4Address(address))", "0.23.5")

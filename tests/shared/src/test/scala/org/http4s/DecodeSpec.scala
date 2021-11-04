@@ -18,18 +18,18 @@ package org.http4s
 
 import cats.syntax.all._
 import fs2._
-import fs2.text.{decodeWithCharset, utf8}
+import fs2.text.decodeWithCharset
+import fs2.text.utf8
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
 
 import java.nio.ByteBuffer
-import java.nio.charset.{
-  CodingErrorAction,
-  MalformedInputException,
-  StandardCharsets,
-  UnmappableCharacterException,
-  Charset => JCharset
-}
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.MalformedInputException
+import java.nio.charset.StandardCharsets
+import java.nio.charset.UnmappableCharacterException
+import java.nio.charset.{Charset => JCharset}
 import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {

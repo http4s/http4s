@@ -17,9 +17,12 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser.{`end`, char, string}
 import cats.parse.Parser
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser.char
+import cats.parse.Parser.end
+import cats.parse.Parser.string
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 sealed abstract class Origin

@@ -18,17 +18,19 @@ package org.http4s
 
 import cats._
 import cats.effect.IO
-import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
+import cats.laws.discipline.ContravariantTests
+import cats.laws.discipline.ExhaustiveCheck
+import cats.laws.discipline.MiniInt
+import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.eq._
 import fs2._
-import cats.laws.discipline.arbitrary._
-
-import java.io._
-import java.nio.charset.StandardCharsets
+import fs2.io.file.Files
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary
-import fs2.io.file.Files
+
+import java.io._
+import java.nio.charset.StandardCharsets
 
 class EntityEncoderSpec extends Http4sSuite {
   {

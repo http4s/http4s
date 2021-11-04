@@ -20,12 +20,11 @@ import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.effect.std.Queue
 import org.http4s.server.Server
-
-import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
+import org.java_websocket.handshake.ServerHandshake
 
 import java.net.URI
 import java.nio.ByteBuffer
@@ -36,13 +35,13 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
   def serverURI(server: Server, path: String): URI =
     URI.create(s"ws://${server.address}/$path")
 
-  case class Client(
-      waitOpen: Deferred[IO, Option[Throwable]],
-      waitClose: Deferred[IO, Option[Throwable]],
-      messages: Queue[IO, String],
-      pongs: Queue[IO, String],
-      remoteClosed: Deferred[IO, Unit],
-      client: WebSocketClient) {
+  class Client(
+      val waitOpen: Deferred[IO, Option[Throwable]],
+      val waitClose: Deferred[IO, Option[Throwable]],
+      val messages: Queue[IO, String],
+      val pongs: Queue[IO, String],
+      val remoteClosed: Deferred[IO, Unit],
+      val client: WebSocketClient) {
     def connect: IO[Unit] =
       IO(client.connect()) >> waitOpen.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def close: IO[Unit] =
@@ -91,6 +90,6 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
           ()
         }
       }
-    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, client)
+    } yield new Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, client)
 
 }

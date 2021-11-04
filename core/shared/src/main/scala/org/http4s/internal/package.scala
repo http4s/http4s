@@ -16,23 +16,27 @@
 
 package org.http4s
 
-import java.util.concurrent.{
-  CancellationException,
-  CompletableFuture,
-  CompletionException,
-  CompletionStage
-}
-
 import cats._
 import cats.data._
+import cats.effect.Async
+import cats.effect.Sync
 import cats.effect.std.Dispatcher
-import cats.effect.{Async, Sync}
 import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
-import java.nio.{ByteBuffer, CharBuffer}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.RaiseThrowable
+import fs2.Stream
+import org.log4s.Logger
+
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
-import org.log4s.Logger
+import java.util.concurrent.CancellationException
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
+import java.util.concurrent.CompletionStage
 import scala.util.control.NoStackTrace
 
 package object internal {

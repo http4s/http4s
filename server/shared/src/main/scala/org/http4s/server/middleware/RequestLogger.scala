@@ -18,13 +18,18 @@ package org.http4s
 package server
 package middleware
 
-import cats.~>
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, OptionT}
-import cats.effect.kernel.{Async, MonadCancelThrow, Outcome, Sync}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.implicits._
+import cats.effect.kernel.Async
+import cats.effect.kernel.MonadCancelThrow
+import cats.effect.kernel.Outcome
+import cats.effect.kernel.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import cats.~>
+import fs2.Chunk
+import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 

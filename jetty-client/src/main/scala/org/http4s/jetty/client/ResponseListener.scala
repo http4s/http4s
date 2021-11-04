@@ -19,18 +19,22 @@ package jetty
 package client
 
 import cats.effect._
-import cats.effect.std.{Dispatcher, Queue}
+import cats.effect.std.Dispatcher
+import cats.effect.std.Queue
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
-import java.nio.ByteBuffer
-import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
-import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
+import fs2._
+import org.eclipse.jetty.client.api.Result
+import org.eclipse.jetty.client.api.{Response => JettyResponse}
+import org.eclipse.jetty.http.HttpFields
+import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.loggingAsyncCallback
 import org.http4s.jetty.client.ResponseListener.Item
 import org.log4s.getLogger
+
+import java.nio.ByteBuffer
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[Item]],
@@ -120,8 +124,8 @@ private[jetty] object ResponseListener {
   sealed trait Item
   object Item {
     case object Done extends Item
-    case class Raise(t: Throwable) extends Item
-    case class Buf(b: ByteBuffer) extends Item
+    final case class Raise(t: Throwable) extends Item
+    final case class Buf(b: ByteBuffer) extends Item
   }
 
   private val logger = getLogger

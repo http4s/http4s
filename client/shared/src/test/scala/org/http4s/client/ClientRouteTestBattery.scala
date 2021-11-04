@@ -20,14 +20,16 @@ package client
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import java.util.Arrays
-import java.util.Locale
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.multipart.{Multipart, Part}
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.Part
 import org.typelevel.ci._
+
+import java.util.Arrays
+import java.util.Locale
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {

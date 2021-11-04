@@ -17,13 +17,17 @@
 package org.http4s.server.middleware
 
 import cats.effect.IO
+import cats.effect.testkit.TestContext
 import cats.implicits._
-import org.http4s.{Http4sSuite, HttpApp, Request, Status}
-import org.http4s.syntax.all._
+import org.http4s.Http4sSuite
+import org.http4s.HttpApp
+import org.http4s.Request
+import org.http4s.Status
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
+import org.http4s.syntax.all._
+
 import scala.concurrent.duration._
-import cats.effect.testkit.TestContext
 
 class ThrottleSuite extends Http4sSuite {
   test("LocalTokenBucket should contain initial number of tokens equal to specified capacity") {

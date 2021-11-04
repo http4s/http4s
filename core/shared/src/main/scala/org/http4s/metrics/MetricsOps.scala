@@ -17,7 +17,9 @@
 package org.http4s.metrics
 
 import cats.Foldable
-import org.http4s.{Method, Request, Status}
+import org.http4s.Method
+import org.http4s.Request
+import org.http4s.Status
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */
@@ -131,13 +133,13 @@ sealed trait TerminationType
 object TerminationType {
 
   /** Signals just a generic abnormal termination */
-  case class Abnormal(rootCause: Throwable) extends TerminationType
+  final case class Abnormal(rootCause: Throwable) extends TerminationType
 
   /** Signals cancelation */
   case object Canceled extends TerminationType
 
   /** Signals an abnormal termination due to an error processing the request, either at the server or client side */
-  case class Error(rootCause: Throwable) extends TerminationType
+  final case class Error(rootCause: Throwable) extends TerminationType
 
   /** Signals a client timing out during a request */
   case object Timeout extends TerminationType

@@ -17,8 +17,10 @@
 package org.http4s
 package headers
 
-import org.http4s.util.{Renderable, Renderer, Writer}
 import org.http4s.Header
+import org.http4s.util.Renderable
+import org.http4s.util.Renderer
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `User-Agent` {

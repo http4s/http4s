@@ -25,15 +25,18 @@
 
 package org.http4s.dsl.impl
 
-import cats.data._
+import cats.Applicative
+import cats.Foldable
+import cats.Monad
 import cats.data.Validated._
+import cats.data._
 import cats.syntax.all._
-import org.http4s._
-import scala.util.Try
-import cats.{Applicative, Foldable, Monad}
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path._
+import org.http4s._
 import org.http4s.headers.Allow
+
+import scala.util.Try
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =

@@ -16,20 +16,20 @@
 
 package com.example.http4s.ember
 
-import cats.effect._
-import cats.syntax.all._
-import org.http4s._
-import org.http4s.client._
-import org.http4s.circe._
-import org.http4s.implicits._
-
 import _root_.io.circe.Json
 import _root_.org.http4s.ember.client.EmberClientBuilder
-import fs2._
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
-import scala.concurrent.duration._
+import cats.effect._
+import cats.syntax.all._
+import fs2._
+import org.http4s._
+import org.http4s.circe._
+import org.http4s.client._
+import org.http4s.implicits._
 import scodec.bits.ByteVector
+
+import scala.concurrent.duration._
 
 object EmberClientSimpleExample extends IOApp {
 

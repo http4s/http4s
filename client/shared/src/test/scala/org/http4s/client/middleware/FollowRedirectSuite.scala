@@ -21,12 +21,13 @@ package middleware
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
-import java.util.concurrent.atomic._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.headers._
+import org.http4s.syntax.all._
 import org.typelevel.ci._
+
+import java.util.concurrent.atomic._
 import scala.concurrent.duration._
 
 class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
@@ -65,7 +66,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val defaultClient = Client.fromHttpApp(app)
   val client = FollowRedirect(3)(defaultClient)
 
-  case class RedirectResponse(
+  private case class RedirectResponse(
       method: String,
       body: String
   )

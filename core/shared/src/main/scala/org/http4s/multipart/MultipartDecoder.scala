@@ -21,8 +21,8 @@ import cats.effect.Concurrent
 import cats.effect.Resource
 import cats.effect.std.Supervisor
 import cats.syntax.all._
-import fs2.io.file.Files
 import fs2.Pipe
+import fs2.io.file.Files
 
 private[http4s] object MultipartDecoder {
   def decoder[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
