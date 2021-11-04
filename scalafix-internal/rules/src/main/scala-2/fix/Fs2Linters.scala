@@ -24,7 +24,7 @@ class Fs2Linters extends SemanticRule("Http4sFs2Linters") {
   override def fix(implicit doc: SemanticDocument): Patch =
     doc.tree.collect { case Stream_compile_M(t @ Term.Select(_, _)) =>
       t.synthetics.collect { case ApplyTree(_, List(ApplyTree(_, List(target)))) =>
-        target.symbol.collect { case s @ Target_forSync_M(_) =>
+        target.symbol.collect { case Target_forSync_M(_) =>
           Patch.lint(NoFs2SyncCompiler(t))
         }.asPatch
       }.asPatch
