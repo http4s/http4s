@@ -106,7 +106,7 @@ object Http4sPlugin extends AutoPlugin {
           "src/test/scala/org/http4s/Http4sSpec.scala",
           "src/test/scala/org/http4s/UriSpec.scala",
           "src/test/scala/org/http4s/dsl/PathSpec.scala",
-          "src/test/scala/org/http4s/testing/ErrorReporting.scala"
+          "src/test/scala/org/http4s/testing/ErrorReporting.scala",
         )
       },
     nowarnCompatAnnotationProvider := None,
@@ -116,7 +116,7 @@ object Http4sPlugin extends AutoPlugin {
         _.revision == "0.21.10"
       )
     },
-    doctestTestFramework := DoctestTestFramework.Munit
+    doctestTestFramework := DoctestTestFramework.Munit,
   )
 
   def extractApiVersion(version: String) = {
@@ -193,7 +193,7 @@ object Http4sPlugin extends AutoPlugin {
           "*.js" | "*.swf" | "*.json" | "*.md" |
           "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
           "CNAME" | "_config.yml" | "_redirects"
-      )
+      ),
     )
   }
 
@@ -206,7 +206,8 @@ object Http4sPlugin extends AutoPlugin {
       |echo "$HOME/bin" > $GITHUB_PATH
       |HUGO_VERSION=0.26 scripts/install-hugo
     """.stripMargin),
-      name = Some("Setup Hugo"))
+      name = Some("Setup Hugo"),
+    )
 
     def siteBuildJob(subproject: String) =
       WorkflowJob(
@@ -218,8 +219,8 @@ object Http4sPlugin extends AutoPlugin {
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
           setupHugoStep,
-          WorkflowStep.Sbt(List(s"$subproject/makeSite"), name = Some(s"Build $subproject"))
-        )
+          WorkflowStep.Sbt(List(s"$subproject/makeSite"), name = Some(s"Build $subproject")),
+        ),
       )
 
     def sitePublishStep(subproject: String) = WorkflowStep.Run(
@@ -232,7 +233,7 @@ object Http4sPlugin extends AutoPlugin {
       |
       """.stripMargin),
       name = Some(s"Publish $subproject"),
-      env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
+      env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}"),
     )
 
     Http4sOrgPlugin.githubActionsSettings ++ Seq(
@@ -242,11 +243,10 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep.Sbt(
-          List("unusedCompileDependenciesTest"),
-          name = Some("Check unused dependencies")),
+        WorkflowStep
+          .Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -258,16 +258,16 @@ object Http4sPlugin extends AutoPlugin {
       },
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
-        RefPredicate.StartsWith(Ref.Tag("v"))
+        RefPredicate.StartsWith(Ref.Tag("v")),
       ),
       githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
         sitePublishStep("website"),
-        sitePublishStep("docs")
+        sitePublishStep("docs"),
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs"))
+      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
     )
   }
 
