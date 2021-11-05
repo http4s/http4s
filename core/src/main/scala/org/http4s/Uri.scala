@@ -444,6 +444,7 @@ object Uri extends UriPlatform {
       final def contramap[B](f: B => A): SegmentEncoder[B] =
         b => this.toSegment(f(b))
     }
+
     object SegmentEncoder {
       implicit def apply[A](implicit segmentEncoder: SegmentEncoder[A]): SegmentEncoder[A] =
         segmentEncoder

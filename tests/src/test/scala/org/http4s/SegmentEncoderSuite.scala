@@ -21,11 +21,11 @@ import cats.laws.discipline.ContravariantTests
 import org.http4s.Uri.Path.Segment
 import org.http4s.Uri.Path.SegmentEncoder
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.Cogen
 import org.scalacheck.Arbitrary
+import org.scalacheck.Cogen
 
-class SegmentEncoderSuite extends Http4sSuite {
-  private def equalityCheckCount: Int = 16
+final class SegmentEncoderSuite extends Http4sSuite {
+  private val equalityCheckCount: Int = 16
 
   implicit private def arbitrarySegmentEncoder[A: Cogen]: Arbitrary[SegmentEncoder[A]] = Arbitrary(
     Arbitrary.arbitrary[A => Segment].map(SegmentEncoder.instance)
