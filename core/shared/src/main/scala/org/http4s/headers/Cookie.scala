@@ -55,7 +55,7 @@ object Cookie {
           def render(writer: Writer): writer.type =
             writer.addNel(h.values, sep = "; ")
         },
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =

@@ -52,7 +52,8 @@ class RetrySuite extends Http4sSuite {
       client: Client[IO],
       method: Method,
       status: Status,
-      body: EntityBody[IO]): IO[Int] = {
+      body: EntityBody[IO],
+  ): IO[Int] = {
     val max = 2
     var attemptsCounter = 1
     val policy = RetryPolicy[IO] { (attempts: Int) =>
@@ -85,7 +86,7 @@ class RetrySuite extends Http4sSuite {
       (BadGateway, 2),
       (ServiceUnavailable, 2),
       (GatewayTimeout, 2),
-      (HttpVersionNotSupported, 1)
+      (HttpVersionNotSupported, 1),
     ).traverse { case (s, r) => countRetries(defaultClient, GET, s, EmptyBody).assertEquals(r) }
   }
 
@@ -114,7 +115,8 @@ class RetrySuite extends Http4sSuite {
   }
 
   test(
-    "is error or status should return false when a response does not match the supported status") {
+    "is error or status should return false when a response does not match the supported status"
+  ) {
     val statusGen = Gen.oneOf(Status.registered)
     PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
       IO.pure(
@@ -124,7 +126,8 @@ class RetrySuite extends Http4sSuite {
   }
 
   def resubmit(method: Method, headers: Headers = Headers.empty)(
-      retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
+      retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean
+  ) =
     Ref[IO]
       .of(false)
       .flatMap { ref =>
@@ -139,7 +142,8 @@ class RetrySuite extends Http4sSuite {
           (attempts: Int) =>
             if (attempts >= 2) None
             else Some(Duration.Zero),
-          retriable)
+          retriable,
+        )
         val retryClient = Retry[IO](policy)(defaultClient)
         retryClient.status(req)
       }
@@ -174,14 +178,22 @@ class RetrySuite extends Http4sSuite {
       .flatMap { semaphore =>
         val client = Retry[IO](
           RetryPolicy(
-            (att =>
-              if (att < 100) Some(Duration.Zero)
-              else None),
-            RetryPolicy.defaultRetriable[IO]))(Client[IO](_ =>
-          Resource.make(semaphore.tryAcquire.flatMap {
-            case true => Response[IO](Status.ServiceUnavailable).pure[IO]
-            case false => IO.raiseError(new IllegalStateException("Allocated a second connection"))
-          })(_ => semaphore.release)))
+            (
+                att =>
+                  if (att < 100) Some(Duration.Zero)
+                  else None
+            ),
+            RetryPolicy.defaultRetriable[IO],
+          )
+        )(
+          Client[IO](_ =>
+            Resource.make(semaphore.tryAcquire.flatMap {
+              case true => Response[IO](Status.ServiceUnavailable).pure[IO]
+              case false =>
+                IO.raiseError(new IllegalStateException("Allocated a second connection"))
+            })(_ => semaphore.release)
+          )
+        )
         client.status(Request[IO]())
       }
       .assertEquals(Status.ServiceUnavailable)

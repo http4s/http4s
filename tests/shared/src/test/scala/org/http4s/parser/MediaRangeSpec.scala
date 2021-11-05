@@ -29,7 +29,8 @@ class MediaRangeSpec extends Http4sSuite {
       "aiff",
       MediaType.Compressible,
       MediaType.Binary,
-      List("aif", "aiff", "aifc"))
+      List("aif", "aiff", "aifc"),
+    )
 
   def ext = Map("foo" -> "bar")
 

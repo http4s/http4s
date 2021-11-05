@@ -52,7 +52,8 @@ private[http4s] object ProtocolSelector {
       scheduler: TickWheelExecutor,
       dispatcher: Dispatcher[F],
       webSocketKey: Key[WebSocketContext[F]],
-      maxWebSocketBufferSize: Option[Int])(implicit F: Async[F]): ALPNServerSelector = {
+      maxWebSocketBufferSize: Option[Int],
+  )(implicit F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(
@@ -66,19 +67,22 @@ private[http4s] object ProtocolSelector {
             responseHeaderTimeout,
             idleTimeout,
             scheduler,
-            dispatcher
-          ))
+            dispatcher,
+          )
+        )
       }
 
       val localSettings =
         Http2Settings.default.copy(
           maxConcurrentStreams = 100, // TODO: configurable?
-          maxHeaderListSize = maxHeadersLen)
+          maxHeaderListSize = maxHeadersLen,
+        )
 
       new ServerPriorKnowledgeHandshaker(
         localSettings = localSettings,
         flowStrategy = new DefaultFlowStrategy(localSettings),
-        nodeBuilder = newNode)
+        nodeBuilder = newNode,
+      )
     }
 
     def http1Stage(): TailStage[ByteBuffer] =
@@ -95,7 +99,7 @@ private[http4s] object ProtocolSelector {
         idleTimeout,
         scheduler,
         dispatcher,
-        maxWebSocketBufferSize
+        maxWebSocketBufferSize,
       )
 
     def preference(protos: Set[String]): String =

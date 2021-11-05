@@ -42,7 +42,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
       override def verify(s: String, sslSession: SSLSession): Boolean = true
     }
 
-    //For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
+    // For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
     HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier)
   }
 

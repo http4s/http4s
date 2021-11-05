@@ -31,7 +31,8 @@ class MaxActiveRequestsSuite extends Http4sSuite {
         case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
         case _ =>
           OptionT.liftF(
-            startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO])
+            startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO]
+          )
       }
     }
 

@@ -52,7 +52,7 @@ final case class ResponseCookie(
     sameSite: Option[SameSite] = None,
     secure: Boolean = false,
     httpOnly: Boolean = false,
-    extension: Option[String] = None
+    extension: Option[String] = None,
 ) extends Renderable { self =>
   override lazy val renderString: String = super.renderString
 

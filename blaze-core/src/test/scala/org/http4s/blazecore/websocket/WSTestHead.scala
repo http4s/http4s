@@ -44,8 +44,8 @@ import scala.concurrent.duration._
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
     outQueue: Queue[IO, WebSocketFrame],
-    writeSemaphore: Semaphore[IO])
-    extends HeadStage[WebSocketFrame] {
+    writeSemaphore: Semaphore[IO],
+) extends HeadStage[WebSocketFrame] {
 
   /** Block while we put elements into our queue
     *

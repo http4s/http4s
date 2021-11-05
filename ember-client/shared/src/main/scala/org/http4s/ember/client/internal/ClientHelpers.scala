@@ -56,7 +56,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       sg: SocketGroup[F],
-      additionalSocketOptions: List[SocketOption]
+      additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -64,7 +64,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       tlsContextOpt,
       enableEndpointValidation,
       sg,
-      additionalSocketOptions
+      additionalSocketOptions,
     )
   }
 
@@ -72,7 +72,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       request: Request[F],
       unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
       address: fs2.io.net.unixsocket.UnixSocketAddress,
-      tlsContextOpt: Option[TLSContext[F]]
+      tlsContextOpt: Option[TLSContext[F]],
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     elevateSocket(
@@ -80,7 +80,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       unixSockets.client(address),
       tlsContextOpt,
       false,
-      None
+      None,
     )
   }
 
@@ -89,7 +89,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       sg: SocketGroup[F],
-      additionalSocketOptions: List[SocketOption]
+      additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] =
     Resource
       .eval(getAddress(requestKey))
@@ -100,7 +100,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
           s: Resource[F, Socket[F]],
           tlsContextOpt: Option[TLSContext[F]],
           enableEndpointValidation: Boolean,
-          Some(address)
+          Some(address),
         )
       }
 
@@ -109,7 +109,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       initSocket: Resource[F, Socket[F]],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
-      optionNames: Option[SocketAddress[Host]]
+      optionNames: Option[SocketAddress[Host]],
   ): Resource[F, RequestKeySocket[F]] =
     for {
       iSocket <- initSocket
@@ -137,7 +137,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       maxResponseHeaderSize: Int,
       idleTimeout: Duration,
       timeout: Duration,
-      userAgent: Option[`User-Agent`]
+      userAgent: Option[`User-Agent`],
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
     def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
@@ -152,13 +152,18 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
         connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
           val parse = Parser.Response.parser(maxResponseHeaderSize)(
             head,
-            timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout)
+            timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
           )
           timeoutToMaybe(
             parse,
             timeout,
-            Defer[F].defer(ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
-              s"Timed Out on EmberClient Header Receive Timeout: $timeout")))
+            Defer[F].defer(
+              ApplicativeThrow[F].raiseError(
+                new java.util.concurrent.TimeoutException(
+                  s"Timed Out on EmberClient Header Receive Timeout: $timeout"
+                )
+              )
+            ),
           )
         }
 
@@ -177,7 +182,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
       req: Request[F],
-      userAgent: Option[`User-Agent`]): F[Request[F]] = {
+      userAgent: Option[`User-Agent`],
+  ): F[Request[F]] = {
     val connection = req.headers
       .get[Connection]
       .fold(Connection(NonEmptyList.of(ci"keep-alive")))(identity)
@@ -194,7 +200,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       resp: Response[F],
       drain: F[Option[Array[Byte]]],
       nextBytes: Ref[F, Array[Byte]],
-      canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
+      canBeReused: Ref[F, Reusable],
+  )(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
         val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
@@ -219,7 +226,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
   private[client] def getValidManaged[F[_]: Sync](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
-      request: Request[F]): Resource[F, Managed[F, EmberConnection[F]]] =
+      request: Request[F],
+  ): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
         .eval(managed.value.keySocket.socket.isOpen)
@@ -232,8 +240,11 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
             Resource.eval(managed.canBeReused.set(Reusable.DontReuse)) >>
               getValidManaged(pool, request)
           } else
-            Resource.eval(Sync[F].raiseError(
-              new fs2.io.net.SocketException("Fresh connection from pool was not open")))
+            Resource.eval(
+              Sync[F].raiseError(
+                new fs2.io.net.SocketException("Fresh connection from pool was not open")
+              )
+            ),
         )
     }
 
@@ -246,7 +257,8 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
 
     def emberDeadFromPoolPolicy[F[_]](
         req: Request[F],
-        result: Either[Throwable, Response[F]]): Boolean =
+        result: Either[Throwable, Response[F]],
+    ): Boolean =
       (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
         isRetryableError(result)
 

@@ -57,7 +57,7 @@ class JettyServerSuite extends Http4sSuite {
           case GET -> Root / "slow" =>
             Temporal[IO].sleep(50.millis) *> Ok("slow")
         },
-        "/"
+        "/",
       )
       .resource
 
@@ -68,7 +68,8 @@ class JettyServerSuite extends Http4sSuite {
       Source
         .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
         .getLines()
-        .mkString)
+        .mkString
+    )
 
   def post(server: Server, path: String, body: String): IO[String] =
     IO.blocking {

@@ -51,7 +51,8 @@ object PushSupport {
 
       response.copy(
         body = response.body,
-        attributes = response.attributes.insert(PushSupport.pushLocationKey, newPushResouces))
+        attributes = response.attributes.insert(PushSupport.pushLocationKey, newPushResouces),
+      )
     }
   }
 
@@ -59,7 +60,8 @@ object PushSupport {
       r: Vector[PushLocation],
       req: Request[F],
       verify: String => Boolean,
-      routes: HttpRoutes[F])(implicit F: Monad[F]): F[Vector[PushResponse[F]]] = {
+      routes: HttpRoutes[F],
+  )(implicit F: Monad[F]): F[Vector[PushResponse[F]]] = {
     val emptyCollect: F[Vector[PushResponse[F]]] = F.pure(Vector.empty[PushResponse[F]])
 
     def fetchAndAdd(facc: F[Vector[PushResponse[F]]], v: PushLocation): F[Vector[PushResponse[F]]] =
@@ -90,7 +92,8 @@ object PushSupport {
     */
   def apply[F[_]: Monad](
       routes: HttpRoutes[F],
-      verify: String => Boolean = _ => true): HttpRoutes[F] = {
+      verify: String => Boolean = _ => true,
+  ): HttpRoutes[F] = {
     def gather(req: Request[F])(resp: Response[F]): Response[F] =
       resp.attributes
         .lookup(pushLocationKey)
@@ -98,7 +101,7 @@ object PushSupport {
           val collected = collectResponse(fresource, req, verify, routes)
           resp.copy(
             body = resp.body,
-            attributes = resp.attributes.insert(pushResponsesKey[F], collected)
+            attributes = resp.attributes.insert(pushResponsesKey[F], collected),
           )
         }
         .getOrElse(resp)

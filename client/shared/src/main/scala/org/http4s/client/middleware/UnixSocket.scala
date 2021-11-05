@@ -23,6 +23,7 @@ import org.http4s.client.Client
 /** Middleware to direct all requests to the provided `UnixSocketAddress` */
 object UnixSocket {
   def apply[F[_]: MonadCancelThrow](address: fs2.io.net.unixsocket.UnixSocketAddress)(
-      client: Client[F]): Client[F] =
+      client: Client[F]
+  ): Client[F] =
     Client(req => client.run(req.withAttribute(Request.Keys.UnixSocketAddress, address)))
 }

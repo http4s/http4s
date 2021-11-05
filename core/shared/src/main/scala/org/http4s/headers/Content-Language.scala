@@ -46,7 +46,7 @@ object `Content-Language` {
     Header.createRendered(
       ci"Content-Language",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Content-Language`] =

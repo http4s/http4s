@@ -54,7 +54,7 @@ object `Proxy-Authenticate` {
     Header.createRendered(
       ci"Proxy-Authenticate",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Proxy-Authenticate`] =

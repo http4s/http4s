@@ -53,6 +53,6 @@ object `Sec-WebSocket-Key` {
     Header.create(
       ci"Sec-WebSocket-Key",
       _.hashString,
-      parse
+      parse,
     )
 }

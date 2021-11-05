@@ -41,7 +41,7 @@ object `Transfer-Encoding` {
     Header.createRendered(
       name,
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Transfer-Encoding`] =

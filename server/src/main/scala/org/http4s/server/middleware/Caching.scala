@@ -36,7 +36,8 @@ object Caching {
     * This is a best attempt, many implementors of caching have done so differently.
     */
   def `no-store`[G[_]: Temporal, F[_], A](
-      http: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
+      http: Kleisli[G, A, Response[F]]
+  ): Kleisli[G, A, Response[F]] =
     Kleisli { (a: A) =>
       for {
         resp <- http(a)
@@ -58,11 +59,11 @@ object Caching {
       NonEmptyList.of[CacheDirective](
         CacheDirective.`no-store`,
         CacheDirective.`no-cache`(),
-        CacheDirective.`max-age`(0.seconds)
+        CacheDirective.`max-age`(0.seconds),
       )
     ),
     "Pragma" -> "no-cache",
-    Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
+    Expires(HttpDate.Epoch), // Expire at the epoch for no time confusion
   )
 
   /** Helpers Contains the default arguments used to help construct middleware
@@ -80,7 +81,7 @@ object Caching {
 
     private lazy val methodsToSetOn: Set[Method] = Set(
       Method.GET,
-      Method.HEAD
+      Method.HEAD,
     )
   }
 
@@ -95,7 +96,8 @@ object Caching {
       Either.left(CacheDirective.public),
       Helpers.defaultMethodsToSetOn,
       Helpers.defaultStatusToSetOn,
-      http)
+      http,
+    )
 
   /** Publicly Cache a Response for the given lifetime.
     *
@@ -113,13 +115,15 @@ object Caching {
   def privateCache[G[_]: Temporal, F[_]](
       lifetime: Duration,
       http: Http[G, F],
-      fieldNames: List[CIString] = Nil): Http[G, F] =
+      fieldNames: List[CIString] = Nil,
+  ): Http[G, F] =
     cache(
       lifetime,
       Either.right(CacheDirective.`private`(fieldNames)),
       Helpers.defaultMethodsToSetOn,
       Helpers.defaultStatusToSetOn,
-      http)
+      http,
+    )
 
   /** Privately Caches A Response for the given lifetime.
     *
@@ -128,7 +132,7 @@ object Caching {
     */
   def privateCacheResponse[G[_]](
       lifetime: Duration,
-      fieldNames: List[CIString] = Nil
+      fieldNames: List[CIString] = Nil,
   ): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
 
@@ -144,7 +148,7 @@ object Caching {
       isPublic: Either[CacheDirective.public.type, CacheDirective.`private`],
       methodToSetOn: Method => Boolean,
       statusToSetOn: Status => Boolean,
-      http: Http[G, F]
+      http: Http[G, F],
   ): Http[G, F] =
     Kleisli { (req: Request[F]) =>
       for {
@@ -168,7 +172,7 @@ object Caching {
     */
   def cacheResponse[G[_]](
       lifetime: Duration,
-      isPublic: Either[CacheDirective.public.type, CacheDirective.`private`]
+      isPublic: Either[CacheDirective.public.type, CacheDirective.`private`],
   ): PartiallyAppliedCache[G] = {
     val actualLifetime = lifetime match {
       case finite: FiniteDuration => finite
@@ -188,10 +192,11 @@ object Caching {
           `Cache-Control`(
             NonEmptyList.of(
               isPublic.fold[CacheDirective](identity, identity),
-              CacheDirective.`max-age`(actualLifetime)
-            )),
+              CacheDirective.`max-age`(actualLifetime),
+            )
+          ),
           HDate(now),
-          Expires(expires)
+          Expires(expires),
         )
 
     }

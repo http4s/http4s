@@ -54,7 +54,8 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
       case c: Continuation =>
         if (accumulator.isEmpty) {
           val e = new ProtocolException(
-            "Invalid state: Received a Continuation frame without accumulated state.")
+            "Invalid state: Received a Continuation frame without accumulated state."
+          )
           logger.error(e)("Invalid state")
           p.failure(e)
           ()

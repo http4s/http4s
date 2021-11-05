@@ -60,7 +60,8 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
       Source
         .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
         .getLines()
-        .mkString)
+        .mkString
+    )
 
   def post(serverPort: Int, path: String, body: String): IO[String] =
     IO {
@@ -91,7 +92,7 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
       service = service,
       servletIo = org.http4s.servlet.BlockingServletIo(4096),
       serviceErrorHandler = DefaultServiceErrorHandler,
-      dispatcher
+      dispatcher,
     )
   }
 

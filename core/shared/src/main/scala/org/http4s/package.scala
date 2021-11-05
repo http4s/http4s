@@ -88,36 +88,36 @@ package object http4s {
   // Nobody will actually be able to run these methods b/c they will fail to link
 
   @nowarn
-  private[http4s] implicit class Fs2IoPathCompanionOps(p: fs2.io.file.Path.type) {
+  implicit private[http4s] class Fs2IoPathCompanionOps(p: fs2.io.file.Path.type) {
     def fromNioPath(path: java.nio.file.Path): fs2.io.file.Path =
       throw new UnsupportedOperationException
   }
 
-  private[http4s] implicit class Fs2IoPathOps(p: fs2.io.file.Path) {
+  implicit private[http4s] class Fs2IoPathOps(p: fs2.io.file.Path) {
     def toNioPath: java.nio.file.Path = throw new UnsupportedOperationException
   }
 
   @nowarn
-  private[http4s] implicit class Ip4sIpv4AddressCompanionOps(ip: ip4s.Ipv4Address.type) {
+  implicit private[http4s] class Ip4sIpv4AddressCompanionOps(ip: ip4s.Ipv4Address.type) {
     def fromInet4Address(a: java.net.Inet4Address): ip4s.Ipv4Address =
       throw new UnsupportedOperationException
   }
 
-  private[http4s] implicit class Ip4sIpv4AddressOps(ip: ip4s.Ipv4Address) {
+  implicit private[http4s] class Ip4sIpv4AddressOps(ip: ip4s.Ipv4Address) {
     def toInetAddress: java.net.Inet4Address = throw new UnsupportedOperationException
   }
 
   @nowarn
-  private[http4s] implicit class Ip4sIpv6AddressCompanionOps(ip: ip4s.Ipv6Address.type) {
+  implicit private[http4s] class Ip4sIpv6AddressCompanionOps(ip: ip4s.Ipv6Address.type) {
     def fromInet6Address(a: java.net.Inet6Address): ip4s.Ipv6Address =
       throw new UnsupportedOperationException
   }
 
-  private[http4s] implicit class Ip4sIpv6AddressOps(ip: ip4s.Ipv6Address) {
+  implicit private[http4s] class Ip4sIpv6AddressOps(ip: ip4s.Ipv6Address) {
     def toInetAddress: java.net.Inet6Address = throw new UnsupportedOperationException
   }
 
-  private[http4s] implicit class Ip4sIpAddressOps(ip: ip4s.IpAddress) {
+  implicit private[http4s] class Ip4sIpAddressOps(ip: ip4s.IpAddress) {
     def toInetAddress: java.net.InetAddress = throw new UnsupportedOperationException
   }
 }

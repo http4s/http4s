@@ -51,7 +51,8 @@ final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletI
     io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = { (response: Response[F]) =>
+      servletResponse: HttpServletResponse
+  ): BodyWriter[F] = { (response: Response[F]) =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
     response.body.chunks
@@ -176,13 +177,15 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
                     cb(Left(bug("Should have left Init state by now")))
                 }
               go()
-            })
+            }
+          )
         readStream.unNoneTerminate.flatMap(Stream.chunk)
       }
     }
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = {
+      servletResponse: HttpServletResponse
+  ): BodyWriter[F] = {
     sealed trait State
     case object Init extends State
     case object Ready extends State

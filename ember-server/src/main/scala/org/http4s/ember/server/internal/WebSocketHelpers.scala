@@ -69,7 +69,8 @@ object WebSocketHelpers {
       idleTimeout: Duration,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       errorHandler: Throwable => F[Response[F]],
-      logger: Logger[F])(implicit F: Async[F]): F[Unit] = {
+      logger: Logger[F],
+  )(implicit F: Async[F]): F[Unit] = {
     val wsResponse = clientHandshake(req) match {
       case Right(key) =>
         serverHandshake(key)
@@ -106,7 +107,8 @@ object WebSocketHelpers {
       ctx: WebSocketContext[F],
       buffer: Array[Byte],
       receiveBufferSize: Int,
-      idleTimeout: Duration)(implicit F: Async[F]): F[Unit] = {
+      idleTimeout: Duration,
+  )(implicit F: Async[F]): F[Unit] = {
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
     def write(s: Stream[F, Byte]) =
       s.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout))
@@ -161,8 +163,8 @@ object WebSocketHelpers {
   private def handleIncomingFrames[F[_]](
       write: Pipe[F, Byte, Unit],
       frameTranscoder: FrameTranscoder,
-      closeState: Ref[F, Close])(implicit
-      F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
+      closeState: Ref[F, Close],
+  )(implicit F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
     def writeFrame(frame: WebSocketFrame): F[Unit] =
       Stream(frame).covary[F].through(encodeFrames(frameTranscoder)).through(write).compile.drain
 
@@ -197,8 +199,9 @@ object WebSocketHelpers {
           .flatMap(Stream.chunk(_))
       }
 
-  private def decodeFrames[F[_]](frameTranscoder: FrameTranscoder)(implicit
-      F: Async[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
+  private def decodeFrames[F[_]](
+      frameTranscoder: FrameTranscoder
+  )(implicit F: Async[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
     def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
       rest.pull.uncons.flatMap {
         case Some((chunk, next)) =>
@@ -275,11 +278,13 @@ object WebSocketHelpers {
   final case class UnsupportedVersion(supported: Long, requested: Long)
       extends ClientHandshakeError(
         Status.UpgradeRequired,
-        s"This server only supports WebSocket version $supported.")
+        s"This server only supports WebSocket version $supported.",
+      )
   case object UpgradeRequired
       extends ClientHandshakeError(
         Status.UpgradeRequired,
-        "Upgrade required for WebSocket communication.")
+        "Upgrade required for WebSocket communication.",
+      )
   case object KeyNotFound
       extends ClientHandshakeError(Status.BadRequest, "Sec-WebSocket-Key header not present.")
 

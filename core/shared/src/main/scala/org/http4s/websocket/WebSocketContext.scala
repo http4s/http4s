@@ -24,13 +24,14 @@ import cats.~>
 final case class WebSocketContext[F[_]](
     webSocket: WebSocket[F],
     headers: Headers,
-    failureResponse: F[Response[F]]) {
+    failureResponse: F[Response[F]],
+) {
 
   def imapK[G[_]: Functor](fk: F ~> G)(gk: G ~> F): WebSocketContext[G] =
     WebSocketContext[G](
       webSocket.imapK(fk)(gk),
       headers,
-      fk(failureResponse).map(_.mapK(fk))
+      fk(failureResponse).map(_.mapK(fk)),
     )
 
 }

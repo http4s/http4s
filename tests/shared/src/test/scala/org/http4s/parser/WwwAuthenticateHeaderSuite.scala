@@ -48,7 +48,8 @@ class WwwAuthenticateHeaderSuite extends Http4sSuite with HeaderParserHelper[`WW
   }
 
   test(
-    "WWW-Authenticate Header parser should parse multiple concatenated authentications with params") {
+    "WWW-Authenticate Header parser should parse multiple concatenated authentications with params"
+  ) {
     val twowparams =
       "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
     val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::

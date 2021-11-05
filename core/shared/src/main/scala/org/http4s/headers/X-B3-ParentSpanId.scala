@@ -46,7 +46,7 @@ object `X-B3-ParentSpanId` {
           def render(writer: Writer): writer.type =
             xB3RenderValueImpl(writer, h.id)
         },
-      parse
+      parse,
     )
 
 }

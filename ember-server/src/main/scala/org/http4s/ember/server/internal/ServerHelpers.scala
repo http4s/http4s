@@ -72,7 +72,7 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      webSocketKey: Key[WebSocketContext[F]]
+      webSocketKey: Key[WebSocketContext[F]],
   )(implicit F: Async[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -96,7 +96,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F],
       true,
-      webSocketKey
+      webSocketKey,
     )
   }
 
@@ -118,7 +118,7 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      webSocketKey: Key[WebSocketContext[F]]
+      webSocketKey: Key[WebSocketContext[F]],
   ): Stream[F, Nothing] = {
     val server =
       // Our interface has an issue
@@ -147,7 +147,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F],
       false,
-      webSocketKey
+      webSocketKey,
     )
   }
 
@@ -166,7 +166,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F],
       createRequestVault: Boolean,
-      webSocketKey: Key[WebSocketContext[F]]
+      webSocketKey: Key[WebSocketContext[F]],
   ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
@@ -186,8 +186,9 @@ private[server] object ServerHelpers {
                 errorHandler,
                 onWriteFailure,
                 createRequestVault,
-                webSocketKey
-              ))
+                webSocketKey,
+              )
+            )
 
         handler.handleErrorWith { t =>
           Stream.eval(logger.error(t)("Request handler failed with exception")).drain
@@ -213,7 +214,7 @@ private[server] object ServerHelpers {
   private[internal] def upgradeSocket[F[_]: Monad](
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      logger: Logger[F]
+      logger: Logger[F],
   ): Resource[F, Socket[F]] =
     tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
       context
@@ -232,7 +233,7 @@ private[server] object ServerHelpers {
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
       socket: Socket[F],
-      createRequestVault: Boolean
+      createRequestVault: Boolean,
   )(implicit F: Temporal[F], D: Defer[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
@@ -241,7 +242,9 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout,
       D.defer(
         F.raiseError[(Request[F], F[Option[Array[Byte]]])](
-          EmberException.RequestHeadersTimeout(requestHeaderReceiveTimeout)))
+          EmberException.RequestHeadersTimeout(requestHeaderReceiveTimeout)
+        )
+      ),
     )
 
     for {
@@ -259,7 +262,8 @@ private[server] object ServerHelpers {
       request: Option[Request[F]],
       resp: Response[F],
       idleTimeout: Duration,
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]): F[Unit] =
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+  ): F[Unit] =
     Encoder
       .respToBytes[F](resp)
       .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
@@ -273,7 +277,8 @@ private[server] object ServerHelpers {
 
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
-      resp: Response[F]): F[Response[F]] = {
+      resp: Response[F],
+  ): F[Response[F]] = {
     val connection = connectionFor(req.httpVersion, req.headers)
     for {
       date <- HttpDate.current[F].map(Date(_))
@@ -291,7 +296,7 @@ private[server] object ServerHelpers {
       errorHandler: Throwable => F[org.http4s.Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       createRequestVault: Boolean,
-      webSocketKey: Key[WebSocketContext[F]]
+      webSocketKey: Key[WebSocketContext[F]],
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
@@ -328,7 +333,7 @@ private[server] object ServerHelpers {
               httpApp,
               errorHandler,
               socket,
-              createRequestVault
+              createRequestVault,
             )
           }
 
@@ -350,7 +355,8 @@ private[server] object ServerHelpers {
                           idleTimeout,
                           onWriteFailure,
                           errorHandler,
-                          logger)
+                          logger,
+                        )
                         .as(None)
                     case None =>
                       Applicative[F].pure(None)
@@ -391,8 +397,8 @@ private[server] object ServerHelpers {
         Request.Connection(
           local = local,
           remote = remote,
-          secure = socket.isInstanceOf[TLSSocket[F]]
-        )
+          secure = socket.isInstanceOf[TLSSocket[F]],
+        ),
       )
     }
 
@@ -405,7 +411,7 @@ private[server] object ServerHelpers {
               Option(session.getId).map(ByteVector(_).toHex),
               Option(session.getCipherSuite),
               Option(session.getCipherSuite).map(deduceKeyLength),
-              Some(getCertChain(session))
+              Some(getCertChain(session)),
             ).mapN(SecureSession.apply)
           }
           .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))

@@ -20,7 +20,8 @@ import scala.reflect.macros.whitebox
 
 @deprecated(
   "Misspelled, never documented, never mixed into MediaType companion, and obsolete",
-  "0.22.2")
+  "0.22.2",
+)
 trait MediaTypePlaform {
 
   /** Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
@@ -34,7 +35,8 @@ trait MediaTypePlaform {
 object MediaTypePlaform {
   @deprecated(
     """MediaType literal is deprecated.  Import `org.http4s.implicits._` and use the mediaType"" string context""",
-    "0.22.2")
+    "0.22.2",
+  )
   def deprecatedLiteralImpl(s: String): MediaType =
     MediaType.parse(s).fold(throw _, identity)
 
@@ -48,12 +50,12 @@ object MediaTypePlaform {
             .parse(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              _ => q"_root_.org.http4s.MediaTypePlaform.deprecatedLiteralImpl($s)"
+              _ => q"_root_.org.http4s.MediaTypePlaform.deprecatedLiteralImpl($s)",
             )
         case _ =>
           c.abort(
             c.enclosingPosition,
-            s"This method uses a macro to verify that a String literal is a valid media type. Use MediaType.parse if you have a dynamic String that you want to parse as a MediaType."
+            s"This method uses a macro to verify that a String literal is a valid media type. Use MediaType.parse if you have a dynamic String that you want to parse as a MediaType.",
           )
       }
   }

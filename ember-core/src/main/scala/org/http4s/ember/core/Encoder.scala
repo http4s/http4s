@@ -86,7 +86,8 @@ private[ember] object Encoder {
 
   def reqToBytes[F[_]: ApplicativeThrow](
       req: Request[F],
-      writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+      writeBufferSize: Int = 32 * 1024,
+  ): Stream[F, Byte] = {
     val uriOriginFormString = req.uri.toOriginForm.renderString
 
     if (uriOriginFormString.exists(ForbiddenUriCharacters)) {

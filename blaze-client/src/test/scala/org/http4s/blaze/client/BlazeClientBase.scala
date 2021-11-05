@@ -38,7 +38,7 @@ trait BlazeClientBase extends Http4sSuite {
       responseHeaderTimeout: Duration = 30.seconds,
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
-      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
+      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
   ) = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO]
@@ -64,10 +64,12 @@ trait BlazeClientBase extends Http4sSuite {
                 resp.headers.headers
                   .filter(_.name =!= headers.`Content-Length`.name)
                   .traverse_(h =>
-                    IO.blocking(exchange.getResponseHeaders.add(h.name.toString, h.value))) *>
+                    IO.blocking(exchange.getResponseHeaders.add(h.name.toString, h.value))
+                  ) *>
                   IO.blocking(
                     exchange
-                      .sendResponseHeaders(resp.status.code, resp.contentLength.getOrElse(0L)))
+                      .sendResponseHeaders(resp.status.code, resp.contentLength.getOrElse(0L))
+                  )
               val body =
                 resp.body
                   .evalMap { byte =>

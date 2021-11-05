@@ -31,13 +31,19 @@ object ServerScaffold {
   val http = js.Dynamic.global.require("http")
 
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
-      F: Async[F]): Resource[F, ServerScaffold] = {
+      F: Async[F]
+  ): Resource[F, ServerScaffold] = {
     require(num == 1 && !secure)
     Dispatcher[F].flatMap { dispatcher =>
       Resource
         .make {
-          F.delay(http.createServer(Function.untupled(
-            ServerlessApp(routes.orNotFound).tupled.andThen(dispatcher.unsafeRunAndForget))))
+          F.delay(
+            http.createServer(
+              Function.untupled(
+                ServerlessApp(routes.orNotFound).tupled.andThen(dispatcher.unsafeRunAndForget)
+              )
+            )
+          )
         } { server =>
           F.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
         }
@@ -47,10 +53,15 @@ object ServerScaffold {
               cb(
                 Right(
                   ServerScaffold(
-                    List(SocketAddress(
-                      IpAddress.fromString(server.address().address.asInstanceOf[String]).get,
-                      Port.fromInt(server.address().port.asInstanceOf[Int]).get
-                    )))))
+                    List(
+                      SocketAddress(
+                        IpAddress.fromString(server.address().address.asInstanceOf[String]).get,
+                        Port.fromInt(server.address().port.asInstanceOf[Int]).get,
+                      )
+                    )
+                  )
+                )
+              )
             }
             ()
           }

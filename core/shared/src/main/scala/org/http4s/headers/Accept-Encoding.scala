@@ -39,7 +39,7 @@ object `Accept-Encoding` {
     Header.createRendered(
       ci"Accept-Encoding",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Encoding`] =

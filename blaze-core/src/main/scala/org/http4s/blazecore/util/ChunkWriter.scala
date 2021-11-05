@@ -48,7 +48,8 @@ private[util] object ChunkWriter {
   def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
       F: Async[F],
       ec: ExecutionContext,
-      dispatcher: Dispatcher[F]): Future[Boolean] = {
+      dispatcher: Dispatcher[F],
+  ): Future[Boolean] = {
     val f = trailer.map { trailerHeaders =>
       if (!trailerHeaders.isEmpty) {
         val rr = new StringWriter(256)

@@ -35,7 +35,9 @@ class Bootstrap extends ServletContextListener {
         .use(dispatcher =>
           IO(
             sce.getServletContext
-              .mountService("example", ExampleService[IO].routes, dispatcher = dispatcher)))
+              .mountService("example", ExampleService[IO].routes, dispatcher = dispatcher)
+          )
+        )
         .as(ExitCode.Success)
     }
     app.main(Array.empty)

@@ -33,7 +33,8 @@ class AsyncHttp4sServlet[F[_]](
     asyncTimeout: Duration = Duration.Inf,
     servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F],
-    dispatcher: Dispatcher[F])(implicit F: Async[F])
+    dispatcher: Dispatcher[F],
+)(implicit F: Async[F])
     extends Http4sServlet[F](service, servletIo, dispatcher) {
   private val asyncTimeoutMillis =
     if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1 // -1 == Inf
@@ -53,7 +54,8 @@ class AsyncHttp4sServlet[F[_]](
 
   override def service(
       servletRequest: HttpServletRequest,
-      servletResponse: HttpServletResponse): Unit =
+      servletResponse: HttpServletResponse,
+  ): Unit =
     try {
       val ctx = servletRequest.startAsync()
       ctx.setTimeout(asyncTimeoutMillis)
@@ -63,8 +65,9 @@ class AsyncHttp4sServlet[F[_]](
         .attempt(
           toRequest(servletRequest).fold(
             onParseFailure(_, servletResponse, bodyWriter),
-            handleRequest(ctx, _, bodyWriter)
-          ))
+            handleRequest(ctx, _, bodyWriter),
+          )
+        )
         .flatMap {
           case Right(()) => F.delay(ctx.complete)
           case Left(t) => errorHandler(servletRequest, servletResponse)(t)
@@ -75,7 +78,8 @@ class AsyncHttp4sServlet[F[_]](
   private def handleRequest(
       ctx: AsyncContext,
       request: Request[F],
-      bodyWriter: BodyWriter[F]): F[Unit] =
+      bodyWriter: BodyWriter[F],
+  ): F[Unit] =
     Deferred[F, Unit].flatMap { gate =>
       // It is an error to add a listener to an async context that is
       // already completed, so we must take care to add the listener
@@ -83,7 +87,8 @@ class AsyncHttp4sServlet[F[_]](
 
       val timeout =
         F.async[Response[F]](cb =>
-          gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))).as(Option.empty[F[Unit]]))
+          gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))).as(Option.empty[F[Unit]])
+        )
       val response =
         gate.get *>
           F.defer(serviceFn(request))
@@ -94,7 +99,8 @@ class AsyncHttp4sServlet[F[_]](
 
   private def errorHandler(
       servletRequest: ServletRequest,
-      servletResponse: HttpServletResponse): PartialFunction[Throwable, F[Unit]] = {
+      servletResponse: HttpServletResponse,
+  ): PartialFunction[Throwable, F[Unit]] = {
     case t: Throwable if servletResponse.isCommitted =>
       F.delay(logger.error(t)("Error processing request after response was committed"))
 
@@ -128,12 +134,13 @@ object AsyncHttp4sServlet {
   def apply[F[_]: Async](
       service: HttpApp[F],
       asyncTimeout: Duration = Duration.Inf,
-      dispatcher: Dispatcher[F]): AsyncHttp4sServlet[F] =
+      dispatcher: Dispatcher[F],
+  ): AsyncHttp4sServlet[F] =
     new AsyncHttp4sServlet[F](
       service,
       asyncTimeout,
       NonBlockingServletIo[F](DefaultChunkSize),
       DefaultServiceErrorHandler,
-      dispatcher
+      dispatcher,
     )
 }

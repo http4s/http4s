@@ -51,7 +51,9 @@ abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
         DispatcherType.REQUEST,
         DispatcherType.FORWARD,
         DispatcherType.INCLUDE,
-        DispatcherType.ASYNC)): Self
+        DispatcherType.ASYNC,
+      ),
+  ): Self
 
   /** Sets the servlet I/O mode for reads and writes within the servlet.
     * Not to be confused with the server connectors.
