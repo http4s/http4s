@@ -23,6 +23,7 @@ import org.http4s.Uri.Path.SegmentEncoder
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
+import scala.annotation.nowarn
 
 final class SegmentEncoderSuite extends Http4sSuite {
   private val equalityCheckCount: Int = 16
@@ -31,6 +32,7 @@ final class SegmentEncoderSuite extends Http4sSuite {
     Arbitrary.arbitrary[A => Segment].map(SegmentEncoder.instance)
   )
 
+  @nowarn("cat=deprecation")
   implicit private def eqSegmentEncoder[A](implicit A: Arbitrary[A]): Eq[SegmentEncoder[A]] =
     Eq.instance { (e1, e2) =>
       Stream
