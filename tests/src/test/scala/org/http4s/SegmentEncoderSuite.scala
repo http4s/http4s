@@ -27,11 +27,11 @@ import org.scalacheck.Arbitrary
 class SegmentEncoderSuite extends Http4sSuite {
   private def equalityCheckCount: Int = 16
 
-  private implicit def arbitrarySegmentEncoder[A: Cogen]: Arbitrary[SegmentEncoder[A]] = Arbitrary(
+  implicit private def arbitrarySegmentEncoder[A: Cogen]: Arbitrary[SegmentEncoder[A]] = Arbitrary(
     Arbitrary.arbitrary[A => Segment].map(SegmentEncoder.instance)
   )
 
-  private implicit def eqSegmentEncoder[A](implicit A: Arbitrary[A]): Eq[SegmentEncoder[A]] =
+  implicit private def eqSegmentEncoder[A](implicit A: Arbitrary[A]): Eq[SegmentEncoder[A]] =
     Eq.instance { (e1, e2) =>
       Stream
         .continually(A.arbitrary.sample)
@@ -42,5 +42,6 @@ class SegmentEncoderSuite extends Http4sSuite {
 
   checkAll(
     "Contravariant[SegmentEncoder]",
-    ContravariantTests[SegmentEncoder].contravariant[Long, Int, Char])
+    ContravariantTests[SegmentEncoder].contravariant[Long, Int, Char],
+  )
 }
