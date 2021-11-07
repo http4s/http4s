@@ -25,6 +25,7 @@ object NoneShallPass extends DefaultFilter {
   override def doHttpFilter(
       request: HttpServletRequest,
       response: HttpServletResponse,
-      chain: FilterChain): Unit =
+      chain: FilterChain,
+  ): Unit =
     response.setStatus(403)
 }

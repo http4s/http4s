@@ -38,13 +38,15 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     val url = Uri(
       scheme = Some(Scheme.http),
       authority = Some(Authority(host = RegName("ptscom"))),
-      path = path"/t/http4s/post")
+      path = path"/t/http4s/post",
+    )
 
     val multipart = Multipart[IO](
       Vector(
         Part.formData("text", "This is text."),
-        Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.png))
-      ))
+        Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.png)),
+      )
+    )
 
     val request: Request[IO] =
       Method.POST(multipart, url).withHeaders(multipart.headers)

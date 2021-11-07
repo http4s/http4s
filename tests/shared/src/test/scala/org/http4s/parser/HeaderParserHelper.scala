@@ -38,7 +38,8 @@ trait HeaderParserHelper[H] {
     hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
 
   private def hparse[T <: Header.Type](value: String)(implicit
-      header: Header[H, T]): ParseResult[H] =
+      header: Header[H, T]
+  ): ParseResult[H] =
     header.parse(value)
 
 }

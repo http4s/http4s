@@ -31,7 +31,8 @@ private[internal] trait ClientHelpersPlatform {
   @nowarn("msg=never used")
   private[internal] def mkTLSParameters(
       address: Option[SocketAddress[Host]],
-      enableEndpointValidation: Boolean): TLSParameters =
+      enableEndpointValidation: Boolean,
+  ): TLSParameters =
     TLSParameters(
       servername = address.map(a => extractHostname(a.host))
     ) // TODO how to enable endpoint validation?

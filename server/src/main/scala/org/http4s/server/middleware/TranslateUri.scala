@@ -24,8 +24,9 @@ import cats.syntax.all._
 /** Removes the given prefix from the beginning of the path of the [[Request]].
   */
 object TranslateUri {
-  def apply[F[_], G[_], B](prefix: String)(http: Kleisli[F, Request[G], B])(implicit
-      F: MonoidK[F]): Kleisli[F, Request[G], B] =
+  def apply[F[_], G[_], B](
+      prefix: String
+  )(http: Kleisli[F, Request[G], B])(implicit F: MonoidK[F]): Kleisli[F, Request[G], B] =
     if (prefix.isEmpty || prefix == "/") http
     else {
       val prefixAsPath = Uri.Path.unsafeFromString(prefix)

@@ -39,7 +39,8 @@ import scala.collection.JavaConverters._
 
 object ServerScaffold {
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
-      F: Async[F]): Resource[F, ServerScaffold] =
+      F: Async[F]
+  ): Resource[F, ServerScaffold] =
     Dispatcher[F].flatMap { dispatcher =>
       val handler: HttpHandler = { exchange =>
         val run = for {
@@ -50,7 +51,8 @@ object ServerScaffold {
               vs.asScala.toList.map { v =>
                 (k -> v): http4s.Header.ToRaw
               }
-            }): @nowarn("cat=deprecation")
+            }
+          ): @nowarn("cat=deprecation")
           body = fs2.io.readInputStream(exchange.getRequestBody().pure[F], 8192)
           request = http4s.Request(method, uri, headers = headers, body = body)
           response <- routes.run(request).value
@@ -68,8 +70,10 @@ object ServerScaffold {
               exchange.sendResponseHeaders(res.status.code, contentLength)
             } *>
               res.body
-                .through(fs2.io
-                  .writeOutputStream[F](exchange.getResponseBody.pure[F]))
+                .through(
+                  fs2.io
+                    .writeOutputStream[F](exchange.getResponseBody.pure[F])
+                )
                 .compile
                 .drain
           }
@@ -81,7 +85,8 @@ object ServerScaffold {
     }
 
   def apply[F[_]](num: Int, secure: Boolean, testHandler: HttpHandler)(implicit
-      F: Sync[F]): Resource[F, ServerScaffold] =
+      F: Sync[F]
+  ): Resource[F, ServerScaffold] =
     Resource.make(F.delay {
       val scaffold = new ServerScaffold(num, secure)
       scaffold.startServers(testHandler)
@@ -104,7 +109,8 @@ class ServerScaffold private (num: Int, secure: Boolean) {
 
           val kmf = KeyManagerFactory.getInstance(
             Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-              .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+              .getOrElse(KeyManagerFactory.getDefaultAlgorithm)
+          )
 
           kmf.init(ks, "secure".toCharArray)
 

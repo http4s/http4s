@@ -40,8 +40,8 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(client: Client[F])(
-      implicit F: Temporal[F]): Client[F] = {
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(client: Client[F])(implicit F: Temporal[F]): Client[F] = {
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
       val uri = request.uri.renderString
@@ -54,7 +54,8 @@ object Retry {
         attempts: Int,
         duration: FiniteDuration,
         retryHeader: Option[`Retry-After`],
-        hotswap: Hotswap[F, Either[Throwable, Response[F]]]): F[Response[F]] = {
+        hotswap: Hotswap[F, Either[Throwable, Response[F]]],
+    ): F[Response[F]] = {
       val headerDuration =
         retryHeader
           .map { h =>
@@ -71,14 +72,16 @@ object Retry {
     def retryLoop(
         req: Request[F],
         attempts: Int,
-        hotswap: Hotswap[F, Either[Throwable, Response[F]]]): F[Response[F]] =
+        hotswap: Hotswap[F, Either[Throwable, Response[F]]],
+    ): F[Response[F]] =
       hotswap.clear *> // Release the prior connection before allocating the next, or we can deadlock the pool
         hotswap.swap(client.run(req).attempt).flatMap {
           case Right(response) =>
             policy(req, Right(response), attempts) match {
               case Some(duration) =>
                 logger.info(
-                  s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+                  s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
+                )
                 nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
               case None =>
                 F.pure(response)
@@ -89,7 +92,8 @@ object Retry {
               case Some(duration) =>
                 // info instead of error(e), because e is not discarded
                 logger.info(e)(
-                  s"Request threw an exception on attempt #$attempts. Retrying after $duration")
+                  s"Request threw an exception on attempt #$attempts. Retrying after $duration"
+                )
                 nextAttempt(req, attempts, duration, None, hotswap)
               case None =>
                 logger.info(e)(
@@ -123,7 +127,7 @@ object RetryPolicy {
     */
   def apply[F[_]](
       backoff: Int => Option[FiniteDuration],
-      retriable: (Request[F], Either[Throwable, Response[F]]) => Boolean = defaultRetriable[F] _
+      retriable: (Request[F], Either[Throwable, Response[F]]) => Boolean = defaultRetriable[F] _,
   ): RetryPolicy[F] = { (req, result, retries) =>
     if (retriable(req, result)) backoff(retries)
     else None
@@ -136,7 +140,7 @@ object RetryPolicy {
     InternalServerError,
     ServiceUnavailable,
     BadGateway,
-    GatewayTimeout
+    GatewayTimeout,
   )
 
   /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)

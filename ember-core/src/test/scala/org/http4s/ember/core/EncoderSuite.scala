@@ -75,7 +75,7 @@ class EncoderSuite extends Http4sSuite {
     val req = Request[IO](
       Method.GET,
       uri"http://www.google.com",
-      headers = Headers("foo" -> "bar")
+      headers = Headers("foo" -> "bar"),
     )
     val expected =
       """GET / HTTP/1.1
@@ -89,7 +89,7 @@ class EncoderSuite extends Http4sSuite {
   test("reqToBytes strips the fragment") {
     val req = Request[IO](
       Method.GET,
-      uri"https://www.example.com/path?query#fragment"
+      uri"https://www.example.com/path?query#fragment",
     )
     val expected =
       """GET /path?query HTTP/1.1
@@ -103,7 +103,7 @@ class EncoderSuite extends Http4sSuite {
     val req = Request[IO](
       Method.GET,
       uri"https://www.example.com/",
-      headers = Headers(headers.Host("example.org", Some(8080)))
+      headers = Headers(headers.Host("example.org", Some(8080))),
     )
     val expected =
       """GET / HTTP/1.1

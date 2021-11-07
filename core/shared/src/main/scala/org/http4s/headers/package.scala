@@ -29,7 +29,8 @@ package object headers {
   private[headers] def xB3RenderValueImpl(
       writer: Writer,
       idMostSigBits: Long,
-      idLeastSigBits: Option[Long] = None): writer.type =
+      idLeastSigBits: Option[Long] = None,
+  ): writer.type =
     idLeastSigBits match {
       case Some(idLsb) =>
         if (idMostSigBits == 0L && idLsb == 0L)

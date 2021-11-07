@@ -35,8 +35,8 @@ import scala.concurrent._
   */
 private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(implicit
     protected val F: Async[F],
-    protected val ec: ExecutionContext)
-    extends Http1Writer[F] {
+    protected val ec: ExecutionContext,
+) extends Http1Writer[F] {
   def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     pipe.channelWrite(Http1Writer.headersToByteBuffer(headerWriter.result))
 

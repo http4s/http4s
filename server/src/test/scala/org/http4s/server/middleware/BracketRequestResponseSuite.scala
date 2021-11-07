@@ -25,20 +25,24 @@ import org.http4s.server._
 final class BracketRequestResponseSuite extends Http4sSuite {
 
   test(
-    "When no errors occur, acquire, release, or the middleware should yield the expected values") {
+    "When no errors occur, acquire, release, or the middleware should yield the expected values"
+  ) {
     for {
       acquireRef <- Ref.of[IO, Long](0L)
       releaseRef <- Ref.of[IO, Long](0L)
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)) { case (_, oc) =>
+          acquireRef.updateAndGet(_ + 1L)
+        ) { case (_, oc) =>
           IO(assertEquals(oc, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
             .update(_ + 1L)
         }
       routes = middleware(
         Kleisli((contextRequest: ContextRequest[IO, Long]) =>
           OptionT.liftF(
-            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))))
+            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))
+          )
+        )
       )
       response <- routes.run(Request[IO]()).getOrElseF(IO(fail("Got None for response")))
       acquireCount <- acquireRef.get
@@ -59,9 +63,11 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       error = new RuntimeException
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)) { case (_, ec) =>
+          acquireRef.updateAndGet(_ + 1L)
+        ) { case (_, ec) =>
           IO(assertEquals(ec, Outcome.errored[IO, Throwable, Unit](error))) *> releaseRef.update(
-            _ + 1L)
+            _ + 1L
+          )
         }
       routes = middleware(Kleisli(Function.const(OptionT.liftF(IO.raiseError(error)))))
       response <- routes.run(Request[IO]()).value.attempt
@@ -80,7 +86,8 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       releaseRef <- Ref.of[IO, Long](0L)
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)) { case (_, ec) =>
+          acquireRef.updateAndGet(_ + 1L)
+        ) { case (_, ec) =>
           IO(assertEquals(ec, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
             .update(_ + 1L)
         }
@@ -96,20 +103,24 @@ final class BracketRequestResponseSuite extends Http4sSuite {
   }
 
   test(
-    "When more than one request is running at a time, release Refs should reflect the current state") {
+    "When more than one request is running at a time, release Refs should reflect the current state"
+  ) {
     for {
       acquireRef <- Ref.of[IO, Long](0L)
       releaseRef <- Ref.of[IO, Long](0L)
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)) { case (_, ec) =>
+          acquireRef.updateAndGet(_ + 1L)
+        ) { case (_, ec) =>
           IO(assertEquals(ec, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
             .update(_ + 1L)
         }
       routes = middleware(
         Kleisli((contextRequest: ContextRequest[IO, Long]) =>
           OptionT.liftF(
-            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))))
+            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))
+          )
+        )
       ).orNotFound
       // T0
       acquireCount0 <- acquireRef.get
@@ -156,22 +167,27 @@ final class BracketRequestResponseSuite extends Http4sSuite {
   }
 
   test(
-    "When an error occurs during processing of the Response body, acquire/release still execute") {
+    "When an error occurs during processing of the Response body, acquire/release still execute"
+  ) {
     for {
       acquireRef <- Ref.of[IO, Long](0L)
       releaseRef <- Ref.of[IO, Long](0L)
       error = new AssertionError
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)) { case (_, ec) =>
+          acquireRef.updateAndGet(_ + 1L)
+        ) { case (_, ec) =>
           IO(assertEquals(ec, Outcome.errored[IO, Throwable, Unit](error))) *> releaseRef.update(
-            _ + 1L)
+            _ + 1L
+          )
         }
       routes = middleware(
         Kleisli(
           Function.const(
             OptionT.liftF(
-              IO(Response(status = Status.Ok).withBodyStream(Stream.raiseError[IO](error)))))
+              IO(Response(status = Status.Ok).withBodyStream(Stream.raiseError[IO](error)))
+            )
+          )
         )
       ).orNotFound
       response <- routes.run(Request[IO]())
@@ -189,7 +205,8 @@ final class BracketRequestResponseSuite extends Http4sSuite {
     val error: Throwable = new AssertionError
     val middleware: ContextMiddleware[IO, Unit] =
       BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Unit](
-        IO.raiseError[Unit](error)) { case _ =>
+        IO.raiseError[Unit](error)
+      ) { case _ =>
         IO(fail("Release should not execute")).void
       }
     val routes: HttpRoutes[IO] = middleware(Kleisli(Function.const(OptionT.none)))
@@ -199,14 +216,16 @@ final class BracketRequestResponseSuite extends Http4sSuite {
   }
 
   test(
-    "When an error occurs during release, acquire should execute correctly and release should only be attempted once") {
+    "When an error occurs during release, acquire should execute correctly and release should only be attempted once"
+  ) {
     val error: Throwable = new AssertionError
     for {
       acquireRef <- Ref.of[IO, Long](0L)
       releaseRef <- Ref.of[IO, Long](0L)
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)) { case (_, ec) =>
+          acquireRef.updateAndGet(_ + 1L)
+        ) { case (_, ec) =>
           IO(assertEquals(ec, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
             .update(_ + 1L) *> IO
             .raiseError[Unit](error)
@@ -214,7 +233,9 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       routes = middleware(
         Kleisli((contextRequest: ContextRequest[IO, Long]) =>
           OptionT.liftF(
-            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))))
+            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))
+          )
+        )
       ).orNotFound
       response <- routes.run(Request[IO]())
       acquireCount <- acquireRef.get

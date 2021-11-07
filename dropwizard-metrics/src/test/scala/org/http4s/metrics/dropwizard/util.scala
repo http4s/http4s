@@ -45,7 +45,8 @@ object util {
       IO.raiseError[Response[IO]](new TimeoutException("request timed out"))
     case GET -> Root / "abnormal-termination" =>
       Ok("200 OK").map(
-        _.withBodyStream(Stream.raiseError[IO](new RuntimeException("Abnormal termination"))))
+        _.withBodyStream(Stream.raiseError[IO](new RuntimeException("Abnormal termination")))
+      )
     case _ =>
       NotFound("404 Not Found")
   }

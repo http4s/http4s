@@ -68,7 +68,8 @@ private object ConnectionManager {
     * @param builder generator of new connections
     */
   def basic[F[_]: Sync, A <: Connection[F]](
-      builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
+      builder: ConnectionBuilder[F, A]
+  ): ConnectionManager[F, A] =
     new BasicManager[F, A](builder)
 
   /** Create a [[ConnectionManager]] that will attempt to recycle connections
@@ -86,7 +87,8 @@ private object ConnectionManager {
       maxConnectionsPerRequestKey: RequestKey => Int,
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
-      executionContext: ExecutionContext): F[ConnectionManager.Stateful[F, A]] =
+      executionContext: ExecutionContext,
+  ): F[ConnectionManager.Stateful[F, A]] =
     Semaphore(1).map { semaphore =>
       new PoolManager[F, A](
         builder,
@@ -96,6 +98,7 @@ private object ConnectionManager {
         responseHeaderTimeout,
         requestTimeout,
         semaphore,
-        executionContext)
+        executionContext,
+      )
     }
 }

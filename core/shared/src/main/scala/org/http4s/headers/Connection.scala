@@ -40,7 +40,7 @@ object Connection {
     Header.createRendered(
       ci"Connection",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Connection] =

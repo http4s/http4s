@@ -57,7 +57,8 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       scala.io.Source
         .fromInputStream(s)
         .mkString
-        .getBytes(StandardCharsets.UTF_8))
+        .getBytes(StandardCharsets.UTF_8)
+    )
   }
 
   lazy val testWebjarResourceGzipped: Chunk[Byte] = {
@@ -71,19 +72,22 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
 
   lazy val testWebjarSubResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream(
-      "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt")
+      "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt"
+    )
     require(s != null, "Couldn't acquire resource!")
 
     Chunk.array(
       scala.io.Source
         .fromInputStream(s)
         .mkString
-        .getBytes(StandardCharsets.UTF_8))
+        .getBytes(StandardCharsets.UTF_8)
+    )
   }
 
   def runReq(
       req: Request[IO],
-      routes: HttpRoutes[IO] = routes): IO[(IO[Chunk[Byte]], Response[IO])] =
+      routes: HttpRoutes[IO] = routes,
+  ): IO[(IO[Chunk[Byte]], Response[IO])] =
     routes.orNotFound(req).map { resp =>
       (resp.body.compile.to(Array).map(Chunk.array[Byte]), resp)
     }

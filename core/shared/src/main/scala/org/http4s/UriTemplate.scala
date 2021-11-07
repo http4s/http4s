@@ -42,7 +42,8 @@ final case class UriTemplate(
     authority: Option[Authority] = None,
     path: Path = Nil,
     query: UriTemplate.Query = Nil,
-    fragment: Fragment = Nil) {
+    fragment: Fragment = Nil,
+) {
 
   /** Replaces any expansion type that matches the given `name`. If no matching
     * `expansion` could be found the same instance will be returned.
@@ -100,7 +101,8 @@ final case class UriTemplate(
   def toUriIfPossible: Try[Uri] =
     if (containsExpansions(this))
       Failure(
-        new IllegalStateException(s"all expansions must be resolved to be convertable: $this"))
+        new IllegalStateException(s"all expansions must be resolved to be convertable: $this")
+      )
     else Success(toUri(this))
 }
 
@@ -408,14 +410,16 @@ object UriTemplate {
           s,
           a,
           Uri.Path.unsafeFromString(renderPath(p)),
-          fragment = Some(renderFragmentIdentifier(f)))
+          fragment = Some(renderFragmentIdentifier(f)),
+        )
       case UriTemplate(s, a, p, q, f) =>
         Uri(
           s,
           a,
           Uri.Path.unsafeFromString(renderPath(p)),
           buildQuery(q),
-          Some(renderFragmentIdentifier(f)))
+          Some(renderFragmentIdentifier(f)),
+        )
     }
 
   sealed trait PathDef
@@ -548,7 +552,8 @@ object UriTemplate {
     require(names.nonEmpty, "at least one name must be set")
     require(
       names.forall(isUnreservedOrEncoded),
-      "all names must consist of unreserved characters or be encoded")
+      "all names must consist of unreserved characters or be encoded",
+    )
   }
   object ParamExp {
     def apply(names: String*): ParamExp = new ParamExp(names.toList)

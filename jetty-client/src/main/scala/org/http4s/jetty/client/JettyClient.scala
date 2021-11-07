@@ -34,10 +34,12 @@ object JettyClient {
   private val logger: Logger = getLogger
 
   def allocate[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: Async[F]): F[(Client[F], F[Unit])] = resource(client).allocated
+      F: Async[F]
+  ): F[(Client[F], F[Unit])] = resource(client).allocated
 
-  def resource[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: Async[F]): Resource[F, Client[F]] = Dispatcher[F].flatMap { implicit D =>
+  def resource[F[_]](
+      client: HttpClient = defaultHttpClient()
+  )(implicit F: Async[F]): Resource[F, Client[F]] = Dispatcher[F].flatMap { implicit D =>
     val acquire = F
       .pure(client)
       .flatTap(client => F.delay(client.start()))
@@ -58,7 +60,8 @@ object JettyClient {
               F.delay(dcp.close())
             }
           })
-        })
+        }
+      )
     val dispose = F
       .delay(client.stop())
       .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))
@@ -66,7 +69,8 @@ object JettyClient {
   }
 
   def stream[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: Async[F]): Stream[F, Client[F]] =
+      F: Async[F]
+  ): Stream[F, Client[F]] =
     Stream.resource(resource(client))
 
   def defaultHttpClient(): HttpClient = {
@@ -80,7 +84,8 @@ object JettyClient {
   private def toJettyRequest[F[_]](
       client: HttpClient,
       request: Request[F],
-      dcp: StreamRequestContentProvider[F]): JettyRequest = {
+      dcp: StreamRequestContentProvider[F],
+  ): JettyRequest = {
     val jReq = client
       .newRequest(request.uri.toString)
       .method(request.method.name)

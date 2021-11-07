@@ -27,7 +27,8 @@ class UnexpectedStatusSuite extends Http4sSuite {
     val e = UnexpectedStatus(Status.NotFound, Method.GET, uri"www.google.com")
     assertEquals(
       e.getMessage(),
-      "unexpected HTTP status: 404 Not Found for request GET www.google.com")
+      "unexpected HTTP status: 404 Not Found for request GET www.google.com",
+    )
   }
 
   property("UnexpectedStatus should not return null") {

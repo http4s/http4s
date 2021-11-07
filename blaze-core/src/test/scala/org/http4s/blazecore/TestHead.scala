@@ -98,7 +98,8 @@ final class QueueTestHead(queue: Queue[IO, Option[ByteBuffer]]) extends TestHead
           case Some(bb) => IO.pure(bb)
           case None => IO.raiseError(EOF)
         }
-        .unsafeToFuture())
+        .unsafeToFuture()
+    )
     p.completeWith(closedP.future)
     p.future
   }
@@ -151,7 +152,8 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
                   }
                 }
             },
-            pause)
+            pause,
+          )
 
           p.future
       }

@@ -30,7 +30,8 @@ trait Media[F[_]] {
 
   final def bodyText(implicit
       RT: RaiseThrowable[F],
-      defaultCharset: Charset = `UTF-8`): Stream[F, String] = {
+      defaultCharset: Charset = `UTF-8`,
+  ): Stream[F, String] = {
     val cs = charset.getOrElse(defaultCharset).nioCharset
     body.through(decodeWithCharset(cs))
   }

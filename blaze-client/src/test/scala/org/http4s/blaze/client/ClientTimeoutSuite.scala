@@ -46,7 +46,9 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   def tickWheelFixture = ResourceFixture(
     Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
-      IO(tickWheel.shutdown())))
+      IO(tickWheel.shutdown())
+    )
+  )
 
   def fixture = (tickWheelFixture, dispatcher).mapN(FunFixture.map2(_, _))
 
@@ -59,7 +61,8 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       requestKey: RequestKey,
       tickWheel: TickWheelExecutor,
       dispatcher: Dispatcher[IO],
-      idleTimeout: Duration = Duration.Inf): Http1Connection[IO] = {
+      idleTimeout: Duration = Duration.Inf,
+  ): Http1Connection[IO] = {
     val idleTimeoutStage = makeIdleTimeoutStage(idleTimeout, tickWheel)
 
     val connection = new Http1Connection[IO](
@@ -72,7 +75,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       parserMode = ParserMode.Strict,
       userAgent = None,
       idleTimeoutStage = idleTimeoutStage,
-      dispatcher = dispatcher
+      dispatcher = dispatcher,
     )
 
     val builder = LeafBuilder(connection)
@@ -82,7 +85,8 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   private def makeIdleTimeoutStage(
       idleTimeout: Duration,
-      tickWheel: TickWheelExecutor): Option[IdleTimeoutStage[ByteBuffer]] =
+      tickWheel: TickWheelExecutor,
+  ): Option[IdleTimeoutStage[ByteBuffer]] =
     idleTimeout match {
       case d: FiniteDuration =>
         Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, Http4sSuite.TestExecutionContext))
@@ -95,16 +99,18 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   private def mkClient(
       head: => HeadStage[ByteBuffer],
       tail: => BlazeConnection[IO],
-      tickWheel: TickWheelExecutor)(
+      tickWheel: TickWheelExecutor,
+  )(
       responseHeaderTimeout: Duration = Duration.Inf,
-      requestTimeout: Duration = Duration.Inf): Client[IO] = {
+      requestTimeout: Duration = Duration.Inf,
+  ): Client[IO] = {
     val manager = MockClientBuilder.manager(head, tail)
     BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = Http4sSuite.TestExecutionContext
+      ec = Http4sSuite.TestExecutionContext,
     )
   }
 
@@ -138,7 +144,8 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
         RequestKey.fromRequest(req),
         tickWheel,
         dispatcher,
-        idleTimeout = 1.second)
+        idleTimeout = 1.second,
+      )
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       h = new QueueTestHead(q)
       (f, b) = resp.splitAt(resp.length - 1)
@@ -224,7 +231,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       responseHeaderTimeout = Duration.Inf,
       requestTimeout = 50.millis,
       scheduler = tickWheel,
-      ec = munitExecutionContext
+      ec = munitExecutionContext,
     )
 
     // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,
