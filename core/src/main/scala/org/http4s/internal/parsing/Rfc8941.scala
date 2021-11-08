@@ -16,8 +16,9 @@
 
 package org.http4s.internal.parsing
 
+import cats.parse.Parser
+import cats.parse.Parser0
 import cats.parse.Rfc5234
-import cats.parse.{Parser, Parser0}
 
 /** Parsers for the rules defined in RFC8941
   *

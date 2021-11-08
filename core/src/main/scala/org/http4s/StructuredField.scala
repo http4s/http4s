@@ -16,11 +16,14 @@
 
 package org.http4s
 
-import java.util.Base64
+import cats.parse.Parser
+import cats.parse.Parser0
 import cats.syntax.either._
-import cats.parse.{Parser, Parser0}
-import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.Rfc8941
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
+import java.util.Base64
 
 /** Structured Field Values for HTTP (RFC8941)
   *
