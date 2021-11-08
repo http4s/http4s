@@ -51,7 +51,8 @@ class NettyTestServer[F[_]](
 object NettyTestServer {
   private val logger = getLogger(this.getClass)
 
-  def apply[F[_]: Async](port: Int,
+  def apply[F[_]: Async](
+                          port: Int,
     makeHandler: F[ChannelInboundHandler],
     sslContext: Option[SSLContext],
     dispatcher: Dispatcher[F],
@@ -69,9 +70,11 @@ object NettyTestServer {
         def initChannel(ch: NioSocketChannel): Unit = {
           logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].")
           establishedConnections.update(_ + 1)
-          sslContext.foreach(sslContext => 
-            ch.pipeline().addLast(new SslHandler(sslContext.createSSLEngine()))
-          )
+          sslContext.foreach { sslContext =>
+            val engine = sslContext.createSSLEngine()
+            engine.setUseClientMode(false)
+            ch.pipeline().addLast(new SslHandler(engine))
+          }
           ch.pipeline()
             .addLast(new HttpRequestDecoder())
             .addLast(new HttpResponseEncoder())

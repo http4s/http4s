@@ -17,7 +17,8 @@
 package org.http4s.client.scaffold
 
 import cats.effect.Ref
-import cats.effect.kernel.{Async, Resource}
+import cats.effect.implicits.genSpawnOps
+import cats.effect.kernel.Async
 import cats.effect.std.{Dispatcher, Queue}
 import cats.implicits._
 import fs2.Chunk
@@ -51,32 +52,26 @@ class RoutesToHandlerAdapter[F[_]](
     extends Handler {
 
   override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
-    dispatcher.unsafeRunSync(Queue.unbounded[F, Option[Chunk[Byte]]].flatMap(requestBodyQueue.set))
-
-  override def onContent(
-      ctx: ChannelHandlerContext,
-      request: HttpRequest,
-      content: HttpContent): Unit = {
-    val bytes = new Array[Byte](content.content().readableBytes())
-    content.content().readBytes(bytes)
-    dispatcher.unsafeRunSync(requestBodyQueue.get.flatMap(_.offer(Some(Chunk.array(bytes)))))
-  }
-
-  override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
     dispatcher.unsafeRunSync(
+      for {
+        method <- Method.fromString(request.method().name()).liftTo[F]
+        uri <- http4s.Uri.fromString(request.uri()).liftTo[F]
+        headers = http4s.Headers(request.headers().names().asScala.toVector.flatMap { k =>
+          val vs = request.headers().getAll(k)
+          vs.asScala.toVector.map { v =>
+            (k -> v): http4s.Header.ToRaw
+          }
+        }): @nowarn("cat=deprecation")
+        bodyQueue <- Queue.unbounded[F, Option[Chunk[Byte]]]
+        _ <- requestBodyQueue.set(bodyQueue)
+        body = fs2.Stream.fromQueueNoneTerminatedChunk(bodyQueue)
+        http4sRequest = http4s.Request(method, uri, headers = headers, body = body)
+        _ <- processRequest(ctx, request, http4sRequest).start
+      } yield ()
+    )
+
+  private def processRequest(ctx: ChannelHandlerContext, request: HttpRequest, http4sRequest: http4s.Request[F]): F[Unit] =
     for {
-      method <- Method.fromString(request.method().name()).liftTo[F]
-      uri <- http4s.Uri.fromString(request.uri()).liftTo[F]
-      headers = http4s.Headers(request.headers().names().asScala.toVector.flatMap { k =>
-        val vs = request.headers().getAll(k)
-        vs.asScala.toVector.map { v =>
-          (k -> v): http4s.Header.ToRaw
-        }
-      }): @nowarn("cat=deprecation")
-      bodyQueue <- requestBodyQueue.get
-      _ <- bodyQueue.offer(None)
-      body = fs2.Stream.fromQueueNoneTerminatedChunk(bodyQueue)
-      http4sRequest = http4s.Request(method, uri, headers = headers, body = body)
       response <- routes.run(http4sRequest).value
       _ <- response.fold(
         F.delay(HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.NOT_FOUND))
@@ -96,5 +91,21 @@ class RoutesToHandlerAdapter[F[_]](
         }
       }
     } yield ()
+
+  override def onContent(
+                          ctx: ChannelHandlerContext,
+                          request: HttpRequest,
+                          content: HttpContent): Unit = {
+    val bytes = new Array[Byte](content.content().readableBytes())
+    content.content().readBytes(bytes)
+    dispatcher.unsafeRunSync(requestBodyQueue.get.flatMap(_.offer(Some(Chunk.array(bytes)))))
+  }
+
+  override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
+    dispatcher.unsafeRunSync(
+      for {
+        bodyQueue <- requestBodyQueue.get
+        _ <- bodyQueue.offer(None)
+      } yield ()
     )
 }

@@ -69,7 +69,7 @@ trait BlazeClientBase extends Http4sSuite {
 
   private def postHandlers: Map[(HttpMethod, String), Handler] =
     Map(
-      (HttpMethod.POST, "respond-and-close-immediately") -> new Handler {
+      (HttpMethod.POST, "/respond-and-close-immediately") -> new Handler {
         // The client may receive the response before sending the whole request
         override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
           HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.OK, HandlerHelpers.utf8Text("a"), closeConnection = true)
@@ -77,7 +77,7 @@ trait BlazeClientBase extends Http4sSuite {
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       },
 
-      (HttpMethod.POST, "respond-and-close-immediately-no-body") -> new Handler {
+      (HttpMethod.POST, "/respond-and-close-immediately-no-body") -> new Handler {
         // The client may receive the response before sending the whole request
         override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
           HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.OK, closeConnection = true)
@@ -85,7 +85,7 @@ trait BlazeClientBase extends Http4sSuite {
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       },
 
-      (HttpMethod.POST, "process-request-entity") -> new Handler {
+      (HttpMethod.POST, "/process-request-entity") -> new Handler {
         // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
           HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.OK, closeConnection = true)

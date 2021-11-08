@@ -16,22 +16,16 @@
 
 package org.http4s.client.scaffold
 
+import cats.effect.std.Dispatcher
+import cats.effect.{IO, IOApp}
 import io.netty.channel._
-import io.netty.handler.codec.http._
-import cats.effect.IO
-import cats.effect.IOApp
-import HandlerHelpers._
-import io.netty.channel._
+import io.netty.handler.codec.http.HttpMethod._
 import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http._
-import cats.effect.IO
 import org.http4s.client.scaffold.HandlerHelpers._
-import io.netty.handler.codec.http.HttpMethod._
-import cats.effect.IOApp
-import cats.effect.std.Dispatcher
 
 object Test extends IOApp.Simple {
-    
+
   def run: IO[Unit] =
     Dispatcher[IO].flatMap(NettyTestServer[IO](1234, HandlersToNettyAdapter[IO](handlers), None, _)).useForever
 
