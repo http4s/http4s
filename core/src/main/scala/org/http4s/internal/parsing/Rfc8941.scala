@@ -98,7 +98,7 @@ private[http4s] object Rfc8941 {
       sfStringP: Parser[A],
       sfTokenP: Parser[A],
       sfBinaryP: Parser[A],
-      sfBooleanP: Parser[A]
+      sfBooleanP: Parser[A],
   ): Parser[A] =
     sfDecimalP.backtrack
       .orElse(sfIntegerP)
@@ -159,7 +159,7 @@ private[http4s] object Rfc8941 {
   def sfDictionary[K, P, M](
       keyP: Parser[K],
       parametersP: Parser0[P],
-      memberP: Parser[M]
+      memberP: Parser[M],
   ): Parser[List[(K, Either[P, M])]] = {
     import Parser.char, Rfc7230.ows
     val pair = keyP ~ (char('=') *> memberP).eitherOr(parametersP)

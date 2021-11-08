@@ -47,7 +47,7 @@ object StructuredField {
         SfString.parser,
         SfToken.parser,
         SfBinary.parser,
-        SfBoolean.parser
+        SfBoolean.parser,
       )
   }
 

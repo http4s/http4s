@@ -573,8 +573,8 @@ class StructuredFieldSuite extends Http4sSuite {
     assert {
       SfDictionary.parser.parseAll("k1;p1=1, k2=?1;p2=2") match {
         case Right(
-              SfDictionary(
-                List((_, SfItem(SfBoolean(true), _)), (_, SfItem(SfBoolean(true), _))))) =>
+              SfDictionary(List((_, SfItem(SfBoolean(true), _)), (_, SfItem(SfBoolean(true), _))))
+            ) =>
           true
         case _ => false
       }
