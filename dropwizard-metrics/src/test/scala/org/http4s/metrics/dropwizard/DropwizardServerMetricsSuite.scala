@@ -48,15 +48,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.get-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.2xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -78,15 +81,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.get-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.4xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -107,15 +113,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.get-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.5xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -136,15 +145,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.get-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.2xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -165,15 +177,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.post-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.2xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -194,15 +209,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.put-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.2xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -223,15 +241,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.delete-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.2xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -250,11 +271,13 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
       assert(
         valuesOf(registry, Timer("server.default.requests.headers"))
           .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
+          .getOrElse(false)
+      )
       assert(
         valuesOf(registry, Timer("server.default.get-requests"))
           .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
+          .getOrElse(false)
+      )
     }
   }
 
@@ -274,11 +297,13 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.default.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.default.get-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }
@@ -301,15 +326,18 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assert(
           valuesOf(registry, Timer("server.classifier.requests.headers"))
             .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.classifier.get-requests"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
         assert(
           valuesOf(registry, Timer("server.classifier.2xx-responses"))
             .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false))
+            .getOrElse(false)
+        )
       }
     }
   }

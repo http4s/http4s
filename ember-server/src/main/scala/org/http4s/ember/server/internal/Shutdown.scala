@@ -45,7 +45,8 @@ private[server] object Shutdown {
     }
 
   private def timedShutdown[F[_]](
-      timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
+      timeout: Duration
+  )(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
     case class State(isShutdown: Boolean, active: Int)
 
     for {

@@ -38,7 +38,7 @@ object `WWW-Authenticate` {
     Header.createRendered(
       ci"WWW-Authenticate",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`WWW-Authenticate`] =

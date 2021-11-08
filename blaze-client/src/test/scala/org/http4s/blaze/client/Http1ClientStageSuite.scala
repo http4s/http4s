@@ -71,7 +71,7 @@ class Http1ClientStageSuite extends Http4sSuite {
       chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
       userAgent = userAgent,
-      idleTimeoutStage = None
+      idleTimeoutStage = None,
     )
 
   private def mkBuffer(s: String): ByteBuffer =
@@ -98,7 +98,8 @@ class Http1ClientStageSuite extends Http4sSuite {
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      stage: Http1Connection[IO]): IO[(String, String)] =
+      stage: Http1Connection[IO],
+  ): IO[(String, String)] =
     for {
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       h = new QueueTestHead(q)
@@ -127,7 +128,8 @@ class Http1ClientStageSuite extends Http4sSuite {
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      userAgent: Option[`User-Agent`] = None): IO[(String, String)] = {
+      userAgent: Option[`User-Agent`] = None,
+  ): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
     val tail = mkConnection(key, userAgent)
     getSubmission(req, resp, tail)
@@ -310,7 +312,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     for {
-      _ <- tail.runRequest(FooRequest) //the first request succeeds
+      _ <- tail.runRequest(FooRequest) // the first request succeeds
       _ <- IO.sleep(200.millis) // then the server closes the connection
       isClosed <- IO(
         tail.isClosed

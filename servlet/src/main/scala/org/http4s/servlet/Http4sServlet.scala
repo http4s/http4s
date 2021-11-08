@@ -37,8 +37,8 @@ import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpSession
 
 abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
-    F: Effect[F])
-    extends HttpServlet {
+    F: Effect[F]
+) extends HttpServlet {
   protected val logger = getLogger
 
   // micro-optimization: unwrap the service and call its .run directly
@@ -62,7 +62,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
   protected def onParseFailure(
       parseFailure: ParseFailure,
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]
+      bodyWriter: BodyWriter[F],
   ): F[Unit] = {
     val response = Response[F](Status.BadRequest).withEntity(parseFailure.sanitized)
     renderResponse(response, servletResponse, bodyWriter)
@@ -71,7 +71,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
   protected def renderResponse(
       response: Response[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]
+      bodyWriter: BodyWriter[F],
   ): F[Unit] =
     F.delay {
       servletResponse.setStatus(response.status.code)
@@ -94,7 +94,8 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
           .map { q =>
             s"${req.getRequestURI}?$q"
           }
-          .getOrElse(req.getRequestURI))
+          .getOrElse(req.getRequestURI)
+      )
       version <- HttpVersion.fromString(req.getProtocol)
     } yield Request(
       method = method,
@@ -109,12 +110,14 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
           Request.Connection(
             local = SocketAddress(
               IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
-              Port.fromInt(req.getLocalPort).get),
+              Port.fromInt(req.getLocalPort).get,
+            ),
             remote = SocketAddress(
               IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
-              Port.fromInt(req.getRemotePort).get),
-            secure = req.isSecure
-          )
+              Port.fromInt(req.getRemotePort).get,
+            ),
+            secure = req.isSecure,
+          ),
         )
         .insert(Request.Keys.ServerSoftware, serverSoftware)
         .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
@@ -127,9 +130,11 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
             Option(
               req
                 .getAttribute("javax.servlet.request.X509Certificate")
-                .asInstanceOf[Array[X509Certificate]]))
-            .mapN(SecureSession.apply)
-        )
+                .asInstanceOf[Array[X509Certificate]]
+            ),
+          )
+            .mapN(SecureSession.apply),
+        ),
     )
 
   private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {

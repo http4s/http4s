@@ -64,13 +64,15 @@ trait QueryOps {
   def ++?[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, collection.Seq[T])): Self =
     _withQueryParam(
       QueryParamKeyLike[K].getKey(param._1),
-      param._2.map(QueryParamEncoder[T].encode))
+      param._2.map(QueryParamEncoder[T].encode),
+    )
 
   /** alias for withOptionQueryParam */
   def +??[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, Option[T])): Self =
     _withOptionQueryParam(
       QueryParamKeyLike[K].getKey(param._1),
-      param._2.map(QueryParamEncoder[T].encode))
+      param._2.map(QueryParamEncoder[T].encode),
+    )
 
   /** alias for withOptionQueryParam */
   def +??[T: QueryParam: QueryParamEncoder](value: Option[T]): Self =
@@ -115,7 +117,8 @@ trait QueryOps {
     * [[Query]] will be replaced with the given one.
     */
   def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](
-      params: Map[K, collection.Seq[T]]): Self = {
+      params: Map[K, collection.Seq[T]]
+  ): Self = {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
     val vec = params.foldLeft(query.toVector) {
@@ -154,7 +157,8 @@ trait QueryOps {
     */
   def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](
       key: K,
-      values: collection.Seq[T]): Self =
+      values: collection.Seq[T],
+  ): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), values.map(QueryParamEncoder[T].encode))
 
   /** Creates maybe a new `Self` with all the specified parameters in the
@@ -175,14 +179,16 @@ trait QueryOps {
     * once, it will be self-overwriting.
     */
   def withMultiValueQueryParams[T: QueryParamEncoder, K: QueryParamKeyLike](
-      params: Map[K, collection.Seq[T]]): Self =
+      params: Map[K, collection.Seq[T]]
+  ): Self =
     params.foldLeft(self) { case (s, (k, v)) =>
       replaceQuery(Query.fromVector(s.withQueryParam(k, v).query.toVector))
     }
 
   private def _withQueryParam(
       name: QueryParameterKey,
-      values: collection.Seq[QueryParameterValue]): Self = {
+      values: collection.Seq[QueryParameterValue],
+  ): Self = {
     val q = if (query == Query.blank) Query.empty else query
     val baseQuery = q.toVector.filter(_._1 != name.value)
     val vec =
@@ -224,7 +230,8 @@ trait QueryOps {
     */
   def withOptionQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](
       key: K,
-      value: Option[T]): Self =
+      value: Option[T],
+  ): Self =
     _withOptionQueryParam(QueryParamKeyLike[K].getKey(key), value.map(QueryParamEncoder[T].encode))
 
   /** Creates maybe a new `Self` with the specified parameter in the [[Query]].
@@ -238,6 +245,7 @@ trait QueryOps {
 
   private def _withOptionQueryParam(
       name: QueryParameterKey,
-      value: Option[QueryParameterValue]): Self =
+      value: Option[QueryParameterValue],
+  ): Self =
     value.fold(self)(v => _withQueryParam(name, v :: Nil))
 }

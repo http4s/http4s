@@ -80,7 +80,7 @@ object `X-B3-Flags` {
             writer.append(h.flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
 
         },
-      parse
+      parse,
     )
 
 }

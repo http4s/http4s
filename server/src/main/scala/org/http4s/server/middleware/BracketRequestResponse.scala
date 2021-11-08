@@ -53,7 +53,8 @@ object BracketRequestResponse {
     Kleisli[OptionT[F, *], ContextRequest[F, A], ContextResponse[F, B]] => Kleisli[
       OptionT[F, *],
       Request[F],
-      Response[F]]
+      Response[F],
+    ]
 
   /** Bracket on the start of a request and the completion of processing the
     * response ''body Stream''.
@@ -110,25 +111,38 @@ object BracketRequestResponse {
     */
   def bracketRequestResponseCaseRoutes_[F[_], A, B](
       acquire: Request[F] => F[ContextRequest[F, A]]
-  )(release: (A, Option[B], ExitCase[Throwable]) => F[Unit])(implicit
-      F: BracketThrow[F]): FullContextMiddleware[F, A, B] =
+  )(
+      release: (A, Option[B], ExitCase[Throwable]) => F[Unit]
+  )(implicit F: BracketThrow[F]): FullContextMiddleware[F, A, B] =
     (bracketRoutes: Kleisli[OptionT[F, *], ContextRequest[F, A], ContextResponse[F, B]]) =>
       Kleisli((request: Request[F]) =>
         OptionT(
           acquire(request).flatMap(contextRequest =>
             bracketRoutes(contextRequest)
-              .foldF(release(contextRequest.context, None, ExitCase.Completed) *> F.pure(
-                None: Option[Response[F]]))(contextResponse =>
-                F.pure(Some(contextResponse.response.copy(body =
-                  contextResponse.response.body.onFinalizeCaseWeak(ec =>
-                    release(contextRequest.context, Some(contextResponse.context), ec))))))
+              .foldF(
+                release(contextRequest.context, None, ExitCase.Completed) *> F.pure(
+                  None: Option[Response[F]]
+                )
+              )(contextResponse =>
+                F.pure(
+                  Some(
+                    contextResponse.response.copy(body =
+                      contextResponse.response.body.onFinalizeCaseWeak(ec =>
+                        release(contextRequest.context, Some(contextResponse.context), ec)
+                      )
+                    )
+                  )
+                )
+              )
               .guaranteeCase {
                 case ExitCase.Completed =>
                   F.unit
                 case otherwise =>
                   release(contextRequest.context, None, otherwise)
-              })
-        ))
+              }
+          )
+        )
+      )
 
   /** Bracket on the start of a request and the completion of processing the
     * response ''body Stream''.
@@ -151,12 +165,15 @@ object BracketRequestResponse {
     */
   def bracketRequestResponseCaseRoutes[F[_], A](
       acquire: F[A]
-  )(release: (A, ExitCase[Throwable]) => F[Unit])(implicit
-      F: BracketThrow[F]): ContextMiddleware[F, A] =
+  )(
+      release: (A, ExitCase[Throwable]) => F[Unit]
+  )(implicit F: BracketThrow[F]): ContextMiddleware[F, A] =
     contextRoutes =>
       bracketRequestResponseCaseRoutes_[F, A, Unit](req =>
-        acquire.map(a => ContextRequest(a, req))) { case (a, _, ec) => release(a, ec) }(F)(
-        contextRoutes.map(resp => ContextResponse[F, Unit]((), resp)))
+        acquire.map(a => ContextRequest(a, req))
+      ) { case (a, _, ec) => release(a, ec) }(F)(
+        contextRoutes.map(resp => ContextResponse[F, Unit]((), resp))
+      )
 
   /** As [[#bracketRequestResponseCaseRoutes]] but defined for [[HttpApp]],
     * rather than [[HttpRoutes]].
@@ -165,21 +182,25 @@ object BracketRequestResponse {
     */
   def bracketRequestResponseCaseApp[F[_], A](
       acquire: F[A]
-  )(release: (A, ExitCase[Throwable]) => F[Unit])(implicit F: BracketThrow[F])
-      : Kleisli[F, ContextRequest[F, A], Response[F]] => Kleisli[F, Request[F], Response[F]] =
+  )(release: (A, ExitCase[Throwable]) => F[Unit])(implicit
+      F: BracketThrow[F]
+  ): Kleisli[F, ContextRequest[F, A], Response[F]] => Kleisli[F, Request[F], Response[F]] =
     (contextService: Kleisli[F, ContextRequest[F, A], Response[F]]) =>
       Kleisli((request: Request[F]) =>
         acquire.flatMap((a: A) =>
           contextService
             .run(ContextRequest(a, request))
             .map(response =>
-              response.copy(body = response.body.onFinalizeCaseWeak(ec => release(a, ec))))
+              response.copy(body = response.body.onFinalizeCaseWeak(ec => release(a, ec)))
+            )
             .guaranteeCase {
               case ExitCase.Completed =>
                 F.unit
               case otherwise =>
                 release(a, otherwise)
-            }))
+            }
+        )
+      )
 
   /** As [[#bracketRequestResponseCaseRoutes]], but `release` is simplified, ignoring
     * the exit condition.
@@ -187,7 +208,8 @@ object BracketRequestResponse {
     * @note $releaseWarning
     */
   def bracketRequestResponseRoutes[F[_], A](acquire: F[A])(release: A => F[Unit])(implicit
-      F: BracketThrow[F]): ContextMiddleware[F, A] =
+      F: BracketThrow[F]
+  ): ContextMiddleware[F, A] =
     bracketRequestResponseCaseRoutes[F, A](acquire) { case (a, _) =>
       release(a)
     }
@@ -198,8 +220,8 @@ object BracketRequestResponse {
     * @note $releaseWarning
     */
   def bracketRequestResponseApp[F[_], A](acquire: F[A])(release: A => F[Unit])(implicit
-      F: BracketThrow[F])
-      : Kleisli[F, ContextRequest[F, A], Response[F]] => Kleisli[F, Request[F], Response[F]] =
+      F: BracketThrow[F]
+  ): Kleisli[F, ContextRequest[F, A], Response[F]] => Kleisli[F, Request[F], Response[F]] =
     bracketRequestResponseCaseApp[F, A](acquire) { case (a, _) =>
       release(a)
     }
@@ -227,8 +249,9 @@ object BracketRequestResponse {
     */
   def bracketRequestResponseAppR[F[_], A](
       resource: Resource[F, A]
-  )(implicit F: BracketThrow[F])
-      : Kleisli[F, ContextRequest[F, A], Response[F]] => Kleisli[F, Request[F], Response[F]] = {
+  )(implicit
+      F: BracketThrow[F]
+  ): Kleisli[F, ContextRequest[F, A], Response[F]] => Kleisli[F, Request[F], Response[F]] = {
     (contextApp: Kleisli[F, ContextRequest[F, A], Response[F]]) =>
       val contextApp0: Kleisli[F, ContextRequest[F, (A, F[Unit])], Response[F]] =
         contextApp.local(_.map(_._1))

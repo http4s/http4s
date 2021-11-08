@@ -32,7 +32,8 @@ class RetryAfterSuite extends HeaderLaws {
   test("render should format GMT date according to RFC 1123") {
     assertEquals(
       `Retry-After`(HttpDate.unsafeFromZonedDateTime(gmtDate)).renderString,
-      "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT")
+      "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT",
+    )
   }
   test("render should duration in seconds") {
     assertEquals(`Retry-After`.unsafeFromDuration(120.seconds).renderString, "Retry-After: 120")
@@ -59,7 +60,8 @@ class RetryAfterSuite extends HeaderLaws {
   test("parse should accept http date") {
     assertEquals(
       `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry),
-      Right(Left(HttpDate.unsafeFromZonedDateTime(gmtDate))))
+      Right(Left(HttpDate.unsafeFromZonedDateTime(gmtDate))),
+    )
   }
   test("parse should accept duration on seconds") {
     assertEquals(`Retry-After`.parse("120").map(_.retry), (Right(Right(120L))))

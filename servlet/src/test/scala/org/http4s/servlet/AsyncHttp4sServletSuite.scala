@@ -57,7 +57,8 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
       Source
         .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
         .getLines()
-        .mkString)
+        .mkString
+    )
 
   servletServer.test("AsyncHttp4sServlet handle GET requests") { server =>
     get(server, "simple").assertEquals("simple")
@@ -66,7 +67,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
   servletServer.test("AsyncHttp4sServlet handle POST requests") { server =>
     val contents = (1 to 14).map { i =>
       val number =
-        scala.math.pow(2, i.toDouble).toInt - 1 //-1 for the end-of-line to make awk play nice
+        scala.math.pow(2, i.toDouble).toInt - 1 // -1 for the end-of-line to make awk play nice
       s"$i $number ${"*".*(number)}\n"
     }.toList
 
@@ -109,7 +110,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
   lazy val servlet = new AsyncHttp4sServlet[IO](
     service = service,
     servletIo = NonBlockingServletIo[IO](4096),
-    serviceErrorHandler = DefaultServiceErrorHandler[IO]
+    serviceErrorHandler = DefaultServiceErrorHandler[IO],
   )
 
   lazy val serverPortR = Resource

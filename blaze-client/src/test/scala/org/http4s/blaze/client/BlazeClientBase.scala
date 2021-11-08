@@ -39,7 +39,7 @@ trait BlazeClientBase extends Http4sSuite {
       responseHeaderTimeout: Duration = 30.seconds,
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
-      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
+      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
   ) = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO](munitExecutionContext)

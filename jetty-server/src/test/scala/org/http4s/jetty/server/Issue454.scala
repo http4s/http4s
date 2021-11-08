@@ -72,6 +72,6 @@ object Issue454 {
       }
       .orNotFound,
     servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
-    serviceErrorHandler = DefaultServiceErrorHandler
+    serviceErrorHandler = DefaultServiceErrorHandler,
   )
 }

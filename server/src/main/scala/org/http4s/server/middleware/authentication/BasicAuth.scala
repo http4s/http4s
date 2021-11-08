@@ -45,11 +45,14 @@ object BasicAuth {
     */
   def apply[F[_]: Sync, A](
       realm: String,
-      validate: BasicAuthenticator[F, A]): AuthMiddleware[F, A] =
+      validate: BasicAuthenticator[F, A],
+  ): AuthMiddleware[F, A] =
     challenged(challenge(realm, validate))
 
-  def challenge[F[_]: Applicative, A](realm: String, validate: BasicAuthenticator[F, A])
-      : Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+  def challenge[F[_]: Applicative, A](
+      realm: String,
+      validate: BasicAuthenticator[F, A],
+  ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
       validatePassword(validate, req).map {
         case Some(authInfo) =>
@@ -60,7 +63,8 @@ object BasicAuth {
     }
 
   private def validatePassword[F[_], A](validate: BasicAuthenticator[F, A], req: Request[F])(
-      implicit F: Applicative[F]): F[Option[A]] =
+      implicit F: Applicative[F]
+  ): F[Option[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(BasicCredentials(username, password))) =>
         validate(BasicCredentials(username, password))

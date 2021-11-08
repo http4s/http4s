@@ -18,20 +18,22 @@ package org.http4s
 package client
 
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.literals._
 import org.scalacheck.Prop
 
 class UnexpectedStatusSuite extends Http4sSuite {
 
   test("UnexpectedStatus should include status and original request in message") {
-    val e = UnexpectedStatus(Status.NotFound, Method.GET, Uri.unsafeFromString("www.google.com"))
+    val e = UnexpectedStatus(Status.NotFound, Method.GET, uri"www.google.com")
     assertEquals(
       e.getMessage(),
-      "unexpected HTTP status: 404 Not Found for request GET www.google.com")
+      "unexpected HTTP status: 404 Not Found for request GET www.google.com",
+    )
   }
 
   property("UnexpectedStatus should not return null") {
     Prop.forAll { (status: Status) =>
-      val e = UnexpectedStatus(status, Method.GET, Uri.unsafeFromString("www.google.it"))
+      val e = UnexpectedStatus(status, Method.GET, uri"www.google.it")
       Option(e.getMessage()).isDefined
     }
   }
