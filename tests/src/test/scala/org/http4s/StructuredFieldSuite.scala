@@ -39,9 +39,11 @@ class StructuredFieldSuite extends Http4sSuite {
     } yield s"${s}${n}.${d}"
 
   val genSfString = {
-    val unescaped = Gen.oneOf(
-      (0x20.toChar to 0x21.toChar) ++ (0x23.toChar to 0x5B.toChar) ++ (0x5D.toChar to 0x7E.toChar)
-    ).map(_.toString)
+    val unescaped = Gen
+      .oneOf(
+        (0x20.toChar to 0x21.toChar) ++ (0x23.toChar to 0x5b.toChar) ++ (0x5d.toChar to 0x7e.toChar)
+      )
+      .map(_.toString)
     val escaped = Gen.oneOf("\\\"", "\\\\")
     Gen.listOf(Gen.frequency((16, unescaped), (1, escaped))).map(xs => s""""${xs.mkString}"""")
   }
@@ -53,7 +55,8 @@ class StructuredFieldSuite extends Http4sSuite {
     } yield (h +: t).mkString
 
   val genSfBinary =
-    Gen.listOf(Gen.frequency((16, Gen.alphaNumChar), (1, Gen.oneOf('+', '/', '='))))
+    Gen
+      .listOf(Gen.frequency((16, Gen.alphaNumChar), (1, Gen.oneOf('+', '/', '='))))
       .map(_.mkString)
       .map(s => s":${s}:")
 
@@ -246,7 +249,7 @@ class StructuredFieldSuite extends Http4sSuite {
         case Some(SfString(_)) => true
         case _ => false
       }
-    }    
+    }
   }
 
   test("SfString.fromString should fail with invalid strings") {
@@ -287,7 +290,7 @@ class StructuredFieldSuite extends Http4sSuite {
         case Some(SfToken(_)) => true
         case _ => false
       }
-    }    
+    }
   }
 
   test("SfToken.fromString should fail with invalid strings") {
@@ -323,8 +326,9 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("SfBinary should correctly encode and decode byte arrays") {
-    Prop.forAll(genString) { in => 
-      SfBinary.fromBytes(in.getBytes("UTF-8"))
+    Prop.forAll(genString) { in =>
+      SfBinary
+        .fromBytes(in.getBytes("UTF-8"))
         .map(_.toBytes.map(v => new String(v, "UTF-8"))) == Some(Some(in))
     }
   }
@@ -568,8 +572,10 @@ class StructuredFieldSuite extends Http4sSuite {
   test("SfDictionary.parser should parse empty values as boolean true") {
     assert {
       SfDictionary.parser.parseAll("k1;p1=1, k2=?1;p2=2") match {
-        case Right(SfDictionary(
-          List((_, SfItem(SfBoolean(true), _)), (_, SfItem(SfBoolean(true), _))))) => true
+        case Right(
+              SfDictionary(
+                List((_, SfItem(SfBoolean(true), _)), (_, SfItem(SfBoolean(true), _))))) =>
+          true
         case _ => false
       }
     }

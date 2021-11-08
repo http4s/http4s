@@ -23,7 +23,7 @@ import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.Rfc8941
 
 /** Structured Field Values for HTTP (RFC8941)
-  * 
+  *
   * @see [[https://datatracker.ietf.org/doc/html/rfc8941]]
   */
 sealed trait StructuredField extends Renderable
@@ -56,7 +56,7 @@ object StructuredField {
   object SfInteger {
     private val MaxValue: Long = 999999999999999L
 
-    private val MinValue: Long = - MaxValue
+    private val MinValue: Long = -MaxValue
 
     private def unsafeFromLong(l: Long): SfInteger =
       new SfInteger(l) {}
@@ -76,7 +76,7 @@ object StructuredField {
   object SfDecimal {
     private val MaxValue: BigDecimal = BigDecimal("999999999999.999")
 
-    private val MinValue: BigDecimal = - MaxValue
+    private val MinValue: BigDecimal = -MaxValue
 
     private def unsafeFromBigDecimal(d: BigDecimal): SfDecimal =
       new SfDecimal(d) {}
@@ -149,7 +149,7 @@ object StructuredField {
     override def render(writer: Writer): writer.type =
       value match {
         case false => writer << "?0"
-        case true  => writer << "?1"
+        case true => writer << "?1"
       }
   }
 

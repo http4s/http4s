@@ -20,7 +20,7 @@ import cats.parse.Rfc5234
 import cats.parse.{Parser, Parser0}
 
 /** Parsers for the rules defined in RFC8941
-  * 
+  *
   * @see [[https://datatracker.ietf.org/doc/html/rfc8941]]
   */
 private[http4s] object Rfc8941 {
@@ -30,7 +30,7 @@ private[http4s] object Rfc8941 {
   val sfInteger: Parser[Long] = {
     import Parser.char, Rfc5234.digit
     val pos = digit.rep(1, 15).string
-    val neg = (char('-') *> pos).map(s => s"-$s") 
+    val neg = (char('-') *> pos).map(s => s"-$s")
     (pos | neg).map(_.toLong)
   }
 
@@ -41,7 +41,7 @@ private[http4s] object Rfc8941 {
     val num = digit.rep(1, 12).string
     val dec = digit.rep(1, 3).string
     val pos = (num ~ (char('.') *> dec)).map(t => s"${t._1}.${t._2}")
-    val neg = (char('-') *> pos).map(s => s"-$s") 
+    val neg = (char('-') *> pos).map(s => s"-$s")
     (pos | neg).map(BigDecimal(_))
   }
 
@@ -51,12 +51,12 @@ private[http4s] object Rfc8941 {
    * escaped   = "\" ( DQUOTE / "\" )
    */
   val sfString: Parser[String] = {
-    import Parser.{string, charIn}, Rfc5234.dquote
+    import Parser.{charIn, string}, Rfc5234.dquote
     val escaped = string("\\\\") | string("\\\"")
     val unescaped =
       charIn(0x20.toChar to 0x21.toChar)
-        .orElse(charIn(0x23.toChar to 0x5B.toChar))
-        .orElse(charIn(0x5D.toChar to 0x7E.toChar))
+        .orElse(charIn(0x23.toChar to 0x5b.toChar))
+        .orElse(charIn(0x5d.toChar to 0x7e.toChar))
         .string
     val chr = unescaped | escaped
     (dquote *> chr.rep0.string <* dquote).map(s => s""""$s"""")
@@ -88,16 +88,16 @@ private[http4s] object Rfc8941 {
     (string("?0").as(false) | string("?1").as(true))
   }
 
-  /* bare-item = sf-integer / sf-decimal / sf-string / sf-token 
+  /* bare-item = sf-integer / sf-decimal / sf-string / sf-token
    *           / sf-binary / sf-boolean
    */
   def bareItem[A](
-    sfIntegerP: Parser[A],
-    sfDecimalP: Parser[A],
-    sfStringP: Parser[A],
-    sfTokenP: Parser[A],
-    sfBinaryP: Parser[A],
-    sfBooleanP: Parser[A]
+      sfIntegerP: Parser[A],
+      sfDecimalP: Parser[A],
+      sfStringP: Parser[A],
+      sfTokenP: Parser[A],
+      sfBinaryP: Parser[A],
+      sfBooleanP: Parser[A]
   ): Parser[A] =
     sfDecimalP.backtrack
       .orElse(sfIntegerP)
@@ -156,13 +156,13 @@ private[http4s] object Rfc8941 {
    * dict-member   = key ( parameters / ( "=" member ))
    */
   def sfDictionary[K, P, M](
-    keyP: Parser[K],
-    parametersP: Parser0[P],
-    memberP: Parser[M]
+      keyP: Parser[K],
+      parametersP: Parser0[P],
+      memberP: Parser[M]
   ): Parser[List[(K, Either[P, M])]] = {
     import Parser.char, Rfc7230.ows
     val pair = keyP ~ (char('=') *> memberP).eitherOr(parametersP)
     val dict = pair ~ (ows.with1 *> char(',') *> ows *> pair).rep0
     dict.map(t => t._1 +: t._2)
   }
-} 
+}
