@@ -1,8 +1,5 @@
----
-title: Quick Start
-menu: main
-weight: 1
----
+
+# Quick Start
 
 **Note**: To run with 2.12 please make sure that the flag `-Ypartial-unification`  
 is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt).
