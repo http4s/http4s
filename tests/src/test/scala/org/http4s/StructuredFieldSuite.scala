@@ -433,6 +433,19 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
+  test("Key.fromString should accept valid strings") {
+    Prop.forAll(genKey) { s =>
+      Key.fromString(s) match {
+        case Some(Key(_)) => true
+        case _ => false
+      }
+    }
+  }
+
+  test("Key.fromString should fail with invalid strings") {
+    assert(Key.fromString("invalid-Key") == None)
+  }
+
   // Parameters
 
   test("Parameters.parser should parse valid strings") {
