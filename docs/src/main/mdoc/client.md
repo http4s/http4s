@@ -312,7 +312,8 @@ val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
 val meteredClient = 
-  Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)```
+  Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+```
 
 A `classifier` is just a function `Request[F] => Option[String]` that allows
 to add a subprefix to every metric based on the `Request`

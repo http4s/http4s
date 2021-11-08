@@ -190,10 +190,12 @@ import org.http4s.headers.Cookie
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
-    header  <- request.headers.get[Authorization]
-                 .toRight("Couldn't find an Authorization header")
-    token   <- crypto.validateSignedToken(header.value)
-                 .toRight("Invalid token")
+    header  <- request.headers.get[Cookie]
+                 .toRight("Cookie parsing error")
+    cookie  <- header.values.toList.find(_.name == "authcookie")
+                 .toRight("Couldn't find the authcookie")
+    token   <- crypto.validateSignedToken(cookie.content)
+                 .toRight("Cookie invalid")
     message <- Either.catchOnly[NumberFormatException](token.toLong)
                  .leftMap(_.toString)
   } yield message
