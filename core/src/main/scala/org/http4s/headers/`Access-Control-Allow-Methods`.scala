@@ -44,7 +44,7 @@ object `Access-Control-Allow-Methods` {
     Header.createRendered(
       ci"Access-Control-Allow-Methods",
       _.methods,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Methods`] =
