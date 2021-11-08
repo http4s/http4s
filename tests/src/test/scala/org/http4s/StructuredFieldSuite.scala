@@ -341,7 +341,7 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("SfBoolean.parser should fail with invalid strings") {
-    assert(SfBoolean.parser.parseAll("ab").isLeft)
+    assert(SfBoolean.parser.parseAll("123abc").isLeft)
   }
 
   test("SfBoolean.render should render values correctly") {
