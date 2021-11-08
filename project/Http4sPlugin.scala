@@ -4,10 +4,14 @@ import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
+import com.typesafe.tools.mima.plugin.MimaKeys._
+import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
+import sbtghactions.GenerativeKeys._
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -40,7 +44,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     nowarnCompatAnnotationProvider := None,
-    doctestTestFramework := DoctestTestFramework.Munit
+    doctestTestFramework := DoctestTestFramework.Munit,
   )
 
   def extractApiVersion(version: String) = {
@@ -129,8 +133,9 @@ object Http4sPlugin extends AutoPlugin {
           WorkflowStep.SetupScala,
           WorkflowStep.Sbt(
             mdoc.toList ++ List(s"$subproject/laikaSite"),
-            name = Some(s"Build $subproject"))
-        )
+            name = Some(s"Build $subproject"),
+          ),
+        ),
       )
     }
 
@@ -138,15 +143,15 @@ object Http4sPlugin extends AutoPlugin {
       val mdoc = if (runMdoc) s"$subproject/mdoc " else ""
       WorkflowStep.Run(
         List(s"""
-          |eval "$$(ssh-agent -s)"
-          |echo "$$SSH_PRIVATE_KEY" | ssh-add -
-          |git config --global user.name "GitHub Actions CI"
-          |git config --global user.email "ghactions@invalid"
-          |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
-          |
+       |eval "$$(ssh-agent -s)"
+       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
+       |git config --global user.name "GitHub Actions CI"
+       |git config --global user.email "ghactions@invalid"
+       |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
+       |
       """.stripMargin),
         name = Some(s"Publish $subproject"),
-        env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
+        env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}"),
       )
     }
 
@@ -157,11 +162,10 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep.Sbt(
-          List("unusedCompileDependenciesTest"),
-          name = Some("Check unused dependencies")),
+        WorkflowStep
+          .Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -173,7 +177,7 @@ object Http4sPlugin extends AutoPlugin {
       },
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
-        RefPredicate.StartsWith(Ref.Tag("v"))
+        RefPredicate.StartsWith(Ref.Tag("v")),
       ),
       githubWorkflowPublishPostamble := Seq(
         sitePublishStep("website", runMdoc = false)
@@ -183,8 +187,8 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
         siteBuildJob("website", runMdoc = false),
-        siteBuildJob("docs", runMdoc = true)
-      )
+        siteBuildJob("docs", runMdoc = true),
+      ),
     )
   }
 
@@ -199,7 +203,8 @@ object Http4sPlugin extends AutoPlugin {
     val cats = "2.6.1"
     val catsEffect = "3.2.9"
     val catsParse = "0.3.4"
-    val circe = "0.15.0-M1"
+    val circe = "0.14.1"
+    val circe15 = "0.15.0-M1"
     val crypto = "0.2.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.3.0"
@@ -258,6 +263,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeCore = Def.setting("io.circe" %%% "circe-core" % V.circe)
   lazy val circeGeneric = "io.circe" %% "circe-generic" % V.circe
   lazy val circeJawn = Def.setting("io.circe" %%% "circe-jawn" % V.circe)
+  lazy val circeJawn15 = Def.setting("io.circe" %%% "circe-jawn" % V.circe15)
   lazy val circeLiteral = "io.circe" %% "circe-literal" % V.circe
   lazy val circeParser = "io.circe" %% "circe-parser" % V.circe
   lazy val circeTesting = Def.setting("io.circe" %%% "circe-testing" % V.circe)

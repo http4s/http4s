@@ -67,7 +67,7 @@ object HeliumExtensions {
             case resIt: ResolvedInternalTarget =>
               resIt.copy(
                 absolutePath = translateAbs(resIt.absolutePath),
-                relativePath = translateRel(resIt.relativePath)
+                relativePath = translateRel(resIt.relativePath),
               )
             case relIt: RelativeInternalTarget => relIt.copy(path = translateRel(relIt.path))
             case absIt: AbsoluteInternalTarget => absIt.copy(path = translateAbs(absIt.path))
@@ -130,9 +130,10 @@ object HeliumExtensions {
     * @return a theme provider that merges the default Helium theme with the two extensions from this class
     */
   def applyTo(
-               helium: ThemeProvider,
-               variables: Map[String, String],
-               versionLinks: Seq[Path]): ThemeProvider = new ThemeProvider {
+      helium: ThemeProvider,
+      variables: Map[String, String],
+      versionLinks: Seq[Path],
+  ): ThemeProvider = new ThemeProvider {
 
     override def build[F[_]: Sync]: Resource[F, Theme[F]] = {
       val heliumTheme = helium.build[F]

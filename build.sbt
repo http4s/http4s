@@ -768,19 +768,17 @@ lazy val docs = http4sProject("docs")
         ) ++ jsModules): _*
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
     laikaExtensions := SiteConfig.extensions,
-    laikaConfig     := SiteConfig.config(versioned = true).value,
-    laikaTheme      := SiteConfig.theme(
+    laikaConfig := SiteConfig.config(versioned = true).value,
+    laikaTheme := SiteConfig.theme(
       currentVersion = SiteConfig.versions.v1_0,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
-      includeLandingPage = false
+      includeLandingPage = false,
     ),
-    laikaDescribe   := "<disabled>",
+    laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
-
     ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
       for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
@@ -819,15 +817,18 @@ lazy val website = http4sProject("website")
     description := "Common area of http4s.org",
     startYear := Some(2013),
     laikaExtensions := SiteConfig.extensions,
-    laikaConfig     := SiteConfig.config(versioned = false).value,
-    laikaTheme      := SiteConfig.theme(
+    laikaConfig := SiteConfig.config(versioned = false).value,
+    laikaTheme := SiteConfig.theme(
       currentVersion = SiteConfig.versions.v1_0,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
-      includeLandingPage = true
+      includeLandingPage = true,
     ),
-    laikaDescribe   := "<disabled>",
-    Laika / sourceDirectories := Seq(baseDirectory.value / "src" / "hugo" / "content", baseDirectory.value / "src" / "hugo" / "static"),
+    laikaDescribe := "<disabled>",
+    Laika / sourceDirectories := Seq(
+      baseDirectory.value / "src" / "hugo" / "content",
+      baseDirectory.value / "src" / "hugo" / "static",
+    ),
     ghpagesNoJekyll := true,
     ghpagesPrivateMappings := (laikaSite / mappings).value,
     ghpagesCleanSite / excludeFilter :=

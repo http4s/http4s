@@ -41,9 +41,18 @@ object SiteConfig {
   object landingPage {
 
     val teasers: Seq[Teaser] = Seq(
-      Teaser("Typeful", "http4s servers and clients share an immutable model of requests and responses. Standard headers are modeled as semantic types, and entity codecs are done by typeclass."),
-      Teaser("Functional", "The pure functional side of Scala is favored to promote composability and easy reasoning about your code. I/O is managed through cats-effect."),
-      Teaser("Streaming", "http4s is built on FS2, a streaming library that provides for processing and emitting large payloads in constant space and implementing websockets.")
+      Teaser(
+        "Typeful",
+        "http4s servers and clients share an immutable model of requests and responses. Standard headers are modeled as semantic types, and entity codecs are done by typeclass.",
+      ),
+      Teaser(
+        "Functional",
+        "The pure functional side of Scala is favored to promote composability and easy reasoning about your code. I/O is managed through cats-effect.",
+      ),
+      Teaser(
+        "Streaming",
+        "http4s is built on FS2, a streaming library that provides for processing and emitting large payloads in constant space and implementing websockets.",
+      ),
     )
 
     val projectLinks: Seq[TextLink] = Seq(
@@ -62,18 +71,22 @@ object SiteConfig {
     private def version(version: String, label: String): Version =
       Version(version, "v" + version, "/index.html", Some(label))
 
-    val v1_0: Version  = version("1.0", "Dev")
+    val v1_0: Version = version("1.0", "Dev")
     val v0_23: Version = version("0.23", "Stable")
     val v0_22: Version = version("0.22", "Stable")
     val v0_21: Version = version("0.21", "EOL")
-    val choose: Version = Version("Help me choose...", "versions", "/index.html") // Pretend it's a "version" to get it into the menu
+    val choose: Version = Version(
+      "Help me choose...",
+      "versions",
+      "/index.html",
+    ) // Pretend it's a "version" to get it into the menu
 
     val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
-    def config (current: Version): Versions = Versions(
+    def config(current: Version): Versions = Versions(
       currentVersion = current,
       olderVersions = all.dropWhile(_ != current).drop(1),
-      newerVersions = all.takeWhile(_ != current)
+      newerVersions = all.takeWhile(_ != current),
     )
 
     val paths: Seq[Path] = all.map { v =>
@@ -85,33 +98,35 @@ object SiteConfig {
 
   // This kind of variable generator used to live in Http4sPlugin, but it's not used by anything other than Laika.
   lazy val variables: Initialize[Map[String, String]] = setting {
-    val (major, minor) = version.value match { // cannot use the existing http4sApiVersion as it is somehow defined as a task, not a setting
-      case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
-    }
+    val (major, minor) =
+      version.value match { // cannot use the existing http4sApiVersion as it is somehow defined as a task, not a setting
+        case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
+      }
     val latestInSeries = latestPerMinorVersion(baseDirectory.value)
       .map { case ((major, minor), v) => s"version.http4s.latest.$major.$minor" -> v.toString }
     Map(
-      "version.http4s.api"     -> s"$major.$minor",
+      "version.http4s.api" -> s"$major.$minor",
       "version.http4s.current" -> version.value,
-      "version.http4s.doc"     -> docExampleVersion(version.value),
-      "version.circe"          -> circeJawn.value.revision,
-      "version.cryptobits"     -> cryptobits.revision
+      "version.http4s.doc" -> docExampleVersion(version.value),
+      "version.circe" -> circeJawn.value.revision,
+      "version.cryptobits" -> cryptobits.revision,
     ) ++ latestInSeries
   }
 
   val homeURL: Initialize[String] = setting {
     if (isCi.value) "https://http4s.org"
-    else s"http://127.0.0.1:4242" // port hardcoded for now as laikaPreviewConfig is accidentally declared as a task
+    else
+      s"http://127.0.0.1:4242" // port hardcoded for now as laikaPreviewConfig is accidentally declared as a task
   }
 
   val extensions: Seq[ExtensionBundle] = Seq(
     laika.markdown.github.GitHubFlavor,
-    laika.parse.code.SyntaxHighlighting
+    laika.parse.code.SyntaxHighlighting,
   )
 
-  def config (versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
-    val config = variables.value.foldLeft(ConfigBuilder.empty) {
-      case (builder, (key, value)) => builder.withValue(key, value)
+  def config(versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
+    val config = variables.value.foldLeft(ConfigBuilder.empty) { case (builder, (key, value)) =>
+      builder.withValue(key, value)
     }
     LaikaConfig(
       configBuilder = config
@@ -120,66 +135,96 @@ object SiteConfig {
     )
   }
 
-  def theme (currentVersion: Version,
-             variables: Map[String, String],
-             homeURL: String,
-             includeLandingPage: Boolean): ThemeProvider = {
+  def theme(
+      currentVersion: Version,
+      variables: Map[String, String],
+      homeURL: String,
+      includeLandingPage: Boolean,
+  ): ThemeProvider = {
 
     val apiLink =
       if (includeLandingPage) None
-      else Some(IconLink.internal(Root / "api" / "index.html", HeliumIcon.api, options = Styles("svg-link")))
+      else
+        Some(
+          IconLink
+            .internal(Root / "api" / "index.html", HeliumIcon.api, options = Styles("svg-link"))
+        )
 
-    val baseTheme = if (includeLandingPage) Helium.defaults
-      .site.landingPage(
-      logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
-      title = None,
-      subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
-      latestReleases = Seq(
-        ReleaseInfo("Latest Stable Release", variables(s"version.http4s.latest.${versions.all(1).displayValue}")),
-        ReleaseInfo("Latest Milestone Release", variables(s"version.http4s.latest.${versions.all.head.displayValue}"))
-      ),
-      license = Some("Apache 2.0"),
-      documentationLinks = landingPage.projectLinks,
-      projectLinks = Nil, // TODO
-      teasers = landingPage.teasers
-    ) else Helium.defaults
+    val baseTheme =
+      if (includeLandingPage)
+        Helium.defaults.site.landingPage(
+          logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
+          title = None,
+          subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
+          latestReleases = Seq(
+            ReleaseInfo(
+              "Latest Stable Release",
+              variables(s"version.http4s.latest.${versions.all(1).displayValue}"),
+            ),
+            ReleaseInfo(
+              "Latest Milestone Release",
+              variables(s"version.http4s.latest.${versions.all.head.displayValue}"),
+            ),
+          ),
+          license = Some("Apache 2.0"),
+          documentationLinks = landingPage.projectLinks,
+          projectLinks = Nil, // TODO
+          teasers = landingPage.teasers,
+        )
+      else Helium.defaults
 
-    val fullTheme = baseTheme
-      .all.metadata(
-      language = Some("en"),
-      title = Some("http4s")
-    )
-      .site.markupEditLinks(
-      text = "Edit this page",
-      baseURL = "https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc"
-    )
-      .site.layout(
-      contentWidth        = px(860),
-      navigationWidth     = px(275),
-      topBarHeight        = px(35),
-      defaultBlockSpacing = px(10),
-      defaultLineHeight   = 1.5,
-      anchorPlacement     = laika.helium.config.AnchorPlacement.Right
-    )
-      .site.themeColors(
-      primary       = Color.hex("5B7980"),
-      secondary     = Color.hex("cc6600"),
-      primaryMedium = Color.hex("a7d4de"),
-      primaryLight  = Color.hex("e9f1f2"),
-      text          = Color.hex("5f5f5f"),
-      background    = Color.hex("ffffff"),
-      bgGradient    = (Color.hex("334044"), Color.hex("5B7980")) // only used for landing page background
-    )
-      .site.darkMode.disabled
-      .site.topNavigationBar(
-      homeLink = ImageLink.external(homeURL, Image.internal(Root / "images" / "http4s-logo-text-dark-2.svg")),
-      navLinks = apiLink.toSeq ++ Seq(
-        IconLink.external("https://github.com/http4s/http4s", HeliumIcon.github, options = Styles("svg-link")),
-        IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
-        IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter)
+    val fullTheme = baseTheme.all
+      .metadata(
+        language = Some("en"),
+        title = Some("http4s"),
       )
-    )
-      .site.versions(versions.config(currentVersion))
+      .site
+      .markupEditLinks(
+        text = "Edit this page",
+        baseURL = "https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc",
+      )
+      .site
+      .layout(
+        contentWidth = px(860),
+        navigationWidth = px(275),
+        topBarHeight = px(35),
+        defaultBlockSpacing = px(10),
+        defaultLineHeight = 1.5,
+        anchorPlacement = laika.helium.config.AnchorPlacement.Right,
+      )
+      .site
+      .themeColors(
+        primary = Color.hex("5B7980"),
+        secondary = Color.hex("cc6600"),
+        primaryMedium = Color.hex("a7d4de"),
+        primaryLight = Color.hex("e9f1f2"),
+        text = Color.hex("5f5f5f"),
+        background = Color.hex("ffffff"),
+        bgGradient =
+          (Color.hex("334044"), Color.hex("5B7980")), // only used for landing page background
+      )
+      .site
+      .darkMode
+      .disabled
+      .site
+      .topNavigationBar(
+        // TODO temporary hard-code of homeURL
+        homeLink = ImageLink.external(
+          "https://http4s.org",
+          Image.internal(Root / "images" / "http4s-logo-text-dark-2.svg"),
+        ),
+        navLinks = apiLink.toSeq ++ Seq(
+          IconLink.external(
+            "https://github.com/http4s/http4s",
+            HeliumIcon.github,
+            options = Styles("svg-link"),
+          ),
+          IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
+          IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter),
+        ),
+      )
+      .site
+      .versions(versions.config(currentVersion))
       .build
 
     HeliumExtensions.applyTo(fullTheme, variables, versions.paths)
