@@ -1,24 +1,19 @@
 package org.http4s.sbt
 
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
-import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
+import com.timushev.sbt.updates.UpdatesPlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
-import com.typesafe.tools.mima.plugin.MimaKeys._
-import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
-import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
-import sbtghactions.GenerativeKeys._
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
-    val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
   }
   import autoImport._
 
@@ -43,34 +38,9 @@ object Http4sPlugin extends AutoPlugin {
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    http4sBuildData := {
-      val dest = target.value / "hugo-data" / "build.toml"
-      val (major, minor) = http4sApiVersion.value
-
-      val releases = latestPerMinorVersion(baseDirectory.value)
-        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.toString}"""" }
-        .mkString("\n")
-
-      // Would be more elegant if `[versions.http4s]` was nested, but then
-      // the index lookups in `shortcodes/version.html` get complicated.
-      val buildData: String =
-        s"""
-           |[versions]
-           |"http4s.api" = "$major.$minor"
-           |"http4s.current" = "${version.value}"
-           |"http4s.doc" = "${docExampleVersion(version.value)}"
-           |circe = "${circeJawn.value.revision}"
-           |cryptobits = "${cryptobits.revision}"
-           |
-           |[releases]
-           |$releases
-         """.stripMargin
-
-      IO.write(dest, buildData)
-    },
     headerSources / excludeFilter := HiddenFileFilter,
     nowarnCompatAnnotationProvider := None,
-    doctestTestFramework := DoctestTestFramework.Munit,
+    doctestTestFramework := DoctestTestFramework.Munit
   )
 
   def extractApiVersion(version: String) = {
@@ -138,32 +108,17 @@ object Http4sPlugin extends AutoPlugin {
       }
   }
 
-  def docsProjectSettings: Seq[Setting[_]] = {
-    import com.typesafe.sbt.site.hugo.HugoPlugin.autoImport._
+  def docsProjectSettings: Seq[Setting[_]] =
     Seq(
-      git.remoteRepo := "git@github.com:http4s/http4s.git",
-      Hugo / includeFilter := (
-        "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-          "*.js" | "*.swf" | "*.json" | "*.md" |
-          "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-          "CNAME" | "_config.yml" | "_redirects"
-      ),
+      git.remoteRepo := "git@github.com:http4s/http4s.git"
     )
-  }
 
   def sbtghactionsSettings: Seq[Setting[_]] = {
-    import sbtghactions._
     import sbtghactions.GenerativeKeys._
+    import sbtghactions._
 
-    val setupHugoStep = WorkflowStep.Run(
-      List("""
-      |echo "$HOME/bin" > $GITHUB_PATH
-      |HUGO_VERSION=0.26 scripts/install-hugo
-    """.stripMargin),
-      name = Some("Setup Hugo"),
-    )
-
-    def siteBuildJob(subproject: String) =
+    def siteBuildJob(subproject: String, runMdoc: Boolean) = {
+      val mdoc = if (runMdoc) Some(s"$subproject/mdoc") else None
       WorkflowJob(
         id = subproject,
         name = s"Build $subproject",
@@ -172,23 +127,28 @@ object Http4sPlugin extends AutoPlugin {
         steps = List(
           WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
-          setupHugoStep,
-          WorkflowStep.Sbt(List(s"$subproject/makeSite"), name = Some(s"Build $subproject")),
-        ),
+          WorkflowStep.Sbt(
+            mdoc.toList ++ List(s"$subproject/laikaSite"),
+            name = Some(s"Build $subproject"))
+        )
       )
+    }
 
-    def sitePublishStep(subproject: String) = WorkflowStep.Run(
-      List(s"""
-      |eval "$$(ssh-agent -s)"
-      |echo "$$SSH_PRIVATE_KEY" | ssh-add -
-      |git config --global user.name "GitHub Actions CI"
-      |git config --global user.email "ghactions@invalid"
-      |sbt ++$scala_212 $subproject/makeSite $subproject/ghpagesPushSite
-      |
+    def sitePublishStep(subproject: String, runMdoc: Boolean) = {
+      val mdoc = if (runMdoc) s"$subproject/mdoc " else ""
+      WorkflowStep.Run(
+        List(s"""
+          |eval "$$(ssh-agent -s)"
+          |echo "$$SSH_PRIVATE_KEY" | ssh-add -
+          |git config --global user.name "GitHub Actions CI"
+          |git config --global user.email "ghactions@invalid"
+          |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
+          |
       """.stripMargin),
-      name = Some(s"Publish $subproject"),
-      env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}"),
-    )
+        name = Some(s"Publish $subproject"),
+        env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
+      )
+    }
 
     Http4sOrgPlugin.githubActionsSettings ++ Seq(
       githubWorkflowBuild := Seq(
@@ -197,10 +157,11 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep
-          .Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
+        WorkflowStep.Sbt(
+          List("unusedCompileDependenciesTest"),
+          name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -212,16 +173,18 @@ object Http4sPlugin extends AutoPlugin {
       },
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
-        RefPredicate.StartsWith(Ref.Tag("v")),
+        RefPredicate.StartsWith(Ref.Tag("v"))
       ),
       githubWorkflowPublishPostamble := Seq(
-        setupHugoStep,
-        sitePublishStep("website"),
-        sitePublishStep("docs"),
+        sitePublishStep("website", runMdoc = false)
+        // sitePublishStep("docs", runMdoc = true)
       ),
-      // this results in nonexistant directories trying to be compressed
+      // this results in nonexistent directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
+      githubWorkflowAddedJobs := Seq(
+        siteBuildJob("website", runMdoc = false),
+        siteBuildJob("docs", runMdoc = true)
+      )
     )
   }
 
@@ -236,8 +199,7 @@ object Http4sPlugin extends AutoPlugin {
     val cats = "2.6.1"
     val catsEffect = "3.2.9"
     val catsParse = "0.3.4"
-    val circe = "0.14.1"
-    val circe15 = "0.15.0-M1"
+    val circe = "0.15.0-M1"
     val crypto = "0.2.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.3.0"
@@ -296,7 +258,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeCore = Def.setting("io.circe" %%% "circe-core" % V.circe)
   lazy val circeGeneric = "io.circe" %% "circe-generic" % V.circe
   lazy val circeJawn = Def.setting("io.circe" %%% "circe-jawn" % V.circe)
-  lazy val circeJawn15 = Def.setting("io.circe" %%% "circe-jawn" % V.circe15)
   lazy val circeLiteral = "io.circe" %% "circe-literal" % V.circe
   lazy val circeParser = "io.circe" %% "circe-parser" % V.circe
   lazy val circeTesting = Def.setting("io.circe" %%% "circe-testing" % V.circe)
