@@ -33,9 +33,9 @@ import cats.effect.std.Dispatcher
 
 import scala.annotation.nowarn
 
-object ServerScaffold {
+object ServerScaffold3 {
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
-      F: Async[F]): Resource[F, ServerScaffold] =
+      F: Async[F]): Resource[F, ServerScaffold3] =
     Dispatcher[F].flatMap { dispatcher =>
       val handler: HttpHandler = { exchange =>
         val run = for {
@@ -77,14 +77,14 @@ object ServerScaffold {
     }
 
   def apply[F[_]](num: Int, secure: Boolean, testHandler: HttpHandler)(implicit
-      F: Sync[F]): Resource[F, ServerScaffold] =
+      F: Sync[F]): Resource[F, ServerScaffold3] =
     Resource.make(F.delay {
-      val scaffold = new ServerScaffold(num, secure)
+      val scaffold = new ServerScaffold3(num, secure)
       scaffold.startServers(testHandler)
     })(s => F.delay(s.stopServers()))
 }
 
-class ServerScaffold private (num: Int, secure: Boolean) {
+class ServerScaffold3 private (num: Int, secure: Boolean) {
   private var servers = Vector.empty[HttpServer]
   var addresses = Vector.empty[SocketAddress[IpAddress]]
 

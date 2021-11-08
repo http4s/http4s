@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 http4s.org
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.http4s.client.scaffold
 
 import io.netty.bootstrap.ServerBootstrap
@@ -8,12 +24,15 @@ import io.netty.handler.codec.http._
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import cats.effect.{Ref, Resource}
 import org.log4s.getLogger
+
 import javax.net.ssl.SSLContext
 import io.netty.handler.ssl.SslHandler
 import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
 import cats.implicits._
-import com.comcast.ip4s.{SocketAddress, IpAddress}
-import java.net.InetAddress
+import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
+
+import java.net.{InetAddress, InetSocketAddress}
 
 trait TestServer[F[_]] {
   def localAddress: SocketAddress[IpAddress]
@@ -32,9 +51,10 @@ class NettyTestServer[F[_]](
 object NettyTestServer {
   private val logger = getLogger(this.getClass)
 
-  def apply[F[_]: Async](port: Int, 
-    handler: ChannelInboundHandler, 
-    sslContext: Option[SSLContext]
+  def apply[F[_]: Async](port: Int,
+    makeHandler: F[ChannelInboundHandler],
+    sslContext: Option[SSLContext],
+    dispatcher: Dispatcher[F],
   ): Resource[F, NettyTestServer[F]] = for {
     bossGroup <- nioEventLoopGroup[F]
     workerGroup <- nioEventLoopGroup[F]
@@ -55,15 +75,17 @@ object NettyTestServer {
           ch.pipeline()
             .addLast(new HttpRequestDecoder())
             .addLast(new HttpResponseEncoder())
-            .addLast(handler)
+            .addLast(dispatcher.unsafeRunSync(makeHandler))
         }
       })
     channel <- server[F](bootstrap, port)
-    address <- Resource.eval(
-      SocketAddress.fromStringIp(channel.localAddress().toString())
-        .liftTo[F](new Exception("invalid address"))
-    )
-  } yield new NettyTestServer(establishedConnections, address)
+    // TODO refactor
+    inetSocketAddress = channel.localAddress().asInstanceOf[InetSocketAddress]
+    ip <- Resource.eval(IpAddress.fromString(inetSocketAddress.getAddress.getHostAddress)
+      .liftTo[F](new Exception(s"Invalid IP: [${inetSocketAddress.getAddress.toString}]")))
+    port <- Resource.eval(Port.fromInt(inetSocketAddress.getPort)
+      .liftTo[F](new Exception(s"Invalid port: [${inetSocketAddress.getPort}]")))
+  } yield new NettyTestServer(establishedConnections, SocketAddress(ip, port))
 
   private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
     Resource.make[F, NioEventLoopGroup](F.delay(new NioEventLoopGroup()))(el =>

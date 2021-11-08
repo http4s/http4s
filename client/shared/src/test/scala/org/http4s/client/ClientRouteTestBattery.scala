@@ -29,6 +29,7 @@ import org.http4s.implicits._
 import org.http4s.multipart.{Multipart, Part}
 import org.typelevel.ci._
 import scala.concurrent.duration._
+import org.http4s.client.scaffold.ServerScaffold
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
   val timeout = 20.seconds
