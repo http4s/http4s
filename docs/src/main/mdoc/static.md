@@ -121,7 +121,7 @@ val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / path if fileTypes.exists(path.endsWith) =>
-    static(path, request)
+    static(path, blocker, request)
 }
 ```
 
@@ -148,7 +148,7 @@ import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO]
+val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker)
   .withWebjarAssetFilter(isJsAsset)
   .toRoutes
 ```
