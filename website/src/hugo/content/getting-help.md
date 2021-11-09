@@ -1,8 +1,6 @@
----
-menu: main
-weight: 300
-title: Getting help
----
+
+# Getting Help
+
 
 ## Gitter
 

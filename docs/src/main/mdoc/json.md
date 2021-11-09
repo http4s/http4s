@@ -1,8 +1,5 @@
----
-menu: main
-weight: 310
-title: JSON handling
----
+
+# JSON Handling
 
 ## Add the JSON support module(s)
 
@@ -15,14 +12,14 @@ The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:
 
 ```scala
-val http4sVersion = "{{< version "http4s.doc" >}}"
+val http4sVersion = "@{version.http4s.doc}"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  "io.circe" %% "circe-generic" % "{{< version circe >}}",
+  "io.circe" %% "circe-generic" % "@{version.circe}",
   // Optional for string interpolation to JSON model
-  "io.circe" %% "circe-literal" % "{{< version circe >}}"
+  "io.circe" %% "circe-literal" % "@{version.circe}"
 )
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
@@ -35,7 +32,7 @@ import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
-## Sending raw JSON
+## Sending Raw JSON
 
 Let's create a function to produce a simple JSON greeting with circe. First, the imports:
 
@@ -156,7 +153,7 @@ Thus there's no more need in calling `asJson` on result.
 However, it may introduce ambiguity errors when we also build
 some json by hand within the same scope. 
 
-## Receiving raw JSON
+## Receiving Raw JSON
 
 Just as we needed an `EntityEncoder[JSON]` to send JSON from a server
 or client, we need an `EntityDecoder[JSON]` to receive it.
@@ -210,7 +207,7 @@ import org.http4s.circe.CirceEntityCodec._
 
 ## Putting it all together
 
-### A Hello world service
+### A Hello World Service
 
 Our hello world service will parse a `User` from a request and offer a
 proper greeting.
@@ -244,15 +241,18 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080).withHttpApp(jsonApp).resource
+val server = BlazeServerBuilder[IO](global)
+  .bindHttp(8080)
+  .withHttpApp(jsonApp)
+  .resource
 
 // This is typically provided by IOApp
-implicit val runtime: cats.effect.unsafe.IORuntime = cats.effect.unsafe.IORuntime.global
-
+implicit val runtime: cats.effect.unsafe.IORuntime = 
+  cats.effect.unsafe.IORuntime.global
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
-## A Hello world client
+## A Hello World Client
 
 Now let's make a client for the service above:
 
