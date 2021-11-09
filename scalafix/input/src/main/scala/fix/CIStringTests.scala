@@ -1,6 +1,6 @@
 /*
 rule = v0_22
-*/
+ */
 
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.syntax.all._
