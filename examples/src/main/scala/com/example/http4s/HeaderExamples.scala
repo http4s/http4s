@@ -26,7 +26,7 @@ import org.typelevel.ci._
 
 object HeaderExamples {
   // /// test for construction
-  sealed case class Foo(v: String)
+  final case class Foo(v: String)
   object Foo {
     implicit def headerFoo: Header[Foo, Header.Single] = new Header[Foo, Header.Single] {
       def name = ci"foo"
