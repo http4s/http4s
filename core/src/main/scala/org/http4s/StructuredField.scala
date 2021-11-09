@@ -78,6 +78,8 @@ object StructuredField {
     override def render(writer: Writer): writer.type =
       if (value.scale > 3)
         writer << value.setScale(3, BigDecimal.RoundingMode.HALF_UP).toString
+      else if (value.scale < 1)
+        writer << value.setScale(1).toString
       else
         writer << value.toString
   }
