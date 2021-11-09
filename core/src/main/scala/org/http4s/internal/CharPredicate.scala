@@ -148,6 +148,8 @@ object CharPredicate {
 
   private def unmaskable(c: Char) = c >= 128
 
+  // scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+
   // efficient handling of 7bit-ASCII chars
   sealed case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
       extends CharPredicate {
@@ -342,4 +344,6 @@ object CharPredicate {
 
     override def toString(): String = "CharPredicate.General@" + System.identityHashCode(this)
   }
+
+  // scalafix:on
 }
