@@ -23,10 +23,11 @@ import cats.effect.std.{Dispatcher, Queue}
 import cats.implicits._
 import fs2.Chunk
 import io.netty.buffer.Unpooled
-import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandler}
+import io.netty.channel.{ChannelFuture, ChannelHandlerContext, ChannelInboundHandler}
 import io.netty.handler.codec.http.{DefaultHttpHeaders, HttpContent, HttpRequest, HttpResponseStatus}
 import org.http4s
-import org.http4s.{HttpRoutes, Method}
+import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.{HttpRoutes, Method, TransferCoding}
 
 import scala.annotation.nowarn
 import scala.collection.JavaConverters._
@@ -74,20 +75,43 @@ class RoutesToHandlerAdapter[F[_]](
     for {
       response <- routes.run(http4sRequest).value
       _ <- response.fold(
-        F.delay(HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.NOT_FOUND))
+        F.delay(HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.NOT_FOUND)).void
       ) { response =>
         val headers = new DefaultHttpHeaders(false)
         response.headers.foreach(h => headers.add(h.name.toString, h.value))
-        response.body.compile.to(Array).flatMap { bodyBytes =>
-          F.delay(
-            HandlerHelpers.sendResponse(
+        response.headers.get[`Transfer-Encoding`] match {
+          case Some(codings) if codings.hasChunked =>
+            F.delay(HandlerHelpers.sendChunkedResponseHead(
               ctx,
               request,
               HttpResponseStatus.valueOf(response.status.code),
-              Unpooled.copiedBuffer(bodyBytes),
               headers
-            )
-          )
+            )) >>
+              response.body
+                .chunks
+                .evalMap(chunk =>
+                  F.async((callback: Either[Throwable, Unit] => Unit) =>
+                    F.delay(
+                      HandlerHelpers.sendChunk(ctx, request, Unpooled.copiedBuffer(chunk.toArray))
+                        .addListener((f: ChannelFuture) => callback(Right(())))
+                    ).as(None))
+                ).compile.drain >>
+              F.delay(HandlerHelpers.sendEmptyLastChunk(ctx)).void
+
+          case Some(_) =>
+            F.delay(HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.BAD_REQUEST)).void
+          case None =>
+            response.body.compile.to(Array).flatMap { bodyBytes =>
+              F.delay(
+                HandlerHelpers.sendResponse(
+                  ctx,
+                  request,
+                  HttpResponseStatus.valueOf(response.status.code),
+                  Unpooled.copiedBuffer(bodyBytes),
+                  headers
+                )
+              )
+            }
         }
       }
     } yield ()

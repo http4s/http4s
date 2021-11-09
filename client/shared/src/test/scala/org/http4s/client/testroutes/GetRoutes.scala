@@ -35,7 +35,7 @@ object GetRoutes {
   def getPaths(implicit F: Temporal[IO]): Map[String, IO[Response[IO]]] =
     Map(
       SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
-      ChunkedPath -> Response[IO](Ok) // FIXME this doesn't work
+      ChunkedPath -> Response[IO](Ok)
         .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
         .pure[IO],
       DelayedPath ->

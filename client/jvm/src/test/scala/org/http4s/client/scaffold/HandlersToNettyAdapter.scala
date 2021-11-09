@@ -68,7 +68,7 @@ class HandlersToNettyAdapter private(handlers: Map[(HttpMethod, String), Handler
       }
 
       msg match {
-        case content: LastHttpContent =>
+        case _: LastHttpContent =>
           logger.trace("Request finished.")
           currentHandler.onRequestEnd(ctx, currentRequest)
           currentRequest = null
@@ -107,6 +107,7 @@ trait Handler {
 }
 
 object HandlerHelpers {
+
   def sendResponse(
       ctx: ChannelHandlerContext,
       request: HttpRequest,
@@ -129,6 +130,36 @@ object HandlerHelpers {
       ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
     }
   }
+
+  def sendChunkedResponseHead(
+                        ctx: ChannelHandlerContext,
+                        request: HttpRequest,
+                        status: HttpResponseStatus,
+                        headers: HttpHeaders = EmptyHttpHeaders.INSTANCE,
+                      ): ChannelFuture = {
+    val response = new DefaultHttpResponse(
+      HTTP_1_1,
+      status,
+    )
+    response.headers().setAll(headers)
+    if (HttpUtil.isKeepAlive(request)) {
+      response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+      ctx.writeAndFlush(response)
+    } else {
+      ctx.writeAndFlush(response)
+    }
+  }
+
+  def sendChunk(ctx: ChannelHandlerContext,
+                request: HttpRequest,
+                content: ByteBuf,
+               ): ChannelFuture = {
+    val contentMessage = new DefaultHttpContent(content)
+    ctx.writeAndFlush(contentMessage)
+  }
+
+  def sendEmptyLastChunk(ctx: ChannelHandlerContext): ChannelFuture =
+    ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
 
   def utf8Text(s: String): ByteBuf = Unpooled.copiedBuffer(s, CharsetUtil.UTF_8)
 }
