@@ -73,7 +73,10 @@ object StructuredField {
 
   sealed abstract case class SfDecimal(value: BigDecimal) extends BareItem {
     override def render(writer: Writer): writer.type =
-      writer << value.setScale(3, BigDecimal.RoundingMode.HALF_UP).toString
+      if (value.scale > 3)
+        writer << value.setScale(3, BigDecimal.RoundingMode.HALF_UP).toString
+      else
+        writer << value.toString
   }
 
   object SfDecimal {

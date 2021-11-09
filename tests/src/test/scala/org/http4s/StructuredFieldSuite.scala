@@ -200,6 +200,7 @@ class StructuredFieldSuite extends Http4sSuite {
 
   test("SfDecimal.render should round numbers correctly") {
     assert(SfDecimal.fromBigDecimal(BigDecimal("99.998765")).map(_.renderString) == Some("99.999"))
+    assert(SfDecimal.fromBigDecimal(BigDecimal("99.99")).map(_.renderString) == Some("99.99"))
   }
 
   test("SfDecimal.fromBigDecimal should accept valid values") {
