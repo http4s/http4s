@@ -130,10 +130,10 @@ object HeliumExtensions {
     * @return a theme provider that merges the default Helium theme with the two extensions from this class
     */
   def applyTo(
-               helium: ThemeProvider,
-               variables: Map[String, String],
-               versionLinks: Seq[Path],
-             ): ThemeProvider = new ThemeProvider {
+      helium: ThemeProvider,
+      variables: Map[String, String],
+      versionLinks: Seq[Path],
+  ): ThemeProvider = new ThemeProvider {
 
     override def build[F[_]: Sync]: Resource[F, Theme[F]] = {
       val heliumTheme = helium.build[F]

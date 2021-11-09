@@ -609,7 +609,7 @@ lazy val docs = http4sProject("docs")
     NoPublishPlugin,
     ScalaUnidocPlugin,
     MdocPlugin,
-    LaikaPlugin
+    LaikaPlugin,
   )
   .settings(docsProjectSettings)
   .settings(
@@ -643,7 +643,7 @@ lazy val docs = http4sProject("docs")
       currentVersion = SiteConfig.versions.v0_22,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
-      includeLandingPage = false
+      includeLandingPage = false,
     ),
     laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
@@ -690,12 +690,13 @@ lazy val website = http4sProject("website")
       currentVersion = SiteConfig.versions.v0_22,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
-      includeLandingPage = false
+      includeLandingPage = false,
     ),
     laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(
       baseDirectory.value / "src" / "hugo" / "content",
-      baseDirectory.value / "src" / "hugo" / "static"),
+      baseDirectory.value / "src" / "hugo" / "static",
+    ),
     ghpagesNoJekyll := true,
     ghpagesPrivateMappings := (laikaSite / mappings).value,
     ghpagesCleanSite / excludeFilter :=
@@ -704,7 +705,7 @@ lazy val website = http4sProject("website")
         def accept(f: File) =
           f.getCanonicalPath.startsWith(v) &&
             f.getCanonicalPath.charAt(v.size).isDigit
-      }
+      },
   )
 
 lazy val examples = http4sProject("examples")

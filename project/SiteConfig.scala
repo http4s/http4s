@@ -108,7 +108,7 @@ object SiteConfig {
       "version.http4s.api" -> s"$major.$minor",
       "version.http4s.current" -> version.value,
       "version.http4s.doc" -> docExampleVersion(version.value),
-      "version.circe" -> circeJawn.value.revision,
+      "version.circe" -> circeJawn.revision,
       "version.cryptobits" -> cryptobits.revision,
     ) ++ latestInSeries
   }
@@ -136,11 +136,11 @@ object SiteConfig {
   }
 
   def theme(
-             currentVersion: Version,
-             variables: Map[String, String],
-             homeURL: String,
-             includeLandingPage: Boolean,
-           ): ThemeProvider = {
+      currentVersion: Version,
+      variables: Map[String, String],
+      homeURL: String,
+      includeLandingPage: Boolean,
+  ): ThemeProvider = {
 
     val apiLink =
       if (includeLandingPage) None
