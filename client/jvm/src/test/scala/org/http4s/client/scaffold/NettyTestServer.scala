@@ -16,23 +16,22 @@
 
 package org.http4s.client.scaffold
 
-import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.nio.{NioServerSocketChannel, NioSocketChannel}
-import io.netty.channel._
-import io.netty.handler.codec.http._
-import io.netty.handler.logging.{LogLevel, LoggingHandler}
-import cats.effect.{Ref, Resource}
-import org.log4s.getLogger
-
-import javax.net.ssl.SSLContext
-import io.netty.handler.ssl.SslHandler
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
+import cats.effect.{Ref, Resource}
 import cats.implicits._
 import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
+import io.netty.bootstrap.ServerBootstrap
+import io.netty.channel._
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.{NioServerSocketChannel, NioSocketChannel}
+import io.netty.handler.codec.http._
+import io.netty.handler.logging.{LogLevel, LoggingHandler}
+import io.netty.handler.ssl.SslHandler
+import org.log4s.getLogger
 
 import java.net.{InetAddress, InetSocketAddress}
+import javax.net.ssl.SSLContext
 
 trait TestServer[F[_]] {
   def localAddress: SocketAddress[IpAddress]
@@ -96,18 +95,7 @@ object NettyTestServer {
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit F: Async[F]): Resource[F, Channel] =
     Resource.make[F, Channel](
-      F.async((callback: Either[Throwable, Channel] => Unit) =>
-        F.delay(
-          bootstrap
-            .bind(InetAddress.getLocalHost(), port)
-            .addListener((f: ChannelFuture) => callback(Right(f.channel())))
-        ).as(None))
-    )(channel =>
-      F.async { (callback: Either[Throwable, Unit] => Unit) =>
-        F.delay {
-          val p = new DefaultChannelPromise(channel)
-          channel.close(p).addListener((f: ChannelFuture) => callback(Right(())))
-        }.as(None)
-      })
+      F.delay(bootstrap.bind(InetAddress.getLocalHost(), port)).liftToFWithChannel
+    )(channel => F.delay(channel.close(new DefaultChannelPromise(channel))).liftToF)
 
 }

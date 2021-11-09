@@ -23,11 +23,11 @@ import cats.effect.std.{Dispatcher, Queue}
 import cats.implicits._
 import fs2.Chunk
 import io.netty.buffer.Unpooled
-import io.netty.channel.{ChannelFuture, ChannelHandlerContext, ChannelInboundHandler}
+import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandler}
 import io.netty.handler.codec.http.{DefaultHttpHeaders, HttpContent, HttpRequest, HttpResponseStatus}
 import org.http4s
 import org.http4s.headers.`Transfer-Encoding`
-import org.http4s.{HttpRoutes, Method, TransferCoding}
+import org.http4s.{Headers, HttpRoutes, Method, Response}
 
 import scala.annotation.nowarn
 import scala.collection.JavaConverters._
@@ -47,10 +47,10 @@ object RoutesToHandlerAdapter {
 }
 
 class RoutesToHandlerAdapter[F[_]](
-    routes: HttpRoutes[F],
-    dispatcher: Dispatcher[F],
-    requestBodyQueue: Ref[F, Queue[F, Option[Chunk[Byte]]]])(implicit F: Async[F])
-    extends Handler {
+                                    routes: HttpRoutes[F],
+                                    dispatcher: Dispatcher[F],
+                                    requestBodyQueue: Ref[F, Queue[F, Option[Chunk[Byte]]]]
+                                  )(implicit F: Async[F]) extends Handler {
 
   override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
     dispatcher.unsafeRunSync(
@@ -67,54 +67,58 @@ class RoutesToHandlerAdapter[F[_]](
         _ <- requestBodyQueue.set(bodyQueue)
         body = fs2.Stream.fromQueueNoneTerminatedChunk(bodyQueue)
         http4sRequest = http4s.Request(method, uri, headers = headers, body = body)
-        _ <- processRequest(ctx, request, http4sRequest).start
+        _ <- processRequest(ctx, http4sRequest).start
       } yield ()
     )
 
-  private def processRequest(ctx: ChannelHandlerContext, request: HttpRequest, http4sRequest: http4s.Request[F]): F[Unit] =
+  private def processRequest(ctx: ChannelHandlerContext, http4sRequest: http4s.Request[F]): F[Unit] =
     for {
       response <- routes.run(http4sRequest).value
-      _ <- response.fold(
-        F.delay(HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.NOT_FOUND)).void
-      ) { response =>
-        val headers = new DefaultHttpHeaders(false)
-        response.headers.foreach(h => headers.add(h.name.toString, h.value))
-        response.headers.get[`Transfer-Encoding`] match {
-          case Some(codings) if codings.hasChunked =>
-            F.delay(HandlerHelpers.sendChunkedResponseHead(
-              ctx,
-              request,
-              HttpResponseStatus.valueOf(response.status.code),
-              headers
-            )) >>
-              response.body
-                .chunks
-                .evalMap(chunk =>
-                  F.async((callback: Either[Throwable, Unit] => Unit) =>
-                    F.delay(
-                      HandlerHelpers.sendChunk(ctx, request, Unpooled.copiedBuffer(chunk.toArray))
-                        .addListener((f: ChannelFuture) => callback(Right(())))
-                    ).as(None))
-                ).compile.drain >>
-              F.delay(HandlerHelpers.sendEmptyLastChunk(ctx)).void
-
-          case Some(_) =>
-            F.delay(HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.BAD_REQUEST)).void
-          case None =>
-            response.body.compile.to(Array).flatMap { bodyBytes =>
-              F.delay(
-                HandlerHelpers.sendResponse(
-                  ctx,
-                  request,
-                  HttpResponseStatus.valueOf(response.status.code),
-                  Unpooled.copiedBuffer(bodyBytes),
-                  headers
-                )
-              )
-            }
-        }
-      }
+      _ <- response.fold(F.delay(HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)).liftToF
+      )(response => sendResponse(ctx, response))
     } yield ()
+
+  private def sendResponse(ctx: ChannelHandlerContext, response: Response[F]): F[Unit] =
+    response.headers.get[`Transfer-Encoding`] match {
+      case None =>
+        sendStrictResponse(ctx, response)
+      case Some(codings) if codings.hasChunked =>
+        sendChunkedResponse(ctx, response)
+      case Some(_) =>
+        F.delay(HandlerHelpers.sendResponse(ctx, HttpResponseStatus.BAD_REQUEST)).liftToF
+    }
+
+  private def sendStrictResponse(ctx: ChannelHandlerContext, response: Response[F]): F[Unit] =
+    response.body.compile.to(Array).flatMap { bodyBytes =>
+      F.delay(
+        HandlerHelpers.sendResponse(
+          ctx,
+          HttpResponseStatus.valueOf(response.status.code),
+          Unpooled.copiedBuffer(bodyBytes),
+          makeNettyHeaders(response.headers)
+        )
+      ).liftToF
+    }
+
+  private def sendChunkedResponse(ctx: ChannelHandlerContext, response: Response[F]): F[Unit] =
+    for {
+      _ <- F.delay(HandlerHelpers.sendChunkedResponseHead(
+        ctx,
+        HttpResponseStatus.valueOf(response.status.code),
+        makeNettyHeaders(response.headers)
+      )).liftToF
+      _ <- response.body.chunks
+        .evalMap(chunk =>
+          F.delay(HandlerHelpers.sendChunk(ctx, Unpooled.copiedBuffer(chunk.toArray))).liftToF
+        ).compile.drain
+      _ <- F.delay(HandlerHelpers.sendEmptyLastChunk(ctx)).liftToF
+    } yield ()
+
+  private def makeNettyHeaders(http4sHeaders: Headers): DefaultHttpHeaders = {
+    val nettyHeaders = new DefaultHttpHeaders()
+    http4sHeaders.foreach(h => nettyHeaders.add(h.name.toString, h.value))
+    nettyHeaders
+  }
 
   override def onContent(
                           ctx: ChannelHandlerContext,
@@ -127,9 +131,6 @@ class RoutesToHandlerAdapter[F[_]](
 
   override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
     dispatcher.unsafeRunSync(
-      for {
-        bodyQueue <- requestBodyQueue.get
-        _ <- bodyQueue.offer(None)
-      } yield ()
+      requestBodyQueue.get.flatMap(_.offer(None))
     )
 }

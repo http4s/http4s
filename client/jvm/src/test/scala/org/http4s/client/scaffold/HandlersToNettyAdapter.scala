@@ -29,6 +29,16 @@ import org.log4s.getLogger
 
 import java.net.URI
 
+object HandlersToNettyAdapter {
+  val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, request: HttpRequest) =>
+    HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)
+
+  def apply[F[_]](handlers: Map[(HttpMethod, String), Handler],
+                  fallbackHandler: Handler = defaultFallbackHandler,
+                 )(implicit F: Sync[F]): F[ChannelInboundHandler] =
+    F.delay(new HandlersToNettyAdapter(handlers, fallbackHandler))
+}
+
 class HandlersToNettyAdapter private(handlers: Map[(HttpMethod, String), Handler],
                                      fallbackHandler: Handler = defaultFallbackHandler,
                                     ) extends SimpleChannelInboundHandler[HttpObject] {
@@ -49,12 +59,9 @@ class HandlersToNettyAdapter private(handlers: Map[(HttpMethod, String), Handler
           } else {
             currentRequest = request
             currentHandler = handlers.getOrElse(
-              (
-                request.method(),
-                new URI(request.uri())
-                  .getPath()
-              ),
-              fallbackHandler)
+              (request.method(), new URI(request.uri()).getPath()),
+              fallbackHandler
+            )
             currentHandler.onRequestStart(ctx, currentRequest)
           }
         case _ =>
@@ -86,16 +93,6 @@ class HandlersToNettyAdapter private(handlers: Map[(HttpMethod, String), Handler
 
 }
 
-object HandlersToNettyAdapter {
-  val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, request: HttpRequest) =>
-    HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.NOT_FOUND)
-
-  def apply[F[_]](handlers: Map[(HttpMethod, String), Handler],
-            fallbackHandler: Handler = defaultFallbackHandler,
-           )(implicit F: Sync[F]): F[ChannelInboundHandler] =
-    F.delay(new HandlersToNettyAdapter(handlers, fallbackHandler))
-}
-
 trait Handler {
 
   def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
@@ -110,7 +107,6 @@ object HandlerHelpers {
 
   def sendResponse(
       ctx: ChannelHandlerContext,
-      request: HttpRequest,
       status: HttpResponseStatus,
       content: ByteBuf = Unpooled.buffer(0),
       headers: HttpHeaders = EmptyHttpHeaders.INSTANCE,
@@ -121,19 +117,14 @@ object HandlerHelpers {
       content
     )
     response.headers().setAll(headers)
-    if (HttpUtil.isKeepAlive(request)) {
-      response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
-      response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
-      if (closeConnection) ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
-      else ctx.writeAndFlush(response)
-    } else {
-      ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
-    }
+    response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
+    response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+    if (closeConnection) ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
+    else ctx.writeAndFlush(response)
   }
 
   def sendChunkedResponseHead(
                         ctx: ChannelHandlerContext,
-                        request: HttpRequest,
                         status: HttpResponseStatus,
                         headers: HttpHeaders = EmptyHttpHeaders.INSTANCE,
                       ): ChannelFuture = {
@@ -142,16 +133,11 @@ object HandlerHelpers {
       status,
     )
     response.headers().setAll(headers)
-    if (HttpUtil.isKeepAlive(request)) {
-      response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
-      ctx.writeAndFlush(response)
-    } else {
-      ctx.writeAndFlush(response)
-    }
+    response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+    ctx.writeAndFlush(response)
   }
 
   def sendChunk(ctx: ChannelHandlerContext,
-                request: HttpRequest,
                 content: ByteBuf,
                ): ChannelFuture = {
     val contentMessage = new DefaultHttpContent(content)
