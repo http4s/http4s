@@ -53,7 +53,7 @@ object Forwarded extends ForwardedRenderers {
     sealed trait Name { self: Product => }
 
     object Name {
-      // scalafix:off Http4sGeneralLinters.noCaseClassWithoutAccessModifier; bincompat until 1.0
+      // scalafix:off Http4sGeneralLinters; bincompat until 1.0
       case class Ipv4(address: Ipv4Address) extends Name
       case class Ipv6(address: Ipv6Address) extends Name
       // scalafix:on

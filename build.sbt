@@ -164,8 +164,10 @@ lazy val core = libraryProject("core")
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
 
-      // private constructor so effectively final already
+      // private constructors so effectively final already
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
     ),
   )
 

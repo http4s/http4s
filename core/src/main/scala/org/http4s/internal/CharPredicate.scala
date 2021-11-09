@@ -228,7 +228,7 @@ object CharPredicate {
     override def toString(): String = "CharPredicate.MaskBased(" + new String(toArray) + ')'
   }
 
-  class RangeBased private[CharPredicate] (private val range: NumericRange[Char])
+  final class RangeBased private[CharPredicate] (private val range: NumericRange[Char])
       extends CharPredicate {
     def apply(c: Char): Boolean = range contains c
 
@@ -261,7 +261,8 @@ object CharPredicate {
         s"step = ${range.step.toInt}, inclusive = ${range.isInclusive})"
   }
 
-  class ArrayBased private[CharPredicate] (private val chars: Array[Char]) extends CharPredicate {
+  final class ArrayBased private[CharPredicate] (private val chars: Array[Char])
+      extends CharPredicate {
     import java.util.Arrays._
     sort(chars)
 
