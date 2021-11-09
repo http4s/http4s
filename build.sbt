@@ -168,6 +168,7 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
     ),
   )
 

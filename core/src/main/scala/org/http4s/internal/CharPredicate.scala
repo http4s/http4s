@@ -151,7 +151,7 @@ object CharPredicate {
   // scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
 
   // efficient handling of 7bit-ASCII chars
-  sealed case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
+  final case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
       extends CharPredicate {
 
     def apply(c: Char): Boolean = {
