@@ -67,6 +67,9 @@ object StructuredField {
     def fromLong(l: Long): Option[SfInteger] =
       if (l < MinValue || l > MaxValue) None else Some(unsafeFromLong(l))
 
+    def fromInt(i: Int): SfInteger =
+      unsafeFromLong(i.toLong)
+
     val parser: Parser[SfInteger] =
       Rfc8941.sfInteger.map(unsafeFromLong)
   }

@@ -166,6 +166,10 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfInteger.fromLong(1000000000000000L) == None)
   }
 
+  test("SfInteger.fromInt should create values correctly") {
+    assert(SfInteger.fromInt(999).value == 999L)
+  }
+
   // SfDecimal
 
   test("SfDecimal.parser should parse valid strings") {
