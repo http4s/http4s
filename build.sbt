@@ -163,6 +163,9 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.local"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
+
+      // private constructor so effectively final already
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
     ),
   )
 
@@ -237,6 +240,19 @@ lazy val server = libraryProject("server")
       ProblemFilters.exclude[MissingClassProblem](
         "org.http4s.server.middleware.GZip$TrailerGen$"
       ), // private
+      // the following are private[middleware]
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$Static"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowMethods$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowOrigin$Match"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$ExposeHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$MaxAge$Some"),
     ),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
