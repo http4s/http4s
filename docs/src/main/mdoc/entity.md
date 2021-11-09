@@ -1,8 +1,5 @@
----
-menu: main
-weight: 300
-title: Entity handling
----
+
+# Entity Handling
 
 ## Why Entity*
 
