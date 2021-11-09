@@ -18,7 +18,7 @@ package org.http4s.client.scaffold
 
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
-import cats.effect.{Ref, Resource}
+import cats.effect.{Ref, Resource, Sync}
 import cats.implicits._
 import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import io.netty.bootstrap.ServerBootstrap
@@ -81,21 +81,12 @@ object NettyTestServer {
         }
       })
     channel <- server[F](bootstrap, port)
-    // TODO refactor
-    inetSocketAddress = channel.localAddress().asInstanceOf[InetSocketAddress]
-    ip <- Resource.eval(
-      IpAddress
-        .fromString(inetSocketAddress.getAddress.getHostAddress)
-        .liftTo[F](new Exception(s"Invalid IP: [${inetSocketAddress.getAddress.toString}]")))
-    port <- Resource.eval(
-      Port
-        .fromInt(inetSocketAddress.getPort)
-        .liftTo[F](new Exception(s"Invalid port: [${inetSocketAddress.getPort}]")))
-  } yield new NettyTestServer(establishedConnections, SocketAddress(ip, port))
+    localInetSocketAddress = channel.localAddress().asInstanceOf[InetSocketAddress]
+    localAddress <- Resource.eval(toSocketAddress(localInetSocketAddress).liftTo[F])
+  } yield new NettyTestServer(establishedConnections, localAddress)
 
-  private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
-    Resource.make[F, NioEventLoopGroup](F.delay(new NioEventLoopGroup()))(el =>
-      F.delay(el.shutdownGracefully()))
+  private def nioEventLoopGroup[F[_]](implicit F: Sync[F]): Resource[F, NioEventLoopGroup] =
+    Resource.make(F.delay(new NioEventLoopGroup()))(el => F.delay(el.shutdownGracefully()))
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit
       F: Async[F]): Resource[F, Channel] =
@@ -103,4 +94,14 @@ object NettyTestServer {
       F.delay(bootstrap.bind(InetAddress.getLocalHost(), port)).liftToFWithChannel
     )(channel => F.delay(channel.close(new DefaultChannelPromise(channel))).liftToF)
 
+  private def toSocketAddress(
+      addr: InetSocketAddress): Either[Exception, SocketAddress[IpAddress]] =
+    for {
+      ip <- IpAddress
+        .fromString(addr.getAddress.getHostAddress)
+        .toRight(new Exception(s"Invalid IP: [${addr.getAddress.toString}]"))
+      port <- Port
+        .fromInt(addr.getPort)
+        .toRight(new Exception(s"Invalid port: [${addr.getPort}]"))
+    } yield SocketAddress(ip, port)
 }

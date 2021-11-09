@@ -24,12 +24,8 @@ import cats.implicits._
 import fs2.Chunk
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandler}
-import io.netty.handler.codec.http.{
-  DefaultHttpHeaders,
-  HttpContent,
-  HttpRequest,
-  HttpResponseStatus
-}
+import io.netty.handler.codec.http.HttpResponseStatus._
+import io.netty.handler.codec.http._
 import org.http4s
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.{Headers, HttpRoutes, Method, Response}
@@ -66,9 +62,7 @@ class RoutesToHandlerAdapter[F[_]](
         uri <- http4s.Uri.fromString(request.uri()).liftTo[F]
         headers = http4s.Headers(request.headers().names().asScala.toVector.flatMap { k =>
           val vs = request.headers().getAll(k)
-          vs.asScala.toVector.map { v =>
-            (k -> v): http4s.Header.ToRaw
-          }
+          vs.asScala.toVector.map(v => (k -> v): http4s.Header.ToRaw)
         }): @nowarn("cat=deprecation")
         bodyQueue <- Queue.unbounded[F, Option[Chunk[Byte]]]
         _ <- requestBodyQueue.set(bodyQueue)
@@ -84,18 +78,15 @@ class RoutesToHandlerAdapter[F[_]](
     for {
       response <- routes.run(http4sRequest).value
       _ <- response.fold(
-        F.delay(HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)).liftToF)(response =>
-        sendResponse(ctx, response))
+        F.delay(HandlerHelpers.sendResponse(ctx, NOT_FOUND)).liftToF
+      )(response => sendResponse(ctx, response))
     } yield ()
 
   private def sendResponse(ctx: ChannelHandlerContext, response: Response[F]): F[Unit] =
     response.headers.get[`Transfer-Encoding`] match {
-      case None =>
-        sendStrictResponse(ctx, response)
-      case Some(codings) if codings.hasChunked =>
-        sendChunkedResponse(ctx, response)
-      case Some(_) =>
-        F.delay(HandlerHelpers.sendResponse(ctx, HttpResponseStatus.BAD_REQUEST)).liftToF
+      case None => sendStrictResponse(ctx, response)
+      case Some(codings) if codings.hasChunked => sendChunkedResponse(ctx, response)
+      case Some(_) => F.delay(HandlerHelpers.sendResponse(ctx, BAD_REQUEST)).liftToF
     }
 
   private def sendStrictResponse(ctx: ChannelHandlerContext, response: Response[F]): F[Unit] =
@@ -118,7 +109,8 @@ class RoutesToHandlerAdapter[F[_]](
             ctx,
             HttpResponseStatus.valueOf(response.status.code),
             makeNettyHeaders(response.headers)
-          ))
+          )
+        )
         .liftToF
       _ <- response.body.chunks
         .evalMap(chunk =>
@@ -144,7 +136,6 @@ class RoutesToHandlerAdapter[F[_]](
   }
 
   override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
-    dispatcher.unsafeRunSync(
-      requestBodyQueue.get.flatMap(_.offer(None))
-    )
+    dispatcher.unsafeRunSync(requestBodyQueue.get.flatMap(_.offer(None)))
+
 }

@@ -18,7 +18,6 @@ package org.http4s.client.scaffold
 
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import cats.effect.syntax.all._
 import cats.effect.{Async, Resource, Sync}
 
 import java.security.{KeyStore, Security}
@@ -52,11 +51,10 @@ object ServerScaffold {
       F: Async[F]): Resource[F, ServerScaffold[F]] =
     for {
       dispatcher <- Dispatcher[F]
-      maybeSslContext <-
+      maybeSsl <-
         if (secure) Resource.eval[F, SSLContext](makeSslContext[F]).map(Some(_))
         else Resource.pure[F, Option[SSLContext]](None)
-      servers <- NettyTestServer[F](port = 0, makeHandler, maybeSslContext, dispatcher).replicateA(
-        num)
+      servers <- NettyTestServer[F](port = 0, makeHandler, maybeSsl, dispatcher).replicateA(num)
     } yield new ServerScaffold(servers.toVector)
 
   private def makeSslContext[F[_]](implicit F: Sync[F]): F[SSLContext] = F.delay {

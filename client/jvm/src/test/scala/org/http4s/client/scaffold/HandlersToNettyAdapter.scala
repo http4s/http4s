@@ -30,20 +30,20 @@ import org.log4s.getLogger
 import java.net.URI
 
 object HandlersToNettyAdapter {
-  val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, request: HttpRequest) =>
+  val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, _: HttpRequest) =>
     HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)
 
   def apply[F[_]](
       handlers: Map[(HttpMethod, String), Handler],
-      fallbackHandler: Handler = defaultFallbackHandler)(implicit
-      F: Sync[F]): F[ChannelInboundHandler] =
+      fallbackHandler: Handler = defaultFallbackHandler
+  )(implicit F: Sync[F]): F[ChannelInboundHandler] =
     F.delay(new HandlersToNettyAdapter(handlers, fallbackHandler))
 }
 
 class HandlersToNettyAdapter private (
     handlers: Map[(HttpMethod, String), Handler],
-    fallbackHandler: Handler = defaultFallbackHandler)
-    extends SimpleChannelInboundHandler[HttpObject] {
+    fallbackHandler: Handler = defaultFallbackHandler
+) extends SimpleChannelInboundHandler[HttpObject] {
 
   private val logger = getLogger(this.getClass)
 
@@ -113,14 +113,10 @@ object HandlerHelpers {
       content: ByteBuf = Unpooled.buffer(0),
       headers: HttpHeaders = EmptyHttpHeaders.INSTANCE,
       closeConnection: Boolean = false): ChannelFuture = {
-    val response = new DefaultFullHttpResponse(
-      HTTP_1_1,
-      status,
-      content
-    )
+    val response = new DefaultFullHttpResponse(HTTP_1_1, status, content)
     response.headers().setAll(headers)
     response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
-    response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+    response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
     if (closeConnection) ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
     else ctx.writeAndFlush(response)
   }
@@ -130,22 +126,18 @@ object HandlerHelpers {
       status: HttpResponseStatus,
       headers: HttpHeaders = EmptyHttpHeaders.INSTANCE
   ): ChannelFuture = {
-    val response = new DefaultHttpResponse(
-      HTTP_1_1,
-      status
-    )
+    val response = new DefaultHttpResponse(HTTP_1_1, status)
     response.headers().setAll(headers)
-    response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+    response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
     ctx.writeAndFlush(response)
   }
 
-  def sendChunk(ctx: ChannelHandlerContext, content: ByteBuf): ChannelFuture = {
-    val contentMessage = new DefaultHttpContent(content)
-    ctx.writeAndFlush(contentMessage)
-  }
+  def sendChunk(ctx: ChannelHandlerContext, content: ByteBuf): ChannelFuture =
+    ctx.writeAndFlush(new DefaultHttpContent(content))
 
   def sendEmptyLastChunk(ctx: ChannelHandlerContext): ChannelFuture =
     ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
 
-  def utf8Text(s: String): ByteBuf = Unpooled.copiedBuffer(s, CharsetUtil.UTF_8)
+  def utf8Text(s: String): ByteBuf =
+    Unpooled.copiedBuffer(s, CharsetUtil.UTF_8)
 }
