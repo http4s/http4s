@@ -113,7 +113,7 @@ object WebSocketFrame {
   }
 
   sealed abstract class InvalidCloseDataException extends RuntimeException
-  // scalafix:off Http4sGeneralLinters.leakingSealedHierachy; bincompat until 1.0
+  // scalafix:off Http4sGeneralLinters.leakingSealedHierarchy; bincompat until 1.0
   class InvalidCloseCodeException(val i: Int) extends InvalidCloseDataException
   class ReasonTooLongException(val s: String) extends InvalidCloseDataException
   // scalafix:on
