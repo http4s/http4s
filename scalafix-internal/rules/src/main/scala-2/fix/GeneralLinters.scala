@@ -21,24 +21,28 @@ import scalafix.v1._
 import scala.meta._
 
 class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
-  override def fix(implicit doc: SemanticDocument): Patch = noFinalCaseObject + noNonFinalCaseClass
+  override def fix(implicit doc: SemanticDocument): Patch = noFinalObject + noNonFinalCaseClass
 
-  def noFinalCaseObject(implicit doc: SemanticDocument) =
-    doc.tree.collect {
-      case o @ Defn.Object(mods, _, _) if mods.exists(_.is[Mod.Case]) =>
-        mods.collectFirst { case f: Mod.Final =>
-          val finalToken = f.tokens.head
-          val tokensToDelete = // we want to delete trailing whitespace after `final`
-            finalToken :: o.tokens.dropWhile(_ != finalToken).tail.takeWhile(_.text.forall(_.isWhitespace)).toList
-          Patch.removeTokens(tokensToDelete)
-        }.asPatch
+  def noFinalObject(implicit doc: SemanticDocument) =
+    doc.tree.collect { case o @ Defn.Object(mods, _, _) =>
+      mods.collectFirst { case f: Mod.Final =>
+        val finalToken = f.tokens.head
+        val tokensToDelete = // we want to delete trailing whitespace after `final`
+          finalToken :: o.tokens
+            .dropWhile(_ != finalToken)
+            .tail
+            .takeWhile(_.text.forall(_.isWhitespace))
+            .toList
+        Patch.removeTokens(tokensToDelete)
+      }.asPatch
     }.asPatch
 
   def noNonFinalCaseClass(implicit doc: SemanticDocument) =
     doc.tree.collect {
       case c @ Defn.Class(mods, _, _, _, _)
           if mods.exists(_.is[Mod.Case]) && !mods.exists(mod =>
-            (mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private])) && !c.isDescendentOf[Defn.Def] && !c.isDescendentOf[Defn.Val] =>
+            (mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private])
+          ) && !c.isDescendentOf[Defn.Def] && !c.isDescendentOf[Defn.Val] =>
         Patch.lint(CaseClassWithoutAccessModifier(c))
     }.asPatch
 
