@@ -26,7 +26,7 @@ import org.typelevel.ci._
 
 object HeaderExamples {
   // /// test for construction
-  case class Foo(v: String)
+  sealed case class Foo(v: String)
   object Foo {
     implicit def headerFoo: Header[Foo, Header.Single] = new Header[Foo, Header.Single] {
       def name = ci"foo"
@@ -43,7 +43,7 @@ object HeaderExamples {
     baz,
   )
   // //// test for selection
-  case class Bar(v: NonEmptyList[String])
+  final case class Bar(v: NonEmptyList[String])
   object Bar {
     implicit val headerBar: Header[Bar, Header.Recurring] with Semigroup[Bar] =
       new Header[Bar, Header.Recurring] with Semigroup[Bar] {
@@ -54,7 +54,7 @@ object HeaderExamples {
       }
   }
 
-  case class SetCookie(name: String, value: String)
+  final case class SetCookie(name: String, value: String)
   object SetCookie {
     implicit val headerCookie: Header[SetCookie, Header.Recurring] =
       new Header[SetCookie, Header.Recurring] {

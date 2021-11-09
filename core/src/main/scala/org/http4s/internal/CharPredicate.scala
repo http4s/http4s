@@ -149,7 +149,7 @@ object CharPredicate {
   private def unmaskable(c: Char) = c >= 128
 
   // efficient handling of 7bit-ASCII chars
-  case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
+  sealed case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
       extends CharPredicate {
 
     def apply(c: Char): Boolean = {
@@ -302,7 +302,8 @@ object CharPredicate {
     override def toString(): String = "CharPredicate.ArrayBased(" + new String(chars) + ')'
   }
 
-  case class General private[CharPredicate] (predicate: Char => Boolean) extends CharPredicate {
+  final case class General private[CharPredicate] (predicate: Char => Boolean)
+      extends CharPredicate {
     def apply(c: Char) = predicate(c)
 
     def ++(that: CharPredicate): CharPredicate =
