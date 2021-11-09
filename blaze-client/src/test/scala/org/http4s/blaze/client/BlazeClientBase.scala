@@ -35,10 +35,10 @@ trait BlazeClientBase extends Http4sSuite {
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   def builder(
-               maxConnectionsPerRequestKey: Int,
-               maxTotalConnections: Int = 5,
-               responseHeaderTimeout: Duration = 30.seconds,
-               requestTimeout: Duration = 45.seconds,
+      maxConnectionsPerRequestKey: Int,
+      maxTotalConnections: Int = 5,
+      responseHeaderTimeout: Duration = 30.seconds,
+      requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
   ) = {
@@ -58,13 +58,16 @@ trait BlazeClientBase extends Http4sSuite {
   private def makeScaffold(num: Int, secure: Boolean): Resource[IO, ServerScaffold[IO]] =
     for {
       dispatcher <- Dispatcher[IO]
-      getHandler <- Resource.eval(RoutesToHandlerAdapter(
-        HttpRoutes.of[IO] {
-          case _@(Method.GET -> path) =>
+      getHandler <- Resource.eval(
+        RoutesToHandlerAdapter(
+          HttpRoutes.of[IO] { case _ @(Method.GET -> path) =>
             GetRoutes.getPaths.getOrElse(path.toString, NotFound())
-        }
-        , dispatcher))
-      scaffold <- ServerScaffold[IO](num, secure, HandlersToNettyAdapter[IO](postHandlers, getHandler))
+          },
+          dispatcher))
+      scaffold <- ServerScaffold[IO](
+        num,
+        secure,
+        HandlersToNettyAdapter[IO](postHandlers, getHandler))
     } yield scaffold
 
   private def postHandlers: Map[(HttpMethod, String), Handler] =
@@ -72,11 +75,15 @@ trait BlazeClientBase extends Http4sSuite {
       (HttpMethod.POST, "/respond-and-close-immediately") -> new Handler {
         // The client may receive the response before sending the whole request
         override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
-          HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.OK, HandlerHelpers.utf8Text("a"), closeConnection = true)
+          HandlerHelpers.sendResponse(
+            ctx,
+            request,
+            HttpResponseStatus.OK,
+            HandlerHelpers.utf8Text("a"),
+            closeConnection = true)
 
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       },
-
       (HttpMethod.POST, "/respond-and-close-immediately-no-body") -> new Handler {
         // The client may receive the response before sending the whole request
         override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
@@ -84,12 +91,11 @@ trait BlazeClientBase extends Http4sSuite {
 
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       },
-
       (HttpMethod.POST, "/process-request-entity") -> new Handler {
         // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
           HandlerHelpers.sendResponse(ctx, request, HttpResponseStatus.OK, closeConnection = true)
-      },
+      }
     )
 
   val server = resourceSuiteFixture("http", makeScaffold(2, false))

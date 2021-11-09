@@ -48,7 +48,7 @@ object ServerScaffold {
   val http = js.Dynamic.global.require("http")
 
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
-                                                                    F: Async[F]): Resource[F, ServerScaffold] = {
+      F: Async[F]): Resource[F, ServerScaffold] = {
     require(num == 1 && !secure)
     Dispatcher[F].flatMap { dispatcher =>
       Resource

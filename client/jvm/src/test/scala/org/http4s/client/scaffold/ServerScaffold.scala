@@ -37,26 +37,27 @@ object ServerScaffold {
   // high-level API
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
       F: Async[F]): Resource[F, ServerScaffold[F]] =
-  for {
-    dispatcher <- Dispatcher[F]
-    scaffold <- apply(num, secure, RoutesToNettyAdapter[F](routes, dispatcher))
-  } yield scaffold
+    for {
+      dispatcher <- Dispatcher[F]
+      scaffold <- apply(num, secure, RoutesToNettyAdapter[F](routes, dispatcher))
+    } yield scaffold
 
   // mid-level API
   def apply[F[_]](num: Int, secure: Boolean, handlers: Map[(HttpMethod, String), Handler])(implicit
-    F: Async[F]): Resource[F, ServerScaffold[F]] =
+      F: Async[F]): Resource[F, ServerScaffold[F]] =
     apply[F](num, secure, HandlersToNettyAdapter(handlers))
 
   // low-level API
   def apply[F[_]](num: Int, secure: Boolean, makeHandler: F[ChannelInboundHandler])(implicit
       F: Async[F]): Resource[F, ServerScaffold[F]] =
-        for {
-          dispatcher <- Dispatcher[F]
-          maybeSslContext <- 
-            if (secure) Resource.eval[F, SSLContext](makeSslContext[F]).map(Some(_)) 
-            else Resource.pure[F, Option[SSLContext]](None)
-          servers <- NettyTestServer[F](port = 0, makeHandler, maybeSslContext, dispatcher).replicateA(num)
-        } yield new ServerScaffold(servers.toVector)
+    for {
+      dispatcher <- Dispatcher[F]
+      maybeSslContext <-
+        if (secure) Resource.eval[F, SSLContext](makeSslContext[F]).map(Some(_))
+        else Resource.pure[F, Option[SSLContext]](None)
+      servers <- NettyTestServer[F](port = 0, makeHandler, maybeSslContext, dispatcher).replicateA(
+        num)
+    } yield new ServerScaffold(servers.toVector)
 
   private def makeSslContext[F[_]](implicit F: Sync[F]): F[SSLContext] = F.delay {
     val ksStream = this.getClass.getResourceAsStream("/server.jks")

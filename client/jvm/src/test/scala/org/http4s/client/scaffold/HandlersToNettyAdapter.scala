@@ -33,15 +33,17 @@ object HandlersToNettyAdapter {
   val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, request: HttpRequest) =>
     HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)
 
-  def apply[F[_]](handlers: Map[(HttpMethod, String), Handler],
-                  fallbackHandler: Handler = defaultFallbackHandler,
-                 )(implicit F: Sync[F]): F[ChannelInboundHandler] =
+  def apply[F[_]](
+      handlers: Map[(HttpMethod, String), Handler],
+      fallbackHandler: Handler = defaultFallbackHandler)(implicit
+      F: Sync[F]): F[ChannelInboundHandler] =
     F.delay(new HandlersToNettyAdapter(handlers, fallbackHandler))
 }
 
-class HandlersToNettyAdapter private(handlers: Map[(HttpMethod, String), Handler],
-                                     fallbackHandler: Handler = defaultFallbackHandler,
-                                    ) extends SimpleChannelInboundHandler[HttpObject] {
+class HandlersToNettyAdapter private (
+    handlers: Map[(HttpMethod, String), Handler],
+    fallbackHandler: Handler = defaultFallbackHandler)
+    extends SimpleChannelInboundHandler[HttpObject] {
 
   private val logger = getLogger(this.getClass)
 
@@ -52,37 +54,37 @@ class HandlersToNettyAdapter private(handlers: Map[(HttpMethod, String), Handler
 
     msg match {
       case request: HttpRequest =>
-          logger.trace(
-            s"Recieved [${request.method()}] [${request.uri()}] request from [${ctx.channel.remoteAddress()}].")
-          if (HttpUtil.is100ContinueExpected(request)) {
-            ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
-          } else {
-            currentRequest = request
-            currentHandler = handlers.getOrElse(
-              (request.method(), new URI(request.uri()).getPath()),
-              fallbackHandler
-            )
-            currentHandler.onRequestStart(ctx, currentRequest)
-          }
-        case _ =>
-      }
-
-      msg match {
-        case content: HttpContent =>
-          logger.trace("Recieved content.")
-          currentHandler.onContent(ctx, currentRequest, content)
-        case _ =>
-      }
-
-      msg match {
-        case _: LastHttpContent =>
-          logger.trace("Request finished.")
-          currentHandler.onRequestEnd(ctx, currentRequest)
-          currentRequest = null
-          currentHandler = null
-        case _ =>
-      }
+        logger.trace(
+          s"Recieved [${request.method()}] [${request.uri()}] request from [${ctx.channel.remoteAddress()}].")
+        if (HttpUtil.is100ContinueExpected(request)) {
+          ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
+        } else {
+          currentRequest = request
+          currentHandler = handlers.getOrElse(
+            (request.method(), new URI(request.uri()).getPath()),
+            fallbackHandler
+          )
+          currentHandler.onRequestStart(ctx, currentRequest)
+        }
+      case _ =>
     }
+
+    msg match {
+      case content: HttpContent =>
+        logger.trace("Recieved content.")
+        currentHandler.onContent(ctx, currentRequest, content)
+      case _ =>
+    }
+
+    msg match {
+      case _: LastHttpContent =>
+        logger.trace("Request finished.")
+        currentHandler.onRequestEnd(ctx, currentRequest)
+        currentRequest = null
+        currentHandler = null
+      case _ =>
+    }
+  }
 
   override def channelReadComplete(ctx: ChannelHandlerContext): Unit = ctx.flush()
 
@@ -124,22 +126,20 @@ object HandlerHelpers {
   }
 
   def sendChunkedResponseHead(
-                        ctx: ChannelHandlerContext,
-                        status: HttpResponseStatus,
-                        headers: HttpHeaders = EmptyHttpHeaders.INSTANCE,
-                      ): ChannelFuture = {
+      ctx: ChannelHandlerContext,
+      status: HttpResponseStatus,
+      headers: HttpHeaders = EmptyHttpHeaders.INSTANCE
+  ): ChannelFuture = {
     val response = new DefaultHttpResponse(
       HTTP_1_1,
-      status,
+      status
     )
     response.headers().setAll(headers)
     response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
     ctx.writeAndFlush(response)
   }
 
-  def sendChunk(ctx: ChannelHandlerContext,
-                content: ByteBuf,
-               ): ChannelFuture = {
+  def sendChunk(ctx: ChannelHandlerContext, content: ByteBuf): ChannelFuture = {
     val contentMessage = new DefaultHttpContent(content)
     ctx.writeAndFlush(contentMessage)
   }

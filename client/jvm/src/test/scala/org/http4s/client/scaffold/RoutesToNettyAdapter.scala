@@ -24,7 +24,12 @@ import cats.implicits._
 import fs2.Chunk
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandler}
-import io.netty.handler.codec.http.{DefaultHttpHeaders, HttpContent, HttpRequest, HttpResponseStatus}
+import io.netty.handler.codec.http.{
+  DefaultHttpHeaders,
+  HttpContent,
+  HttpRequest,
+  HttpResponseStatus
+}
 import org.http4s
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.{Headers, HttpRoutes, Method, Response}
@@ -33,7 +38,8 @@ import scala.annotation.nowarn
 import scala.collection.JavaConverters._
 
 object RoutesToNettyAdapter {
-  def apply[F[_]](routes: HttpRoutes[F], dispatcher: Dispatcher[F])(implicit F: Async[F]): F[ChannelInboundHandler] =
+  def apply[F[_]](routes: HttpRoutes[F], dispatcher: Dispatcher[F])(implicit
+      F: Async[F]): F[ChannelInboundHandler] =
     RoutesToHandlerAdapter[F](routes, dispatcher).flatMap(HandlersToNettyAdapter[F](Map.empty, _))
 }
 
@@ -47,10 +53,11 @@ object RoutesToHandlerAdapter {
 }
 
 class RoutesToHandlerAdapter[F[_]](
-                                    routes: HttpRoutes[F],
-                                    dispatcher: Dispatcher[F],
-                                    requestBodyQueue: Ref[F, Queue[F, Option[Chunk[Byte]]]]
-                                  )(implicit F: Async[F]) extends Handler {
+    routes: HttpRoutes[F],
+    dispatcher: Dispatcher[F],
+    requestBodyQueue: Ref[F, Queue[F, Option[Chunk[Byte]]]]
+)(implicit F: Async[F])
+    extends Handler {
 
   override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
     dispatcher.unsafeRunSync(
@@ -71,11 +78,14 @@ class RoutesToHandlerAdapter[F[_]](
       } yield ()
     )
 
-  private def processRequest(ctx: ChannelHandlerContext, http4sRequest: http4s.Request[F]): F[Unit] =
+  private def processRequest(
+      ctx: ChannelHandlerContext,
+      http4sRequest: http4s.Request[F]): F[Unit] =
     for {
       response <- routes.run(http4sRequest).value
-      _ <- response.fold(F.delay(HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)).liftToF
-      )(response => sendResponse(ctx, response))
+      _ <- response.fold(
+        F.delay(HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)).liftToF)(response =>
+        sendResponse(ctx, response))
     } yield ()
 
   private def sendResponse(ctx: ChannelHandlerContext, response: Response[F]): F[Unit] =
@@ -102,15 +112,19 @@ class RoutesToHandlerAdapter[F[_]](
 
   private def sendChunkedResponse(ctx: ChannelHandlerContext, response: Response[F]): F[Unit] =
     for {
-      _ <- F.delay(HandlerHelpers.sendChunkedResponseHead(
-        ctx,
-        HttpResponseStatus.valueOf(response.status.code),
-        makeNettyHeaders(response.headers)
-      )).liftToF
+      _ <- F
+        .delay(
+          HandlerHelpers.sendChunkedResponseHead(
+            ctx,
+            HttpResponseStatus.valueOf(response.status.code),
+            makeNettyHeaders(response.headers)
+          ))
+        .liftToF
       _ <- response.body.chunks
         .evalMap(chunk =>
-          F.delay(HandlerHelpers.sendChunk(ctx, Unpooled.copiedBuffer(chunk.toArray))).liftToF
-        ).compile.drain
+          F.delay(HandlerHelpers.sendChunk(ctx, Unpooled.copiedBuffer(chunk.toArray))).liftToF)
+        .compile
+        .drain
       _ <- F.delay(HandlerHelpers.sendEmptyLastChunk(ctx)).liftToF
     } yield ()
 
@@ -121,9 +135,9 @@ class RoutesToHandlerAdapter[F[_]](
   }
 
   override def onContent(
-                          ctx: ChannelHandlerContext,
-                          request: HttpRequest,
-                          content: HttpContent): Unit = {
+      ctx: ChannelHandlerContext,
+      request: HttpRequest,
+      content: HttpContent): Unit = {
     val bytes = new Array[Byte](content.content().readableBytes())
     content.content().readBytes(bytes)
     dispatcher.unsafeRunSync(requestBodyQueue.get.flatMap(_.offer(Some(Chunk.array(bytes)))))

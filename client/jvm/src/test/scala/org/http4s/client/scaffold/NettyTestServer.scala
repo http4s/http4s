@@ -42,7 +42,7 @@ trait TestServer[F[_]] {
 class NettyTestServer[F[_]](
     establishedConnectionsRef: Ref[F, Long],
     val localAddress: SocketAddress[IpAddress]
-    ) extends TestServer[F] {
+) extends TestServer[F] {
   def establishedConnections: F[Long] = establishedConnectionsRef.get
   def resetEstablishedConnections: F[Unit] = establishedConnectionsRef.set(0L)
 }
@@ -51,10 +51,10 @@ object NettyTestServer {
   private val logger = getLogger(this.getClass)
 
   def apply[F[_]: Async](
-                          port: Int,
-    makeHandler: F[ChannelInboundHandler],
-    sslContext: Option[SSLContext],
-    dispatcher: Dispatcher[F],
+      port: Int,
+      makeHandler: F[ChannelInboundHandler],
+      sslContext: Option[SSLContext],
+      dispatcher: Dispatcher[F]
   ): Resource[F, NettyTestServer[F]] = for {
     bossGroup <- nioEventLoopGroup[F]
     workerGroup <- nioEventLoopGroup[F]
@@ -83,17 +83,22 @@ object NettyTestServer {
     channel <- server[F](bootstrap, port)
     // TODO refactor
     inetSocketAddress = channel.localAddress().asInstanceOf[InetSocketAddress]
-    ip <- Resource.eval(IpAddress.fromString(inetSocketAddress.getAddress.getHostAddress)
-      .liftTo[F](new Exception(s"Invalid IP: [${inetSocketAddress.getAddress.toString}]")))
-    port <- Resource.eval(Port.fromInt(inetSocketAddress.getPort)
-      .liftTo[F](new Exception(s"Invalid port: [${inetSocketAddress.getPort}]")))
+    ip <- Resource.eval(
+      IpAddress
+        .fromString(inetSocketAddress.getAddress.getHostAddress)
+        .liftTo[F](new Exception(s"Invalid IP: [${inetSocketAddress.getAddress.toString}]")))
+    port <- Resource.eval(
+      Port
+        .fromInt(inetSocketAddress.getPort)
+        .liftTo[F](new Exception(s"Invalid port: [${inetSocketAddress.getPort}]")))
   } yield new NettyTestServer(establishedConnections, SocketAddress(ip, port))
 
   private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
     Resource.make[F, NioEventLoopGroup](F.delay(new NioEventLoopGroup()))(el =>
       F.delay(el.shutdownGracefully()))
 
-  private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit F: Async[F]): Resource[F, Channel] =
+  private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit
+      F: Async[F]): Resource[F, Channel] =
     Resource.make[F, Channel](
       F.delay(bootstrap.bind(InetAddress.getLocalHost(), port)).liftToFWithChannel
     )(channel => F.delay(channel.close(new DefaultChannelPromise(channel))).liftToF)

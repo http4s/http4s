@@ -35,8 +35,6 @@ package object scaffold {
               else callback(Left(f.cause()))
             }
             Some(F.delay(cf.cancel(true)))
-          }
-        )
-      )
+          }))
   }
 }
