@@ -166,6 +166,7 @@ lazy val core = libraryProject("core")
 
       // private constructor so effectively final already
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
     ),
   )
 

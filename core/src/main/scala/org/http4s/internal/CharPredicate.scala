@@ -149,7 +149,7 @@ object CharPredicate {
   private def unmaskable(c: Char) = c >= 128
 
   // efficient handling of 7bit-ASCII chars
-  sealed case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
+  final case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
       extends CharPredicate {
 
     def apply(c: Char): Boolean = {
