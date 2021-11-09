@@ -21,7 +21,8 @@ import scalafix.v1._
 import scala.meta._
 
 class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
-  override def fix(implicit doc: SemanticDocument): Patch = noFinalObject + noNonFinalCaseClass
+  override def fix(implicit doc: SemanticDocument): Patch =
+    noFinalObject + noNonFinalCaseClass + leakingSealedHierachy
 
   def noFinalObject(implicit doc: SemanticDocument) =
     doc.tree.collect { case o @ Defn.Object(mods, _, _) =>
@@ -46,6 +47,23 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
         Patch.lint(CaseClassWithoutAccessModifier(c))
     }.asPatch
 
+  def leakingSealedHierachy(implicit doc: SemanticDocument) = {
+    def doCheck(t: Tree, mods: List[Mod], inits: List[Init]): Patch = inits.collect {
+      case Init(typ, _, _) if typ.symbol.info.exists(_.isSealed) =>
+        if (!mods.exists(mod => (mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private]))) {
+          Patch.lint(LeakingSealedHierachy(t))
+        } else Patch.empty
+    }.asPatch
+
+    doc.tree.collect {
+      case t @ Defn.Class(mods, _, _, _, Template(_, inits, _, _))
+          if !t.isDescendentOf[Defn.Def] && !t.isDescendentOf[Defn.Val] =>
+        doCheck(t, mods, inits)
+      case t @ Defn.Trait(mods, _, _, _, Template(_, inits, _, _))
+          if !t.isDescendentOf[Defn.Def] && !t.isDescendentOf[Defn.Val] =>
+        doCheck(t, mods, inits)
+    }.asPatch
+  }
 }
 
 final case class CaseClassWithoutAccessModifier(c: Defn.Class) extends Diagnostic {
@@ -54,4 +72,12 @@ final case class CaseClassWithoutAccessModifier(c: Defn.Class) extends Diagnosti
   override def position: Position = c.pos
 
   override def categoryID: String = "noCaseClassWithoutAccessModifier"
+}
+
+final case class LeakingSealedHierachy(t: Tree) extends Diagnostic {
+  override def message: String = "descendants of sealed traits should be sealed, final, or private"
+
+  override def position: Position = t.pos
+
+  override def categoryID: String = "leakingSealedHierachy"
 }
