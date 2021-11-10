@@ -1,8 +1,5 @@
----
-menu: main
-weight: 450
-title: Adopters
----
+
+# Adopters
 
 ## Industrial
 
@@ -144,8 +141,8 @@ G8 templates provide a fast way to get started with SBT projects by just running
 : Typelevel Stack (Http4s / Doobie / Circe / Cats Effect / Fs2)
 
 
-<hr />
+----
 
-<small>
-[<i class="fa fa-edit" aria-hidden="true"></i> Add yourself](https://github.com/http4s/http4s/edit/main/website/src/hugo/content/adopters.md), alphabetically, if you please.
-</small>
+@:style(footer)
+[@:icon(edit) Add yourself](https://github.com/http4s/http4s/edit/main/website/src/hugo/content/adopters.md), alphabetically, if you please.
+@:@

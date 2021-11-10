@@ -1,8 +1,5 @@
----
-menu: main
-title: Middleware
-weight: 115
----
+
+# Middleware
 
 A middleware is a wrapper around a [service] that provides a means of manipulating
 the `Request` sent to service, and/or the `Response` returned by the service. In
