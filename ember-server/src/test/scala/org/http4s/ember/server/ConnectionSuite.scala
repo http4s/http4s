@@ -64,7 +64,7 @@ class ConnectionSuite extends Http4sSuite {
       .withRequestHeaderReceiveTimeout(headerTimeout)
       .build
 
-  case class TestClient(client: Socket[IO]) {
+  sealed case class TestClient(client: Socket[IO]) {
     val clientChunkSize = 32 * 1024
     def request(req: Request[IO]): IO[Unit] =
       client.writes(Encoder.reqToBytes(req)).compile.drain
