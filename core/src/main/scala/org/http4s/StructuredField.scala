@@ -18,12 +18,10 @@ package org.http4s
 
 import cats.parse.Parser
 import cats.parse.Parser0
-import cats.syntax.either._
 import org.http4s.internal.parsing.Rfc8941
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
-
-import java.util.Base64
+import scodec.bits.ByteVector
 
 /** Structured Field Values for HTTP (RFC8941)
   *
@@ -131,29 +129,16 @@ object StructuredField {
       Rfc8941.sfToken.map(unsafeFromString)
   }
 
-  sealed abstract case class SfBinary(value: String) extends BareItem {
+  final case class SfBinary(value: ByteVector) extends BareItem {
     override def render(writer: Writer): writer.type =
-      writer << ':' << value << ':'
-
-    // Some strings are valid for the parser, but will fail with the Base64 decoder
-    def toBytes: Option[Array[Byte]] =
-      Either
-        .catchNonFatal(Base64.getDecoder.decode(value))
-        .toOption
+      writer << ':' << value.toBase64 << ':'
   }
 
   object SfBinary {
-    private[http4s] def unsafeFromString(s: String): SfBinary =
-      new SfBinary(s) {}
-
-    def fromBytes(b: Array[Byte]): Option[SfBinary] =
-      Either
-        .catchNonFatal(Base64.getEncoder.encodeToString(b))
-        .map(unsafeFromString)
-        .toOption
-
     val parser: Parser[SfBinary] =
-      Rfc8941.sfBinary.map(unsafeFromString)
+      Rfc8941.sfBinary
+        .mapFilter(ByteVector.fromBase64(_))
+        .map(apply)
   }
 
   final case class SfBoolean(value: Boolean) extends BareItem {

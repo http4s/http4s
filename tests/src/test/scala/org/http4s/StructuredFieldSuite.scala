@@ -18,6 +18,7 @@ package org.http4s
 
 import org.http4s.laws.discipline.arbitrary
 import org.scalacheck._
+import scodec.bits.ByteVector
 
 class StructuredFieldSuite extends Http4sSuite {
 
@@ -56,9 +57,10 @@ class StructuredFieldSuite extends Http4sSuite {
 
   val genSfBinary =
     Gen
-      .listOf(Gen.frequency((16, Gen.alphaNumChar), (1, Gen.oneOf('+', '/', '='))))
+      .listOf(Gen.alphaNumChar)
       .map(_.mkString)
-      .map(s => s":${s}:")
+      .map(s => ByteVector(s.getBytes("UTF-8")).toBase64)
+      .map(s => s":$s:")
 
   val genSfBoolean =
     Gen.oneOf("?0", "?1")
@@ -318,6 +320,10 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfBinary.parser.parseAll("123abc").isLeft)
   }
 
+  test("SfBinary.parser should fail with invalid base64") {
+    assert(SfBinary.parser.parseAll(":F==:").isLeft)
+  }
+
   test("SfBinary.render should render values correctly") {
     Prop.forAll(genSfBinary) { s =>
       SfBinary.parser.parseAll(s) match {
@@ -328,14 +334,6 @@ class StructuredFieldSuite extends Http4sSuite {
           }
         case _ => false
       }
-    }
-  }
-
-  test("SfBinary should correctly encode and decode byte arrays") {
-    Prop.forAll(genString) { in =>
-      SfBinary
-        .fromBytes(in.getBytes("UTF-8"))
-        .map(_.toBytes.map(v => new String(v, "UTF-8"))) == Some(Some(in))
     }
   }
 
