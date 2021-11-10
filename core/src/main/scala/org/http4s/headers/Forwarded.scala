@@ -53,8 +53,10 @@ object Forwarded extends ForwardedRenderers {
     sealed trait Name { self: Product => }
 
     object Name {
+      // scalafix:off Http4sGeneralLinters.noCaseClassWithoutAccessModifier; bincompat until 1.0
       case class Ipv4(address: Ipv4Address) extends Name
       case class Ipv6(address: Ipv6Address) extends Name
+      // scalafix:on
       case object Unknown extends Name
 
       def ofInet4Address(address: Inet4Address): Name =
