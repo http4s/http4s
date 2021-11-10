@@ -223,6 +223,10 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.local"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
+
+      // private constructor so effectively final already
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
     ),
   )
   .jvmSettings(
@@ -314,6 +318,19 @@ lazy val server = libraryProject("server")
       ProblemFilters.exclude[MissingClassProblem](
         "org.http4s.server.middleware.GZip$TrailerGen$"
       ), // private
+      // the following are private[middleware]
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$Static"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowMethods$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowOrigin$Match"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$ExposeHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$MaxAge$Some"),
     ),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
@@ -739,14 +756,14 @@ lazy val docs = http4sProject("docs")
     NoPublishPlugin,
     ScalaUnidocPlugin,
     MdocPlugin,
-    LaikaPlugin
+    LaikaPlugin,
   )
   .settings(docsProjectSettings)
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
       circeLiteral,
-      cryptobits
+      cryptobits,
     ),
     description := "Documentation for http4s",
     startYear := Some(2013),
@@ -764,8 +781,9 @@ lazy val docs = http4sProject("docs")
           scalafixInternalInput,
           scalafixInternalOutput,
           scalafixInternalRules,
-          scalafixInternalTests
-        ) ++ jsModules): _*),
+          scalafixInternalTests,
+        ) ++ jsModules): _*
+      ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     fatalWarningsInCI := false,
     laikaExtensions := SiteConfig.extensions,
@@ -774,7 +792,7 @@ lazy val docs = http4sProject("docs")
       currentVersion = SiteConfig.versions.v0_23,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
-      includeLandingPage = false
+      includeLandingPage = false,
     ),
     laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(mdocOut.value),
@@ -794,9 +812,9 @@ lazy val docs = http4sProject("docs")
     apiMappings ++= {
       ScaladocApiMapping.mappings(
         (ScalaUnidoc / unidoc / unidocAllClasspaths).value,
-        scalaBinaryVersion.value
+        scalaBinaryVersion.value,
       )
-    }
+    },
   )
   .dependsOn(
     client.jvm,
@@ -806,7 +824,8 @@ lazy val docs = http4sProject("docs")
     blazeClient,
     circe.jvm,
     dropwizardMetrics,
-    prometheusMetrics)
+    prometheusMetrics,
+  )
 
 lazy val website = http4sProject("website")
   .enablePlugins(GhpagesPlugin, LaikaPlugin, NoPublishPlugin)
@@ -820,12 +839,13 @@ lazy val website = http4sProject("website")
       currentVersion = SiteConfig.versions.v0_23,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
-      includeLandingPage = false
+      includeLandingPage = false,
     ),
     laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(
       baseDirectory.value / "src" / "hugo" / "content",
-      baseDirectory.value / "src" / "hugo" / "static"),
+      baseDirectory.value / "src" / "hugo" / "static",
+    ),
     ghpagesNoJekyll := true,
     ghpagesPrivateMappings := (laikaSite / mappings).value,
     ghpagesCleanSite / excludeFilter :=
@@ -834,7 +854,7 @@ lazy val website = http4sProject("website")
         def accept(f: File) =
           f.getCanonicalPath.startsWith(v) &&
             f.getCanonicalPath.charAt(v.size).isDigit
-      }
+      },
   )
 
 lazy val examples = http4sProject("examples")

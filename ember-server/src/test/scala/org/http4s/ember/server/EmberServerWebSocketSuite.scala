@@ -70,7 +70,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
   def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
-  case class Client(
+  sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
       waitClose: Deferred[IO, Option[Throwable]],
       messages: Queue[IO, String],
