@@ -921,55 +921,59 @@ object Uri extends UriPlatform {
       charset: JCharset = StandardCharsets.UTF_8,
       plusIsSpace: Boolean = false,
       toSkip: Char => Boolean = Function.const(false),
-  ): String = {
-    val in = CharBuffer.wrap(toDecode)
-    // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
-    // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
-    val out = ByteBuffer.allocate(in.remaining() * 3)
-    while (in.hasRemaining) {
-      val mark = in.position()
-      val c = in.get()
-      if (c == '%') {
-        if (in.remaining() >= 2) {
-          val xc = in.get()
-          val yc = in.get()
-          val x = Character.digit(xc, 0x10)
-          val y = Character.digit(yc, 0x10)
-          if (x != -1 && y != -1) {
-            val oo = (x << 4) + y
-            if (!toSkip(oo.toChar)) {
-              out.put(oo.toByte)
+  ): String =
+    if (toDecode.indexOf('%') < 0) {
+      if (plusIsSpace && toDecode.indexOf('+') >= 0) toDecode.replace('+', ' ')
+      else toDecode
+    } else {
+      val in = CharBuffer.wrap(toDecode)
+      // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
+      // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
+      val out = ByteBuffer.allocate(in.remaining() * 3)
+      while (in.hasRemaining) {
+        val mark = in.position()
+        val c = in.get()
+        if (c == '%') {
+          if (in.remaining() >= 2) {
+            val xc = in.get()
+            val yc = in.get()
+            val x = Character.digit(xc, 0x10)
+            val y = Character.digit(yc, 0x10)
+            if (x != -1 && y != -1) {
+              val oo = (x << 4) + y
+              if (!toSkip(oo.toChar)) {
+                out.put(oo.toByte)
+              } else {
+                out.put('%'.toByte)
+                out.put(xc.toByte)
+                out.put(yc.toByte)
+              }
             } else {
               out.put('%'.toByte)
-              out.put(xc.toByte)
-              out.put(yc.toByte)
+              in.position(mark + 1)
             }
           } else {
-            out.put('%'.toByte)
-            in.position(mark + 1)
+            // This is an invalid encoding. Fail gracefully by treating the '%' as
+            // a literal.
+            out.put(c.toByte)
+            while (in.hasRemaining) out.put(in.get().toByte)
           }
+        } else if (c == '+' && plusIsSpace) {
+          out.put(' '.toByte)
         } else {
-          // This is an invalid encoding. Fail gracefully by treating the '%' as
-          // a literal.
-          out.put(c.toByte)
-          while (in.hasRemaining) out.put(in.get().toByte)
-        }
-      } else if (c == '+' && plusIsSpace) {
-        out.put(' '.toByte)
-      } else {
-        // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
-        // however there are cases where a string can be partially decoded
-        // so we have to make sure the non us-ascii chars get preserved properly.
-        if (toSkip(c)) {
-          out.put(c.toByte)
-        } else {
-          out.put(charset.encode(String.valueOf(c)))
+          // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
+          // however there are cases where a string can be partially decoded
+          // so we have to make sure the non us-ascii chars get preserved properly.
+          if (toSkip(c)) {
+            out.put(c.toByte)
+          } else {
+            out.put(charset.encode(String.valueOf(c)))
+          }
         }
       }
+      out.flip()
+      charset.decode(out).toString
     }
-    out.flip()
-    charset.decode(out).toString
-  }
 
   implicit val catsInstancesForHttp4sUri: Hash[Uri] with Order[Uri] with Show[Uri] =
     new Hash[Uri] with Order[Uri] with Show[Uri] {
