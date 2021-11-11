@@ -80,8 +80,8 @@ object Header {
     * times.
     */
   sealed trait Type
-  case class Single() extends Type
-  case class Recurring() extends Type
+  case class Single() extends Type // scalafix:ok Http4sGeneralLinters; bincompat until 1.0
+  case class Recurring() extends Type // scalafix:ok Http4sGeneralLinters; bincompat until 1.0
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
 

@@ -133,6 +133,7 @@ object MetricsOps {
 sealed trait TerminationType
 
 object TerminationType {
+  // scalafix:off Http4sGeneralLinters; bincompat until 1.0
 
   /** Signals just a generic abnormal termination */
   case class Abnormal(rootCause: Throwable) extends TerminationType
@@ -142,6 +143,8 @@ object TerminationType {
 
   /** Signals an abnormal termination due to an error processing the request, either at the server or client side */
   case class Error(rootCause: Throwable) extends TerminationType
+
+  // scalafix:on
 
   /** Signals a client timing out during a request */
   case object Timeout extends TerminationType

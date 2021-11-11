@@ -65,4 +65,4 @@ object `Accept-Ranges` {
     )
 }
 
-final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])
+final case class `Accept-Ranges`(rangeUnits: List[RangeUnit])

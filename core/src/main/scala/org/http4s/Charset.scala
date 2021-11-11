@@ -19,7 +19,7 @@ import java.nio.charset.{Charset => NioCharset}
 import java.util.HashMap
 import java.util.Locale
 
-final case class Charset private (nioCharset: NioCharset) extends Renderable {
+final case class Charset(nioCharset: NioCharset) extends Renderable {
   @deprecated("Use `Accept-Charset`.isSatisfiedBy(charset)", "0.16.1")
   def satisfies(charsetRange: CharsetRange): Boolean = charsetRange.isSatisfiedBy(this)
 
