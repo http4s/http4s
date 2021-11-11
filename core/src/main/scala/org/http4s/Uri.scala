@@ -487,8 +487,10 @@ object Uri extends UriPlatform {
     *
     * @see [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
-  final case class UserInfo private (username: String, password: Option[String])
-      extends Ordered[UserInfo] {
+  final case class UserInfo private ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+      username: String,
+      password: Option[String],
+  ) extends Ordered[UserInfo] {
     override def compare(that: UserInfo): Int =
       username.compareTo(that.username) match {
         case 0 => Ordering.Option[String].compare(password, that.password)

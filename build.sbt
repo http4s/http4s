@@ -166,8 +166,10 @@ lazy val core = libraryProject("core")
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
 
-      // private constructor so effectively final already
+      // private constructors so effectively final already
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
     ),
   )
@@ -901,10 +903,10 @@ addCommandAlias("ci", ";clean ;release with-defaults")
 // OrganizeImports needs to run separately to clean up after the other rules
 addCommandAlias(
   "quicklint",
-  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt",
+  ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
 )
 
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
 )
