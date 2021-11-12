@@ -446,7 +446,7 @@ object Uri extends UriPlatform {
     }
 
     object SegmentEncoder {
-      implicit def apply[A](implicit segmentEncoder: SegmentEncoder[A]): SegmentEncoder[A] =
+      def apply[A](implicit segmentEncoder: SegmentEncoder[A]): SegmentEncoder[A] =
         segmentEncoder
 
       def instance[A](f: A => Segment): SegmentEncoder[A] = f.apply

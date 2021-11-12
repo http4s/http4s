@@ -27,7 +27,7 @@ import org.scalacheck.Cogen
 import scala.annotation.nowarn
 
 final class SegmentEncoderSuite extends Http4sSuite {
-  private val equalityCheckCount: Int = 16
+  private val equalityCheckCount: Int = 100
 
   implicit private def arbitrarySegmentEncoder[A: Cogen]: Arbitrary[SegmentEncoder[A]] = Arbitrary(
     Arbitrary.arbitrary[A => Segment].map(SegmentEncoder.instance)
