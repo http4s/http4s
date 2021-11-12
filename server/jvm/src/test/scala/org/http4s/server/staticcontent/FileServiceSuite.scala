@@ -155,7 +155,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("return files included via symlink") {
-    val relativePath = "symlink/org/http4s/server/staticcontent/FileServiceSuite.scala"
+    val relativePath = "symlink/org/http4s/server/RouterSuite.scala"
     val path = Path(defaultSystemPath).resolve(relativePath)
     val file = path
     Files[IO].readAll(path).chunks.compile.foldMonoid.flatMap { bytes =>
