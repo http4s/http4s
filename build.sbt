@@ -108,7 +108,7 @@ lazy val jvmModules: List[ProjectReference] = List(
   laws.jvm,
   testing.jvm,
   tests.jvm,
-  server,
+  server.jvm,
   prometheusMetrics,
   client.jvm,
   dropwizardMetrics,
@@ -148,6 +148,7 @@ lazy val jsModules: List[ProjectReference] = List(
   laws.js,
   testing.js,
   tests.js,
+  server.js,
   client.js,
   emberCore.js,
   emberClient.js,
@@ -298,7 +299,7 @@ lazy val tests = libraryCrossProject("tests")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val server = libraryProject("server")
+lazy val server = libraryCrossProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
@@ -339,7 +340,7 @@ lazy val server = libraryProject("server")
     buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
     buildInfoPackage := "org.http4s.server.test",
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", theDsl.jvm % "test->compile")
+  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -355,7 +356,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     core.jvm % "compile->compile",
     theDsl.jvm % "test->compile",
     testing.jvm % "test->test",
-    server % "test->compile",
+    server.jvm % "test->compile",
     client.jvm % "test->compile",
   )
 
@@ -374,8 +375,7 @@ lazy val client = libraryCrossProject("client")
       ), // private[oauth1]
     ),
   )
-  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
-  .jvmConfigure(_.dependsOn(server % Test))
+  .dependsOn(core, server, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
@@ -392,7 +392,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     testing.jvm % "test->test",
     theDsl.jvm % "test->compile",
     client.jvm % "test->compile",
-    server % "test->compile",
+    server.jvm % "test->compile",
   )
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
@@ -476,7 +476,7 @@ lazy val emberServer = libraryProject("ember-server")
   )
   .dependsOn(
     emberCore.jvm % "compile;test->test",
-    server % "compile;test->test",
+    server.jvm % "compile;test->test",
     emberClient.jvm % "test->compile",
   )
 
@@ -546,7 +546,7 @@ lazy val blazeServer = libraryProject("blaze-server")
       ), // private
     ),
   )
-  .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
@@ -619,7 +619,7 @@ lazy val servlet = libraryProject("servlet")
       Http4sPlugin.asyncHttpClient % Test,
     ),
   )
-  .dependsOn(server % "compile;test->test")
+  .dependsOn(server.jvm % "compile;test->test")
 
 lazy val jettyServer = libraryProject("jetty-server")
   .settings(
@@ -868,7 +868,7 @@ lazy val examples = http4sProject("examples")
     ),
     // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
+  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
 // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")

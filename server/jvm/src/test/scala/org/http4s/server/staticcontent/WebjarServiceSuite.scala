@@ -46,6 +46,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     org.http4s.server.test.BuildInfo.test_resourceDirectory.toPath
       .resolve("META-INF/resources/webjars")
       .toString
+      .replace("jvm", "shared")
 
   test("Return a 200 Ok file") {
     val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")

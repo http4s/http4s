@@ -28,7 +28,8 @@ import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
 
 class FileServiceSuite extends Http4sSuite with StaticContentShared {
-  val defaultSystemPath = org.http4s.server.test.BuildInfo.test_resourceDirectory.getAbsolutePath
+  val defaultSystemPath =
+    org.http4s.server.test.BuildInfo.test_resourceDirectory.getAbsolutePath.replace("jvm", "shared")
   val routes = fileService(
     FileService.Config[IO](defaultSystemPath)
   )
