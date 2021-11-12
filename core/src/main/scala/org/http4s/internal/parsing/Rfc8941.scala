@@ -84,8 +84,8 @@ private[http4s] object Rfc8941 {
    * boolean    = "0" / "1"
    */
   val sfBoolean: Parser[Boolean] = {
-    import Parser.string
-    string("?0").as(false) | string("?1").as(true)
+    import Parser.char
+    char('?') *> (char('0').as(false) | char('1').as(true))
   }
 
   /* bare-item = sf-integer / sf-decimal / sf-string / sf-token
