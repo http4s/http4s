@@ -457,25 +457,22 @@ object Uri extends UriPlatform {
 
       implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity
 
-      implicit val charSegmentEncoder: SegmentEncoder[Char] = v => Segment(v.toString())
+      implicit val charSegmentEncoder: SegmentEncoder[Char] = fromToString
       implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply
 
-      implicit val booleanSegmentEncoder: SegmentEncoder[Boolean] = v => Segment(v.toString())
+      implicit val booleanSegmentEncoder: SegmentEncoder[Boolean] = fromToString
 
-      implicit val byteSegmentEncoder: SegmentEncoder[Byte] = v => Segment(v.toString())
-      implicit val shortSegmentEncoder: SegmentEncoder[Short] = v => Segment(v.toString())
-      implicit val intSegmentEncoder: SegmentEncoder[Int] = v => Segment(v.toString())
-      implicit val longSegmentEncoder: SegmentEncoder[Long] = v => Segment(v.toString())
-      implicit val bigIntSegmentEncoder: SegmentEncoder[BigInt] = v => Segment(v.toString())
+      implicit val byteSegmentEncoder: SegmentEncoder[Byte] = fromToString
+      implicit val shortSegmentEncoder: SegmentEncoder[Short] = fromToString
+      implicit val intSegmentEncoder: SegmentEncoder[Int] = fromToString
+      implicit val longSegmentEncoder: SegmentEncoder[Long] = fromToString
+      implicit val bigIntSegmentEncoder: SegmentEncoder[BigInt] = fromToString
 
-      implicit val floatSegmentEncoder: SegmentEncoder[Float] = v => Segment(v.toString())
-      implicit val doubleSegmentEncoder: SegmentEncoder[Double] = v => Segment(v.toString())
-      implicit val bigDecimalSegmentEncoder: SegmentEncoder[BigDecimal] = v => Segment(v.toString())
+      implicit val floatSegmentEncoder: SegmentEncoder[Float] = fromToString
+      implicit val doubleSegmentEncoder: SegmentEncoder[Double] = fromToString
+      implicit val bigDecimalSegmentEncoder: SegmentEncoder[BigDecimal] = fromToString
 
-      implicit val uuidSegmentEncoder: SegmentEncoder[java.util.UUID] = v => Segment(v.toString())
-
-      implicit val durationSegmentEncoder: SegmentEncoder[scala.concurrent.duration.Duration] =
-        v => Segment(v.toString())
+      implicit val uuidSegmentEncoder: SegmentEncoder[java.util.UUID] = fromToString
 
       implicit val contravariantInstance: Contravariant[SegmentEncoder] =
         new Contravariant[SegmentEncoder] {
