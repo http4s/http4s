@@ -52,15 +52,14 @@ private[http4s] object Rfc8941 {
    * escaped   = "\" ( DQUOTE / "\" )
    */
   val sfString: Parser[String] = {
-    import Parser.{charIn, string}, Rfc5234.dquote
-    val escaped = string("\\\\") | string("\\\"")
+    import Parser.{char, charIn}, Rfc5234.dquote
+    val escaped = char('\\') *> charIn('\\', '"')
     val unescaped =
       charIn(0x20.toChar to 0x21.toChar)
         .orElse(charIn(0x23.toChar to 0x5b.toChar))
         .orElse(charIn(0x5d.toChar to 0x7e.toChar))
-        .string
     val chr = unescaped | escaped
-    (dquote *> chr.rep0.string <* dquote).map(s => s""""$s"""")
+    (dquote *> chr.rep0 <* dquote).map(_.mkString)
   }
 
   /* sf-token = ( ALPHA / "*" ) *( tchar / ":" / "/" )

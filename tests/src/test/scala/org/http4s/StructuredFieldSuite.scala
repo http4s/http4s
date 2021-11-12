@@ -49,6 +49,9 @@ class StructuredFieldSuite extends Http4sSuite {
     Gen.listOf(Gen.frequency((16, unescaped), (1, escaped))).map(xs => s""""${xs.mkString}"""")
   }
 
+  val genSfStringUnescaped =
+    Gen.stringOf(Gen.oneOf(0x20.toChar to 0x21.toChar))
+
   val genSfToken =
     for {
       h <- Gen.oneOf(Gen.alphaChar, Gen.const('*'))
@@ -251,17 +254,21 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  test("SfString.fromString should accept valid strings") {
-    Prop.forAll(genSfString) { s =>
+  test("SfString.fromString should accept valid unescaped strings") {
+    Prop.forAll(genSfStringUnescaped) { s =>
       SfString.fromString(s) match {
-        case Some(SfString(_)) => true
+        case Some(s1) =>
+          SfString.parser.parseAll(s1.renderString) match {
+            case Right(s2) => s1 == s2
+            case _ => false
+          }
         case _ => false
       }
     }
   }
 
   test("SfString.fromString should fail with invalid strings") {
-    assert(SfString.fromString("123abc") == None)
+    assert(SfString.fromString("123\tabc") == None)
   }
 
   // SfToken

@@ -99,7 +99,7 @@ object StructuredField {
 
   sealed abstract case class SfString(value: String) extends BareItem {
     override def render(writer: Writer): writer.type =
-      writer << value
+      writer <<# value
   }
 
   object SfString {
@@ -107,7 +107,13 @@ object StructuredField {
       new SfString(s) {}
 
     def fromString(s: String): Option[SfString] =
-      parser.parseAll(s).toOption
+      Parser
+        .charIn(0x20.toChar to 0x7e.toChar)
+        .rep0
+        .string
+        .map(unsafeFromString)
+        .parseAll(s)
+        .toOption
 
     val parser: Parser[SfString] =
       Rfc8941.sfString.map(unsafeFromString)
