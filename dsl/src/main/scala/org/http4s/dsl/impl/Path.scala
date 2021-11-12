@@ -326,6 +326,19 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .toOption
 }
 
+abstract class DefaultQueryParamDecoderMatcher[T: QueryParamDecoder](name: String, default: T) {
+  def unapply(params: Map[String, collection.Seq[String]]): Option[T] =
+    params
+      .get(name)
+      .flatMap(_.headOption)
+      .traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+      .toOption
+      .map(_.getOrElse(default))
+}
+
+abstract class DefaultQueryParamMatcher[T: QueryParamDecoder: QueryParam](default: T)
+    extends DefaultQueryParamDecoderMatcher[T](QueryParam[T].key.value, default)
+
 /** Flag (value-less) query param extractor
   */
 abstract class FlagQueryParamMatcher(name: String) {
