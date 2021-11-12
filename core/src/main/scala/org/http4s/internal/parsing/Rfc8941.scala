@@ -31,7 +31,7 @@ private[http4s] object Rfc8941 {
   val sfInteger: Parser[Long] = {
     import Parser.char, Rfc5234.digit
     val pos = digit.rep(1, 15).string
-    val neg = (char('-') *> pos).map(s => s"-$s")
+    val neg = (char('-') *> pos).string
     (pos | neg).map(_.toLong)
   }
 
@@ -41,8 +41,8 @@ private[http4s] object Rfc8941 {
     import Parser.char, Rfc5234.digit
     val num = digit.rep(1, 12).string
     val dec = digit.rep(1, 3).string
-    val pos = (num ~ (char('.') *> dec)).map(t => s"${t._1}.${t._2}")
-    val neg = (char('-') *> pos).map(s => s"-$s")
+    val pos = (num *> char('.') *> dec).string
+    val neg = (char('-') *> pos).string
     (pos | neg).map(BigDecimal(_))
   }
 
@@ -66,9 +66,9 @@ private[http4s] object Rfc8941 {
    */
   val sfToken: Parser[String] = {
     import Parser.{char, charIn}, Rfc5234.alpha, Rfc7230.tchar
-    val head = (alpha | char('*')).string
-    val tail = (tchar | charIn(":/".toList)).rep0.string
-    (head ~ tail).map(t => t._1 + t._2)
+    val head = alpha | char('*')
+    val tail = (tchar | charIn(':', '/')).rep0
+    (head *> tail).string
   }
 
   /* sf-binary = ":" *(base64) ":"
@@ -76,7 +76,7 @@ private[http4s] object Rfc8941 {
    */
   val sfBinary: Parser[String] = {
     import Parser.{char, charIn}, Rfc5234.{alpha, digit}
-    val base64 = (alpha | digit | charIn("+/=".toList)).rep0.string
+    val base64 = (alpha | digit | charIn('+', '/', '=')).rep0.string
     char(':') *> base64 <* char(':')
   }
 
@@ -112,9 +112,9 @@ private[http4s] object Rfc8941 {
   val key: Parser[String] = {
     import Parser.{char, charIn}, Rfc5234.digit
     val lcalpha = charIn('a' to 'z')
-    val head = (lcalpha | char('*')).string
-    val tail = (lcalpha | digit | charIn("_-.*".toList)).rep0.string
-    (head ~ tail).map(t => t._1 + t._2)
+    val head = lcalpha | char('*')
+    val tail = (lcalpha | digit | charIn('_', '-', '.', '*')).rep0
+    (head *> tail).string
   }
 
   /* parameters = *( ";" *SP parameter )
