@@ -34,27 +34,31 @@ class v0_22 extends SemanticRule("v0_22") {
       "org.http4s.client.okhttp" -> "org.http4s.okhttp.client",
       "org.http4s.client.asynchttpclient" -> "org.http4s.asynchttpclient",
       "org.http4s.client.blaze" -> "org.http4s.blaze.client",
-      "org.http4s.server.blaze" -> "org.http4s.blaze.server"
+      "org.http4s.server.blaze" -> "org.http4s.blaze.server",
     )
 
   def rewriteCIString(implicit doc: SemanticDocument): Patch =
     Patch.replaceSymbols(
       "org.http4s.util.CaseInsensitiveString" -> "org.typelevel.ci.CIString"
     ) + doc.tree.collect {
-      case t @ Term.Select(name, CaseInsensitiveString_value_M(_)) => 
+      case t @ Term.Select(name, CaseInsensitiveString_value_M(_)) =>
         Patch.replaceTree(t, s"${name.syntax}.toString")
-      case t @ Term.Select(s, StringOps_ci_M(_)) => 
+      case t @ Term.Select(s, StringOps_ci_M(_)) =>
         makeCI(t, s)
       case _ => Patch.empty
     }.asPatch
 
   def makeCI(t: Term, s: Term): Patch =
-    Patch.addGlobalImport(CIWildcard) + Patch.replaceTree(t, s match {
-      case s @ Lit.String(_) => s"ci$s"
-      case _ => s"${CIString_S.displayName}($s)"
-    })
+    Patch.addGlobalImport(CIWildcard) + Patch.replaceTree(
+      t,
+      s match {
+        case s @ Lit.String(_) => s"ci$s"
+        case _ => s"${CIString_S.displayName}($s)"
+      },
+    )
 
-  val CaseInsensitiveString_value_M = SymbolMatcher.exact("org/http4s/util/CaseInsensitiveString#value.")
+  val CaseInsensitiveString_value_M =
+    SymbolMatcher.exact("org/http4s/util/CaseInsensitiveString#value.")
   val StringOps_ci_M = SymbolMatcher.exact("org/http4s/syntax/StringOps#ci().")
 
   val CIString_S = Symbol("org/typelevel/ci/CIString#")
@@ -66,15 +70,15 @@ class v0_22 extends SemanticRule("v0_22") {
       // ci-ify header name
       case Term.Apply(Header_M(_), List(k, _)) =>
         makeCI(k, k)
-      // `Header` => `Header.Raw` 
-      case t @ Header_M(Type.Name(_) | Term.Name(_)) => 
+      // `Header` => `Header.Raw`
+      case t @ Header_M(Type.Name(_) | Term.Name(_)) =>
         Patch.replaceTree(t, s"${Header_S.displayName}.Raw")
       // `Headers.of` => `Headers`
-      case t @ Term.Apply(fun@Headers_of_M(_), args) =>
+      case t @ Term.Apply(fun @ Headers_of_M(_), args) =>
         Patch.replaceTree(t, s"${Headers_S.displayName}(${args.mkString(", ")})")
 
-      case t @ AgentProduct_M(Type.Name(_) | Term.Name(_)) => 
-        Patch.addGlobalImport(ProductId_S) + 
+      case t @ AgentProduct_M(Type.Name(_) | Term.Name(_)) =>
+        Patch.addGlobalImport(ProductId_S) +
           Patch.replaceTree(t, ProductId_S.displayName)
       case AgentProduct_M(imp: Importee) =>
         Patch.removeImportee(imp)
@@ -91,18 +95,18 @@ class v0_22 extends SemanticRule("v0_22") {
   val AgentProduct_S = Symbol("org/http4s/headers/AgentProduct.")
   val ProductId_S = Symbol("org.http4s.ProductId#")
 
-  def rewriteUri(implicit doc: SemanticDocument) = 
-    doc.tree.collect {
-      case t @ Term.Apply(Uri_M(_), args) =>
-        val path: Option[Term] =
-          args match {
-            case _ :: _ :: (path @ Lit.String(_)) :: _ => Some(path)
-            case _ => args.collectFirst { case Term.Assign(Term.Name("path"), path @ Lit.String(_)) => path }
-          }
-        path.fold(Patch.empty){ path =>
-          Patch.addGlobalImport(LiteralsSyntaxWildcard) + 
-            Patch.replaceTree(path, s"path$path")
+  def rewriteUri(implicit doc: SemanticDocument) =
+    doc.tree.collect { case t @ Term.Apply(Uri_M(_), args) =>
+      val path: Option[Term] =
+        args match {
+          case _ :: _ :: (path @ Lit.String(_)) :: _ => Some(path)
+          case _ =>
+            args.collectFirst { case Term.Assign(Term.Name("path"), path @ Lit.String(_)) => path }
         }
+      path.fold(Patch.empty) { path =>
+        Patch.addGlobalImport(LiteralsSyntaxWildcard) +
+          Patch.replaceTree(path, s"path$path")
+      }
     }.asPatch
 
   val Uri_M = SymbolMatcher.exact("org/http4s/Uri.")

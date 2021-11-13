@@ -26,7 +26,7 @@ import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.scalacheck.Parameters
 import org.specs2.specification.core.Fragments
-import org.specs2.specification.create.{DefaultFragmentFactory}
+import org.specs2.specification.create.DefaultFragmentFactory
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
 
@@ -73,7 +73,8 @@ trait Http4sSpec
 
   def checkAll(name: String, props: Properties)(implicit
       p: Parameters,
-      f: FreqMap[Set[Any]] => Pretty): Fragments = {
+      f: FreqMap[Set[Any]] => Pretty,
+  ): Fragments = {
     addFragment(DefaultFragmentFactory.text(s"$name  ${props.name} must satisfy"))
     addBreak
     addFragments(Fragments.foreach(props.properties.toList) { case (name, prop) =>
@@ -82,7 +83,8 @@ trait Http4sSpec
   }
 
   def checkAll(
-      props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
+      props: Properties
+  )(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(DefaultFragmentFactory.text(s"${props.name} must satisfy"))
     addFragments(Fragments.foreach(props.properties.toList) { case (name, prop) =>
       Fragments(name in check(prop, p, f))
@@ -129,7 +131,7 @@ object Http4sSpec {
         blockingPool.shutdown()
         computePool.shutdown()
         scheduledExecutor.shutdown()
-      }
+      },
     )
   }
 

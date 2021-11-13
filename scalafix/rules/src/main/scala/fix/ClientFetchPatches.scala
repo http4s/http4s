@@ -30,7 +30,8 @@ object ClientFetchPatches {
               maybeClient,
               applyTypesStr,
               AsApplyParamString(req),
-              AsApplyParamString(fun)) =>
+              AsApplyParamString(fun),
+            ) =>
           Patch.replaceTree(subtree, s"${asCalleeString(maybeClient)}run$req.use$applyTypesStr$fun")
 
         // Match `_.fetch(req)(fun)` for `req: F[Request[F]]`
@@ -38,7 +39,8 @@ object ClientFetchPatches {
               Some(Term.Placeholder()),
               applyTypesStr,
               req,
-              AsApplyParamString(fun)) =>
+              AsApplyParamString(fun),
+            ) =>
           Patch.replaceTree(subtree, s"client => $req.flatMap(client.run(_).use$applyTypesStr$fun)")
 
         // Match `[client.]fetch(req)(fun)` for `req: F[Request[F]]`
@@ -46,10 +48,12 @@ object ClientFetchPatches {
               maybeClient,
               applyTypesStr,
               req,
-              AsApplyParamString(fun)) =>
+              AsApplyParamString(fun),
+            ) =>
           Patch.replaceTree(
             subtree,
-            s"$req.flatMap(${asCalleeString(maybeClient)}run(_).use$applyTypesStr$fun)")
+            s"$req.flatMap(${asCalleeString(maybeClient)}run(_).use$applyTypesStr$fun)",
+          )
       }
 
   private val clientClassSymbol = Symbol("org/http4s/client/Client#")
@@ -99,9 +103,13 @@ object ClientFetchPatches {
                     TypeRef(
                       _,
                       XSymbol.Owner(IsSymbolATypeOfClientClass()),
-                      List(RequestValueEffectTypeSymbol(_)))
-                  ))),
-              _) =>
+                      List(RequestValueEffectTypeSymbol(_)),
+                    )
+                  )
+                )
+              ),
+              _,
+            ) =>
           true
       }
   }
@@ -110,14 +118,15 @@ object ClientFetchPatches {
       PartialFunction.condOpt(term) {
         case Term.Name("fetch") &
             XSymbol(
-              XSymbol.Owner(IsSymbolATypeOfClientClass()) & XSignature(
-                fetchSig: MethodSignature)) =>
+              XSymbol.Owner(IsSymbolATypeOfClientClass()) & XSignature(fetchSig: MethodSignature)
+            ) =>
           fetchSig
       }
   }
   private object ClientFetchCall {
-    def unapply(tree: Tree)(implicit doc: SemanticDocument)
-        : Option[(MethodSignature, Option[Term], Option[(SemanticType, Type)], Term, Term)] =
+    def unapply(tree: Tree)(implicit
+        doc: SemanticDocument
+    ): Option[(MethodSignature, Option[Term], Option[(SemanticType, Type)], Term, Term)] =
       PartialFunction.condOpt(tree) {
         case // fetch(fun)(req)
             Term.Apply(Term.Apply(ClientFetchMethod(methodSig), List(req)), List(fun)) =>
@@ -126,44 +135,53 @@ object ClientFetchPatches {
         case // client.fetch(fun)(req)
             Term.Apply(
               Term.Apply(Term.Select(callee, ClientFetchMethod(methodSig)), List(req)),
-              List(fun)) =>
+              List(fun),
+            ) =>
           (methodSig, Some(callee), None, req, fun)
 
         case // fetch[A](fun)(req)
             Term.Apply(
               Term.Apply(
                 Term.ApplyType(ClientFetchMethod(methodSig), List(entityType)),
-                List(req @ XSemanticType(effectSemType))),
-              List(fun)) =>
+                List(req @ XSemanticType(effectSemType)),
+              ),
+              List(fun),
+            ) =>
           (methodSig, None, Some((effectSemType, entityType)), req, fun)
 
         case // fetch[A](fun)(req)
             Term.Apply(
               Term.Apply(Term.ApplyType(ClientFetchMethod(methodSig), List(_)), List(req)),
-              List(fun)) =>
+              List(fun),
+            ) =>
           (methodSig, None, None, req, fun)
 
         case // client.fetch[A](fun)(req)
             Term.Apply(
               Term.Apply(
                 Term.ApplyType(Term.Select(callee, ClientFetchMethod(methodSig)), List(entityType)),
-                List(req @ XSemanticType(effectSemType))),
-              List(fun)) =>
+                List(req @ XSemanticType(effectSemType)),
+              ),
+              List(fun),
+            ) =>
           (methodSig, Some(callee), Some((effectSemType, entityType)), req, fun)
 
         case // client.fetch[A](fun)(req)
             Term.Apply(
               Term.Apply(
                 Term.ApplyType(Term.Select(callee, ClientFetchMethod(methodSig)), List(_)),
-                List(req)),
-              List(fun)) =>
+                List(req),
+              ),
+              List(fun),
+            ) =>
           (methodSig, Some(callee), None, req, fun)
       }
   }
 
   private object ClientFetchReqFunCall {
-    def unapply(tree: Tree)(implicit
-        doc: SemanticDocument): Option[(Option[Term], String, Term, Term)] =
+    def unapply(
+        tree: Tree
+    )(implicit doc: SemanticDocument): Option[(Option[Term], String, Term, Term)] =
       PartialFunction.condOpt(tree) {
         case ClientFetchCall(IsClientFetchReqMethod(), maybeCallee, None, req, fun) =>
           (maybeCallee, "", req, fun)
@@ -173,14 +191,16 @@ object ClientFetchPatches {
               maybeCallee,
               Some((RequestValueEffectTypeSymbol(effectTypeSym), entityType)),
               req,
-              fun) =>
+              fun,
+            ) =>
           (maybeCallee, asApplyTypesString(effectTypeSym, entityType), req, fun)
       }
   }
 
   private object ClientFetchFReqFunCall {
-    def unapply(tree: Tree)(implicit
-        doc: SemanticDocument): Option[(Option[Term], String, Term, Term)] =
+    def unapply(
+        tree: Tree
+    )(implicit doc: SemanticDocument): Option[(Option[Term], String, Term, Term)] =
       PartialFunction.condOpt(tree) {
         case ClientFetchCall(IsClientFetchFReqMethod(), maybeCallee, None, req, fun) =>
           (maybeCallee, "", req, fun)
@@ -190,7 +210,8 @@ object ClientFetchPatches {
               maybeCallee,
               Some((EffectRequestValueTypeSymbol(effectTypeSym), entityType)),
               req,
-              fun) =>
+              fun,
+            ) =>
           (maybeCallee, asApplyTypesString(effectTypeSym, entityType), req, fun)
       }
   }
