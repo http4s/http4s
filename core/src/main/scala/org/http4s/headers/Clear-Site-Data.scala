@@ -41,7 +41,7 @@ object `Clear-Site-Data` {
     implicit val rendererInstance: Renderer[Directive] =
       new Renderer[Directive] {
         def render(writer: Writer, dir: Directive): writer.type =
-          writer << s""""${dir.value}""""
+          writer << '"' << dir.value << '"'
       }
   }
 
@@ -64,7 +64,7 @@ object `Clear-Site-Data` {
       .toMap
 
   private val directiveParser: Parser[Directive] =
-    Rfc7230.quotedString.map(s => types.getOrElse(s, new UnknownType(s) {}))
+    Rfc7230.quotedString.map(s => types.getOrElse(s, UnknownType.unsafeFromString(s)))
 
   private val parser: Parser[`Clear-Site-Data`] =
     Rfc7230.headerRep1(directiveParser).map(apply)
@@ -79,7 +79,7 @@ object `Clear-Site-Data` {
     Header.createRendered(
       ci"Clear-Site-Data",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: Semigroup[`Clear-Site-Data`] =

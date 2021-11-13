@@ -40,9 +40,9 @@ class ClearSiteDataSuite extends HeaderLaws {
         `Clear-Site-Data`.cache,
         `Clear-Site-Data`.cookies,
         `Clear-Site-Data`.storage,
-        `Clear-Site-Data`.executionContexts
+        `Clear-Site-Data`.executionContexts,
       ).renderString,
-      """Clear-Site-Data: "*", "cache", "cookies", "storage", "executionContexts""""
+      """Clear-Site-Data: "*", "cache", "cookies", "storage", "executionContexts"""",
     )
   }
 
@@ -50,9 +50,9 @@ class ClearSiteDataSuite extends HeaderLaws {
     assertEquals(
       `Clear-Site-Data`(
         `Clear-Site-Data`.UnknownType.unsafeFromString("unknownA"),
-        `Clear-Site-Data`.UnknownType.unsafeFromString("unknownB")
+        `Clear-Site-Data`.UnknownType.unsafeFromString("unknownB"),
       ).renderString,
-      """Clear-Site-Data: "unknownA", "unknownB""""
+      """Clear-Site-Data: "unknownA", "unknownB"""",
     )
   }
 
@@ -73,9 +73,9 @@ class ClearSiteDataSuite extends HeaderLaws {
           `Clear-Site-Data`.cache,
           `Clear-Site-Data`.cookies,
           `Clear-Site-Data`.storage,
-          `Clear-Site-Data`.executionContexts
+          `Clear-Site-Data`.executionContexts,
         )
-      )
+      ),
     )
   }
 
