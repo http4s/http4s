@@ -10,5 +10,5 @@ sealed abstract class Plant
 trait Tree extends Plant
 
 package pkg {
-  final case class Foo private[pkg](v: String)
+  final case class Foo private[pkg] (v: String)
 }
