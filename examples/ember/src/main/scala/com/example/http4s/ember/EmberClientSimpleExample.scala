@@ -51,18 +51,22 @@ object EmberClientSimpleExample extends IOApp {
         logTimed(
           logger,
           "Http Only - ChristopherDavenport Site",
-          getRequestBufferedBody(client, githubReq)) >>
+          getRequestBufferedBody(client, githubReq),
+        ) >>
           logTimed(logger, "Json - DadJoke", client.expect[Json](dadJokeReq)) >>
           logTimed(logger, "Https - Google", getRequestBufferedBody(client, googleReq)) >>
           logTimed(
             logger,
             "Small Response - HttpBin Get",
-            getRequestBufferedBody(client, httpBinGet)) >>
+            getRequestBufferedBody(client, httpBinGet),
+          ) >>
           logTimed(
             logger,
             "Large Response - HttpBin PNG",
-            getRequestBufferedBody(client, httpBinPng)) >>
-          IO(println("Done")))
+            getRequestBufferedBody(client, httpBinPng),
+          ) >>
+          IO(println("Done"))
+      )
       .as(ExitCode.Success)
 
   def getRequestBufferedBody[F[_]: Sync](client: Client[F], req: Request[F]): F[Response[F]] =
@@ -71,7 +75,8 @@ object EmberClientSimpleExample extends IOApp {
       .use(resp =>
         resp.body.compile
           .to(ByteVector)
-          .map(bv => resp.copy(body = Stream.chunk(Chunk.ByteVectorChunk(bv)))))
+          .map(bv => resp.copy(body = Stream.chunk(Chunk.ByteVectorChunk(bv))))
+      )
 
   def logTimed[F[_]: Clock: Monad, A](logger: Logger[F], name: String, fa: F[A]): F[A] =
     timedMS(fa).flatMap { case (time, action) =>

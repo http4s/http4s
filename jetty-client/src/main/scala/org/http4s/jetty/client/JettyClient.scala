@@ -32,8 +32,9 @@ import org.log4s.getLogger
 object JettyClient {
   private val logger: Logger = getLogger
 
-  def allocate[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = {
+  def allocate[F[_]](
+      client: HttpClient = defaultHttpClient()
+  )(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = {
     val acquire = F
       .pure(client)
       .flatTap(client => F.delay(client.start()))
@@ -53,7 +54,8 @@ object JettyClient {
               F.delay(dcp.close())
             }
           })
-        })
+        }
+      )
     val dispose = F
       .delay(client.stop())
       .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))
@@ -61,11 +63,13 @@ object JettyClient {
   }
 
   def resource[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+      F: ConcurrentEffect[F]
+  ): Resource[F, Client[F]] =
     Resource(allocate[F](client))
 
   def stream[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+      F: ConcurrentEffect[F]
+  ): Stream[F, Client[F]] =
     Stream.resource(resource(client))
 
   def defaultHttpClient(): HttpClient = {
@@ -79,7 +83,8 @@ object JettyClient {
   private def toJettyRequest[F[_]](
       client: HttpClient,
       request: Request[F],
-      dcp: StreamRequestContentProvider[F]): JettyRequest = {
+      dcp: StreamRequestContentProvider[F],
+  ): JettyRequest = {
     val jReq = client
       .newRequest(request.uri.toString)
       .method(request.method.name)

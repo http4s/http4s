@@ -86,7 +86,7 @@ class WebSocketSuite extends Http4sSuite {
 
   test("WebSocket decoder should encode a close message") {
     val reasonGen = for {
-      length <- choose(0, 30) //UTF-8 chars are at most 4 bytes, byte limit is 123
+      length <- choose(0, 30) // UTF-8 chars are at most 4 bytes, byte limit is 123
       chars <- listOfN(length, arbitrary[Char])
     } yield chars.mkString
 
@@ -109,7 +109,8 @@ class WebSocketSuite extends Http4sSuite {
   }
 
   test(
-    "WebSocket decoder should refuse to encode a close message with a reason that is too large") {
+    "WebSocket decoder should refuse to encode a close message with a reason that is too large"
+  ) {
     val validCloseCode = 1000
 
     forAll { (reason: String) =>

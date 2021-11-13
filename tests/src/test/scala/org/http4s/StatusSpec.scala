@@ -84,28 +84,33 @@ class StatusSpec extends StatusDeprecatedSpec {
   }
 
   test(
-    "Finding a status by code should succeed if the code is in the valid range, but not a standard code") {
+    "Finding a status by code should succeed if the code is in the valid range, but not a standard code"
+  ) {
     assert(fromInt(371).fold(_ => false, s => s.reason == ""))
     assert(fromInt(482).isRight)
   }
 
   test(
-    "Finding a status by code should yield a status with the standard reason for a standard code") {
+    "Finding a status by code should yield a status with the standard reason for a standard code"
+  ) {
     assertEquals(getStatus(NotFound.code).reason, "Not Found")
   }
 
   test(
-    "Finding a status by code and reason should succeed if the code is in the valid range, but not a standard code") {
+    "Finding a status by code and reason should succeed if the code is in the valid range, but not a standard code"
+  ) {
     val s1 = getStatus(371, "some reason")
     assertEquals(s1.code, 371)
     assertEquals(s1.reason, "some reason")
   }
 
   test(
-    "Finding a status by code and reason should succeed for a standard code and nonstandard reason, without replacing the default reason") {
+    "Finding a status by code and reason should succeed for a standard code and nonstandard reason, without replacing the default reason"
+  ) {
     assertEquals(
       getStatus(NotFound.code, "My dog ate my homework").reason,
-      "My dog ate my homework")
+      "My dog ate my homework",
+    )
 
     assertEquals(getStatus(NotFound.code).reason, "Not Found")
   }

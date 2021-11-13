@@ -65,7 +65,8 @@ class HeaderSuite extends munit.DisciplineSuite {
       assertEquals(
         h.isNameValid,
         h.name.toString.nonEmpty && h.name.toString.getBytes(ISO_8859_1).forall(tchar),
-        h.name)
+        h.name,
+      )
     }
   }
 

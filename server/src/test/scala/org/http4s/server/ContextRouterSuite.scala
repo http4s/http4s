@@ -53,14 +53,15 @@ class ContextRouterSuite extends Http4sSuite {
     Kleisli((r: ContextRequest[IO, Unit]) =>
       if (r.req.uri.query.containsQueryParam("block"))
         OptionT.liftF(Ok(r.req.uri.path.renderString))
-      else routes(r))
+      else routes(r)
+    )
 
   val service = ContextRouter[IO, Unit](
     "/numbers" -> numbers,
     "/numb" -> middleware(numbers2),
     "/" -> root,
     "/shadow" -> shadow,
-    "/letters" -> letters
+    "/letters" -> letters,
   )
 
   test("translate mount prefixes") {

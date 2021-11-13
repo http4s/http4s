@@ -40,18 +40,20 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
   def mountService[F[_]: ConcurrentEffect](
       name: String,
       service: HttpRoutes[F],
-      mapping: String = "/*"): ServletRegistration.Dynamic =
+      mapping: String = "/*",
+  ): ServletRegistration.Dynamic =
     mountHttpApp(name, service.orNotFound, mapping)
 
   def mountHttpApp[F[_]: ConcurrentEffect](
       name: String,
       service: HttpApp[F],
-      mapping: String = "/*"): ServletRegistration.Dynamic = {
+      mapping: String = "/*",
+  ): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,
       asyncTimeout = defaults.ResponseTimeout,
       servletIo = NonBlockingServletIo(DefaultChunkSize),
-      serviceErrorHandler = DefaultServiceErrorHandler[F]
+      serviceErrorHandler = DefaultServiceErrorHandler[F],
     )
     val reg = self.addServlet(name, servlet)
     reg.setLoadOnStartup(1)

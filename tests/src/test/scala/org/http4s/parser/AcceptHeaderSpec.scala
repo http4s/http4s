@@ -108,8 +108,8 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
       Accept(
         `text/*`.withQValue(qValue"0.3"),
         MediaType.text.html.withQValue(qValue"0.7"),
-        MediaType.text.html.withExtensions(Map("level" -> "1"))
-      )
+        MediaType.text.html.withExtensions(Map("level" -> "1")),
+      ),
     )
 
     // Go through all of them

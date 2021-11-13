@@ -46,6 +46,6 @@ object DNT {
     Header.create(
       ci"DNT",
       _.value,
-      parse
+      parse,
     )
 }

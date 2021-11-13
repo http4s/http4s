@@ -103,7 +103,7 @@ object Range {
             writer
           }
         },
-      parse
+      parse,
     )
 
 }

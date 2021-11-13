@@ -73,7 +73,7 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     case GET -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
         errors => BadRequest(errors.map(_.sanitized).mkString_("", ",", "")),
-        vc => Ok(s"counter: $vc")
+        vc => Ok(s"counter: $vc"),
       )
     case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
       c match {
@@ -139,7 +139,10 @@ class PathInHttpRoutesSuite extends Http4sSuite {
         GET,
         Uri(
           path = path"/items",
-          query = Query.unsafeFromString("list=1&list=2&list=3&list=4&list=5"))))
+          query = Query.unsafeFromString("list=1&list=2&list=3&list=4&list=5"),
+        ),
+      )
+    )
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals(s"items: 1,2,3,4,5")
   }
@@ -165,7 +168,9 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       serve(
         Request(
           GET,
-          Uri(path = path"/search", query = Query.unsafeFromString("term=%20http4s%20%20"))))
+          Uri(path = path"/search", query = Query.unsafeFromString("term=%20http4s%20%20")),
+        )
+      )
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("term:  http4s  ")
   }
@@ -222,10 +227,12 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       response.flatMap(_.as[String]).assertEquals("no counter")
   }
   test(
-    "Path DSL within HttpService should optional validating parameter present with incorrect format") {
+    "Path DSL within HttpService should optional validating parameter present with incorrect format"
+  ) {
     val response =
       serve(
-        Request(GET, Uri(path = path"/optvalid", query = Query.unsafeFromString("counter=foo"))))
+        Request(GET, Uri(path = path"/optvalid", query = Query.unsafeFromString("counter=foo")))
+      )
     response.map(_.status).assertEquals(BadRequest) *>
       response.flatMap(_.as[String]).assertEquals("Query decoding Int failed")
   }
@@ -235,9 +242,12 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       response.flatMap(_.as[String]).assertEquals("absent")
   }
   test("Path DSL within HttpService should optional multi parameter with multiple parameters") {
-    val response = serve(Request(
-      GET,
-      Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=1&counter=2&counter=3"))))
+    val response = serve(
+      Request(
+        GET,
+        Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=1&counter=2&counter=3")),
+      )
+    )
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("3: 1,2,3")
   }
@@ -250,28 +260,36 @@ class PathInHttpRoutesSuite extends Http4sSuite {
   test("Path DSL within HttpService should optional multi parameter with incorrect format") {
     val response =
       serve(
-        Request(GET, Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo"))))
+        Request(GET, Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo")))
+      )
     response.map(_.status).assertEquals(BadRequest)
   }
   test("Path DSL within HttpService should optional multi parameter with one incorrect parameter") {
     val response = serve(
       Request(
         GET,
-        Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo&counter=1"))))
+        Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo&counter=1")),
+      )
+    )
 
     val response2 = serve(
       Request(
         GET,
-        Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=1&counter=foo"))))
+        Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=1&counter=foo")),
+      )
+    )
     response.map(_.status).assertEquals(BadRequest) *>
       response2.map(_.status).assertEquals(BadRequest)
   }
   test(
-    "Path DSL within HttpService should optional multi parameter with two incorrect parameters must return both") {
+    "Path DSL within HttpService should optional multi parameter with two incorrect parameters must return both"
+  ) {
     val response = serve(
       Request(
         GET,
-        Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo&counter=bar"))))
+        Uri(path = path"/multiopt", query = Query.unsafeFromString("counter=foo&counter=bar")),
+      )
+    )
     response.map(_.status).assertEquals(BadRequest) *>
       response
         .flatMap(_.as[String])
@@ -279,8 +297,9 @@ class PathInHttpRoutesSuite extends Http4sSuite {
         .assertEquals(
           scala.List(
             """For input string: "foo"""",
-            """For input string: "bar""""
-          ))
+            """For input string: "bar"""",
+          )
+        )
   }
   test("Path DSL within HttpService should optional flag parameter when present") {
     val response =

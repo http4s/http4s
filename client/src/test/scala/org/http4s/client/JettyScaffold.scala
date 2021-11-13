@@ -32,7 +32,8 @@ import javax.servlet.http.HttpServlet
 
 object JettyScaffold {
   def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(implicit
-      F: Sync[F]): Resource[F, JettyScaffold] =
+      F: Sync[F]
+  ): Resource[F, JettyScaffold] =
     Resource.make(F.delay {
       val scaffold = new JettyScaffold(num, secure)
       scaffold.startServers(testServlet)
@@ -61,7 +62,8 @@ class JettyScaffold private (num: Int, secure: Boolean) {
 
           val kmf = KeyManagerFactory.getInstance(
             Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-              .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+              .getOrElse(KeyManagerFactory.getDefaultAlgorithm)
+          )
 
           kmf.init(ks, "secure".toCharArray)
 
@@ -79,8 +81,10 @@ class JettyScaffold private (num: Int, secure: Boolean) {
             server,
             new SslConnectionFactory(
               sslContextFactory,
-              org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()),
-            connectionFactory)
+              org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString(),
+            ),
+            connectionFactory,
+          )
         } else new ServerConnector(server)
       connector.setPort(0)
       server.addConnector(connector)
@@ -88,7 +92,8 @@ class JettyScaffold private (num: Int, secure: Boolean) {
 
       val address = new InetSocketAddress(
         "localhost",
-        server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort)
+        server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort,
+      )
 
       (address, server)
     }.toVector

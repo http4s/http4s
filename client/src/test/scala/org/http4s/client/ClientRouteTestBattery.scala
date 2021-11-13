@@ -144,8 +144,10 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       uri = Uri(
         authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
         path = Uri.Path.Root / Uri.Path.Segment.encoded(
-          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")
-      ))
+          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:"
+        ),
+      )
+    )
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
@@ -153,10 +155,13 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty().addresses.head
     val name = address.getHostName
     val port = address.getPort
-    val req = Request[IO](uri = Uri(
-      authority =
-        Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
-      path = path"/request-splitting"))
+    val req = Request[IO](uri =
+      Uri(
+        authority =
+          Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
+        path = path"/request-splitting",
+      )
+    )
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
@@ -164,7 +169,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty().addresses.head
     val req = Request[IO](
       uri =
-        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo
+    )
       .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
@@ -173,7 +179,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty().addresses.head
     val req = Request[IO](
       uri =
-        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo
+    )
       .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
@@ -203,7 +210,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     }
     resp.body
       .through(
-        writeOutputStream[IO](IO.pure(srv.getOutputStream), testBlocker, closeAfterUse = false))
+        writeOutputStream[IO](IO.pure(srv.getOutputStream), testBlocker, closeAfterUse = false)
+      )
       .compile
       .drain
   }

@@ -23,7 +23,7 @@ import org.http4s.internal.ChunkWriter
 import java.nio.charset.StandardCharsets
 
 private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
-  //TODO: Refactor encoders to create headers dependent on value.
+  // TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
   def toEntity(mp: Multipart[F]): Entity[F] =
@@ -79,7 +79,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
         .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
           acc ++
             renderPart(
-              Chunk.bytes(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(
-              part)
+              Chunk.bytes(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8))
+            )(part)
         } ++ Stream.chunk(end(boundary))
 }

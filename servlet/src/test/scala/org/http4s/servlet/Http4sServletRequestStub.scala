@@ -92,6 +92,7 @@ case class HttpServletRequestStub(
   def setCharacterEncoding(x$1: String): Unit = ???
   def startAsync(
       x$1: javax.servlet.ServletRequest,
-      x$2: javax.servlet.ServletResponse): javax.servlet.AsyncContext = ???
+      x$2: javax.servlet.ServletResponse,
+  ): javax.servlet.AsyncContext = ???
   def startAsync(): javax.servlet.AsyncContext = ???
 }

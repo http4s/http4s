@@ -51,7 +51,8 @@ private[authentication] object DigestUtil {
       nonce: String,
       nc: String,
       cnonce: String,
-      qop: String): F[String] = for {
+      qop: String,
+  ): F[String] = for {
     ha1str <- (username + ":" + realm + ":" + password).pure[F]
     ha1 <- md5(ha1str)
     ha2str = method + ":" + uri

@@ -34,7 +34,7 @@ trait HttpCodecTests[A] extends Laws {
       parent = None,
       "roundTrip" -> Prop.forAll { (a: A) =>
         laws.httpCodecRoundTrip(a)
-      }
+      },
     )
 }
 

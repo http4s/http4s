@@ -27,6 +27,7 @@ import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
+import org.http4s.syntax.literals._
 
 import java.net.URL
 import scala.concurrent.ExecutionContext.global
@@ -41,13 +42,15 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     val url = Uri(
       scheme = Some(Scheme.http),
       authority = Some(Authority(host = RegName("ptscom"))),
-      path = Uri.Path.unsafeFromString("/t/http4s/post"))
+      path = path"/t/http4s/post",
+    )
 
     val multipart = Multipart[IO](
       Vector(
         Part.formData("text", "This is text."),
-        Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png))
-      ))
+        Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png)),
+      )
+    )
 
     val request: Request[IO] =
       Method.POST(multipart, url).withHeaders(multipart.headers)
