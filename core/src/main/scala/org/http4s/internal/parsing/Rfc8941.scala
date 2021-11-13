@@ -39,8 +39,8 @@ private[http4s] object Rfc8941 {
    */
   val sfDecimal: Parser[BigDecimal] = {
     import Parser.char, Rfc5234.digit
-    val num = digit.rep(1, 12).string
-    val dec = digit.rep(1, 3).string
+    val num = digit.rep(1, 12)
+    val dec = digit.rep(1, 3)
     val pos = (num *> char('.') *> dec).string
     val neg = (char('-') *> pos).string
     (pos | neg).map(BigDecimal(_))
