@@ -1001,7 +1001,15 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .crossType(crossType)
     .settings(commonSettings)
     .settings(
-      moduleName := s"http4s-$name"
+      moduleName := s"http4s-$name",
+      Test / test := {
+        val result = (Test / test).value
+        if (crossType == CrossType.Full) { // Check for misplaced srcs
+          val dir = baseDirectory.value / ".." / "src"
+          if (dir.exists) sys.error(s"Misplaced sources in ${dir.toPath().normalize()}")
+        }
+        result
+      },
     )
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
