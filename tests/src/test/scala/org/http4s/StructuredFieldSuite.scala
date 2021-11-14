@@ -135,7 +135,7 @@ class StructuredFieldSuite extends Http4sSuite {
   test("SfInteger.parser should parse valid strings") {
     Prop.forAll(genSfInteger) { s =>
       SfInteger.parser.parseAll(s) match {
-        case Right(SfInteger(_)) => true
+        case Right(SfInteger(v)) => v == s.toLong
         case _ => false
       }
     }
@@ -180,7 +180,7 @@ class StructuredFieldSuite extends Http4sSuite {
   test("SfDecimal.parser should parse valid strings") {
     Prop.forAll(genSfDecimal) { s =>
       SfDecimal.parser.parseAll(s) match {
-        case Right(SfDecimal(_)) => true
+        case Right(SfDecimal(v)) => v == BigDecimal(s)
         case _ => false
       }
     }
@@ -207,12 +207,6 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  test("SfDecimal.render should scale numbers correctly") {
-    assert(SfDecimal.fromBigDecimal(BigDecimal("99.998765")).map(_.renderString) == Some("99.999"))
-    assert(SfDecimal.fromBigDecimal(BigDecimal("99.99")).map(_.renderString) == Some("99.99"))
-    assert(SfDecimal.fromBigDecimal(BigDecimal("99")).map(_.renderString) == Some("99.0"))
-  }
-
   test("SfDecimal.fromBigDecimal should accept valid values") {
     Prop.forAll(genSfDecimal) { s =>
       SfDecimal.fromBigDecimal(BigDecimal(s)) match {
@@ -224,6 +218,12 @@ class StructuredFieldSuite extends Http4sSuite {
 
   test("SfDecimal.fromBigDecimal should fail with invalid values") {
     assert(SfDecimal.fromBigDecimal(BigDecimal("1000000000000.1")) == None)
+  }
+
+  test("SfDecimal.render should scale numbers correctly") {
+    assert(SfDecimal.fromBigDecimal(BigDecimal("99.998765")).map(_.renderString) == Some("99.999"))
+    assert(SfDecimal.fromBigDecimal(BigDecimal("99.99")).map(_.renderString) == Some("99.99"))
+    assert(SfDecimal.fromBigDecimal(BigDecimal("99")).map(_.renderString) == Some("99.0"))
   }
 
   // SfString
