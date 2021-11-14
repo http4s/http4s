@@ -145,19 +145,6 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfInteger.parser.parseAll("123abc").isLeft)
   }
 
-  test("SfInteger.render should render values correctly") {
-    Prop.forAll(genSfInteger) { s =>
-      SfInteger.parser.parseAll(s) match {
-        case Right(i1) =>
-          SfInteger.parser.parseAll(i1.renderString) match {
-            case Right(i2) => i1 == i2
-            case _ => false
-          }
-        case _ => false
-      }
-    }
-  }
-
   test("SfInteger.fromLong should accept valid values") {
     Prop.forAll(genSfInteger) { s =>
       SfInteger.fromLong(s.toLong) match {
@@ -173,6 +160,19 @@ class StructuredFieldSuite extends Http4sSuite {
 
   test("SfInteger.fromInt should create values correctly") {
     assert(SfInteger.fromInt(999).value == 999L)
+  }
+
+  test("SfInteger.render should render values correctly") {
+    Prop.forAll(genSfInteger) { s =>
+      SfInteger.parser.parseAll(s) match {
+        case Right(i1) =>
+          SfInteger.parser.parseAll(i1.renderString) match {
+            case Right(i2) => i1 == i2
+            case _ => false
+          }
+        case _ => false
+      }
+    }
   }
 
   // SfDecimal
@@ -194,19 +194,6 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfDecimal.parser.parseAll("123").isLeft)
   }
 
-  test("SfDecimal.render should render values correctly") {
-    Prop.forAll(genSfDecimal) { s =>
-      SfDecimal.parser.parseAll(s) match {
-        case Right(i1) =>
-          SfDecimal.parser.parseAll(i1.renderString) match {
-            case Right(i2) => i1 == i2
-            case _ => false
-          }
-        case _ => false
-      }
-    }
-  }
-
   test("SfDecimal.fromBigDecimal should accept valid values") {
     Prop.forAll(genSfDecimal) { s =>
       SfDecimal.fromBigDecimal(BigDecimal(s)) match {
@@ -218,6 +205,19 @@ class StructuredFieldSuite extends Http4sSuite {
 
   test("SfDecimal.fromBigDecimal should fail with invalid values") {
     assert(SfDecimal.fromBigDecimal(BigDecimal("1000000000000.1")) == None)
+  }
+
+  test("SfDecimal.render should render values correctly") {
+    Prop.forAll(genSfDecimal) { s =>
+      SfDecimal.parser.parseAll(s) match {
+        case Right(i1) =>
+          SfDecimal.parser.parseAll(i1.renderString) match {
+            case Right(i2) => i1 == i2
+            case _ => false
+          }
+        case _ => false
+      }
+    }
   }
 
   test("SfDecimal.render should scale numbers correctly") {
@@ -286,19 +286,6 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfToken.parser.parseAll("123abc").isLeft)
   }
 
-  test("SfToken.render should render values correctly") {
-    Prop.forAll(genSfToken) { s =>
-      SfToken.parser.parseAll(s) match {
-        case Right(t1) =>
-          SfToken.parser.parseAll(t1.renderString) match {
-            case Right(t2) => t1 == t2
-            case _ => false
-          }
-        case _ => false
-      }
-    }
-  }
-
   test("SfToken.fromString should accept valid strings") {
     Prop.forAll(genSfToken) { s =>
       SfToken.fromString(s) match {
@@ -310,6 +297,19 @@ class StructuredFieldSuite extends Http4sSuite {
 
   test("SfToken.fromString should fail with invalid strings") {
     assert(SfToken.fromString("123abc") == None)
+  }
+
+  test("SfToken.render should render values correctly") {
+    Prop.forAll(genSfToken) { s =>
+      SfToken.parser.parseAll(s) match {
+        case Right(t1) =>
+          SfToken.parser.parseAll(t1.renderString) match {
+            case Right(t2) => t1 == t2
+            case _ => false
+          }
+        case _ => false
+      }
+    }
   }
 
   // SfBinary
