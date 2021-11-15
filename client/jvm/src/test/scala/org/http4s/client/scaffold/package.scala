@@ -22,10 +22,7 @@ import io.netty.channel.{Channel, ChannelFuture}
 
 package object scaffold {
 
-  implicit class NettySyntax[F[_]](val fcf: F[ChannelFuture]) extends AnyVal {
-    def liftToF(implicit F: Async[F]): F[Unit] =
-      liftToFWithChannel.void
-
+  implicit class NettyChannelFutureSyntax[F[_]](val fcf: F[ChannelFuture]) extends AnyVal {
     def liftToFWithChannel(implicit F: Async[F]): F[Channel] =
       F.async((callback: Either[Throwable, Channel] => Unit) =>
         fcf.flatMap(cf =>
@@ -34,7 +31,27 @@ package object scaffold {
               if (f.isSuccess) callback(Right(f.channel()))
               else callback(Left(f.cause()))
             }
-            Some(F.delay(cf.cancel(true)))
+            Some(F.delay {
+              cf.cancel(true)
+              ()
+            })
+          }))
+  }
+
+  implicit class NettyFutureSyntax[F[_], A <: io.netty.util.concurrent.Future[_]](val ff: F[A])
+      extends AnyVal {
+    def liftToF(implicit F: Async[F]): F[Unit] =
+      F.async((callback: Either[Throwable, Unit] => Unit) =>
+        ff.flatMap(f =>
+          F.delay {
+            f.addListener { (f: io.netty.util.concurrent.Future[_]) =>
+              if (f.isSuccess) callback(Right(()))
+              else callback(Left(f.cause()))
+            }
+            Some(F.delay {
+              f.cancel(true)
+              ()
+            })
           }))
   }
 }

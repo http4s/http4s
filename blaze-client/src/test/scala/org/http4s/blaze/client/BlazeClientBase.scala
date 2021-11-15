@@ -74,26 +74,32 @@ trait BlazeClientBase extends Http4sSuite {
     Map(
       (HttpMethod.POST, "/respond-and-close-immediately") -> new Handler {
         // The client may receive the response before sending the whole request
-        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
           HandlerHelpers.sendResponse(
             ctx,
             HttpResponseStatus.OK,
             HandlerHelpers.utf8Text("a"),
             closeConnection = true)
+          ()
+        }
 
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       },
       (HttpMethod.POST, "/respond-and-close-immediately-no-body") -> new Handler {
         // The client may receive the response before sending the whole request
-        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
           HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK, closeConnection = true)
+          ()
+        }
 
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       },
       (HttpMethod.POST, "/process-request-entity") -> new Handler {
         // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
-        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
           HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK, closeConnection = true)
+          ()
+        }
       }
     )
 

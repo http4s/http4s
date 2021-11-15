@@ -24,14 +24,15 @@ import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil
-import org.http4s.client.scaffold.HandlersToNettyAdapter.defaultFallbackHandler
 import org.log4s.getLogger
 
 import java.net.URI
 
 object HandlersToNettyAdapter {
-  val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, _: HttpRequest) =>
+  val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, _: HttpRequest) => {
     HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)
+    ()
+  }
 
   def apply[F[_]](
       handlers: Map[(HttpMethod, String), Handler],
@@ -42,7 +43,7 @@ object HandlersToNettyAdapter {
 
 class HandlersToNettyAdapter private (
     handlers: Map[(HttpMethod, String), Handler],
-    fallbackHandler: Handler = defaultFallbackHandler
+    fallbackHandler: Handler
 ) extends SimpleChannelInboundHandler[HttpObject] {
 
   private val logger = getLogger(this.getClass)
@@ -86,20 +87,33 @@ class HandlersToNettyAdapter private (
     }
   }
 
-  override def channelReadComplete(ctx: ChannelHandlerContext): Unit = ctx.flush()
+  override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
+    ctx.flush()
+    ()
+  }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
     logger.warn(cause)("")
     ctx.close()
+    ()
   }
 
 }
 
 trait Handler {
 
-  def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+  def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+    val _ = ctx
+    val _ = request
+    ()
+  }
 
-  def onContent(ctx: ChannelHandlerContext, request: HttpRequest, content: HttpContent): Unit = ()
+  def onContent(ctx: ChannelHandlerContext, request: HttpRequest, content: HttpContent): Unit = {
+    val _ = ctx
+    val _ = request
+    val _ = content
+    ()
+  }
 
   def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit
 

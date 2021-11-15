@@ -18,7 +18,7 @@ package org.http4s.client.scaffold
 
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
-import cats.effect.{Ref, Resource, Sync}
+import cats.effect.{Ref, Resource}
 import cats.implicits._
 import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
 import io.netty.bootstrap.ServerBootstrap
@@ -78,6 +78,7 @@ object NettyTestServer {
             .addLast(new HttpRequestDecoder())
             .addLast(new HttpResponseEncoder())
             .addLast(dispatcher.unsafeRunSync(makeHandler))
+          ()
         }
       })
     channel <- server[F](bootstrap, port)
@@ -85,8 +86,8 @@ object NettyTestServer {
     localAddress <- Resource.eval(toSocketAddress(localInetSocketAddress).liftTo[F])
   } yield new NettyTestServer(establishedConnections, localAddress)
 
-  private def nioEventLoopGroup[F[_]](implicit F: Sync[F]): Resource[F, NioEventLoopGroup] =
-    Resource.make(F.delay(new NioEventLoopGroup()))(el => F.delay(el.shutdownGracefully()))
+  private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
+    Resource.make(F.delay(new NioEventLoopGroup()))(el => F.delay(el.shutdownGracefully()).liftToF)
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit
       F: Async[F]): Resource[F, Channel] =
