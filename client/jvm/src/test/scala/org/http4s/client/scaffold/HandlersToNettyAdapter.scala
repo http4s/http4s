@@ -102,18 +102,14 @@ class HandlersToNettyAdapter private (
 
 trait Handler {
 
-  def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
-    val _ = ctx
-    val _ = request
-    ()
-  }
+  def onRequestStart(
+      @deprecated("unused", "") ctx: ChannelHandlerContext,
+      @deprecated("unused", "") request: HttpRequest): Unit = ()
 
-  def onContent(ctx: ChannelHandlerContext, request: HttpRequest, content: HttpContent): Unit = {
-    val _ = ctx
-    val _ = request
-    val _ = content
-    ()
-  }
+  def onContent(
+      @deprecated("unused", "") ctx: ChannelHandlerContext,
+      @deprecated("unused", "") request: HttpRequest,
+      @deprecated("unused", "") content: HttpContent): Unit = ()
 
   def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit
 
