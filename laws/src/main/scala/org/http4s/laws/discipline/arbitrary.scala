@@ -790,9 +790,12 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
 
-    oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty).map(
-      Uri.Path.unsafeFromString
-    )
+    oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty).map {
+      str =>
+        val preparedPath = if (str.startsWith("/")) str else "/" + str
+
+        Uri.Path.unsafeFromString(preparedPath)
+    }
   }
 
   implicit val http4sTestingCogenForPath: Cogen[Uri.Path] =
