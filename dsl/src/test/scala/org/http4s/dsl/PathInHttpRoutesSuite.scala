@@ -49,7 +49,7 @@ class PathInHttpRoutesSuite extends Http4sSuite {
 
   object MultiOptCounter extends OptionalMultiQueryParamDecoderMatcher[Int]("counter")
 
-  object DefaultCounter extends DefaultQueryParamDecoderMatcher[Int]("counter", 0)
+  object DefaultCounter extends QueryParamDecoderMatcherWithDefault[Int]("counter", 0)
 
   object Flag extends FlagQueryParamMatcher("flag")
 
